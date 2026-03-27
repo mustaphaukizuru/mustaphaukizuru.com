@@ -1,0 +1,62 @@
+const express = require("express")
+
+const healthRoutes = require("./healthRoutes")
+const contactRoutes = require("./contactRoutes")
+const productRoutes = require("./productRoutes")
+const orderRoutes = require("./orderRoutes")
+const paymentRoutes = require("./paymentRoutes")
+const authRoutes = require("./authRoutes")
+const downloadRoutes = require("./downloadRoutes")
+const paypalRoutes = require("./paypalRoutes")
+const mercadoPagoRoutes = require("./mercadoPagoRoutes")
+
+const adminDashboardRoutes = require("./adminDashboardRoutes")
+const adminProductRoutes = require("./adminProductRoutes")
+const adminOrderRoutes = require("./adminOrderRoutes")
+const adminDownloadRoutes = require("./adminDownloadRoutes")
+const adminPaymentRoutes = require("./adminPaymentRoutes")
+const adminCategoryRoutes = require("./adminCategoryRoutes")
+const adminUserRoutes = require("./adminUserRoutes")
+const notificationRoutes = require("./notificationRoutes")
+const adminSupportRoutes = require("./adminSupportRoutes")
+const adminPagesRoutes = require("./adminPagesRoutes")
+const supportRoutes = require("./supportRoutes")
+const adminEmailTemplatesRoutes = require("./adminEmailTemplatesRoutes")
+const adminMediaRoutes = require("./adminMediaRoutes")
+const adminServiceOrdersRoutes = require("./adminServiceOrdersRoutes")
+const profileRoutes = require("./profileRoutes")
+const adminAuditRoutes = require("./adminAuditRoutes")
+
+const router = express.Router()
+
+router.use("/health", healthRoutes)
+router.use("/products", productRoutes)
+router.use("/orders", orderRoutes)
+// Stripe removed — use Mercado Pago instead
+// router.use("/payments", paymentRoutes.router || paymentRoutes)
+router.use("/paypal", paypalRoutes)
+router.use("/mercadopago", mercadoPagoRoutes)
+router.use("/auth", authRoutes)
+router.use("/downloads", downloadRoutes)
+
+router.use("/admin/dashboard", adminDashboardRoutes)
+router.use("/admin/products", adminProductRoutes)
+router.use("/admin/orders", adminOrderRoutes)
+router.use("/admin/downloads", adminDownloadRoutes)
+router.use("/admin/payments", adminPaymentRoutes)
+router.use("/admin/categories", adminCategoryRoutes)
+router.use("/admin/users", adminUserRoutes)
+
+router.use("/admin/support", adminSupportRoutes)
+router.use("/admin/pages", adminPagesRoutes)
+router.use("/admin/email-templates", adminEmailTemplatesRoutes)
+router.use("/admin/media", adminMediaRoutes)
+router.use("/admin/service-orders", adminServiceOrdersRoutes)
+router.use("/admin/audit", adminAuditRoutes)  // both routes for compatibility
+router.use("/member/profile", profileRoutes)
+router.use("/member/notifications", notificationRoutes)
+router.use("/member/support", supportRoutes)
+
+router.use("/", contactRoutes)
+
+module.exports = router
