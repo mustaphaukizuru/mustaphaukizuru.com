@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Brand tokens — mustaphaukizuru.com
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --indigo:        #420060;
+  --indigo-dark:   #2d003f;
+  --indigo-light:  #ede4ef;
+  --carafe:        #634F40;
+  --ivory:         #F7F9F4;
+  --peach:         #FFCCAF;
+  --deep-slate:    #2E2F3A;
+  --soft-blue:     #4A6CFA;
+  --soft-sand:     #F1EAE3;
+  --success:       #2FA36B;
+  --warning:       #F59E0B;
+  --error:         #E5484D;
+}
+
+/* ─── Reset & base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+html, body, #root { min-height: 100%; }
+
+body {
+  background-color: var(--ivory);
+  color: var(--carafe);
+  font-family: 'Sora', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Sora', system-ui, sans-serif;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+a { text-decoration: none; color: inherit; }
+button, input, textarea, select { font: inherit; }
+img, video { max-width: 100%; display: block; }
+
+/* ─── Focus rings ───────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ─── Custom scrollbar ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--indigo-light); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--indigo); }
+
+/* ─── Selection ────────────────────────────────────────────────────────────── */
+::selection { background: var(--indigo); color: #fff; }
+
+/* ─── Smooth page transitions ──────────────────────────────────────────────── */
+.page-enter { animation: page-in 0.25s ease-out; }
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ─── Toast progress ───────────────────────────────────────────────────────── */
+@keyframes toast-shrink { from { width: 100%; } to { width: 0%; } }
+
+/* ─── Global link underline animation ─────────────────────────────────────── */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--indigo);
+  border-radius: 2px;
+  transition: width 0.25s ease;
+}
+.link-underline:hover::after { width: 100%; }
+
+/* ─── Utility: hide scrollbar visually ────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Input autofill override ──────────────────────────────────────────────── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #fafafa inset;
+  -webkit-text-fill-color: var(--indigo);
+  transition: background-color 9999s ease-in-out 0s;
+}
