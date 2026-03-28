@@ -7,11 +7,11 @@ import {
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user,  setUser]  = useState(() => getStoredUser())   // eager init — no flicker
-  const [token, setToken] = useState(() => getStoredToken())
-  const [loading, setLoading] = useState(true)               // only true during initial verify
+  const [user,    setUser]    = useState(() => getStoredUser())  // eager init — no flicker
+  const [token,   setToken]   = useState(() => getStoredToken())
+  const [loading, setLoading] = useState(true)                   // only true during initial verify
 
-  // ── Session expired event listener ──────────────────────────────────────
+  // ── Session expired event listener ───────────────────────────────────────
   useEffect(() => {
     function handleExpiry() {
       setUser(null)
@@ -29,15 +29,36 @@ export function AuthProvider({ children }) {
         setLoading(false)
         return
       }
+
+      // Show stored user instantly while verifying with server (zero flicker)
+      const storedUser = getStoredUser()
+      if (storedUser) {
+        setUser(storedUser)
+        setToken(existingToken)
+      }
+
       try {
         const me = await fetchMe()
         setUser(me)
         setToken(existingToken)
       } catch (err) {
-        // Token invalid/expired or DB down — clear storage silently
-        clearStoredAuth()
-        setUser(null)
-        setToken(null)
+        const isNetworkError =
+          err?.code === "NETWORK_ERROR" ||
+          err?.message?.includes("ERR_CONNECTION_REFUSED") ||
+          err?.message?.includes("Failed to fetch") ||
+          err?.message?.includes("Could not connect")
+
+        if (isNetworkError) {
+          // API temporarily unreachable (server starting up, brief outage, etc.)
+          // Keep the cached auth state — do NOT log the user out
+          // They will be re-verified on next successful API call
+          console.warn("[Auth] API unreachable — using cached auth state")
+        } else {
+          // Token is genuinely invalid or expired — clear and force re-login
+          clearStoredAuth()
+          setUser(null)
+          setToken(null)
+        }
       } finally {
         setLoading(false)
       }
@@ -77,7 +98,6 @@ export function AuthProvider({ children }) {
 
   const updateUser = useCallback((updates) => {
     setUser((prev) => prev ? { ...prev, ...updates } : prev)
-    // Update stored user too
     try {
       const stored = getStoredUser()
       if (stored) {
