@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { CreditCard, Receipt, Clock3, CheckCircle2 } from "lucide-react"
 import { fetchMyOrders } from "../services/orderService"
-import { MetricCard, EmptyState, StatusBadge, SectionCard, SkeletonCard } from "../components/ui/index"
-
+import { MetricCard, EmptyState, SectionCard, SkeletonCard } from "../components/ui/index"
 
 function StatusBadge({ status }) {
   const map = {
@@ -81,7 +80,6 @@ export default function DashboardOrdersPage() {
 
   return (
     <section className="space-y-5">
-
       {errorMessage ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
           {errorMessage}

@@ -6,7 +6,7 @@ import { MetricCard, EmptyState, StatusBadge, SectionCard, SkeletonCard } from "
 
 const STATUS_OPTIONS = ["pending", "paid", "failed", "cancelled", "refunded"]
 
-function StatusBadge({ value }) {
+function AdminStatusBadge({ value }) {
   const map = {
     paid: "bg-[#e5f4e8] text-[#3b8f47]",
     pending: "bg-[#fff3e2] text-[#b46909]",
@@ -21,7 +21,6 @@ function StatusBadge({ value }) {
     </span>
   )
 }
-
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([])
@@ -142,7 +141,7 @@ export default function AdminOrdersPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <StatusBadge value={order.status} />
+                  <AdminStatusBadge value={order.status} />
                   <select
                     value={order.status}
                     disabled={updatingId === order.id}
