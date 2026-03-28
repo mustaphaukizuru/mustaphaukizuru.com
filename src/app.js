@@ -1,16 +1,16 @@
 // Fix BigInt JSON serialization
 BigInt.prototype.toJSON = function () { return this.toString() }
 
-const express     = require("express")
+const express = require("express")
 const compression = require("compression")
-const cors    = require("cors")
-const helmet  = require("helmet")
-const morgan  = require("morgan")
-const path    = require("path")
+const cors = require("cors")
+const helmet = require("helmet")
+const morgan = require("morgan")
+const path = require("path")
 
-const routes        = require("./routes")
-const notFound      = require("./middleware/notFound")
-const errorHandler  = require("./middleware/errorHandler")
+const routes = require("./routes")
+const notFound = require("./middleware/notFound")
+const errorHandler = require("./middleware/errorHandler")
 const { clientUrl } = require("./config/env")
 
 const app = express()
@@ -22,26 +22,37 @@ app.use(compression({ level: 6, threshold: 1024 }))
 
 // ── Static images ─────────────────────────────────────────────────────────────
 // Public product images (intentionally public for storefront)
-app.use("/images/products", express.static(path.join(__dirname, "../public/images/products"), {
-  maxAge: "7d",
-  setHeaders: (res) => {
-    res.setHeader("X-Content-Type-Options", "nosniff")
-    res.setHeader("Cache-Control", "public, max-age=604800, immutable")
-  },
-}))
+app.use(
+  "/images/products",
+  express.static(path.join(__dirname, "../public/images/products"), {
+    maxAge: "7d",
+    setHeaders: (res) => {
+      res.setHeader("X-Content-Type-Options", "nosniff")
+      res.setHeader("Cache-Control", "public, max-age=604800, immutable")
+    },
+  })
+)
+
 // Avatars served publicly but with nosniff protection
-app.use("/images/avatars", express.static(path.join(__dirname, "../public/images/avatars"), {
-  setHeaders: (res) => {
-    res.setHeader("X-Content-Type-Options", "nosniff")
-    res.setHeader("Content-Disposition", "inline")
-  },
-}))
+app.use(
+  "/images/avatars",
+  express.static(path.join(__dirname, "../public/images/avatars"), {
+    setHeaders: (res) => {
+      res.setHeader("X-Content-Type-Options", "nosniff")
+      res.setHeader("Content-Disposition", "inline")
+    },
+  })
+)
+
 // Media library images
-app.use("/images/media", express.static(path.join(__dirname, "../public/images/media"), {
-  setHeaders: (res) => {
-    res.setHeader("X-Content-Type-Options", "nosniff")
-  },
-}))
+app.use(
+  "/images/media",
+  express.static(path.join(__dirname, "../public/images/media"), {
+    setHeaders: (res) => {
+      res.setHeader("X-Content-Type-Options", "nosniff")
+    },
+  })
+)
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const allowedOrigins = [
@@ -73,12 +84,11 @@ app.use(
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
-    crossOriginOpenerPolicy: false,   // <── fixes "window.postMessage COOP block"
+    crossOriginOpenerPolicy: false,
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        // 'unsafe-inline' removed — use nonces in production if inline scripts needed
-        scriptSrc:  [
+        scriptSrc: [
           "'self'",
           "https://accounts.google.com",
           "https://www.paypal.com",
@@ -104,29 +114,33 @@ app.use(
         ],
         imgSrc: ["'self'", "data:", "https:"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc:  ["'self'", "https://fonts.gstatic.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
       },
     },
   })
 )
 
 // ── Logging + body parsing ────────────────────────────────────────────────────
-// Skip morgan in production or use access-only format (never logs headers/tokens)
 if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"))
 } else {
   app.use(morgan(":method :url :status :response-time ms - :res[content-length]"))
 }
+
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))
 
-// ── Health check ─────────────────────────────────────────────────────────────
-app.get("/", (req, res) => {
-  res.status(200).json({ success: true, message: "Mustapha Ukizuru API is running" })
-})
-
 // ── API routes ────────────────────────────────────────────────────────────────
 app.use("/api", routes)
+
+// ── Frontend static files ─────────────────────────────────────────────────────
+// Make sure web/dist contents are copied into /public
+app.use(express.static(path.join(__dirname, "../public")))
+
+// React SPA fallback
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/index.html"))
+})
 
 // ── Error handling ────────────────────────────────────────────────────────────
 app.use(notFound)
