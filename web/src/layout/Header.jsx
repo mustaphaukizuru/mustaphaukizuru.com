@@ -19,7 +19,7 @@ const navLinks = [
 ]
 
 // ─────────────────────────────────────────────
-// Dropdown animation styles (injected once)
+// Animation styles (injected once)
 // ─────────────────────────────────────────────
 const STYLES_ID = "ukz-dropdown-css"
 
@@ -45,10 +45,20 @@ function useDropdownStyles() {
         0%,100% { box-shadow:0 0 0 0 rgba(52,211,153,.4); }
         50%     { box-shadow:0 0 0 4px rgba(52,211,153,0); }
       }
-      .ukz-drop-in  { animation:ukzDropIn .26s cubic-bezier(.22,1,.36,1) forwards; }
-      .ukz-drop-out { animation:ukzDropOut .18s cubic-bezier(.4,0,1,1) forwards; pointer-events:none; }
+      @keyframes ukzExpandIn {
+        0%   { opacity:0; max-height:0; }
+        100% { opacity:1; max-height:500px; }
+      }
+      @keyframes ukzExpandOut {
+        0%   { opacity:1; max-height:500px; }
+        100% { opacity:0; max-height:0; }
+      }
+      .ukz-drop-in   { animation:ukzDropIn .26s cubic-bezier(.22,1,.36,1) forwards; }
+      .ukz-drop-out  { animation:ukzDropOut .18s cubic-bezier(.4,0,1,1) forwards; pointer-events:none; }
       .ukz-slide-in  { opacity:0; animation:ukzSlideIn .3s cubic-bezier(.22,1,.36,1) forwards; }
       .ukz-online    { animation:ukzPulse 2.5s ease-in-out infinite; }
+      .ukz-expand-in  { animation:ukzExpandIn .3s cubic-bezier(.22,1,.36,1) forwards; overflow:hidden; }
+      .ukz-expand-out { animation:ukzExpandOut .22s cubic-bezier(.4,0,1,1) forwards; overflow:hidden; }
       .ukz-menu-item {
         position:relative;
         transition:all .15s ease;
@@ -134,7 +144,7 @@ function UserAvatar({ user, size = 38, ring = false, pulse = true }) {
 }
 
 // ─────────────────────────────────────────────
-// Desktop dropdown (replaces Member Login)
+// Desktop dropdown
 // ─────────────────────────────────────────────
 const menuItems = [
   { name: "Dashboard",          path: "/dashboard",         icon: LayoutDashboard },
@@ -168,10 +178,8 @@ function DesktopUserDropdown() {
     else setOpen(true)
   }
 
-  // Close on navigation
   useEffect(() => { if (open) close() }, [location.pathname])
 
-  // Click outside
   useEffect(() => {
     if (!open) return
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) close() }
@@ -179,7 +187,6 @@ function DesktopUserDropdown() {
     return () => document.removeEventListener("mousedown", h)
   }, [open])
 
-  // Escape key
   useEffect(() => {
     if (!open) return
     const h = (e) => { if (e.key === "Escape") close() }
@@ -189,7 +196,6 @@ function DesktopUserDropdown() {
 
   return (
     <div className="relative" ref={ref}>
-      {/* Trigger */}
       <button
         type="button"
         onClick={toggle}
@@ -206,7 +212,6 @@ function DesktopUserDropdown() {
         />
       </button>
 
-      {/* Panel */}
       {(open || exiting) && (
         <div
           className={`absolute right-0 top-[calc(100%+10px)] z-50 w-[272px] origin-top-right rounded-2xl border border-[#e8e0ec] bg-white shadow-[0_20px_60px_-12px_rgba(66,0,96,0.20),0_0_0_1px_rgba(66,0,96,0.04)] ${
@@ -214,7 +219,7 @@ function DesktopUserDropdown() {
           }`}
           role="menu"
         >
-          {/* ── User card ── */}
+          {/* User card */}
           <div className="relative overflow-hidden rounded-t-2xl border-b border-[#f0e8f3] px-4 pb-4 pt-4">
             <div className="absolute inset-0 bg-gradient-to-br from-[#f9f5fb] to-[#f4f0f7]" />
             <div className="relative flex items-center gap-3">
@@ -236,7 +241,7 @@ function DesktopUserDropdown() {
             )}
           </div>
 
-          {/* ── Menu links (staggered) ── */}
+          {/* Menu links */}
           <div className="px-2 py-2">
             {allItems.map((item, i) => {
               const Icon = item.icon
@@ -264,7 +269,7 @@ function DesktopUserDropdown() {
             })}
           </div>
 
-          {/* ── Sign out ── */}
+          {/* Sign out */}
           <div className="border-t border-[#f0e8f3] px-2 py-2">
             <button
               type="button"
@@ -289,12 +294,14 @@ function DesktopUserDropdown() {
 }
 
 // ─────────────────────────────────────────────
-// Mobile user section (sidebar)
+// Mobile user section — collapsible account menu
 // ─────────────────────────────────────────────
 function MobileUserSection({ onClose }) {
   useDropdownStyles()
 
   const { user, isAuthenticated, loading, logout } = useAuth()
+  const [expanded, setExpanded] = useState(false)
+  const [collapsing, setCollapsing] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -318,10 +325,23 @@ function MobileUserSection({ onClose }) {
     ? [{ name: "Admin Panel", path: "/admin", icon: Shield, accent: true }, ...menuItems]
     : menuItems
 
+  function toggleExpand() {
+    if (expanded) {
+      setCollapsing(true)
+      setTimeout(() => { setExpanded(false); setCollapsing(false) }, 220)
+    } else {
+      setExpanded(true)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      {/* User card */}
-      <div className="relative overflow-hidden rounded-2xl border border-[#e8e0ec] bg-white px-4 py-3.5 shadow-sm">
+      {/* User card — tap to expand/collapse account links */}
+      <button
+        type="button"
+        onClick={toggleExpand}
+        className="relative w-full overflow-hidden rounded-2xl border border-[#e8e0ec] bg-white px-4 py-3.5 text-left shadow-sm transition-all duration-200 active:scale-[0.99]"
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-[#f9f5fb] to-[#f4f0f7]" />
         <div className="relative flex items-center gap-3">
           <UserAvatar user={user} size={44} ring pulse={false} />
@@ -333,57 +353,71 @@ function MobileUserSection({ onClose }) {
               {user?.email}
             </p>
           </div>
-          {isAdmin && (
-            <span className="shrink-0 rounded-full bg-[#420060] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
-              Admin
-            </span>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {isAdmin && (
+              <span className="rounded-full bg-[#420060] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                Admin
+              </span>
+            )}
+            <ChevronDown
+              className={`h-4 w-4 text-[#634F40]/40 transition-transform duration-300 ${
+                expanded && !collapsing ? "rotate-180" : ""
+              }`}
+              strokeWidth={2.2}
+            />
+          </div>
         </div>
-      </div>
-
-      {/* Account links */}
-      {allItems.map((item) => {
-        const Icon = item.icon
-        return (
-          <Link
-            key={item.name}
-            to={item.path}
-            onClick={onClose}
-            className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-[1.02rem] font-semibold transition-all duration-200 active:scale-[0.98] ${
-              item.accent
-                ? "bg-[#420060] text-white shadow-[0_6px_18px_rgba(66,0,96,0.20)] hover:-translate-y-0.5"
-                : "text-[#374151] hover:bg-[#f1ebf2]"
-            }`}
-          >
-            <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-              item.accent ? "bg-white/15" : "bg-[#634F40]/[0.05]"
-            }`}>
-              <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
-            </span>
-            {item.name}
-          </Link>
-        )
-      })}
-
-      {/* Sign out */}
-      <button
-        type="button"
-        onClick={() => {
-          onClose()
-          logout()
-          navigate("/", { replace: true })
-        }}
-        className="flex items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-6 py-4 text-[1.05rem] font-semibold text-red-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md active:scale-[0.98]"
-      >
-        <LogOut className="h-5 w-5" strokeWidth={1.8} />
-        Sign Out
       </button>
+
+      {/* Expandable account links */}
+      {(expanded || collapsing) && (
+        <div className={collapsing ? "ukz-expand-out" : "ukz-expand-in"}>
+          <div className="flex flex-col gap-2">
+            {allItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  onClick={onClose}
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-[1.02rem] font-semibold transition-all duration-200 active:scale-[0.98] ${
+                    item.accent
+                      ? "bg-[#420060] text-white shadow-[0_6px_18px_rgba(66,0,96,0.20)] hover:-translate-y-0.5"
+                      : "text-[#374151] hover:bg-[#f1ebf2]"
+                  }`}
+                >
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                    item.accent ? "bg-white/15" : "bg-[#634F40]/[0.05]"
+                  }`}>
+                    <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                  </span>
+                  {item.name}
+                </Link>
+              )
+            })}
+
+            {/* Sign out */}
+            <button
+              type="button"
+              onClick={() => {
+                onClose()
+                logout()
+                navigate("/", { replace: true })
+              }}
+              className="flex items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-6 py-3.5 text-[1rem] font-semibold text-red-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md active:scale-[0.98]"
+            >
+              <LogOut className="h-5 w-5" strokeWidth={1.8} />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 // ═════════════════════════════════════════════
-// HEADER — original layout untouched
+// HEADER — original layout
 // ═════════════════════════════════════════════
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -505,6 +539,7 @@ export default function Header() {
         </div>
       </header>
 
+      {/* ── Mobile overlay ── */}
       <div
         className={`fixed inset-0 z-[60] bg-black/20 transition-opacity duration-300 lg:hidden ${
           menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
@@ -512,12 +547,14 @@ export default function Header() {
         onClick={() => setMenuOpen(false)}
       />
 
+      {/* ── Mobile sidebar — FULL WIDTH on phones, capped on tablets ── */}
       <aside
-        className={`fixed right-0 top-0 z-[70] flex h-screen w-full max-w-[380px] flex-col bg-[#F7F9F4] px-5 pb-8 pt-4 shadow-2xl transition-transform duration-300 ease-out lg:hidden ${
+        className={`fixed right-0 top-0 z-[70] flex h-dvh w-full flex-col bg-[#F7F9F4] shadow-2xl transition-transform duration-300 ease-out sm:max-w-[400px] lg:hidden ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between">
+        {/* Sidebar header — pinned */}
+        <div className="flex shrink-0 items-center justify-between border-b border-[#634F40]/10 px-5 py-3.5">
           <Link to="/" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#634F40]/15 bg-white shadow-sm">
               <img
@@ -532,7 +569,7 @@ export default function Header() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
             <Link
               to="/cart"
               className="relative text-[#4b5563] transition duration-200 hover:text-[#420060]"
@@ -557,36 +594,39 @@ export default function Header() {
           </div>
         </div>
 
-        <nav className="mt-8 flex flex-col gap-3">
-          {navLinks.map((link) => {
-            const active = isActive(link.path)
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-6">
+          <nav className="flex flex-col gap-3">
+            {navLinks.map((link) => {
+              const active = isActive(link.path)
 
-            return (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`rounded-2xl px-4 py-3 text-[1.05rem] font-semibold transition-all duration-200 ${
-                  active
-                    ? "bg-[#ede4ef] text-[#420060]"
-                    : "text-[#374151] hover:bg-[#f1ebf2]"
-                }`}
-              >
-                {link.name}
-              </Link>
-            )
-          })}
-        </nav>
+              return (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`rounded-2xl px-4 py-3 text-[1.05rem] font-semibold transition-all duration-200 ${
+                    active
+                      ? "bg-[#ede4ef] text-[#420060]"
+                      : "text-[#374151] hover:bg-[#f1ebf2]"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              )
+            })}
+          </nav>
 
-        <div className="mt-8 h-px w-full bg-[#634F40]/12" />
+          <div className="my-6 h-px w-full bg-[#634F40]/12" />
 
-        <div className="mt-8 flex flex-col gap-4">
-          <MobileUserSection onClose={() => setMenuOpen(false)} />
+          <div className="flex flex-col gap-4">
+            <MobileUserSection onClose={() => setMenuOpen(false)} />
 
-          <Link to="/store">
-            <PrimaryButton fullWidth className="py-4 text-[1rem]">
-              Explore Store
-            </PrimaryButton>
-          </Link>
+            <Link to="/store" onClick={() => setMenuOpen(false)}>
+              <PrimaryButton fullWidth className="py-4 text-[1rem]">
+                Explore Store
+              </PrimaryButton>
+            </Link>
+          </div>
         </div>
       </aside>
     </>
