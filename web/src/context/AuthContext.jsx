@@ -6,10 +6,29 @@ import {
 
 const AuthContext = createContext(null)
 
+// ── After login/signup, if there's no "from" page, land here ──────────────
+// Dashboard is only reachable via the user dropdown menu — never auto-redirect
+export const POST_AUTH_FALLBACK = "/store"
+
+// ── Normalize avatar from various OAuth providers ─────────────────────────
+// Google → picture, Firebase → photoURL, some backends → avatar / image.url
+function normalizeUser(raw) {
+  if (!raw) return raw
+  const avatarUrl =
+    raw.avatarUrl ||
+    raw.picture ||
+    raw.photoURL ||
+    raw.avatar ||
+    raw.image?.url ||
+    raw.profileImage ||
+    null
+  return { ...raw, avatarUrl }
+}
+
 export function AuthProvider({ children }) {
-  const [user,  setUser]  = useState(() => getStoredUser())   // eager init — no flicker
+  const [user,  setUser]  = useState(() => getStoredUser())
   const [token, setToken] = useState(() => getStoredToken())
-  const [loading, setLoading] = useState(true)               // only true during initial verify
+  const [loading, setLoading] = useState(true)
 
   // ── Session expired event listener ──────────────────────────────────────
   useEffect(() => {
@@ -30,7 +49,6 @@ export function AuthProvider({ children }) {
         return
       }
 
-      // Use stored user immediately (zero flicker) while we verify with server
       const storedUser = getStoredUser()
       if (storedUser) {
         setUser(storedUser)
@@ -39,17 +57,14 @@ export function AuthProvider({ children }) {
 
       try {
         const me = await fetchMe()
-        setUser(me)
+        setUser(normalizeUser(me))
         setToken(existingToken)
       } catch (err) {
         const isNetworkError = err?.code === "NETWORK_ERROR" || err?.message?.includes("ERR_CONNECTION_REFUSED")
 
         if (isNetworkError) {
-          // API temporarily unreachable — keep stored auth state, don't log out
-          // The user is still "logged in" from their perspective
           console.warn("[Auth] API unreachable — using cached auth state")
         } else {
-          // Token invalid/expired — clear and force re-login
           clearStoredAuth()
           setUser(null)
           setToken(null)
@@ -64,25 +79,28 @@ export function AuthProvider({ children }) {
   // ── Auth actions ─────────────────────────────────────────────────────────
   const signup = useCallback(async (payload) => {
     const data = await signupRequest(payload)
-    storeAuth(data)
-    setUser(data.user)
-    setToken(data.token)
-    return data
+    const enriched = { ...data, user: normalizeUser(data.user) }
+    storeAuth(enriched)
+    setUser(enriched.user)
+    setToken(enriched.token)
+    return enriched
   }, [])
 
   const login = useCallback(async (payload) => {
     const data = await loginRequest(payload)
-    storeAuth(data)
-    setUser(data.user)
-    setToken(data.token)
-    return data
+    const enriched = { ...data, user: normalizeUser(data.user) }
+    storeAuth(enriched)
+    setUser(enriched.user)
+    setToken(enriched.token)
+    return enriched
   }, [])
 
   const loginWithGoogle = useCallback((data) => {
-    storeAuth(data)
-    setUser(data.user)
-    setToken(data.token)
-    return data
+    const enriched = { ...data, user: normalizeUser(data.user) }
+    storeAuth(enriched)
+    setUser(enriched.user)
+    setToken(enriched.token)
+    return enriched
   }, [])
 
   const logout = useCallback(() => {
@@ -92,14 +110,17 @@ export function AuthProvider({ children }) {
   }, [])
 
   const updateUser = useCallback((updates) => {
-    setUser((prev) => prev ? { ...prev, ...updates } : prev)
-    // Update stored user too
-    try {
-      const stored = getStoredUser()
-      if (stored) {
-        localStorage.setItem("auth-user", JSON.stringify({ ...stored, ...updates }))
-      }
-    } catch {}
+    setUser((prev) => {
+      if (!prev) return prev
+      const updated = normalizeUser({ ...prev, ...updates })
+      try {
+        const stored = getStoredUser()
+        if (stored) {
+          localStorage.setItem("auth-user", JSON.stringify({ ...stored, ...updates }))
+        }
+      } catch {}
+      return updated
+    })
   }, [])
 
   const value = {

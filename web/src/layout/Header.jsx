@@ -1,38 +1,304 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { Menu, X, ShoppingCart, ChevronRight, LayoutDashboard, ShoppingBag, User, LogOut, Shield } from "lucide-react"
+import {
+  Menu, X, ShoppingCart,
+  ChevronDown, LayoutDashboard, ShoppingBag, UserCog, LogOut, Shield,
+} from "lucide-react"
+import PrimaryButton from "../ui/PrimaryButton"
+import profilePhoto from "../assets/ukizuru-photo.jpg"
 import { useCart } from "../store/CartContext"
 import { useAuth } from "../context/AuthContext"
-import UserMenu from "../components/UserMenu"
 import { API_BASE_URL } from "../lib/api"
-import profilePhoto from "../assets/ukizuru-photo.jpg"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Navigation links
-// ─────────────────────────────────────────────────────────────────────────────
-const NAV_LINKS = [
-  { name: "Home",      path: "/" },
-  { name: "About",     path: "/about" },
+const navLinks = [
+  { name: "Home", path: "/" },
+  { name: "About", path: "/about" },
   { name: "Solutions", path: "/solutions" },
-  { name: "Services",  path: "/services" },
-  { name: "Contact",   path: "/contact" },
+  { name: "Services", path: "/services" },
+  { name: "Contact", path: "/contact" },
 ]
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MobileUserSection — shown in the slide-in menu
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// Dropdown animation styles (injected once)
+// ─────────────────────────────────────────────
+const STYLES_ID = "ukz-dropdown-css"
+
+function useDropdownStyles() {
+  useEffect(() => {
+    if (document.getElementById(STYLES_ID)) return
+    const el = document.createElement("style")
+    el.id = STYLES_ID
+    el.textContent = `
+      @keyframes ukzDropIn {
+        0%   { opacity:0; transform:translateY(-10px) scale(.97); }
+        100% { opacity:1; transform:translateY(0) scale(1); }
+      }
+      @keyframes ukzDropOut {
+        0%   { opacity:1; transform:translateY(0) scale(1); }
+        100% { opacity:0; transform:translateY(-8px) scale(.98); }
+      }
+      @keyframes ukzSlideIn {
+        0%   { opacity:0; transform:translateX(-10px); }
+        100% { opacity:1; transform:translateX(0); }
+      }
+      @keyframes ukzPulse {
+        0%,100% { box-shadow:0 0 0 0 rgba(52,211,153,.4); }
+        50%     { box-shadow:0 0 0 4px rgba(52,211,153,0); }
+      }
+      .ukz-drop-in  { animation:ukzDropIn .26s cubic-bezier(.22,1,.36,1) forwards; }
+      .ukz-drop-out { animation:ukzDropOut .18s cubic-bezier(.4,0,1,1) forwards; pointer-events:none; }
+      .ukz-slide-in  { opacity:0; animation:ukzSlideIn .3s cubic-bezier(.22,1,.36,1) forwards; }
+      .ukz-online    { animation:ukzPulse 2.5s ease-in-out infinite; }
+      .ukz-menu-item {
+        position:relative;
+        transition:all .15s ease;
+      }
+      .ukz-menu-item::after {
+        content:'';
+        position:absolute;
+        left:0; top:50%;
+        transform:translateY(-50%) scaleY(0);
+        width:3px; height:55%;
+        border-radius:0 3px 3px 0;
+        background:linear-gradient(180deg,#420060,#7c3aed);
+        transition:transform .2s cubic-bezier(.22,1,.36,1);
+      }
+      .ukz-menu-item:hover::after {
+        transform:translateY(-50%) scaleY(1);
+      }
+    `
+    document.head.appendChild(el)
+  }, [])
+}
+
+// ─────────────────────────────────────────────
+// Avatar
+// ─────────────────────────────────────────────
+function resolveAvatar(url) {
+  if (!url) return null
+  return url.startsWith("http") ? url : `${API_BASE_URL}${url}`
+}
+
+function UserAvatar({ user, size = 38, ring = false, pulse = true }) {
+  const src = resolveAvatar(user?.avatarUrl)
+  const initials = (user?.fullName || "U")
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase()
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      {ring && (
+        <div className="absolute -inset-[3px] rounded-full bg-gradient-to-tr from-[#420060] via-[#7c3aed] to-[#a855f7] opacity-75 blur-[1px]" />
+      )}
+
+      <div
+        className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-full shadow-sm ${
+          ring ? "border-[2.5px] border-white" : "border-2 border-[#420060]/15"
+        }`}
+        style={{ width: size, height: size, minWidth: size }}
+      >
+        {src ? (
+          <img
+            src={src}
+            alt={user?.fullName}
+            className="h-full w-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              e.target.style.display = "none"
+              if (e.target.nextElementSibling) e.target.nextElementSibling.classList.remove("hidden")
+            }}
+          />
+        ) : null}
+
+        <div
+          className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#420060] to-[#7c3aed] ${src ? "hidden" : ""}`}
+        >
+          <span
+            className="font-['Sora'] font-bold leading-none text-white select-none"
+            style={{ fontSize: size * 0.36 }}
+          >
+            {initials}
+          </span>
+        </div>
+      </div>
+
+      <span
+        className={`absolute bottom-0 right-0 rounded-full border-2 border-white bg-emerald-400 ${pulse ? "ukz-online" : ""}`}
+        style={{ width: Math.max(size * 0.26, 8), height: Math.max(size * 0.26, 8) }}
+      />
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Desktop dropdown (replaces Member Login)
+// ─────────────────────────────────────────────
+const menuItems = [
+  { name: "Dashboard",          path: "/dashboard",         icon: LayoutDashboard },
+  { name: "My Orders",          path: "/dashboard/orders",  icon: ShoppingBag },
+  { name: "Profile & Settings", path: "/dashboard/profile", icon: UserCog },
+]
+
+function DesktopUserDropdown() {
+  useDropdownStyles()
+
+  const { user, logout } = useAuth()
+  const [open, setOpen] = useState(false)
+  const [exiting, setExiting] = useState(false)
+  const ref = useRef(null)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const isAdmin = user?.role === "admin"
+  const allItems = isAdmin
+    ? [{ name: "Admin Panel", path: "/admin", icon: Shield, accent: true }, ...menuItems]
+    : menuItems
+
+  function close() {
+    if (!open) return
+    setExiting(true)
+    setTimeout(() => { setOpen(false); setExiting(false) }, 180)
+  }
+
+  function toggle() {
+    if (open) close()
+    else setOpen(true)
+  }
+
+  // Close on navigation
+  useEffect(() => { if (open) close() }, [location.pathname])
+
+  // Click outside
+  useEffect(() => {
+    if (!open) return
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) close() }
+    document.addEventListener("mousedown", h)
+    return () => document.removeEventListener("mousedown", h)
+  }, [open])
+
+  // Escape key
+  useEffect(() => {
+    if (!open) return
+    const h = (e) => { if (e.key === "Escape") close() }
+    document.addEventListener("keydown", h)
+    return () => document.removeEventListener("keydown", h)
+  }, [open])
+
+  return (
+    <div className="relative" ref={ref}>
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={toggle}
+        className="group flex items-center gap-1.5 rounded-full py-0.5 pl-0.5 pr-2 transition-all duration-200 hover:bg-[#420060]/5 active:scale-[0.97]"
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
+        <UserAvatar user={user} size={36} ring pulse />
+        <ChevronDown
+          className={`h-3.5 w-3.5 text-[#634F40]/50 transition-transform duration-300 ease-out ${
+            open ? "rotate-180" : "group-hover:translate-y-[1px]"
+          }`}
+          strokeWidth={2.4}
+        />
+      </button>
+
+      {/* Panel */}
+      {(open || exiting) && (
+        <div
+          className={`absolute right-0 top-[calc(100%+10px)] z-50 w-[272px] origin-top-right rounded-2xl border border-[#e8e0ec] bg-white shadow-[0_20px_60px_-12px_rgba(66,0,96,0.20),0_0_0_1px_rgba(66,0,96,0.04)] ${
+            exiting ? "ukz-drop-out" : "ukz-drop-in"
+          }`}
+          role="menu"
+        >
+          {/* ── User card ── */}
+          <div className="relative overflow-hidden rounded-t-2xl border-b border-[#f0e8f3] px-4 pb-4 pt-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#f9f5fb] to-[#f4f0f7]" />
+            <div className="relative flex items-center gap-3">
+              <UserAvatar user={user} size={46} ring={false} pulse={false} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-['Sora'] text-[0.93rem] font-bold text-[#1f2937]">
+                  {user?.fullName}
+                </p>
+                <p className="mt-0.5 truncate text-[0.76rem] text-[#634F40]/55">
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+            {user?.role && (
+              <span className="relative mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#420060]/[0.08] px-2.5 py-1 text-[0.67rem] font-semibold uppercase tracking-widest text-[#420060]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#420060]/50" />
+                {user.role}
+              </span>
+            )}
+          </div>
+
+          {/* ── Menu links (staggered) ── */}
+          <div className="px-2 py-2">
+            {allItems.map((item, i) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  role="menuitem"
+                  onClick={close}
+                  className={`ukz-menu-item ukz-slide-in flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.87rem] font-medium ${
+                    item.accent
+                      ? "text-[#420060] hover:bg-[#f5eff6]"
+                      : "text-[#374151] hover:bg-[#f7f3f9] hover:text-[#420060]"
+                  }`}
+                  style={{ animationDelay: `${(i + 1) * 55}ms` }}
+                >
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                    item.accent ? "bg-[#420060]/[0.08]" : "bg-[#634F40]/[0.04]"
+                  }`}>
+                    <Icon className="h-4 w-4" strokeWidth={1.9} />
+                  </span>
+                  {item.name}
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* ── Sign out ── */}
+          <div className="border-t border-[#f0e8f3] px-2 py-2">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close()
+                setTimeout(() => { logout(); navigate("/", { replace: true }) }, 200)
+              }}
+              className="ukz-menu-item ukz-slide-in flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[0.87rem] font-medium text-red-500/85 hover:bg-red-50 hover:text-red-600"
+              style={{ animationDelay: `${(allItems.length + 1) * 55}ms` }}
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50">
+                <LogOut className="h-4 w-4" strokeWidth={1.9} />
+              </span>
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Mobile user section (sidebar)
+// ─────────────────────────────────────────────
 function MobileUserSection({ onClose }) {
+  useDropdownStyles()
+
   const { user, isAuthenticated, loading, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
-  function handleLogout() {
-    onClose()
-    logout()
-    navigate("/", { replace: true })
-  }
-
-  if (loading) return <div className="h-14 animate-pulse rounded-xl bg-[#f0eaf2]" />
+  if (loading) return <div className="h-14 animate-pulse rounded-full bg-[#634F40]/8" />
 
   if (!isAuthenticated) {
     return (
@@ -40,7 +306,7 @@ function MobileUserSection({ onClose }) {
         to="/login"
         onClick={onClose}
         state={{ from: location.pathname + location.search }}
-        className="flex items-center justify-center gap-2 rounded-xl bg-[#420060] px-5 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_28px_rgba(66,0,96,0.22)] transition hover:-translate-y-0.5 hover:bg-[#2d003f]"
+        className="flex items-center justify-center rounded-full border border-[#634F40]/15 bg-white px-6 py-4 text-[1.05rem] font-semibold text-[#1f2937] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
       >
         Member Login
       </Link>
@@ -48,256 +314,279 @@ function MobileUserSection({ onClose }) {
   }
 
   const isAdmin = user?.role === "admin"
-  const initials = user?.fullName?.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase() || "U"
-  const avatarUrl = user?.avatarUrl
-    ? (user.avatarUrl.startsWith("http") ? user.avatarUrl : `${API_BASE_URL}${user.avatarUrl}`)
-    : null
+  const allItems = isAdmin
+    ? [{ name: "Admin Panel", path: "/admin", icon: Shield, accent: true }, ...menuItems]
+    : menuItems
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {/* User card */}
-      <div className="flex items-center gap-3 rounded-xl border border-[#420060]/10 bg-[#f8f4fa] px-4 py-3.5">
-        {avatarUrl ? (
-          <img src={avatarUrl} alt={user?.fullName} className="h-10 w-10 rounded-full object-cover ring-2 ring-[#420060]/15" />
-        ) : (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#420060] to-[#2d003f] text-[13px] font-bold text-white">
-            {initials}
+      <div className="relative overflow-hidden rounded-2xl border border-[#e8e0ec] bg-white px-4 py-3.5 shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#f9f5fb] to-[#f4f0f7]" />
+        <div className="relative flex items-center gap-3">
+          <UserAvatar user={user} size={44} ring pulse={false} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-['Sora'] text-[0.95rem] font-bold text-[#1f2937]">
+              {user?.fullName}
+            </p>
+            <p className="mt-0.5 truncate text-[0.78rem] text-[#634F40]/50">
+              {user?.email}
+            </p>
           </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[14px] font-semibold text-[#420060]">{user?.fullName}</div>
-          <div className="truncate text-[11px] text-[#634F40]/60">{user?.email}</div>
+          {isAdmin && (
+            <span className="shrink-0 rounded-full bg-[#420060] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+              Admin
+            </span>
+          )}
         </div>
-        {isAdmin && (
-          <span className="shrink-0 rounded-full bg-[#420060] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
-            Admin
-          </span>
-        )}
       </div>
 
-      {/* Nav links */}
-      {isAdmin && (
-        <MobileLink to="/admin" icon={Shield} label="Admin Panel" onClick={onClose} accent />
-      )}
-      <MobileLink to="/dashboard" icon={LayoutDashboard} label="Dashboard" onClick={onClose} />
-      <MobileLink to="/dashboard/orders" icon={ShoppingBag} label="My Orders" onClick={onClose} />
-      <MobileLink to="/dashboard/profile" icon={User} label="Profile & Settings" onClick={onClose} />
+      {/* Account links */}
+      {allItems.map((item) => {
+        const Icon = item.icon
+        return (
+          <Link
+            key={item.name}
+            to={item.path}
+            onClick={onClose}
+            className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-[1.02rem] font-semibold transition-all duration-200 active:scale-[0.98] ${
+              item.accent
+                ? "bg-[#420060] text-white shadow-[0_6px_18px_rgba(66,0,96,0.20)] hover:-translate-y-0.5"
+                : "text-[#374151] hover:bg-[#f1ebf2]"
+            }`}
+          >
+            <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+              item.accent ? "bg-white/15" : "bg-[#634F40]/[0.05]"
+            }`}>
+              <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+            </span>
+            {item.name}
+          </Link>
+        )
+      })}
 
-      {/* Logout */}
+      {/* Sign out */}
       <button
         type="button"
-        onClick={handleLogout}
-        className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-[13px] font-semibold text-red-600 transition hover:bg-red-100"
+        onClick={() => {
+          onClose()
+          logout()
+          navigate("/", { replace: true })
+        }}
+        className="flex items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-6 py-4 text-[1.05rem] font-semibold text-red-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md active:scale-[0.98]"
       >
-        <LogOut className="h-4 w-4" /> Sign Out
+        <LogOut className="h-5 w-5" strokeWidth={1.8} />
+        Sign Out
       </button>
     </div>
   )
 }
 
-function MobileLink({ to, icon: Icon, label, onClick, accent }) {
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-semibold transition ${
-        accent
-          ? "bg-[#420060] text-white shadow-[0_6px_18px_rgba(66,0,96,0.20)]"
-          : "border border-[#634F40]/10 bg-white text-[#420060] hover:bg-[#f5eff6]"
-      }`}
-    >
-      <Icon className="h-4 w-4 shrink-0" />
-      {label}
-    </Link>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main Header component
-// ─────────────────────────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════
+// HEADER — original layout untouched
+// ═════════════════════════════════════════════
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
   const { cartCount } = useCart()
-
-  useEffect(() => { setMenuOpen(false) }, [location.pathname])
+  const { isAuthenticated, loading } = useAuth()
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 10)
-    window.addEventListener("scroll", handler, { passive: true })
-    return () => window.removeEventListener("scroll", handler)
-  }, [])
+    setMenuOpen(false)
+  }, [location.pathname])
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : ""
-    return () => { document.body.style.overflow = "" }
+    return () => {
+      document.body.style.overflow = ""
+    }
   }, [menuOpen])
 
-  const isActive = (path) =>
-    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path)
+  const isActive = (path) => location.pathname === path
 
   return (
     <>
-      {/* ── Desktop / scroll header ──────────────────────────────────────────── */}
-      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        scrolled
-          ? "border-b border-[#634F40]/10 bg-[#F7F9F4]/95 shadow-[0_4px_24px_rgba(66,0,96,0.08)] backdrop-blur-md"
-          : "border-b border-transparent bg-[#F7F9F4]/85 backdrop-blur-sm"
-      }`}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 border-b border-[#634F40]/10 bg-[#F7F9F4]/95 backdrop-blur-md shadow-[0_6px_20px_rgba(66,0,96,0.04)]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#634F40]/15 bg-white shadow-sm">
+              <img
+                src={profilePhoto}
+                alt="Mustapha Ukizuru"
+                className="h-full w-full object-cover"
+              />
+            </div>
 
-          {/* Logo */}
-          <Link to="/" className="group flex shrink-0 items-center gap-3">
-            <div className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-[#420060]/12 shadow-sm transition-all duration-300 group-hover:border-[#420060]/35 group-hover:shadow-[0_4px_14px_rgba(66,0,96,0.18)] group-hover:scale-105">
-              <img src={profilePhoto} alt="Mustapha Ukizuru" className="h-full w-full object-cover" />
-            </div>
-            <div className="hidden sm:block">
-              <div className="text-[1.05rem] font-bold leading-none tracking-tight text-[#420060]">
-                Mustapha Ukizuru
-              </div>
-              <div className="mt-0.2 text-[8px] font-medium uppercase tracking-[0.18em] text-[#634F40]/45">
-                Technology Consultant
-              </div>
-            </div>
+            <span className="font-['Sora'] text-[1.1rem] font-bold tracking-tight text-[#420060] sm:text-[1.3rem]">
+              Mustapha Ukizuru
+            </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden items-center gap-1 lg:flex">
-            {NAV_LINKS.map((link) => {
-              const active = isActive(link.path)
-              return (
+          <div className="hidden items-center gap-8 lg:flex">
+            <nav className="flex items-center gap-8">
+              {navLinks.map((link) => (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`relative rounded-xl px-3.5 py-2 text-[13.5px] font-medium transition-all duration-200 ${
-                    active
-                      ? "bg-[#420060] text-white shadow-[0_6px_16px_rgba(66,0,96,0.22)]"
-                      : "text-[#634F40]/75 hover:bg-[#f5eff6] hover:text-[#420060]"
+                  className={`relative text-[1rem] font-medium transition-colors duration-200 ${
+                    isActive(link.path)
+                      ? "text-[#420060]"
+                      : "text-[#634F40]/75 hover:text-[#420060]"
                   }`}
                 >
                   {link.name}
+                  <span
+                    className={`absolute left-0 -bottom-1 h-[2px] rounded-full bg-[#420060] transition-all duration-300 ${
+                      isActive(link.path) ? "w-full" : "w-0"
+                    }`}
+                  />
                 </Link>
-              )
-            })}
-          </nav>
+              ))}
+            </nav>
 
-          {/* Desktop right cluster */}
-          <div className="hidden items-center gap-3 lg:flex">
-            {/* Cart */}
-            <Link
-              to="/cart"
-              aria-label="Cart"
-              className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-[#634F40]/10 bg-white text-[#634F40]/65 shadow-sm transition-all hover:border-[#420060]/20 hover:bg-[#f5eff6] hover:text-[#420060]"
-            >
-              <ShoppingCart className="h-5 w-5" strokeWidth={1.8} />
-              {cartCount > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#420060] px-1 text-[10px] font-bold text-white shadow-sm">
-                  {cartCount}
-                </span>
+            <div className="h-8 w-px bg-[#634F40]/15" />
+
+            <div className="flex items-center gap-6">
+              <Link
+                to="/cart"
+                className="relative text-[#634F40]/75 transition duration-200 hover:scale-105 hover:text-[#420060]"
+                aria-label="Shopping cart"
+              >
+                <ShoppingCart className="h-7 w-7" strokeWidth={1.9} />
+                {cartCount > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#420060] px-1 text-[11px] font-semibold text-white">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+
+              {loading ? (
+                <div className="h-9 w-9 animate-pulse rounded-full bg-[#634F40]/10" />
+              ) : isAuthenticated ? (
+                <DesktopUserDropdown />
+              ) : (
+                <Link
+                  to="/login"
+                  className="text-[1rem] font-medium text-[#634F40]/75 transition duration-200 hover:text-[#420060]"
+                >
+                  Member Login
+                </Link>
               )}
-            </Link>
 
-            {/* Auth-aware user menu */}
-            <UserMenu />
+              <Link to="/store">
+                <PrimaryButton>Explore Store</PrimaryButton>
+              </Link>
+            </div>
           </div>
 
-          {/* Mobile: cart + hamburger */}
-          <div className="flex items-center gap-2.5 lg:hidden">
+          <div className="flex items-center gap-5 lg:hidden">
             <Link
               to="/cart"
-              aria-label="Cart"
-              className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-[#634F40]/10 bg-white text-[#634F40]/65 transition hover:bg-[#f5eff6] hover:text-[#420060]"
+              className="relative text-[#634F40]/80 transition duration-200 hover:text-[#420060]"
+              aria-label="Shopping cart"
             >
-              <ShoppingCart className="h-4.5 w-4.5" strokeWidth={1.8} />
+              <ShoppingCart className="h-7 w-7" strokeWidth={1.9} />
               {cartCount > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-[#420060] px-1 text-[9px] font-bold text-white">
+                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#420060] px-1 text-[11px] font-semibold text-white">
                   {cartCount}
                 </span>
               )}
             </Link>
+
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#634F40]/12 bg-white text-[#634F40]/70 transition hover:bg-[#ede4ef] hover:text-[#420060]"
+              className="text-[#634F40]/80 transition duration-200 hover:text-[#420060]"
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" strokeWidth={1.8} />
+              <Menu className="h-8 w-8" strokeWidth={1.9} />
             </button>
           </div>
         </div>
       </header>
 
-      {/* ── Mobile overlay ────────────────────────────────────────────────────── */}
       <div
-        aria-hidden="true"
-        className={`fixed inset-0 z-[60] bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[60] bg-black/20 transition-opacity duration-300 lg:hidden ${
           menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={() => setMenuOpen(false)}
       />
 
-      {/* ── Mobile drawer ─────────────────────────────────────────────────────── */}
-      <aside className={`fixed right-0 top-0 z-[70] flex h-dvh w-full max-w-[360px] flex-col bg-[#F7F9F4] shadow-[-24px_0_80px_rgba(66,0,96,0.15)] transition-transform duration-300 ease-out lg:hidden ${
-        menuOpen ? "translate-x-0" : "translate-x-full"
-      }`}>
-        {/* Drawer header */}
-        <div className="flex items-center justify-between border-b border-[#634F40]/8 px-5 py-4">
-          <Link to="/" onClick={() => setMenuOpen(false)} className="flex items-center gap-2.5">
-            <div className="h-8 w-8 overflow-hidden rounded-full border border-[#420060]/15">
-              <img src={profilePhoto} alt="Mustapha Ukizuru" className="h-full w-full object-cover" />
+      <aside
+        className={`fixed right-0 top-0 z-[70] flex h-screen w-full max-w-[380px] flex-col bg-[#F7F9F4] px-5 pb-8 pt-4 shadow-2xl transition-transform duration-300 ease-out lg:hidden ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#634F40]/15 bg-white shadow-sm">
+              <img
+                src={profilePhoto}
+                alt="Mustapha Ukizuru"
+                className="h-full w-full object-cover"
+              />
             </div>
-            <span className="text-[0.9rem] font-bold text-[#420060]">Mustapha Ukizuru</span>
+
+            <span className="font-['Sora'] text-[1.05rem] font-bold tracking-tight text-[#634F40]">
+              Mustapha Ukizuru
+            </span>
           </Link>
-          <button
-            type="button"
-            onClick={() => setMenuOpen(false)}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#634F40]/12 text-[#634F40]/60 transition hover:bg-[#ede4ef] hover:text-[#420060]"
-            aria-label="Close menu"
-          >
-            <X className="h-5 w-5" strokeWidth={1.8} />
-          </button>
-        </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto px-5 py-5">
-          {/* Navigation links */}
-          <nav className="mb-6 flex flex-col gap-1.5">
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#634F40]/40">
-              Navigation
-            </div>
-            {NAV_LINKS.map((link) => {
-              const active = isActive(link.path)
-              return (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  onClick={() => setMenuOpen(false)}
-                  className={`flex items-center justify-between rounded-xl px-4 py-3 text-[15px] font-semibold transition-all ${
-                    active
-                      ? "bg-[#420060] text-white shadow-[0_8px_20px_rgba(66,0,96,0.20)]"
-                      : "text-[#634F40] hover:bg-[#f5eff6] hover:text-[#420060]"
-                  }`}
-                >
-                  {link.name}
-                  <ChevronRight className={`h-4 w-4 ${active ? "text-white/70" : "text-[#634F40]/30"}`} />
-                </Link>
-              )
-            })}
-          </nav>
+          <div className="flex items-center gap-5">
+            <Link
+              to="/cart"
+              className="relative text-[#4b5563] transition duration-200 hover:text-[#420060]"
+              aria-label="Shopping cart"
+            >
+              <ShoppingCart className="h-7 w-7" strokeWidth={1.9} />
+              {cartCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#420060] px-1 text-[11px] font-semibold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
 
-          {/* Divider */}
-          <div className="mb-5 h-px bg-[#634F40]/10" />
-
-          {/* Auth section */}
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#634F40]/40">
-            Account
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              className="text-[#4b5563] transition duration-200 hover:text-[#420060]"
+              aria-label="Close menu"
+            >
+              <X className="h-8 w-8" strokeWidth={1.9} />
+            </button>
           </div>
-          <MobileUserSection onClose={() => setMenuOpen(false)} />
         </div>
 
-        <div className="border-t border-[#634F40]/8 px-5 py-4 text-center text-[11px] text-[#634F40]/35">
-          mustaphaukizuru.com
+        <nav className="mt-8 flex flex-col gap-3">
+          {navLinks.map((link) => {
+            const active = isActive(link.path)
+
+            return (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={`rounded-2xl px-4 py-3 text-[1.05rem] font-semibold transition-all duration-200 ${
+                  active
+                    ? "bg-[#ede4ef] text-[#420060]"
+                    : "text-[#374151] hover:bg-[#f1ebf2]"
+                }`}
+              >
+                {link.name}
+              </Link>
+            )
+          })}
+        </nav>
+
+        <div className="mt-8 h-px w-full bg-[#634F40]/12" />
+
+        <div className="mt-8 flex flex-col gap-4">
+          <MobileUserSection onClose={() => setMenuOpen(false)} />
+
+          <Link to="/store">
+            <PrimaryButton fullWidth className="py-4 text-[1rem]">
+              Explore Store
+            </PrimaryButton>
+          </Link>
         </div>
       </aside>
     </>
