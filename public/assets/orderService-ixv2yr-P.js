@@ -1,0 +1,1 @@
+import{c as t}from"./index-C1iLts3R.js";async function s(r){if(!r||typeof r!="object")throw new Error("Order payload is required");const e=await t("/api/orders",{method:"POST",body:JSON.stringify(r)});return e?.data||e}async function o(){const r=await t("/api/orders/my",{method:"GET"});return Array.isArray(r?.data)?r.data:Array.isArray(r)?r:[]}export{s as c,o as f};
