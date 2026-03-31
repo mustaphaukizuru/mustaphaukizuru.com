@@ -1,43 +1,38 @@
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000"
+import { apiRequest } from "../lib/api"
 
-export const createPaypalSession = async (orderId) => {
-  const res = await fetch(`${API_BASE}/api/paypal/create-order`, {
+// ─────────────────────────────────────────────────────────────
+// PayPal Service
+// Public checkout-related PayPal requests
+// Uses centralized API utility for environment-safe requests
+// ─────────────────────────────────────────────────────────────
+
+export async function createPaypalSession(orderId) {
+  if (!orderId) {
+    throw new Error("Order ID is required")
+  }
+
+  const response = await apiRequest("/api/paypal/create-order", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ orderId }),
   })
 
-  const data = await res.json().catch(() => ({}))
-
-  if (!res.ok) {
-    throw new Error(data.message || "Failed to create PayPal order")
-  }
-
-  return data.id
+  return response?.id || response?.data?.id || null
 }
 
-export const capturePaypalSession = async (paypalOrderId, orderId) => {
-  const res = await fetch(`${API_BASE}/api/paypal/capture-order`, {
+export async function capturePaypalSession(paypalOrderId, orderId) {
+  if (!paypalOrderId) {
+    throw new Error("PayPal order ID is required")
+  }
+
+  if (!orderId) {
+    throw new Error("Order ID is required")
+  }
+
+  return apiRequest("/api/paypal/capture-order", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({
       paypalOrderId,
       orderId,
     }),
   })
-
-  const data = await res.json().catch(() => ({}))
-
-  if (!res.ok) {
-    throw new Error(data.message || "PayPal capture failed")
-  }
-
-  return data
 }

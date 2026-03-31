@@ -1,68 +1,84 @@
-import { apiRequest, API_BASE_URL } from "../lib/api";
-
-const TOKEN_KEY = "auth-token";
-const USER_KEY = "auth-user";
+import {
+  apiRequest,
+  authFetch,
+  AUTH_TOKEN_KEY,
+  AUTH_USER_KEY,
+} from "../lib/api"
 
 export function getStoredToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY)
+  } catch {
+    return null
+  }
 }
 
 export function getStoredUser() {
-  const raw = localStorage.getItem(USER_KEY);
-  return raw ? JSON.parse(raw) : null;
+  try {
+    const raw = localStorage.getItem(AUTH_USER_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
 }
 
 export function clearStoredAuth() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY)
+    localStorage.removeItem(AUTH_USER_KEY)
+  } catch {
+    // ignore storage errors
+  }
 }
 
 export function storeAuth(data) {
-  localStorage.setItem(TOKEN_KEY, data.token);
-  localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  if (!data?.token || !data?.user) {
+    throw new Error("Invalid authentication payload")
+  }
+
+  try {
+    localStorage.setItem(AUTH_TOKEN_KEY, data.token)
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user))
+  } catch {
+    throw new Error("Failed to store authentication data")
+  }
 }
 
 export async function signup(payload) {
   const response = await apiRequest("/api/auth/signup", {
     method: "POST",
     body: JSON.stringify(payload),
-  });
+  })
 
-  return response.data;
+  return response?.data || response
 }
 
 export async function login(payload) {
   const response = await apiRequest("/api/auth/login", {
     method: "POST",
     body: JSON.stringify(payload),
-  });
+  })
 
-  return response.data;
+  return response?.data || response
 }
 
 export async function loginWithGoogleCredential(credential) {
+  if (!credential) {
+    throw new Error("Google credential is required")
+  }
+
   const response = await apiRequest("/api/auth/google", {
     method: "POST",
     body: JSON.stringify({ credential }),
-  });
+  })
 
-  return response.data;
+  return response?.data || response
 }
 
 export async function fetchMe() {
-  const token = getStoredToken();
+  const response = await authFetch("/api/auth/me", {
+    method: "GET",
+  })
 
-  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to fetch profile");
-  }
-
-  return data.data;
+  return response?.data || response
 }

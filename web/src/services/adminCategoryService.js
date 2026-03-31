@@ -1,24 +1,17 @@
-import { getStoredToken } from "./authService"
+import { authFetch } from "../lib/api"
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000"
+// ─────────────────────────────────────────────────────────────
+// Admin Category Service (Frontend)
+// ─────────────────────────────────────────────────────────────
 
 export async function fetchAdminCategories() {
-  const token = getStoredToken()
-
-  const response = await fetch(`${API_BASE_URL}/api/admin/categories`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  const response = await authFetch("/api/admin/categories", {
+    method: "GET",
   })
 
-  const data = await response.json().catch(() => ({}))
-
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to load categories")
-  }
-
-  return data.data || []
+  return Array.isArray(response?.data)
+    ? response.data
+    : Array.isArray(response)
+    ? response
+    : []
 }

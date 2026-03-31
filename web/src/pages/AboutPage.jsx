@@ -1,10 +1,11 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Link } from "react-router-dom"
 import {
   Download, ArrowRight, Target, Eye, Heart,
   Code, Cloud, Network, GraduationCap, Award,
   Briefcase, ChevronRight, ExternalLink, Sparkles, Star,
+  Monitor, Settings,
 } from "lucide-react"
 import {
   FaHtml5, FaCss3Alt, FaJs, FaReact, FaNodeJs,
@@ -13,11 +14,35 @@ import {
 import { SiMongodb, SiNpm } from "react-icons/si"
 import { VscVscode } from "react-icons/vsc"
 import { FaLinkedinIn, FaTelegramPlane, FaWhatsapp } from "react-icons/fa"
-import profilePhoto from "../assets/Ukizuru Mustapha Photo.jpg"
+import ResumePDF from "../assets/TranslatorInterpreter - Mustapha Ukizuru Resume.pdf"
+import HeadshotPhoto from "../assets/Ukizuru_Mustapha_Professional_Headshot.png"
+// ── Certificate imports (add these at the top of your file with other imports) ──
+import CertPython        from "../assets/Certificate___Python_for_Data_Science_UKIZURU_Mustapha.pdf"
+import CertEnglish       from "../assets/Certificate_English_for_Career_Development_UKIZURU_Mustapha.pdf"
+import CertPhilosophy    from "../assets/Certificate_Philosophy_of_SCience_UKIZURU_Mustapha.pdf"
+import CertTeaching      from "../assets/Certificate_Teaching_with_technology_UKUZURU_Mustapha.pdf"
+import CertGoogleEdu     from "../assets/Google_Certified_Educator_Level_2.pdf"
+import CertGoogleIT      from "../assets/Google_IT_Support_Professional_Certificate_Ukizuru_Mustapha.pdf"
+import CertTechSupport   from "../assets/Technical_Support_Fundamentals_Ukizuru_Mustapha.pdf"
+import CertSysAdmin      from "../assets/Technical_Support_Fundamental.pdf"
+import CertConstancia    from "../assets/UKIZURU_MUSTAPHA_8830885866MU_CONSTANCIA.pdf"
+
+// ── Certifications data (place inside the component or at module level) ──
+const certifications = [
+  { title: "Python 101 for Data Science",                   description: "IBM / Cognitive Class",              pdf: CertPython },
+  { title: "English for Career Development",                description: "UPenn / Coursera",                   pdf: CertEnglish },
+  { title: "Philosophy of Science",                         description: "UPenn / Coursera",                   pdf: CertPhilosophy },
+  { title: "Practical Teaching with Technology",             description: "University of London / Coursera",    pdf: CertTeaching },
+  { title: "Google Certified Educator Level 2",             description: "Google for Education",               pdf: CertGoogleEdu },
+  { title: "Google IT Support Professional",                description: "Google / Coursera",                  pdf: CertGoogleIT },
+  { title: "Technical Support Fundamentals",                description: "Google / Coursera",                  pdf: CertTechSupport },
+  { title: "System Administration & IT Infrastructure",     description: "Google / Coursera",                  pdf: CertSysAdmin },
+  { title: "Maestras y Maestros Construimos Igualdad",      description: "Gobierno del Estado de México",      pdf: CertConstancia },
+]
+
 import {
   aboutMissionVisionValues, expertiseAreas,
-  educationTimeline, experienceTimeline,
-  certifications, skillsColumns,
+  educationTimeline, experienceTimeline, skillsColumns,
 } from "../data/sitePagesData"
 import { aboutProjects } from "../data/aboutProjectsData"
 
@@ -72,19 +97,6 @@ function SkillBar({ name, value }) {
   )
 }
 
-function TimelineItem({ item, side }) {
-  return (
-    <div className="relative pl-6">
-      <div className="absolute left-0 top-2 h-3 w-3 rounded-full border-2 border-[#420060] bg-white" />
-      <div className="rounded-xl border border-[#634F40]/10 bg-white p-5 shadow-[0_6px_20px_rgba(66,0,96,0.05)]">
-        <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-[#634F40]/50">{item.period}</div>
-        <div className="text-[15px] font-bold text-[#420060]">{item.title}</div>
-        <p className="mt-1.5 text-[13px] leading-5 text-[#634F40]/65">{item.description}</p>
-      </div>
-    </div>
-  )
-}
-
 export default function AboutPage() {
   const [activeSkillTab, setActiveSkillTab] = useState("technical")
 
@@ -96,166 +108,168 @@ export default function AboutPage() {
 
   const toolsList = ["HTML5","CSS3","JavaScript","React","Node.js","MongoDB","Git","npm","Sass","Figma","VS Code","Linux"]
 
+  /* ── Animation variants ───────────────────────────────────────────── */
+  const fadeIn = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { duration: 0.7, ease: "easeOut" } } }
+  const floatBadge = (delay) => ({
+    hidden: { opacity: 0, scale: 0.8, y: 16 },
+    show:   { opacity: 1, scale: 1, y: 0, transition: { duration: 0.5, ease: "easeOut", delay } },
+  })
+
+  /* ── Floating service badges (shown around the photo) ─────────────── */
+const badges = [
+  { label: "Digital Systems",   Icon: Monitor,       top: "8%",  right: "6%",  delay: 0.3 },
+  { label: "Tech Consulting",   Icon: Settings,      top: "42%", right: "-2%", delay: 0.5 },
+  { label: "STEM & Robotics",   Icon: GraduationCap, top: "72%", right: "6%",  delay: 0.7 },
+]
+
+  /* ── Stats data ───────────────────────────────────────────────────── */
+  const stats = [
+    { value: "8+",  label: "Years Experience" },
+    { value: "10+", label: "Projects Done" },
+    { value: "93%", label: "Client Satisfaction" },
+  ]
+
   return (
     <>
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-[85vh] overflow-hidden bg-[#F7F9F4]" style={{ background: "linear-gradient(160deg, #F7F9F4 0%, #f3eaf5 40%, #F1EAE3 100%)" }}>
-        <div className="pointer-events-none absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-[#420060]/4 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-20 -left-20 h-[350px] w-[350px] rounded-full bg-[#FFCCAF]/20 blur-2xl" />
+      <section
+        className="relative overflow-hidden bg-[#F7F9F4]"
+        style={{ background: "linear-gradient(160deg, #F7F9F4 0%, #f3eaf5 40%, #F1EAE3 100%)" }}
+      >
+        {/* Background blurs */}
+        <div className="pointer-events-none absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-[#420060]/4 blur-3xl sm:h-[500px] sm:w-[500px]" />
+        <div className="pointer-events-none absolute -bottom-20 -left-20 h-[250px] w-[250px] rounded-full bg-[#FFCCAF]/20 blur-2xl sm:h-[350px] sm:w-[350px]" />
 
-        <Container className="flex min-h-[85vh] items-center py-24">
-          <div className="grid w-full items-center gap-0 lg:grid-cols-[1fr_auto_1fr]">
+        <Container className="py-16 sm:py-20 xl:flex xl:min-h-[85vh] xl:items-center xl:py-24">
+          <div className="grid w-full items-center gap-10 xl:grid-cols-2 xl:gap-12">
 
-            {/* LEFT */}
-            <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-7 pr-0 lg:pr-10">
-              <motion.div variants={fadeUp} className="flex flex-col gap-2">
-                <p className="text-[1.1rem] font-semibold text-[#634F40]/70">Hello, I Am</p>
-                <h1 className="text-[2.6rem] font-extrabold leading-[1.05] tracking-tight text-[#420060] sm:text-[3.2rem]">
-                  Mustapha <span className="text-[#FFCCAF]">Ukizuru.</span>
+            {/* ── LEFT COLUMN ───────────────────────────────────────── */}
+            <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center sm:gap-6 xl:items-start xl:text-left">
+
+              {/* Headline */}
+              <motion.div variants={fadeUp} className="flex flex-col gap-2 sm:gap-3">
+                <p className="text-[0.85rem] font-semibold text-[#634F40]/70 sm:text-[1rem]">Hello, I Am</p>
+                <h1 className="text-[1.8rem] font-extrabold leading-[1.08] tracking-tight text-[#420060] sm:text-[2.6rem] md:text-[3rem] xl:text-[3.6rem]">
+                  Let's Build{" "}
+                  <span className="text-[#634F40]/80">Together,</span>
+                  <br />
+                  <span className="text-[#FFCCAF]">Digital</span> Solutions
                 </h1>
-                <p className="text-[15px] font-medium text-[#634F40]/65">Technology Consultant & Digital Systems Expert</p>
               </motion.div>
 
-              <motion.div variants={fadeUp} className="flex items-center gap-5">
-                <div>
-                  <div className="text-[2.8rem] font-extrabold leading-none text-[#420060]">5+</div>
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#634F40]/50">Years Experience</div>
-                </div>
-                <div className="h-10 w-px bg-[#634F40]/15" />
-                <div>
-                  <div className="text-[2rem] font-extrabold leading-none text-[#420060]">50+</div>
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#634F40]/50">Projects Done</div>
-                </div>
-              </motion.div>
+              {/* Description */}
+              <motion.p variants={fadeUp} className="max-w-2xl text-[13.5px] leading-6 text-[#634F40]/60 sm:text-[15px] sm:leading-7">
+                A technology consultant & digital systems expert,
+                crafting modern infrastructure and STEM programs.
+                Adept at turning complex challenges into streamlined digital reality.
+              </motion.p>
 
-              <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
-                <Link to="/contact" className="inline-flex items-center gap-2 rounded-xl bg-[#420060] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(66,0,96,0.24)] transition hover:-translate-y-0.5 hover:bg-[#2d003f]">
-                  Hire Me <ArrowRight className="h-4 w-4" />
+              {/* CTAs */}
+              <motion.div variants={fadeUp} className="flex flex-wrap items-center justify-center gap-3 xl:justify-start">
+                <Link
+                  to="/contact"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#420060] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_10px_30px_rgba(66,0,96,0.24)] transition hover:-translate-y-0.5 hover:bg-[#2d003f] sm:px-7 sm:py-3.5 sm:text-[14px]"
+                >
+                  Let's Talk <ArrowRight className="h-4 w-4" />
                 </Link>
-                <a href="/resume.pdf" target="_blank" className="inline-flex items-center gap-2 rounded-xl border border-[#420060]/20 px-6 py-3.5 text-[14px] font-semibold text-[#420060] transition hover:bg-[#ede4ef] hover:-translate-y-0.5">
-                  <Download className="h-4 w-4" /> Resume
-                </a>
+                <a
+href={ResumePDF}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center gap-2 rounded-xl border border-[#420060]/20 bg-white px-5 py-2.5 text-[13px] font-semibold text-[#420060] transition hover:-translate-y-0.5 hover:bg-[#ede4ef] sm:px-7 sm:py-3.5 sm:text-[14px]"
+>
+  <Download className="h-4 w-4" /> Download Resume
+</a>
+
+
               </motion.div>
 
               {/* Social icons */}
               <motion.div variants={fadeUp} className="flex items-center gap-3">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#634F40]/40">Follow</span>
-                <div className="h-px flex-1 max-w-[32px] bg-[#634F40]/15" />
+                <div className="h-px w-8 bg-[#634F40]/15" />
                 <div className="flex gap-2.5">
                   {[
-                    { name:"LinkedIn", href:"https://www.linkedin.com/in/mustaphaukizuru/", Icon: FaLinkedinIn,    bg:"#0077B5" },
-                    { name:"Telegram", href:"https://t.me/mustaphaukizuru",                  Icon: FaTelegramPlane, bg:"#0088cc" },
-                    { name:"WhatsApp", href:"https://wa.me/250000000000",                    Icon: FaWhatsapp,      bg:"#25D366" },
+                    { name: "LinkedIn", href: "https://www.linkedin.com/in/mustaphaukizuru/", Icon: FaLinkedinIn,    bg: "#0077B5" },
+                    { name: "Telegram", href: "https://t.me/mustaphaukizuru",                  Icon: FaTelegramPlane, bg: "#0088cc" },
+                    { name: "WhatsApp", href: "https://wa.me/250000000000",                    Icon: FaWhatsapp,      bg: "#25D366" },
                   ].map(({ name, href, Icon, bg }) => (
-                    <a key={name} href={href} target="_blank" rel="noopener noreferrer" aria-label={name}
-                      className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
+                    <a
+                      key={name}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={name}
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.18)] sm:h-10 sm:w-10"
                       style={{ background: bg }}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </a>
                   ))}
                 </div>
               </motion.div>
-            </motion.div>
 
-            {/* CENTER: Circular portrait */}
-            <motion.div
-              initial={{ opacity:0, scale:0.88 }} animate={{ opacity:1, scale:1 }}
-              transition={{ duration:0.7, ease:"easeOut", delay:0.1 }}
-              className="relative mx-auto my-12 flex items-center justify-center lg:my-0"
-              style={{ width: 340, height: 400 }}
-            >
-              {/* Dashed arrow arc */}
-              <svg className="pointer-events-none absolute -left-14 top-1/3 hidden xl:block" width="110" height="130" viewBox="0 0 110 130" fill="none">
-                <path d="M85,8 C38,18 8,55 18,105 C20,116 26,124 34,126" stroke="#420060" strokeWidth="2" strokeDasharray="6 5" strokeLinecap="round" fill="none" opacity="0.3"/>
-                <path d="M26,100 L34,126 L56,118" stroke="#420060" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.3"/>
-              </svg>
-
-              {/* Gold gradient ring */}
-              <div className="absolute inset-0 rounded-full" style={{ padding: 5, background: "linear-gradient(135deg, #FFCCAF 0%, #420060 55%, #FFCCAF 100%)" }}>
-                <div className="h-full w-full rounded-full bg-[#F7F9F4]" />
-              </div>
-
-              {/* Photo */}
-              <div className="relative z-10 overflow-hidden rounded-full shadow-[0_16px_48px_rgba(66,0,96,0.18)]" style={{ width:322, height:382 }}>
-                <img src={profilePhoto} alt="Mustapha Ukizuru" className="h-full w-full object-cover object-top" />
-              </div>
-
-              {/* Floating badges */}
-              {[
-                { label:"IT Manager",     top:"6%",  left:"-30%",  delay:0,    icon:"💼" },
-                { label:"CS Teacher",     top:"25%", right:"-35%", delay:0.15, icon:"👨‍💻" },
-                { label:"STEM Expert",    top:"60%", left:"-32%",  delay:0.3,  icon:"🤖" },
-                { label:"Consultant",     top:"75%", right:"-33%", delay:0.2,  icon:"🎯" },
-                { label:"MSc Graduate",   top:"44%", left:"-36%",  delay:0.4,  icon:"🎓" },
-                { label:"Digital Builder",top:"90%", left:"10%",   delay:0.35, icon:"⚡" },
-              ].map(({ label, top, left, right, delay, icon }) => (
-                <motion.div
-                  key={label}
-                  initial={{ opacity:0, scale:0.6 }} animate={{ opacity:1, scale:1 }}
-                  transition={{ duration:0.45, delay: 0.55 + delay, ease:"backOut" }}
-                  className="absolute z-20 flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-white/80 bg-white/95 px-3 py-2 text-[11px] font-semibold text-[#420060] shadow-[0_6px_20px_rgba(66,0,96,0.12)] backdrop-blur-sm"
-                  style={{ top, left, right }}
-                >
-                  <span className="text-[13px]">{icon}</span>{label}
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* RIGHT */}
-            <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-7 pl-0 lg:pl-10">
-              <motion.div variants={fadeUp} className="text-right">
-                <p className="text-[1rem] leading-7 text-[#634F40]/60 italic">
-                  I build modern digital systems,<br />
-                  <span className="not-italic font-semibold text-[#420060]">and I love what I do.</span>
-                </p>
-              </motion.div>
-
-              {/* Reviews card */}
-              <motion.div variants={fadeUp} className="flex justify-end">
-                <div className="rounded-xl border border-[#634F40]/10 bg-white px-5 py-4 shadow-[0_12px_32px_rgba(66,0,96,0.10)]">
-                  <div className="flex items-center gap-2 text-[12px]">
-                    <span className="text-[#634F40]/55">Client Reviews</span>
-                    <div className="flex gap-0.5 text-[#FFCCAF]">
-                      {Array.from({length:5}).map((_,i) => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}
-                    </div>
-                  </div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className="flex -space-x-2">
-                      {["AM","JN","CK","TM"].map((init) => (
-                        <div key={init} className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#420060] text-[9px] font-bold text-white">
-                          {init}
-                        </div>
-                      ))}
-                    </div>
-                    <span className="text-[20px] font-extrabold text-[#420060]">4.9</span>
-                  </div>
-                  <div className="mt-0.5 text-[10px] text-[#634F40]/40">Based on client feedback</div>
-                </div>
-              </motion.div>
-
-              <motion.div variants={fadeUp} className="text-right">
-                <p className="text-[0.9rem] font-semibold uppercase tracking-[0.18em] text-[#634F40]/45">Technology</p>
-                <p className="text-[1.9rem] font-extrabold leading-tight text-[#420060]" style={{ fontStyle:"italic" }}>Consultant.</p>
-              </motion.div>
-
-              <motion.div variants={fadeUp} className="flex flex-col gap-2.5">
-                {[
-                  { label: "Specialist", desc: "Digital systems & infrastructure" },
-                  { label: "Educator",   desc: "CS, STEM & robotics programs" },
-                  { label: "Consultant", desc: "Technology strategy & delivery" },
-                ].map(({ label, desc }) => (
-                  <div key={label} className="flex items-center justify-end gap-3 text-[13px]">
-                    <div className="text-right">
-                      <div className="font-semibold text-[#420060]">{label}</div>
-                      <div className="text-[11px] text-[#634F40]/50">{desc}</div>
-                    </div>
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
-                      <Sparkles className="h-4 w-4" />
-                    </div>
+              {/* Stats row — always 3 columns, never wraps */}
+              <motion.div variants={fadeUp} className="grid w-full max-w-sm grid-cols-3 gap-4 pt-3 sm:max-w-md sm:gap-8 sm:pt-4 xl:max-w-none xl:w-auto xl:flex xl:gap-10">
+                {stats.map(({ value, label }) => (
+                  <div key={label} className="flex flex-col items-center xl:items-start">
+                    <span className="text-[1.6rem] font-extrabold leading-none text-[#420060] sm:text-[2.2rem] xl:text-[2.6rem]">
+                      {value}
+                    </span>
+                    <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#634F40]/50 sm:text-[10px] sm:tracking-[0.15em] xl:text-[11px]">
+                      {label}
+                    </span>
                   </div>
                 ))}
               </motion.div>
+            </motion.div>
+
+            {/* ── RIGHT COLUMN: Photo with floating badges ──────────── */}
+            <motion.div
+              variants={fadeIn}
+              initial="hidden"
+              animate="show"
+              className="relative mx-auto flex items-center justify-center xl:mx-0 xl:justify-end"
+            >
+              {/* Outer orbital ring */}
+              <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#420060]/10 h-[72vw] w-[72vw] sm:h-[360px] sm:w-[360px] md:h-[420px] md:w-[420px] xl:h-[520px] xl:w-[520px]" />
+              {/* Inner dashed ring */}
+              <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-[#FFCCAF]/25 h-[62vw] w-[62vw] sm:h-[310px] sm:w-[310px] md:h-[365px] md:w-[365px] xl:h-[460px] xl:w-[460px]" />
+
+              {/* Soft glow behind person */}
+              <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#420060]/[0.06] blur-2xl h-[58vw] w-[58vw] sm:h-[290px] sm:w-[290px] md:h-[340px] md:w-[340px] xl:h-[440px] xl:w-[440px]" />
+
+              {/* Photo — circular, scales per breakpoint */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
+                className="relative z-10 overflow-hidden rounded-full h-[65vw] w-[65vw] sm:h-[280px] sm:w-[280px] md:h-[340px] md:w-[340px] xl:h-[500px] xl:w-[500px]"
+                style={{ left: "-40px", top: "-10px" }}
+              >
+                <img
+                  src={HeadshotPhoto}
+                  alt="Mustapha Ukizuru"
+                  className="h-full w-full object-cover object-top object-center"
+                />
+              </motion.div>
+
+              {/* Floating badges — hidden until xl (1280px+) */}
+              {badges.map(({ label, Icon, top, right, delay }) => (
+                <motion.div
+                  key={label}
+                  variants={floatBadge(delay)}
+                  initial="hidden"
+                  animate="show"
+                  className="absolute z-20 hidden items-center gap-2.5 rounded-full bg-white px-4 py-2.5 shadow-[0_8px_28px_rgba(66,0,96,0.12)] xl:flex"
+                  style={{ top, right }}
+                >
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#ede4ef]">
+                    <Icon className="h-4 w-4 text-[#420060]" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-[#2E2F3A]">{label}</span>
+                </motion.div>
+              ))}
             </motion.div>
           </div>
         </Container>
@@ -285,19 +299,14 @@ export default function AboutPage() {
                 <motion.div key={title} variants={fadeUp}
                   className={`group relative flex flex-col gap-6 overflow-hidden rounded-xl p-7 shadow-[0_12px_40px_rgba(66,0,96,0.10)] ring-1 transition-all hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(66,0,96,0.16)] ${s.bg} ${s.ring}`}
                 >
-                  {/* Decorative circle */}
                   <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10" style={{ background:"currentColor" }} />
-
                   <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${s.icon}`}>
                     {Icon && <Icon className="h-7 w-7" />}
                   </div>
-
                   <div>
                     <h3 className={`text-[18px] font-bold ${s.text}`}>{title}</h3>
                     <p className={`mt-3 text-[14px] leading-6 ${s.sub}`}>{description}</p>
                   </div>
-
-                  {/* Bottom accent bar */}
                   <div className="mt-auto h-1 w-12 rounded-full bg-[#FFCCAF]" />
                 </motion.div>
               )
@@ -359,9 +368,7 @@ export default function AboutPage() {
               </div>
 
               <div className="relative">
-                {/* Vertical line */}
                 <div className="absolute left-[19px] top-0 h-full w-px bg-gradient-to-b from-[#420060] via-[#420060]/40 to-transparent" />
-
                 <div className="space-y-6">
                   {educationTimeline.map((item, i) => (
                     <motion.div
@@ -372,11 +379,9 @@ export default function AboutPage() {
                       transition={{ duration:0.5, delay: i * 0.1 }}
                       className="relative flex gap-5 pl-12"
                     >
-                      {/* Node */}
                       <div className="absolute left-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#420060] text-[11px] font-bold text-white shadow-[0_4px_12px_rgba(66,0,96,0.35)] ring-4 ring-[#2E2F3A]">
                         {String(educationTimeline.length - i).padStart(2,"0")}
                       </div>
-
                       <div className="flex-1 overflow-hidden rounded-xl border border-white/8 bg-white/6 p-5 transition hover:bg-white/10">
                         <div className="mb-1.5 inline-flex rounded-full bg-[#420060]/40 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#FFCCAF]">
                           {item.period}
@@ -404,7 +409,6 @@ export default function AboutPage() {
 
               <div className="relative">
                 <div className="absolute left-[19px] top-0 h-full w-px bg-gradient-to-b from-[#FFCCAF] via-[#FFCCAF]/40 to-transparent" />
-
                 <div className="space-y-6">
                   {experienceTimeline.map((item, i) => (
                     <motion.div
@@ -418,7 +422,6 @@ export default function AboutPage() {
                       <div className="absolute left-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FFCCAF] text-[#420060] text-[11px] font-bold shadow-[0_4px_12px_rgba(255,204,175,0.35)] ring-4 ring-[#2E2F3A]">
                         {String(experienceTimeline.length - i).padStart(2,"0")}
                       </div>
-
                       <div className="flex-1 overflow-hidden rounded-xl border border-white/8 bg-white/6 p-5 transition hover:bg-white/10">
                         <div className="mb-1.5 inline-flex rounded-full bg-[#FFCCAF]/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#FFCCAF]">
                           {item.period}
@@ -435,58 +438,114 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      {/* ── CERTIFICATIONS ────────────────────────────────────────────────── */}
-      <section className="py-20 lg:py-28">
+        {/* ── CERTIFICATIONS ────────────────────────────────────────────────── */}
+      <section className="bg-[#2E2F3A] py-20 lg:py-28">
         <Container>
-          <SH eyebrow="Credentials" title="Certifications and Professional Recognition" subtitle="Industry credentials that demonstrate technical expertise and continuous professional development." />
-          <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once:true }} className="space-y-4">
-            {certifications.map(({ title, description }) => (
-              <motion.div key={title} variants={fadeUp}
-                className="flex flex-col gap-4 rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_6px_20px_rgba(66,0,96,0.05)] sm:flex-row sm:items-center sm:justify-between"
+          <div className="grid items-start gap-10 lg:grid-cols-[320px_1fr] xl:grid-cols-[380px_1fr] xl:gap-14">
+
+            {/* Left intro column */}
+            <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col items-center gap-5 text-center lg:sticky lg:top-28 lg:items-start lg:text-left">
+              <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFCCAF]">Credentials</span>
+              <div>
+                <p className="text-[1rem] italic text-[#FFCCAF]/70">Check Out</p>
+                <h2 className="mt-1 text-[1.75rem] font-bold tracking-tight text-white sm:text-[2rem]">
+                  My Certifications
+                </h2>
+              </div>
+              <p className="max-w-xs text-[14px] leading-6 text-white/50">
+                Industry credentials that demonstrate technical expertise and continuous professional development.
+              </p>
+              <Link
+                to="/contact"
+                className="mt-2 inline-flex items-center gap-2 rounded-xl border border-[#FFCCAF]/30 px-6 py-3 text-[13px] font-semibold text-[#FFCCAF] transition hover:bg-[#FFCCAF]/10"
               >
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
-                    <Award className="h-5 w-5" />
+                Know More <ArrowRight className="h-4 w-4" />
+              </Link>
+            </motion.div>
+
+            {/* Right certificate grid — 3 columns */}
+            <motion.div
+              variants={stagger}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {certifications.map(({ title, description, image, pdf }) => (
+                <motion.a
+                  key={title}
+                  href={pdf || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variants={fadeUp}
+                  className="group flex flex-col overflow-hidden rounded-xl border border-white/8 bg-white/[0.04] transition-all hover:-translate-y-1 hover:bg-white/[0.08] hover:shadow-[0_16px_40px_rgba(0,0,0,0.25)]"
+                >
+                  {/* Certificate preview */}
+                  <div className="relative aspect-[4/3] overflow-hidden bg-white">
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : pdf ? (
+                      <div className="pointer-events-none absolute inset-0 origin-top-left scale-[0.35]"
+                        style={{ width: "286%", height: "286%" }}
+                      >
+                        <iframe
+                          src={`${pdf}#toolbar=0&navpanes=0&scrollbar=0`}
+                          title={title}
+                          className="h-full w-full border-0"
+                          loading="lazy"
+                          tabIndex={-1}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2E2F3A]/10">
+                          <Award className="h-8 w-8 text-[#420060]/30" />
+                        </div>
+                        <span className="text-[11px] text-[#634F40]/40">Coming soon</span>
+                      </div>
+                    )}
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#420060]/0 opacity-0 transition-all duration-300 group-hover:bg-[#420060]/40 group-hover:opacity-100">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[12px] font-semibold text-[#420060] shadow-lg">
+                        <ExternalLink className="h-3.5 w-3.5" /> View
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-[15px] font-bold text-[#420060]">{title}</div>
-                    <div className="mt-0.5 text-[13px] text-[#634F40]/65">{description}</div>
+
+                  {/* Info */}
+                  <div className="flex flex-col items-center gap-1.5 px-4 py-4 text-center">
+                    <h3 className="text-[13px] font-bold leading-snug text-white">{title}</h3>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#FFCCAF]/60">{description}</p>
                   </div>
-                </div>
-                <button type="button" className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-[#420060]/20 px-4 py-2 text-[12px] font-semibold text-[#420060] transition hover:bg-[#ede4ef]">
-                  <ExternalLink className="h-3.5 w-3.5" /> View Certificate
-                </button>
-              </motion.div>
-            ))}
-          </motion.div>
+                </motion.a>
+              ))}
+            </motion.div>
+          </div>
         </Container>
       </section>
 
-      {/* ── SKILLS ────────────────────────────────────────────────────────── */}
-      <section className="bg-[#F7F9F4] py-20 lg:py-28">
+
+
+{/* ── SKILLS ────────────────────────────────────────────────────────── */}
+      <section className="bg-[#F7F9F4] py-20 lg:py-20">
         <Container>
           <SH eyebrow="Skills" title="Technical and Professional Skills" subtitle="A balanced combination of engineering expertise, strategic thinking, and communication skills." />
 
-          {/* Tab switcher */}
-          <div className="mb-8 flex justify-center">
-            <div className="flex overflow-hidden rounded-xl border border-[#634F40]/12 bg-white p-1 shadow-sm">
-              {Object.entries(skillTabs).map(([key, { label }]) => (
-                <button key={key} type="button" onClick={() => setActiveSkillTab(key)}
-                  className={`rounded-xl px-5 py-2.5 text-[13px] font-semibold transition-all ${
-                    activeSkillTab === key
-                      ? "bg-[#420060] text-white shadow-sm"
-                      : "text-[#634F40]/60 hover:text-[#420060]"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mx-auto max-w-xl space-y-5">
-            {skillTabs[activeSkillTab].data.map(({ name, value }) => (
-              <SkillBar key={name} name={name} value={value} />
+          {/* 3 equal columns — Technical, Professional, Languages */}
+          <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
+            {Object.entries(skillTabs).map(([key, { label, data }]) => (
+              <div key={key} className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_8px_24px_rgba(66,0,96,0.05)]">
+                <h3 className="mb-6 text-center text-[15px] font-bold text-[#420060]">{label}</h3>
+                <div className="space-y-4">
+                  {data.map(({ name, value }) => (
+                    <SkillBar key={name} name={name} value={value} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
 
@@ -512,37 +571,69 @@ export default function AboutPage() {
           </div>
         </Container>
       </section>
-
-      {/* ── PROJECTS ──────────────────────────────────────────────────────── */}
+      
+{/* ── PROJECTS ──────────────────────────────────────────────────────── */}
       <section className="py-20 lg:py-28">
         <Container>
           <SH eyebrow="Portfolio" title="Selected Projects" subtitle="Technology solutions and digital systems delivered across multiple industries and organizations." />
           <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once:true }}
             className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
           >
-            {aboutProjects.map(({ id, title, description, image, tags, year, link }) => (
-              <motion.div key={id} variants={fadeUp}
-                className="group flex flex-col overflow-hidden rounded-xl border border-[#634F40]/10 bg-white shadow-[0_8px_24px_rgba(66,0,96,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(66,0,96,0.10)]"
-              >
-                <div className="relative h-48 overflow-hidden bg-[#ede4ef]">
-                  <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                  <div className="absolute bottom-3 left-3 text-[11px] font-semibold text-white/80">{year}</div>
-                </div>
-                <div className="flex flex-1 flex-col p-6">
-                  <h3 className="text-[16px] font-bold text-[#420060]">{title}</h3>
-                  <p className="mt-2 flex-1 text-[13px] leading-5 text-[#634F40]/65">{description}</p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <span key={tag} className="rounded-lg bg-[#ede4ef] px-2.5 py-1 text-[11px] font-semibold text-[#420060]">{tag}</span>
-                    ))}
+            {aboutProjects.map(({ id, title, description, image, images, tags, year, link, website }) => {
+              const gallery = images && images.length > 0 ? images : [image]
+              const [active, setActive] = useState(0)
+
+              useEffect(() => {
+                if (gallery.length <= 1) return
+                const t = setInterval(() => setActive((p) => (p + 1) % gallery.length), 3000)
+                return () => clearInterval(t)
+              }, [gallery.length])
+
+              return (
+                <motion.div key={id} variants={fadeUp}
+                  className="group flex flex-col overflow-hidden rounded-xl border border-[#634F40]/10 bg-white shadow-[0_8px_24px_rgba(66,0,96,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(66,0,96,0.10)]"
+                >
+                  {/* Auto-rotating image */}
+                  <div className="relative h-48 overflow-hidden bg-[#ede4ef]">
+                    <img src={gallery[active]} alt={title} className="h-full w-full object-cover transition-all duration-500 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    <div className="absolute bottom-3 left-3 text-[11px] font-semibold text-white/80">{year}</div>
+                    {gallery.length > 1 && (
+                      <div className="absolute bottom-3 right-3 flex gap-1">
+                        {gallery.map((_, i) => (
+                          <button key={i} type="button" onClick={() => setActive(i)}
+                            className={`h-1.5 rounded-full transition-all ${i === active ? "w-4 bg-white" : "w-1.5 bg-white/50"}`}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <Link to={link} className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold text-[#420060] hover:underline">
-                    Learn More <ChevronRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
+
+                  {/* Info */}
+                  <div className="flex flex-1 flex-col p-6">
+                    <h3 className="text-[16px] font-bold text-[#420060]">{title}</h3>
+                    <p className="mt-2 flex-1 text-[13px] leading-5 text-[#634F40]/65">{description}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <span key={tag} className="rounded-lg bg-[#ede4ef] px-2.5 py-1 text-[11px] font-semibold text-[#420060]">{tag}</span>
+                      ))}
+                    </div>
+                    <div className="mt-4 flex items-center gap-3">
+                      <Link to={link} className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#420060] hover:underline">
+                        Learn More <ChevronRight className="h-4 w-4" />
+                      </Link>
+                      {website && (
+                        <a href={website} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#420060]/60 transition hover:text-[#420060]"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" /> Visit Site
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
           </motion.div>
         </Container>
       </section>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { useToast } from "../context/ToastContext"
+import { API_BASE_URL } from "../lib/api"
 import {
   createAdminProduct,
   updateAdminProduct,
@@ -21,55 +21,65 @@ const PRODUCT_CATEGORIES = [
   "Uncategorized",
 ]
 
-const buildDefaultImages = () =>
-  Array.from({ length: 6 }, (_, index) => ({
-    url: "",
-    altText: "",
-    sortOrder: index,
-  }))
+const EMPTY_FORM = {
+  title: "",
+  slug: "",
+  description: "",
+  price: "",
+  category: "",
+  isActive: true,
+  isFeatured: false,
+  isNew: false,
+  images: [],
+  files: [],
+}
 
-const mergeImages = (images = []) =>
-  Array.from({ length: 6 }, (_, index) => {
-    const existing = images[index]
-    return {
-      id: existing?.id || null,
-      url: existing?.url || "",
-      altText: existing?.altText || "",
-      sortOrder: index,
-    }
-  })
+function normalizeProductToForm(product = {}) {
+  return {
+    title: product.title || "",
+    slug: product.slug || "",
+    description: product.description || "",
+    price: product.price ?? "",
+    category: product.category || "",
+    isActive: Boolean(product.isActive),
+    isFeatured: Boolean(product.isFeatured),
+    isNew: Boolean(product.isNew),
+    images: Array.isArray(product.images) ? product.images : [],
+    files: Array.isArray(product.files) ? product.files : [],
+  }
+}
+
+function buildImageSrc(imageUrl = "") {
+  if (!imageUrl) return ""
+
+  if (/^https?:\/\//i.test(imageUrl)) {
+    return imageUrl
+  }
+
+  return API_BASE_URL ? `${API_BASE_URL}${imageUrl}` : imageUrl
+}
 
 export default function AdminProductFormPage() {
   const navigate = useNavigate()
   const { id } = useParams()
   const isEdit = useMemo(() => Boolean(id), [id])
-  const { showSuccess, showError } = useToast()
+
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+
   const [errorMessage, setErrorMessage] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
 
-  const [form, setForm] = useState({
-    title: "",
-    slug: "",
-    description: "",
-    price: "",
-    category: "",
-    isActive: true,
-    isFeatured: false,
-    isNew: false,
-    images: buildDefaultImages(),
-    files: [],
-  })
+  const [form, setForm] = useState(EMPTY_FORM)
 
   const [fileUpload, setFileUpload] = useState(null)
   const [fileVersion, setFileVersion] = useState("")
   const [fileLabel, setFileLabel] = useState("")
-  const [uploadingFile, setUploadingFile] = useState(false)
 
   const [imageUpload, setImageUpload] = useState(null)
   const [imageAltText, setImageAltText] = useState("")
-  const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
     async function loadProduct() {
@@ -81,21 +91,10 @@ export default function AdminProductFormPage() {
       try {
         setLoading(true)
         setErrorMessage("")
+        setSuccessMessage("")
 
         const product = await fetchAdminProductById(id)
-
-        setForm({
-          title: product.title || "",
-          slug: product.slug || "",
-          description: product.description || "",
-          price: product.price ?? "",
-          category: product.category || "",
-          isActive: !!product.isActive,
-          isFeatured: !!product.isFeatured,
-          isNew: !!product.isNew,
-          images: mergeImages(product.images || []),
-          files: product.files || [],
-        })
+        setForm(normalizeProductToForm(product))
       } catch (error) {
         setErrorMessage(error.message || "Failed to load product.")
       } finally {
@@ -103,51 +102,25 @@ export default function AdminProductFormPage() {
       }
     }
 
-
-
     loadProduct()
   }, [id, isEdit])
 
-  const refreshProduct = async () => {
-    if (!isEdit) return
+  async function refreshProduct() {
+    if (!isEdit || !id) return
 
     const product = await fetchAdminProductById(id)
-
-    setForm({
-      title: product.title || "",
-      slug: product.slug || "",
-      description: product.description || "",
-      price: product.price ?? "",
-      category: product.category || "",
-      isActive: !!product.isActive,
-      isFeatured: !!product.isFeatured,
-      isNew: !!product.isNew,
-      images: mergeImages(product.images || []),
-      files: product.files || [],
-    })
+    setForm(normalizeProductToForm(product))
   }
 
-  const updateField = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }))
+  function updateField(key, value) {
+    setForm((current) => ({
+      ...current,
+      [key]: value,
+    }))
   }
 
-  const updateImageField = (index, key, value) => {
-    setForm((current) => {
-      const nextImages = [...current.images]
-      nextImages[index] = {
-        ...nextImages[index],
-        [key]: value,
-      }
-
-      return {
-        ...current,
-        images: nextImages,
-      }
-    })
-  }
-
-  const submit = async (e) => {
-    e.preventDefault()
+  async function handleSubmit(event) {
+    event.preventDefault()
     setErrorMessage("")
     setSuccessMessage("")
 
@@ -163,23 +136,15 @@ export default function AdminProductFormPage() {
         isActive: form.isActive,
         isFeatured: form.isFeatured,
         isNew: form.isNew,
-        images: form.images
-          .filter((image) => image.url.trim() !== "")
-          .map((image, index) => ({
-            url: image.url.trim(),
-            altText: image.altText.trim(),
-            sortOrder: index,
-          })),
       }
 
       if (isEdit) {
         await updateAdminProduct(id, payload)
-        setSuccessMessage("Product updated successfully.")
         await refreshProduct()
+        setSuccessMessage("Product updated successfully.")
       } else {
         await createAdminProduct(payload)
         navigate("/admin/products")
-        return
       }
     } catch (error) {
       setErrorMessage(error.message || "Failed to save product.")
@@ -188,8 +153,13 @@ export default function AdminProductFormPage() {
     }
   }
 
-  const handleUploadFile = async () => {
+  async function handleUploadFile() {
     try {
+      if (!isEdit || !id) {
+        setErrorMessage("Save the product first before uploading files.")
+        return
+      }
+
       if (!fileUpload) {
         setErrorMessage("Please select a file to upload.")
         return
@@ -210,7 +180,7 @@ export default function AdminProductFormPage() {
         formData.append("version", fileVersion.trim())
       }
 
-      if (!(form.files || []).length) {
+      if (!Array.isArray(form.files) || form.files.length === 0) {
         formData.append("isPrimary", "true")
       }
 
@@ -228,8 +198,13 @@ export default function AdminProductFormPage() {
     }
   }
 
-  const handleUploadImage = async () => {
+  async function handleUploadImage() {
     try {
+      if (!isEdit || !id) {
+        setErrorMessage("Save the product first before uploading images.")
+        return
+      }
+
       if (!imageUpload) {
         setErrorMessage("Please select an image to upload.")
         return
@@ -259,36 +234,57 @@ export default function AdminProductFormPage() {
     }
   }
 
-  const handleDeleteImage = async (imageId) => {
+  async function handleDeleteImage(imageId) {
     try {
+      if (!imageId) {
+        setErrorMessage("Image ID is required.")
+        return
+      }
+
       setErrorMessage("")
       setSuccessMessage("")
+
       await deleteAdminProductImage(id, imageId)
       await refreshProduct()
+
       setSuccessMessage("Product image deleted successfully.")
     } catch (error) {
       setErrorMessage(error.message || "Failed to delete image.")
     }
   }
 
-  const handleMakePrimary = async (fileId) => {
+  async function handleMakePrimary(fileId) {
     try {
+      if (!fileId) {
+        setErrorMessage("File ID is required.")
+        return
+      }
+
       setErrorMessage("")
       setSuccessMessage("")
+
       await setAdminPrimaryProductFile(id, fileId)
       await refreshProduct()
+
       setSuccessMessage("Primary file updated successfully.")
     } catch (error) {
       setErrorMessage(error.message || "Failed to update primary file.")
     }
   }
 
-  const handleDeleteFile = async (fileId) => {
+  async function handleDeleteFile(fileId) {
     try {
+      if (!fileId) {
+        setErrorMessage("File ID is required.")
+        return
+      }
+
       setErrorMessage("")
       setSuccessMessage("")
+
       await deleteAdminProductFile(id, fileId)
       await refreshProduct()
+
       setSuccessMessage("Product file deleted successfully.")
     } catch (error) {
       setErrorMessage(error.message || "Failed to delete file.")
@@ -307,7 +303,7 @@ export default function AdminProductFormPage() {
             {isEdit ? "Edit Product" : "Create Product"}
           </h1>
 
-          <form onSubmit={submit} className="mt-8 space-y-8">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-8">
             <div className="grid gap-5 md:grid-cols-2">
               <input
                 type="text"
@@ -522,13 +518,13 @@ export default function AdminProductFormPage() {
                   </button>
 
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {form.images.filter((image) => image.url).length === 0 ? (
+                    {(form.images || []).length === 0 ? (
                       <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-[#fafafa] px-4 py-3 text-sm text-[#634F40]/70">
                         No product images uploaded yet.
                       </div>
                     ) : (
                       form.images
-                        .filter((image) => image.url)
+                        .filter((image) => image?.url)
                         .map((image) => (
                           <div
                             key={image.id || image.url}
@@ -536,8 +532,8 @@ export default function AdminProductFormPage() {
                           >
                             <div className="aspect-[4/3] bg-white">
                               <img
-                                src={`http://localhost:5000${image.url}`}
-                                alt={image.altText || form.title}
+                                src={buildImageSrc(image.url)}
+                                alt={image.altText || form.title || "Product image"}
                                 className="h-full w-full object-cover"
                               />
                             </div>

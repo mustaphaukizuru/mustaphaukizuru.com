@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom"
 import { motion } from "framer-motion"
+import { useState } from "react"
 import {
   ArrowLeft, Tag, Calendar, Wrench, ChevronRight,
   CheckCircle2, ArrowRight, ExternalLink, Users
@@ -99,16 +100,45 @@ export default function ProjectDetailPage() {
           {/* ── Left: Content ─────────────────────────────────────────────── */}
           <div className="flex flex-col gap-6">
 
-            {/* Hero image */}
-            {project.image && (
-              <div className="overflow-hidden rounded-xl shadow-[0_16px_48px_rgba(66,0,96,0.10)]">
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  className="h-[320px] w-full object-cover sm:h-[420px]"
-                />
-              </div>
-            )}
+          
+   {/* Hero image + thumbnail gallery */}
+            {project.image && (() => {
+              const gallery = project.images && project.images.length > 0 ? project.images : [project.image]
+              const [activeImg, setActiveImg] = useState(0)
+
+              return (
+                <div className="flex flex-col gap-3">
+                  {/* Main image */}
+                  <div className="overflow-hidden rounded-xl shadow-[0_16px_48px_rgba(66,0,96,0.10)]">
+                    <img
+                      src={gallery[activeImg]}
+                      alt={project.title}
+                      className="h-[320px] w-full object-cover transition-all duration-500 sm:h-[420px]"
+                    />
+                  </div>
+
+                  {/* Thumbnails */}
+                  {gallery.length > 1 && (
+                    <div className="grid grid-cols-6 gap-2">
+                      {gallery.map((img, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setActiveImg(i)}
+                          className={`aspect-[4/3] overflow-hidden rounded-lg transition-all ${
+                            i === activeImg
+                              ? "ring-2 ring-[#420060] ring-offset-2"
+                              : "opacity-60 hover:opacity-100"
+                          }`}
+                        >
+                          <img src={img} alt={`${project.title} ${i + 1}`} className="h-full w-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* Challenge */}
             <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
@@ -182,15 +212,17 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
-            {/* Project link */}
-            {project.link && project.link !== "/contact" && (
-              <Link
-                to={project.link}
+            {/* Project website */}
+            {project.website && (<a
+              
+                href={project.website}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center justify-between rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_4px_16px_rgba(66,0,96,0.04)] transition hover:border-[#420060]/25 hover:shadow-[0_8px_24px_rgba(66,0,96,0.08)]"
               >
-                <div className="text-[14px] font-semibold text-[#420060]">View Related Resource</div>
+                <div className="text-[14px] font-semibold text-[#420060]">Visit Live Website</div>
                 <ExternalLink className="h-4 w-4 text-[#420060]" />
-              </Link>
+              </a>
             )}
 
             {/* CTA card */}

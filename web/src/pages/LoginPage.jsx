@@ -88,7 +88,6 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
       <div className="w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-[0_24px_80px_rgba(66,0,96,0.14)] lg:grid lg:grid-cols-2">
-
         <AuthBrandPanel
           title="Welcome to Your Digital Hub"
           subtitle="Access your purchased digital products, manage consulting services, and track your digital transformation journey."

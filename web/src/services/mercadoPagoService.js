@@ -5,23 +5,35 @@ import { authFetch } from "../lib/api"
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Create a Checkout Pro preference and return the redirect URL
+ * Create a Checkout Pro preference and return the redirect payload
  * @param {string} orderId
- * @returns {{ preferenceId, initPoint, sandboxPoint }}
+ * @returns {Promise<{ preferenceId?: string, initPoint?: string, sandboxPoint?: string }>}
  */
 export async function createMercadoPagoPreference(orderId) {
+  if (!orderId) {
+    throw new Error("Order ID is required")
+  }
+
   const response = await authFetch("/api/mercadopago/create-preference", {
     method: "POST",
-    body:   JSON.stringify({ orderId }),
+    body: JSON.stringify({ orderId }),
   })
-  return response.data
+
+  return response?.data || response
 }
 
 /**
- * Poll order payment status after redirect back from MP
+ * Poll order payment status after redirect back from Mercado Pago
  * @param {string} orderId
  */
 export async function getMercadoPagoStatus(orderId) {
-  const response = await authFetch(`/api/mercadopago/status/${orderId}`)
-  return response.data
+  if (!orderId) {
+    throw new Error("Order ID is required")
+  }
+
+  const response = await authFetch(`/api/mercadopago/status/${orderId}`, {
+    method: "GET",
+  })
+
+  return response?.data || response
 }

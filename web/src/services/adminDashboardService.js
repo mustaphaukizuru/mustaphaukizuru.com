@@ -1,28 +1,20 @@
-import { getStoredToken } from "./authService"
+// web/src/services/adminDashboardService.js
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000"
+import { authFetch } from "../lib/api"
+
+// ─────────────────────────────────────────────────────────────
+// Admin Dashboard Service (Clean + Centralized)
+// Uses shared authFetch → consistent behavior across environments
+// ─────────────────────────────────────────────────────────────
 
 export async function fetchAdminDashboardStats() {
-  const token = getStoredToken()
-
-  if (!token) {
-    throw new Error("Not authorized, token missing")
-  }
-
-  const response = await fetch(`${API_BASE_URL}/api/admin/dashboard`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  const response = await authFetch("/api/admin/dashboard", {
+    method: "GET",
   })
 
-  const data = await response.json().catch(() => ({}))
-
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to load dashboard stats")
+  return {
+    stats: response?.data?.stats || response?.stats || {},
+    topProducts: response?.data?.topProducts || response?.topProducts || [],
+    recentOrders: response?.data?.recentOrders || response?.recentOrders || [],
   }
-
-  return data.data
 }

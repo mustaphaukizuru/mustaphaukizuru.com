@@ -5,7 +5,7 @@ import {
   MapPin, Clock, ArrowRight, Sparkles, Phone,
 } from "lucide-react"
 // social icons use inline SVG components below
-import profilePhoto from "../assets/Ukizuru Mustapha Photo.jpg"
+import contactPhoto from "../assets/contactimage.svg"
 import { apiRequest } from "../lib/api"
 
 // Lightweight inline social icons (replaces react-icons/fa bundle)
@@ -137,17 +137,12 @@ function ContactSection() {
             className="flex flex-col gap-8"
           >
             {/* Portrait image */}
-            <div className="relative overflow-hidden rounded-xl bg-[#ede4ef] shadow-[0_20px_60px_rgba(66,0,96,0.14)]">
+            <div className="relative overflow-hidden rounded-xl border border-[#634F40]/10">
               <img
-                src={profilePhoto}
-                alt="Mustapha Ukizuru — Technology Consultant"
-                className="h-[420px] w-full object-cover object-top sm:h-[480px]"
+                src={contactPhoto}
+                alt="Mustapha Ukizuru — Contact - Technology Consultant"
+                className="h-[320px] w-full object-cover object-top sm:h-[480px]"
               />
-              {/* Overlay badge */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#420060]/80 to-transparent px-6 py-5">
-                <div className="text-[17px] font-bold text-white">Mustapha Ukizuru</div>
-                <div className="text-[13px] text-white/65">Technology Consultant</div>
-              </div>
             </div>
 
             {/* Social media icons */}

@@ -58,23 +58,15 @@ function Hero() {
     { name: "WhatsApp",  href: "https://wa.me/250000000000",                    icon: FaWhatsapp,      bg: "#25D366" },
   ]
 
-  const floatingBadges = [
-    { label: "Proven Results",      top: "8%",  left: "2%",   delay: 0,    icon: "✓" },
-    { label: "Scalable Solutions",  top: "20%", right: "3%",  delay: 0.15, icon: "⚡" },
-    { label: "Digital Content",     top: "60%", left: "1%",   delay: 0.3,  icon: "📦" },
-    { label: "Expert Guidance",     top: "72%", right: "2%",  delay: 0.2,  icon: "🎯" },
-    { label: "STEM Programs",       top: "40%", left: "3%",   delay: 0.4,  icon: "🤖" },
-    { label: "Fast Delivery",       top: "50%", right: "4%",  delay: 0.35, icon: "🚀" },
-  ]
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#F7F9F4]" style={{ background: "linear-gradient(160deg, #F7F9F4 0%, #f3eaf5 40%, #F1EAE3 100%)" }}>
+    <section className="relative min-h-[100dvh] overflow-hidden bg-[#F7F9F4]" style={{ background: "linear-gradient(160deg, #F7F9F4 0%, #f3eaf5 40%, #F1EAE3 100%)" }}>
       {/* Subtle background orbs */}
       <div className="pointer-events-none absolute right-0 top-0 h-[600px] w-[600px] rounded-full bg-[#420060]/4 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-20 -left-20 h-[400px] w-[400px] rounded-full bg-[#FFCCAF]/20 blur-2xl" />
 
-      <Container className="flex min-h-screen items-center py-24 lg:py-32">
-        <div className="grid w-full items-center gap-0 lg:grid-cols-[1fr_auto_1fr]">
+      <Container className="flex min-h-[100dvh] items-center py-20 lg:py-32">
+        <div className="grid w-full items-center gap-8 lg:gap-0 lg:grid-cols-[1fr_auto_1fr]">
 
           {/* ── LEFT COLUMN ─────────────────────────────────────────────── */}
           <motion.div
@@ -98,12 +90,12 @@ function Hero() {
             {/* Experience stat */}
             <motion.div variants={fadeUp} className="flex items-center gap-4">
               <div>
-                <span className="text-[3.2rem] font-extrabold leading-none text-[#420060]">5+</span>
+                <span className="text-[3.2rem] font-extrabold leading-none text-[#420060]">8+</span>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#634F40]/55">Years{" "}Experience</div>
               </div>
               <div className="h-12 w-px bg-[#634F40]/15" />
               <div>
-                <span className="text-[2rem] font-extrabold leading-none text-[#420060]">50+</span>
+                <span className="text-[2rem] font-extrabold leading-none text-[#420060]">10+</span>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#634F40]/55">Projects{" "}Delivered</div>
               </div>
             </motion.div>
@@ -144,14 +136,14 @@ function Hero() {
           <motion.div
             initial={{ opacity:0, scale:0.9 }} animate={{ opacity:1, scale:1 }}
             transition={{ duration:0.7, ease:"easeOut", delay:0.1 }}
-            className="relative mx-auto my-12 flex items-center justify-center lg:my-0"
-            style={{ width: 360, height: 420 }}
+            className="relative mx-auto my-10 flex items-center justify-center lg:my-0"
+            style={{ width: "min(340px, 85vw)", height: "min(400px, 100vw)" }}
           >
-            {/* Dashed curved decorative arc — like the reference */}
+            {/* Dashed curved decorative arc — like the reference 
             <svg className="pointer-events-none absolute -left-16 top-1/4 hidden xl:block" width="120" height="140" viewBox="0 0 120 140" fill="none">
               <path d="M90,10 C40,20 10,60 20,110 C22,120 28,128 36,130" stroke="#420060" strokeWidth="2" strokeDasharray="6 5" strokeLinecap="round" fill="none" opacity="0.35"/>
               <path d="M28,104 L36,130 L58,122" stroke="#420060" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.35"/>
-            </svg>
+            </svg> */}
 
             {/* Gold ring around circle */}
             <div className="absolute inset-0 rounded-full" style={{ padding: 6, background: "linear-gradient(135deg, #FFCCAF 0%, #420060 60%, #FFCCAF 100%)" }}>
@@ -160,30 +152,17 @@ function Hero() {
 
             {/* Portrait */}
             <div className="relative z-10 overflow-hidden rounded-full shadow-[0_20px_60px_rgba(66,0,96,0.20)]"
-              style={{ width: 340, height: 400 }}>
+              style={{ width: "min(320px, 80vw)", height: "min(380px, 95vw)" }}>
               <img src={profilePhoto} alt="Mustapha Ukizuru" className="h-full w-full object-cover object-top" />
             </div>
 
-            {/* Floating badges — many, like reference image */}
-            {floatingBadges.map(({ label, top, left, right, delay, icon }) => (
-              <motion.div
-                key={label}
-                initial={{ opacity:0, scale:0.7 }}
-                animate={{ opacity:1, scale:1 }}
-                transition={{ duration:0.5, delay: 0.5 + delay, ease:"backOut" }}
-                className="absolute z-20 flex items-center gap-2 rounded-xl border border-white/70 bg-white/95 px-3 py-2 text-[12px] font-semibold text-[#420060] shadow-[0_8px_24px_rgba(66,0,96,0.12)] backdrop-blur-sm"
-                style={{ top, left, right }}
-              >
-                <span className="text-[14px] leading-none">{icon}</span>
-                {label}
-              </motion.div>
-            ))}
+
           </motion.div>
 
           {/* ── RIGHT COLUMN ─────────────────────────────────────────────── */}
           <motion.div
             variants={stagger} initial="hidden" animate="show"
-            className="flex flex-col gap-8 pl-0 lg:pl-8"
+            className="hidden lg:flex flex-col gap-8 pl-0 lg:pl-8"
           >
             {/* Tagline */}
             <motion.div variants={fadeUp} className="text-right">
@@ -211,7 +190,7 @@ function Hero() {
                       </div>
                     ))}
                   </div>
-                  <span className="text-[20px] font-extrabold text-[#420060]">4.9</span>
+                  <span className="text-[20px] font-extrabold text-[#420060]">4.3</span>
                 </div>
                 <div className="mt-1 text-[10px] text-[#634F40]/45">Based on client feedback</div>
               </div>

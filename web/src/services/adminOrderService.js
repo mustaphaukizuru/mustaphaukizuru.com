@@ -1,50 +1,49 @@
-import { getStoredToken } from "./authService"
+import { authFetch } from "../lib/api"
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000"
-
-async function adminOrderFetch(path, options = {}) {
-  const token = getStoredToken()
-
-  if (!token) {
-    throw new Error("Not authorized, token missing")
-  }
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-  })
-
-  const data = await response.json().catch(() => ({}))
-
-  if (!response.ok) {
-    throw new Error(data.message || "Request failed")
-  }
-
-  return data
-}
+// ─────────────────────────────────────────────────────────────
+// Admin Order Service (Frontend)
+// ─────────────────────────────────────────────────────────────
 
 export async function fetchAdminOrders() {
-  const response = await adminOrderFetch("/api/admin/orders")
-  return response.data || []
+  const response = await authFetch("/api/admin/orders", {
+    method: "GET",
+  })
+
+  return Array.isArray(response?.data)
+    ? response.data
+    : Array.isArray(response)
+    ? response
+    : []
 }
 
 export async function fetchAdminOrderById(orderId) {
-  const response = await adminOrderFetch(`/api/admin/orders/${orderId}`)
-  return response.data
+  if (!orderId) {
+    throw new Error("Order ID is required")
+  }
+
+  const response = await authFetch(`/api/admin/orders/${orderId}`, {
+    method: "GET",
+  })
+
+  return response?.data || response
 }
 
 export async function updateAdminOrderStatus(orderId, status) {
-  const response = await adminOrderFetch(`/api/admin/orders/${orderId}/status`, {
-    method: "PATCH",
-    body: JSON.stringify({ status }),
-  })
+  if (!orderId) {
+    throw new Error("Order ID is required")
+  }
 
-  return response.data
+  if (!status) {
+    throw new Error("Status is required")
+  }
+
+  const response = await authFetch(
+    `/api/admin/orders/${orderId}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }
+  )
+
+  return response?.data || response
 }

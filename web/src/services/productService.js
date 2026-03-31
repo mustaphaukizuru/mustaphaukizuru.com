@@ -71,7 +71,7 @@ function getDeliveryType(product, files) {
 }
 
 function normalizeProduct(product) {
-  if (!product) return null
+  if (!product || typeof product !== "object") return null
 
   const files = normalizeFiles(product.files)
   const features = normalizeFeatures(product.features)
@@ -114,21 +114,27 @@ function normalizeProduct(product) {
 }
 
 export async function fetchProducts(category = "") {
-  const query = category ? `?category=${encodeURIComponent(category)}` : ""
-  const response = await apiRequest(`/api/products${query}`)
-  const products = response?.data || []
+  const normalizedCategory = String(category || "").trim()
+  const query = normalizedCategory
+    ? `?category=${encodeURIComponent(normalizedCategory)}`
+    : ""
 
-  return Array.isArray(products)
-    ? products.map(normalizeProduct).filter(Boolean)
-    : []
+  const response = await apiRequest(`/api/products${query}`)
+  const products = Array.isArray(response?.data) ? response.data : []
+
+  return products.map(normalizeProduct).filter(Boolean)
 }
 
 export async function fetchProductBySlug(slug) {
+  if (!slug) {
+    throw new Error("Product slug is required")
+  }
+
   const response = await apiRequest(`/api/products/${slug}`)
   return normalizeProduct(response?.data)
 }
 
 export async function fetchCategories() {
   const response = await apiRequest("/api/products/categories")
-  return response?.data || []
+  return Array.isArray(response?.data) ? response.data : []
 }

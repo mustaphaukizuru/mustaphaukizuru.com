@@ -1,20 +1,18 @@
-import { API_BASE_URL } from "../lib/api"
-import { getStoredToken } from "./authService"
+import { authFetch } from "../lib/api"
+
+// ─────────────────────────────────────────────────────────────
+// Download Service (Authenticated)
+// Uses centralized authFetch for protected download access
+// ─────────────────────────────────────────────────────────────
 
 export async function getDownload(productId) {
-  const token = getStoredToken()
-
-  const response = await fetch(`${API_BASE_URL}/api/downloads/${productId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to get download.")
+  if (!productId) {
+    throw new Error("Product ID is required")
   }
 
-  return data.data
+  const response = await authFetch(`/api/downloads/${productId}`, {
+    method: "GET",
+  })
+
+  return response?.data || response
 }

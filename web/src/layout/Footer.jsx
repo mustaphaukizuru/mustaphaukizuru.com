@@ -1,16 +1,34 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { Linkedin, Github, Twitter, Facebook, Youtube, Instagram, Music2, ArrowRight, Mail } from "lucide-react"
+import { Linkedin, Github, Twitter, Facebook, Youtube, Instagram, ArrowRight, Mail, Sparkles } from "lucide-react"
 import { apiRequest } from "../lib/api"
+import profilePhoto from "../assets/Ukizuru Mustapha Photo.jpg"
+import mercadoPagoLogo from "../assets/MP_CMYK_HANDSHAKE_color_horizontal.png"
+import paypalLogo from "../assets/pp-logo-150px.png"
+
+/* ── Custom TikTok icon (matches lucide style: 24×24, stroke-based) ──── */
+function TikTokIcon({ className }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+  )
+}
 
 const socials = [
-  { name: "LinkedIn",  href: "https://www.linkedin.com/in/mustaphaukizuru/",     icon: Linkedin },
-  { name: "GitHub",    href: "https://github.com/mustaphaukizuru",               icon: Github },
-  { name: "X",         href: "https://x.com/ukizurumustapha",                    icon: Twitter },
   { name: "Instagram", href: "https://www.instagram.com/mustaphaukizuru/",       icon: Instagram },
   { name: "YouTube",   href: "https://www.youtube.com/@mustaphaukizuru",         icon: Youtube },
   { name: "Facebook",  href: "https://www.facebook.com/mrukizurumustapha/",      icon: Facebook },
-  { name: "TikTok",    href: "https://www.tiktok.com/@mustaphaukizuru",          icon: Music2 },
+  { name: "TikTok",    href: "https://www.tiktok.com/@mustaphaukizuru",          icon: TikTokIcon },
 ]
 
 const quickLinks = [
@@ -25,11 +43,6 @@ const legalLinks = [
   { name: "Terms & Conditions", path: "/terms" },
   { name: "Privacy Policy",     path: "/privacy" },
   { name: "Refund Policy",      path: "/refund" },
-]
-
-const paymentBadges = [
-  { name: "Mercado Pago", bg: "#009EE3", text: "#fff" },
-  { name: "PayPal",       bg: "#003087", text: "#fff" },
 ]
 
 export default function Footer() {
@@ -56,50 +69,76 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#2E2F3A] text-white">
-      {/* ── Newsletter band ─────────────────────────────────────────────── */}
-      <div className="border-b border-white/8">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center gap-8 text-center">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#FFCCAF]">Stay connected</div>
-              <h2 className="mt-3 text-[1.9rem] font-bold tracking-tight text-white sm:text-[2.1rem]">
-                Let's connect!
-              </h2>
-              <p className="mx-auto mt-3 max-w-xl text-[14px] leading-6 text-white/55">
-                Audience and partners can stay up to date with the latest insights, product updates, and announcements.
-              </p>
-            </div>
+      {/* ── Newsletter band — wider & modern card ───────────────────────── */}
+      <div className="mx-auto">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-gradient-to-br from-[#420060]/80 via-[#2E2F3A] to-[#420060]/50 p-[1px]">
+            {/* Inner card */}
+            <div className="relative rounded-xl bg-[#2E2F3A]/90 px-6 py-14 backdrop-blur sm:px-12 lg:px-16">
+              {/* Decorative glow */}
+              <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[70%] -translate-x-1/2 rounded-full bg-[#420060]/30 blur-3xl" />
 
-            <form onSubmit={handleSubscribe} className="flex w-full max-w-md flex-col gap-3 sm:flex-row">
-              <div className="relative flex-1">
-                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Type your email here…"
-                  className="w-full rounded-xl border border-white/12 bg-white/8 py-3 pl-11 pr-4 text-[14px] text-white placeholder-white/35 outline-none focus:border-[#FFCCAF]/40 focus:ring-1 focus:ring-[#FFCCAF]/20"
-                />
+              <div className="relative flex flex-col items-center gap-8 text-center">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-[#FFCCAF]/20 bg-[#FFCCAF]/10 px-3.5 py-1">
+                  <Sparkles className="h-3 w-3 text-[#FFCCAF]" />
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#FFCCAF]">
+                    Stay connected
+                  </span>
+                </div>
+
+                <div>
+                  <h2 className="text-[2rem] font-bold tracking-tight text-white sm:text-[2.4rem]">
+                    Let's connect!
+                  </h2>
+                  <p className="mx-auto mt-3 max-w-xl text-[14.5px] leading-relaxed text-white/50">
+                    Audience and partners can stay up to date with the latest insights,
+                    product updates, and announcements.
+                  </p>
+                </div>
+
+                <form
+                  onSubmit={handleSubscribe}
+                  className="flex w-full max-w-3xl flex-col gap-3 sm:flex-row"
+                >
+                  <div className="relative flex-1">
+                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Type your email here…"
+                      className="w-full rounded-xl border border-white/10 bg-white/[0.06] py-3.5 pl-11 pr-4 text-[14px] text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-[#FFCCAF]/40 focus:bg-white/[0.09] focus:ring-2 focus:ring-[#FFCCAF]/15"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#420060] px-7 py-3.5 text-[14px] font-semibold text-white shadow-[0_8px_28px_rgba(66,0,96,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#52007a] hover:shadow-[0_12px_32px_rgba(66,0,96,0.55)] disabled:opacity-60"
+                  >
+                    {loading ? "Joining…" : "Subscribe"}
+                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </button>
+                </form>
+
+                {success && (
+                  <p className="animate-[fadeIn_0.3s_ease] text-[13px] font-medium text-[#FFCCAF]">
+                    ✓ {success}
+                  </p>
+                )}
+                {error && (
+                  <p className="animate-[fadeIn_0.3s_ease] text-[13px] font-medium text-red-300">
+                    {error}
+                  </p>
+                )}
               </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#420060] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_8px_22px_rgba(66,0,96,0.35)] transition hover:-translate-y-0.5 hover:bg-[#2d003f] disabled:opacity-60"
-              >
-                {loading ? "Joining…" : "Subscribe"}
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </form>
-
-            {success && <p className="text-[13px] text-[#FFCCAF]">{success}</p>}
-            {error   && <p className="text-[13px] text-red-300">{error}</p>}
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── Middle row: socials · links · payments ───────────────────────── */}
-      <div className="border-b border-white/8">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl border-b border-[#ffe600]/8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-between">
 
             {/* Socials */}
@@ -113,7 +152,7 @@ export default function Footer() {
                   aria-label={name}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/6 text-white/60 transition hover:border-[#FFCCAF]/40 hover:bg-[#FFCCAF]/10 hover:text-[#FFCCAF]"
                 >
-                  <Icon className="h-4.5 w-4.5" />
+                  <Icon className="h-[18px] w-[18px]" />
                 </a>
               ))}
             </div>
@@ -135,17 +174,25 @@ export default function Footer() {
               ))}
             </nav>
 
-            {/* Payment badges */}
-            <div className="flex items-center gap-2">
-              {paymentBadges.map(({ name, bg, text }) => (
-                <span
-                  key={name}
-                  className="rounded-lg px-3 py-1.5 text-[11px] font-bold tracking-wide"
-                  style={{ backgroundColor: bg, color: text }}
-                >
-                  {name}
-                </span>
-              ))}
+            {/* Payment badges — official logos */}
+            <div className="flex items-center gap-3">
+              {/* Mercado Pago — black-bg logo sits in a subtle bordered pill */}
+              <div className="flex items-center overflow-hidden rounded-md border border-white/10 bg-[#ffe600] px-3 py-0">
+                <img
+                  src={mercadoPagoLogo}
+                  alt="Mercado Pago"
+                  className="h-10 w-auto object-contain"
+                />
+              </div>
+
+              {/* PayPal — dark-text logo needs a white container to stay legible */}
+              <div className="flex items-center overflow-hidden rounded-md border border-white/10 bg-white px-3 py-2">
+                <img
+                  src={paypalLogo}
+                  alt="PayPal"
+                  className="h-6 w-auto object-contain"
+                />
+              </div>
             </div>
           </div>
         </div>

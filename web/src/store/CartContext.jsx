@@ -3,9 +3,22 @@ import { API_BASE_URL } from "../lib/api"
 
 const CartContext = createContext(null)
 
+// ─────────────────────────────────────────────────────────────
+// Safe image URL resolver (handles all environments)
+// ─────────────────────────────────────────────────────────────
 function resolveImageUrl(url = "") {
   if (!url) return ""
-  return url.startsWith("http") ? url : `${API_BASE_URL}${url}`
+
+  // already absolute (https://...)
+  if (url.startsWith("http")) return url
+
+  // ensure no double slashes
+  if (API_BASE_URL) {
+    return `${API_BASE_URL.replace(/\/$/, "")}/${url.replace(/^\//, "")}`
+  }
+
+  // production → relative path
+  return url
 }
 
 function getPrimaryImage(product) {
@@ -31,13 +44,11 @@ export function CartProvider({ children }) {
     }
   })
 
-  // Persist cart to localStorage on every change
+  // Persist cart
   useEffect(() => {
     try {
       localStorage.setItem("ukizuru-cart", JSON.stringify(cartItems))
-    } catch {
-      // ignore storage errors
-    }
+    } catch {}
   }, [cartItems])
 
   const addToCart = (product, quantity = 1) => {
