@@ -1,6 +1,10 @@
 import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
-import { normalizeCanonical, siteConfig } from "../../seo/siteSeo";
+import {
+  DEFAULT_OG_IMAGE,
+  normalizeCanonical,
+  siteConfig,
+} from "../../seo/siteSeo";
 
 function toArray(value) {
   if (!value) return [];
@@ -68,13 +72,25 @@ export default function Seo({
   author = siteConfig.legalName,
 }) {
   const location = useLocation();
-  const canonicalUrl = normalizeCanonical(canonical || `${location.pathname}${location.search || ""}`);
-  const pageTitle = title?.includes(siteConfig.titleTemplateSuffix)
-    ? title
-    : `${title}${siteConfig.titleSeparator}${siteConfig.titleTemplateSuffix}`;
+
+  const canonicalUrl = normalizeCanonical(
+    canonical || `${location.pathname}${location.search || ""}`
+  );
+
+  const safeTitle =
+    title || siteConfig.defaultTitle || siteConfig.siteName || "Mustapha Ukizuru";
+
+  const pageTitle = safeTitle.includes(siteConfig.titleTemplateSuffix)
+    ? safeTitle
+    : `${safeTitle}${siteConfig.titleSeparator}${siteConfig.titleTemplateSuffix}`;
+
+  const safeDescription =
+    description || siteConfig.defaultDescription || "";
+
+  const safeImage = image || DEFAULT_OG_IMAGE;
 
   const schemaPayload = [
-    ...buildDefaultSchemas(canonicalUrl, pageTitle, description, image),
+    ...buildDefaultSchemas(canonicalUrl, pageTitle, safeDescription, safeImage),
     ...toArray(jsonLd),
   ];
 
@@ -82,11 +98,16 @@ export default function Seo({
     <Helmet prioritizeSeoTags>
       <html lang="en" />
       <title>{pageTitle}</title>
-      <meta name="description" content={description} />
+
+      <meta name="description" content={safeDescription} />
       <meta name="author" content={author} />
       <meta name="robots" content={robots} />
-      {keywords.length > 0 && <meta name="keywords" content={keywords.join(", ")} />}
+      {keywords.length > 0 && (
+        <meta name="keywords" content={keywords.join(", ")} />
+      )}
+
       <meta name="theme-color" content={siteConfig.themeColor} />
+
       <link rel="canonical" href={canonicalUrl} />
       <link rel="icon" href="/favicon.ico" sizes="48x48" />
       <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml" />
@@ -97,20 +118,26 @@ export default function Seo({
       <meta property="og:site_name" content={siteConfig.siteName} />
       <meta property="og:type" content={type} />
       <meta property="og:title" content={pageTitle} />
-      <meta property="og:description" content={description} />
+      <meta property="og:description" content={safeDescription} />
       <meta property="og:url" content={canonicalUrl} />
-      <meta property="og:image" content={image} />
+      <meta property="og:image" content={safeImage} />
       <meta property="og:image:alt" content={pageTitle} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@ukizurumustapha" />
       <meta name="twitter:creator" content="@ukizurumustapha" />
       <meta name="twitter:title" content={pageTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
+      <meta name="twitter:description" content={safeDescription} />
+      <meta name="twitter:image" content={safeImage} />
 
-      {publishedTime && <meta property="article:published_time" content={publishedTime} />}
-      {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+      {publishedTime && (
+        <meta property="article:published_time" content={publishedTime} />
+      )}
+      {modifiedTime && (
+        <meta property="article:modified_time" content={modifiedTime} />
+      )}
 
       {schemaPayload.map((item, index) => (
         <script key={index} type="application/ld+json">

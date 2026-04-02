@@ -1,9 +1,8 @@
 const RAW_SITE_URL = import.meta.env.VITE_SITE_URL || "https://mustaphaukizuru.com";
 
-export const SITE_URL = RAW_SITE_URL.replace(/\/$/, "");
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/og/og-default.jpg`;
+export const SITE_URL = "https://mustaphaukizuru.com";
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og/og-default.png`;
 export const DEFAULT_TWITTER_HANDLE = "@ukizurumustapha";
-
 export const siteConfig = {
   siteName: "Mustapha Ukizuru",
   legalName: "Mustapha Ukizuru",
