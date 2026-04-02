@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Protected and utility routes should not be indexed
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /checkout/
+Disallow: /cart/
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password/
+
+Sitemap: https://mustaphaukizuru.com/sitemap.xml
+Host: mustaphaukizuru.com

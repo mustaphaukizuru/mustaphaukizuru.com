@@ -5,11 +5,10 @@ import {
   ChevronDown, LayoutDashboard, ShoppingBag, UserCog, LogOut, Shield,
 } from "lucide-react"
 import PrimaryButton from "../ui/PrimaryButton"
-import profilePhoto from "../assets/ukizuru-photo.jpg"
 import { useCart } from "../store/CartContext"
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
-
+import profilePhoto from "../assets/logos/Ukizuru_Mustapha_ProfilePhoto (1).png"
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "About", path: "/about" },

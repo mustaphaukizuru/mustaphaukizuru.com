@@ -1,21 +1,28 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Mustapha Ukizuru | Technology & Digital Solutions",
+  "short_name": "Ukizuru",
+  "description": "Professional platform offering digital products, IT consulting, STEM education solutions, and technology services for schools and businesses.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F7F9F4",
+  "theme_color": "#420060",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["technology", "education", "business", "productivity"],
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
       "src": "/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
-  ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  ]
 }

@@ -5,7 +5,7 @@ import {
   MapPin, Clock, ArrowRight, Sparkles, Phone,
 } from "lucide-react"
 // social icons use inline SVG components below
-import contactPhoto from "../assets/contactimage.svg"
+const contactPhoto  = "/images/pages/Conctact_Form_Image.svg"
 import { apiRequest } from "../lib/api"
 
 // Lightweight inline social icons (replaces react-icons/fa bundle)
@@ -118,7 +118,7 @@ function ContactSection() {
     },
     {
       label: "WhatsApp",
-      href:  "https://wa.me/250000000000",
+      href:  "https://wa.me/+525552139993",
       icon:  FaWhatsapp,
       bg:    "bg-[#25D366]",
       hover: "hover:bg-[#1aad52]",
@@ -137,11 +137,11 @@ function ContactSection() {
             className="flex flex-col gap-8"
           >
             {/* Portrait image */}
-            <div className="relative overflow-hidden rounded-xl border border-[#634F40]/10">
+            <div className="relative overflow-hidden rounded-xl">
               <img
                 src={contactPhoto}
                 alt="Mustapha Ukizuru — Contact - Technology Consultant"
-                className="h-[320px] w-full object-cover object-top sm:h-[480px]"
+                className="w-full object-cover object-top"
               />
             </div>
 

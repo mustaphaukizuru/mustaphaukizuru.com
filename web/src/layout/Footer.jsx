@@ -2,9 +2,9 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Linkedin, Github, Twitter, Facebook, Youtube, Instagram, ArrowRight, Mail, Sparkles } from "lucide-react"
 import { apiRequest } from "../lib/api"
-import profilePhoto from "../assets/Ukizuru Mustapha Photo.jpg"
-import mercadoPagoLogo from "../assets/MP_CMYK_HANDSHAKE_color_horizontal.png"
-import paypalLogo from "../assets/pp-logo-150px.png"
+const profilePhoto = "/images/pages/Ukizuru_Mustapha_Photo.jpg";
+const mercadoPagoLogo = "/images/brand/MP_CMYK_HANDSHAKE_color_horizontal.png";
+const paypalLogo = "../images/brand/pp-logo-150px.png";
 
 /* ── Custom TikTok icon (matches lucide style: 24×24, stroke-based) ──── */
 function TikTokIcon({ className }) {

@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { Link } from "react-router-dom"
+import Seo from "../components/seo/Seo"
+import { pageSeo } from "../seo/pageSeo"
 import {
   ArrowRight, ArrowLeft, Star, CheckCircle2, Sparkles,
   ChevronDown, Globe, RefreshCcw, Server, Cloud,
@@ -12,7 +14,6 @@ import {
   servicesCards, servicePricing, testimonials,
   faqItems, seamlessProcess, serviceBenefits,
 } from "../data/sitePagesData"
-import profilePhoto from "../assets/Ukizuru Mustapha Photo.jpg"
 
 const fadeUp = { hidden:{opacity:0,y:24}, show:{opacity:1,y:0,transition:{duration:0.52,ease:"easeOut"}} }
 const stagger = { hidden:{}, show:{transition:{staggerChildren:0.09}} }
@@ -83,10 +84,10 @@ function PricingCard({ plan, highlight }) {
         className={`mt-8 flex items-center justify-center gap-2 rounded-xl py-3.5 text-[14px] font-semibold transition hover:-translate-y-0.5 ${
           plan.popular
             ? "bg-white text-[#420060] shadow-sm hover:shadow-md"
-            : "bg-[#420060] text-white shadow-[0_8px_22px_rgba(66,0,96,0.20)]"
+            : "bg-[#420060] shadow-[0_8px_22px_rgba(66,0,96,0.20)]"
         }`}
       >
-        Get Started <ArrowRight className="h-4 w-4" />
+        Get Started <ArrowRight className="h-4 w-4 " />
       </Link>
     </div>
   )
@@ -142,6 +143,7 @@ export default function ServicesPage() {
 
   return (
     <>
+     <Seo {...pageSeo.ServicesPage} />
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-[#420060] py-20 lg:py-32">
         <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-white/5 blur-3xl" />

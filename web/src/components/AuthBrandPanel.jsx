@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
-import profilePhoto from "../assets/Ukizuru Mustapha Photo.jpg"
+import profilePhoto from "../assets/logos/Ukizuru_Mustapha_ProfilePhoto (1).png"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AuthBrandPanel — shared left panel for all auth pages
@@ -26,7 +26,7 @@ export default function AuthBrandPanel({ title, subtitle, bullets = [] }) {
       <div className="relative mt-auto mb-auto flex flex-col gap-7 py-8">
         {/* Single profile block at the top of content — NO duplicate at bottom */}
         <div className="flex items-center gap-4">
-          <div className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl border-2 border-white/25 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+          <div className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl  shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
             <img
               src={profilePhoto}
               alt="Mustapha Ukizuru"

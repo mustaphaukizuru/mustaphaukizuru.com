@@ -6,15 +6,15 @@ export const aboutProjects = [
   description:
     "Developed a full-stack platform combining a professional website, digital product store, secure member portal, and admin dashboard, enabling service presentation, product sales, protected downloads, and efficient system management.",
 
-  image: "/assets/webimages/projects/ukizurumustapha/ukizuru_mustapha_project (1).png",
+  image: "/images/projects/ukizuru-portfolio/ukizuru_mustapha_project (1).png",
 
   images: [
-    "/assets/webimages/projects/ukizurumustapha/ukizuru_mustapha_project (1).png",
-    "/assets/webimages/projects/ukizurumustapha/ukizuru_mustapha_project (2).png",
-    "/assets/webimages/projects/ukizurumustapha/ukizuru_mustapha_project (3).png",
-    "/assets/webimages/projects/ukizurumustapha/ukizuru_mustapha_project (4).png",
-    "/assets/webimages/projects/ukizurumustapha/ukizuru_mustapha_project (5).png",
-    "/assets/webimages/projects/ukizurumustapha/ukizuru_mustapha_project (6).png",
+    "/images/projects/ukizuru-portfolio/ukizuru_mustapha_project (1).png",
+    "/images/projects/ukizuru-portfolio/ukizuru_mustapha_project (2).png",
+    "/images/projects/ukizuru-portfolio/ukizuru_mustapha_project (3).png",
+    "/images/projects/ukizuru-portfolio/ukizuru_mustapha_project (4).png",
+    "/images/projects/ukizuru-portfolio/ukizuru_mustapha_project (5).png",
+    "/images/projects/ukizuru-portfolio/ukizuru_mustapha_project (6).png",
   ],
 
   tags: [
@@ -38,14 +38,14 @@ export const aboutProjects = [
   title: "Educational Digital Resources & Institutional Branding",
   description:
     "Designed and produced a wide range of educational and institutional digital materials, including posters, brochures, banners, billboards, and enterprise branding documents to support school communication, marketing, and learning environments.",
-  image: "/assets/webimages/projects/IntellectualSchool/ukizuru_mustapha_IntellectualSchool (1).png",
+  image: "/images/projects/intellectual-school/ukizuru_mustapha_IntellectualSchool (1).png",
   images: [
-    "/assets/webimages/projects/IntellectualSchool/ukizuru_mustapha_IntellectualSchool (1).png",
-    "/assets/webimages/projects/IntellectualSchool/ukizuru_mustapha_IntellectualSchool (2).png",
-    "/assets/webimages/projects/IntellectualSchool/ukizuru_mustapha_IntellectualSchool (3).png",
-    "/assets/webimages/projects/IntellectualSchool/ukizuru_mustapha_IntellectualSchool (4).png",
-    "/assets/webimages/projects/IntellectualSchool/ukizuru_mustapha_IntellectualSchool (5).png",
-    "/assets/webimages/projects/IntellectualSchool/ukizuru_mustapha_IntellectualSchool (6).png",
+    "/images/projects/intellectual-school/ukizuru_mustapha_IntellectualSchool (1).png",
+    "/images/projects/intellectual-school/ukizuru_mustapha_IntellectualSchool (2).png",
+    "/images/projects/intellectual-school/ukizuru_mustapha_IntellectualSchool (3).png",
+    "/images/projects/intellectual-school/ukizuru_mustapha_IntellectualSchool (4).png",
+    "/images/projects/intellectual-school/ukizuru_mustapha_IntellectualSchool (5).png",
+    "/images/projects/intellectual-school/ukizuru_mustapha_IntellectualSchool (6).png",
   ],
   tags: ["Design", "Branding", "Educational Resources"],
   year: "Jan 2021 – Aug 2021",
@@ -85,14 +85,14 @@ export const aboutProjects = [
     title: "Colegio Raindrop School Website & Digital Integration",
     description:
       "Designed and developed the official website for Colegio Raindrop, providing a modern, responsive platform to showcase academic programs, school activities, and institutional information.",
-    image: "/assets/webimages/projects/raindropproject/Raindrop_ProjectUkizuru_Mustapha (6).png",
+    image: "/images/projects/raindrop-college/Raindrop_ProjectUkizuru_Mustapha (6).png",
     images: [
-      "/assets/webimages/projects/raindropproject/Raindrop_ProjectUkizuru_Mustapha (1).png",
-      "/assets/webimages/projects/raindropproject/Raindrop_ProjectUkizuru_Mustapha (2).png",
-      "/assets/webimages/projects/raindropproject/Raindrop_ProjectUkizuru_Mustapha (3).png",
-      "/assets/webimages/projects/raindropproject/Raindrop_ProjectUkizuru_Mustapha (4).png",
-      "/assets/webimages/projects/raindropproject/Raindrop_ProjectUkizuru_Mustapha (5).png",
-      "/assets/webimages/projects/raindropproject/Raindrop_ProjectUkizuru_Mustapha (6).png",
+      "/images/projects/raindrop-college/Raindrop_ProjectUkizuru_Mustapha (1).png",
+      "/images/projects/raindrop-college/Raindrop_ProjectUkizuru_Mustapha (2).png",
+      "/images/projects/raindrop-college/Raindrop_ProjectUkizuru_Mustapha (3).png",
+      "/images/projects/raindrop-college/Raindrop_ProjectUkizuru_Mustapha (4).png",
+      "/images/projects/raindrop-college/Raindrop_ProjectUkizuru_Mustapha (5).png",
+      "/images/projects/raindrop-college/Raindrop_ProjectUkizuru_Mustapha (6).png",
     ],
     tags: ["Web Development", "School Systems", "Digital Integration"],
     year: "2023–2024",

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Link } from "react-router-dom"
+import Seo from "../components/seo/Seo"
+import { pageSeo } from "../seo/pageSeo"
 import {
   Download, ArrowRight, Target, Eye, Heart,
   Code, Cloud, Network, GraduationCap, Award,
@@ -14,18 +16,19 @@ import {
 import { SiMongodb, SiNpm } from "react-icons/si"
 import { VscVscode } from "react-icons/vsc"
 import { FaLinkedinIn, FaTelegramPlane, FaWhatsapp } from "react-icons/fa"
-import ResumePDF from "../assets/TranslatorInterpreter - Mustapha Ukizuru Resume.pdf"
-import HeadshotPhoto from "../assets/Ukizuru_Mustapha_Professional_Headshot.png"
+import ResumePDF from "/documents/public-downloads/Ukizuru_Mustapha_CV.pdf?url";
+
+const HeadshotPhoto = "/images/profile/Ukizuru_Mustapha_Professional_Headshot.png";
 // ── Certificate imports (add these at the top of your file with other imports) ──
-import CertPython        from "../assets/Certificate___Python_for_Data_Science_UKIZURU_Mustapha.pdf"
-import CertEnglish       from "../assets/Certificate_English_for_Career_Development_UKIZURU_Mustapha.pdf"
-import CertPhilosophy    from "../assets/Certificate_Philosophy_of_SCience_UKIZURU_Mustapha.pdf"
-import CertTeaching      from "../assets/Certificate_Teaching_with_technology_UKUZURU_Mustapha.pdf"
-import CertGoogleEdu     from "../assets/Google_Certified_Educator_Level_2.pdf"
-import CertGoogleIT      from "../assets/Google_IT_Support_Professional_Certificate_Ukizuru_Mustapha.pdf"
-import CertTechSupport   from "../assets/Technical_Support_Fundamentals_Ukizuru_Mustapha.pdf"
-import CertSysAdmin      from "../assets/Technical_Support_Fundamental.pdf"
-import CertConstancia    from "../assets/UKIZURU_MUSTAPHA_8830885866MU_CONSTANCIA.pdf"
+const CertPython  = "/documents/certificates/Certificate___Python_for_Data_Science_UKIZURU_Mustapha.pdf";
+const CertEnglish = "/documents/certificates/Certificate_English_for_Career_Development_UKIZURU_Mustapha.pdf";
+const CertPhilosophy  = "/documents/certificates/Certificate_Philosophy_of_SCience_UKIZURU_Mustapha.pdf";
+const CertTeaching   = "/documents/certificates/Certificate_Teaching_with_technology_UKIZURU_Mustapha.pdf";
+const CertGoogleEdu   = "/documents/certificates/Google_Certified_Educator_Level_2_UKIZURU_Mustapha.pdf";
+const CertGoogleIT   = "/documents/certificates/Certificate_Google_IT_Support_Professional_UKIZURU_Mustapha.pdf";
+const CertTechSupport   = "/documents/certificates/Certificate_Technical_Support_Fundamentals_UKIZURU_Mustapha.pdf";
+const CertSysAdmin    = "/documents/certificates/Certificate_System_Administration_and_IT_Infrastructure_UKIZURU_Mustapha.pdf";
+const CertConstancia  = "/documents/certificates/Certificate_Constancia_UKIZURU_Mustapha.pdf";
 
 // ── Certifications data (place inside the component or at module level) ──
 const certifications = [
@@ -117,7 +120,7 @@ export default function AboutPage() {
 
   /* ── Floating service badges (shown around the photo) ─────────────── */
 const badges = [
-  { label: "Digital Systems",   Icon: Monitor,       top: "8%",  right: "6%",  delay: 0.3 },
+  { label: "Digital Systems",   Icon: Monitor,       top: "18%",  right: "6%",  delay: 0.3 },
   { label: "Tech Consulting",   Icon: Settings,      top: "42%", right: "-2%", delay: 0.5 },
   { label: "STEM & Robotics",   Icon: GraduationCap, top: "72%", right: "6%",  delay: 0.7 },
 ]
@@ -131,6 +134,9 @@ const badges = [
 
   return (
     <>
+      <Seo {...pageSeo.AboutPage} />
+
+
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section
         className="relative overflow-hidden bg-[#F7F9F4]"
@@ -140,7 +146,7 @@ const badges = [
         <div className="pointer-events-none absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-[#420060]/4 blur-3xl sm:h-[500px] sm:w-[500px]" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 h-[250px] w-[250px] rounded-full bg-[#FFCCAF]/20 blur-2xl sm:h-[350px] sm:w-[350px]" />
 
-        <Container className="py-16 sm:py-20 xl:flex xl:min-h-[85vh] xl:items-center xl:py-24">
+        <Container className="sm:py-20 xl:flex xl:min-h-[85vh] xl:items-center xl:py-8">
           <div className="grid w-full items-center gap-10 xl:grid-cols-2 xl:gap-12">
 
             {/* ── LEFT COLUMN ───────────────────────────────────────── */}
@@ -178,7 +184,8 @@ href={ResumePDF}
   rel="noopener noreferrer"
   className="inline-flex items-center gap-2 rounded-xl border border-[#420060]/20 bg-white px-5 py-2.5 text-[13px] font-semibold text-[#420060] transition hover:-translate-y-0.5 hover:bg-[#ede4ef] sm:px-7 sm:py-3.5 sm:text-[14px]"
 >
-  <Download className="h-4 w-4" /> Download Resume
+  <Download className="h-4 w-4" /> 
+  Download Resume
 </a>
 
 
@@ -192,7 +199,7 @@ href={ResumePDF}
                   {[
                     { name: "LinkedIn", href: "https://www.linkedin.com/in/mustaphaukizuru/", Icon: FaLinkedinIn,    bg: "#0077B5" },
                     { name: "Telegram", href: "https://t.me/mustaphaukizuru",                  Icon: FaTelegramPlane, bg: "#0088cc" },
-                    { name: "WhatsApp", href: "https://wa.me/250000000000",                    Icon: FaWhatsapp,      bg: "#25D366" },
+                    { name: "WhatsApp", href: "https://wa.me/+525552139993",                    Icon: FaWhatsapp,      bg: "#25D366" },
                   ].map(({ name, href, Icon, bg }) => (
                     <a
                       key={name}
@@ -231,11 +238,7 @@ href={ResumePDF}
               animate="show"
               className="relative mx-auto flex items-center justify-center xl:mx-0 xl:justify-end"
             >
-              {/* Outer orbital ring */}
-              <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#420060]/10 h-[72vw] w-[72vw] sm:h-[360px] sm:w-[360px] md:h-[420px] md:w-[420px] xl:h-[520px] xl:w-[520px]" />
-              {/* Inner dashed ring */}
-              <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-[#FFCCAF]/25 h-[62vw] w-[62vw] sm:h-[310px] sm:w-[310px] md:h-[365px] md:w-[365px] xl:h-[460px] xl:w-[460px]" />
-
+         
               {/* Soft glow behind person */}
               <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#420060]/[0.06] blur-2xl h-[58vw] w-[58vw] sm:h-[290px] sm:w-[290px] md:h-[340px] md:w-[340px] xl:h-[440px] xl:w-[440px]" />
 
@@ -244,14 +247,14 @@ href={ResumePDF}
                 initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
-                className="relative z-10 overflow-hidden rounded-full h-[65vw] w-[65vw] sm:h-[280px] sm:w-[280px] md:h-[340px] md:w-[340px] xl:h-[500px] xl:w-[500px]"
-                style={{ left: "-40px", top: "-10px" }}
+                className="relative z-10 overflow-hidden rounded-full h-[65vw] w-[65vw] sm:h-[550px] sm:w-[550px] md:h-[600px] md:w-[600px] xl:h-[650px] xl:w-[650px]"
               >
                 <img
                   src={HeadshotPhoto}
                   alt="Mustapha Ukizuru"
                   className="h-full w-full object-cover object-top object-center"
                 />
+
               </motion.div>
 
               {/* Floating badges — hidden until xl (1280px+) */}

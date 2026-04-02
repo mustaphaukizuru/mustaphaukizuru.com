@@ -1,6 +1,8 @@
 import { motion } from "framer-motion"
 import { Link } from "react-router-dom"
 import { useState } from "react"
+import Seo from "../components/seo/Seo"
+import { pageSeo } from "../seo/pageSeo"
 import {
   BookOpen, GraduationCap, MonitorSmartphone, BrainCircuit, Wrench, Server,
   Search, Lightbulb, Settings2, LineChart, ArrowRight, Sparkles, CheckCircle2
@@ -46,6 +48,7 @@ export default function SolutionsPage() {
 
   return (
     <>
+     <Seo {...pageSeo.SolutionsPage} />
       {/* Hero */}
       <section className="relative overflow-hidden bg-[#420060] py-20 lg:py-32">
         <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-white/5 blur-3xl" />

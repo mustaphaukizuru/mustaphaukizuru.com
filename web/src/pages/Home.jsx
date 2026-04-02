@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
+import Seo from "../components/seo/Seo"
+import { pageSeo } from "../seo/pageSeo"
 import {
   ArrowRight, ArrowLeft, Star, Sparkles, ChevronRight,
   BookOpen, GraduationCap, MonitorSmartphone, BrainCircuit,
@@ -11,9 +13,9 @@ import {
 import { fetchProducts } from "../services/productService"
 import { useCart } from "../store/CartContext"
 import { API_BASE_URL } from "../lib/api"
-import profilePhoto from "../assets/Ukizuru Mustapha Photo.jpg"
 import { audiences, solutions, processSteps, testimonials } from "../data/homeData"
 
+const profilePhoto = "/images/profile/Ukizuru_Mustapha_Photo.jpg";
 /* ─── shared animation variants ─── */
 // Lightweight inline social icons (replaces react-icons/fa bundle)
 function LinkedInIcon({ className }) {
@@ -55,17 +57,15 @@ function Hero() {
   const socials = [
     { name: "LinkedIn",  href: "https://www.linkedin.com/in/mustaphaukizuru/", icon: FaLinkedinIn,   bg: "#0077B5" },
     { name: "Telegram",  href: "https://t.me/mustaphaukizuru",                  icon: FaTelegramPlane, bg: "#0088cc" },
-    { name: "WhatsApp",  href: "https://wa.me/250000000000",                    icon: FaWhatsapp,      bg: "#25D366" },
+    { name: "WhatsApp",  href: "https://wa.me/+525552139993",                    icon: FaWhatsapp,      bg: "#25D366" },
   ]
-
-
   return (
     <section className="relative min-h-[100dvh] overflow-hidden bg-[#F7F9F4]" style={{ background: "linear-gradient(160deg, #F7F9F4 0%, #f3eaf5 40%, #F1EAE3 100%)" }}>
       {/* Subtle background orbs */}
       <div className="pointer-events-none absolute right-0 top-0 h-[600px] w-[600px] rounded-full bg-[#420060]/4 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-20 -left-20 h-[400px] w-[400px] rounded-full bg-[#FFCCAF]/20 blur-2xl" />
 
-      <Container className="flex min-h-[100dvh] items-center py-20 lg:py-32">
+      <Container className="flex min-h-[100dvh] items-center py-8 lg:py-8 xl:py-8">
         <div className="grid w-full items-center gap-8 lg:gap-0 lg:grid-cols-[1fr_auto_1fr]">
 
           {/* ── LEFT COLUMN ─────────────────────────────────────────────── */}
@@ -629,7 +629,9 @@ function CTA() {
 /* ─────────────────── PAGE ─────────────────── */
 export default function Home() {
   return (
+    
     <>
+      <Seo {...pageSeo.AboutPage} />
       <Hero />
       <Audiences />
       <Solutions />
