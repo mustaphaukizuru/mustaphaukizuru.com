@@ -13,6 +13,9 @@ async function getAdminProducts() {
       files: {
         orderBy: { isPrimary: "desc" },
       },
+      features: {
+        orderBy: { sortOrder: "asc" },
+      },
     },
     orderBy: { createdAt: "desc" },
   })
@@ -23,12 +26,15 @@ async function createAdminProduct(payload) {
     title,
     slug,
     description,
+    shortDescription,
+    fullDescription,
     price,
     category,
     isActive,
     isFeatured,
     isNew,
     images = [],
+    features = [],
   } = payload
 
   return prisma.product.create({
@@ -36,6 +42,8 @@ async function createAdminProduct(payload) {
       title,
       slug,
       description,
+      shortDescription: shortDescription || null,
+      fullDescription: fullDescription || null,
       price: Number(price),
       category,
       isActive: Boolean(isActive),
@@ -48,6 +56,14 @@ async function createAdminProduct(payload) {
           sortOrder: image.sortOrder ?? index,
         })),
       },
+      features: {
+        create: features
+          .filter((f) => f && f.trim())
+          .map((f, index) => ({
+            featureText: f.trim(),
+            sortOrder: index,
+          })),
+      },
     },
     include: {
       images: {
@@ -55,6 +71,9 @@ async function createAdminProduct(payload) {
       },
       files: {
         orderBy: { isPrimary: "desc" },
+      },
+      features: {
+        orderBy: { sortOrder: "asc" },
       },
     },
   })
@@ -65,43 +84,60 @@ async function updateAdminProduct(productId, payload) {
     title,
     slug,
     description,
+    shortDescription,
+    fullDescription,
     price,
     category,
     isActive,
     isFeatured,
     isNew,
-    images = [],
+    features,
   } = payload
 
-  await prisma.productImage.deleteMany({
-    where: { productId },
-  })
+  const data = {
+    title,
+    slug,
+    description,
+    shortDescription: shortDescription || null,
+    fullDescription: fullDescription || null,
+    price: Number(price),
+    category,
+    isActive: Boolean(isActive),
+    isFeatured: Boolean(isFeatured),
+    isNew: Boolean(isNew),
+  }
+
+  // Update features if provided
+  if (Array.isArray(features)) {
+    await prisma.productFeature.deleteMany({
+      where: { productId },
+    })
+
+    if (features.filter((f) => f && f.trim()).length > 0) {
+      await prisma.productFeature.createMany({
+        data: features
+          .filter((f) => f && f.trim())
+          .map((f, index) => ({
+            productId,
+            featureText: f.trim(),
+            sortOrder: index,
+          })),
+      })
+    }
+  }
 
   return prisma.product.update({
     where: { id: productId },
-    data: {
-      title,
-      slug,
-      description,
-      price: Number(price),
-      category,
-      isActive: Boolean(isActive),
-      isFeatured: Boolean(isFeatured),
-      isNew: Boolean(isNew),
-      images: {
-        create: images.map((image, index) => ({
-          url: image.url,
-          altText: image.altText || title,
-          sortOrder: image.sortOrder ?? index,
-        })),
-      },
-    },
+    data,
     include: {
       images: {
         orderBy: { sortOrder: "asc" },
       },
       files: {
         orderBy: { isPrimary: "desc" },
+      },
+      features: {
+        orderBy: { sortOrder: "asc" },
       },
     },
   })
@@ -154,6 +190,9 @@ async function getAdminProductById(productId) {
       files: {
         orderBy: { isPrimary: "desc" },
       },
+      features: {
+        orderBy: { sortOrder: "asc" },
+      },
     },
   })
 }
@@ -174,7 +213,7 @@ async function addProductFile(productId, file, options = {}) {
       fileName: options.fileName || file.originalname,
       filePath: file.filename,
       fileType: file.mimetype || null,
-      fileSize: BigInt(file.size || 0),
+      fileSize: file.size ? Number(file.size) : null,
       version: options.version || null,
       isPrimary: Boolean(options.isPrimary),
     },

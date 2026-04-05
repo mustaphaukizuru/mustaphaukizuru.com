@@ -57,6 +57,7 @@ app.use(cors({
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
   crossOriginOpenerPolicy:   false,
+  crossOriginResourcePolicy: false,
   contentSecurityPolicy: {
     directives: {
       defaultSrc:  ["'self'"],

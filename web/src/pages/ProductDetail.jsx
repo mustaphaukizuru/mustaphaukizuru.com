@@ -405,10 +405,17 @@ export default function ProductDetail() {
 
                 <div className="p-6">
                   {activeTab === "description" && (
-                    <div className="text-[14px] leading-7 text-[#634F40]/80">
-                      {product.description ||
-                        product.shortDescription ||
-                        "This digital product is professionally crafted to deliver immediate implementation value. Built to save time and reduce setup friction."}
+                    <div className="space-y-4 text-[14px] leading-7 text-[#634F40]/80">
+                      <div>
+                        {product.description ||
+                          product.shortDescription ||
+                          "This digital product is professionally crafted to deliver immediate implementation value. Built to save time and reduce setup friction."}
+                      </div>
+                      {product.fullDescription && (
+                        <div className="border-t border-[#634F40]/8 pt-4">
+                          {product.fullDescription}
+                        </div>
+                      )}
                     </div>
                   )}
 
