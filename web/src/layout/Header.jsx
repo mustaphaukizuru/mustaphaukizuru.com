@@ -450,7 +450,7 @@ export default function Header() {
               />
             </div>
 
-            <span className="font-['Sora'] text-[1.1rem] font-bold tracking-tight text-[#420060] sm:text-[1.3rem]">
+            <span className="hidden font-['Sora'] text-[1.1rem] font-bold tracking-tight text-[#420060] sm:inline sm:text-[1.3rem]">
               Mustapha Ukizuru
             </span>
           </Link>

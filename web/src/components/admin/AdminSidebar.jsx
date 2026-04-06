@@ -19,6 +19,13 @@ import {
   Globe,
 } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
+import { API_BASE_URL } from "../../lib/api"
+
+function resolveAvatar(url) {
+  if (!url) return null
+  if (url.startsWith("http")) return url
+  return API_BASE_URL ? `${API_BASE_URL}${url}` : url
+}
 
 const navigation = [
   {
@@ -172,9 +179,13 @@ export default function AdminSidebar() {
       {/* Admin card */}
       <div className="mt-3 rounded-xl border border-[#634F40]/10 bg-[#fbf8fb] p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ede4ef] text-[13px] font-bold text-[#420060]">
-            {initials}
-          </div>
+          {resolveAvatar(user?.avatarUrl) ? (
+            <img src={resolveAvatar(user.avatarUrl)} alt="" className="h-11 w-11 rounded-xl object-cover" />
+          ) : (
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ede4ef] text-[13px] font-bold text-[#420060]">
+              {initials}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <div className="truncate text-[14px] font-semibold text-[#420060]">{user?.fullName || "Admin"}</div>
             <div className="truncate text-[12px] text-[#634F40]/70">{user?.email || ""}</div>

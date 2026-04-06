@@ -50,6 +50,15 @@ export default function AuthLayout({ title, subtitle, children }) {
 
         <div className="flex items-center justify-center px-6 py-10 sm:px-10">
           <div className="w-full max-w-xl rounded-[32px] border border-[#634F40]/10 bg-white p-8 shadow-[0_18px_48px_rgba(66,0,96,0.08)] sm:p-10">
+            {/* Mobile-only back link */}
+            <Link
+              to="/"
+              className="mb-5 inline-flex items-center gap-2 text-[13px] font-medium text-[#420060] transition hover:text-[#2d003f] lg:hidden"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Link>
+
             <h2 className="font-['Sora'] text-4xl font-bold text-[#420060]">
               {title}
             </h2>

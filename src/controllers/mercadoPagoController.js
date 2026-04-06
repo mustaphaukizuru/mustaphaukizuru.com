@@ -6,6 +6,7 @@ const {
   markOrderPaidByMP,
 } = require("../services/mercadoPagoService")
 const { sendOrderPaidEmail } = require("../utils/mailer")
+const { notifyOrderPaid, notifyDownloadReady } = require("../services/notificationService")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/mercadopago/create-preference
@@ -99,6 +100,7 @@ const webhook = async (req, res) => {
       if (mpPayment.status === "approved") {
         // Fire-and-forget email
         sendOrderPaidEmail(updated).catch((e) => console.error('[email]', e.message))
+        notifyOrderPaid(updated).catch(() => {})
       }
 
       // Mark webhook as processed

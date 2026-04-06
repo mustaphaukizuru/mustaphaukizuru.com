@@ -19,7 +19,26 @@ import {
   Globe,
 } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
+import { API_BASE_URL } from "../lib/api"
 import NotificationDropdown from "../components/dashboard/NotificationDropdown"
+
+function resolveAvatar(url) {
+  if (!url) return null
+  if (url.startsWith("http")) return url
+  return API_BASE_URL ? `${API_BASE_URL}${url}` : url
+}
+
+function UserAvatar({ src, initials, size = 9, className = "" }) {
+  const resolved = resolveAvatar(src)
+  const px = size * 4
+  return resolved ? (
+    <img src={resolved} alt="" className={`h-${size} w-${size} rounded-full object-cover ${className}`} style={{ width: px, height: px }} />
+  ) : (
+    <div className={`flex items-center justify-center rounded-full bg-gradient-to-br from-[#420060] to-[#2d003f] text-white font-bold ${className}`} style={{ width: px, height: px, fontSize: px * 0.3 }}>
+      {initials}
+    </div>
+  )
+}
 
 // ── Navigation ──
 const navigation = [
@@ -143,9 +162,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[#634F40]/10 px-5 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#420060] text-xs font-bold text-white">
-                {initials}
-              </div>
+              <UserAvatar src={user?.avatarUrl} initials={initials} size={10} />
               <div>
                 <div className="text-[14px] font-bold text-[#420060]">{user?.fullName || "Member"}</div>
                 <div className="text-[11px] text-[#634F40]/60">{user?.email || ""}</div>
@@ -304,9 +321,7 @@ export default function DashboardLayout() {
               {/* User card */}
               <div className="mt-3 rounded-xl border border-[#634F40]/10 bg-[#fbf8fb] p-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ede4ef] text-[13px] font-bold text-[#420060]">
-                    {initials}
-                  </div>
+                  <UserAvatar src={user?.avatarUrl} initials={initials} size={11} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[14px] font-semibold text-[#420060]">{user?.fullName || "Member"}</div>
                     <div className="truncate text-[12px] text-[#634F40]/70">{user?.email || ""}</div>
@@ -332,9 +347,7 @@ export default function DashboardLayout() {
             {/* ── Mobile Header ── */}
             <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between bg-white/95 px-4 py-3 shadow-[0_2px_12px_rgba(66,0,96,0.06)] backdrop-blur-md lg:hidden">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#420060] to-[#5d1f7d] text-[11px] font-bold text-white shadow-[0_4px_12px_rgba(66,0,96,0.22)]">
-                  {initials}
-                </div>
+                <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_12px_rgba(66,0,96,0.22)]" />
                 <div>
                   <div className="text-[15px] font-bold text-[#420060]">{currentMeta.title}</div>
                   <div className="text-[11px] text-[#634F40]/55">Member Dashboard</div>
@@ -392,9 +405,7 @@ export default function DashboardLayout() {
                   </button>
                   <NotificationDropdown />
                   <div className="flex items-center gap-3 rounded-xl border border-[#634F40]/10 bg-[#faf8fb] px-3.5 py-2">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#420060] to-[#2d003f] text-[11px] font-bold text-white shadow-[0_4px_10px_rgba(66,0,96,0.22)]">
-                      {initials}
-                    </div>
+                    <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_10px_rgba(66,0,96,0.22)]" />
                     <div className="min-w-0">
                       <div className="truncate text-[13px] font-semibold leading-none text-[#420060]">
                         {user?.fullName?.split(" ")[0] || "Member"}

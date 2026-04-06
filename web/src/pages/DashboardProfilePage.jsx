@@ -89,6 +89,10 @@ export default function DashboardProfilePage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message)
+      // Sync avatar to auth context so all layouts update
+      if (data.data?.avatarUrl) {
+        updateUser({ avatarUrl: data.data.avatarUrl.startsWith("http") ? data.data.avatarUrl : `${API_BASE_URL}${data.data.avatarUrl}` })
+      }
       showSuccess("Avatar updated")
     } catch (err) {
       showError(err.message || "Upload failed")
@@ -102,6 +106,7 @@ export default function DashboardProfilePage() {
     try {
       await authFetch("/api/member/profile/avatar", { method:"DELETE" })
       setAvatarPreview(null)
+      updateUser({ avatarUrl: null })
       showSuccess("Avatar removed")
     } catch (err) {
       showError(err.message || "Failed to remove avatar")

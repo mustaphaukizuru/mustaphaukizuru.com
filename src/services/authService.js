@@ -47,6 +47,7 @@ async function registerUser({ fullName, email, password }) {
       fullName: true,
       email: true,
       role: true,
+      avatarUrl: true,
       createdAt: true,
     },
   });
@@ -136,6 +137,9 @@ async function getUserProfile(userId) {
       fullName: true,
       email: true,
       role: true,
+      avatarUrl: true,
+      phone: true,
+      company: true,
       createdAt: true,
     },
   });

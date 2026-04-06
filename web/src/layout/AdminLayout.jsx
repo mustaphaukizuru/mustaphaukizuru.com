@@ -17,6 +17,25 @@ import {
 import AdminSidebar, { navigation } from "../components/admin/AdminSidebar"
 import AdminHeader from "../components/admin/AdminHeader"
 import { useAuth } from "../context/AuthContext"
+import { API_BASE_URL } from "../lib/api"
+
+function resolveAvatar(url) {
+  if (!url) return null
+  if (url.startsWith("http")) return url
+  return API_BASE_URL ? `${API_BASE_URL}${url}` : url
+}
+
+function UserAvatar({ src, initials, size = 9, className = "" }) {
+  const resolved = resolveAvatar(src)
+  const px = size * 4
+  return resolved ? (
+    <img src={resolved} alt="" className={`rounded-full object-cover ${className}`} style={{ width: px, height: px }} />
+  ) : (
+    <div className={`flex items-center justify-center rounded-full bg-gradient-to-br from-[#420060] to-[#2d003f] text-white font-bold ${className}`} style={{ width: px, height: px, fontSize: px * 0.3 }}>
+      {initials}
+    </div>
+  )
+}
 
 // Bottom tabs for admin mobile — 5 most used
 const adminBottomTabs = [
@@ -79,9 +98,7 @@ function AdminMobileMenu({ open, onClose, user, initials, onLogout }) {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[#634F40]/10 px-5 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#420060] text-xs font-bold text-white">
-                {initials}
-              </div>
+              <UserAvatar src={user?.avatarUrl} initials={initials} size={10} />
               <div>
                 <div className="text-[14px] font-bold text-[#420060]">{user?.fullName || "Admin"}</div>
                 <div className="text-[11px] text-[#634F40]/60">Administrator</div>

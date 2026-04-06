@@ -20,7 +20,7 @@ async function notify(userId, { type, title, message, linkUrl }) {
 
 async function notifyWelcome(user) {
   return notify(user.id, {
-    type: "welcome",
+    type: "system",
     title: "Welcome to the platform",
     message: `Hello ${user.fullName || "there"}! Your account is ready. Explore digital products, services, and your member dashboard.`,
     linkUrl: "/dashboard",
@@ -29,7 +29,7 @@ async function notifyWelcome(user) {
 
 async function notifyPasswordChanged(user) {
   return notify(user.id, {
-    type: "security",
+    type: "system",
     title: "Password changed",
     message: "Your account password was updated successfully. If this wasn't you, contact support immediately.",
     linkUrl: "/dashboard/settings",
@@ -41,7 +41,7 @@ async function notifyPasswordChanged(user) {
 async function notifyOrderPlaced(order) {
   if (!order.userId) return null
   return notify(order.userId, {
-    type: "order",
+    type: "order_placed",
     title: "Order received",
     message: `Your order ${order.orderNumber || ""} has been received and is pending payment confirmation.`,
     linkUrl: "/dashboard/orders",
@@ -51,7 +51,7 @@ async function notifyOrderPlaced(order) {
 async function notifyOrderPaid(order) {
   if (!order.userId) return null
   return notify(order.userId, {
-    type: "order",
+    type: "payment_success",
     title: "Payment confirmed",
     message: `Payment for order ${order.orderNumber || ""} is confirmed. Your products are ready to download.`,
     linkUrl: "/dashboard/downloads",
@@ -61,7 +61,7 @@ async function notifyOrderPaid(order) {
 async function notifyOrderFailed(order) {
   if (!order.userId) return null
   return notify(order.userId, {
-    type: "order",
+    type: "payment_failed",
     title: "Payment failed",
     message: `Payment for order ${order.orderNumber || ""} could not be completed. Please try again or contact support.`,
     linkUrl: "/dashboard/orders",
@@ -71,7 +71,7 @@ async function notifyOrderFailed(order) {
 async function notifyOrderCancelled(order) {
   if (!order.userId) return null
   return notify(order.userId, {
-    type: "order",
+    type: "order_placed",
     title: "Order cancelled",
     message: `Order ${order.orderNumber || ""} has been cancelled. Contact support if you believe this is incorrect.`,
     linkUrl: "/dashboard/orders",
@@ -81,7 +81,7 @@ async function notifyOrderCancelled(order) {
 async function notifyOrderRefunded(order) {
   if (!order.userId) return null
   return notify(order.userId, {
-    type: "order",
+    type: "refund_issued",
     title: "Order refunded",
     message: `A refund for order ${order.orderNumber || ""} has been initiated to your original payment method.`,
     linkUrl: "/dashboard/orders",
@@ -92,7 +92,7 @@ async function notifyOrderRefunded(order) {
 
 async function notifyDownloadReady(userId, productTitle, orderNumber) {
   return notify(userId, {
-    type: "download",
+    type: "download_ready",
     title: "Download ready",
     message: `"${productTitle}" is ready to download from your member dashboard.`,
     linkUrl: "/dashboard/downloads",
@@ -103,7 +103,7 @@ async function notifyDownloadReady(userId, productTitle, orderNumber) {
 
 async function notifySupportTicketCreated(userId, ticketNumber) {
   return notify(userId, {
-    type: "support",
+    type: "support_reply",
     title: "Support ticket created",
     message: `Your support ticket #${ticketNumber} has been submitted. Our team will respond shortly.`,
     linkUrl: "/dashboard/support",
@@ -112,7 +112,7 @@ async function notifySupportTicketCreated(userId, ticketNumber) {
 
 async function notifySupportReply(userId, ticketNumber) {
   return notify(userId, {
-    type: "support",
+    type: "support_reply",
     title: "Support reply received",
     message: `Our team replied to your ticket #${ticketNumber}. Check the full thread in your dashboard.`,
     linkUrl: "/dashboard/support",
@@ -123,7 +123,7 @@ async function notifySupportReply(userId, ticketNumber) {
 
 async function notifyReviewPosted(userId, productTitle) {
   return notify(userId, {
-    type: "review",
+    type: "system",
     title: "Review submitted",
     message: `Your review for "${productTitle}" has been posted. Thank you for your feedback!`,
     linkUrl: "/dashboard/products",
@@ -142,7 +142,7 @@ async function notifyContactReceived(email) {
     })
     for (const admin of admins) {
       await notify(admin.id, {
-        type: "contact",
+        type: "system",
         title: "New contact message",
         message: `A new contact message was submitted from ${email}. Check the admin panel.`,
         linkUrl: "/admin/support",

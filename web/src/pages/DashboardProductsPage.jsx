@@ -15,7 +15,7 @@ export default function DashboardProductsPage() {
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
-  const [downloadingKey, setDownloadingKey] = useState("")
+  const [downloadingKey, setDownloadingKey] = useState(new Set())
 
   useEffect(() => {
     async function loadOrders() {
@@ -73,6 +73,7 @@ export default function DashboardProductsPage() {
   }, [myProducts])
 
   const handleDownloadFile = async (productId, file) => {
+    const key = `${productId}:${file.id}`
     try {
       setErrorMessage("")
       setSuccessMessage("")
@@ -84,7 +85,7 @@ export default function DashboardProductsPage() {
       }
 
       const downloadUrl = `${API_BASE_URL}/api/downloads/${productId}/file/${file.id}`
-      setDownloadingKey(`${productId}:${file.id}`)
+      setDownloadingKey((prev) => new Set(prev).add(key))
 
       const response = await fetch(downloadUrl, {
         headers: {
@@ -122,7 +123,11 @@ export default function DashboardProductsPage() {
     } catch (error) {
       setErrorMessage(error.message || "Download not available.")
     } finally {
-      setDownloadingKey("")
+      setDownloadingKey((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
     }
   }
 
@@ -273,11 +278,11 @@ export default function DashboardProductsPage() {
                             <button
                               type="button"
                               onClick={() => handleDownloadFile(product.productId, file)}
-                              disabled={downloadingKey === key}
+                              disabled={downloadingKey.has(key)}
                               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#420060] px-4 py-3 text-[13px] font-semibold text-white transition hover:bg-[#2d003f] disabled:opacity-70"
                             >
                               <Download className="h-4 w-4" />
-                              {downloadingKey === key ? "Preparing..." : "Download"}
+                              {downloadingKey.has(key) ? "Preparing..." : "Download"}
                             </button>
                           </div>
                         )

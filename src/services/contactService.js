@@ -12,14 +12,37 @@ async function createContactMessage(payload) {
 }
 
 async function subscribeNewsletter(email) {
-  return prisma.newsletterSubscriber.upsert({
+  // Handle re-subscribes: if previously unsubscribed, re-activate
+  const existing = await prisma.newsletterSubscriber.findUnique({ where: { email } })
+
+  if (existing) {
+    if (existing.status === "unsubscribed") {
+      return prisma.newsletterSubscriber.update({
+        where: { email },
+        data: { status: "subscribed", subscribedAt: new Date(), unsubscribedAt: null },
+      })
+    }
+    // Already subscribed
+    return existing
+  }
+
+  return prisma.newsletterSubscriber.create({
+    data: { email, status: "subscribed" },
+  })
+}
+
+async function unsubscribeNewsletter(email) {
+  const existing = await prisma.newsletterSubscriber.findUnique({ where: { email } })
+  if (!existing) return null
+
+  return prisma.newsletterSubscriber.update({
     where: { email },
-    update: {},
-    create: { email },
-  });
+    data: { status: "unsubscribed", unsubscribedAt: new Date() },
+  })
 }
 
 module.exports = {
   createContactMessage,
   subscribeNewsletter,
+  unsubscribeNewsletter,
 };

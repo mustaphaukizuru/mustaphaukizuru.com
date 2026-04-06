@@ -1,84 +1,38 @@
 const nodemailer = require("nodemailer");
+const prisma = require("../lib/prisma");
 
-// Transporter with connection test and fallback logging
+// ═══════════════════════════════════════════════════════════════════════════════
+// SMTP TRANSPORT
+// ═══════════════════════════════════════════════════════════════════════════════
+
 const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST   || "smtp.hostinger.com",
-  port:   Number(process.env.SMTP_PORT || 465),
-  secure: process.env.SMTP_SECURE !== "false", // default true (port 465)
+  host: process.env.SMTP_HOST || "smtp.hostinger.com",
+  port: Number(process.env.SMTP_PORT || 465),
+  secure: process.env.SMTP_SECURE !== "false",
   auth: {
     user: process.env.SMTP_USER || "",
     pass: process.env.SMTP_PASS || "",
   },
   pool: true,
   maxConnections: 3,
-  rateLimit: 10, // max 10 messages per second
+  rateLimit: 10,
 });
 
-// Verify SMTP on startup (non-blocking)
 if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-  transporter.verify((error) => {
-    if (error) {
-      console.error("✗ SMTP connection failed:", error.message);
-      console.error("  → Check SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS in .env");
+  transporter.verify((err) => {
+    if (err) {
+      console.error("✗ SMTP connection failed:", err.message);
     } else {
-      console.log("✓ SMTP connection verified — email delivery ready");
+      console.log("✓ SMTP ready");
     }
   });
 } else {
-  console.warn("⚠  SMTP credentials not set — emails will be logged but not sent");
+  console.warn("⚠  SMTP not configured — emails logged only");
 }
 
-// Safe send wrapper — logs instead of throwing if SMTP not configured
-async function safeSendMail(options) {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log("[EMAIL - not sent, SMTP not configured]", options.subject, "→", options.to);
-    return;
-  }
-  try {
-    await transporter.sendMail(options);   // ← fixed: was calling itself recursively
-    console.log(`[EMAIL sent] "${options.subject}" → ${options.to}`);
-  } catch (err) {
-    console.error(`[EMAIL failed] "${options.subject}" → ${options.to}:`, err.message);
-    // Do not throw — email failure must never crash the request
-  }
-}
-
-function money(value) {
-  return `$${Number(value || 0).toFixed(2)}`;
-}
-
-function escapeHtml(value = "") {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function renderItems(items = []) {
-  return items
-    .map((item) => {
-      const title = escapeHtml(item.title || "Item");
-      const quantity = escapeHtml(item.quantity ?? 1);
-      const price = money(item.price);
-
-      return `
-        <tr>
-          <td style="padding:14px 0;border-bottom:1px solid #ece7ef;font-size:14px;line-height:22px;color:#2e2f3a;">
-            ${title}
-          </td>
-          <td style="padding:14px 0;border-bottom:1px solid #ece7ef;text-align:center;font-size:14px;line-height:22px;color:#5f6470;">
-            ${quantity}
-          </td>
-          <td style="padding:14px 0;border-bottom:1px solid #ece7ef;text-align:right;font-size:14px;line-height:22px;color:#2e2f3a;font-weight:600;">
-            ${price}
-          </td>
-        </tr>
-      `;
-    })
-    .join("");
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function getBaseUrl() {
   return process.env.FRONTEND_URL || "http://localhost:5173";
@@ -88,516 +42,549 @@ function getSupportEmail() {
   return process.env.SUPPORT_EMAIL || process.env.SMTP_USER || "hello@mustaphaukizuru.com";
 }
 
-function getOrderId(order) {
-  return escapeHtml(order?.orderNumber || order?.id || "N/A");
+function esc(v = "") {
+  return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function getOrderStatus(order) {
-  return escapeHtml(order?.status || "pending");
+function money(v) {
+  return `$${Number(v || 0).toFixed(2)}`;
 }
 
-function getCustomerName(order) {
-  return escapeHtml(order?.customerName || "Customer");
+function fromAddress() {
+  return `"Mustapha Ukizuru" <${process.env.SMTP_USER || "hello@mustaphaukizuru.com"}>`;
 }
 
-function getEmailShell({ preheader = "", headerEyebrow = "Mustapha Ukizuru", headerTitle, introHtml, contentHtml, footerHtml = "" }) {
-  const safePreheader = escapeHtml(preheader);
+// ═══════════════════════════════════════════════════════════════════════════════
+// EMAIL LOG — fire & forget DB write
+// ═══════════════════════════════════════════════════════════════════════════════
 
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>${escapeHtml(headerTitle)}</title>
-      </head>
-      <body style="margin:0;padding:0;background-color:#f6f2f7;font-family:Arial,Helvetica,sans-serif;color:#2e2f3a;">
-        <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">
-          ${safePreheader}
-        </div>
-
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f6f2f7;margin:0;padding:24px 0;">
-          <tr>
-            <td align="center" style="padding:0 16px;">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:680px;background-color:#ffffff;border-radius:22px;overflow:hidden;box-shadow:0 16px 50px rgba(66,0,96,0.08);">
-                
-                <tr>
-                  <td style="background:linear-gradient(135deg,#420060 0%,#5d1f7d 55%,#634F40 100%);padding:34px 36px 30px 36px;">
-                    <div style="font-size:12px;line-height:18px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(247,249,244,0.78);">
-                      ${escapeHtml(headerEyebrow)}
-                    </div>
-                    <div style="padding-top:10px;font-size:30px;line-height:38px;font-weight:700;color:#ffffff;">
-                      ${escapeHtml(headerTitle)}
-                    </div>
-                    <div style="padding-top:12px;font-size:15px;line-height:24px;color:rgba(247,249,244,0.88);max-width:520px;">
-                      ${introHtml}
-                    </div>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style="padding:34px 36px 18px 36px;">
-                    ${contentHtml}
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style="padding:0 36px 34px 36px;">
-                    <div style="height:1px;background-color:#ece7ef;margin-bottom:18px;"></div>
-                    ${footerHtml || `
-                      <p style="margin:0 0 8px 0;font-size:13px;line-height:22px;color:#6b7280;">
-                        This email was sent by Mustapha Ukizuru.
-                      </p>
-                      <p style="margin:0;font-size:13px;line-height:22px;color:#6b7280;">
-                        Need help? Contact
-                        <a href="mailto:${escapeHtml(getSupportEmail())}" style="color:#420060;text-decoration:none;font-weight:700;">
-                          ${escapeHtml(getSupportEmail())}
-                        </a>
-                      </p>
-                    `}
-                  </td>
-                </tr>
-
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-  `;
+function logEmail({ userId, emailTo, templateKey, subject, status, providerMessageId, errorMessage }) {
+  prisma.emailLog
+    .create({
+      data: {
+        userId: userId || null,
+        emailTo: emailTo || "",
+        templateKey: templateKey || null,
+        subject: subject || "",
+        status: status || "queued",
+        providerMessageId: providerMessageId || null,
+        sentAt: status === "sent" ? new Date() : null,
+        errorMessage: errorMessage || null,
+      },
+    })
+    .catch((e) => console.error("[EmailLog]", e.message));
 }
 
-function buildCtaButton(label, href) {
-  return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 20px 0;">
-      <tr>
-        <td align="center" bgcolor="#420060" style="border-radius:12px;">
-          <a
-            href="${href}"
-            style="display:inline-block;padding:15px 28px;font-size:16px;font-weight:700;line-height:20px;color:#ffffff;text-decoration:none;background-color:#420060;border-radius:12px;"
-          >
-            ${escapeHtml(label)}
-          </a>
-        </td>
-      </tr>
+async function safeSendMail(options, meta = {}) {
+  const emailTo = Array.isArray(options.to) ? options.to.join(", ") : String(options.to || "");
+  const subject = String(options.subject || "");
+  const { userId, templateKey } = meta;
+
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.log("[EMAIL skip]", subject, "→", emailTo);
+    logEmail({ userId, emailTo, templateKey, subject, status: "skipped", errorMessage: "SMTP not configured" });
+    return;
+  }
+
+  try {
+    const info = await transporter.sendMail(options);
+    console.log(`[EMAIL ✓] "${subject}" → ${emailTo}`);
+    logEmail({ userId, emailTo, templateKey, subject, status: "sent", providerMessageId: info?.messageId });
+  } catch (err) {
+    console.error(`[EMAIL ✗] "${subject}" → ${emailTo}:`, err.message);
+    logEmail({ userId, emailTo, templateKey, subject, status: "failed", errorMessage: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BASE LAYOUT — clean, text-forward, professional
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function layout({ preheader = "", body, footer }) {
+  const base = getBaseUrl();
+  const support = getSupportEmail();
+  const year = new Date().getFullYear();
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mustapha Ukizuru</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;-webkit-font-smoothing:antialiased;">
+
+<!-- preheader -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preheader)}</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f2f5;">
+<tr><td style="padding:32px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;">
+
+  <!-- Logo bar -->
+  <tr><td style="padding:0 0 24px 0;">
+    <a href="${base}" style="text-decoration:none;display:inline-flex;align-items:center;gap:10px;">
+      <div style="width:36px;height:36px;border-radius:10px;background:#420060;color:#fff;font-weight:700;font-size:14px;line-height:36px;text-align:center;">MU</div>
+      <span style="font-size:16px;font-weight:700;color:#420060;letter-spacing:-0.3px;">Mustapha Ukizuru</span>
+    </a>
+  </td></tr>
+
+  <!-- Content card -->
+  <tr><td style="background:#ffffff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td style="padding:36px 32px 32px 32px;">
+      ${body}
+    </td></tr>
     </table>
-  `;
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="padding:24px 0 0 0;">
+    ${footer || `
+    <p style="margin:0 0 6px;font-size:12px;color:#8b8b9e;text-align:center;">
+      © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#420060;text-decoration:none;">mustaphaukizuru.com</a>
+    </p>
+    <p style="margin:0;font-size:12px;color:#8b8b9e;text-align:center;">
+      Questions? <a href="mailto:${esc(support)}" style="color:#420060;text-decoration:none;">${esc(support)}</a>
+    </p>
+    `}
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
 }
 
-function buildInfoCard(rows = []) {
-  const content = rows
+// ═══════════════════════════════════════════════════════════════════════════════
+// COMPONENTS — reusable HTML snippets
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function heading(text) {
+  return `<h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#1a1a2e;line-height:1.3;">${esc(text)}</h1>`;
+}
+
+function subtext(text) {
+  return `<p style="margin:0 0 24px;font-size:15px;color:#5f6470;line-height:1.6;">${text}</p>`;
+}
+
+function paragraph(text) {
+  return `<p style="margin:0 0 16px;font-size:15px;color:#3a3a4a;line-height:1.7;">${text}</p>`;
+}
+
+function greeting(name) {
+  return paragraph(`Hi ${esc(name || "there")},`);
+}
+
+function cta(label, href) {
+  return `
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;">
+<tr><td style="border-radius:10px;background:#420060;text-align:center;">
+  <a href="${href}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.2px;">${esc(label)}</a>
+</td></tr>
+</table>`;
+}
+
+function divider() {
+  return `<hr style="border:none;border-top:1px solid #eee;margin:24px 0;"/>`;
+}
+
+function detailRow(label, value) {
+  return `<tr>
+    <td style="padding:6px 16px 6px 0;font-size:13px;color:#8b8b9e;white-space:nowrap;vertical-align:top;">${esc(label)}</td>
+    <td style="padding:6px 0;font-size:14px;color:#1a1a2e;font-weight:500;">${value}</td>
+  </tr>`;
+}
+
+function detailTable(rows) {
+  const content = rows.map((r) => detailRow(r[0], r[1])).join("");
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:16px 0;">${content}</table>`;
+}
+
+function itemsTable(items) {
+  const rows = (items || [])
     .map(
-      (row) => {
-        const label = Array.isArray(row) ? row[0] : row.label
-        const value = Array.isArray(row) ? row[1] : row.value
-        return `
-        <tr>
-          <td style="padding:0 0 10px 0;font-size:14px;line-height:22px;color:#6b7280;vertical-align:top;">
-            <strong style="color:#2e2f3a;">${escapeHtml(label)}:</strong> ${value}
-          </td>
-        </tr>
-      `
-      }
+      (item) => `<tr>
+        <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#1a1a2e;">${esc(item.title || "Item")}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#5f6470;text-align:center;">${esc(item.quantity ?? 1)}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#1a1a2e;text-align:right;font-weight:600;">${money(item.price)}</td>
+      </tr>`
     )
     .join("");
 
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 24px 0;background-color:#f8f5fa;border:1px solid #eee5f4;border-radius:14px;">
-      <tr>
-        <td style="padding:18px 18px 8px 18px;">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-            ${content}
-          </table>
-        </td>
-      </tr>
-    </table>
-  `;
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:16px 0;">
+  <thead>
+    <tr>
+      <th style="text-align:left;padding:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8b8b9e;border-bottom:2px solid #420060;">Product</th>
+      <th style="text-align:center;padding:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8b8b9e;border-bottom:2px solid #420060;">Qty</th>
+      <th style="text-align:right;padding:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8b8b9e;border-bottom:2px solid #420060;">Price</th>
+    </tr>
+  </thead>
+  <tbody>${rows}</tbody>
+</table>`;
 }
 
-function buildItemsTable(items = []) {
-  return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin-top:6px;">
-      <thead>
-        <tr>
-          <th style="text-align:left;padding:0 0 12px 0;border-bottom:1px solid #dcd5e3;font-size:12px;line-height:18px;letter-spacing:0.08em;text-transform:uppercase;color:#8d6f59;">
-            Product
-          </th>
-          <th style="text-align:center;padding:0 0 12px 0;border-bottom:1px solid #dcd5e3;font-size:12px;line-height:18px;letter-spacing:0.08em;text-transform:uppercase;color:#8d6f59;">
-            Qty
-          </th>
-          <th style="text-align:right;padding:0 0 12px 0;border-bottom:1px solid #dcd5e3;font-size:12px;line-height:18px;letter-spacing:0.08em;text-transform:uppercase;color:#8d6f59;">
-            Unit Price
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        ${renderItems(items)}
-      </tbody>
-    </table>
-  `;
+function note(text) {
+  return `<p style="margin:20px 0 0;padding:14px 16px;background:#faf7fb;border-left:3px solid #420060;border-radius:0 8px 8px 0;font-size:13px;color:#5f6470;line-height:1.6;">${text}</p>`;
 }
 
-function buildOrderEmail({ order, title, intro, ctaLabel, ctaUrl, note }) {
-  const infoCard = buildInfoCard([
-    { label: "Order ID", value: getOrderId(order) },
-    { label: "Status", value: getOrderStatus(order) },
-    { label: "Total", value: `<span style="font-weight:700;color:#420060;">${money(order.totalAmount)}</span>` },
+function smallText(text) {
+  return `<p style="margin:16px 0 0;font-size:12px;color:#8b8b9e;line-height:1.5;">${text}</p>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ORDER HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function getOrderId(order) { return esc(order?.orderNumber || order?.id || "—"); }
+function getCustomerName(order) { return order?.customerName || "there"; }
+
+function orderBody({ order, title, intro, ctaLabel, ctaUrl, noteText }) {
+  const base = getBaseUrl();
+  let html = "";
+  html += heading(title);
+  html += greeting(getCustomerName(order));
+  html += paragraph(intro);
+  html += detailTable([
+    ["Order", `#${getOrderId(order)}`],
+    ["Status", `<span style="font-weight:700;color:#420060;">${esc(order?.status || "pending")}</span>`],
+    ["Total", `<span style="font-weight:700;color:#420060;">${money(order?.totalAmount)}</span>`],
   ]);
-
-  const buttonHtml = ctaLabel && ctaUrl ? buildCtaButton(ctaLabel, ctaUrl) : "";
-
-  const noteHtml = note
-    ? `
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:22px 0 0 0;background-color:#fcfafc;border:1px solid #ece7ef;border-radius:14px;">
-        <tr>
-          <td style="padding:16px 18px;font-size:14px;line-height:24px;color:#5f6470;">
-            ${note}
-          </td>
-        </tr>
-      </table>
-    `
-    : "";
-
-  return getEmailShell({
-    preheader: `${title} - ${getOrderId(order)}`,
-    headerTitle: title,
-    introHtml: intro,
-    contentHtml: `
-      <p style="margin:0 0 18px 0;font-size:16px;line-height:28px;color:#4b5563;">
-        Hello ${getCustomerName(order)},
-      </p>
-
-      ${infoCard}
-
-      ${buttonHtml}
-
-      <div style="margin:2px 0 0 0;font-size:15px;line-height:24px;font-weight:700;color:#420060;">
-        Order summary
-      </div>
-
-      <div style="margin-top:10px;">
-        ${buildItemsTable(order.items)}
-      </div>
-
-      ${noteHtml}
-    `,
-  });
+  if (order?.items?.length > 0) {
+    html += itemsTable(order.items);
+  }
+  if (ctaLabel && ctaUrl) {
+    html += cta(ctaLabel, ctaUrl);
+  }
+  if (noteText) {
+    html += note(noteText);
+  }
+  html += smallText(`If you have questions about this order, reply to this email or contact <a href="mailto:${esc(getSupportEmail())}" style="color:#420060;">${esc(getSupportEmail())}</a>.`);
+  return html;
 }
 
-async function sendResetEmail(email, resetLink) {
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: "Reset your password",
-    text: `
-Password Reset Request
-
-We received a request to reset the password for your Mustapha Ukizuru account.
-
-Reset your password:
-${resetLink}
-
-This link expires in 1 hour.
-
-If you did not request a password reset, you can safely ignore this email.
-    `.trim(),
-    html: getEmailShell({
-      preheader: "Reset your password securely",
-      headerTitle: "Reset your password",
-      introHtml:
-        "Secure account recovery for your digital products, services, and member workspace.",
-      contentHtml: `
-        <div style="font-size:13px;line-height:20px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8d6f59;">
-          Password assistance
-        </div>
-
-        <p style="margin:14px 0 18px 0;font-size:16px;line-height:28px;color:#4b5563;">
-          We received a request to reset the password for your account. Use the button below to create a new password securely.
-        </p>
-
-        ${buildCtaButton("Reset Password", resetLink)}
-
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:24px;color:#8d6f59;">
-          This link expires in <strong>1 hour</strong>.
-        </p>
-
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0 0 0;background-color:#f8f5fa;border:1px solid #eee5f4;border-radius:14px;">
-          <tr>
-            <td style="padding:18px;">
-              <div style="font-size:14px;line-height:22px;font-weight:700;color:#420060;margin-bottom:8px;">
-                Didn’t request this?
-              </div>
-              <div style="font-size:14px;line-height:24px;color:#5f6470;">
-                If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged unless this link is used.
-              </div>
-            </td>
-          </tr>
-        </table>
-
-        <p style="margin:22px 0 10px 0;font-size:13px;line-height:22px;color:#6b7280;">
-          If the button does not work, copy and paste this link into your browser:
-        </p>
-
-        <p style="margin:0;font-size:13px;line-height:22px;word-break:break-word;">
-          <a href="${resetLink}" style="color:#420060;text-decoration:underline;">
-            ${escapeHtml(resetLink)}
-          </a>
-        </p>
-      `,
-    }),
-  });
-}
-
-async function sendOrderPlacedEmail(order) {
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: order.customerEmail,
-    subject: `Order Received - ${order.id}`,
-    html: buildOrderEmail({
-      order,
-      title: "Order received",
-      intro: "We received your order successfully. It is currently pending payment confirmation.",
-      note: "Once payment is confirmed, you will receive another email confirming that your downloads are ready.",
-    }),
-  });
-}
-
-async function sendOrderPaidEmail(order) {
-  const dashboardUrl = `${getBaseUrl()}/dashboard/products`;
-
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: order.customerEmail,
-    subject: `Payment Confirmed - ${order.id}`,
-    html: buildOrderEmail({
-      order,
-      title: "Payment confirmed",
-      intro: "Your payment has been confirmed and your digital products are now available in your member dashboard.",
-      ctaLabel: "Open My Products",
-      ctaUrl: dashboardUrl,
-    }),
-  });
-}
-
-async function sendOrderPendingEmail(order) {
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: order.customerEmail,
-    subject: `Order Pending - ${order.id}`,
-    html: buildOrderEmail({
-      order,
-      title: "Order pending",
-      intro: "Your order status has been updated to pending. We are still waiting for payment confirmation or review.",
-    }),
-  });
-}
-
-async function sendOrderCancelledEmail(order) {
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: order.customerEmail,
-    subject: `Order Cancelled - ${order.id}`,
-    html: buildOrderEmail({
-      order,
-      title: "Order cancelled",
-      intro: "Your order has been updated to cancelled. If you believe this is incorrect, please contact support.",
-    }),
-  });
-}
-
-async function sendOrderFailedEmail(order) {
-  const dashboardUrl = `${getBaseUrl()}/dashboard/products`;
-
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: order.customerEmail,
-    subject: `Order Failed - ${order.id}`,
-    html: buildOrderEmail({
-      order,
-      title: "Payment failed",
-      intro: "Your order has been updated to failed. The payment could not be completed or was not confirmed. Please try again or contact support if you need help.",
-      ctaLabel: "Open My Products",
-      ctaUrl: dashboardUrl,
-    }),
-  });
-}
-
-async function sendOrderRefundedEmail(order) {
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: order.customerEmail,
-    subject: `Order Refunded - ${order.id}`,
-    html: buildOrderEmail({
-      order,
-      title: "Order refunded",
-      intro: "Your order has been updated to refunded. Any eligible refund has been initiated to your original payment method.",
-    }),
-  });
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ADDITIONAL EMAIL NOTIFICATIONS — added to cover all platform actions
-// ─────────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTH EMAILS
+// ═══════════════════════════════════════════════════════════════════════════════
 
 async function sendWelcomeEmail(user) {
-  const dashboardUrl = `${getBaseUrl()}/dashboard`;
-  const storeUrl = `${getBaseUrl()}/store`;
-  const name = escapeHtml(user?.fullName || user?.name || "Member");
+  const base = getBaseUrl();
+  const name = user?.fullName || user?.name || "there";
   const email = user?.email;
   if (!email) return;
 
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: "Welcome to Mustapha Ukizuru Digital Platform",
-    html: getEmailShell({
-      preheader: "Your account is ready. Explore digital resources and consulting services.",
-      headerTitle: "Welcome to the Platform",
-      introHtml: `<p style="font-size:16px;line-height:28px;color:#2e2f3a;margin:0 0 20px;">Hello <strong>${name}</strong>,</p><p style="font-size:15px;line-height:26px;color:#5f6470;margin:0 0 16px;">Your account has been created successfully. You now have access to digital products, consulting services, and your personal member dashboard.</p>`,
-      contentHtml: buildInfoCard([
-        ["Access", "Digital products, templates, toolkits"],
-        ["Dashboard", "Track orders, downloads, and account"],
-        ["Support", "Reach our team anytime"],
-      ]),
-      footerHtml: `<div style="text-align:center;margin-top:28px;">${buildCtaButton("Open My Dashboard", dashboardUrl)}&nbsp;&nbsp;${buildCtaButton("Explore Store", storeUrl)}</div>`,
-    }),
-  });
+  const body =
+    heading("Welcome aboard") +
+    greeting(name) +
+    paragraph("Your account has been created successfully. You now have access to digital products, consulting services, and your personal member dashboard.") +
+    paragraph("Here's what you can do:") +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 16px;">
+      <tr><td style="padding:4px 0;font-size:14px;color:#3a3a4a;">→ Browse and purchase digital products</td></tr>
+      <tr><td style="padding:4px 0;font-size:14px;color:#3a3a4a;">→ Download files from your dashboard</td></tr>
+      <tr><td style="padding:4px 0;font-size:14px;color:#3a3a4a;">→ Access consulting and technology services</td></tr>
+      <tr><td style="padding:4px 0;font-size:14px;color:#3a3a4a;">→ Get priority support when you need help</td></tr>
+    </table>` +
+    cta("Open My Dashboard", `${base}/dashboard`) +
+    smallText("You're receiving this because you created an account at mustaphaukizuru.com.");
+
+  await safeSendMail(
+    { from: fromAddress(), to: email, subject: "Welcome to Mustapha Ukizuru", html: layout({ preheader: "Your account is ready", body }) },
+    { userId: user.id, templateKey: "welcome" }
+  );
 }
 
-async function sendDownloadReadyEmail(order, product) {
-  const downloadUrl = `${getBaseUrl()}/dashboard/downloads`;
-  const customerEmail = order?.customerEmail;
-  if (!customerEmail) return;
+async function sendResetEmail(email, resetLink) {
+  const body =
+    heading("Reset your password") +
+    paragraph("We received a request to reset the password for your account. Click the button below to choose a new password.") +
+    cta("Reset Password", resetLink) +
+    paragraph(`This link expires in <strong>1 hour</strong>. If you didn't request this, you can safely ignore this email — your password won't change.`) +
+    divider() +
+    smallText(`If the button doesn't work, copy this URL into your browser:<br/><a href="${resetLink}" style="color:#420060;word-break:break-all;">${esc(resetLink)}</a>`);
 
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: customerEmail,
-    subject: `Your Download is Ready — ${escapeHtml(product?.title || "Product")}`,
-    html: getEmailShell({
-      preheader: "Your digital product is ready to download from your dashboard.",
-      headerTitle: "Download Ready",
-      introHtml: `<p style="font-size:15px;line-height:26px;color:#5f6470;margin:0 0 16px;">Your payment has been confirmed and <strong>${escapeHtml(product?.title || "your product")}</strong> is ready to download from your member dashboard.</p>`,
-      contentHtml: buildInfoCard([
-        ["Product", escapeHtml(product?.title || "—")],
-        ["Order", getOrderId(order)],
-        ["Status", "Ready to download"],
-      ]),
-      footerHtml: `<div style="text-align:center;margin-top:28px;">${buildCtaButton("Download Now", downloadUrl)}</div>`,
-    }),
-  });
-}
-
-async function sendContactFormEmail(data) {
-  const supportEmail = getSupportEmail();
-  const { name, email, message } = data || {};
-  if (!name || !email || !message) return;
-
-  // Notify admin
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: supportEmail,
-    subject: `New Contact Message from ${escapeHtml(name)}`,
-    html: getEmailShell({
-      preheader: `New contact message from ${escapeHtml(name)}`,
-      headerTitle: "New Contact Message",
-      introHtml: `<p style="font-size:15px;color:#5f6470;margin:0 0 16px;">A new message was submitted through the contact form.</p>`,
-      contentHtml: buildInfoCard([
-        ["Name", escapeHtml(name)],
-        ["Email", escapeHtml(email)],
-        ["Message", escapeHtml(message)],
-      ]),
-    }),
-  });
-
-  // Auto-reply to sender
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: "We received your message — Mustapha Ukizuru",
-    html: getEmailShell({
-      preheader: "We'll get back to you within 24 hours.",
-      headerTitle: "Message Received",
-      introHtml: `<p style="font-size:16px;line-height:28px;color:#2e2f3a;margin:0 0 16px;">Hello <strong>${escapeHtml(name)}</strong>,</p><p style="font-size:15px;line-height:26px;color:#5f6470;margin:0;">Thank you for reaching out. We've received your message and will respond within 24 hours.</p>`,
-      contentHtml: buildInfoCard([["Your Message", escapeHtml(message)]]),
-    }),
-  });
-}
-
-async function sendSupportTicketEmail(ticket, user) {
-  const ticketUrl = `${getBaseUrl()}/dashboard/support`;
-  const email = user?.email || ticket?.email;
-  if (!email) return;
-
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: `Support Ticket Created — #${escapeHtml(ticket?.ticketNumber || ticket?.id?.slice(0, 8) || "—")}`,
-    html: getEmailShell({
-      preheader: "Your support ticket has been created and our team will respond shortly.",
-      headerTitle: "Support Ticket Created",
-      introHtml: `<p style="font-size:15px;line-height:26px;color:#5f6470;margin:0 0 16px;">Your support request has been received. Our team will respond as soon as possible.</p>`,
-      contentHtml: buildInfoCard([
-        ["Ticket", `#${escapeHtml(ticket?.ticketNumber || "—")}`],
-        ["Subject", escapeHtml(ticket?.subject || "—")],
-        ["Priority", escapeHtml(ticket?.priority || "medium")],
-        ["Status", "Open"],
-      ]),
-      footerHtml: `<div style="text-align:center;margin-top:28px;">${buildCtaButton("View Ticket", ticketUrl)}</div>`,
-    }),
-  });
-}
-
-async function sendSupportReplyEmail(ticket, user, replyMessage) {
-  const ticketUrl = `${getBaseUrl()}/dashboard/support`;
-  const email = user?.email || ticket?.email;
-  if (!email) return;
-
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: `Support Reply — Ticket #${escapeHtml(ticket?.ticketNumber || "—")}`,
-    html: getEmailShell({
-      preheader: "Our team has replied to your support ticket.",
-      headerTitle: "Support Reply",
-      introHtml: `<p style="font-size:15px;line-height:26px;color:#5f6470;margin:0 0 16px;">Our support team has replied to your ticket <strong>#${escapeHtml(ticket?.ticketNumber || "—")}</strong>.</p>`,
-      contentHtml: buildInfoCard([
-        ["Subject", escapeHtml(ticket?.subject || "—")],
-        ["Reply", escapeHtml(replyMessage || "—")],
-      ]),
-      footerHtml: `<div style="text-align:center;margin-top:28px;">${buildCtaButton("View Full Thread", ticketUrl)}</div>`,
-    }),
-  });
-}
-
-async function sendNewsletterConfirmationEmail(email) {
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: "You're subscribed — Mustapha Ukizuru",
-    html: getEmailShell({
-      preheader: "You've been added to the newsletter. Stay up to date with insights and product updates.",
-      headerTitle: "Subscription Confirmed",
-      introHtml: `<p style="font-size:15px;line-height:26px;color:#5f6470;margin:0 0 16px;">You've successfully subscribed to updates from Mustapha Ukizuru. You'll receive insights, product announcements, and technology resources.</p>`,
-      footerHtml: `<div style="text-align:center;margin-top:28px;">${buildCtaButton("Explore Digital Store", `${getBaseUrl()}/store`)}</div>`,
-    }),
-  });
+  await safeSendMail(
+    { from: fromAddress(), to: email, subject: "Reset your password — Mustapha Ukizuru", html: layout({ preheader: "Password reset request", body }) },
+    { templateKey: "password_reset" }
+  );
 }
 
 async function sendPasswordResetConfirmationEmail(email) {
-  const loginUrl = `${getBaseUrl()}/login`;
-  await safeSendMail({
-    from: `"Mustapha Ukizuru" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: "Password Changed Successfully",
-    html: getEmailShell({
-      preheader: "Your password has been updated. Sign in with your new credentials.",
-      headerTitle: "Password Updated",
-      introHtml: `<p style="font-size:15px;line-height:26px;color:#5f6470;margin:0 0 16px;">Your account password has been changed successfully. If you did not make this change, please contact our support team immediately.</p>`,
-      footerHtml: `<div style="text-align:center;margin-top:28px;">${buildCtaButton("Sign In", loginUrl)}</div>`,
-    }),
-  });
+  const base = getBaseUrl();
+  const body =
+    heading("Password updated") +
+    paragraph("Your account password has been changed successfully.") +
+    paragraph("If you made this change, no further action is needed. If you did <strong>not</strong> change your password, please contact our support team immediately.") +
+    cta("Sign In", `${base}/login`) +
+    smallText(`Security notice: This change was made on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}.`);
+
+  await safeSendMail(
+    { from: fromAddress(), to: email, subject: "Password changed — Mustapha Ukizuru", html: layout({ preheader: "Your password was updated", body }) },
+    { templateKey: "password_changed" }
+  );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ORDER EMAILS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function sendOrderPlacedEmail(order) {
+  if (!order?.customerEmail) return;
+  const body = orderBody({
+    order,
+    title: "Order received",
+    intro: "We've received your order and it's being processed. You'll get another email once payment is confirmed and your products are ready.",
+    noteText: "Payment confirmation usually takes a few moments. If your order stays pending for more than 15 minutes, please check your payment method or contact support.",
+  });
+  await safeSendMail(
+    { from: fromAddress(), to: order.customerEmail, subject: `Order received — #${getOrderId(order)}`, html: layout({ preheader: `Order #${getOrderId(order)} received`, body }) },
+    { templateKey: "order_placed" }
+  );
+}
+
+async function sendOrderPaidEmail(order) {
+  if (!order?.customerEmail) return;
+  const base = getBaseUrl();
+  const body = orderBody({
+    order,
+    title: "Payment confirmed",
+    intro: "Your payment has been confirmed. Your digital products are now available in your member dashboard — ready to download.",
+    ctaLabel: "Go to My Products",
+    ctaUrl: `${base}/dashboard/products`,
+  });
+  await safeSendMail(
+    { from: fromAddress(), to: order.customerEmail, subject: `Payment confirmed — #${getOrderId(order)}`, html: layout({ preheader: "Your products are ready to download", body }) },
+    { templateKey: "order_paid" }
+  );
+}
+
+async function sendOrderPendingEmail(order) {
+  if (!order?.customerEmail) return;
+  const body = orderBody({
+    order,
+    title: "Order pending",
+    intro: "Your order status has been updated to pending. We're waiting for payment confirmation or review. No action is needed from you right now.",
+  });
+  await safeSendMail(
+    { from: fromAddress(), to: order.customerEmail, subject: `Order pending — #${getOrderId(order)}`, html: layout({ preheader: "Order status update", body }) },
+    { templateKey: "order_pending" }
+  );
+}
+
+async function sendOrderCancelledEmail(order) {
+  if (!order?.customerEmail) return;
+  const body = orderBody({
+    order,
+    title: "Order cancelled",
+    intro: "Your order has been cancelled. If you believe this is a mistake or need assistance, please reach out to our support team.",
+  });
+  await safeSendMail(
+    { from: fromAddress(), to: order.customerEmail, subject: `Order cancelled — #${getOrderId(order)}`, html: layout({ preheader: "Your order was cancelled", body }) },
+    { templateKey: "order_cancelled" }
+  );
+}
+
+async function sendOrderFailedEmail(order) {
+  if (!order?.customerEmail) return;
+  const base = getBaseUrl();
+  const body = orderBody({
+    order,
+    title: "Payment failed",
+    intro: "We couldn't process the payment for your order. This can happen if your card was declined or the payment session expired. You can try again from your dashboard.",
+    ctaLabel: "Try Again",
+    ctaUrl: `${base}/store`,
+    noteText: "If you continue to experience issues, try a different payment method or contact your bank. Our support team is also here to help.",
+  });
+  await safeSendMail(
+    { from: fromAddress(), to: order.customerEmail, subject: `Payment failed — #${getOrderId(order)}`, html: layout({ preheader: "Payment could not be completed", body }) },
+    { templateKey: "order_failed" }
+  );
+}
+
+async function sendOrderRefundedEmail(order) {
+  if (!order?.customerEmail) return;
+  const body = orderBody({
+    order,
+    title: "Refund processed",
+    intro: "A refund has been initiated for your order. The amount will be returned to your original payment method within 5–10 business days, depending on your bank.",
+    noteText: "If you don't see the refund after 10 business days, please contact your payment provider first, then reach out to us if needed.",
+  });
+  await safeSendMail(
+    { from: fromAddress(), to: order.customerEmail, subject: `Refund processed — #${getOrderId(order)}`, html: layout({ preheader: "Your refund is on its way", body }) },
+    { templateKey: "order_refunded" }
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DOWNLOAD EMAIL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function sendDownloadReadyEmail(order, product) {
+  const email = order?.customerEmail;
+  if (!email) return;
+  const base = getBaseUrl();
+  const productTitle = product?.title || "your product";
+
+  const body =
+    heading("Your download is ready") +
+    greeting(getCustomerName(order)) +
+    paragraph(`<strong>${esc(productTitle)}</strong> is ready to download from your member dashboard.`) +
+    detailTable([
+      ["Product", esc(productTitle)],
+      ["Order", `#${getOrderId(order)}`],
+      ["Access", "Instant download"],
+    ]) +
+    cta("Download Now", `${base}/dashboard/products`) +
+    smallText("Downloads are available anytime from your dashboard. If you have trouble accessing your files, contact support.");
+
+  await safeSendMail(
+    { from: fromAddress(), to: email, subject: `Download ready — ${esc(productTitle)}`, html: layout({ preheader: `${productTitle} is ready to download`, body }) },
+    { templateKey: "download_ready" }
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONTACT FORM EMAIL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function sendContactFormEmail(data) {
+  const { name, email, subject, message } = data || {};
+  if (!name || !email || !message) return;
+  const support = getSupportEmail();
+
+  // 1. Notify admin
+  const adminBody =
+    heading("New contact message") +
+    paragraph(`A message was submitted through the contact form.`) +
+    detailTable([
+      ["From", esc(name)],
+      ["Email", `<a href="mailto:${esc(email)}" style="color:#420060;">${esc(email)}</a>`],
+      ["Subject", esc(subject || "—")],
+    ]) +
+    divider() +
+    paragraph(`<em>"${esc(message)}"</em>`);
+
+  await safeSendMail(
+    { from: fromAddress(), to: support, subject: `Contact: ${esc(name)} — ${esc(subject || "New message")}`, html: layout({ preheader: `New message from ${name}`, body: adminBody }) },
+    { templateKey: "contact_admin" }
+  );
+
+  // 2. Auto-reply to sender
+  const replyBody =
+    heading("We received your message") +
+    greeting(name) +
+    paragraph("Thank you for reaching out. We've received your message and will get back to you within <strong>24 hours</strong>.") +
+    paragraph("For reference, here's what you sent us:") +
+    note(esc(message)) +
+    smallText(`This is an automated confirmation. Please don't reply to this email — instead, email us at <a href="mailto:${esc(support)}" style="color:#420060;">${esc(support)}</a>.`);
+
+  await safeSendMail(
+    { from: fromAddress(), to: email, subject: "We received your message — Mustapha Ukizuru", html: layout({ preheader: "We'll respond within 24 hours", body: replyBody }) },
+    { templateKey: "contact_reply" }
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SUPPORT TICKET EMAILS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function sendSupportTicketEmail(ticket, user) {
+  const email = user?.email || ticket?.email;
+  if (!email) return;
+  const base = getBaseUrl();
+  const ticketNum = ticket?.ticketNumber || ticket?.id?.slice(0, 8) || "—";
+
+  const body =
+    heading("Support ticket created") +
+    greeting(user?.fullName || "there") +
+    paragraph(`Your support request has been submitted. Our team will review it and respond as soon as possible.`) +
+    detailTable([
+      ["Ticket", `#${esc(ticketNum)}`],
+      ["Subject", esc(ticket?.subject || "—")],
+      ["Priority", esc(ticket?.priority || "medium")],
+      ["Status", "Open"],
+    ]) +
+    cta("View Ticket", `${base}/dashboard/support`) +
+    smallText("You'll receive an email when our team replies to your ticket.");
+
+  await safeSendMail(
+    { from: fromAddress(), to: email, subject: `Support ticket #${esc(ticketNum)} created`, html: layout({ preheader: "Your support request was received", body }) },
+    { userId: user?.id, templateKey: "support_created" }
+  );
+}
+
+async function sendSupportReplyEmail(ticket, user, replyMessage) {
+  const email = user?.email || ticket?.email;
+  if (!email) return;
+  const base = getBaseUrl();
+  const ticketNum = ticket?.ticketNumber || "—";
+
+  const body =
+    heading("New reply on your ticket") +
+    greeting(user?.fullName || "there") +
+    paragraph(`Our team has replied to ticket <strong>#${esc(ticketNum)}</strong>.`) +
+    divider() +
+    paragraph(`<em>"${esc(replyMessage)}"</em>`) +
+    divider() +
+    cta("View Full Thread", `${base}/dashboard/support`) +
+    smallText("You can reply directly from your dashboard.");
+
+  await safeSendMail(
+    { from: fromAddress(), to: email, subject: `Reply on ticket #${esc(ticketNum)}`, html: layout({ preheader: "Our team replied to your ticket", body }) },
+    { userId: user?.id, templateKey: "support_reply" }
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NEWSLETTER EMAIL — with unsubscribe link
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function sendNewsletterConfirmationEmail(email) {
+  const base = getBaseUrl();
+  const unsubscribeUrl = `${base}/api/newsletter/unsubscribe?email=${encodeURIComponent(email)}`;
+  const year = new Date().getFullYear();
+  const support = getSupportEmail();
+
+  const body =
+    heading("You're subscribed") +
+    paragraph(`Hi there,`) +
+    paragraph("Thanks for subscribing! You'll now receive occasional updates about:") +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">
+      <tr><td style="padding:5px 0;font-size:14px;color:#3a3a4a;">→ New digital products and templates</td></tr>
+      <tr><td style="padding:5px 0;font-size:14px;color:#3a3a4a;">→ Technology insights and guides</td></tr>
+      <tr><td style="padding:5px 0;font-size:14px;color:#3a3a4a;">→ Service updates and announcements</td></tr>
+    </table>` +
+    paragraph("We respect your inbox — expect quality content, not spam.") +
+    cta("Explore the Store", `${base}/store`);
+
+  const footer = `
+    <p style="margin:0 0 6px;font-size:12px;color:#8b8b9e;text-align:center;">
+      © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#420060;text-decoration:none;">mustaphaukizuru.com</a>
+    </p>
+    <p style="margin:0 0 6px;font-size:12px;color:#8b8b9e;text-align:center;">
+      You're receiving this because you subscribed at mustaphaukizuru.com.
+    </p>
+    <p style="margin:0;font-size:12px;text-align:center;">
+      <a href="${unsubscribeUrl}" style="color:#8b8b9e;text-decoration:underline;">Unsubscribe</a>
+       · <a href="mailto:${esc(support)}" style="color:#8b8b9e;text-decoration:underline;">Contact</a>
+    </p>`;
+
+  await safeSendMail(
+    {
+      from: fromAddress(),
+      to: email,
+      subject: "You're subscribed — Mustapha Ukizuru",
+      html: layout({ preheader: "You'll receive updates and product announcements", body, footer }),
+      headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` },
+    },
+    { templateKey: "newsletter_confirm" }
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPORTS
+// ═══════════════════════════════════════════════════════════════════════════════
 
 module.exports = {
   sendResetEmail,

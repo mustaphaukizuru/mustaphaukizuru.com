@@ -4,6 +4,7 @@ const {
   capturePaypalOrder,
 } = require("../services/paypalService")
 const { sendOrderPaidEmail, sendOrderPlacedEmail } = require("../utils/mailer")
+const { notifyOrderPaid } = require("../services/notificationService")
 
 async function createOrder(req, res) {
   try {
@@ -155,6 +156,7 @@ async function captureOrder(req, res) {
 
     // Fire-and-forget — email must not delay the payment response
     sendOrderPaidEmail(updatedOrder).catch((e) => console.error('[email]', e.message))
+    notifyOrderPaid(updatedOrder).catch(() => {})
 
     return res.status(200).json({
       success: true,
