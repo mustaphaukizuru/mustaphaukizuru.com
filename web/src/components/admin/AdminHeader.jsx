@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom"
-import { Search, HelpCircle, LogOut, Home, Menu } from "lucide-react"
+import { Search, HelpCircle, LogOut, Home } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 import { Link } from "react-router-dom"
 import { API_BASE_URL } from "../../lib/api"
@@ -21,8 +21,7 @@ const PAGE_META = {
   "/admin/audit":         { title: "Audit Log",        sub: "Admin actions and platform events" },
 }
 
-// onMenuOpen is called when the mobile hamburger button is pressed
-export default function AdminHeader({ onMenuOpen }) {
+export default function AdminHeader() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -44,37 +43,21 @@ export default function AdminHeader({ onMenuOpen }) {
 
   return (
     <header className="sticky top-4 z-20 mb-4 overflow-hidden rounded-xl border border-[#634F40]/10 bg-white shadow-[0_8px_30px_rgba(66,0,96,0.06)]">
-      <div className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-6 sm:py-4">
+      <div className="flex items-center justify-between gap-4 px-6 py-4">
 
-        {/* Left — hamburger (mobile) + page title */}
-        <div className="flex min-w-0 items-center gap-3">
-
-          {/* Hamburger — mobile only */}
-          {onMenuOpen && (
-            <button
-              type="button"
-              onClick={onMenuOpen}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#634F40]/10 bg-[#f7f5f8] text-[#420060] transition-all duration-200 hover:bg-[#ede4ef] hover:shadow-sm active:scale-95 lg:hidden"
-              aria-label="Open navigation"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          )}
-
-          <div className="min-w-0">
-            <div className="hidden text-[11px] font-semibold uppercase tracking-[0.14em] text-[#634F40]/45 sm:block">
-              Admin / {meta.title}
-            </div>
-            <h1 className="truncate text-[18px] font-bold text-[#420060] sm:text-[20px]">{meta.title}</h1>
-            <p className="mt-0.5 hidden text-[12px] text-[#634F40]/60 sm:block">{meta.sub}</p>
+        {/* Left — page title */}
+        <div className="min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#634F40]/45">
+            Admin / {meta.title}
           </div>
+          <h1 className="mt-1 truncate text-[20px] font-bold text-[#420060]">{meta.title}</h1>
+          <p className="mt-0.5 text-[12px] text-[#634F40]/60">{meta.sub}</p>
         </div>
 
         {/* Right cluster */}
-        <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
-
-          {/* Search — desktop only */}
-          <div className="hidden items-center gap-2.5 rounded-xl border border-[#634F40]/10 bg-[#fafafa] px-3.5 py-2.5 xl:flex">
+        <div className="flex shrink-0 items-center gap-2.5">
+          {/* Search */}
+          <div className="hidden items-center gap-2.5 rounded-xl border border-[#634F40]/10 bg-[#fafafa] px-3.5 py-2.5 lg:flex">
             <Search className="h-4 w-4 shrink-0 text-[#634F40]/40" />
             <input
               type="text"
@@ -83,7 +66,7 @@ export default function AdminHeader({ onMenuOpen }) {
             />
           </div>
 
-          {/* View site — desktop only */}
+          {/* View site */}
           <Link
             to="/"
             target="_blank"
@@ -93,7 +76,7 @@ export default function AdminHeader({ onMenuOpen }) {
             <Home className="h-4 w-4" />
           </Link>
 
-          {/* Support — desktop only */}
+          {/* Support */}
           <button
             type="button"
             onClick={() => navigate("/admin/support")}
@@ -104,11 +87,11 @@ export default function AdminHeader({ onMenuOpen }) {
           </button>
 
           {/* Admin avatar pill */}
-          <div className="flex items-center gap-2.5 rounded-xl border border-[#420060]/10 bg-gradient-to-br from-[#faf7fb] to-[#f5f0f8] px-3 py-2">
+          <div className="flex items-center gap-2.5 rounded-xl border border-[#420060]/10 bg-[#faf7fb] px-3 py-2">
             {avatarUrl ? (
               <img src={avatarUrl} alt={user?.fullName} className="h-8 w-8 rounded-full object-cover ring-2 ring-[#420060]/15" />
             ) : (
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#420060] to-[#2d003f] text-[11px] font-bold text-white shadow-[0_4px_10px_rgba(66,0,96,0.22)]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#420060] to-[#2d003f] text-[11px] font-bold text-white">
                 {initials}
               </div>
             )}

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-<<<<<<< HEAD
 import { Outlet, NavLink, useLocation, useNavigate, Link } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -16,11 +15,6 @@ import {
   CreditCard,
 } from "lucide-react"
 import AdminSidebar, { navigation } from "../components/admin/AdminSidebar"
-=======
-import { Outlet, useLocation } from "react-router-dom"
-import { X } from "lucide-react"
-import AdminSidebar from "../components/admin/AdminSidebar"
->>>>>>> c8e70b6ca47e7edcf1baef87d63c77467b01a19d
 import AdminHeader from "../components/admin/AdminHeader"
 import { useAuth } from "../context/AuthContext"
 
@@ -57,7 +51,6 @@ function resolveMeta(pathname) {
   return { title: "Admin", subtitle: "Manage your platform operations." }
 }
 
-<<<<<<< HEAD
 // ── Mobile slide-out menu ──
 function AdminMobileMenu({ open, onClose, user, initials, onLogout }) {
   useEffect(() => {
@@ -65,34 +58,8 @@ function AdminMobileMenu({ open, onClose, user, initials, onLogout }) {
     else document.body.style.overflow = ""
     return () => { document.body.style.overflow = "" }
   }, [open])
-=======
-export default function AdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const location = useLocation()
-  const currentMeta = resolveMeta(location.pathname)
->>>>>>> c8e70b6ca47e7edcf1baef87d63c77467b01a19d
-
-  // Lock body scroll when mobile sidebar is open
-  useEffect(() => {
-    document.body.style.overflow = sidebarOpen ? "hidden" : ""
-    return () => { document.body.style.overflow = "" }
-  }, [sidebarOpen])
-
-  // Close sidebar on route change
-  useEffect(() => {
-    setSidebarOpen(false)
-  }, [location.pathname])
-
-  // Close on ESC key
-  useEffect(() => {
-    if (!sidebarOpen) return
-    const h = (e) => { if (e.key === "Escape") setSidebarOpen(false) }
-    document.addEventListener("keydown", h)
-    return () => document.removeEventListener("keydown", h)
-  }, [sidebarOpen])
 
   return (
-<<<<<<< HEAD
     <>
       {/* Backdrop */}
       <div
@@ -227,47 +194,6 @@ export default function AdminLayout() {
 
           {/* ── Desktop Sidebar ── */}
           <div className="hidden lg:sticky lg:top-4 lg:block lg:h-[calc(100vh-2rem)]">
-=======
-    <section className="min-h-screen bg-[#f7f9f4]">
-
-      {/* ── Mobile sidebar overlay ───────────────────────────────────────── */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/30 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
-          sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setSidebarOpen(false)}
-        aria-hidden="true"
-      />
-
-      {/* ── Mobile sidebar drawer (slides from left) ─────────────────────── */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-[300px] transform transition-transform duration-300 ease-out lg:hidden ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Admin navigation"
-      >
-        <div className="relative flex h-full flex-col p-3">
-          {/* Close button */}
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(false)}
-            className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-xl bg-white/90 text-[#634F40]/60 shadow-sm transition hover:bg-white hover:text-[#420060]"
-            aria-label="Close navigation"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          <AdminSidebar onClose={() => setSidebarOpen(false)} />
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-[1700px] px-4 py-4 sm:px-5 lg:px-6">
-        <div className="grid min-h-[calc(100vh-2rem)] gap-4 lg:grid-cols-[300px_1fr]">
-
-          {/* ── Desktop sidebar (hidden on mobile) ──────────────────────── */}
-          <div className="hidden lg:block lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)]">
->>>>>>> c8e70b6ca47e7edcf1baef87d63c77467b01a19d
             <AdminSidebar />
           </div>
 
@@ -309,7 +235,6 @@ export default function AdminLayout() {
                 title={currentMeta.title}
                 subtitle={currentMeta.subtitle}
                 pathname={location.pathname}
-                onMenuOpen={() => setSidebarOpen(true)}
               />
             </div>
 
