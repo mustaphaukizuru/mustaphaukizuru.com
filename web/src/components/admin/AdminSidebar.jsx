@@ -66,14 +66,19 @@ const navigation = [
   },
 ]
 
+<<<<<<< HEAD
 export { navigation }
 
 function SidebarItem({ item }) {
+=======
+function SidebarItem({ item, onClose }) {
+>>>>>>> c8e70b6ca47e7edcf1baef87d63c77467b01a19d
   const Icon = item.icon
   return (
     <NavLink
       to={item.to}
       end={item.end}
+      onClick={onClose}
       className={({ isActive }) =>
         [
           "group relative flex items-start gap-3 rounded-xl px-3 py-3 transition-all duration-200",
@@ -113,7 +118,8 @@ function SidebarItem({ item }) {
   )
 }
 
-export default function AdminSidebar() {
+// onClose is passed from AdminLayout when rendering inside the mobile drawer
+export default function AdminSidebar({ onClose }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -125,6 +131,7 @@ export default function AdminSidebar() {
     .toUpperCase()
 
   function handleLogout() {
+    if (onClose) onClose()
     logout()
     navigate("/", { replace: true })
   }
@@ -134,16 +141,26 @@ export default function AdminSidebar() {
       {/* Brand */}
       <div className="border-b border-[#634F40]/10 px-2 pb-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#420060] text-white shadow-[0_10px_22px_rgba(66,0,96,0.18)]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#420060] to-[#6d28d9] text-white shadow-[0_10px_22px_rgba(66,0,96,0.22)]">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div className="min-w-0">
+<<<<<<< HEAD
             <div className="truncate text-[22px] font-bold tracking-tight text-[#420060]">Admin Console</div>
             <div className="mt-0.5 text-[12px] text-[#634F40]/65">Platform operations</div>
+=======
+            <div className="truncate text-[20px] font-bold tracking-tight text-[#420060]">
+              Admin Console
+            </div>
+            <div className="mt-0.5 text-[12px] text-[#634F40]/65">
+              Platform operations
+            </div>
+>>>>>>> c8e70b6ca47e7edcf1baef87d63c77467b01a19d
           </div>
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Back to Website */}
       <Link
         to="/"
@@ -155,6 +172,10 @@ export default function AdminSidebar() {
 
       {/* Nav */}
       <div className="mt-4 flex-1 overflow-y-auto pr-1">
+=======
+      {/* Nav groups */}
+      <div className="mt-4 flex-1 overflow-y-auto pr-1 no-scrollbar">
+>>>>>>> c8e70b6ca47e7edcf1baef87d63c77467b01a19d
         {navigation.map((group) => (
           <div key={group.section} className="mb-5">
             <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#634F40]/45">
@@ -162,7 +183,7 @@ export default function AdminSidebar() {
             </div>
             <div className="space-y-1.5">
               {group.items.map((item) => (
-                <SidebarItem key={item.to} item={item} />
+                <SidebarItem key={item.to} item={item} onClose={onClose} />
               ))}
             </div>
           </div>
@@ -170,9 +191,9 @@ export default function AdminSidebar() {
       </div>
 
       {/* Admin card */}
-      <div className="mt-3 rounded-xl border border-[#634F40]/10 bg-[#fbf8fb] p-4">
+      <div className="mt-3 rounded-xl border border-[#634F40]/10 bg-gradient-to-br from-[#fbf8fb] to-[#f7f3fb] p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ede4ef] text-[13px] font-bold text-[#420060]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#ede4ef] to-[#e0d0e5] text-[13px] font-bold text-[#420060]">
             {initials}
           </div>
           <div className="min-w-0 flex-1">
@@ -186,7 +207,7 @@ export default function AdminSidebar() {
       <button
         type="button"
         onClick={handleLogout}
-        className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-[13px] font-semibold text-red-600 transition hover:bg-red-50"
+        className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-[13px] font-semibold text-red-600 transition-all duration-200 hover:bg-red-50 hover:border-red-300 hover:shadow-sm active:scale-[0.98]"
       >
         <LogOut className="h-4 w-4" />
         Logout

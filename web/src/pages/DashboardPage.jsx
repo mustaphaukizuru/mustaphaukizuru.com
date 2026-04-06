@@ -93,21 +93,21 @@ export default function DashboardPage() {
           {[1, 2, 3, 4].map((item) => (
             <div
               key={item}
-              className="h-[132px] animate-pulse rounded-xl border border-[#634F40]/10 bg-white"
+              className="shimmer h-[132px] rounded-xl border border-[#634F40]/10"
             />
           ))}
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="h-[320px] animate-pulse rounded-xl border border-[#634F40]/10 bg-white" />
-          <div className="h-[320px] animate-pulse rounded-xl border border-[#634F40]/10 bg-white" />
+          <div className="shimmer h-[320px] rounded-xl border border-[#634F40]/10" />
+          <div className="shimmer h-[320px] rounded-xl border border-[#634F40]/10" />
         </div>
       </section>
     )
   }
 
   return (
-    <section className="space-y-5">
+    <section className="page-enter space-y-5">
       <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_10px_24px_rgba(66,0,96,0.04)]">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
@@ -151,34 +151,42 @@ export default function DashboardPage() {
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          title="Orders Placed"
-          value={orders.length}
-          subtitle="All recorded purchases"
-          icon={CreditCard}
-          tone="purple"
-        />
-        <MetricCard
-          title="Paid Downloads"
-          value={totalDownloads}
-          subtitle="Files currently available"
-          icon={Download}
-          tone="green"
-        />
-        <MetricCard
-          title="Total Spent"
-          value={`$${totalSpent.toFixed(2)}`}
-          subtitle="Across paid orders"
-          icon={Package}
-          tone="amber"
-        />
-        <MetricCard
-          title="Paid Orders"
-          value={paidOrders.length}
-          subtitle="Completed successful purchases"
-          icon={Clock3}
-          tone="blue"
-        />
+        <div className="stagger-in" style={{ animationDelay: "60ms" }}>
+          <MetricCard
+            title="Orders Placed"
+            value={orders.length}
+            subtitle="All recorded purchases"
+            icon={CreditCard}
+            tone="purple"
+          />
+        </div>
+        <div className="stagger-in" style={{ animationDelay: "120ms" }}>
+          <MetricCard
+            title="Paid Downloads"
+            value={totalDownloads}
+            subtitle="Files currently available"
+            icon={Download}
+            tone="green"
+          />
+        </div>
+        <div className="stagger-in" style={{ animationDelay: "180ms" }}>
+          <MetricCard
+            title="Total Spent"
+            value={`$${totalSpent.toFixed(2)}`}
+            subtitle="Across paid orders"
+            icon={Package}
+            tone="amber"
+          />
+        </div>
+        <div className="stagger-in" style={{ animationDelay: "240ms" }}>
+          <MetricCard
+            title="Paid Orders"
+            value={paidOrders.length}
+            subtitle="Completed successful purchases"
+            icon={Clock3}
+            tone="blue"
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
