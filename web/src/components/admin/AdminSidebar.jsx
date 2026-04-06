@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom"
+import { NavLink, useNavigate, Link } from "react-router-dom"
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -16,127 +16,60 @@ import {
   Mail,
   ClipboardList,
   Briefcase,
+  Globe,
 } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Full admin navigation — aligned to Role-Permission matrix and PAD
-// ─────────────────────────────────────────────────────────────────────────────
 const navigation = [
   {
     section: "Overview",
     items: [
-      {
-        label: "Dashboard",
-        to: "/admin",
-        icon: LayoutDashboard,
-        end: true,
-        description: "Summary and live metrics",
-      },
+      { label: "Dashboard", to: "/admin", icon: LayoutDashboard, end: true, description: "Summary and live metrics" },
     ],
   },
   {
     section: "Commerce",
     items: [
-      {
-        label: "Orders",
-        to: "/admin/orders",
-        icon: ShoppingCart,
-        description: "Purchases and fulfillment",
-      },
-      {
-        label: "Products",
-        to: "/admin/products",
-        icon: Package,
-        description: "Catalog and files",
-      },
-      {
-        label: "Downloads",
-        to: "/admin/downloads",
-        icon: Download,
-        description: "Digital delivery activity",
-      },
-      {
-        label: "Payments",
-        to: "/admin/payments",
-        icon: CreditCard,
-        description: "Transactions and status",
-      },
-      {
-        label: "Categories",
-        to: "/admin/categories",
-        icon: FolderKanban,
-        description: "Product taxonomy",
-      },
+      { label: "Orders", to: "/admin/orders", icon: ShoppingCart, description: "Purchases and fulfillment" },
+      { label: "Products", to: "/admin/products", icon: Package, description: "Catalog and files" },
+      { label: "Downloads", to: "/admin/downloads", icon: Download, description: "Digital delivery activity" },
+      { label: "Payments", to: "/admin/payments", icon: CreditCard, description: "Transactions and status" },
+      { label: "Categories", to: "/admin/categories", icon: FolderKanban, description: "Product taxonomy" },
     ],
   },
   {
     section: "Services",
     items: [
-      {
-        label: "Services",
-        to: "/admin/services",
-        icon: Briefcase,
-        description: "Consulting and delivery",
-      },
+      { label: "Services", to: "/admin/services", icon: Briefcase, description: "Consulting and delivery" },
     ],
   },
   {
     section: "Support",
     items: [
-      {
-        label: "Support Tickets",
-        to: "/admin/support",
-        icon: Headphones,
-        description: "Customer requests",
-      },
+      { label: "Support Tickets", to: "/admin/support", icon: Headphones, description: "Customer requests" },
     ],
   },
   {
     section: "Content",
     items: [
-      {
-        label: "Pages",
-        to: "/admin/pages",
-        icon: FileText,
-        description: "CMS and legal content",
-      },
-      {
-        label: "Media Library",
-        to: "/admin/media",
-        icon: Image,
-        description: "Uploads and assets",
-      },
-      {
-        label: "Email Templates",
-        to: "/admin/email-templates",
-        icon: Mail,
-        description: "Transactional emails",
-      },
+      { label: "Pages", to: "/admin/pages", icon: FileText, description: "CMS and legal content" },
+      { label: "Media Library", to: "/admin/media", icon: Image, description: "Uploads and assets" },
+      { label: "Email Templates", to: "/admin/email-templates", icon: Mail, description: "Transactional emails" },
     ],
   },
   {
     section: "Management",
     items: [
-      {
-        label: "Users",
-        to: "/admin/users",
-        icon: Users,
-        description: "Accounts and roles",
-      },
-      {
-        label: "Audit Log",
-        to: "/admin/audit",
-        icon: ClipboardList,
-        description: "Admin action history",
-      },
+      { label: "Users", to: "/admin/users", icon: Users, description: "Accounts and roles" },
+      { label: "Audit Log", to: "/admin/audit", icon: ClipboardList, description: "Admin action history" },
     ],
   },
 ]
 
+export { navigation }
+
 function SidebarItem({ item }) {
   const Icon = item.icon
-
   return (
     <NavLink
       to={item.to}
@@ -155,32 +88,22 @@ function SidebarItem({ item }) {
           <div
             className={[
               "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
-              isActive
-                ? "bg-white/14 text-white"
-                : "bg-[#f7f1f8] text-[#420060] group-hover:bg-white",
+              isActive ? "bg-white/14 text-white" : "bg-[#f7f1f8] text-[#420060] group-hover:bg-white",
             ].join(" ")}
           >
-            <Icon className="h-4.5 w-4.5" />
+            <Icon className="h-[18px] w-[18px]" />
           </div>
-
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
               <span className="truncate text-[14px] font-semibold">{item.label}</span>
               <ChevronRight
                 className={[
                   "h-4 w-4 shrink-0 transition-transform",
-                  isActive
-                    ? "translate-x-0 text-white/90"
-                    : "text-[#634F40]/40 group-hover:translate-x-0.5",
+                  isActive ? "translate-x-0 text-white/90" : "text-[#634F40]/40 group-hover:translate-x-0.5",
                 ].join(" ")}
               />
             </div>
-            <div
-              className={[
-                "mt-0.5 truncate text-[11px]",
-                isActive ? "text-white/75" : "text-[#634F40]/60",
-              ].join(" ")}
-            >
+            <div className={["mt-0.5 truncate text-[11px]", isActive ? "text-white/75" : "text-[#634F40]/60"].join(" ")}>
               {item.description}
             </div>
           </div>
@@ -208,7 +131,6 @@ export default function AdminSidebar() {
 
   return (
     <aside className="flex h-full min-h-0 w-full flex-col rounded-xl border border-[#634F40]/10 bg-white px-4 py-4 shadow-[0_14px_40px_rgba(66,0,96,0.06)]">
-
       {/* Brand */}
       <div className="border-b border-[#634F40]/10 px-2 pb-4">
         <div className="flex items-center gap-3">
@@ -216,17 +138,22 @@ export default function AdminSidebar() {
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <div className="truncate text-[22px] font-bold tracking-tight text-[#420060]">
-              Admin Console
-            </div>
-            <div className="mt-0.5 text-[12px] text-[#634F40]/65">
-              Platform operations
-            </div>
+            <div className="truncate text-[22px] font-bold tracking-tight text-[#420060]">Admin Console</div>
+            <div className="mt-0.5 text-[12px] text-[#634F40]/65">Platform operations</div>
           </div>
         </div>
       </div>
 
-      {/* Nav groups */}
+      {/* Back to Website */}
+      <Link
+        to="/"
+        className="mt-3 flex items-center gap-2.5 rounded-xl border border-[#420060]/10 bg-[#faf7fb] px-3 py-2.5 text-[13px] font-semibold text-[#420060] transition hover:bg-[#ede4ef]"
+      >
+        <Globe className="h-4 w-4" />
+        Back to Website
+      </Link>
+
+      {/* Nav */}
       <div className="mt-4 flex-1 overflow-y-auto pr-1">
         {navigation.map((group) => (
           <div key={group.section} className="mb-5">
@@ -249,12 +176,8 @@ export default function AdminSidebar() {
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[14px] font-semibold text-[#420060]">
-              {user?.fullName || "Admin"}
-            </div>
-            <div className="truncate text-[12px] text-[#634F40]/70">
-              {user?.email || ""}
-            </div>
+            <div className="truncate text-[14px] font-semibold text-[#420060]">{user?.fullName || "Admin"}</div>
+            <div className="truncate text-[12px] text-[#634F40]/70">{user?.email || ""}</div>
           </div>
         </div>
       </div>

@@ -44,6 +44,20 @@ function serializeProduct(product) {
       }))
     : []
 
+  const reviews = Array.isArray(product.reviews)
+    ? product.reviews.map((r) => ({
+        id:                 r.id,
+        rating:             r.rating,
+        reviewText:         r.reviewText || "",
+        isVerifiedPurchase: Boolean(r.isVerifiedPurchase),
+        createdAt:          r.createdAt,
+        user: {
+          id:       r.user?.id,
+          fullName: r.user?.fullName || "Anonymous",
+        },
+      }))
+    : []
+
   const primaryFile = files.find((f) => f.isPrimary) || files[0] || null
 
   return {
@@ -54,6 +68,7 @@ function serializeProduct(product) {
     images,
     features,
     files,
+    reviews,
     fileType:     primaryFile?.fileType || product.fileType || null,
     deliveryType: product.deliveryType || (product.productType === "service" ? "Scheduled service" : "Instant access"),
   }
@@ -102,6 +117,13 @@ async function getProductBySlug(slug) {
       images:   { orderBy: { sortOrder: "asc" }  },
       features: { orderBy: { sortOrder: "asc" }  },
       files:    { orderBy: { isPrimary: "desc" } },
+      reviews:  {
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        include: {
+          user: { select: { id: true, fullName: true } },
+        },
+      },
     },
   })
   return serializeProduct(product)

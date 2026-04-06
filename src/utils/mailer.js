@@ -187,13 +187,17 @@ function buildCtaButton(label, href) {
 function buildInfoCard(rows = []) {
   const content = rows
     .map(
-      (row) => `
+      (row) => {
+        const label = Array.isArray(row) ? row[0] : row.label
+        const value = Array.isArray(row) ? row[1] : row.value
+        return `
         <tr>
           <td style="padding:0 0 10px 0;font-size:14px;line-height:22px;color:#6b7280;vertical-align:top;">
-            <strong style="color:#2e2f3a;">${escapeHtml(row.label)}:</strong> ${row.value}
+            <strong style="color:#2e2f3a;">${escapeHtml(label)}:</strong> ${value}
           </td>
         </tr>
       `
+      }
     )
     .join("");
 

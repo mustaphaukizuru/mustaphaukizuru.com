@@ -3,8 +3,8 @@ const bcrypt = require("bcryptjs");
 const asyncHandler = require("../utils/asyncHandler");
 const generateToken = require("../utils/generateToken");
 const prisma = require("../lib/prisma");
-const { sendResetEmail } = require("../utils/mailer");
-const { sendWelcomeEmail, sendPasswordResetConfirmationEmail } = require("../utils/mailer");
+const { sendResetEmail, sendWelcomeEmail, sendPasswordResetConfirmationEmail } = require("../utils/mailer");
+const { notifyWelcome, notifyPasswordChanged } = require("../services/notificationService");
 
 const {
   registerUser,
@@ -40,6 +40,10 @@ const signup = asyncHandler(async (req, res) => {
 
   const user = await registerUser({ fullName, email, password });
   const token = generateToken(user);
+
+  // Welcome email + in-app notification (non-blocking)
+  sendWelcomeEmail(user).catch((e) => console.error("[signup] welcome email:", e.message))
+  notifyWelcome(user).catch(() => {})
 
   res.status(201).json({
     success: true,
@@ -249,6 +253,10 @@ const resetPassword = asyncHandler(async (req, res) => {
   } catch (_) {
     // Optional table.
   }
+
+  // Confirmation email + in-app notification (non-blocking)
+  sendPasswordResetConfirmationEmail(user.email).catch((e) => console.error("[resetPassword] email:", e.message))
+  notifyPasswordChanged(user).catch(() => {})
 
   res.status(200).json({
     success: true,

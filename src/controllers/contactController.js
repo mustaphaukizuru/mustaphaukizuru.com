@@ -1,5 +1,6 @@
 const asyncHandler = require("../utils/asyncHandler");
-const { sendContactFormEmail } = require("../utils/mailer");
+const { sendContactFormEmail, sendNewsletterConfirmationEmail } = require("../utils/mailer");
+const { notifyContactReceived } = require("../services/notificationService");
 const {
   createContactMessage,
   subscribeNewsletter,
@@ -16,6 +17,12 @@ const sendContactMessage = asyncHandler(async (req, res) => {
   }
 
   const result = await createContactMessage({ name, email, subject, message });
+
+  // Send emails (admin notification + auto-reply) — non-blocking
+  sendContactFormEmail({ name, email, subject, message }).catch((e) =>
+    console.error("[contact] email:", e.message)
+  )
+  notifyContactReceived(email).catch(() => {})
 
   res.status(201).json({
     success: true,
@@ -35,6 +42,11 @@ const addNewsletterSubscriber = asyncHandler(async (req, res) => {
   }
 
   const result = await subscribeNewsletter(email);
+
+  // Newsletter confirmation email — non-blocking
+  sendNewsletterConfirmationEmail(email).catch((e) =>
+    console.error("[newsletter] email:", e.message)
+  )
 
   res.status(201).json({
     success: true,

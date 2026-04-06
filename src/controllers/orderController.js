@@ -5,6 +5,7 @@ const {
   getOrdersByUserId,
 } = require("../services/orderService")
 const { sendOrderPlacedEmail } = require("../utils/mailer")
+const { notifyOrderPlaced } = require("../services/notificationService")
 
 // POST /api/orders — requires auth (userId needed for download entitlement)
 const createOrder = asyncHandler(async (req, res) => {
@@ -24,6 +25,7 @@ const createOrder = asyncHandler(async (req, res) => {
   sendOrderPlacedEmail(order).catch((err) =>
     console.error("[createOrder] email failed:", err.message)
   )
+  notifyOrderPlaced(order).catch(() => {})
 
   return res.status(201).json({ success: true, message: "Order created successfully", data: order })
 })

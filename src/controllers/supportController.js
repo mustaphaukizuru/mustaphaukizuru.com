@@ -1,4 +1,6 @@
 const prisma = require("../lib/prisma")
+const { sendSupportTicketEmail, sendSupportReplyEmail } = require("../utils/mailer")
+const { notifySupportTicketCreated, notifySupportReply } = require("../services/notificationService")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MEMBER SUPPORT CONTROLLER
@@ -65,6 +67,11 @@ const createTicket = async (req, res) => {
       },
       include: { _count: { select: { messages: true } } },
     })
+
+    // Email + notification (non-blocking)
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, fullName: true } }).catch(() => null)
+    sendSupportTicketEmail(ticket, user).catch(() => {})
+    notifySupportTicketCreated(userId, ticket.ticketNumber).catch(() => {})
 
     return res.status(201).json({ success: true, data: ticket })
   } catch (err) {
@@ -191,6 +198,20 @@ const adminReplyToTicket = async (req, res) => {
       where: { id: req.params.id, status: "open" },
       data:  { status: "in_progress" },
     })
+
+    // Email + notification to ticket owner (non-blocking)
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: req.params.id },
+      select: { ticketNumber: true, subject: true, userId: true },
+    }).catch(() => null)
+    if (ticket) {
+      const ticketUser = await prisma.user.findUnique({
+        where: { id: ticket.userId },
+        select: { email: true, fullName: true },
+      }).catch(() => null)
+      sendSupportReplyEmail(ticket, ticketUser, message).catch(() => {})
+      notifySupportReply(ticket.userId, ticket.ticketNumber).catch(() => {})
+    }
 
     return res.status(201).json({ success: true, data: msg })
   } catch (err) {

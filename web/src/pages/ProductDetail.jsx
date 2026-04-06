@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import Seo from "../components/seo/Seo";
+import ProductReviews from "../components/ProductReviews";
 import { fetchProductBySlug } from "../services/productService";
 import { useCart } from "../store/CartContext";
 import { API_BASE_URL } from "../lib/api";
@@ -284,6 +285,7 @@ export default function ProductDetail() {
     { id: "description", label: "Description" },
     { id: "features", label: "Features" },
     { id: "details", label: "Details" },
+    { id: "reviews", label: `Reviews${product.reviewCount ? ` (${product.reviewCount})` : ""}` },
   ];
 
   return (
@@ -469,6 +471,10 @@ export default function ProductDetail() {
                       ))}
                     </div>
                   )}
+
+                  {activeTab === "reviews" && (
+                    <ProductReviews slug={slug} productTitle={product.title} />
+                  )}
                 </div>
               </div>
 
@@ -516,10 +522,21 @@ export default function ProductDetail() {
                   <div className="flex items-center gap-2">
                     <div className="flex gap-0.5 text-[#FFCCAF]">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-current" />
+                        <Star key={i} className={`h-4 w-4 ${i < Math.round(product.rating || 0) ? "fill-current" : "text-[#634F40]/15"}`} />
                       ))}
                     </div>
-                    <span className="text-[12px] text-[#634F40]/50">(5.0)</span>
+                    <span className="text-[12px] text-[#634F40]/50">
+                      ({(product.rating || 0).toFixed(1)})
+                      {product.reviewCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("reviews")}
+                          className="ml-1 text-[#420060] underline"
+                        >
+                          {product.reviewCount} {product.reviewCount === 1 ? "review" : "reviews"}
+                        </button>
+                      )}
+                    </span>
                   </div>
 
                   <h1 className="mt-3 text-[1.5rem] font-bold leading-tight tracking-tight text-[#420060]">

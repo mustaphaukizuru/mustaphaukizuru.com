@@ -77,6 +77,15 @@ function normalizeProduct(product) {
   const features = normalizeFeatures(product.features)
   const images = normalizeImages(product.images)
 
+  const reviews = normalizeArray(product.reviews).map((r) => ({
+    id: r.id,
+    rating: r.rating,
+    reviewText: r.reviewText || "",
+    isVerifiedPurchase: Boolean(r.isVerifiedPurchase),
+    createdAt: r.createdAt,
+    user: r.user || { fullName: "Anonymous" },
+  }))
+
   return {
     ...product,
     id: product.id,
@@ -97,6 +106,8 @@ function normalizeProduct(product) {
       product.fileSize !== undefined && product.fileSize !== null
         ? Number(product.fileSize)
         : null,
+    rating: Number(product.rating || 0),
+    reviewCount: Number(product.reviewCount || 0),
     isActive: Boolean(product.isActive ?? true),
     isFeatured: Boolean(product.isFeatured),
     isNew: Boolean(product.isNew),
@@ -106,6 +117,7 @@ function normalizeProduct(product) {
     images,
     files,
     features,
+    reviews,
     highlights:
       normalizeArray(product.highlights).length > 0
         ? normalizeArray(product.highlights).filter(Boolean)
