@@ -26,7 +26,7 @@ function formatPrice(value, currency = "USD") {
 }
 
 function resolveImageUrl(url = "") {
-  if (!url) return ""
+  if (!url) return null
   return url.startsWith("http") ? url : `${API_BASE_URL}${url}`
 }
 
@@ -37,7 +37,7 @@ function normalizeImages(product) {
     .filter((img) => img?.url)
     .slice(0, 6)
     .map((img, index) => ({
-      id: img.id || `${img.url}-${index}`,
+      id: img.id || `img-${index}`,
       url: resolveImageUrl(img.url),
       alt: img.altText || product?.title || `Product preview ${index + 1}`,
       role: img.imageRole || "preview",

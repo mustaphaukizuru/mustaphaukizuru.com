@@ -16,21 +16,21 @@ const TONE_MAP = {
 
 export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple", trend }) {
   return (
-    <div className="rounded-xl border border-[#634F40]/10 bg-white p-5 shadow-[0_4px_16px_rgba(66,0,96,0.04)] transition hover:shadow-[0_8px_24px_rgba(66,0,96,0.08)]">
+    <div className="rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_4px_16px_rgba(66,0,96,0.04)] transition hover:shadow-[0_8px_24px_rgba(66,0,96,0.08)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#634F40]/55">{title}</div>
-          <div className="mt-2 text-[28px] font-bold leading-none text-[#420060]">{value ?? "—"}</div>
-          {subtitle && <div className="mt-2 text-[12px] text-[#634F40]/50">{subtitle}</div>}
+          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#634F40]/55 sm:text-[11px]">{title}</div>
+          <div className="mt-1.5 text-[22px] font-bold leading-none text-[#420060] sm:mt-2 sm:text-[28px]">{value ?? "—"}</div>
+          {subtitle && <div className="mt-1.5 text-[11px] text-[#634F40]/50 sm:mt-2 sm:text-[12px]">{subtitle}</div>}
           {trend !== undefined && (
-            <div className={`mt-1.5 text-[11px] font-semibold ${trend >= 0 ? "text-[#2FA36B]" : "text-[#E5484D]"}`}>
+            <div className={`mt-1 text-[11px] font-semibold ${trend >= 0 ? "text-[#2FA36B]" : "text-[#E5484D]"}`}>
               {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}% from last month
             </div>
           )}
         </div>
         {Icon && (
-          <div className={`shrink-0 rounded-xl p-3 ${TONE_MAP[tone] || TONE_MAP.purple}`}>
-            <Icon className="h-5 w-5" />
+          <div className={`shrink-0 rounded-xl p-2.5 sm:p-3 ${TONE_MAP[tone] || TONE_MAP.purple}`}>
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         )}
       </div>
@@ -105,15 +105,15 @@ export function SectionCard({ title, subtitle, action, children, className = "" 
   return (
     <div className={`rounded-xl border border-[#634F40]/10 bg-white shadow-[0_4px_16px_rgba(66,0,96,0.04)] ${className}`}>
       {(title || action) && (
-        <div className="flex items-start justify-between gap-3 border-b border-[#634F40]/8 px-6 py-4">
+        <div className="flex flex-col gap-2 border-b border-[#634F40]/8 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
           <div className="min-w-0">
-            {title && <h3 className="text-[16px] font-semibold text-[#420060]">{title}</h3>}
+            {title && <h3 className="text-[15px] font-semibold text-[#420060] sm:text-[16px]">{title}</h3>}
             {subtitle && <p className="mt-0.5 text-[12px] text-[#634F40]/60">{subtitle}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
       )}
-      <div className="p-6">{children}</div>
+      <div className="p-4 sm:p-6">{children}</div>
     </div>
   )
 }
@@ -188,8 +188,8 @@ export function AlertBanner({ type = "error", message, onDismiss }) {
 export function TableWrapper({ children }) {
   return (
     <div className="overflow-hidden rounded-xl border border-[#634F40]/10">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-[13px]">{children}</table>
+      <div className="-mx-px overflow-x-auto">
+        <table className="w-full min-w-[640px] text-left text-[13px]">{children}</table>
       </div>
     </div>
   )
@@ -200,7 +200,7 @@ export function TableHead({ columns }) {
     <thead className="border-b border-[#634F40]/8 bg-[#faf8fb]">
       <tr>
         {columns.map((col) => (
-          <th key={col} className="px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#634F40]/55">
+          <th key={col} className="whitespace-nowrap px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#634F40]/55">
             {col}
           </th>
         ))}

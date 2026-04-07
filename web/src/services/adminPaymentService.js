@@ -1,17 +1,14 @@
 import { authFetch } from "../lib/api"
 
-// ─────────────────────────────────────────────────────────────
-// Admin Payment Service (Frontend)
-// ─────────────────────────────────────────────────────────────
-
 export async function fetchAdminPayments() {
-  const response = await authFetch("/api/admin/payments", {
-    method: "GET",
-  })
+  const response = await authFetch("/api/admin/payments", { method: "GET" })
 
-  return Array.isArray(response?.data)
-    ? response.data
-    : Array.isArray(response)
-    ? response
-    : []
+  // Backend returns { success, data: { payments, meta, metrics } }
+  const payload = response?.data || response || {}
+
+  return {
+    payments: Array.isArray(payload.payments) ? payload.payments : (Array.isArray(payload) ? payload : []),
+    metrics: payload.metrics || {},
+    meta: payload.meta || {},
+  }
 }

@@ -96,8 +96,17 @@ export default function LoginPage() {
 
         {/* Right: form */}
         <motion.div variants={stagger} initial="hidden" animate="show"
-          className="flex flex-col justify-center px-8 py-12 sm:px-12"
+          className="flex flex-col justify-center px-6 py-8 sm:px-12 sm:py-12"
         >
+          {/* Mobile back link */}
+          <Link
+            to="/"
+            className="mb-5 inline-flex w-fit items-center gap-2 text-[13px] font-medium text-[#420060] transition hover:text-[#2d003f] lg:hidden"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            Back to Home
+          </Link>
+
           <motion.div variants={fadeUp}>
             <span className="inline-flex items-center gap-2 rounded-xl bg-[#ede4ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#420060]">
               <Sparkles className="h-3 w-3" /> Member Login

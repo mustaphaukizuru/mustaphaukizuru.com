@@ -25,6 +25,7 @@ html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  overflow-x: clip;
 }
 html, body, #root { min-height: 100%; }
 
@@ -38,6 +39,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   margin: 0;
+  overflow-x: clip;
 }
 
 h1, h2, h3, h4, h5, h6 {

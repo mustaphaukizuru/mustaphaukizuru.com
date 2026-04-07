@@ -93,72 +93,73 @@ function CartItem({ item, onUpdateQty, onRemove }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.22 }}
-      className="group flex gap-4 rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_2px_10px_rgba(66,0,96,0.04)] sm:p-5"
+      className="group overflow-hidden rounded-xl border border-[#634F40]/10 bg-white p-3 shadow-[0_2px_10px_rgba(66,0,96,0.04)] sm:p-5"
     >
-      {/* Image */}
-      <div className="h-[80px] w-[80px] shrink-0 overflow-hidden rounded-xl bg-[#ede4ef] sm:h-[90px] sm:w-[90px]">
-        {imgUrl ? (
-          <img src={imgUrl} alt={item.title} className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center text-[#420060]/30">
-            <Package className="h-8 w-8" />
-          </div>
-        )}
-      </div>
-
-      {/* Details */}
-      <div className="flex flex-1 min-w-0 flex-col gap-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <span className="inline-flex rounded-lg bg-[#ede4ef] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#420060]">
-              {item.category || "Digital"}
-            </span>
-            <h3 className="mt-1 truncate text-[15px] font-bold text-[#420060]">{item.title}</h3>
-          </div>
-          {/* Remove button */}
-          <button
-            type="button"
-            onClick={() => onRemove(item.id)}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-transparent text-[#634F40]/30 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
-            aria-label="Remove item"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+      <div className="flex gap-3 sm:gap-4">
+        {/* Image */}
+        <div className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl bg-[#ede4ef] sm:h-[90px] sm:w-[90px]">
+          {imgUrl ? (
+            <img src={imgUrl} alt={item.title} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full items-center justify-center text-[#420060]/30">
+              <Package className="h-8 w-8" />
+            </div>
+          )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Qty controls */}
-          <div className="flex items-center overflow-hidden rounded-xl border border-[#634F40]/12 bg-[#fafafa]">
+        {/* Details */}
+        <div className="flex flex-1 min-w-0 flex-col gap-1.5 sm:gap-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <span className="inline-flex rounded-lg bg-[#ede4ef] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#420060] sm:text-[10px]">
+                {item.category || "Digital"}
+              </span>
+              <h3 className="mt-1 text-[13px] font-bold leading-tight text-[#420060] sm:text-[15px] sm:truncate">{item.title}</h3>
+            </div>
             <button
               type="button"
-              onClick={() => onUpdateQty(item.id, item.quantity - 1)}
-              disabled={item.quantity <= 1}
-              className="flex h-8 w-8 items-center justify-center text-[#420060] transition hover:bg-[#ede4ef] disabled:opacity-30"
+              onClick={() => onRemove(item.id)}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-transparent text-[#634F40]/30 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+              aria-label="Remove item"
             >
-              <Minus className="h-3.5 w-3.5" />
-            </button>
-            <span className="min-w-[28px] text-center text-[13px] font-bold text-[#420060]">
-              {item.quantity}
-            </span>
-            <button
-              type="button"
-              onClick={() => onUpdateQty(item.id, item.quantity + 1)}
-              className="flex h-8 w-8 items-center justify-center text-[#420060] transition hover:bg-[#ede4ef]"
-            >
-              <Plus className="h-3.5 w-3.5" />
+              <X className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          {/* Price */}
-          <div className="text-right">
-            <div className="text-[17px] font-bold text-[#420060]">
-              ${(item.price * item.quantity).toFixed(2)}
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            {/* Qty controls */}
+            <div className="flex items-center overflow-hidden rounded-xl border border-[#634F40]/12 bg-[#fafafa]">
+              <button
+                type="button"
+                onClick={() => onUpdateQty(item.id, item.quantity - 1)}
+                disabled={item.quantity <= 1}
+                className="flex h-8 w-8 items-center justify-center text-[#420060] transition hover:bg-[#ede4ef] disabled:opacity-30"
+              >
+                <Minus className="h-3.5 w-3.5" />
+              </button>
+              <span className="min-w-[28px] text-center text-[13px] font-bold text-[#420060]">
+                {item.quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => onUpdateQty(item.id, item.quantity + 1)}
+                className="flex h-8 w-8 items-center justify-center text-[#420060] transition hover:bg-[#ede4ef]"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
             </div>
-            {item.quantity > 1 && (
-              <div className="text-[11px] text-[#634F40]/45">
-                ${item.price.toFixed(2)} each
+
+            {/* Price */}
+            <div className="text-right">
+              <div className="text-[15px] font-bold text-[#420060] sm:text-[17px]">
+                ${(item.price * item.quantity).toFixed(2)}
               </div>
-            )}
+              {item.quantity > 1 && (
+                <div className="text-[11px] text-[#634F40]/45">
+                  ${item.price.toFixed(2)} each
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -272,25 +273,26 @@ export default function CartPage() {
 
   return (
     <div className="min-h-[60vh] bg-[#F7F9F4]">
-      <Container className="py-10 lg:py-16">
-
+      <Container className="py-6 sm:py-8 lg:py-12">
         {/* Header */}
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            {/* Breadcrumb */}
-            <nav className="mb-2 flex items-center gap-2 text-[12px] text-[#634F40]/50">
+        <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <nav className="mb-2 flex flex-wrap items-center gap-2 text-[12px] text-[#634F40]/50">
               <Link to="/" className="hover:text-[#420060]">Home</Link>
-              <ChevronRight className="h-3.5 w-3.5" />
+              <ChevronRight className="h-3.5 w-3.5 shrink-0" />
               <Link to="/store" className="hover:text-[#420060]">Store</Link>
-              <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-[#420060] font-medium">Cart</span>
+              <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+              <span className="font-medium text-[#420060]">Cart</span>
             </nav>
-            <h1 className="text-[1.8rem] font-bold tracking-tight text-[#420060] sm:text-[2.2rem]">
+
+            <h1 className="text-[1.75rem] font-bold tracking-tight text-[#420060] sm:text-[2rem] lg:text-[2.2rem]">
               Shopping Cart
             </h1>
+
             {cartItems.length > 0 && (
               <p className="mt-1 text-[14px] text-[#634F40]/60">
-                {cartItems.reduce((s, i) => s + i.quantity, 0)} item{cartItems.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
+                {cartItems.reduce((s, i) => s + i.quantity, 0)} item
+                {cartItems.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
               </p>
             )}
           </div>
@@ -299,9 +301,10 @@ export default function CartPage() {
             <button
               type="button"
               onClick={clearCart}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-[#634F40]/50 transition hover:text-red-500"
+              className="inline-flex w-fit items-center gap-1.5 self-start text-[13px] font-medium text-[#634F40]/60 transition hover:text-red-500 sm:self-auto"
             >
-              <Trash2 className="h-4 w-4" /> Clear cart
+              <Trash2 className="h-4 w-4" />
+              Clear cart
             </button>
           )}
         </div>
@@ -309,44 +312,50 @@ export default function CartPage() {
         {cartItems.length === 0 ? (
           <EmptyCart />
         ) : (
-          <div className="grid gap-8 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px]">
-
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
             {/* Cart items */}
-            <div className="flex flex-col gap-3">
-              <AnimatePresence mode="popLayout">
-                {cartItems.map((item) => (
-                  <CartItem
-                    key={item.id}
-                    item={item}
-                    onUpdateQty={updateQuantity}
-                    onRemove={removeFromCart}
-                  />
-                ))}
-              </AnimatePresence>
+            <div className="min-w-0">
+              <div className="flex flex-col gap-3">
+                <AnimatePresence mode="popLayout">
+                  {cartItems.map((item) => (
+                    <CartItem
+                      key={item.id}
+                      item={item}
+                      onUpdateQty={updateQuantity}
+                      onRemove={removeFromCart}
+                    />
+                  ))}
+                </AnimatePresence>
 
-              {/* Promo code */}
-              <div className="mt-2 flex items-center gap-3 rounded-xl border border-[#634F40]/10 bg-white p-4">
-                <Tag className="h-4 w-4 shrink-0 text-[#634F40]/35" />
-                <input
-                  type="text"
-                  placeholder="Discount code"
-                  className="flex-1 bg-transparent text-[13px] text-[#420060] outline-none placeholder:text-[#634F40]/35"
-                />
-                <button
-                  type="button"
-                  className="shrink-0 rounded-xl border border-[#420060]/20 px-3.5 py-1.5 text-[12px] font-semibold text-[#420060] transition hover:bg-[#ede4ef]"
-                >
-                  Apply
-                </button>
+                {/* Promo code */}
+                <div className="mt-2 flex flex-col gap-3 rounded-xl border border-[#634F40]/10 bg-white p-4 sm:flex-row sm:items-center">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <Tag className="h-4 w-4 shrink-0 text-[#634F40]/35" />
+                    <input
+                      type="text"
+                      placeholder="Discount code"
+                      className="w-full min-w-0 bg-transparent text-[13px] text-[#420060] outline-none placeholder:text-[#634F40]/35"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    className="w-full shrink-0 rounded-xl border border-[#420060]/20 px-3.5 py-2 text-[12px] font-semibold text-[#420060] transition hover:bg-[#ede4ef] sm:w-auto"
+                  >
+                    Apply
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Summary */}
-            <OrderSummary
-              items={cartItems}
-              subtotal={subtotal}
-              isAuthenticated={isAuthenticated}
-            />
+            <div className="min-w-0 xl:sticky xl:top-24 xl:self-start">
+              <OrderSummary
+                items={cartItems}
+                subtotal={subtotal}
+                isAuthenticated={isAuthenticated}
+              />
+            </div>
           </div>
         )}
       </Container>

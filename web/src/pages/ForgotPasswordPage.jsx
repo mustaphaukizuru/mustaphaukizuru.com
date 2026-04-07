@@ -43,8 +43,17 @@ export default function ForgotPasswordPage() {
         />
 
         <motion.div variants={stagger} initial="hidden" animate="show"
-          className="flex flex-col justify-center px-8 py-12 sm:px-12"
+          className="flex flex-col justify-center px-6 py-8 sm:px-12 sm:py-12"
         >
+          {/* Mobile back to home */}
+          <Link
+            to="/"
+            className="mb-3 inline-flex w-fit items-center gap-2 text-[13px] font-medium text-[#420060] transition hover:text-[#2d003f] lg:hidden"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            Back to Home
+          </Link>
+
           <Link to="/login" className="mb-6 inline-flex items-center gap-2 text-[13px] text-[#634F40]/55 hover:text-[#420060] transition">
             <ArrowLeft className="h-4 w-4" /> Back to Sign In
           </Link>

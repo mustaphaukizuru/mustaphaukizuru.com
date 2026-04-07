@@ -5,6 +5,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import SeoRouteManager from "./components/SeoRouteManager";
+import ScrollToTop from "./components/ScrollToTop";
 
 import PublicShell from "./layout/PublicShell";
 import AuthLayout from "./layout/AuthLayout";
@@ -77,6 +78,7 @@ export default function App() {
       <div style={{ opacity: appReady ? 1 : 0, transition: "opacity 0.3s ease" }}>
         <Suspense fallback={<PageLoader />}>
           <SeoRouteManager />
+          <ScrollToTop />
 
           <Routes>
             {/* Public */}

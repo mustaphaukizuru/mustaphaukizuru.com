@@ -311,7 +311,7 @@ export default function AdminDashboardPage() {
       <QuickActions />
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
+        <div className="rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
           <div className="mb-5 flex items-center justify-between">
             <h3 className="text-[17px] font-semibold text-[#420060]">Order Distribution</h3>
             <Link
@@ -354,7 +354,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
+        <div className="rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
           <h3 className="mb-5 text-[17px] font-semibold text-[#420060]">Platform Health</h3>
           <div className="space-y-3 text-[13px]">
             {[
@@ -396,7 +396,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
+      <div className="rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
         <div className="mb-5 flex items-center justify-between">
           <h3 className="text-[17px] font-semibold text-[#420060]">
             Top Performing Products
@@ -415,6 +415,8 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-[#634F40]/10">
+            <div className="overflow-x-auto">
+              <div className="min-w-[580px]">
             <div className="grid grid-cols-[auto_1fr_0.5fr_0.5fr_0.5fr_auto] border-b border-[#634F40]/10 bg-[#fbf8fb] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.15em] text-[#634F40]/50">
               <span className="w-8 text-center">#</span>
               <span>Product</span>
@@ -452,11 +454,13 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
+      <div className="rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_4px_16px_rgba(66,0,96,0.04)] sm:p-6">
         <div className="mb-5 flex items-center justify-between">
           <h3 className="text-[17px] font-semibold text-[#420060]">Recent Orders</h3>
           <Link
@@ -473,6 +477,8 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-[#634F40]/10">
+            <div className="overflow-x-auto">
+              <div className="min-w-[560px]">
             <div className="grid grid-cols-[1fr_1fr_0.7fr_0.7fr_auto] border-b border-[#634F40]/10 bg-[#fbf8fb] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.15em] text-[#634F40]/50">
               <span>Order</span>
               <span>Customer</span>
@@ -526,6 +532,8 @@ export default function AdminDashboardPage() {
                 </div>
               )
             })}
+              </div>
+            </div>
           </div>
         )}
       </div>

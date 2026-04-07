@@ -141,6 +141,8 @@ async function handleDelete(id) {
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-[#634F40]/10">
+            <div className="overflow-x-auto">
+              <div className="min-w-[780px]">
             <div className="grid grid-cols-[1.4fr_1fr_0.6fr_0.65fr_0.65fr_1fr_0.9fr] gap-3 border-b border-[#634F40]/10 bg-[#fbf8fb] px-4 py-3 text-[12px] font-semibold text-[#634F40]/75">
               <div>Product</div>
               <div>Category</div>
@@ -199,6 +201,8 @@ async function handleDelete(id) {
                 </div>
               </div>
             ))}
+              </div>
+            </div>
           </div>
         )}
       </div>

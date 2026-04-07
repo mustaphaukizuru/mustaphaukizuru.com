@@ -35,7 +35,13 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function getBaseUrl() {
-  return process.env.FRONTEND_URL || "http://localhost:5173";
+  return process.env.FRONTEND_URL || "https://mustaphaukizuru.com";
+}
+
+function getLogoUrl() {
+  // Use same profile photo as the public website header
+  const domain = process.env.EMAIL_LOGO_DOMAIN || "https://mustaphaukizuru.com";
+  return `${domain}/images/profile/Ukizuru_Mustapha_Photo.jpg`;
 }
 
 function getSupportEmail() {
@@ -104,49 +110,99 @@ function layout({ preheader = "", body, footer }) {
   const base = getBaseUrl();
   const support = getSupportEmail();
   const year = new Date().getFullYear();
+  const logoUrl = getLogoUrl();
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="color-scheme" content="light"/>
+<meta name="supported-color-schemes" content="light"/>
 <title>Mustapha Ukizuru</title>
+<!--[if mso]><style>table,td{font-family:Arial,sans-serif!important;}</style><![endif]-->
+<style>
+  @media only screen and (max-width:620px) {
+    .email-wrapper { padding: 16px 8px !important; }
+    .email-card td { padding: 24px 20px 20px 20px !important; }
+    .email-cta td a { padding: 12px 20px !important; font-size: 14px !important; }
+  }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#f4f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a2e;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background:#f0eef2;font-family:'Segoe UI',Roboto,-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;color:#1a1a2e;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;">
 
 <!-- preheader -->
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preheader)}</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;">${esc(preheader)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f2f5;">
-<tr><td style="padding:32px 16px;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f0eef2;">
+<tr><td class="email-wrapper" style="padding:32px 16px;" align="center">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:580px;">
 
-  <!-- Logo bar -->
-  <tr><td style="padding:0 0 24px 0;">
-    <a href="${base}" style="text-decoration:none;display:inline-flex;align-items:center;gap:10px;">
-      <div style="width:36px;height:36px;border-radius:10px;background:#420060;color:#fff;font-weight:700;font-size:14px;line-height:36px;text-align:center;">MU</div>
-      <span style="font-size:16px;font-weight:700;color:#420060;letter-spacing:-0.3px;">Mustapha Ukizuru</span>
-    </a>
+  <!-- Brand header -->
+  <tr><td style="padding:0 0 20px 0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+    <tr>
+      <td style="vertical-align:middle;">
+        <a href="${base}" style="text-decoration:none;display:inline-block;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="vertical-align:middle;padding-right:10px;">
+              <img src="${logoUrl}" alt="MU" width="38" height="38" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;border:2px solid #420060;" />
+            </td>
+            <td style="vertical-align:middle;">
+              <span style="font-size:17px;font-weight:700;color:#420060;letter-spacing:-0.3px;">Mustapha Ukizuru</span>
+              <br/>
+              <span style="font-size:11px;color:#8b8b9e;letter-spacing:0.3px;">Digital Products & Technology Consulting</span>
+            </td>
+          </tr></table>
+        </a>
+      </td>
+      <td style="vertical-align:middle;text-align:right;">
+        <a href="${base}/store" style="font-size:12px;color:#420060;text-decoration:none;font-weight:600;">Visit Store →</a>
+      </td>
+    </tr>
+    </table>
   </td></tr>
 
   <!-- Content card -->
-  <tr><td style="background:#ffffff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+  <tr><td style="background:#ffffff;border-radius:14px;box-shadow:0 1px 4px rgba(66,0,96,0.06);">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr><td style="padding:36px 32px 32px 32px;">
+    <!-- Indigo top accent -->
+    <tr><td style="height:4px;background:linear-gradient(90deg,#420060 0%,#634F40 100%);border-radius:14px 14px 0 0;font-size:0;line-height:0;">&nbsp;</td></tr>
+    <tr><td class="email-card" style="padding:32px 32px 28px 32px;">
       ${body}
     </td></tr>
     </table>
   </td></tr>
 
   <!-- Footer -->
-  <tr><td style="padding:24px 0 0 0;">
+  <tr><td style="padding:24px 8px 0 8px;">
     ${footer || `
-    <p style="margin:0 0 6px;font-size:12px;color:#8b8b9e;text-align:center;">
-      © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#420060;text-decoration:none;">mustaphaukizuru.com</a>
-    </p>
-    <p style="margin:0;font-size:12px;color:#8b8b9e;text-align:center;">
-      Questions? <a href="mailto:${esc(support)}" style="color:#420060;text-decoration:none;">${esc(support)}</a>
-    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+    <tr><td style="text-align:center;padding:0 0 12px 0;">
+      <a href="${base}" style="display:inline-block;margin:0 6px;">
+        <img src="${logoUrl}" alt="MU" width="28" height="28" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:inline-block;opacity:0.7;" />
+      </a>
+    </td></tr>
+    <tr><td style="text-align:center;">
+      <p style="margin:0 0 4px;font-size:12px;color:#8b8b9e;">
+        © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#420060;text-decoration:none;font-weight:600;">mustaphaukizuru.com</a>
+      </p>
+      <p style="margin:0 0 4px;font-size:11px;color:#a8a8be;">
+        <a href="${base}/store" style="color:#8b8b9e;text-decoration:none;">Store</a>
+        &nbsp;·&nbsp;
+        <a href="${base}/services" style="color:#8b8b9e;text-decoration:none;">Services</a>
+        &nbsp;·&nbsp;
+        <a href="${base}/contact" style="color:#8b8b9e;text-decoration:none;">Contact</a>
+        &nbsp;·&nbsp;
+        <a href="mailto:${esc(support)}" style="color:#8b8b9e;text-decoration:none;">Support</a>
+      </p>
+      <p style="margin:0;font-size:11px;color:#b0b0c0;">
+        <a href="${base}/terms" style="color:#b0b0c0;text-decoration:none;">Terms</a>
+        &nbsp;·&nbsp;
+        <a href="${base}/privacy" style="color:#b0b0c0;text-decoration:none;">Privacy</a>
+      </p>
+    </td></tr>
+    </table>
     `}
   </td></tr>
 
@@ -179,7 +235,7 @@ function greeting(name) {
 
 function cta(label, href) {
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;">
+<table role="presentation" class="email-cta" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;">
 <tr><td style="border-radius:10px;background:#420060;text-align:center;">
   <a href="${href}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.2px;">${esc(label)}</a>
 </td></tr>
@@ -559,16 +615,23 @@ async function sendNewsletterConfirmationEmail(email) {
     cta("Explore the Store", `${base}/store`);
 
   const footer = `
-    <p style="margin:0 0 6px;font-size:12px;color:#8b8b9e;text-align:center;">
-      © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#420060;text-decoration:none;">mustaphaukizuru.com</a>
-    </p>
-    <p style="margin:0 0 6px;font-size:12px;color:#8b8b9e;text-align:center;">
-      You're receiving this because you subscribed at mustaphaukizuru.com.
-    </p>
-    <p style="margin:0;font-size:12px;text-align:center;">
-      <a href="${unsubscribeUrl}" style="color:#8b8b9e;text-decoration:underline;">Unsubscribe</a>
-       · <a href="mailto:${esc(support)}" style="color:#8b8b9e;text-decoration:underline;">Contact</a>
-    </p>`;
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+    <tr><td style="text-align:center;padding:0 0 10px 0;">
+      <p style="margin:0 0 4px;font-size:12px;color:#8b8b9e;">
+        © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#420060;text-decoration:none;font-weight:600;">mustaphaukizuru.com</a>
+      </p>
+      <p style="margin:0 0 8px;font-size:11px;color:#a8a8be;">
+        You subscribed to updates at mustaphaukizuru.com.
+      </p>
+      <p style="margin:0;font-size:12px;">
+        <a href="${unsubscribeUrl}" style="color:#420060;text-decoration:underline;font-weight:600;">Unsubscribe</a>
+        &nbsp;&nbsp;·&nbsp;&nbsp;
+        <a href="mailto:${esc(support)}" style="color:#8b8b9e;text-decoration:none;">Contact Support</a>
+        &nbsp;&nbsp;·&nbsp;&nbsp;
+        <a href="${base}/privacy" style="color:#8b8b9e;text-decoration:none;">Privacy</a>
+      </p>
+    </td></tr>
+    </table>`;
 
   await safeSendMail(
     {

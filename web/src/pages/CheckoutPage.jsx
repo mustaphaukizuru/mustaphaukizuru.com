@@ -76,28 +76,32 @@ function OrderItem({ item }) {
 function PaymentOption({ id, active, onClick, title, subtitle, badge, logo }) {
   return (
     <button type="button" onClick={onClick}
-      className={`flex w-full items-center gap-4 rounded-xl border-2 p-4 text-left transition-all ${
+      className={`flex w-full items-center gap-3 rounded-xl border-2 p-3 text-left transition-all sm:gap-4 sm:p-4 ${
         active
           ? "border-[#420060] bg-[#faf7fb] shadow-[0_0_0_3px_rgba(66,0,96,0.08)]"
           : "border-[#634F40]/12 bg-white hover:border-[#420060]/30"
       }`}
     >
-      {/* Logo or icon */}
-      <div className={`flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border ${
-        active ? "border-[#420060]/20 bg-[#ede4ef]" : "border-[#634F40]/10 bg-[#f4f4f4]"
-      }`}>
-        {logo || <CreditCard className={`h-5 w-5 ${active ? "text-[#420060]" : "text-[#634F40]/50"}`} />}
+      {/* Logo — rendered directly, each logo has its own background */}
+      <div className="shrink-0">
+        {logo || (
+          <div className={`flex h-12 w-12 items-center justify-center rounded-xl border ${
+            active ? "border-[#420060]/20 bg-[#ede4ef]" : "border-[#634F40]/10 bg-[#f4f4f4]"
+          }`}>
+            <CreditCard className={`h-5 w-5 ${active ? "text-[#420060]" : "text-[#634F40]/50"}`} />
+          </div>
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-[14px] font-bold text-[#420060]">{title}</span>
+          <span className="text-[13px] font-bold text-[#420060] sm:text-[14px]">{title}</span>
           {badge && (
-            <span className="rounded-full bg-[#420060] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+            <span className="hidden rounded-full bg-[#420060] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white sm:inline">
               {badge}
             </span>
           )}
         </div>
-        <div className="text-[12px] text-[#634F40]/60">{subtitle}</div>
+        <div className="text-[11px] text-[#634F40]/60 sm:text-[12px]">{subtitle}</div>
       </div>
       <div className={`h-5 w-5 shrink-0 rounded-full border-2 transition-all ${
         active ? "border-[#420060] bg-[#420060]" : "border-[#634F40]/25"
@@ -109,25 +113,29 @@ function PaymentOption({ id, active, onClick, title, subtitle, badge, logo }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mercado Pago logo SVG
+// Payment logos — use official brand images with branded backgrounds
 // ─────────────────────────────────────────────────────────────────────────────
-function MPLogo({ size = 28 }) {
+function MPLogo() {
   return (
-    <svg width={size} height={size} viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="25" cy="25" r="25" fill="#009EE3"/>
-      <path d="M13 25C13 18.373 18.373 13 25 13s12 5.373 12 12-5.373 12-12 12S13 31.627 13 25z" fill="#fff"/>
-      <path d="M25 20l3.09 6.26L35 27.27l-5 4.87 1.18 6.86L25 35.77l-6.18 3.23L20 32.14 15 27.27l6.91-1.01L25 20z" fill="#009EE3"/>
-    </svg>
+    <div className="flex h-12 w-28 items-center justify-center overflow-hidden rounded-lg bg-[#ffe600]">
+      <img
+        src="/images/brand/MP_CMYK_HANDSHAKE_color_horizontal.png"
+        alt="Mercado Pago"
+        className="h-10 w-auto object-contain"
+      />
+    </div>
   )
 }
 
-// PayPal logo
-function PayPalLogo({ size = 28 }) {
+function PayPalLogo() {
   return (
-    <svg width={size} height={size} viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="25" cy="25" r="25" fill="#003087"/>
-      <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fill="#fff" fontFamily="Arial" fontSize="12" fontWeight="bold">PP</text>
-    </svg>
+    <div className="flex h-12 w-28 items-center justify-center overflow-hidden rounded-lg bg-white border border-[#003087]/15">
+      <img
+        src="/images/brand/pp-logo-150px.png"
+        alt="PayPal"
+        className="h-10 py-2.5 w-auto object-contain"
+      />
+    </div>
   )
 }
 
@@ -279,19 +287,19 @@ export default function CheckoutPage() {
     <div className="bg-[#F7F9F4]">
       {/* Header */}
       <div className="border-b border-[#634F40]/10 bg-white px-4 py-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
           <Link to="/cart" className="flex items-center gap-2 text-[13px] font-medium text-[#634F40]/60 hover:text-[#420060]">
-            <ArrowLeft className="h-4 w-4" /> Back to Cart
+            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to Cart</span><span className="sm:hidden">Cart</span>
           </Link>
-          <CheckoutProgress step={2} />
+          <div className="order-last w-full sm:order-none sm:w-auto"><CheckoutProgress step={2} /></div>
           <div className="flex items-center gap-1.5 text-[12px] text-[#634F40]/50">
-            <Lock className="h-3.5 w-3.5 text-[#2FA36B]" /> Secure Checkout
+            <Lock className="h-3.5 w-3.5 text-[#2FA36B]" /> <span className="hidden sm:inline">Secure Checkout</span><span className="sm:hidden">Secure</span>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-8">
 
           {/* ── LEFT ───────────────────────────────────────────────────── */}
           <div className="flex flex-col gap-5">
@@ -359,7 +367,7 @@ export default function CheckoutPage() {
 
               {/* Info boxes */}
               {paymentMethod === "mercadopago" && (
-                <div className="mt-4 flex items-start gap-3 rounded-xl border border-[#009EE3]/20 bg-[#f0f9ff] p-4 text-[12px] text-[#0369a1]">
+                <div className="mt-4 flex items-start gap-3 rounded-xl border border-[#ffe600]/40 bg-[#fffce6] p-4 text-[12px] text-[#7a6200]">
                   <ExternalLink className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>
                     You'll be redirected to Mercado Pago's secure checkout. Accepted: cards (Visa, Mastercard, Amex),
@@ -431,16 +439,13 @@ export default function CheckoutPage() {
             </div>
 
             {/* Payment badges */}
-            <div className="flex items-center justify-center gap-3">
-              {[
-                { name:"Mercado Pago", bg:"#009EE3", text:"#fff" },
-                { name:"PayPal",       bg:"#003087", text:"#fff" },
-              ].map(({ name, bg, text }) => (
-                <span key={name} className="rounded-xl border border-[#634F40]/10 bg-white px-3 py-1.5 text-[11px] font-bold shadow-sm"
-                  style={{ color: bg }}>
-                  {name}
-                </span>
-              ))}
+            <div className="flex items-center justify-center gap-4">
+              <div className="flex h-10 items-center rounded-lg border border-[#ffe600] bg-[#ffe600] px-3 shadow-sm">
+                <img src="/images/brand/MP_CMYK_HANDSHAKE_color_horizontal.png" alt="Mercado Pago" className="h-10 object-contain" />
+              </div>
+              <div className="flex h-10 items-center rounded-lg border border-[#634F40]/10 bg-white px-3 shadow-sm">
+                <img src="/images/brand/pp-logo-150px.png" alt="PayPal" className="h-5 object-contain" />
+              </div>
             </div>
           </div>
 

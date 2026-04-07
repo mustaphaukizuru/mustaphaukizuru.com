@@ -4,7 +4,7 @@ import { Linkedin, Github, Twitter, Facebook, Youtube, Instagram, ArrowRight, Ma
 import { apiRequest } from "../lib/api"
 const profilePhoto = "/images/pages/Ukizuru_Mustapha_Photo.jpg";
 const mercadoPagoLogo = "/images/brand/MP_CMYK_HANDSHAKE_color_horizontal.png";
-const paypalLogo = "../images/brand/pp-logo-150px.png";
+const paypalLogo = "/images/brand/pp-logo-150px.png";
 
 /* ── Custom TikTok icon (matches lucide style: 24×24, stroke-based) ──── */
 function TikTokIcon({ className }) {

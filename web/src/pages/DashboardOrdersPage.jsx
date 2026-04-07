@@ -137,6 +137,8 @@ export default function DashboardOrdersPage() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-[#634F40]/10">
+            <div className="overflow-x-auto">
+              <div className="min-w-[520px]">
             <div className="grid grid-cols-[1.15fr_1fr_0.7fr_0.8fr] gap-3 border-b border-[#634F40]/10 bg-[#fbf8fb] px-4 py-3 text-[12px] font-semibold text-[#634F40]/75">
               <div>Order</div>
               <div>Date</div>
@@ -171,6 +173,8 @@ export default function DashboardOrdersPage() {
                 </div>
               </div>
             ))}
+              </div>
+            </div>
           </div>
         )}
       </div>

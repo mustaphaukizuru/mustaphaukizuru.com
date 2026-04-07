@@ -14,6 +14,7 @@ import { fetchProducts } from "../services/productService"
 import { useCart } from "../store/CartContext"
 import { API_BASE_URL } from "../lib/api"
 import { audiences, solutions, processSteps, testimonials } from "../data/homeData"
+import ProductCard from "../components/ProductCard"
 
 const profilePhoto = "/images/profile/Ukizuru_Mustapha_Photo.jpg";
 /* ─── shared animation variants ─── */
@@ -401,73 +402,11 @@ function FeaturedProducts() {
             variants={stagger} initial="hidden" whileInView="show" viewport={{ once:true, margin:"-40px" }}
             className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
           >
-            {products.map((product) => {
-              const imgUrl = getImg(product)
-              const price  = Number(product.price || 0)
-              const cat    = product.category || product.categoryRef?.name || "Digital"
-
-              return (
-                <motion.div
-                  key={product.id} variants={fadeUp}
-                  className="group flex flex-col overflow-hidden rounded-xl border border-[#634F40]/10 bg-white shadow-[0_8px_24px_rgba(66,0,96,0.05)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(66,0,96,0.10)]"
-                >
-                  <Link to={`/store/${product.slug}`} className="relative block h-48 overflow-hidden bg-[#ede4ef]">
-                    {imgUrl ? (
-                      <img src={imgUrl} alt={product.title} className="h-full w-full object-cover transition-transform duration-400 group-hover:scale-105" />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-[#420060]/30">
-                        <BookOpen className="h-10 w-10" />
-                      </div>
-                    )}
-                    <span className="absolute left-3 top-3 rounded-lg bg-[#420060] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-                      {cat}
-                    </span>
-                  </Link>
-
-                  <div className="flex flex-1 flex-col p-5">
-                    <div className="flex items-center gap-1 text-[#FFCCAF]">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="h-3.5 w-3.5 fill-current" />
-                      ))}
-                      <span className="ml-1 text-[11px] text-[#634F40]/55">(5.0)</span>
-                    </div>
-
-                    <Link to={`/store/${product.slug}`} className="mt-2">
-                      <h3 className="text-[15px] font-bold leading-5 text-[#420060] transition hover:text-[#2d003f]">
-                        {product.title}
-                      </h3>
-                    </Link>
-
-                    <p className="mt-1.5 line-clamp-2 text-[13px] leading-5 text-[#634F40]/65">
-                      {product.description || product.shortDescription}
-                    </p>
-
-                    <div className="mt-auto flex items-center justify-between border-t border-[#634F40]/8 pt-4">
-                      <span className="text-[17px] font-bold text-[#420060]">
-                        ${price.toFixed(2)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleAdd(product)}
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
-                          added[product.id]
-                            ? "bg-[#2FA36B] text-white"
-                            : "bg-[#ede4ef] text-[#420060] hover:bg-[#420060] hover:text-white"
-                        }`}
-                      >
-                        {added[product.id] ? (
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        ) : (
-                          <ShoppingCart className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )
-            })}
+            {products.map((product) => (
+              <motion.div key={product.id} variants={fadeUp}>
+                <ProductCard product={product} />
+              </motion.div>
+            ))}
           </motion.div>
         )}
       </Container>

@@ -102,6 +102,8 @@ export default function AdminOrdersPage() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-[#634F40]/10">
+            <div className="overflow-x-auto">
+              <div className="min-w-[700px]">
             <div className="grid grid-cols-[1.3fr_1.2fr_0.45fr_0.6fr_0.7fr_0.5fr] gap-3 border-b border-[#634F40]/10 bg-[#fbf8fb] px-4 py-3 text-[12px] font-semibold text-[#634F40]/75">
               <div>Order</div>
               <div>Customer</div>
@@ -167,6 +169,8 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
             ))}
+              </div>
+            </div>
           </div>
         )}
       </div>

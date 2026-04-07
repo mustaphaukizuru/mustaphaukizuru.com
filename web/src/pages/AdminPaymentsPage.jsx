@@ -36,7 +36,7 @@ export default function AdminPaymentsPage() {
 
   if (loading) return (
     <section className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-4">{[1,2,3,4].map(i => <SkeletonCard key={i} />)}</div>
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">{[1,2,3,4].map(i => <SkeletonCard key={i} />)}</div>
       <SkeletonCard height="h-80" />
     </section>
   )
@@ -47,7 +47,7 @@ export default function AdminPaymentsPage() {
     <section className="space-y-5">
       <AlertBanner type="error" message={error} onDismiss={() => setError("")} />
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
         <MetricCard title="Total"   value={metrics.total   ?? 0} icon={CreditCard}   tone="purple" />
         <MetricCard title="Paid"    value={metrics.paid    ?? 0} icon={CheckCircle2} tone="green"  />
         <MetricCard title="Pending" value={metrics.pending ?? 0} icon={Clock3}       tone="amber"  />

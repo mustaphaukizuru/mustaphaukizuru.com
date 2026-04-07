@@ -24,7 +24,7 @@ export default function AdminUsersPage() {
 
   if (loading) return (
     <section className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-4">{[1,2,3,4].map(i => <SkeletonCard key={i} />)}</div>
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">{[1,2,3,4].map(i => <SkeletonCard key={i} />)}</div>
       <SkeletonCard height="h-80" />
     </section>
   )
@@ -36,7 +36,7 @@ export default function AdminUsersPage() {
       <AlertBanner type="error" message={error} onDismiss={() => setError("")} />
 
       {/* Metrics */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
         <MetricCard title="Total Users"  value={metrics.total   ?? 0} icon={Users}     tone="purple" />
         <MetricCard title="Admins"       value={metrics.admins  ?? 0} icon={Shield}     tone="blue"   />
         <MetricCard title="Members"      value={metrics.members ?? 0} icon={User}       tone="amber"  />

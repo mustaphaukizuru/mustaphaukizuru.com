@@ -1,17 +1,14 @@
 import { authFetch } from "../lib/api"
 
-// ─────────────────────────────────────────────────────────────
-// Admin Download Service (Frontend)
-// ─────────────────────────────────────────────────────────────
-
 export async function fetchAdminDownloads() {
-  const response = await authFetch("/api/admin/downloads", {
-    method: "GET",
-  })
+  const response = await authFetch("/api/admin/downloads", { method: "GET" })
 
-  return Array.isArray(response?.data)
-    ? response.data
-    : Array.isArray(response)
-    ? response
-    : []
+  // Backend returns { success, data: { downloads, topProducts, totalDownloads } }
+  const payload = response?.data || response || {}
+
+  return {
+    downloads: Array.isArray(payload.downloads) ? payload.downloads : (Array.isArray(payload) ? payload : []),
+    topProducts: Array.isArray(payload.topProducts) ? payload.topProducts : [],
+    totalDownloads: payload.totalDownloads || 0,
+  }
 }

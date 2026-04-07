@@ -439,7 +439,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-[#634F40]/10 bg-[#F7F9F4]/95 backdrop-blur-md shadow-[0_6px_20px_rgba(66,0,96,0.04)]">
+      <header className="sticky top-0 z-50 border-b border-[#634F40]/10 bg-[#F7F9F4] shadow-[0_6px_20px_rgba(66,0,96,0.04)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#634F40]/15 bg-white shadow-sm">

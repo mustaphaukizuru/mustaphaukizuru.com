@@ -94,18 +94,18 @@ export default function AdminDownloadsPage() {
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-        <div className="rounded-xl border border-[#634F40]/10 bg-white p-5 shadow-[0_10px_24px_rgba(66,0,96,0.04)]">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-[18px] font-semibold text-[#420060]">Top Downloaded Products</h3>
+      <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr]">
+        <div className="overflow-hidden rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_10px_24px_rgba(66,0,96,0.04)] sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="truncate text-[16px] font-semibold text-[#420060] sm:text-[18px]">Top Downloaded Products</h3>
               <p className="mt-1 text-[12px] text-[#634F40]/70">
                 Ranked by recorded download count.
               </p>
             </div>
 
-            <div className="rounded-xl bg-[#ede4ef] p-3 text-[#420060]">
-              <Download className="h-4.5 w-4.5" />
+            <div className="shrink-0 rounded-xl bg-[#ede4ef] p-2.5 text-[#420060] sm:p-3">
+              <Download className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
 
@@ -126,28 +126,23 @@ export default function AdminDownloadsPage() {
             <div className="mt-5 space-y-3">
               {data.topProducts.map((item, index) => (
                 <div
-                  key={item.productId}
-                  className="flex items-center justify-between rounded-xl border border-[#634F40]/10 bg-[#fbf8fb] px-4 py-4"
+                  key={item.productId || index}
+                  className="flex items-center gap-3 rounded-xl border border-[#634F40]/10 bg-[#fbf8fb] px-3 py-3 sm:px-4 sm:py-4"
                 >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[12px] font-bold text-[#420060]">
-                        {index + 1}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="truncate text-[14px] font-semibold text-[#420060]">
-                          {item.title}
-                        </div>
-                        <div className="mt-1 text-[12px] text-[#634F40]/65">
-                          Product ID: {item.productId}
-                        </div>
-                      </div>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[12px] font-bold text-[#420060]">
+                    {index + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[13px] font-semibold text-[#420060] sm:text-[14px]">
+                      {item.title}
+                    </div>
+                    <div className="mt-0.5 truncate text-[11px] text-[#634F40]/65 sm:text-[12px]">
+                      Product ID: {item.productId?.slice(0, 12)}…
                     </div>
                   </div>
-
-                  <div className="text-right">
-                    <div className="text-[18px] font-bold text-[#420060]">{item.downloads}</div>
-                    <div className="text-[11px] text-[#634F40]/60">downloads</div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-[16px] font-bold text-[#420060] sm:text-[18px]">{item.downloads}</div>
+                    <div className="text-[10px] text-[#634F40]/60 sm:text-[11px]">downloads</div>
                   </div>
                 </div>
               ))}
@@ -155,17 +150,17 @@ export default function AdminDownloadsPage() {
           )}
         </div>
 
-        <div className="rounded-xl border border-[#634F40]/10 bg-white p-5 shadow-[0_10px_24px_rgba(66,0,96,0.04)]">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-[18px] font-semibold text-[#420060]">Recent Download Activity</h3>
+        <div className="overflow-hidden rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_10px_24px_rgba(66,0,96,0.04)] sm:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="truncate text-[16px] font-semibold text-[#420060] sm:text-[18px]">Recent Download Activity</h3>
               <p className="mt-1 text-[12px] text-[#634F40]/70">
-                Latest digital delivery events linked to products and orders.
+                Latest digital delivery events.
               </p>
             </div>
 
-            <div className="rounded-xl bg-[#eef3fb] p-3 text-[#2f5ea8]">
-              <ArrowDownToLine className="h-4.5 w-4.5" />
+            <div className="shrink-0 rounded-xl bg-[#eef3fb] p-2.5 text-[#2f5ea8] sm:p-3">
+              <ArrowDownToLine className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
 
@@ -184,12 +179,14 @@ export default function AdminDownloadsPage() {
             </div>
           ) : (
             <div className="mt-5 overflow-hidden rounded-xl border border-[#634F40]/10">
-              <div className="grid grid-cols-[1fr_1fr_0.8fr_1fr] gap-3 border-b border-[#634F40]/10 bg-[#fbf8fb] px-4 py-3 text-[12px] font-semibold text-[#634F40]/75">
-                <div>User</div>
-                <div>Product</div>
-                <div>Order</div>
-                <div>Date</div>
-              </div>
+              <div className="overflow-x-auto">
+                <div className="min-w-[600px]">
+                  <div className="grid grid-cols-[1fr_1fr_0.8fr_1fr] gap-3 border-b border-[#634F40]/10 bg-[#fbf8fb] px-4 py-3 text-[12px] font-semibold text-[#634F40]/75">
+                    <div>User</div>
+                    <div>Product</div>
+                    <div>Order</div>
+                    <div>Date</div>
+                  </div>
 
               {data.downloads.map((item) => (
                 <div
@@ -228,6 +225,8 @@ export default function AdminDownloadsPage() {
                   </div>
                 </div>
               ))}
+                </div>
+              </div>
             </div>
           )}
         </div>

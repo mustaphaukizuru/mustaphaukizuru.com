@@ -345,7 +345,7 @@ export default function DashboardLayout() {
           <div className="min-w-0">
 
             {/* ── Mobile Header ── */}
-            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between bg-white/95 px-4 py-3 shadow-[0_2px_12px_rgba(66,0,96,0.06)] backdrop-blur-md lg:hidden">
+            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-[#634F40]/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgba(66,0,96,0.06)] lg:hidden">
               <div className="flex items-center gap-3">
                 <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_12px_rgba(66,0,96,0.22)]" />
                 <div>
@@ -437,7 +437,7 @@ export default function DashboardLayout() {
       />
 
       {/* ── Mobile Bottom Tab Bar ── */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#634F40]/10 bg-white/95 backdrop-blur-md lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#634F40]/10 bg-white shadow-[0_-4px_16px_rgba(66,0,96,0.06)] lg:hidden">
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1.5">
           {bottomTabs.map((tab) => {
             const Icon = tab.icon
