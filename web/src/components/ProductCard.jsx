@@ -13,7 +13,6 @@ import { API_BASE_URL } from "../lib/api"
 
 function formatPrice(value, currency = "USD") {
   const amount = Number(value || 0)
-
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -32,7 +31,6 @@ function resolveImageUrl(url = "") {
 
 function normalizeImages(product) {
   const raw = Array.isArray(product?.images) ? product.images : []
-
   return raw
     .filter((img) => img?.url)
     .slice(0, 6)
@@ -48,11 +46,10 @@ function getBadge(product, isNewFallback) {
   if (product?.isFeatured) {
     return {
       label: "Featured",
-      className: "bg-[#420060] text-white border-[#420060]",
+      className: "bg-[#ede4ef] text-[#420060] border-[#d4b8e0]",
       icon: Star,
     }
   }
-
   if (product?.isBestSeller) {
     return {
       label: "Popular",
@@ -60,7 +57,6 @@ function getBadge(product, isNewFallback) {
       icon: BadgeCheck,
     }
   }
-
   if (product?.isNew || isNewFallback) {
     return {
       label: "New",
@@ -68,7 +64,6 @@ function getBadge(product, isNewFallback) {
       icon: BadgeCheck,
     }
   }
-
   return null
 }
 
@@ -101,37 +96,16 @@ export default function ProductCard({ product }) {
     [product, createdRecently]
   )
 
-  const highlights = useMemo(() => {
-    if (Array.isArray(product?.highlights) && product.highlights.length > 0) {
-      return product.highlights.slice(0, 2)
-    }
-
-    if (Array.isArray(product?.features) && product.features.length > 0) {
-      return product.features
-        .slice(0, 2)
-        .map((item) =>
-          typeof item === "string" ? item : item?.label || item?.title || item?.featureText
-        )
-        .filter(Boolean)
-    }
-
-    return []
-  }, [product?.highlights, product?.features])
-
   useEffect(() => {
     if (!hovered || pausedByUser || images.length <= 1) return
-
     const interval = window.setInterval(() => {
       setPreviewIndex((current) => (current + 1) % images.length)
     }, 2800)
-
     return () => window.clearInterval(interval)
   }, [hovered, pausedByUser, images.length])
 
   useEffect(() => {
-    if (previewIndex > images.length - 1) {
-      setPreviewIndex(0)
-    }
+    if (previewIndex > images.length - 1) setPreviewIndex(0)
   }, [previewIndex, images.length])
 
   const handleThumbnailPreview = (e, index) => {
@@ -144,13 +118,9 @@ export default function ProductCard({ product }) {
   const handleAddToCart = (e) => {
     e.preventDefault()
     e.stopPropagation()
-
     addToCart(product, 1)
     setAdded(true)
-
-    window.setTimeout(() => {
-      setAdded(false)
-    }, 1200)
+    window.setTimeout(() => setAdded(false), 1200)
   }
 
   const resetInteraction = () => {
@@ -166,47 +136,41 @@ export default function ProductCard({ product }) {
       onMouseLeave={resetInteraction}
     >
       <Link to={`/store/${product?.slug || ""}`} className="block">
-        <div className="relative overflow-hidden bg-[#F7F9F4]">
-          <div className="relative aspect-[4/3] w-full overflow-hidden">
+        {/* Image area — fills container, object-cover, no internal padding */}
+        <div className="relative w-full overflow-hidden bg-[#F7F9F4]">
+          <div className="aspect-square w-full overflow-hidden">
             {activeImage ? (
               <img
                 src={activeImage.url}
                 alt={activeImage.alt}
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                className="h-full w-full object-contain transition duration-500 group-hover:scale-[1.02]"
                 loading="lazy"
               />
             ) : (
-              <div className="flex h-full items-center justify-center px-6 text-center text-sm text-[#7A7A7A]">
-                Product preview unavailable
+              <div className="flex h-full items-center justify-center text-sm text-[#7A7A7A]">
+                Preview unavailable
               </div>
             )}
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-3">
-            <div className="flex flex-wrap gap-2">
-              {product?.category ? (
-                <span className="rounded-full border border-white/70 bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#420060] shadow-sm backdrop-blur-sm">
-                  {product.category}
-                </span>
-              ) : null}
-
-              {badge ? (
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide shadow-sm ${badge.className}`}
-                >
-                  <badge.icon className="h-3 w-3" />
-                  {badge.label}
-                </span>
-              ) : null}
+          {/* Badge only (New / Featured / Popular) — no category badge */}
+          {badge ? (
+            <div className="absolute left-2.5 top-2.5 pointer-events-none">
+              <span
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold shadow-sm ${badge.className}`}
+              >
+                <badge.icon className="h-2.5 w-2.5" />
+                {badge.label}
+              </span>
             </div>
-          </div>
+          ) : null}
 
+          {/* Thumbnail strip */}
           {images.length > 1 ? (
-            <div className="absolute inset-x-0 bottom-0 p-3">
-              <div className="mx-auto flex w-fit max-w-full items-center gap-1.5 overflow-x-auto rounded-xl bg-white/88 px-2 py-2 shadow-sm backdrop-blur-md">
+            <div className="absolute inset-x-0 bottom-0 p-2">
+              <div className="mx-auto flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-white/88 px-1.5 py-1.5 shadow-sm backdrop-blur-md">
                 {images.map((image, index) => {
                   const isActive = previewIndex === index
-
                   return (
                     <button
                       key={image.id}
@@ -215,7 +179,7 @@ export default function ProductCard({ product }) {
                       onMouseEnter={(e) => handleThumbnailPreview(e, index)}
                       onFocus={(e) => handleThumbnailPreview(e, index)}
                       onClick={(e) => handleThumbnailPreview(e, index)}
-                      className={`relative h-9 w-9 shrink-0 overflow-hidden rounded-lg border transition-all duration-200 ${
+                      className={`relative h-8 w-8 shrink-0 overflow-hidden rounded-lg border transition-all duration-200 ${
                         isActive
                           ? "border-[#420060] ring-2 ring-[#420060]/15"
                           : "border-black/5 hover:border-[#420060]/30"
@@ -224,7 +188,7 @@ export default function ProductCard({ product }) {
                       <img
                         src={image.url}
                         alt={image.alt}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain"
                         loading="lazy"
                       />
                     </button>
@@ -236,91 +200,56 @@ export default function ProductCard({ product }) {
         </div>
       </Link>
 
+      {/* Card body */}
       <div className="flex flex-1 flex-col p-4">
-        <div className="min-w-0">
-          <Link to={`/store/${product?.slug || ""}`}>
-            <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#2E2F3A] transition-colors hover:text-[#420060]">
-              {product?.title || "Untitled Product"}
-            </h3>
-          </Link>
+        <Link to={`/store/${product?.slug || ""}`}>
+          <h3 className="line-clamp-2 text-[14px] font-semibold leading-snug text-[#2E2F3A] transition-colors hover:text-[#420060]">
+            {product?.title || "Untitled Product"}
+          </h3>
+        </Link>
 
-          {product?.shortLabel ? (
-            <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-[#7A7A7A]">
-              {product.shortLabel}
-            </p>
-          ) : null}
-        </div>
-
-        <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-[#634F40]">
+        <p className="mt-1.5 line-clamp-2 text-[12px] leading-5 text-[#634F40]">
           {product?.shortDescription ||
             product?.description ||
             "No description available."}
         </p>
 
-        {highlights.length > 0 ? (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {highlights.map((item, index) => (
-              <span
-                key={`${item}-${index}`}
-                className="rounded-full bg-[#F4EFF7] px-2.5 py-1 text-[10px] font-medium text-[#420060]"
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        ) : null}
-
-        <div className="mt-2 flex items-center gap-2 text-[11px] text-[#7A7A7A]">
-          <span className="inline-flex items-center gap-1">
-            <Download className="h-3.5 w-3.5" />
-            Instant access
-          </span>
-
-          {product?.fileType ? (
-            <>
-              <span className="h-1 w-1 rounded-full bg-[#CFC7D7]" />
-              <span>{product.fileType}</span>
-            </>
-          ) : null}
+        {/* Instant access */}
+        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#7A7A7A]">
+          <Download className="h-3.5 w-3.5 shrink-0" />
+          <span>Instant access</span>
         </div>
 
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <p className="text-lg font-semibold tracking-tight text-[#420060]">
+        {/* Price + action buttons */}
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#F0EBF4] pt-3">
+          <p className="text-[16px] font-bold tracking-tight text-[#420060]">
             {formatPrice(safePrice, product?.currency || "USD")}
           </p>
 
-          {product?.deliveryType ? (
-            <span className="rounded-full bg-[#F4EFF7] px-2.5 py-1 text-[11px] font-medium text-[#420060]/80">
-              {product.deliveryType}
-            </span>
-          ) : null}
-        </div>
+          <div className="flex items-center gap-1.5">
+            <Link
+              to={`/store/${product?.slug || ""}`}
+              className="inline-flex items-center justify-center gap-1 rounded-lg border border-[#420060]/15 bg-white px-2.5 py-1.5 text-[11px] font-medium text-[#420060] transition hover:border-[#420060]/30 hover:bg-[#F4EFF7]"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              View
+            </Link>
 
-        <div className="mt-2 flex items-center gap-2">
-          <Link
-            to={`/store/${product?.slug || ""}`}
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#420060]/15 bg-white px-3 py-2 text-xs font-medium text-[#420060] transition hover:border-[#420060]/30 hover:bg-[#F4EFF7]"
-          >
-            <Eye className="h-3.5 w-3.5" />
-            View
-          </Link>
-
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium text-white transition ${
-              added
-                ? "bg-[#2FA36B]"
-                : "bg-[#420060] hover:bg-[#52007A]"
-            }`}
-          >
-            {added ? (
-              <Check className="h-3.5 w-3.5" />
-            ) : (
-              <ShoppingCart className="h-3.5 w-3.5" />
-            )}
-            {added ? "Added" : "Add"}
-          </button>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className={`inline-flex items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-white transition ${
+                added ? "bg-[#2FA36B]" : "bg-[#420060] hover:bg-[#52007A]"
+              }`}
+            >
+              {added ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : (
+                <ShoppingCart className="h-3.5 w-3.5" />
+              )}
+              {added ? "Added" : "Add"}
+            </button>
+          </div>
         </div>
       </div>
     </article>

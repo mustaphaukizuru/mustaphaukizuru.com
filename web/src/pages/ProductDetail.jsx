@@ -322,19 +322,18 @@ export default function ProductDetail() {
 
           <div className="grid gap-10 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px]">
             <div className="flex flex-col gap-4">
-              <motion.div
-                key={activeImg}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.25 }}
-                className="relative overflow-hidden rounded-xl bg-[#ede4ef] shadow-[0_8px_32px_rgba(66,0,96,0.08)]"
-                style={{ aspectRatio: "4/3" }}
-              >
+        <motion.div
+  key={activeImg}
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.25 }}
+  className="relative aspect-square overflow-hidden rounded-xl bg-[#ede4ef] shadow-[0_8px_32px_rgba(66,0,96,0.08)]"
+>
                 {images[activeImg] ? (
                   <img
                     src={images[activeImg].url}
                     alt={images[activeImg].alt}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-[#420060]/25">
@@ -342,22 +341,15 @@ export default function ProductDetail() {
                   </div>
                 )}
 
-                <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-                  {product.category && (
-                    <span className="rounded-lg bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#420060] backdrop-blur-sm">
-                      {product.category}
-                    </span>
-                  )}
-
+                <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
                   {product.isFeatured && (
-                    <span className="flex items-center gap-1 rounded-lg bg-[#420060] px-2.5 py-1 text-[10px] font-bold text-white">
-                      <Star className="h-3 w-3 fill-current" />
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[#d4b8e0] bg-[#ede4ef] px-2 py-0.5 text-[10px] font-semibold text-[#420060] shadow-sm">
+                      <Star className="h-2.5 w-2.5" />
                       Featured
                     </span>
                   )}
-
                   {product.isNew && (
-                    <span className="rounded-lg bg-[#2FA36B] px-2.5 py-1 text-[10px] font-bold text-white">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[#bbf7d0] bg-[#ecfdf3] px-2 py-0.5 text-[10px] font-semibold text-[#166534] shadow-sm">
                       New
                     </span>
                   )}
@@ -380,7 +372,7 @@ export default function ProductDetail() {
                       <img
                         src={img.url}
                         alt={img.alt}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain"
                       />
                     </button>
                   ))}

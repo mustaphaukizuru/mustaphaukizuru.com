@@ -201,24 +201,30 @@ function StoreProductCard({ product }) {
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
     >
       {/* Image */}
-      <Link to={`/store/${product.slug}`} className="block relative overflow-hidden bg-[#ede4ef]" style={{ aspectRatio: "4/3" }}>
-        {imgUrl ? (
-          <img src={imgUrl} alt={product.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        ) : (
-          <div className="flex h-full items-center justify-center text-[#420060]/30">
-            <Package className="h-10 w-10" />
-          </div>
-        )}
-        {/* Category badge */}
-        <span className="absolute left-3 top-3 rounded-lg bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#420060] backdrop-blur-sm">
-          {cat}
-        </span>
+
+<Link
+  to={`/store/${product.slug}`}
+  className="relative block aspect-square overflow-hidden bg-[#F7F9F4]"
+>
+  {imgUrl ? (
+    <img
+      src={imgUrl}
+      alt={product.title}
+      className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+    />
+  ) : (
+    <div className="flex h-full items-center justify-center text-[#420060]/30">
+      <Package className="h-10 w-10" />
+    </div>
+  )}
         {product.isFeatured && (
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-lg bg-[#420060] px-2.5 py-1 text-[10px] font-bold text-white">
-            <Star className="h-3 w-3 fill-current" /> Featured
+          <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full border border-[#d4b8e0] bg-[#ede4ef] px-2 py-0.5 text-[10px] font-semibold text-[#420060] shadow-sm">
+            <Star className="h-2.5 w-2.5" /> Featured
           </span>
         )}
       </Link>
+
+
 
       {/* Body */}
       <div className="flex flex-1 flex-col p-4">
@@ -279,9 +285,9 @@ function StoreListItem({ product }) {
 
   return (
     <div className="flex overflow-hidden rounded-xl border border-[#634F40]/10 bg-white shadow-[0_4px_16px_rgba(66,0,96,0.04)] transition hover:shadow-[0_12px_32px_rgba(66,0,96,0.08)]">
-      <div className="h-auto w-[160px] shrink-0 overflow-hidden bg-[#ede4ef] sm:w-[200px]">
-        {imgUrl ? (
-          <img src={imgUrl} alt={product.title} className="h-full w-full object-cover" />
+<div className="aspect-square w-[160px] shrink-0 overflow-hidden rounded-xl bg-[#F7F9F4] sm:w-[200px]">
+  {imgUrl ? (
+    <img src={imgUrl} alt={product.title} className="h-full w-full object-contain" />
         ) : (
           <div className="flex h-full items-center justify-center text-[#420060]/30">
             <Package className="h-8 w-8" />
@@ -290,9 +296,6 @@ function StoreListItem({ product }) {
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div>
-          <span className="rounded-lg bg-[#ede4ef] px-2.5 py-0.5 text-[10px] font-semibold uppercase text-[#420060]">
-            {product.category || "Digital"}
-          </span>
           <Link to={`/store/${product.slug}`}>
             <h3 className="mt-1.5 text-[16px] font-bold text-[#420060] transition hover:text-[#2d003f]">{product.title}</h3>
           </Link>

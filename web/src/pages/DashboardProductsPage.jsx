@@ -214,7 +214,7 @@ export default function DashboardProductsPage() {
               className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_10px_24px_rgba(66,0,96,0.04)]"
             >
               <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row">
-                <div className="h-36 w-full overflow-hidden rounded-xl bg-[#f4f1f4] sm:h-44 lg:w-[220px] lg:shrink-0">
+                <div className="h-full w-full overflow-hidden rounded-xl bg-[#f4f1f4] sm:h-44 ">
                   {product.images?.[0]?.url ? (
                     <img
                       src={

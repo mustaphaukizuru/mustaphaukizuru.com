@@ -1,3 +1,4 @@
+import React from "react"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Link } from "react-router-dom"
@@ -30,17 +31,129 @@ const CertTechSupport   = "/documents/certificates/Certificate_Technical_Support
 const CertSysAdmin    = "/documents/certificates/Certificate_System_Administration_and_IT_Infrastructure_UKIZURU_Mustapha.pdf";
 const CertConstancia  = "/documents/certificates/Certificate_Constancia_UKIZURU_Mustapha.pdf";
 
+// Certificate preview images (PNG, same name as PDF, in /images/certificates/preview/)
+const ImgPython      = "/images/certificates/preview/Certificate___Python_for_Data_Science_UKIZURU_Mustapha.png";
+const ImgEnglish     = "/images/certificates/preview/Certificate_English_for_Career_Development_UKIZURU_Mustapha.png";
+const ImgPhilosophy  = "/images/certificates/preview/Certificate_Philosophy_of_SCience_UKIZURU_Mustapha.png";
+const ImgTeaching    = "/images/certificates/preview/Certificate_Teaching_with_technology_UKIZURU_Mustapha.png";
+const ImgGoogleEdu   = "/images/certificates/preview/Google_Certified_Educator_Level_2_UKIZURU_Mustapha.png";
+const ImgGoogleIT    = "/images/certificates/preview/Certificate_Google_IT_Support_Professional_UKIZURU_Mustapha.png";
+const ImgTechSupport = "/images/certificates/preview/Certificate_Technical_Support_Fundamentals_UKIZURU_Mustapha.png";
+const ImgSysAdmin    = "/images/certificates/preview/Certificate_System_Administration_and_IT_Infrastructure_UKIZURU_Mustapha.png";
+const ImgConstancia  = "/images/certificates/preview/Certificate_Constancia_UKIZURU_Mustapha.png";
+
+// -- PdfThumbnail: renders PDF page 1 as a sharp canvas, fits card like a photo --
+function PdfThumbnail({ pdf, title }) {
+  const wrapRef   = React.useRef(null)
+  const canvasRef = React.useRef(null)
+  const pageRef   = React.useRef(null)
+  const [loading, setLoading] = React.useState(true)
+  const [error,   setError]   = React.useState(false)
+
+  // Draw the page scaled to fit the current container width, preserving aspect ratio
+  function drawPage(page, width) {
+    const canvas = canvasRef.current
+    if (!canvas || !page) return
+    const dpr      = window.devicePixelRatio || 1
+    const vp1      = page.getViewport({ scale: 1 })
+    const scale    = (width * dpr) / vp1.width
+    const viewport = page.getViewport({ scale })
+    // Set canvas pixel size
+    canvas.width  = viewport.width
+    canvas.height = viewport.height
+    // Set CSS display size so height follows naturally
+    canvas.style.width  = width + 'px'
+    canvas.style.height = (viewport.height / dpr) + 'px'
+    const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+      setLoading(false)
+    })
+  }
+
+  React.useEffect(() => {
+    if (!pdf) { setError(true); setLoading(false); return }
+    let cancelled = false
+
+    async function load() {
+      try {
+        // Load pdf.js from CDN once
+        if (!window.pdfjsLib) {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script')
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+            s.onload = resolve; s.onerror = reject
+            document.head.appendChild(s)
+          })
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+        }
+        const doc  = await window.pdfjsLib.getDocument(pdf).promise
+        if (cancelled) return
+        const page = await doc.getPage(1)
+        if (cancelled) return
+        pageRef.current = page
+
+        const containerW = wrapRef.current?.clientWidth || 300
+        drawPage(page, containerW)
+
+        // Re-draw if container resizes (responsive)
+        if (typeof ResizeObserver !== 'undefined') {
+          const ro = new ResizeObserver(entries => {
+            const w = entries[0]?.contentRect?.width
+            if (w && pageRef.current) drawPage(pageRef.current, w)
+          })
+          if (wrapRef.current) ro.observe(wrapRef.current)
+          return () => ro.disconnect()
+        }
+      } catch {
+        if (!cancelled) { setError(true); setLoading(false) }
+      }
+    }
+
+    load()
+    return () => { cancelled = true }
+  }, [pdf])
+
+  if (error) {
+    return (
+      <div className="flex w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#1a0028] via-[#2d0050] to-[#420060] p-8" style={{minHeight:'180px'}}>
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFCCAF]/10 ring-1 ring-[#FFCCAF]/20">
+          <Award className="h-6 w-6 text-[#FFCCAF]" />
+        </div>
+        <p className="line-clamp-2 px-2 text-center text-[11px] font-bold leading-tight text-white/90">{title}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div ref={wrapRef} className="relative w-full bg-white">
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-[#F7F9F4]" style={{minHeight:'180px'}}>
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#420060]/20 border-t-[#420060]" />
+        </div>
+      )}
+      <canvas
+        ref={canvasRef}
+        style={{ display: loading ? 'none' : 'block', maxWidth: '100%' }}
+        aria-label={title}
+      />
+    </div>
+  )
+}
+
+
 // ── Certifications data (place inside the component or at module level) ──
 const certifications = [
-  { title: "Python 101 for Data Science",                   description: "IBM / Cognitive Class",              pdf: CertPython },
-  { title: "English for Career Development",                description: "UPenn / Coursera",                   pdf: CertEnglish },
-  { title: "Philosophy of Science",                         description: "UPenn / Coursera",                   pdf: CertPhilosophy },
-  { title: "Practical Teaching with Technology",             description: "University of London / Coursera",    pdf: CertTeaching },
-  { title: "Google Certified Educator Level 2",             description: "Google for Education",               pdf: CertGoogleEdu },
-  { title: "Google IT Support Professional",                description: "Google / Coursera",                  pdf: CertGoogleIT },
-  { title: "Technical Support Fundamentals",                description: "Google / Coursera",                  pdf: CertTechSupport },
-  { title: "System Administration & IT Infrastructure",     description: "Google / Coursera",                  pdf: CertSysAdmin },
-  { title: "Maestras y Maestros Construimos Igualdad",      description: "Gobierno del Estado de México",      pdf: CertConstancia },
+  { title: "Python 101 for Data Science",                   description: "IBM / Cognitive Class",              pdf: CertPython,      image: ImgPython },
+  { title: "English for Career Development",                description: "UPenn / Coursera",                   pdf: CertEnglish,     image: ImgEnglish },
+  { title: "Philosophy of Science",                         description: "UPenn / Coursera",                   pdf: CertPhilosophy,  image: ImgPhilosophy },
+  { title: "Practical Teaching with Technology",             description: "University of London / Coursera",    pdf: CertTeaching,    image: ImgTeaching },
+  { title: "Google Certified Educator Level 2",             description: "Google for Education",               pdf: CertGoogleEdu,   image: ImgGoogleEdu },
+  { title: "Google IT Support Professional",                description: "Google / Coursera",                  pdf: CertGoogleIT,    image: ImgGoogleIT },
+  { title: "Technical Support Fundamentals",                description: "Google / Coursera",                  pdf: CertTechSupport, image: ImgTechSupport },
+  { title: "System Administration & IT Infrastructure",     description: "Google / Coursera",                  pdf: CertSysAdmin,    image: ImgSysAdmin },
+  { title: "Maestras y Maestros Construimos Igualdad",      description: "Gobierno del Estado de México",      pdf: CertConstancia,  image: ImgConstancia },
 ]
 
 import {
@@ -483,38 +596,21 @@ href={ResumePDF}
                   variants={fadeUp}
                   className="group flex flex-col overflow-hidden rounded-xl border border-white/8 bg-white/[0.04] transition-all hover:-translate-y-1 hover:bg-white/[0.08] hover:shadow-[0_16px_40px_rgba(0,0,0,0.25)]"
                 >
-                  {/* Certificate preview */}
-                  <div className="relative aspect-[4/3] overflow-hidden bg-white">
+                  {/* Certificate preview: real PDF render via pdf.js, responsive like a photo */}
+                  <div className="relative w-full overflow-hidden rounded-t-xl">
                     {image ? (
                       <img
                         src={image}
                         alt={title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
                       />
-                    ) : pdf ? (
-                      <div className="pointer-events-none absolute inset-0 origin-top-left scale-[0.35]"
-                        style={{ width: "286%", height: "286%" }}
-                      >
-                        <iframe
-                          src={`${pdf}#toolbar=0&navpanes=0&scrollbar=0`}
-                          title={title}
-                          className="h-full w-full border-0"
-                          loading="lazy"
-                          tabIndex={-1}
-                        />
-                      </div>
                     ) : (
-                      <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2E2F3A]/10">
-                          <Award className="h-8 w-8 text-[#420060]/30" />
-                        </div>
-                        <span className="text-[11px] text-[#634F40]/40">Coming soon</span>
-                      </div>
+                      <PdfThumbnail pdf={pdf} title={title} />
                     )}
                     {/* Hover overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#420060]/0 opacity-0 transition-all duration-300 group-hover:bg-[#420060]/40 group-hover:opacity-100">
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#420060]/0 opacity-0 transition-all duration-300 group-hover:bg-[#420060]/50 group-hover:opacity-100">
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[12px] font-semibold text-[#420060] shadow-lg">
-                        <ExternalLink className="h-3.5 w-3.5" /> View
+                        <ExternalLink className="h-3.5 w-3.5" /> Open PDF
                       </span>
                     </div>
                   </div>
