@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Mail, ShieldCheck, User, CalendarDays, Edit3, Save, X,
   Phone, Building, Lock, Camera, Trash2, CheckCircle2, AlertCircle, Eye, EyeOff
@@ -8,27 +9,33 @@ import { authFetch, API_BASE_URL } from "../lib/api"
 import { getStoredToken } from "../services/authService"
 import { useToast } from "../context/ToastContext"
 
+/* I18N · Phase 119B — strings keyed under `dashboard.profile.*`. The
+ * editable fields and password form arrays carry plain object shape;
+ * we resolve labels/placeholders via t() at render time using each
+ * field's i18n key, keeping the field-iteration patterns intact. */
+
 function InfoRow({ label, value, icon: Icon }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-[#634F40]/8 bg-[#fafafa] p-4">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
+    <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/8 bg-[#fafafa] p-4">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <div className="text-[11px] font-medium text-[#634F40]/55">{label}</div>
-        <div className="mt-0.5 text-[14px] font-semibold text-[#420060] break-words">{value || "—"}</div>
+        <div className="text-micro font-medium text-charcoal-80/55">{label}</div>
+        <div className="mt-0.5 text-meta font-semibold text-violet break-words">{value || ","}</div>
       </div>
     </div>
   )
 }
 
 export default function DashboardProfilePage() {
+  const { t, i18n } = useTranslation("dashboard")
   const { user, login, updateUser } = useAuth()
   const { showSuccess, showError } = useToast()
 
-  const [editing, setEditing]     = useState(false)
-  const [form, setForm]           = useState({ fullName: user?.fullName || "", phone: user?.phone || "", company: user?.company || "" })
-  const [saving, setSaving]       = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [form, setForm] = useState({ fullName: user?.fullName || "", phone: user?.phone || "", company: user?.company || "" })
+  const [saving, setSaving] = useState(false)
   const [uploadingAvatar, setUplAvatar] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(null)
 
@@ -36,7 +43,7 @@ export default function DashboardProfilePage() {
   const [pwForm, setPwForm] = useState({ currentPassword:"", newPassword:"", confirmPassword:"" })
   const [showPw, setShowPw] = useState({ cur:false, new:false, conf:false })
   const [savingPw, setSavingPw] = useState(false)
-  const [pwError, setPwError]   = useState("")
+  const [pwError, setPwError] = useState("")
 
   const avatarRef = useRef(null)
 
@@ -44,10 +51,12 @@ export default function DashboardProfilePage() {
     user?.fullName?.split(" ").map((p) => p[0]).join("").slice(0,2).toUpperCase() || "MU"
   ), [user])
 
+  // Locale-aware date format · resolves to es-MX when language is "es".
   const joinDate = useMemo(() => {
-    if (!user?.createdAt) return "—"
-    return new Date(user.createdAt).toLocaleDateString("en-US", { year:"numeric", month:"long", day:"numeric" })
-  }, [user])
+    if (!user?.createdAt) return ","
+    const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
+    return new Date(user.createdAt).toLocaleDateString(localeTag, { year:"numeric", month:"long", day:"numeric" })
+  }, [user, i18n.language])
 
   const avatarUrl = useMemo(() => {
     if (avatarPreview) return avatarPreview
@@ -60,14 +69,14 @@ export default function DashboardProfilePage() {
     setSaving(true)
     try {
       await authFetch("/api/member/profile", { method:"PATCH", body: JSON.stringify(form) })
-      showSuccess("Profile updated")
+      showSuccess(t("profile.toast.profileUpdated"))
       setEditing(false)
       // Sync AuthContext so header/profile shows updated name immediately
       if (typeof updateUser === "function") {
         updateUser({ fullName: form.fullName, phone: form.phone, company: form.company })
       }
     } catch (err) {
-      showError(err.message || "Failed to update")
+      showError(err.message || t("profile.toast.profileFailed"))
     } finally {
       setSaving(false)
     }
@@ -93,9 +102,9 @@ export default function DashboardProfilePage() {
       if (data.data?.avatarUrl) {
         updateUser({ avatarUrl: data.data.avatarUrl.startsWith("http") ? data.data.avatarUrl : `${API_BASE_URL}${data.data.avatarUrl}` })
       }
-      showSuccess("Avatar updated")
+      showSuccess(t("profile.toast.avatarUpdated"))
     } catch (err) {
-      showError(err.message || "Upload failed")
+      showError(err.message || t("profile.toast.avatarUploadFail"))
       setAvatarPreview(null)
     } finally {
       setUplAvatar(false)
@@ -107,9 +116,9 @@ export default function DashboardProfilePage() {
       await authFetch("/api/member/profile/avatar", { method:"DELETE" })
       setAvatarPreview(null)
       updateUser({ avatarUrl: null })
-      showSuccess("Avatar removed")
+      showSuccess(t("profile.toast.avatarRemoved"))
     } catch (err) {
-      showError(err.message || "Failed to remove avatar")
+      showError(err.message || t("profile.toast.avatarRemoveFail"))
     }
   }
 
@@ -117,17 +126,17 @@ export default function DashboardProfilePage() {
     e.preventDefault()
     setPwError("")
     const { currentPassword, newPassword, confirmPassword } = pwForm
-    if (!currentPassword || !newPassword || !confirmPassword) { setPwError("All fields required"); return }
-    if (newPassword !== confirmPassword) { setPwError("New passwords do not match"); return }
-    if (newPassword.length < 6) { setPwError("Password must be at least 6 characters"); return }
+    if (!currentPassword || !newPassword || !confirmPassword) { setPwError(t("profile.passwordErrors.allRequired")); return }
+    if (newPassword !== confirmPassword) { setPwError(t("profile.passwordErrors.mismatch")); return }
+    if (newPassword.length < 6) { setPwError(t("profile.passwordErrors.tooShort")); return }
     setSavingPw(true)
     try {
       await authFetch("/api/member/profile/password", { method:"PATCH", body: JSON.stringify({ currentPassword, newPassword }) })
-      showSuccess("Password changed successfully")
+      showSuccess(t("profile.toast.passwordChanged"))
       setShowPwForm(false)
       setPwForm({ currentPassword:"", newPassword:"", confirmPassword:"" })
     } catch (err) {
-      setPwError(err.message || "Failed to change password")
+      setPwError(err.message || t("profile.toast.passwordFailed"))
     } finally {
       setSavingPw(false)
     }
@@ -138,15 +147,15 @@ export default function DashboardProfilePage() {
       <div className="grid gap-5 xl:grid-cols-[320px_1fr]">
 
         {/* Avatar card */}
-        <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
           <div className="flex flex-col items-center text-center gap-4">
             {/* Avatar with upload overlay */}
             <div className="relative group">
-              <div className="h-24 w-24 overflow-hidden rounded-xl bg-[#420060] shadow-[0_12px_28px_rgba(66,0,96,0.18)]">
+              <div className="h-24 w-24 overflow-hidden rounded-xl bg-violet shadow-[0_12px_28px_rgba(93,63,211,0.18)]">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={user?.fullName} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-[26px] font-bold text-white">{initials}</div>
+                  <div className="flex h-full items-center justify-center text-section font-bold text-white">{initials}</div>
                 )}
               </div>
               {/* Upload overlay */}
@@ -163,35 +172,35 @@ export default function DashboardProfilePage() {
 
             <div className="flex items-center gap-2">
               <button type="button" onClick={() => avatarRef.current?.click()}
-                className="rounded-xl border border-[#634F40]/12 bg-white px-3 py-1.5 text-[11px] font-semibold text-[#420060] hover:bg-[#ede4ef] transition"
+                className="rounded-xl border border-charcoal-80/12 bg-white px-3 py-1.5 text-micro font-semibold text-violet hover:bg-violet-pale transition"
               >
-                <Camera className="inline h-3.5 w-3.5 mr-1" />Upload Photo
+                <Camera className="inline h-3.5 w-3.5 mr-1" />{t("profile.card.uploadPhoto")}
               </button>
               {avatarUrl && (
                 <button type="button" onClick={handleDeleteAvatar}
-                  className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-100 transition"
+                  className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-micro font-semibold text-red-600 hover:bg-red-100 transition"
                 >
-                  <Trash2 className="inline h-3.5 w-3.5 mr-1" />Remove
+                  <Trash2 className="inline h-3.5 w-3.5 mr-1" />{t("profile.card.removePhoto")}
                 </button>
               )}
             </div>
 
             <div>
-              <div className="text-[20px] font-bold text-[#420060]">{user?.fullName || "Member"}</div>
-              <div className="mt-1 text-[13px] text-[#634F40]/60">{user?.email || "—"}</div>
-              <span className="mt-3 inline-flex rounded-full bg-[#e5f4e8] px-4 py-1.5 text-[12px] font-semibold capitalize text-[#3b8f47]">
-                {user?.role || "member"}
+              <div className="text-subsection font-bold text-violet">{user?.fullName || t("profile.fallback.memberName")}</div>
+              <div className="mt-1 text-meta text-charcoal-80/60">{user?.email || "—"}</div>
+              <span className="mt-3 inline-flex rounded-full bg-[#e5f4e8] px-4 py-1.5 text-micro font-semibold capitalize text-[#3b8f47]">
+                {user?.role || t("profile.fallback.role")}
               </span>
             </div>
 
-            <div className="w-full space-y-2 text-[12px]">
-              <div className="flex justify-between border-b border-[#634F40]/8 pb-2">
-                <span className="text-[#634F40]/55">Member since</span>
-                <span className="font-semibold text-[#420060]">{joinDate}</span>
+            <div className="w-full space-y-2 text-micro">
+              <div className="flex justify-between border-b border-charcoal-80/8 pb-2">
+                <span className="text-charcoal-80/55">{t("profile.card.memberSince")}</span>
+                <span className="font-semibold text-violet">{joinDate}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#634F40]/55">Status</span>
-                <span className="font-semibold text-[#2FA36B]">Active</span>
+                <span className="text-charcoal-80/55">{t("profile.card.status")}</span>
+                <span className="font-semibold text-[#2FA36B]">{t("profile.card.active")}</span>
               </div>
             </div>
           </div>
@@ -199,29 +208,29 @@ export default function DashboardProfilePage() {
 
         {/* Details card */}
         <div className="flex flex-col gap-5">
-          <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <h3 className="text-[18px] font-semibold text-[#420060]">Account Information</h3>
-                <p className="mt-1 text-[12px] text-[#634F40]/60">Your personal details and account settings.</p>
+                <h3 className="text-card font-semibold text-violet">{t("profile.account.title")}</h3>
+                <p className="mt-1 text-micro text-charcoal-80/60">{t("profile.account.subtitle")}</p>
               </div>
               {!editing ? (
                 <button type="button" onClick={() => setEditing(true)}
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#420060]/20 px-4 py-2 text-[13px] font-medium text-[#420060] transition hover:bg-[#ede4ef]"
+                  className="inline-flex items-center gap-2 rounded-xl border border-violet/20 px-4 py-2 text-meta font-medium text-violet transition hover:bg-violet-pale"
                 >
-                  <Edit3 className="h-4 w-4" /> Edit
+                  <Edit3 className="h-4 w-4" /> {t("profile.account.edit")}
                 </button>
               ) : (
                 <div className="flex gap-2">
                   <button type="button" onClick={handleSave} disabled={saving}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#420060] px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-[#2d003f] disabled:opacity-60"
+                    className="inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2 text-meta font-semibold text-white transition hover:bg-violet-deep disabled:opacity-60"
                   >
-                    <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save"}
+                    <Save className="h-4 w-4" /> {saving ? t("profile.account.saving") : t("profile.account.save")}
                   </button>
                   <button type="button" onClick={() => setEditing(false)}
-                    className="inline-flex items-center gap-2 rounded-xl border border-[#634F40]/15 px-4 py-2 text-[13px] text-[#634F40] hover:bg-[#f4eef6]"
+                    className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/15 px-4 py-2 text-meta text-charcoal-80 hover:bg-[#f4eef6]"
                   >
-                    <X className="h-4 w-4" /> Cancel
+                    <X className="h-4 w-4" /> {t("profile.account.cancel")}
                   </button>
                 </div>
               )}
@@ -229,35 +238,35 @@ export default function DashboardProfilePage() {
 
             {!editing ? (
               <div className="grid gap-3 sm:grid-cols-2">
-                <InfoRow label="Full Name"    value={user?.fullName} icon={User} />
-                <InfoRow label="Email"        value={user?.email}    icon={Mail} />
-                <InfoRow label="Role"         value={user?.role}     icon={ShieldCheck} />
-                <InfoRow label="Member Since" value={joinDate}       icon={CalendarDays} />
-                <InfoRow label="Phone"        value={user?.phone}    icon={Phone} />
-                <InfoRow label="Company"      value={user?.company}  icon={Building} />
+                <InfoRow label={t("profile.account.fields.fullName")}    value={user?.fullName} icon={User} />
+                <InfoRow label={t("profile.account.fields.email")}       value={user?.email}    icon={Mail} />
+                <InfoRow label={t("profile.account.fields.role")}        value={user?.role}     icon={ShieldCheck} />
+                <InfoRow label={t("profile.account.fields.memberSince")} value={joinDate}       icon={CalendarDays} />
+                <InfoRow label={t("profile.account.fields.phone")}       value={user?.phone}    icon={Phone} />
+                <InfoRow label={t("profile.account.fields.company")}     value={user?.company}  icon={Building} />
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
-                  { field:"fullName", label:"Full Name",  icon:User,     placeholder:"Your full name" },
-                  { field:"phone",    label:"Phone",       icon:Phone,    placeholder:"Your phone" },
-                  { field:"company",  label:"Company",     icon:Building, placeholder:"Organization" },
-                ].map(({ field, label, icon: Icon, placeholder }) => (
+                  { field:"fullName", labelKey:"profile.account.fields.fullName", icon:User,     placeholderKey:"profile.account.placeholders.fullName" },
+                  { field:"phone",    labelKey:"profile.account.fields.phone",    icon:Phone,    placeholderKey:"profile.account.placeholders.phone" },
+                  { field:"company",  labelKey:"profile.account.fields.company",  icon:Building, placeholderKey:"profile.account.placeholders.company" },
+                ].map(({ field, labelKey, icon: Icon, placeholderKey }) => (
                   <div key={field}>
-                    <label className="mb-1.5 block text-[12px] font-semibold text-[#420060]">{label}</label>
+                    <label className="mb-1.5 block text-micro font-semibold text-violet">{t(labelKey)}</label>
                     <div className="relative">
-                      <Icon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#634F40]/35" />
-                      <input type="text" value={form[field]||""} onChange={(e) => setForm(f=>({...f,[field]:e.target.value}))} placeholder={placeholder}
-                        className="w-full rounded-xl border border-[#634F40]/15 bg-[#fafafa] py-3 pl-10 pr-4 text-[14px] text-[#420060] outline-none focus:border-[#420060]/40"
+                      <Icon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35" />
+                      <input type="text" value={form[field]||""} onChange={(e) => setForm(f=>({...f,[field]:e.target.value}))} placeholder={t(placeholderKey)}
+                        className="w-full rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-3 pl-10 pr-4 text-meta text-violet outline-none focus:border-violet/40"
                       />
                     </div>
                   </div>
                 ))}
                 <div>
-                  <label className="mb-1.5 block text-[12px] font-semibold text-[#420060]">Email (read-only)</label>
+                  <label className="mb-1.5 block text-micro font-semibold text-violet">{t("profile.account.fields.emailReadOnly")}</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#634F40]/25" />
-                    <input readOnly value={user?.email||""} className="w-full cursor-not-allowed rounded-xl border border-[#634F40]/10 bg-[#f2f2f2] py-3 pl-10 pr-4 text-[14px] text-[#634F40]/50 outline-none" />
+                    <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/25" />
+                    <input readOnly value={user?.email||""} className="w-full cursor-not-allowed rounded-xl border border-charcoal-80/10 bg-[#f2f2f2] py-3 pl-10 pr-4 text-meta text-charcoal-80/50 outline-none" />
                   </div>
                 </div>
               </div>
@@ -265,46 +274,46 @@ export default function DashboardProfilePage() {
           </div>
 
           {/* Password section */}
-          <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Lock className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="text-[14px] font-bold text-[#420060]">Password</div>
-                  <div className="text-[12px] text-[#634F40]/55">Keep your account secure</div>
+                  <div className="text-meta font-bold text-violet">{t("profile.password.title")}</div>
+                  <div className="text-micro text-charcoal-80/55">{t("profile.password.subtitle")}</div>
                 </div>
               </div>
               <button type="button" onClick={() => setShowPwForm(!showPwForm)}
-                className="rounded-xl border border-[#420060]/20 px-4 py-2 text-[12px] font-semibold text-[#420060] hover:bg-[#ede4ef] transition"
+                className="rounded-xl border border-violet/20 px-4 py-2 text-micro font-semibold text-violet hover:bg-violet-pale transition"
               >
-                {showPwForm ? "Cancel" : "Change Password"}
+                {showPwForm ? t("profile.password.cancel") : t("profile.password.change")}
               </button>
             </div>
 
             {showPwForm && (
               <form onSubmit={handleChangePassword} className="mt-5 flex flex-col gap-4">
                 {pwError && (
-                  <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+                  <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
                     <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {pwError}
                   </div>
                 )}
                 {[
-                  { key:"currentPassword", label:"Current Password", show:"cur" },
-                  { key:"newPassword",     label:"New Password",     show:"new" },
-                  { key:"confirmPassword", label:"Confirm Password", show:"conf" },
-                ].map(({ key, label, show }) => (
+                  { key:"currentPassword", labelKey:"profile.password.current", show:"cur" },
+                  { key:"newPassword",     labelKey:"profile.password.new",     show:"new" },
+                  { key:"confirmPassword", labelKey:"profile.password.confirm", show:"conf" },
+                ].map(({ key, labelKey, show }) => (
                   <div key={key}>
-                    <label className="mb-1.5 block text-[12px] font-semibold text-[#420060]">{label}</label>
+                    <label className="mb-1.5 block text-micro font-semibold text-violet">{t(labelKey)}</label>
                     <div className="relative">
-                      <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#634F40]/35" />
+                      <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35" />
                       <input type={showPw[show]?"text":"password"} value={pwForm[key]}
                         onChange={(e) => setPwForm(f=>({...f,[key]:e.target.value}))}
-                        className="w-full rounded-xl border border-[#634F40]/15 bg-[#fafafa] py-3 pl-10 pr-10 text-[14px] text-[#420060] outline-none focus:border-[#420060]/40"
+                        className="w-full rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-3 pl-10 pr-10 text-meta text-violet outline-none focus:border-violet/40"
                       />
                       <button type="button" onClick={()=>setShowPw(s=>({...s,[show]:!s[show]}))}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#634F40]/40 hover:text-[#420060]"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-80/40 hover:text-violet"
                       >
                         {showPw[show] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -312,9 +321,9 @@ export default function DashboardProfilePage() {
                   </div>
                 ))}
                 <button type="submit" disabled={savingPw}
-                  className="w-full rounded-xl bg-[#420060] py-3 text-[14px] font-semibold text-white transition hover:bg-[#2d003f] disabled:opacity-60"
+                  className="w-full rounded-xl bg-violet py-3 text-meta font-semibold text-white transition hover:bg-violet-deep disabled:opacity-60"
                 >
-                  {savingPw ? "Changing…" : "Change Password"}
+                  {savingPw ? t("profile.password.saving") : t("profile.password.submit")}
                 </button>
               </form>
             )}

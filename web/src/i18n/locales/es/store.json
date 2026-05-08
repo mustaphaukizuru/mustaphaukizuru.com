@@ -1,0 +1,118 @@
+{
+  "hero": {
+    "eyebrow": "Tienda",
+    "title": "Tienda de productos digitales",
+    "subtitle": "Plantillas, kits, recursos de STEM — descarga instantánea, pago seguro.",
+    "viewProduct": "Ver producto",
+    "featuredLive": "Destacado · en vivo desde la tienda",
+    "comingSoon": "Productos destacados próximamente",
+    "featuredAria": "Productos destacados",
+    "prevProductAria": "Producto anterior",
+    "nextProductAria": "Producto siguiente",
+    "premiumDigital": "Tienda digital premium",
+    "headline": "Herramientas y recursos creados para",
+    "longSubtitle": "Productos digitales listos para producción, hechos para educadores, creadores, escuelas y profesionales de tecnología. Cada descarga está estructurada para implementación inmediata.",
+    "trustCrafted": "Hecho por un practicante senior",
+    "trustCountries": "Confianza en 4 países",
+    "productsLive": "productos en vivo",
+    "shopNow": "Comprar ahora",
+    "browseCategories": "Ver categorías",
+    "guaranteesAria": "Garantías de la tienda",
+    "instantDownload": "Descarga inmediata",
+    "secureCheckout": "Pago seguro",
+    "headlineAccent": "resultados reales"
+  },
+  "toolbar": {
+    "filtersAria": "Filtros de la tienda",
+    "filtersTitle": "Filtros",
+    "reset": "Restablecer",
+    "searchAria": "Buscar productos",
+    "clearSearch": "Limpiar búsqueda",
+    "categoryHeader": "Categoría",
+    "sortHeader": "Ordenar por",
+    "sortAria": "Ordenar productos",
+    "viewHeader": "Vista",
+    "viewGrid": "Cuadrícula",
+    "viewList": "Lista"
+  },
+  "categories": {
+    "all": "Todos",
+    "templates": "Plantillas",
+    "itToolkits": "Kits de TI",
+    "csResources": "Recursos de CS",
+    "stemRobotics": "STEM y robótica",
+    "businessRes": "Recursos empresariales"
+  },
+  "sortOptions": {
+    "priceLow": "Precio: menor a mayor",
+    "priceHigh": "Precio: mayor a menor",
+    "newest": "Más recientes",
+    "nameAsc": "Nombre: A → Z"
+  },
+  "filters": {
+    "all": "Todos",
+    "search": "Buscar productos…",
+    "category": "Categoría",
+    "sort": "Ordenar por",
+    "priceLow": "Precio: menor a mayor",
+    "priceHigh": "Precio: mayor a menor",
+    "newest": "Más reciente",
+    "popular": "Más popular"
+  },
+  "card": {
+    "new": "Nuevo",
+    "featured": "Destacado",
+    "outOfStock": "Agotado",
+    "inStock": "Disponible",
+    "rating": "{{rating}} estrellas",
+    "viewProduct": "Ver producto",
+    "viewDetails": "Ver detalles",
+    "view": "Ver",
+    "added": "Agregado",
+    "addToCart": "Agregar al carrito",
+    "addShort": "Agregar",
+    "instantAccess": "Acceso inmediato",
+    "categoryFallback": "Digital"
+  },
+  "results": {
+    "found_one": "{{count}} producto encontrado",
+    "found_other": "{{count}} productos encontrados",
+    "showing": "Mostrando",
+    "of": "de",
+    "productSingular": "producto",
+    "productPlural": "productos"
+  },
+  "section": {
+    "collection": "Colección de la tienda",
+    "allProducts": "Todos los productos"
+  },
+  "empty": {
+    "title": "Ningún producto coincide con tu búsqueda",
+    "subtitle": "Prueba con otro término o explora otra categoría para descubrir más.",
+    "subtitleShort": "Prueba limpiar la búsqueda o elegir otra categoría.",
+    "resetFilters": "Restablecer filtros"
+  },
+  "pagination": {
+    "ariaLabel": "Paginación",
+    "previousAria": "Página anterior",
+    "nextAria": "Página siguiente",
+    "pageAria": "Página {{page}}"
+  },
+  "errors": {
+    "loadFailed": "No se pudieron cargar los productos."
+  },
+  "compare": {
+    "title": "Comparar productos",
+    "emptyTitle": "Nada que comparar aún",
+    "emptyBody": "Usa el botón \"Comparar\" en cualquier tarjeta o página de producto para agregarlo aquí. Puedes comparar hasta cuatro productos lado a lado.",
+    "browseStore": "Ver la tienda",
+    "addMoreStore": "Agregar más desde la tienda",
+    "clearAll": "Limpiar todo",
+    "addToCart": "Agregar al carrito",
+    "addProduct": "Agregar producto",
+    "atGlance": "Resumen",
+    "noReviews": "Aún sin reseñas",
+    "fileType": "Tipo de archivo",
+    "fileSize": "Tamaño de archivo"
+  }
+}

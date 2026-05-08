@@ -1,0 +1,123 @@
+{
+  "title": "Checkout",
+  "header": {
+    "breadcrumb": {
+      "home": "Home",
+      "cart": "Cart",
+      "checkout": "Checkout"
+    },
+    "title": "Checkout",
+    "subtitle": "Review your order and complete your purchase securely."
+  },
+  "sections": {
+    "billing": "Billing details",
+    "payment": "Payment",
+    "summary": "Order summary",
+    "review": "Review your order"
+  },
+  "form": {
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Your full name",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "company": "Company",
+    "companyPlaceholder": "Acme Inc.",
+    "country": "Country",
+    "taxId": "Tax ID (optional)",
+    "taxIdPlaceholder": "RFC, EIN, VAT, etc."
+  },
+  "validation": {
+    "nameRequired": "Please enter your name.",
+    "emailInvalid": "Please enter a valid email address.",
+    "cartEmpty": "Your cart is empty.",
+    "termsRequired": "Please agree to the Terms & Conditions."
+  },
+  "payment": {
+    "paypal": "PayPal",
+    "paypalDesc": "Pay securely with your PayPal account, debit, or credit card. Buyer protection included.",
+    "mercadoPago": "Mercado Pago",
+    "mercadoPagoDesc": "Pay with Mexican cards, OXXO, SPEI, and other LATAM methods.",
+    "secure": "Secure checkout via PayPal and Mercado Pago",
+    "processing": "Processing payment…",
+    "ariaLabel": "Payment method",
+    "cancelled": "PayPal checkout was cancelled. You can try again.",
+    "renderFailed": "Unable to render PayPal button. Please refresh and try again.",
+    "startFailed": "Failed to start checkout. Please try again."
+  },
+  "delivery": {
+    "label": "Digital delivery",
+    "subtitle": "Download immediately from your dashboard after payment"
+  },
+  "terms": "I agree to the Terms of Service and Privacy Policy",
+  "termsAria": "Agree to terms and conditions",
+  "actions": {
+    "placeOrder": "Place order",
+    "continueShopping": "Continue shopping",
+    "backToCart": "Back to cart"
+  },
+  "trust": {
+    "secure": "Secure checkout",
+    "instant": "Instant access",
+    "dashboard": "Available in your dashboard immediately"
+  },
+  "summary": {
+    "items": "items",
+    "discountCode": "Discount code",
+    "discountPlaceholder": "Enter code",
+    "applyDiscount": "Apply",
+    "removeCoupon": "Remove coupon"
+  },
+  "success": {
+    "title": "Thank you for your order!",
+    "subtitle": "Your downloads are ready.",
+    "orderNumber": "Order number",
+    "downloadCta": "Download now",
+    "dashboardCta": "Go to my dashboard",
+    "tryAgain": "Try Again",
+    "backToStore": "Back to Store",
+    "processingMP": "Payment is being processed by Mercado Pago. This page will update automatically within 20 seconds.",
+    "checkEmail": "Check your email for the order confirmation and receipt, usually arrives within a minute.",
+    "orderSummary": "Order Summary",
+    "orderPreparing": "Order details are being prepared. Refresh the page in a moment if you don't see them.",
+    "availableIn": "Available in your",
+    "downloadsDashboard": "downloads dashboard",
+    "whatNext": "What Happens Next",
+    "downloadResources": "Download Resources",
+    "accessDashboard": "Access in Dashboard",
+    "continueShopping": "Continue Shopping",
+    "successAria": "Success",
+    "completeAria": "Complete",
+    "subtotalLabel": "Subtotal",
+    "discountLabel": "Discount",
+    "totalLabel": "Total"
+  },
+  "misc": {
+    "billingAddress": "Billing Address",
+    "mercadoPagoAlt": "Mercado Pago",
+    "paypalAlt": "PayPal",
+    "paidVia": "Paid via",
+    "noChargeBody": "No charge was made to your account. You can return to checkout and try again.",
+    "addressOptional": "Optional, used for invoices and tax receipts.",
+    "noSavedAddresses": "No saved addresses.",
+    "addOne": "Add one",
+    "addOneTail": "to speed up future checkouts, or proceed without one.",
+    "mercadoPagoTitle": "Mercado Pago",
+    "mpRedirect": "You'll be redirected to Mercado Pago's secure checkout. Accepted: cards (Visa, Mastercard, Amex), OXXO, SPEI, Mercado Pago wallet.",
+    "iAgree": "I agree to the",
+    "termsLink": "Terms & Conditions",
+    "privacyLink": "Privacy Policy",
+    "paymentOptions": "PayPal & Mercado Pago",
+    "completePayPal": "Complete with PayPal",
+    "paymentOptionsLabel": "PayPal & Mercado Pago",
+    "termsShort": "Terms & Conditions",
+    "qty": "Qty",
+    "optional": "optional",
+    "optionalForInvoices": "optional · for invoices",
+    "selectCountry": "Select country…",
+    "manage": "Manage",
+    "default": "Default",
+    "sslSecured": "SSL secured",
+    "thirtyDayRefund": "30-day refund",
+    "and": "and"
+  }
+}

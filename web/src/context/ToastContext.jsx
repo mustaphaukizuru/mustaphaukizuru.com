@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 import { CheckCircle2, AlertCircle, Info, TriangleAlert, X } from "lucide-react"
 
+import { useTranslation } from "react-i18next"
 const ToastContext = createContext(null)
 
 const TOAST_ICONS = {
@@ -39,23 +40,23 @@ function ToastItem({ toast, onClose }) {
 
   return (
     <div
-      className={`pointer-events-auto relative overflow-hidden rounded-xl border px-4 py-3 shadow-[0_10px_28px_rgba(66,0,96,0.10)] backdrop-blur-sm ${style.container}`}
+      className={`pointer-events-auto relative overflow-hidden rounded-xl border px-4 py-3 shadow-[0_10px_28px_rgba(93,63,211,0.10)] backdrop-blur-sm ${style.container}`}
     >
       <div className="flex items-start gap-3 pr-8">
         <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${style.icon}`} />
 
         <div className="min-w-0 flex-1">
           {toast.title ? (
-            <div className="text-[13px] font-semibold">{toast.title}</div>
+            <div className="text-meta font-semibold">{toast.title}</div>
           ) : null}
-          <div className="text-[12px] leading-5">{toast.message}</div>
+          <div className="text-micro leading-5">{toast.message}</div>
         </div>
 
         <button
           type="button"
           onClick={() => onClose(toast.id)}
           className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-xl text-current/70 transition hover:bg-black/5 hover:text-current"
-          aria-label="Close notification"
+          aria-label="Close"
         >
           <X className="h-4 w-4" />
         </button>

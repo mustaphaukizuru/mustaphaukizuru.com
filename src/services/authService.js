@@ -1,5 +1,20 @@
 const bcrypt = require("bcryptjs");
 const prisma = require("../lib/prisma");
+const twoFactorService = require("./twoFactorService");
+
+// ─────────────────────────────────────────────────────────────────────────────
+// B10 · bcrypt cost = 12
+//
+// New password hashes are computed at cost factor 12 (~250ms/hash on a modern
+// CPU, ~1s on Hostinger shared). Existing user hashes were created at cost 10
+// — bcrypt.compare() reads the cost from the hash itself, so they continue to
+// verify successfully without any data migration. On their next password
+// change they'll be re-hashed at cost 12. Zero downtime, zero migration.
+//
+// If you want to force-upgrade existing hashes proactively, add a one-time
+// step inside the loginUser success block to re-hash and persist when the
+// stored hash starts with "$2a$10$" or "$2b$10$".
+// ─────────────────────────────────────────────────────────────────────────────
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
@@ -32,7 +47,7 @@ async function registerUser({ fullName, email, password }) {
     throw new Error("A user with this email already exists");
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(password, 12);
 
   const user = await prisma.user.create({
     data: {
@@ -57,7 +72,26 @@ async function registerUser({ fullName, email, password }) {
   return user;
 }
 
-async function loginUser({ email, password }) {
+/**
+ * Login flow with optional 2FA branch (B09).
+ *
+ * Verifies the password as before. Then checks whether the user has 2FA
+ * enabled — if so, returns `{ requires2FA: true, twoFactorToken, userId }`
+ * INSTEAD of the user object. The caller (authController.login) sees the
+ * shape and decides what to send to the client.
+ *
+ * @param {object} opts
+ * @param {string} opts.email
+ * @param {string} opts.password
+ * @param {boolean} [opts.rememberMe] - propagated into the 2FA pending
+ *   token so the final session JWT (issued by /2fa/login-verify) honors it.
+ *
+ * @returns {Promise<
+ *     { requires2FA: true, twoFactorToken: string, userId: string }
+ *   | { id, fullName, email, role, createdAt }
+ * >}
+ */
+async function loginUser({ email, password, rememberMe = false }) {
   const normalizedEmail = normalizeEmail(email);
 
   const user = await prisma.user.findUnique({
@@ -100,7 +134,7 @@ async function loginUser({ email, password }) {
   if (!isMatch && user.passwordHash === password) {
     isMatch = true;
 
-    const upgradedHash = await bcrypt.hash(password, 10);
+    const upgradedHash = await bcrypt.hash(password, 12);
     await prisma.user.update({
       where: { id: user.id },
       data: { passwordHash: upgradedHash },
@@ -113,18 +147,73 @@ async function loginUser({ email, password }) {
     throw err;
   }
 
+  // ── B09 · 2FA gate ────────────────────────────────────────────────────
+  // Password verified. If the user has 2FA enabled, do NOT update
+  // lastLoginAt yet — that happens after the second factor is verified
+  // by completeLogin().
+  const twoFactorEnabled = await twoFactorService.isEnabledForUser(user.id);
+  if (twoFactorEnabled) {
+    const twoFactorToken = twoFactorService.issueTwoFactorToken({
+      userId: user.id,
+      rememberMe: Boolean(rememberMe),
+    });
+    return {
+      requires2FA: true,
+      twoFactorToken,
+      userId: user.id,
+    };
+  }
+
+  // No 2FA — finalize login immediately
   await prisma.user.update({
     where: { id: user.id },
-    data: { lastLoginAt: new Date() },
+    data:  { lastLoginAt: new Date() },
   }).catch(() => null);
 
   await ensureProfile(user.id);
 
   return {
-    id: user.id,
-    fullName: user.fullName,
-    email: user.email,
-    role: user.role,
+    id:        user.id,
+    fullName:  user.fullName,
+    email:     user.email,
+    role:      user.role,
+    createdAt: user.createdAt,
+  };
+}
+
+/**
+ * Finalize a 2FA-gated login. Called by the 2FA controller after the second
+ * factor has been verified. Returns the same user shape as a no-2FA loginUser.
+ *
+ * Intentionally not exposed to the public API — only call from
+ * twoFactorController after verifyLoginCode succeeds.
+ */
+async function completeLoginAfter2FA(userId) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    const err = new Error("User no longer exists");
+    err.statusCode = 401;
+    throw err;
+  }
+
+  if (user.status && user.status !== "active") {
+    const err = new Error("This account is not active");
+    err.statusCode = 403;
+    throw err;
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data:  { lastLoginAt: new Date() },
+  }).catch(() => null);
+
+  await ensureProfile(user.id);
+
+  return {
+    id:        user.id,
+    fullName:  user.fullName,
+    email:     user.email,
+    role:      user.role,
     createdAt: user.createdAt,
   };
 }
@@ -145,8 +234,79 @@ async function getUserProfile(userId) {
   });
 }
 
+/* ────────────────────────────────────────────────────────────────────────
+   Guest checkout · auto-account flow
+   ──────────────────────────────────────────────────────────────────── */
+
+async function findOrCreateUserForCheckout({ fullName, email }) {
+  const normalizedEmail = normalizeEmail(email)
+  if (!normalizedEmail) throw new Error("Email is required")
+
+  const existing = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    select: { id: true, fullName: true, email: true, role: true, status: true, authProvider: true },
+  })
+  if (existing) return { user: existing, isNew: false }
+
+  // Create a passwordless account so the buyer can immediately access
+  // /dashboard/downloads via the email claim link.
+  let created
+  try {
+    created = await prisma.user.create({
+      data: {
+        fullName:     (fullName || normalizedEmail.split("@")[0]).trim() || "Customer",
+        email:        normalizedEmail,
+        passwordHash: null,
+        authProvider: "checkout",
+        status:       "active",
+      },
+      select: { id: true, fullName: true, email: true, role: true, status: true, authProvider: true },
+    })
+  } catch (e) {
+    // P2002 = race lost; another request created the row first. Just fetch it.
+    if (e?.code === "P2002") {
+      created = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+        select: { id: true, fullName: true, email: true, role: true, status: true, authProvider: true },
+      })
+      if (!created) throw e
+      return { user: created, isNew: false }
+    }
+    throw e
+  }
+
+  await ensureProfile(created.id)
+
+  const claimToken = await createAccountClaim(created.id)
+  return { user: created, isNew: true, claimToken }
+}
+
+async function createAccountClaim(userId) {
+  const crypto = require("crypto")
+  const rawToken    = crypto.randomBytes(32).toString("hex")
+  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex")
+  const expiresAt   = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days
+
+  await prisma.user.update({
+    where: { id: userId },
+    data:  { resetPasswordToken: hashedToken, resetPasswordExpires: expiresAt },
+  })
+  try {
+    await prisma.passwordReset.create({
+      data: { userId, token: hashedToken, expiresAt },
+    })
+  } catch {
+    // Audit table missing in some envs — non-fatal.
+  }
+
+  return rawToken
+}
+
 module.exports = {
   registerUser,
   loginUser,
+  completeLoginAfter2FA,
   getUserProfile,
+  findOrCreateUserForCheckout,
+  createAccountClaim,
 };

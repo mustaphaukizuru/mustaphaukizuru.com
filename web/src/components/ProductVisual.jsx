@@ -8,24 +8,24 @@ export default function ProductVisual({
 }) {
   return (
     <div
-      className={`flex items-center justify-center rounded-xl border border-[#634F40]/10 bg-white/70 text-[#420060] ${
+      className={`flex items-center justify-center rounded-xl border border-charcoal-80/10 bg-white/70 text-violet ${
         compact ? "h-[130px]" : "h-[340px] sm:h-[460px]"
       }`}
     >
       <div className="px-6 text-center">
-        <div className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#420060] shadow-sm">
+        <div className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-violet shadow-sm">
           {category}
         </div>
 
-        <div className={`mt-6 ${compact ? "text-xl" : "text-2xl"} font-['Sora'] font-semibold text-[#420060]`}>
+        <div className={`mt-6 ${compact ? "text-xl" : "text-2xl"} font-['Sora'] font-semibold text-violet`}>
           {title}
         </div>
 
-        <div className="mx-auto mt-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
+        <div className="mx-auto mt-4 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet">
           <MonitorSmartphone className="h-6 w-6" />
         </div>
 
-        <p className="mt-4 text-sm leading-7 text-[#634F40]/75">{text}</p>
+        <p className="mt-4 text-sm leading-7 text-charcoal-80/75">{text}</p>
       </div>
     </div>
   )

@@ -1,40 +1,146 @@
 @import "tailwindcss";
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Brand tokens — mustaphaukizuru.com
-   ───────────────────────────────────────────────────────────────────────────── */
-:root {
-  --indigo:        #420060;
-  --indigo-dark:   #2d003f;
-  --indigo-light:  #ede4ef;
-  --carafe:        #634F40;
-  --ivory:         #F7F9F4;
-  --peach:         #FFCCAF;
-  --deep-slate:    #2E2F3A;
-  --soft-blue:     #4A6CFA;
-  --soft-sand:     #F1EAE3;
-  --success:       #2FA36B;
-  --warning:       #F59E0B;
-  --error:         #E5484D;
+/* ════════════════════════════════════════════════════════════════════════
+   @font-face · self-hosted variable fonts
+   ──────────────────────────────────────────────────────────────────────
+   The variable .woff2 files are preloaded in index.html so the browser
+   starts the download in the head. WITHOUT these @font-face declarations
+   the preloaded files were never registered and CSS `font-family: "Sora"`
+   silently fell through to system-ui — the brand font wasn't actually
+   rendering. font-display: swap shows fallback text immediately and
+   swaps to Sora once it lands, eliminating both FOIT and the CLS
+   penalty that font-display: block would introduce.
+   ════════════════════════════════════════════════════════════════════════ */
+@font-face {
+  font-family: "Sora";
+  src: url("/fonts/Sora-Variable.woff2") format("woff2-variations"),
+       url("/fonts/Sora-Variable.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* ─── Reset & base ──────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Variable.woff2") format("woff2-variations"),
+       url("/fonts/JetBrainsMono-Variable.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Design-system tokens (v1.0) — single source of truth for color, type,
+   spacing, motion, etc. Used by web/src/components/system/* and the
+   /_system preview page. Aligned with Brand Identity v3.0. */
+@import "./styles/tokens.css";
+
+/* ════════════════════════════════════════════════════════════════════════
+   @theme · Tailwind v4 utility registration
+   ──────────────────────────────────────────────────────────────────────
+   Every brand color named below is wired up here so Tailwind generates
+   utilities like `bg-violet`, `text-charcoal`, `bg-mist`, `text-terracotta`,
+   etc. Without this block, those classes silently render as nothing.
+
+   Source of truth: Mustapha-Ukizuru-Brand-Identity-v3.0 · § 04 + § 18
+   ════════════════════════════════════════════════════════════════════════ */
+@theme {
+  /* ── Tier 1 · Brand Anchors ─────────────────────────────────────────── */
+  --color-charcoal:        #1A1B23;
+  --color-charcoal-light:  #2A2C3A;
+  --color-charcoal-80:     #1A1B23;
+  --color-mist:            #F8FAFC;
+  --color-violet:          #5D3FD3;
+  --color-violet-light:    #8B6FE8;
+  --color-violet-pale:     #EDE9FB;
+  --color-violet-ghost:    #F5F2FE;
+  --color-violet-deep:     #4A2EAB;
+
+  /* ── Tier 2 · Action ────────────────────────────────────────────────── */
+  --color-azure:           #0284C7;
+  --color-azure-pale:      #E0F2FE;
+  --color-azure-deep:      #0369A1;
+  --color-cyan:            #7DD3FC;
+
+  /* ── Tier 3 · Warm Accent ───────────────────────────────────────────── */
+  --color-terracotta:      #E9C46A;
+  --color-terracotta-deep: #D4A847;
+
+  /* ── Tier 4 · Neutrals ──────────────────────────────────────────────── */
+  --color-steel:           #64748B;
+  --color-slate-100:       #EFF1F5;
+  --color-slate-200:       #DCDCE4;
+  --color-slate-300:       #A0A8B8;
+
+  /* ── Tier 5 · Semantic Feedback ─────────────────────────────────────── */
+  --color-mint:            #10B981;
+  --color-amber:           #F59E0B;
+  --color-rose:            #E11D48;
+
+  /* ── Typography (Tailwind v4 reads --font-* and exposes font-display etc.) */
+  --font-display:  "Sora", "system-ui", "sans-serif";
+  --font-body:     "Sora", "system-ui", "sans-serif";
+  --font-mono:     "JetBrains Mono", "ui-monospace", "monospace";
+
+  /* ── Border radius scale ────────────────────────────────────────────── */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   Brand tokens — legacy aliases retained for code that still references
+   `--indigo`, `--carafe`, `--ivory`, etc. Mapped to the v3 palette so
+   nothing visually regresses. Do NOT add new code that references these.
+   ════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Legacy → v3.0 mapping */
+  --indigo:        #5D3FD3;  /* was #420060 — now Royal Violet */
+  --indigo-dark:   #4A2EAB;  /* was #2d003f */
+  --indigo-light:  #EDE9FB;  /* was #ede4ef — now Violet Pale */
+  --carafe:        #1A1B23;  /* was #634F40 (brown!) — now Midnight Charcoal */
+  --ivory:         #F8FAFC;  /* was #F7F9F4 — now Cloud Mist */
+  --peach:         #E9C46A;  /* was #FFCCAF — now Soft Terracotta */
+  --deep-slate:    #1A1B23;
+  --soft-blue:     #0284C7;  /* was #4A6CFA — now Deep Azure */
+  --soft-sand:     #F1EAE3;
+  --success:       #10B981;
+  --warning:       #F59E0B;
+  --error:         #E11D48;
+}
+
+/* ─── Reset & base ──────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
-  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+
+  /* 21st-century OpenType stack — applies to every element by default.
+     · kern  · automatic kerning pair adjustment
+     · liga  · standard ligatures (fi, fl, etc.)
+     · calt  · contextual alternates (Sora's "g", "y" tail variants)
+     · ss01  · stylistic set 01 — Sora's straight-sided "a" / "g" (more modern)
+     · cv11  · character variant 11 — disambiguates 0 / O for data
+     · case  · proper bracket/punctuation positioning around ALLCAPS
+     Per-element overrides (mono, eyebrows) below. */
+  font-feature-settings:
+    "kern" 1, "liga" 1, "calt" 1,
+    "ss01" 1, "cv11" 1, "case" 1;
+  font-optical-sizing: auto;            /* Variable axis · Sora opsz */
+  hanging-punctuation: first allow-end last;
   overflow-x: clip;
 }
 html, body, #root { min-height: 100%; }
 
 body {
-  background-color: var(--ivory);
-  color: var(--carafe);
+  background-color: var(--color-mist);
+  color: var(--color-charcoal);
   font-family: 'Sora', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.6;
+  letter-spacing: -0.01em;              /* Brand v3 §07 — body tracks tighter */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -42,40 +148,78 @@ body {
   overflow-x: clip;
 }
 
+/* Heading defaults — Brand v3 §07 type scale.
+   tracking and line-height map to each level so component authors do
+   NOT need to re-specify them every time. They CAN still override via
+   Tailwind utilities or per-component className. */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Sora', system-ui, sans-serif;
-  line-height: 1.2;
   font-weight: 700;
+  letter-spacing: -0.025em;             /* Brand v3 §07 — display tracking */
+  text-wrap: balance;                   /* Avoids orphaned headline tails */
+  /* No default color — heading colors are set per-component via Tailwind
+     utilities (text-white, text-violet, text-charcoal). A global color here
+     would override text-white on dark sections. */
 }
+h1 { line-height: 1.02; }
+h2 { line-height: 1.05; }
+h3 { line-height: 1.15; }
+h4 { line-height: 1.30; }
+h5, h6 { line-height: 1.40; }
+
+/* Prose paragraphs — `text-wrap: pretty` ships in modern browsers and
+   makes the *last few lines* sit better (avoids single-word last lines). */
+p { text-wrap: pretty; }
 
 a { text-decoration: none; color: inherit; }
+/* Defensive contrast guard — when an <a>/Link is explicitly given a Tailwind
+   text-color utility, do NOT let `color: inherit` above bleed through. This
+   prevents the historical "dark text on violet button" bug where Tailwind's
+   `text-white` was beaten by the unlayered `a { color: inherit; }` rule. */
+a.text-white         { color: #fff               !important; }
+a.text-mist          { color: var(--color-mist)  !important; }
+a.text-violet        { color: var(--color-violet) !important; }
+a.text-charcoal,
+a.text-charcoal-80   { color: var(--color-charcoal) !important; }
+
+/* Opacity-modifier variants (Tailwind v4 syntax: text-white/85, text-white/70,
+   text-white/90, etc.). The `a { color: inherit }` reset above swallows these
+   when Tailwind's color-mix() utility hasn't generated a class because the base
+   color isn't registered in @theme. The attribute selector below is a safety
+   net — any anchor that *intends* white text gets it, regardless of opacity
+   suffix. Opacity remains best-effort (we keep solid white here so links stay
+   readable on dark surfaces); use a class outside <a> if you need partial
+   white. Brand v3 § 04 — Tier 1 Cloud Mist on dark surfaces. */
+a[class*="text-white/"] { color: #fff !important; }
+a[class*="text-mist/"]  { color: var(--color-mist) !important; }
+
 button, input, textarea, select { font: inherit; }
 img, video { max-width: 100%; display: block; }
 
-/* ─── Focus rings ───────────────────────────────────────────────────────────── */
+/* ─── Focus rings — Deep Azure per Brand v3 § 12 ───────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--indigo);
+  outline: 2px solid var(--color-azure);
   outline-offset: 2px;
   border-radius: 8px;
 }
 
-/* ─── Custom scrollbar ─────────────────────────────────────────────────────── */
+/* ─── Custom scrollbar ─────────────────────────────────────────────────── */
 ::-webkit-scrollbar        { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: var(--indigo-light); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--indigo); }
+::-webkit-scrollbar-thumb  { background: var(--color-violet-pale); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-violet); }
 
-/* ─── Selection ────────────────────────────────────────────────────────────── */
-::selection { background: var(--indigo); color: #fff; }
+/* ─── Selection ────────────────────────────────────────────────────────── */
+::selection { background: var(--color-violet); color: #fff; }
 
-/* ─── Smooth page transitions ──────────────────────────────────────────────── */
+/* ─── Smooth page transitions ──────────────────────────────────────────── */
 .page-enter { animation: page-in 0.25s ease-out; }
 @keyframes page-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-/* ─── Toast progress ───────────────────────────────────────────────────────── */
+/* ─── Toast progress ───────────────────────────────────────────────────── */
 @keyframes toast-shrink { from { width: 100%; } to { width: 0%; } }
 
-/* ─── Global link underline animation ─────────────────────────────────────── */
+/* ─── Global link underline animation ─────────────────────────────────── */
 .link-underline {
   position: relative;
 }
@@ -86,21 +230,180 @@ img, video { max-width: 100%; display: block; }
   left: 0;
   width: 0;
   height: 2px;
-  background: var(--indigo);
+  background: var(--color-azure);
   border-radius: 2px;
   transition: width 0.25s ease;
 }
 .link-underline:hover::after { width: 100%; }
 
-/* ─── Utility: hide scrollbar visually ────────────────────────────────────── */
+/* ─── Utility: hide scrollbar visually ────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ─── Input autofill override ──────────────────────────────────────────────── */
+/* ─── Input autofill override ──────────────────────────────────────────── */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 1000px #fafafa inset;
-  -webkit-text-fill-color: var(--indigo);
+  -webkit-text-fill-color: var(--color-charcoal);
   transition: background-color 9999s ease-in-out 0s;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   Brand v3 · Innovation Gradient utility
+   The SACRED gradient (Royal Violet → Deep Azure). Use only on conversion
+   CTAs — Buy, Checkout, Contact, Book. Once per viewport.
+   ════════════════════════════════════════════════════════════════════════ */
+.bg-grad-innovation {
+  background-image: linear-gradient(135deg, #5D3FD3 0%, #0284C7 100%);
+}
+.bg-grad-dawn {
+  background-image: linear-gradient(135deg, #5D3FD3 0%, #0284C7 50%, #7DD3FC 100%);
+}
+.bg-grad-electric {
+  background-image: linear-gradient(135deg, #0284C7 0%, #7DD3FC 100%);
+}
+.bg-grad-humanity {
+  background-image: linear-gradient(135deg, #E9C46A 0%, #F8FAFC 100%);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   Brand v3 · Canonical .eyebrow utility
+   ────────────────────────────────────────────────────────────────────────
+   The ONLY surface in the entire app where uppercase is automatic.
+   All other text — headings, body copy, buttons, labels, errors —
+   stays in sentence case unless a component explicitly opts in.
+
+   Use this single class instead of re-composing
+   `uppercase tracking-[0.18em] font-semibold text-[10.5px]` everywhere.
+
+   Pairs naturally with EyebrowChip but is also valid as a bare label
+   above a heading, on a stat card, or in a meta row.
+
+   Composition: size+tracking+weight+casing baked in. Override the
+   color via Tailwind text-* utilities (text-violet, text-azure, etc.).
+   ════════════════════════════════════════════════════════════════════════ */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-feature-settings: "case" 1, "tnum" 1;  /* Bracket positioning + tabular */
+  color: var(--color-violet);
+}
+@media (min-width: 1024px) {
+  .eyebrow { font-size: 11.5px; }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   Mono / data numerics — JetBrains Mono with tabular figures
+   ────────────────────────────────────────────────────────────────────────
+   Brand v3 §14 — every KPI, price, timestamp, and percentage MUST sit
+   on tabular figures so columns of numbers align vertically. Lining
+   numerals (`lnum`) prevent the descender drop on 3, 4, 5, 7, 9 in
+   stats blocks and keep heights uniform for visual rhythm.
+   ════════════════════════════════════════════════════════════════════════ */
+.font-mono,
+code, samp, kbd, pre, var {
+  font-feature-settings:
+    "kern" 1, "liga" 0, "calt" 0,
+    "tnum" 1, "lnum" 1, "zero" 1, "ss02" 1;
+  font-variant-numeric: tabular-nums lining-nums slashed-zero;
+  font-optical-sizing: auto;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   Display-class refinements
+   ────────────────────────────────────────────────────────────────────────
+   .text-display already carries size + weight + tracking from
+   tokens.css. Here we add modern niceties that are universally
+   safe at hero scale: balance + variant ligatures + opsz tuning.
+   ════════════════════════════════════════════════════════════════════════ */
+.text-display,
+.text-page,
+.text-section {
+  text-wrap: balance;
+  font-feature-settings:
+    "kern" 1, "liga" 1, "calt" 1,
+    "ss01" 1, "cv11" 1, "case" 1;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   Prose body refinements — applies inside .prose containers and to any
+   paragraph stack via Tailwind's prose plugin or our text-body class.
+   ════════════════════════════════════════════════════════════════════════ */
+.text-body,
+.text-lead {
+  text-wrap: pretty;
+  letter-spacing: -0.005em;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   Utility · text-balance / text-pretty escape hatches
+   ────────────────────────────────────────────────────────────────────────
+   Tailwind v4 ships these but registering them here makes intent
+   clearer in JSX (`className="text-balance"`).
+   ════════════════════════════════════════════════════════════════════════ */
+.text-balance { text-wrap: balance; }
+.text-pretty  { text-wrap: pretty;  }
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   Home · closing CTA — animated violet band
+   Hoisted out of inline <style> in Home.jsx so keyframes parse once on
+   app load. Updated to use Brand v3 Royal Violet.
+   ════════════════════════════════════════════════════════════════════════ */
+@keyframes ukzCtaGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+@keyframes ukzRingBreath {
+  0%, 100% { transform: scale(1);     opacity: 1;    }
+  50%      { transform: scale(1.018); opacity: 0.72; }
+}
+@keyframes ukzSunPulse {
+  0%, 100% { transform: scale(1);     box-shadow: 0 0 30px rgba(255,255,255,0.35); }
+  50%      { transform: scale(1.06);  box-shadow: 0 0 60px rgba(255,255,255,0.55); }
+}
+@keyframes ukzShine {
+  0%   { transform: translateX(-30%) skewX(-20deg); opacity: 0; }
+  10%  { opacity: 1; }
+  60%  { opacity: 1; }
+  100% { transform: translateX(420%) skewX(-20deg); opacity: 0; }
+}
+@keyframes ukzBallHalo {
+  0%, 100% { box-shadow: inset 0 -2px 3px rgba(0,0,0,0.12), 0 0 0 0 rgba(255,255,255,0); }
+  50%      { box-shadow: inset 0 -2px 3px rgba(0,0,0,0.12), 0 0 0 5px rgba(255,255,255,0.14); }
+}
+.ukz-cta-bg {
+  background: linear-gradient(135deg, #5D3FD3 0%, #0284C7 50%, #5D3FD3 100%);
+  background-size: 220% 220%;
+  animation: ukzCtaGradient 14s ease-in-out infinite;
+}
+.ukz-ring   { animation: ukzRingBreath 5s ease-in-out infinite; }
+.ukz-ring-1 { animation-delay:  0s;    }
+.ukz-ring-2 { animation-delay: -0.4s;  }
+.ukz-ring-3 { animation-delay: -0.8s;  }
+.ukz-ring-4 { animation-delay: -1.2s;  }
+.ukz-ring-5 { animation-delay: -1.6s;  }
+.ukz-ring-6 { animation-delay: -2.0s;  }
+.ukz-ring-7 { animation-delay: -2.4s;  }
+.ukz-sun    { animation: ukzSunPulse 3.2s ease-in-out infinite; }
+.ukz-shine {
+  background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+  animation: ukzShine 8s ease-in-out infinite 2s;
+}
+.ukz-ball-pulse { animation: ukzBallHalo 3s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ukz-cta-bg, .ukz-ring, .ukz-sun, .ukz-shine, .ukz-ball-pulse { animation: none; }
+  .ukz-cta-bg { background: #5D3FD3; }
 }

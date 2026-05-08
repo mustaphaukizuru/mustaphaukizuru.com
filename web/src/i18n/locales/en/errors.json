@@ -1,0 +1,63 @@
+{
+  "generic": "Something went wrong. Please try again.",
+  "network": "Network error. Check your connection.",
+  "notFound": {
+    "title": "404",
+    "subtitle": "Page not found",
+    "cta": "Back to home"
+  },
+  "forbidden": {
+    "title": "403",
+    "subtitle": "You don't have access to this page.",
+    "cta": "Back to home"
+  },
+  "serverError": {
+    "title": "500",
+    "subtitle": "Server error. We're on it.",
+    "cta": "Refresh"
+  },
+  "search": {
+    "noResults": "No results found",
+    "tryAgain": "Try a different keyword."
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email",
+    "password": "Password must be at least 8 characters",
+    "match": "Values do not match",
+    "tooLong": "Too long (max {{max}} characters)",
+    "tooShort": "Too short (min {{min}} characters)"
+  },
+  "actions": {
+    "tryAgain": "Try Again",
+    "goBack": "Go Back",
+    "home": "Home"
+  },
+  "configs": {
+    "NETWORK_ERROR": {
+      "title": "No Connection",
+      "message": "We couldn't reach the server. Please check your internet connection and try again."
+    },
+    "DB_UNAVAILABLE": {
+      "title": "Service Temporarily Unavailable",
+      "message": "Our servers are taking a short break. We'll be back up in a moment. Please try again shortly."
+    },
+    "FORBIDDEN": {
+      "title": "Access Denied",
+      "message": "You don't have permission to access this page. Please sign in or contact support if you believe this is an error."
+    },
+    "404": {
+      "title": "Page Not Found",
+      "message": "The page you're looking for doesn't exist or may have been moved. Check the URL or head back home."
+    },
+    "500": {
+      "title": "Something Went Wrong",
+      "message": "An unexpected error occurred on our end. Our team has been notified. Please try again in a moment."
+    }
+  },
+  "support": {
+    "prefix": "If this keeps happening,",
+    "linkText": "contact support",
+    "suffix": "."
+  }
+}

@@ -1,261 +1,107 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import Seo from "../components/seo/Seo"
 import { pageSeo } from "../seo/pageSeo"
+import { siteNavigationSchema } from "../seo/schemas"
+import PortfolioCard from "../components/PortfolioCard"
 import {
-  ArrowRight, ArrowLeft, Star, Sparkles, ChevronRight,
-  BookOpen, GraduationCap, MonitorSmartphone, BrainCircuit,
-  Wrench, Server, Building2, BriefcaseBusiness, Search,
-  Lightbulb, Settings2, LineChart, ShoppingCart, BadgeCheck,
+  ArrowRight, ArrowLeft, Star, Inbox,
+  Server, Globe, RefreshCcw, Cloud,
+  Calendar, ShoppingBag,
 } from "lucide-react"
-// social icons use inline SVG components below
 import { fetchProducts } from "../services/productService"
+import { fetchFeaturedServices } from "../services/serviceService"
+import { fetchFeaturedPortfolio } from "../services/portfolioService"
 import { useCart } from "../store/CartContext"
 import { API_BASE_URL } from "../lib/api"
 import { audiences, solutions, processSteps, testimonials } from "../data/homeData"
 import ProductCard from "../components/ProductCard"
+import HomeHero from "../components/heroes/HomeHero" // V2, universal hero
+import FeaturedReviewsRibbon from "../components/FeaturedReviewsRibbon"
 
-const profilePhoto = "/images/profile/Ukizuru_Mustapha_Photo.jpg";
-/* ─── shared animation variants ─── */
-// Lightweight inline social icons (replaces react-icons/fa bundle)
-function LinkedInIcon({ className }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
-}
-function TelegramIcon({ className }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.015 9.497c-.148.665-.54.827-1.093.514l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.887.718z"/></svg>
-}
-function WhatsAppIcon({ className }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.72.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.029 18.88c-1.161 0-2.305-.292-3.318-.844l-3.677.964.984-3.595c-.607-1.052-.927-2.246-.926-3.468.001-3.825 3.113-6.937 6.937-6.937 1.856.001 3.598.723 4.907 2.034 1.31 1.311 2.031 3.054 2.03 4.908-.001 3.825-3.113 6.938-6.937 6.938z"/></svg>
-}
-const FaLinkedinIn = LinkedInIcon
-const FaTelegramPlane = TelegramIcon
-const FaWhatsapp = WhatsAppIcon
+// Design-system primitives (Phase B · v1.0)
+import { Card, EmptyState, Skeleton } from "../components/system"
 
-const fadeUp = { hidden:{opacity:0,y:24}, show:{opacity:1,y:0,transition:{duration:0.52,ease:"easeOut"}} }
-const stagger = { hidden:{}, show:{transition:{staggerChildren:0.09}} }
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Home · F12 · Batch 4
+ *  ──────────────────────────────────────────────────────────────────── */
 
-function Container({ children, className="" }) {
+/* Hero, social icons, and profile photo now live in HomeHero.jsx — see
+   ../components/heroes/HomeHero. The local Hero() function previously
+   defined here was dead code (HomeHero was always the rendered hero in
+   Home() but the file didn't exist). */
+
+const fadeUp = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.52, ease: "easeOut" } } }
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } }
+
+function Container({ children, className = "" }) {
   return <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>
 }
 
-function SectionHeading({ eyebrow,title,subtitle,align="center",action=null }) {
-  const c = align==="center"
+function SectionHeading({ eyebrow, title, subtitle, align = "center", action = null }) {
+  const c = align === "center"
   return (
-    <div className={`mb-12 flex flex-col gap-4 ${action?"lg:flex-row lg:items-end lg:justify-between":""}`}>
-      <div className={`flex flex-col gap-3 ${c?"items-center text-center":"items-start"}`}>
-        {eyebrow && <span className="inline-flex items-center rounded-full bg-[#ede4ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#420060]">{eyebrow}</span>}
-        <h2 className="text-[1.75rem] font-bold tracking-tight text-[#420060] sm:text-[2rem] lg:text-[2.2rem]">{title}</h2>
-        {subtitle && <p className={`max-w-2xl text-[15px] leading-7 text-[#634F40]/70 ${c?"mx-auto":""}`}>{subtitle}</p>}
+    <div className={`mb-12 flex flex-col gap-4 ${action ? "lg:flex-row lg:items-end lg:justify-between" : ""}`}>
+      <div className={`flex flex-col gap-3 ${c ? "items-center text-center" : "items-start"}`}>
+        {eyebrow && <span className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">{eyebrow}</span>}
+        <h2 className="text-section font-bold tracking-tight text-violet sm:text-page lg:text-page">{title}</h2>
+        {subtitle && <p className={`max-w-2xl text-body leading-7 text-charcoal-80/70 ${c ? "mx-auto" : ""}`}>{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>
   )
 }
 
-/* ─────────────────── HERO — matches reference: circular portrait, floating badges, social icons, stats ─────────────────── */
-function Hero() {
-  const socials = [
-    { name: "LinkedIn",  href: "https://www.linkedin.com/in/mustaphaukizuru/", icon: FaLinkedinIn,   bg: "#0077B5" },
-    { name: "Telegram",  href: "https://t.me/mustaphaukizuru",                  icon: FaTelegramPlane, bg: "#0088cc" },
-    { name: "WhatsApp",  href: "https://wa.me/+525552139993",                    icon: FaWhatsapp,      bg: "#25D366" },
-  ]
+/* ──────────────────────────────────────────────────────────────────────────
+ *  RevealSection · scroll-reveal wrapper
+ *  ──────────────────────────────────────────────────────────────────────── */
+function RevealSection({ children, className = "" }) {
   return (
-    <section className="relative min-h-[100dvh] overflow-hidden bg-[#F7F9F4]" style={{ background: "linear-gradient(160deg, #F7F9F4 0%, #f3eaf5 40%, #F1EAE3 100%)" }}>
-      {/* Subtle background orbs */}
-      <div className="pointer-events-none absolute right-0 top-0 h-[600px] w-[600px] rounded-full bg-[#420060]/4 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-20 -left-20 h-[400px] w-[400px] rounded-full bg-[#FFCCAF]/20 blur-2xl" />
-
-      <Container className="flex min-h-[100dvh] items-center py-8 lg:py-8 xl:py-8">
-        <div className="grid w-full items-center gap-8 lg:gap-0 lg:grid-cols-[1fr_auto_1fr]">
-
-          {/* ── LEFT COLUMN ─────────────────────────────────────────────── */}
-          <motion.div
-            variants={stagger} initial="hidden" animate="show"
-            className="flex flex-col gap-8 pr-0 lg:pr-8"
-          >
-            {/* Greeting */}
-            <motion.div variants={fadeUp} className="flex flex-col gap-2">
-              <p className="text-[1.15rem] font-semibold text-[#634F40]/70 sm:text-[1.3rem]">
-                Hello, I Am
-              </p>
-              <h1 className="text-[2.8rem] font-extrabold leading-[1.05] tracking-tight text-[#420060] sm:text-[3.4rem] lg:text-[3.8rem]">
-                Mustapha{" "}
-                <span className="relative inline-block text-[#FFCCAF]">
-                  Ukizuru.
-                  <span className="absolute -bottom-1 left-0 h-[3px] w-full rounded-full bg-[#420060]/20" />
-                </span>
-              </h1>
-            </motion.div>
-
-            {/* Experience stat */}
-            <motion.div variants={fadeUp} className="flex items-center gap-4">
-              <div>
-                <span className="text-[3.2rem] font-extrabold leading-none text-[#420060]">8+</span>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#634F40]/55">Years{" "}Experience</div>
-              </div>
-              <div className="h-12 w-px bg-[#634F40]/15" />
-              <div>
-                <span className="text-[2rem] font-extrabold leading-none text-[#420060]">10+</span>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#634F40]/55">Projects{" "}Delivered</div>
-              </div>
-            </motion.div>
-
-            {/* CTA buttons */}
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
-              <Link to="/services" className="inline-flex items-center gap-2 rounded-xl bg-[#420060] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(66,0,96,0.24)] transition hover:-translate-y-0.5 hover:bg-[#2d003f]">
-                Book Consultation <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link to="/store" className="inline-flex items-center gap-2 rounded-xl border border-[#420060]/20 px-6 py-3.5 text-[14px] font-semibold text-[#420060] transition hover:bg-[#ede4ef] hover:-translate-y-0.5">
-                Explore Store
-              </Link>
-            </motion.div>
-
-            {/* Social icons — matching footer circular design */}
-            <motion.div variants={fadeUp} className="flex items-center gap-3">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#634F40]/40">Connect</span>
-              <div className="h-px flex-1 max-w-[40px] bg-[#634F40]/15" />
-              <div className="flex gap-2.5">
-                {socials.map(({ name, href, icon: Icon, bg }) => (
-                  <a
-                    key={name}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={name}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/70 text-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.18)]"
-                    style={{ background: bg }}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </a>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* ── CENTER: Circular portrait + floating badges ─────────────── */}
-          <motion.div
-            initial={{ opacity:0, scale:0.9 }} animate={{ opacity:1, scale:1 }}
-            transition={{ duration:0.7, ease:"easeOut", delay:0.1 }}
-            className="relative mx-auto my-10 flex items-center justify-center lg:my-0"
-            style={{ width: "min(340px, 85vw)", height: "min(400px, 100vw)" }}
-          >
-            {/* Dashed curved decorative arc — like the reference 
-            <svg className="pointer-events-none absolute -left-16 top-1/4 hidden xl:block" width="120" height="140" viewBox="0 0 120 140" fill="none">
-              <path d="M90,10 C40,20 10,60 20,110 C22,120 28,128 36,130" stroke="#420060" strokeWidth="2" strokeDasharray="6 5" strokeLinecap="round" fill="none" opacity="0.35"/>
-              <path d="M28,104 L36,130 L58,122" stroke="#420060" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.35"/>
-            </svg> */}
-
-            {/* Gold ring around circle */}
-            <div className="absolute inset-0 rounded-full" style={{ padding: 6, background: "linear-gradient(135deg, #FFCCAF 0%, #420060 60%, #FFCCAF 100%)" }}>
-              <div className="h-full w-full rounded-full bg-[#F7F9F4]" />
-            </div>
-
-            {/* Portrait */}
-            <div className="relative z-10 overflow-hidden rounded-full shadow-[0_20px_60px_rgba(66,0,96,0.20)]"
-              style={{ width: "min(320px, 80vw)", height: "min(380px, 95vw)" }}>
-              <img src={profilePhoto} alt="Mustapha Ukizuru" className="h-full w-full object-cover object-top" />
-            </div>
-
-
-          </motion.div>
-
-          {/* ── RIGHT COLUMN ─────────────────────────────────────────────── */}
-          <motion.div
-            variants={stagger} initial="hidden" animate="show"
-            className="hidden lg:flex flex-col gap-8 pl-0 lg:pl-8"
-          >
-            {/* Tagline */}
-            <motion.div variants={fadeUp} className="text-right">
-              <p className="text-[1.05rem] leading-7 text-[#634F40]/65 italic">
-                I design modern digital systems,<br />
-                <span className="not-italic font-semibold text-[#420060]">and I love what I do.</span>
-              </p>
-            </motion.div>
-
-            {/* Review / trust card */}
-            <motion.div variants={fadeUp} className="flex justify-end">
-              <div className="rounded-xl border border-[#634F40]/10 bg-white px-5 py-4 shadow-[0_12px_32px_rgba(66,0,96,0.10)]">
-                <div className="flex items-center gap-3 text-[13px] font-semibold text-[#420060]">
-                  <span className="text-[#634F40]/60 font-normal text-[12px]">Client Reviews</span>
-                  <div className="flex gap-0.5 text-[#FFCCAF]">
-                    {Array.from({length:5}).map((_,i) => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}
-                  </div>
-                </div>
-                <div className="mt-2.5 flex items-center gap-2">
-                  {/* Avatar stack */}
-                  <div className="flex -space-x-2">
-                    {["AM","JN","CK","TM"].map((init) => (
-                      <div key={init} className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#420060] text-[9px] font-bold text-white">
-                        {init}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="text-[20px] font-extrabold text-[#420060]">4.3</span>
-                </div>
-                <div className="mt-1 text-[10px] text-[#634F40]/45">Based on client feedback</div>
-              </div>
-            </motion.div>
-
-            {/* Role title — styled like reference "Creative Designer." */}
-            <motion.div variants={fadeUp} className="text-right">
-              <p className="text-[1rem] font-semibold text-[#634F40]/50 uppercase tracking-[0.18em]">Technology</p>
-              <p className="text-[2rem] font-extrabold leading-tight text-[#420060] tracking-tight" style={{ fontStyle: "italic" }}>
-                Consultant.
-              </p>
-            </motion.div>
-
-            {/* Trust bullets */}
-            <motion.div variants={fadeUp} className="flex flex-col gap-3">
-              {[
-                { icon: BadgeCheck, label: "Proven Results", desc: "Delivered across schools & businesses" },
-                { icon: Settings2,  label: "Expert Systems", desc: "Infrastructure & digital platforms" },
-                { icon: Sparkles,   label: "STEM & EdTech",  desc: "Coding, robotics, digital learning" },
-              ].map(({ icon: Icon, label, desc }) => (
-                <div key={label} className="flex items-center gap-3 text-[13px]">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-[#420060]">{label}</div>
-                    <div className="text-[11px] text-[#634F40]/55">{desc}</div>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </motion.div>
-        </div>
-      </Container>
-    </section>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className={className}
+    >
+      {children}
+    </motion.div>
   )
 }
 
 /* ─────────────────── WHO I WORK WITH ─────────────────── */
 function Audiences() {
+  const { t } = useTranslation("home")
   return (
     <section className="py-20 lg:py-24">
       <Container>
         <SectionHeading
-          eyebrow="Who I Work With"
-          title="Serving Organizations That Want to Grow"
-          subtitle="I collaborate with organizations and individuals who want to modernize their systems, improve digital presence, and adopt smarter technology solutions."
+          eyebrow={t("sections.audiences.eyebrow")}
+          title={t("sections.audiences.title")}
+          subtitle={t("sections.audiences.subtitle")}
         />
         <motion.div
-          variants={stagger} initial="hidden" whileInView="show" viewport={{ once:true, margin:"-60px" }}
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-60px" }}
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {audiences.map(({ title, description, icon: Icon }, i) => (
-            <motion.div
-              key={title} variants={fadeUp}
-              className="group flex flex-col gap-5 rounded-xl border border-[#634F40]/10 bg-white p-7 shadow-[0_8px_24px_rgba(66,0,96,0.05)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(66,0,96,0.10)]"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060] transition-colors group-hover:bg-[#420060] group-hover:text-white">
-                <Icon className="h-7 w-7" />
-              </div>
-              <div>
-                <h3 className="text-[17px] font-bold text-[#420060]">{title}</h3>
-                <p className="mt-2 text-[14px] leading-6 text-[#634F40]/70">{description}</p>
-              </div>
+          {audiences.map(({ titleKey, descriptionKey, icon: Icon }) => (
+            <motion.div key={titleKey} variants={fadeUp}>
+              <Card variant="interactive" padding="lg" className="group h-full">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-[var(--color-violet-pale)] text-[var(--color-violet)] transition-colors duration-[var(--motion-base)] group-hover:bg-[var(--color-violet)] group-hover:text-white">
+                  <Icon className="h-7 w-7" aria-hidden="true" />
+                </div>
+                <h3 className="mt-5 text-[18px] font-bold leading-[1.3] text-[var(--color-violet)]">
+                  {t(titleKey)}
+                </h3>
+                <p className="mt-2 text-[14px] leading-[1.6] text-[var(--color-text-secondary)]">
+                  {t(descriptionKey)}
+                </p>
+              </Card>
             </motion.div>
           ))}
         </motion.div>
@@ -266,39 +112,75 @@ function Audiences() {
 
 /* ─────────────────── SOLUTIONS OVERVIEW ─────────────────── */
 function Solutions() {
+  const { t } = useTranslation("home")
   return (
-    <section className="bg-[#2E2F3A] py-20 lg:py-28">
+    // Inline background guarantees the dark surface even if `bg-charcoal`
+    // utility isn't generated (was the cause of invisible white-on-cream text).
+    <section className="py-20 lg:py-28" style={{ backgroundColor: "#1A1B23" }}>
       <Container>
         <div className="mb-14 flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-20">
           <div className="lg:max-w-[380px]">
-            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFCCAF]">Solutions</span>
-            <h2 className="mt-4 text-[2rem] font-bold tracking-tight text-white lg:text-[2.3rem]">
-              Solutions Designed for Modern Organizations
+            {/* Eyebrow, standardized shape; tone="violet-inverse" pattern for dark surfaces */}
+            <span
+              className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
+              style={{ backgroundColor: "rgba(233, 196, 106, 0.14)", color: "#E9C46A", border: "1px solid rgba(233, 196, 106, 0.30)" }}
+            >
+              {t("sections.solutions.eyebrow")}
+            </span>
+            <h2
+              className="mt-4 text-[32px] font-bold leading-[1.05] tracking-tight sm:text-[44px] lg:text-[48px]"
+              style={{ color: "#FFFFFF" }}
+            >
+              {t("sections.solutions.title")}
             </h2>
-            <p className="mt-4 text-[15px] leading-7 text-white/55">
-              Technology solutions that improve efficiency, strengthen digital infrastructure, and accelerate innovation.
+            <p className="mt-4 text-[15px] leading-[1.65]" style={{ color: "rgba(255, 255, 255, 0.78)" }}>
+              {t("sections.solutions.subtitle")}
             </p>
+            {/* Secondary outline button — Terracotta (yellow) border,
+                white text, Royal Violet arrow icon. Subtle terracotta wash on hover. */}
             <Link
               to="/solutions"
-              className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/15 px-5 py-3 text-[14px] font-semibold text-white transition hover:bg-white/8 hover:-translate-y-0.5"
+              className="group mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-[14px] font-semibold transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                color: "#FFFFFF",
+                backgroundColor: "transparent",
+                border: "2px solid #E9C46A",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(233, 196, 106, 0.12)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
             >
-              Explore Solutions <ArrowRight className="h-4 w-4" />
+              {t("sections.solutions.cta")}
+              {/* Violet Light #8B6FE8 — required for WCAG on dark surfaces
+                  per Brand v3 § 04 ⚠ rule. #5D3FD3 fails 1.1:1 on charcoal. */}
+              <ArrowRight
+                className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                style={{ color: "#8B6FE8" }}
+                aria-hidden="true"
+              />
             </Link>
           </div>
 
           <motion.div
-            variants={stagger} initial="hidden" whileInView="show" viewport={{ once:true, margin:"-60px" }}
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-60px" }}
             className="grid flex-1 grid-cols-2 gap-4 sm:grid-cols-3"
           >
-            {solutions.map(({ title, icon: Icon }) => (
+            {solutions.map(({ titleKey, icon: Icon }) => (
               <motion.div
-                key={title} variants={fadeUp}
-                className="group flex flex-col gap-4 rounded-xl border border-white/8 bg-white/5 p-5 transition-all hover:border-[#FFCCAF]/25 hover:bg-white/8"
+                key={titleKey}
+                variants={fadeUp}
+                className="group flex flex-col gap-4 rounded-xl p-5 transition-all hover:-translate-y-0.5"
+                style={{ backgroundColor: "rgba(255, 255, 255, 0.06)", border: "1px solid rgba(255, 255, 255, 0.10)" }}
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#420060]/60 text-[#FFCCAF]">
-                  <Icon className="h-5.5 w-5.5" />
+                <div
+                  className="flex h-11 w-11 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: "rgba(93, 63, 211, 0.40)", color: "#E9C46A" }}
+                >
+                  <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
-                <p className="text-[13px] font-semibold leading-5 text-white/80">{title}</p>
+                <p className="text-[14px] font-semibold leading-[1.4] text-white">{t(titleKey)}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -308,84 +190,53 @@ function Solutions() {
   )
 }
 
-// ── 5 store categories (matching the canonical list)
-const STORE_CATEGORIES = [
-  "Templates",
-  "Digital & IT Toolkits",
-  "Computer Science Resources",
-  "STEM & Robotics Kits",
-  "Digital Business Resources",
-]
-
 /* ─────────────────── FEATURED PRODUCTS ─────────────────── */
 function FeaturedProducts() {
+  const { t } = useTranslation("home")
   const [products, setProducts] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const { addToCart }           = useCart()
-  const [added, setAdded]       = useState({})
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch latest product from each category — shows breadth of catalog
-    async function loadFeaturedProducts() {
+    let cancelled = false
+    async function load() {
       try {
-        // Primary: fetch all products then pick latest from each category
         const data = await fetchProducts("")
         const arr = Array.isArray(data) ? data : []
-
+        if (cancelled) return
         if (arr.length > 0) {
-          // Build a map of category -> newest product
           const catMap = new Map()
-          const sorted = [...arr].sort(
-            (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-          )
-          // First pass: one per category
+          const sorted = [...arr].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
           for (const p of sorted) {
             const cat = p.category || "General"
             if (!catMap.has(cat)) catMap.set(cat, p)
           }
           let featured = Array.from(catMap.values()).slice(0, 6)
-          // Pad to 6 if fewer than 6 categories
           if (featured.length < 6) {
             const extras = sorted.filter((p) => !featured.find((f) => f.id === p.id))
             featured = [...featured, ...extras].slice(0, 6)
           }
           setProducts(featured)
-        } else {
-          setProducts([])
         }
       } catch (err) {
         console.warn("Featured products fetch failed:", err.message)
-        setProducts([])
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
-    loadFeaturedProducts()
+    load()
+    return () => { cancelled = true }
   }, [])
-
-  function handleAdd(product) {
-    addToCart(product, 1)
-    setAdded((p) => ({ ...p, [product.id]: true }))
-    setTimeout(() => setAdded((p) => ({ ...p, [product.id]: false })), 1800)
-  }
-
-  function getImg(product) {
-    const imgs = Array.isArray(product?.images) ? product.images : []
-    const img = imgs.find((i) => i?.imageRole === "cover") || imgs[0]
-    if (!img?.url) return null
-    return img.url.startsWith("http") ? img.url : `${API_BASE_URL}${img.url}`
-  }
 
   return (
     <section className="py-20 lg:py-28">
       <Container>
         <SectionHeading
-          eyebrow="Featured Resources"
-          title="Featured Digital Resources"
-          subtitle="Practical templates, toolkits, and digital assets designed to help you work faster and smarter."
+          eyebrow={t("sections.featuredProducts.eyebrow")}
+          title={t("sections.featuredProducts.title")}
+          subtitle={t("sections.featuredProducts.subtitle")}
           action={
-            <Link to="/store" className="inline-flex items-center gap-1.5 rounded-xl border border-[#420060]/20 px-5 py-2.5 text-[13px] font-semibold text-[#420060] transition hover:bg-[#ede4ef]">
-              Explore Store <ArrowRight className="h-4 w-4" />
+            <Link to="/store" className="inline-flex items-center gap-1.5 rounded-xl border border-violet/20 px-5 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale">
+              {t("sections.featuredProducts.cta")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           }
           align="left"
@@ -393,15 +244,26 @@ function FeaturedProducts() {
 
         {loading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[1,2,3,4,5,6].map((i) => (
-              <div key={i} className="h-[300px] animate-pulse rounded-xl bg-[#ede4ef]" />
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton.Card key={i} />
             ))}
           </div>
+        ) : products.length === 0 ? (
+          <EmptyState
+            icon={Inbox}
+            title={t("sections.featuredProducts.emptyTitle")}
+            description={t("sections.featuredProducts.emptyBody")}
+            action={
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-violet/20 bg-white px-5 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale"
+              >
+                {t("sections.featuredProducts.emptyCta")}
+              </Link>
+            }
+          />
         ) : (
-          <motion.div
-            variants={stagger} initial="hidden" whileInView="show" viewport={{ once:true, margin:"-40px" }}
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          >
+          <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-40px" }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
               <motion.div key={product.id} variants={fadeUp}>
                 <ProductCard product={product} />
@@ -414,34 +276,158 @@ function FeaturedProducts() {
   )
 }
 
-/* ─────────────────── PROCESS ─────────────────── */
-function Process() {
+/* ─────────────────── FEATURED SERVICES ─────────────────── */
+function FeaturedServices() {
+  const { t } = useTranslation("home")
+  const [services, setServices] = useState([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const items = await fetchFeaturedServices()
+        if (!cancelled) setServices(Array.isArray(items) ? items.slice(0, 4) : [])
+      } catch {
+        /* silent */
+      } finally {
+        if (!cancelled) setLoaded(true)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  if (!loaded || services.length === 0) return null
+
+  const serviceIcons = [Globe, RefreshCcw, Server, Cloud]
+
   return (
-    <section className="bg-[#F1EAE3] py-20 lg:py-28">
+    <section className="bg-mist py-20 lg:py-28">
       <Container>
         <SectionHeading
-          eyebrow="How We Work"
-          title="A Proven Approach to Technology Implementation"
-          subtitle="A structured process that transforms ideas into reliable digital systems and scalable technology solutions."
+          eyebrow={t("sections.featuredServices.eyebrow")}
+          title={t("sections.featuredServices.title")}
+          subtitle={t("sections.featuredServices.subtitle")}
+          action={
+            <Link to="/services" className="inline-flex items-center gap-1.5 rounded-xl border border-violet/20 bg-white px-5 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale">
+              {t("sections.featuredServices.cta")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          }
+          align="left"
         />
-        <motion.div
-          variants={stagger} initial="hidden" whileInView="show" viewport={{ once:true, margin:"-60px" }}
-          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          {processSteps.map(({ title, description, icon: Icon }, i) => (
-            <motion.div
-              key={title} variants={fadeUp}
-              className="relative flex flex-col gap-4 rounded-xl bg-white p-6 shadow-[0_6px_20px_rgba(66,0,96,0.06)] transition hover:-translate-y-0.5"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
-                  {Icon ? <Icon className="h-5.5 w-5.5" /> : null}
+
+        <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-40px" }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {services.map((svc, i) => {
+            const Icon = serviceIcons[i % serviceIcons.length]
+            return (
+              <motion.div
+                key={svc.id || svc.slug}
+                variants={fadeUp}
+                className="group flex flex-col gap-5 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:border-violet/30 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet/10 text-violet transition group-hover:bg-violet group-hover:text-white">
+                  <Icon className="h-5.5 w-5.5" aria-hidden="true" />
                 </div>
-                <span className="text-[2.2rem] font-bold text-[#420060]/8">0{i+1}</span>
+                <div className="flex-1">
+                  <h3 className="text-body font-bold text-violet">{svc.title}</h3>
+                  <p className="mt-2 text-meta leading-6 text-charcoal-80/65 line-clamp-3">
+                    {svc.shortDescription}
+                  </p>
+                </div>
+                <Link
+                  to={`/services/${svc.slug}`}
+                  className="inline-flex items-center gap-1 self-start rounded-md text-meta font-semibold text-violet transition hover:gap-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                >
+                  {t("sections.featuredServices.learnMore")} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </motion.div>
+            )
+          })}
+        </motion.div>
+      </Container>
+    </section>
+  )
+}
+
+/* ─────────────────── FEATURED PORTFOLIO ─────────────────── */
+function FeaturedPortfolio() {
+  const { t } = useTranslation("home")
+  const [items, setItems] = useState([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await fetchFeaturedPortfolio(3)
+        if (!cancelled) setItems(Array.isArray(data) ? data.slice(0, 3) : [])
+      } catch {
+        /* silent */
+      } finally {
+        if (!cancelled) setLoaded(true)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  if (!loaded || items.length === 0) return null
+
+  return (
+    <section className="py-20 lg:py-28">
+      <Container>
+        <SectionHeading
+          eyebrow={t("sections.featuredPortfolio.eyebrow")}
+          title={t("sections.featuredPortfolio.title")}
+          subtitle={t("sections.featuredPortfolio.subtitle")}
+          action={
+            <Link to="/about" className="inline-flex items-center gap-1.5 rounded-xl border border-violet/20 px-5 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale">
+              {t("sections.featuredPortfolio.cta")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          }
+          align="left"
+        />
+
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-40px" }}
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {items.map((p, idx) => (
+            <PortfolioCard key={p.id || p.slug} project={p} cardIndex={idx} />
+          ))}
+        </motion.div>
+      </Container>
+    </section>
+  )
+}
+
+/* ─────────────────── PROCESS ─────────────────── */
+function Process() {
+  const { t } = useTranslation("home")
+  return (
+    <section className="bg-[#EFF1F5] py-20 lg:py-28">
+      <Container>
+        <SectionHeading
+          eyebrow={t("sections.process.eyebrow")}
+          title={t("sections.process.title")}
+          subtitle={t("sections.process.subtitle")}
+        />
+        <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-60px" }} className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {processSteps.map(({ titleKey, descriptionKey, icon: Icon }, i) => (
+            <motion.div key={titleKey} variants={fadeUp} className="relative flex flex-col gap-4 rounded-xl bg-white p-6 shadow-[0_6px_20px_rgba(93,63,211,0.06)] transition hover:-translate-y-0.5">
+              <div className="flex items-center justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet">
+                  {Icon ? <Icon className="h-5.5 w-5.5" aria-hidden="true" /> : null}
+                </div>
+                <span className="font-mono text-page font-bold tabular-nums text-violet/8">
+                  0{i + 1}
+                </span>
               </div>
               <div>
-                <h3 className="text-[16px] font-bold text-[#420060]">{title}</h3>
-                <p className="mt-1.5 text-[13px] leading-5 text-[#634F40]/65">{description}</p>
+                <h3 className="text-body font-bold text-violet">{t(titleKey)}</h3>
+                <p className="mt-1.5 text-meta leading-5 text-charcoal-80/65">{t(descriptionKey)}</p>
               </div>
             </motion.div>
           ))}
@@ -453,8 +439,24 @@ function Process() {
 
 /* ─────────────────── TESTIMONIALS ─────────────────── */
 function Testimonials() {
-  const [current, setCurrent]   = useState(0)
-  const visibleCount = typeof window !== "undefined" && window.innerWidth >= 1024 ? 4 : 1
+  const { t } = useTranslation("home")
+  const [current, setCurrent] = useState(0)
+  const showMarquee = testimonials.length >= 6
+
+  useEffect(() => {
+    if (!showMarquee) return
+    const id = "ukz-home-marquee-css"
+    if (document.getElementById(id)) return
+    const el = document.createElement("style")
+    el.id = id
+    el.textContent = `
+      @keyframes ukzHomeMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+      .ukz-home-marquee { animation: ukzHomeMarquee 35s linear infinite; }
+      .ukz-home-marquee-pause:hover .ukz-home-marquee { animation-play-state: paused; }
+      @media (prefers-reduced-motion: reduce) { .ukz-home-marquee { animation: none; } }
+    `
+    document.head.appendChild(el)
+  }, [showMarquee])
 
   const prev = () => setCurrent((c) => (c - 1 + testimonials.length) % testimonials.length)
   const next = () => setCurrent((c) => (c + 1) % testimonials.length)
@@ -468,116 +470,232 @@ function Testimonials() {
       <Container>
         <div className="mb-10 flex items-end justify-between">
           <SectionHeading
-            eyebrow="Testimonials"
-            title="What Clients Say"
-            subtitle="Organizations and professionals share how strategic technology solutions improved their digital operations."
+            eyebrow={t("sections.testimonials.eyebrow")}
+            title={t("sections.testimonials.title")}
+            subtitle={t("sections.testimonials.subtitle")}
             align="left"
           />
-          <div className="hidden shrink-0 gap-3 lg:flex">
-            {[prev, next].map((fn, i) => (
-              <button
-                key={i} type="button" onClick={fn}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#634F40]/15 bg-white text-[#420060] shadow-sm transition hover:bg-[#420060] hover:text-white"
-              >
-                {i === 0 ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {visible.map((t, i) => (
-            <div
-              key={`${t.name}-${i}`}
-              className="flex flex-col gap-4 rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_8px_24px_rgba(66,0,96,0.05)]"
-            >
-              <div className="flex gap-0.5 text-[#FFCCAF]">
-                {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} className="h-4 w-4 fill-current" />
-                ))}
-              </div>
-              <p className="flex-1 text-[14px] leading-6 text-[#634F40]/75">"{t.text}"</p>
-              <div className="flex items-center gap-3 border-t border-[#634F40]/8 pt-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#420060] text-[13px] font-bold text-white">
-                  {t.initials}
-                </div>
-                <div>
-                  <div className="text-[13px] font-semibold text-[#420060]">{t.name}</div>
-                  <div className="text-[11px] text-[#634F40]/55">{t.role}</div>
-                </div>
-              </div>
+          {!showMarquee && (
+            <div className="hidden shrink-0 gap-3 lg:flex">
+              {[prev, next].map((fn, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={fn}
+                  aria-label={i === 0 ? t("sections.testimonials.prevAria") : t("sections.testimonials.nextAria")}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-charcoal-80/15 bg-white text-violet shadow-sm transition hover:bg-violet hover:text-white focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                >
+                  {i === 0 ? <ArrowLeft className="h-4 w-4" aria-hidden="true" /> : <ArrowRight className="h-4 w-4" aria-hidden="true" />}
+                </button>
+              ))}
             </div>
-          ))}
+          )}
         </div>
 
-        {/* Mobile arrows */}
-        <div className="mt-6 flex justify-center gap-3 lg:hidden">
-          {[prev, next].map((fn, i) => (
-            <button
-              key={i} type="button" onClick={fn}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#634F40]/15 bg-white text-[#420060] shadow-sm transition hover:bg-[#420060] hover:text-white"
-            >
-              {i === 0 ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-            </button>
-          ))}
-        </div>
+        {showMarquee ? (
+          <div className="ukz-home-marquee-pause overflow-hidden">
+            <div className="ukz-home-marquee flex w-max gap-5">
+              {[...testimonials, ...testimonials].map((t, i) => (
+                <div key={`${t.name}-${i}`} className="w-[300px] shrink-0">
+                  <TestimonialCard t={t} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {visible.map((t, i) => <TestimonialCard key={`${t.name}-${i}`} t={t} />)}
+            </div>
+
+            <div className="mt-6 flex justify-center gap-3 lg:hidden">
+              {[prev, next].map((fn, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={fn}
+                  aria-label={i === 0 ? t("sections.testimonials.prevAria") : t("sections.testimonials.nextAria")}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-charcoal-80/15 bg-white text-violet shadow-sm transition hover:bg-violet hover:text-white"
+                >
+                  {i === 0 ? <ArrowLeft className="h-4 w-4" aria-hidden="true" /> : <ArrowRight className="h-4 w-4" aria-hidden="true" />}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </Container>
     </section>
   )
 }
 
-/* ─────────────────── CTA ─────────────────── */
-function CTA() {
+function TestimonialCard({ t }) {
+  // Local i18n alias `tx` — the testimonial object uses the `t` prop name
+  // so we can't shadow it with the i18n hook. roleKey routes through tx.
+  const { t: tx } = useTranslation("home")
   return (
-    <section className="py-16 lg:py-20">
+    <div className="flex h-full flex-col gap-4 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
+      <div className="flex gap-0.5 text-terracotta">
+        {Array.from({ length: t.rating }).map((_, j) => (
+          <Star key={j} className="h-4 w-4 fill-current" aria-hidden="true" />
+        ))}
+      </div>
+      <p className="flex-1 text-meta leading-6 text-charcoal-80/75">"{t.text}"</p>
+      <div className="flex items-center gap-3 border-t border-charcoal-80/8 pt-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet text-meta font-bold text-white">
+          {t.initials}
+        </div>
+        <div>
+          <div className="text-meta font-semibold text-violet">{t.name}</div>
+          <div className="text-micro text-charcoal-80/55">{tx(t.roleKey)}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─────────────────── CTA — V3 · animated pill design ─────────────────── */
+function CTA() {
+  const { t } = useTranslation("home")
+  const cardIn = {
+    hidden: { opacity: 0, y: 40, scale: 0.96 },
+    show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+  }
+  const contentStagger = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.08, delayChildren: 0.25 } },
+  }
+  const itemUp = {
+    hidden: { opacity: 0, y: 18 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+  }
+
+  return (
+    <section className="py-16 lg:py-24">
       <Container>
-        <div className="relative overflow-hidden rounded-xl bg-[#420060] px-8 py-14 text-center shadow-[0_24px_80px_rgba(66,0,96,0.28)] lg:px-16">
-          {/* Subtle gradient shapes */}
-          <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/5" />
-          <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-[#FFCCAF]/8" />
+        {/* CTA keyframes (.ukz-cta-bg, .ukz-ring, .ukz-sun, .ukz-shine,
+            .ukz-ball-pulse) are defined globally in index.css so they
+            parse once on app load instead of on every Home mount. */}
 
-          <div className="relative">
-            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFCCAF]">
-              Ready to start?
-            </span>
-            <h2 className="mx-auto mt-4 max-w-2xl text-[1.9rem] font-bold tracking-tight text-white lg:text-[2.2rem]">
-              Ready to Strengthen Your Digital Strategy?
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-[15px] leading-7 text-white/60">
-              Let's design practical technology solutions that support your growth and long-term success.
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <Link to="/services" className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-[14px] font-semibold text-[#420060] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                Book Consultation <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link to="/solutions" className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-white/10 hover:-translate-y-0.5">
-                Explore Solutions
-              </Link>
-              <Link to="/store" className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-white/10 hover:-translate-y-0.5">
-                Visit Store
-              </Link>
+        <motion.div
+          variants={cardIn}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-80px" }}
+          className="ukz-cta-bg relative overflow-hidden rounded-[28px] text-white shadow-[0_30px_80px_-20px_rgba(93,63,211,0.50)]"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute right-0 top-1/2 hidden -translate-y-1/2 translate-x-[28%] sm:block"
+          >
+            <div className="relative h-[640px] w-[640px]">
+              <span className="ukz-ring ukz-ring-1 absolute inset-0 rounded-full bg-white/[0.06]" />
+              <span className="ukz-ring ukz-ring-2 absolute inset-[7%] rounded-full bg-white/[0.08]" />
+              <span className="ukz-ring ukz-ring-3 absolute inset-[14%] rounded-full bg-white/[0.10]" />
+              <span className="ukz-ring ukz-ring-4 absolute inset-[22%] rounded-full bg-white/[0.13]" />
+              <span className="ukz-ring ukz-ring-5 absolute inset-[31%] rounded-full bg-white/[0.17]" />
+              <span className="ukz-ring ukz-ring-6 absolute inset-[42%] rounded-full bg-white/[0.22]" />
+              <span className="ukz-ring ukz-ring-7 absolute inset-[55%] rounded-full bg-white/[0.30]" />
+              <span className="ukz-sun absolute inset-[70%] rounded-full bg-white" />
             </div>
           </div>
-        </div>
+
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="ukz-shine absolute inset-y-0 -left-1/4 w-1/3" />
+          </div>
+
+          <motion.div
+            variants={contentStagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-80px" }}
+            className="relative px-8 py-16 sm:px-12 lg:px-16 lg:py-24"
+          >
+            <div className="max-w-[40ch]">
+              {/* Standardized eyebrow — same shape, padding, font-size, and
+                  tracking as every other eyebrow on Home (Audiences, Services,
+                  Portfolio, Process, Testimonials). Tone is the inverse variant
+                  for legibility on the violet gradient. */}
+              <motion.span
+                variants={itemUp}
+                className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
+                style={{
+                  backgroundColor: "rgba(233, 196, 106, 0.16)",
+                  color: "#E9C46A",
+                  border: "1px solid rgba(233, 196, 106, 0.32)",
+                }}
+              >
+                {t("cta.eyebrow")}
+              </motion.span>
+
+              <h2 className="mt-4 text-display !text-white">
+                <motion.span variants={itemUp} className="block">{t("cta.titleLine1")}</motion.span>
+                <motion.span variants={itemUp} className="block">{t("cta.titleLine2")}</motion.span>
+              </h2>
+
+              <motion.p
+                variants={itemUp}
+                className="mt-4 max-w-md text-[15px] leading-[1.65] text-white/75"
+              >
+                {t("cta.body")}
+              </motion.p>
+
+              <motion.div variants={itemUp} className="mt-8 flex flex-wrap items-center gap-3">
+                <CtaPill to="/book" label={t("cta.ctaBook")} icon={Calendar} />
+                <CtaPill to="/store" label={t("cta.ctaStore")} icon={ShoppingBag} />
+              </motion.div>
+            </div>
+          </motion.div>
+        </motion.div>
       </Container>
     </section>
+  )
+}
+
+function CtaPill({ to, label, icon: Icon = ArrowRight }) {
+  return (
+    <Link
+      to={to}
+      className="group inline-flex items-center gap-3 rounded-full py-1.5 pl-6 pr-1.5 text-white shadow-[0_10px_28px_rgba(0,0,0,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-terracotta/40 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
+      style={{ backgroundColor: "#1A1B23" }}
+    >
+      <span className="text-[14px] font-bold">{label}</span>
+      {/* Icon plate, Royal Violet → Deep Azure mini Innovation Gradient */}
+      <span
+        aria-hidden="true"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-300 ease-out group-hover:scale-110"
+        style={{
+          background: "linear-gradient(135deg, #5D3FD3 0%, #0284C7 100%)",
+          boxShadow: "inset 0 -2px 3px rgba(0,0,0,0.18)",
+        }}
+      >
+        <Icon className="h-4 w-4 text-white transition-transform duration-300 group-hover:translate-x-0.5" />
+      </span>
+    </Link>
   )
 }
 
 /* ─────────────────── PAGE ─────────────────── */
 export default function Home() {
+  const { t } = useTranslation("home")
   return (
-    
     <>
-      <Seo {...pageSeo.AboutPage} />
-      <Hero />
-      <Audiences />
-      <Solutions />
-      <FeaturedProducts />
-      <Process />
-      <Testimonials />
-      <CTA />
+      <Seo
+        {...pageSeo.home}
+        includeLocalBusiness
+        noBreadcrumbs
+        jsonLd={[siteNavigationSchema()]}
+      />
+      <HomeHero />
+      <RevealSection><Audiences /></RevealSection>
+      <RevealSection><Solutions /></RevealSection>
+      <RevealSection><FeaturedProducts /></RevealSection>
+      <RevealSection><FeaturedServices /></RevealSection>
+      <RevealSection><FeaturedPortfolio /></RevealSection>
+      <RevealSection><Process /></RevealSection>
+      <RevealSection><Testimonials /></RevealSection>
+      {/* Real customer reviews admin has pinned. Renders nothing if zero. */}
+      <FeaturedReviewsRibbon limit={6} />
+      <RevealSection><CTA /></RevealSection>
     </>
   )
 }

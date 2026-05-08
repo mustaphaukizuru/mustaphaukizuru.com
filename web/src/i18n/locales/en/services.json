@@ -1,0 +1,227 @@
+{
+  "hero": {
+    "eyebrow": "Services",
+    "title": "Technology services that move the needle",
+    "subtitle": "IT consulting, full-stack development, school IT transformation, and STEM program development.",
+    "compositionAria": "Hero composition: a happy client portrait flanked by stat cards showing 96 services delivered and 82+ engagements completed",
+    "happyClientAlt": "Happy client of Mustapha Ukizuru",
+    "servicePlan": "Service plan",
+    "nowBooking": "Now booking",
+    "capacityOpen": "Q3 capacity open",
+    "honestPrice": "Honest price",
+    "builtRight": "built right",
+    "pricedFair": "priced fair",
+    "deliveredFast": "delivered fast",
+    "bookCallAria": "Book a 30-minute discovery call",
+    "bookCallCta": "Book discovery call",
+    "downloadCatalog": "Download catalog",
+    "atomicServices": "Atomic services",
+    "servicesLabel": "Services",
+    "engagements": "Engagements",
+    "onTimeDelivery": "On-time delivery",
+    "servicesEyebrow": "Services",
+    "headlinePremium": "Premium tech.",
+    "headlineWebsitesApps": "Websites, apps, AI, IT strategy —"
+  },
+  "sections": {
+    "browseAll": "Browse all services",
+    "consulting": "IT Consulting",
+    "websiteSystems": "Website Systems",
+    "schoolIT": "School IT Transformation",
+    "stem": "STEM Programs"
+  },
+  "cta": {
+    "choosePlan": "Choose plan",
+    "viewDetails": "View details",
+    "bookConsultation": "Book a consultation"
+  },
+  "overview": {
+    "eyebrow": "What we offer",
+    "title": "Technology Services",
+    "subtitle": "Specialized services designed to improve digital systems, infrastructure reliability, and technology strategy."
+  },
+  "value": {
+    "eyebrow": "Value",
+    "title": "How These Services Benefit Your Organization",
+    "subtitle": "See how the right technology systems improve productivity, reliability, and operational efficiency.",
+    "toggle": {
+      "with": "With Our Services",
+      "without": "Without Our Services",
+      "ariaLabel": "Toggle benefits comparison"
+    },
+    "footer": "Outcomes vary by engagement scope · benchmarks shared during scoping call"
+  },
+  "why": {
+    "eyebrow": "Why choose us",
+    "titlePart1": "Senior Delivery You Can",
+    "titlePart2": "Trust, End to End"
+  },
+  "social": {
+    "eyebrow": "Social proof",
+    "title": "Certified, credentialed, currently shipping",
+    "subtitle": "Past institutions and active certifications. Every claim below is auditable.",
+    "credentialsAria": "Certifications and institutions",
+    "testimonialQuote": "Strong communication, thoughtful planning, and modern systems thinking made the implementation process smooth.",
+    "testimonialName": "Theo M.",
+    "testimonialRole": "Operations Lead"
+  },
+  "process": {
+    "eyebrow": "Process",
+    "title": "Six steps from brief to handover",
+    "subtitle": "Same shape across every service family. Only the content differs."
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "title": "Choose your plan",
+    "subtitle": "Audience-tailored programs. Pick the path that matches your stage, then choose the depth of engagement that fits your ambition.",
+    "audienceAria": "Pricing audience",
+    "mostPopular": "Most popular",
+    "getStarted": "Get started",
+    "serviceDetails": "Service Details",
+    "currency": "MXN",
+    "catalog": {
+      "title": "Need the full catalog detail?",
+      "subtitleLeft": "Download the complete catalog with all",
+      "subtitleRight": "services, outcome statements, deliverables, and engagement types.",
+      "pdfLabel": "PDF · 110 KB",
+      "mdLabel": "Markdown · 57 KB"
+    }
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Common questions before the first call",
+    "subtitle": "Search, filter by topic, or browse the full set. Still stuck? Book a free 30-minute consult.",
+    "searchPlaceholder": "Search…",
+    "searchAria": "Search frequently asked questions",
+    "filterByTopic": "Filter by topic",
+    "filterAria": "Filter FAQs by category",
+    "countFormat": "{{count}} of {{total}} questions",
+    "emptyTitle": "No matching questions",
+    "emptyBody": "Try a different keyword or clear the filter.",
+    "emptyReset": "Reset filters",
+    "stillHaveQuestions": "Still have questions?",
+    "stillHaveBody": "Book a free 30-minute consult and we will walk through your specific scenario. No commitment, just a clear next step.",
+    "bookConsult": "Book consult"
+  },
+  "finalCta": {
+    "eyebrow": "Take the first step",
+    "titlePart1": "Six families.",
+    "titlePart2": "One discovery call to find yours.",
+    "body": "30 minutes. No commitment. The call gives you a clear next step, whether or not we end up working together.",
+    "ctaPrimary": "Book Your Consultation",
+    "ctaSecondary": "Explore Solutions",
+    "stats": {
+      "yearsExperience": "Years experience",
+      "catalogServices": "Catalog services",
+      "countriesServed": "Countries served",
+      "avgResponse": "Avg response"
+    }
+  },
+  "detail": {
+    "errors": {
+      "notFound": "Service not found",
+      "unavailable": "The service you're looking for is no longer available.",
+      "backToServices": "Back to services"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "services": "Services"
+    },
+    "hero": {
+      "featured": "Featured service",
+      "packagesLabel": "package",
+      "packagesLabelPlural": "packages"
+    },
+    "features": {
+      "title": "What's included"
+    },
+    "packages": {
+      "eyebrow": "Pricing",
+      "title": "Choose a package",
+      "subtitle": "Pick the option that matches where you are. You can change or upgrade later.",
+      "mostPopular": "Most Popular",
+      "selected": "Selected",
+      "select": "Select this package"
+    },
+    "order": {
+      "title": "Place your order",
+      "subtitle": "Tell us about your project. We'll review it and get back within one business day.",
+      "requirementsLabel": "Requirements (optional)",
+      "requirementsPlaceholder": "Tell us about your project, timeline, and any specific needs.",
+      "preferredDateLabel": "Preferred start date (optional)",
+      "signinHint": "You'll be asked to sign in before the order is placed.",
+      "submitButton": "Place order",
+      "submitting": "Placing order…"
+    },
+    "reviews": {
+      "eyebrow": "Client reviews",
+      "title": "What clients say",
+      "subtitle": "Reviews from completed engagements with this service. Verified clients can leave a review from the page below; reviews from non-clients are queued for moderation."
+    },
+    "related": {
+      "eyebrow": "More to explore",
+      "title": "Related services",
+      "viewAll": "View all"
+    }
+  },
+  "checkout": {
+    "errors": {
+      "notFound": "Plan not found",
+      "notFoundBody": "We couldn't recognize the plan you picked. Choose a tier from the pricing page.",
+      "backToServices": "Back to Services",
+      "backToPlans": "Back to plans",
+      "planInvalid": "Plan not recognized. Pick a tier from the pricing page.",
+      "nameRequired": "Please enter your name.",
+      "emailInvalid": "Please enter a valid email address.",
+      "termsRequired": "Please accept the Terms & Conditions.",
+      "mpFailed": "Could not start MercadoPago checkout.",
+      "mpNoUrl": "MercadoPago did not return a checkout URL.",
+      "paypalCancel": "PayPal checkout cancelled.",
+      "paypalFailed": "PayPal checkout failed."
+    },
+    "plan": {
+      "mostPopular": "Most popular",
+      "includedTitle": "What's included"
+    },
+    "form": {
+      "title": "Your details",
+      "prefilled": "We've pre-filled this from your account.",
+      "guest": "No account needed, we'll create one for you so you can access your project dashboard.",
+      "fullName": "Full name",
+      "email": "Email",
+      "requirementsLabel": "Project requirements",
+      "requirementsHint": "(optional · helps us prepare)",
+      "requirementsPlaceholder": "What you need help with, deadlines, anything we should know upfront."
+    },
+    "payment": {
+      "title": "Payment",
+      "totalToday": "Total today",
+      "termsAccept": "I agree to the",
+      "terms": "Terms & Conditions",
+      "and": "and",
+      "refundPolicy": "Refund Policy",
+      "payMP": "Pay with MercadoPago",
+      "starting": "Starting checkout…",
+      "loadingPayPal": "Loading PayPal…",
+      "paypalFailed": "PayPal checkout failed."
+    },
+    "trust": {
+      "secure": "Encrypted & secure checkout",
+      "instant": "Instant confirmation by email",
+      "dashboard": "Project workspace ready in your dashboard"
+    }
+  },
+  "reviews": {
+    "writeTitle": "Share your experience",
+    "signIn": "Sign in",
+    "alreadyReviewed": "You have already reviewed",
+    "yourRating": "Your Rating",
+    "placeholder": "Outcome, working style, what surprised you…",
+    "moderationNote": "Reviews from clients with completed engagements go live immediately. Other reviews are queued for moderation.",
+    "noneYet": "No reviews yet. Be the first to share your experience.",
+    "verifiedClient": "Verified Client",
+    "deleteTitle": "Delete review",
+    "awaitingModeration": "Awaiting moderation, only you can see this for now",
+    "replyFrom": "Reply from"
+  }
+}

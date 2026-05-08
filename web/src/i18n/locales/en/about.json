@@ -1,0 +1,149 @@
+{
+  "hero": {
+    "eyebrow": "About",
+    "title": "Hi, I'm Mustapha",
+    "subtitle": "IT Manager, full-stack developer, and computer-science educator. I build digital systems that make complex things feel simple.",
+    "helloIAm": "Hello, I Am",
+    "yearsExperience": "Years Experience",
+    "projectsDelivered": "Projects Delivered",
+    "contactAria": "Contact Mustapha",
+    "openCvAria": "Open CV in a new tab",
+    "viewCv": "View my CV",
+    "portraitAlt": "Mustapha Ukizuru",
+    "tagline1": "I design modern digital systems,",
+    "tagline2": "and I love what I do.",
+    "clientReviews": "Client Reviews",
+    "basedOnFeedback": "Based on client feedback",
+    "connectLabel": "Connect",
+    "technologyKicker": "Technology",
+    "consultantWord": "Consultant."
+  },
+  "sections": {
+    "mission": "Our Mission",
+    "vision": "Our Vision",
+    "values": "Our Values",
+    "expertise": "Areas of Expertise",
+    "skills": "Skills",
+    "experience": "Experience",
+    "education": "Education",
+    "certifications": "Certifications",
+    "languages": "Languages"
+  },
+  "cta": {
+    "downloadCV": "Download CV",
+    "letsTalk": "Let's talk",
+    "contactInfo": "Contact info",
+    "officeAddress": "Office address"
+  },
+  "core": {
+    "eyebrow": "Core Competencies",
+    "title": "Skills beyond the stack",
+    "subtitle": "What I bring to teams beyond technical execution — independent judgment, multilingual communication, and a builder's bias for shipping outcomes.",
+    "photoAlt": "Mustapha Ukizuru — IT Manager and Full-Stack Developer",
+    "items": {
+      "problemSolving": {
+        "title": "Independent Problem-Solving",
+        "desc": "Delivers production-ready solutions with minimal supervision in complex, ambiguous environments."
+      },
+      "communication": {
+        "title": "Cross-Cultural Communication",
+        "desc": "Operates fluently across diverse teams and stakeholders in four languages — English, Spanish, Turkish, and Kinyarwanda."
+      },
+      "leadership": {
+        "title": "Leadership & Mentoring",
+        "desc": "Leads engineering and IT work, and has mentored 80+ students through hands-on software development."
+      },
+      "adaptability": {
+        "title": "Adaptability",
+        "desc": "Performs consistently in fast-paced, resource-limited settings — from startups to schools to enterprise teams."
+      },
+      "strategy": {
+        "title": "Strategic Thinking",
+        "desc": "Combines technical execution with a systems-level perspective on cost, scale, and long-term maintainability."
+      }
+    }
+  },
+  "mvv": {
+    "eyebrow": "Core Principles",
+    "title": "Mission, Vision & Values",
+    "subtitle": "The principles guiding every project, partnership, and outcome we create."
+  },
+  "expertise": {
+    "eyebrow": "Expertise",
+    "title": "Areas of Focus",
+    "subtitle": "Specialized domains where we deliver consistent, high-impact results."
+  },
+  "journey": {
+    "eyebrow": "Journey",
+    "title": "Professional Journey",
+    "subtitle": "A career built through technology leadership, education, and hands-on consulting experience.",
+    "education": "Education",
+    "educationSubtitle": "Academic & formal training",
+    "experience": "Experience",
+    "experienceSubtitle": "Professional career",
+    "datePending": "Date pending",
+    "present": "Present"
+  },
+  "credentials": {
+    "eyebrow": "Credentials",
+    "italic": "Check out",
+    "title": "My certifications",
+    "subtitle": "Industry credentials that demonstrate technical expertise and continuous professional development.",
+    "knowMore": "Know more"
+  },
+  "tech": {
+    "eyebrow": "Tech Stack",
+    "title": "The toolkit behind the work",
+    "subtitle": "The frameworks, languages, and platforms in daily rotation across web, backend, and infrastructure projects.",
+    "categories": {
+      "frontend": "Frontend",
+      "backend": "Backend",
+      "database": "Database",
+      "toolsAndPlatforms": "Tools & Platforms"
+    }
+  },
+  "skills": {
+    "engineered": "Engineered to ship.",
+    "builtToScale": "Built to scale.",
+    "intro": "Five years across product engineering, IT infrastructure, and STEM education, focused on shipping outcomes that last.",
+    "filterAria": "Filter skills by capability",
+    "allCapabilities": "All capabilities",
+    "applyToProject": "See how I'd apply these to your project"
+  },
+  "portfolio": {
+    "eyebrow": "Portfolio",
+    "title": "Selected Projects",
+    "subtitle": "Technology solutions and digital systems delivered across multiple industries and organizations.",
+    "linkLearnMore": "Learn More",
+    "linkCaseStudy": "View case study",
+    "errorState": "Portfolio temporarily unavailable. Please try again later.",
+    "emptyState": "More projects coming soon."
+  },
+  "ctaBand": {
+    "headingPart1": "Let's Redefine Your",
+    "headingPart2": "Business",
+    "headingPart3": "Together",
+    "body": "Connect with me to start turning ideas into production-grade software today.",
+    "contactMe": "Contact Me",
+    "officeAddress": "Office Address",
+    "officeAddressBody1": "Tlalnepantla de Baz,",
+    "officeAddressBody2": "Estado de México, México",
+    "contactInfo": "Contact Info"
+  },
+  "certificate": {
+    "verify": "Verify credential",
+    "clickToOpen": "Click to open",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "openNewTab": "Open in new tab",
+    "renderError": "Could not render this certificate inline.",
+    "prevPage": "Previous page",
+    "nextPage": "Next page"
+  },
+  "dashboardWidget": {
+    "welcomeBack": "Welcome back",
+    "activeProjects": "Active Projects",
+    "recentClients": "Recent Clients",
+    "viewAll": "View all"
+  }
+}

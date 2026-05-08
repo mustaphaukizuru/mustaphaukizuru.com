@@ -1,25 +1,34 @@
-import { useEffect, useState } from "react"
-import { ClipboardList, RefreshCw, AlertCircle, Filter } from "lucide-react"
-import { EmptyState, SectionCard, SkeletonCard } from "../components/ui/index"
+import { useEffect, useMemo, useState } from "react"
+import { ClipboardList, RefreshCw, Filter, Activity } from "lucide-react"
 import { authFetch } from "../lib/api"
+import { MetricCard } from "../components/ui/index"
+import DataTable from "../components/admin/DataTable"
+import StatusPill from "../components/admin/StatusPill"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Admin Audit Log — append-only view of admin actions and activity
-// ─────────────────────────────────────────────────────────────────────────────
-
-const ACTION_COLORS = {
-  create: "bg-[#e8f4ea] text-[#3b8f47]",
-  update: "bg-[#eef3fb] text-[#2f5ea8]",
-  delete: "bg-red-50 text-red-600",
-  publish: "bg-[#e5f4e8] text-[#3b8f47]",
-  archive: "bg-[#f2f2f2] text-[#666]",
-  refund: "bg-[#eef2ff] text-[#4f46e5]",
-  revoke: "bg-[#fff3e2] text-[#b46909]",
-  status_change: "bg-[#f6efe3] text-[#9c5c00]",
-  login: "bg-[#f2f2f2] text-[#666]",
-}
+/* ──────────────────────────────────────────────────────────────────────────
+ *  AdminAuditPage · Batch 6B-4
+ *
+ *  Refactored to use shared DataTable + StatusPill primitives.
+ *
+ *  What changed:
+ *    - Bespoke list of LogRow divs replaced with sortable DataTable
+ *    - Local ACTION_COLORS map replaced with semantic ActionBadge built
+ *      on top of StatusPill (mapping audit verbs to existing taxonomy)
+ *    - Bespoke metric tiles replaced with shared <MetricCard />
+ *    - View toggle (audit / activity) + entity filter + action filter
+ *      stay as DataTable toolbar slot widgets
+ *    - Time-ago + absolute timestamp shown in mono
+ *    - Search filters across description, entity, performer
+ *    - Refresh button moved into DataTable's built-in refresh icon
+ *
+ *  Preserved verbatim:
+ *    - timeAgo helper
+ *    - authFetch endpoints (/api/admin/audit)
+ *    - View states + filter behavior
+ *  ──────────────────────────────────────────────────────────────────── */
 
 function timeAgo(dateStr) {
+  if (!dateStr) return "-"
   const seconds = Math.floor((Date.now() - new Date(dateStr)) / 1000)
   if (seconds < 60) return "just now"
   const minutes = Math.floor(seconds / 60)
@@ -31,43 +40,29 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString()
 }
 
-function LogRow({ entry }) {
-  const actionColor = ACTION_COLORS[entry.action] || "bg-[#f2f2f2] text-[#666]"
+// Map audit action verbs onto the StatusPill semantic taxonomy. Verbs
+// without a clean fit fall back to a custom inline pill.
+const ACTION_TO_STATUS = {
+  create: "completed", // mint
+  publish: "active", // mint
+  delete: "failed", // rose
+  archive: "inactive", // gray
+  refund: "refunded", // rose
+  revoke: "pending", // amber
+  status_change: "pending", // amber
+  update: "open", // azure
+  login: "inactive", // gray
+}
 
+function ActionBadge({ action }) {
+  const mapped = ACTION_TO_STATUS[action]
+  if (mapped) {
+    return <StatusPill status={mapped} label={action.replace(/_/g, " ")} />
+  }
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-[#634F40]/10 bg-[#fafafa] px-4 py-3 md:flex-row md:items-start md:justify-between">
-      <div className="flex min-w-0 items-start gap-3">
-        <div className={`mt-0.5 shrink-0 rounded-lg px-2.5 py-0.5 text-[11px] font-semibold capitalize ${actionColor}`}>
-          {entry.action?.replace(/_/g, " ")}
-        </div>
-        <div className="min-w-0">
-          <div className="text-[13px] font-semibold text-[#420060]">
-            {entry.description || `${entry.action} on ${entry.entity}`}
-          </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-[#634F40]/55">
-            {entry.entity && (
-              <span className="font-medium capitalize">{entry.entity}</span>
-            )}
-            {entry.entityId && (
-              <>
-                <span>·</span>
-                <span className="font-mono text-[#420060]">#{entry.entityId.slice(0, 8)}</span>
-              </>
-            )}
-            {entry.performedBy && (
-              <>
-                <span>·</span>
-                <span>by {entry.performedBy}</span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="shrink-0 text-[11px] text-[#634F40]/50" title={new Date(entry.createdAt).toLocaleString()}>
-        {timeAgo(entry.createdAt)}
-      </div>
-    </div>
+    <span className="inline-flex items-center rounded-full bg-charcoal-80/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-charcoal-80 ring-1 ring-inset ring-charcoal-80/15">
+      {action?.replace(/_/g, " ") || "-"}
+    </span>
   )
 }
 
@@ -78,22 +73,18 @@ export default function AdminAuditPage() {
   const [logs, setLogs] = useState([])
   const [activityLogs, setActivityLogs] = useState([])
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState("")
-  const [view, setView] = useState("audit") // "audit" | "activity"
+  const [view, setView] = useState("audit")
   const [entityFilter, setEntityFilter] = useState("all")
   const [actionFilter, setActionFilter] = useState("all")
 
-  async function load(silent = false) {
-    if (!silent) setLoading(true)
-    else setRefreshing(true)
-    setError("")
+  async function load() {
+    setLoading(true); setError("")
     try {
       const [auditRes, activityRes] = await Promise.allSettled([
         authFetch("/api/admin/audit"),
         authFetch("/api/admin/audit"),
       ])
-
       if (auditRes.status === "fulfilled") {
         setLogs(Array.isArray(auditRes.value?.data) ? auditRes.value.data : [])
       }
@@ -104,7 +95,6 @@ export default function AdminAuditPage() {
       setError(err.message || "Failed to load logs.")
     } finally {
       setLoading(false)
-      setRefreshing(false)
     }
   }
 
@@ -112,133 +102,173 @@ export default function AdminAuditPage() {
 
   const currentLogs = view === "audit" ? logs : activityLogs
 
-  const filtered = currentLogs.filter((entry) => {
+  const filtered = useMemo(() => currentLogs.filter((entry) => {
     const matchEntity = entityFilter === "all" || entry.entity === entityFilter
     const matchAction = actionFilter === "all" || entry.action === actionFilter
     return matchEntity && matchAction
-  })
+  }), [currentLogs, entityFilter, actionFilter])
 
-  if (loading) {
-    return (
-      <section className="space-y-5">
-        <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
+  const columns = useMemo(() => [
+    {
+      key: "action",
+      label: "Action",
+      sortable: true,
+      width: "0.9fr",
+      getValue: (row) => row.action || "",
+      render: (row) => <ActionBadge action={row.action} />,
+    },
+    {
+      key: "description",
+      label: "Description",
+      sortable: true,
+      searchable: true,
+      width: "2.0fr",
+      getValue: (row) => row.description || `${row.action} on ${row.entity}` || "",
+      render: (row) => (
+        <div className="min-w-0">
+          <div className="truncate text-meta font-medium text-violet">
+            {row.description || `${row.action} on ${row.entity}`}
+          </div>
         </div>
-        <SkeletonCard height="h-[460px]" />
-      </section>
-    )
-  }
+      ),
+    },
+    {
+      key: "entity",
+      label: "Entity",
+      sortable: true,
+      searchable: true,
+      width: "0.8fr",
+      getValue: (row) => row.entity || "",
+      render: (row) => row.entity ? (
+        <span className="text-meta capitalize text-charcoal-80/85">{row.entity}</span>
+      ) : <span className="text-charcoal-80/40">-</span>,
+    },
+    {
+      key: "entityId",
+      label: "ID",
+      width: "0.7fr",
+      render: (row) => row.entityId ? (
+        <code className="font-mono text-[11px] tabular-nums text-violet">
+          #{String(row.entityId).slice(0, 8)}
+        </code>
+      ) : <span className="text-charcoal-80/40">-</span>,
+    },
+    {
+      key: "performedBy",
+      label: "By",
+      sortable: true,
+      searchable: true,
+      width: "0.9fr",
+      getValue: (row) => row.performedBy || "",
+      render: (row) => row.performedBy ? (
+        <span className="truncate text-micro text-charcoal-80/75">{row.performedBy}</span>
+      ) : <span className="text-charcoal-80/40">-</span>,
+    },
+    {
+      key: "createdAt",
+      label: "When",
+      sortable: true,
+      width: "0.8fr",
+      align: "right",
+      getValue: (row) => row.createdAt || "",
+      render: (row) => (
+        <span
+          className="font-mono text-micro tabular-nums text-charcoal-80/65"
+          title={new Date(row.createdAt).toLocaleString()}
+        >
+          {timeAgo(row.createdAt)}
+        </span>
+      ),
+    },
+  ], [])
+
+  // Custom toolbar widgets passed via DataTable's `toolbar` prop slot
+  const toolbar = (
+    <div className="flex flex-wrap items-center gap-2">
+      {/* View toggle */}
+      <div role="radiogroup" aria-label="View" className="inline-flex overflow-hidden rounded-lg border border-charcoal-80/12 bg-white">
+        {["audit", "activity"].map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={view === v}
+            onClick={() => setView(v)}
+            className={`px-3 py-1.5 text-micro font-semibold capitalize transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-inset ${
+              view === v
+                ? "bg-violet text-white"
+                : "text-charcoal-80/70 hover:bg-violet-pale hover:text-violet"
+            }`}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+
+      {/* Entity filter */}
+      <label className="flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-2.5 py-1.5">
+        <Filter className="h-3 w-3 text-charcoal-80/45" aria-hidden="true" />
+        <select
+          value={entityFilter}
+          onChange={(e) => setEntityFilter(e.target.value)}
+          aria-label="Filter by entity"
+          className="bg-transparent text-micro font-medium text-violet outline-none"
+        >
+          {ENTITY_OPTIONS.map((e) => (
+            <option key={e} value={e}>{e === "all" ? "All entities" : e}</option>
+          ))}
+        </select>
+      </label>
+
+      {/* Action filter */}
+      <label className="flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-2.5 py-1.5">
+        <select
+          value={actionFilter}
+          onChange={(e) => setActionFilter(e.target.value)}
+          aria-label="Filter by action"
+          className="bg-transparent text-micro font-medium text-violet outline-none"
+        >
+          {ACTION_OPTIONS.map((a) => (
+            <option key={a} value={a}>{a === "all" ? "All actions" : a.replace(/_/g, " ")}</option>
+          ))}
+        </select>
+      </label>
+    </div>
+  )
 
   return (
     <section className="space-y-5">
-
       {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
           {error}
         </div>
       )}
 
-      {/* Summary cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border border-[#634F40]/10 bg-white p-5">
-          <div className="text-[12px] font-medium text-[#634F40]/70">Audit Entries</div>
-          <div className="mt-2 text-[28px] font-bold text-[#420060]">{logs.length}</div>
-          <div className="mt-2 text-[12px] text-[#634F40]/60">Sensitive admin actions</div>
-        </div>
-        <div className="rounded-xl border border-[#634F40]/10 bg-white p-5">
-          <div className="text-[12px] font-medium text-[#634F40]/70">Activity Entries</div>
-          <div className="mt-2 text-[28px] font-bold text-[#420060]">{activityLogs.length}</div>
-          <div className="mt-2 text-[12px] text-[#634F40]/60">General operational events</div>
-        </div>
-        <div className="rounded-xl border border-[#634F40]/10 bg-white p-5">
-          <div className="text-[12px] font-medium text-[#634F40]/70">Showing</div>
-          <div className="mt-2 text-[28px] font-bold text-[#420060]">{filtered.length}</div>
-          <div className="mt-2 text-[12px] text-[#634F40]/60">Matching current filters</div>
-        </div>
+      {/* Summary metrics */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <MetricCard title="Audit entries" value={logs.length} subtitle="Sensitive admin actions" icon={ClipboardList} tone="purple" />
+        <MetricCard title="Activity entries" value={activityLogs.length} subtitle="General operational events" icon={Activity} tone="blue" />
+        <MetricCard title="Showing" value={filtered.length} subtitle="Matching current filters" icon={Filter} tone="amber" />
       </div>
 
-      <SectionCard
-        title="Audit & Activity Log"
-        subtitle="Append-only record of admin actions and platform events."
-        action={
-          <div className="flex flex-wrap items-center gap-2">
-            {/* View toggle */}
-            <div className="flex rounded-xl border border-[#634F40]/15 bg-[#f7f4f8] p-0.5">
-              {["audit", "activity"].map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setView(v)}
-                  className={`rounded-lg px-3 py-1.5 text-[12px] font-medium capitalize transition ${
-                    view === v
-                      ? "bg-white text-[#420060] shadow-sm"
-                      : "text-[#634F40]/60 hover:text-[#420060]"
-                  }`}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-
-            {/* Entity filter */}
-            <div className="flex items-center gap-1 rounded-xl border border-[#634F40]/15 bg-[#f7f4f8] px-3 py-2">
-              <Filter className="h-3.5 w-3.5 text-[#634F40]/50" />
-              <select
-                value={entityFilter}
-                onChange={(e) => setEntityFilter(e.target.value)}
-                className="bg-transparent text-[12px] text-[#420060] outline-none"
-              >
-                {ENTITY_OPTIONS.map((e) => (
-                  <option key={e} value={e}>{e === "all" ? "All Entities" : e}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Action filter */}
-            <div className="flex items-center gap-1 rounded-xl border border-[#634F40]/15 bg-[#f7f4f8] px-3 py-2">
-              <select
-                value={actionFilter}
-                onChange={(e) => setActionFilter(e.target.value)}
-                className="bg-transparent text-[12px] text-[#420060] outline-none"
-              >
-                {ACTION_OPTIONS.map((a) => (
-                  <option key={a} value={a}>{a === "all" ? "All Actions" : a.replace(/_/g, " ")}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Refresh */}
-            <button
-              type="button"
-              onClick={() => load(true)}
-              disabled={refreshing}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#634F40]/10 bg-[#f7f4f8] px-3 py-2 text-[12px] font-medium text-[#420060] transition hover:bg-[#ede4ef] disabled:opacity-60"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-              Refresh
-            </button>
-          </div>
-        }
-      >
-        {filtered.length === 0 ? (
-          <EmptyState
-            icon={ClipboardList}
-            title="No log entries found"
-            description={
-              currentLogs.length === 0
-                ? "No log entries have been recorded yet."
-                : "No entries match the selected filters."
-            }
-          />
-        ) : (
-          <div className="space-y-2">
-            {filtered.map((entry) => (
-              <LogRow key={entry.id} entry={entry} />
-            ))}
-          </div>
-        )}
-      </SectionCard>
+      {/* DataTable with custom toolbar */}
+      <DataTable
+        columns={columns}
+        rows={filtered}
+        rowKey={(row) => row.id}
+        loading={loading}
+        onRefresh={load}
+        initialSort={{ key: "createdAt", dir: "desc" }}
+        searchPlaceholder="Search description, entity, performer…"
+        toolbar={toolbar}
+        emptyState={{
+          icon: ClipboardList,
+          title: currentLogs.length === 0 ? "No log entries yet" : "No matches",
+          description: currentLogs.length === 0
+            ? "Admin actions and platform events will appear here as they happen."
+            : "No entries match the selected filters. Try clearing them.",
+        }}
+      />
     </section>
   )
 }

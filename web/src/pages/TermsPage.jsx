@@ -1,4 +1,5 @@
 import { motion } from "framer-motion"
+import { useTranslation } from "react-i18next"
 import { FileText, Calendar, Scale, Mail } from "lucide-react"
 
 const LAST_UPDATED = "March 2026"
@@ -47,20 +48,21 @@ const sections = [
 ]
 
 export default function TermsPage() {
+  const { t } = useTranslation("legal")
   return (
-    <div className="bg-[#F7F9F4]">
+    <div className="bg-mist">
       {/* Hero */}
-      <section className="bg-[#420060] py-16 text-center">
+      <section className="py-16 text-center" style={{ backgroundColor: "#5D3FD3" }}>
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-[#FFCCAF]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-terracotta">
             <Scale className="h-7 w-7" />
           </div>
-          <h1 className="mt-5 text-[2.2rem] font-bold text-white">Terms & Conditions</h1>
-          <p className="mt-3 text-[15px] text-white/55">
-            Please read these terms carefully before using our platform or purchasing digital products.
+          <h1 className="mt-5 text-page font-bold text-white">{t("terms.title", "Terms & Conditions")}</h1>
+          <p className="mt-3 text-body text-white/55">
+            {t("terms.intro")}
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[12px] text-white/50">
-            <Calendar className="h-3.5 w-3.5" /> Last updated: {LAST_UPDATED}
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white/50">
+            <Calendar className="h-3.5 w-3.5" /> {t("terms.lastUpdated", "Last updated")}: {LAST_UPDATED}
           </div>
         </div>
       </section>
@@ -75,22 +77,22 @@ export default function TermsPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.04 }}
-              className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_2px_10px_rgba(66,0,96,0.04)]"
+              className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
             >
-              <h2 className="mb-3 text-[15px] font-bold text-[#420060]">{title}</h2>
-              <p className="text-[14px] leading-7 text-[#634F40]/70">{content}</p>
+              <h2 className="mb-3 text-body font-bold text-violet">{title}</h2>
+              <p className="text-meta leading-7 text-charcoal-80/70">{content}</p>
             </motion.div>
           ))}
         </div>
 
         {/* Contact CTA */}
-        <div className="mt-8 flex items-center gap-4 rounded-xl bg-[#420060] p-6 text-white">
+        <div className="mt-8 flex items-center gap-4 rounded-xl bg-violet p-6 text-white">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
             <Mail className="h-6 w-6" />
           </div>
           <div>
-            <div className="font-semibold">Questions about these Terms?</div>
-            <a href="mailto:hello@mustaphaukizuru.com" className="mt-1 text-[13px] text-white/60 hover:text-white hover:underline">
+            <div className="font-semibold">{t("terms.questions")}</div>
+            <a href="mailto:hello@mustaphaukizuru.com" className="mt-1 text-meta text-white/60 hover:text-white hover:underline">
               hello@mustaphaukizuru.com
             </a>
           </div>

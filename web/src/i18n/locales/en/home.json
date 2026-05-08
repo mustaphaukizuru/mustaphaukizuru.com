@@ -1,0 +1,137 @@
+{
+  "hero": {
+    "eyebrow": "Technology · Education · Digital Products",
+    "title": "Build your future with technology that actually works",
+    "subtitle": "Full-stack engineering, consulting, and STEM education from Tlalnepantla, Mexico. Real platforms, real classrooms, real outcomes.",
+    "ctaPrimary": "Explore services",
+    "ctaSecondary": "Browse store",
+    "ariaLabel": "Mustapha Ukizuru — full-stack engineering, consulting, and STEM education from Tlalnepantla, Mexico",
+    "exploreServices": "Explore Services",
+    "bookCall": "Book a Call",
+    "openToWork": "Open to Work",
+    "builtInLatam": "Built in LATAM",
+    "activeProject": "Active Project",
+    "paidQa": "paid · in QA",
+    "featuredProduct": "Featured product",
+    "consultingAria": "Consulting — 3 slots open this month, click to book a call",
+    "availableNow": "Available now",
+    "slotsOpen": "3 slots open · this month",
+    "engineeredWith": "Engineered with",
+    "buildingSince": "Building since 2018",
+    "yearsShipping": "years shipping",
+    "projectsShipped": "47 projects shipped",
+    "headlineBuilt": "Built.",
+    "headlineShipped": "Shipped.",
+    "headlineForYou": "For You.",
+    "welcomeBack": "Welcome back,",
+    "milestoneThree": "Milestone 3",
+    "cardConsulting": "Consulting",
+    "cardStack": "Stack"
+  },
+  "sections": {
+    "audiences": {
+      "eyebrow": "Who I work with",
+      "title": "Teams ready to modernize",
+      "subtitle": "I partner with organizations and individuals who want stronger systems, sharper digital presence, and smarter ways of working."
+    },
+    "solutions": {
+      "eyebrow": "Solutions",
+      "title": "Built for the way you actually work",
+      "subtitle": "Practical technology that strengthens your systems, sharpens your digital presence, and gets out of your way.",
+      "cta": "Explore solutions"
+    },
+    "featuredProducts": {
+      "eyebrow": "Store",
+      "title": "Templates and toolkits I use myself",
+      "subtitle": "Practical, opinionated resources to help you work faster, built from real client engagements.",
+      "cta": "Explore store",
+      "emptyTitle": "New resources soon",
+      "emptyBody": "I am finishing the next batch of templates and toolkits. Please check back this week.",
+      "emptyCta": "Notify me"
+    },
+    "featuredServices": {
+      "eyebrow": "Services",
+      "title": "What I do",
+      "subtitle": "Senior consulting, full-stack development, and everything in between, scoped to fit your team and budget.",
+      "cta": "All Services",
+      "learnMore": "Learn more"
+    },
+    "featuredPortfolio": {
+      "eyebrow": "Portfolio",
+      "title": "Selected work",
+      "subtitle": "Recent projects across schools, SMEs, and education platforms.",
+      "cta": "All Projects"
+    },
+    "process": {
+      "eyebrow": "How it works",
+      "title": "A clear path from idea to launch",
+      "subtitle": "Four predictable phases. No mystery and no scope creep. You will always know what is next."
+    },
+    "testimonials": {
+      "eyebrow": "Testimonials",
+      "title": "In their own words",
+      "subtitle": "What clients and collaborators have said after we shipped together.",
+      "prevAria": "Previous testimonials",
+      "nextAria": "Next testimonials"
+    },
+    "reviews": {
+      "title": "Recent reviews"
+    }
+  },
+  "audiences": {
+    "smes": {
+      "title": "SMEs & Businesses",
+      "description": "Stronger systems, sharper digital presence, smarter operations."
+    },
+    "professionals": {
+      "title": "Professionals & Individuals",
+      "description": "Modern workflows and clear online visibility for independent professionals."
+    },
+    "schools": {
+      "title": "Schools & Education",
+      "description": "Technology, STEM, and digital learning, built for schools and faculty."
+    }
+  },
+  "solutionsList": {
+    "digitalProducts": "Digital Products",
+    "professionalTraining": "Professional Training & Workshops",
+    "websiteAndDigitalSystems": "Website and Digital Systems",
+    "technologyConsulting": "Technology Consulting",
+    "stemCodingRobotics": "STEM, Coding, and Robotics Program Development",
+    "itInfrastructure": "IT Infrastructure & Digital Transformation"
+  },
+  "processSteps": {
+    "discovery": {
+      "title": "Discovery",
+      "description": "Understand your current systems, priorities, and the real challenges affecting progress."
+    },
+    "strategy": {
+      "title": "Strategy",
+      "description": "Define a practical roadmap with clear objectives, technology choices, and implementation direction."
+    },
+    "implementation": {
+      "title": "Implementation",
+      "description": "Translate the plan into reliable systems, platforms, workflows, and digital resources."
+    },
+    "optimization": {
+      "title": "Optimization",
+      "description": "Refine performance, strengthen adoption, and improve long-term digital effectiveness."
+    }
+  },
+  "testimonialRoles": {
+    "schoolAdministrator": "School Administrator",
+    "businessOwner": "Business Owner",
+    "educationCoordinator": "Education Coordinator",
+    "operationsLead": "Operations Lead",
+    "independentProfessional": "Independent Professional",
+    "itCoordinator": "IT Coordinator"
+  },
+  "cta": {
+    "eyebrow": "Let’s start",
+    "titleLine1": "Let’s get",
+    "titleLine2": "to work.",
+    "body": "Custom software, ready-made digital solutions, and senior consulting, all under one roof. First call is free, no pressure.",
+    "ctaBook": "Book a free call",
+    "ctaStore": "Browse the store"
+  }
+}

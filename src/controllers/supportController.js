@@ -133,12 +133,17 @@ const replyToTicket = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // GET /api/admin/support/tickets
+//
+// M16 — supports filtering by category (e.g. ?category=refund_request) and
+// includes the linked Order (when present) so the admin UI can render a
+// "View order" + "Open refund modal" deep-link without an extra round-trip.
 const adminGetAllTickets = async (req, res) => {
   try {
-    const { status, priority, page = 1, limit = 20 } = req.query
+    const { status, priority, category, page = 1, limit = 20 } = req.query
     const where = {}
     if (status)   where.status   = status
     if (priority) where.priority = priority
+    if (category) where.category = category
 
     const [tickets, total] = await Promise.all([
       prisma.supportTicket.findMany({
@@ -147,7 +152,8 @@ const adminGetAllTickets = async (req, res) => {
         skip:  (Number(page) - 1) * Number(limit),
         take:  Number(limit),
         include: {
-          user: { select: { id: true, fullName: true, email: true } },
+          user:   { select: { id: true, fullName: true, email: true } },
+          order:  { select: { id: true, orderNumber: true, status: true, totalAmount: true, currency: true } },
           _count: { select: { messages: true } },
         },
       }),
@@ -161,12 +167,16 @@ const adminGetAllTickets = async (req, res) => {
 }
 
 // GET /api/admin/support/tickets/:id
+//
+// M16 — includes the linked Order (when present) so the admin can act on
+// refund_request tickets without leaving the page.
 const adminGetTicket = async (req, res) => {
   try {
     const ticket = await prisma.supportTicket.findUnique({
       where: { id: req.params.id },
       include: {
         user:     { select: { id: true, fullName: true, email: true } },
+        order:    { select: { id: true, orderNumber: true, status: true, totalAmount: true, currency: true, paidAt: true } },
         messages: { orderBy: { createdAt: "asc" } },
       },
     })

@@ -1,0 +1,378 @@
+const prisma = require("../lib/prisma")
+
+/**
+ * Service orders go through the same Order pipeline as product orders — this
+ * keeps payment, invoice, and audit flows unified. A service order is really:
+ *
+ *   Order
+ *     └── OrderItem (itemType: "service")
+ *           └── ServiceOrder (fulfillment record — status + schedule + notes)
+ *
+ * Schema constraints:
+ *   - ServiceOrder.orderId      NOT NULL
+ *   - ServiceOrder.orderItemId  NOT NULL + @unique
+ *   - ServiceOrder.userId       NOT NULL
+ * So we must create Order + OrderItem atomically before the ServiceOrder row.
+ */
+
+function safeNum(value, fallback = 0) {
+  if (value == null) return fallback
+  if (typeof value === "object" && typeof value.toNumber === "function") return value.toNumber()
+  const n = Number(value)
+  return Number.isFinite(n) ? n : fallback
+}
+
+function generateOrderNumber() {
+  const now = new Date()
+  const yyyy = now.getFullYear()
+  const mm = String(now.getMonth() + 1).padStart(2, "0")
+  const dd = String(now.getDate()).padStart(2, "0")
+  const random = Math.random().toString(36).slice(2, 8).toUpperCase()
+  return `SRV-${yyyy}${mm}${dd}-${random}`
+}
+
+async function createUniqueOrderNumber() {
+  for (let i = 0; i < 10; i += 1) {
+    const orderNumber = generateOrderNumber()
+    const existing = await prisma.order.findUnique({
+      where:  { orderNumber },
+      select: { id: true },
+    })
+    if (!existing) return orderNumber
+  }
+  throw new Error("Failed to generate a unique service order number")
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * createServiceOrder — POST /api/services/:slug/order
+ *
+ * @param {object} opts
+ * @param {string} opts.userId
+ * @param {string} opts.slug
+ * @param {string} opts.packageId
+ * @param {string} [opts.requirements]        customer-supplied notes
+ * @param {string} [opts.preferredStartDate]  ISO date string
+ * @param {string} [opts.customerName]
+ * @param {string} [opts.customerEmail]
+ *
+ * @returns {Promise<{ orderId, orderNumber, serviceOrderId, redirectUrl }>}
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+async function createServiceOrder({ userId, slug, packageId, requirements, preferredStartDate, customerName, customerEmail }) {
+  if (!userId) throw buildError("AUTH_MISSING", "Authentication required", 401)
+
+  const service = await prisma.service.findFirst({
+    where:   { slug, status: "published" },
+    include: { packages: { where: { isActive: true } } },
+  })
+  if (!service) throw buildError("NOT_FOUND", `Service '${slug}' not found`, 404)
+
+  if (!packageId) throw buildError("VALIDATION_ERROR", "packageId is required", 400)
+
+  const pkg = service.packages.find((p) => p.id === packageId)
+  if (!pkg) throw buildError("NOT_FOUND", `Package not found or inactive for this service`, 404)
+
+  const user = await prisma.user.findUnique({
+    where:  { id: userId },
+    select: { id: true, fullName: true, email: true },
+  })
+  if (!user) throw buildError("AUTH_MISSING", "User not found", 401)
+
+  const resolvedName  = customerName  || user.fullName || "Customer"
+  const resolvedEmail = customerEmail || user.email
+
+  if (!resolvedEmail) {
+    throw buildError("VALIDATION_ERROR", "A contact email is required", 400)
+  }
+
+  const unitPrice = safeNum(pkg.price)
+  const lineTotal = unitPrice
+  const orderNumber = await createUniqueOrderNumber()
+
+  // Transaction: Order → OrderItem → ServiceOrder
+  const result = await prisma.$transaction(async (tx) => {
+    const order = await tx.order.create({
+      data: {
+        orderNumber,
+        userId,
+        customerName:  resolvedName,
+        customerEmail: resolvedEmail,
+        subtotalAmount: unitPrice,
+        totalAmount:    unitPrice,
+        currency:       pkg.currency || service.currency || "MXN",
+        status:         "pending",
+        notes:          requirements || null,
+      },
+    })
+
+    const orderItem = await tx.orderItem.create({
+      data: {
+        orderId:        order.id,
+        itemType:       "service",
+        serviceId:      service.id,
+        title:          `${service.title} — ${pkg.name}`,
+        titleSnapshot:  `${service.title} — ${pkg.name}`,
+        descriptionSnapshot: pkg.description || null,
+        price:          unitPrice,
+        unitPrice,
+        quantity:       1,
+        lineTotal,
+      },
+    })
+
+    const serviceOrder = await tx.serviceOrder.create({
+      data: {
+        orderId:          order.id,
+        orderItemId:      orderItem.id,
+        userId,
+        serviceId:        service.id,
+        servicePackageId: pkg.id,
+        status:           "new",
+        startDate:        preferredStartDate ? new Date(preferredStartDate) : null,
+        notes:            requirements || null,
+      },
+    })
+
+    return { order, orderItem, serviceOrder }
+  })
+
+  // ActivityLog + email hooks are fire-and-forget — failures don't undo the order
+  prisma.activityLog.create({
+    data: {
+      userId,
+      action:      "service_order.created",
+      entityType:  "ServiceOrder",
+      entityId:    result.serviceOrder.id,
+      description: `Service order created: ${service.title} — ${pkg.name}`,
+    },
+  }).catch(() => null)
+
+  return {
+    orderId:        result.order.id,
+    orderNumber:    result.order.orderNumber,
+    serviceOrderId: result.serviceOrder.id,
+    redirectUrl:    `/dashboard/service-orders/${result.serviceOrder.id}`,
+    amount:         unitPrice,
+    currency:       result.order.currency,
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Member queries
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+async function listUserServiceOrders(userId) {
+  const items = await prisma.serviceOrder.findMany({
+    where:   { userId },
+    orderBy: { createdAt: "desc" },
+    include: {
+      service:        { select: { id: true, title: true, slug: true, deliveryType: true } },
+      servicePackage: { select: { id: true, name: true, price: true, currency: true } },
+      order:          { select: { id: true, orderNumber: true, totalAmount: true, status: true, paidAt: true } },
+    },
+  })
+  return items.map(serializeServiceOrder)
+}
+
+async function getUserServiceOrderById(userId, serviceOrderId) {
+  const item = await prisma.serviceOrder.findFirst({
+    where: { id: serviceOrderId, userId },
+    include: {
+      service: { include: { features: { orderBy: { sortOrder: "asc" } } } },
+      servicePackage: true,
+      order: { select: { id: true, orderNumber: true, totalAmount: true, status: true, paidAt: true, currency: true } },
+      consultations: { orderBy: { scheduledAt: "asc" } },
+      clientProject: {
+        include: {
+          milestones: { orderBy: { dueDate: "asc" } },
+          files:      { orderBy: { createdAt: "desc" }, take: 20 },
+        },
+      },
+    },
+  })
+  if (!item) return null
+  return serializeServiceOrder(item, { detailed: true })
+}
+
+function serializeServiceOrder(row, { detailed = false } = {}) {
+  if (!row) return null
+  return {
+    id:         row.id,
+    status:     row.status,
+    startDate:  row.startDate,
+    endDate:    row.endDate,
+    notes:      row.notes || null,
+    createdAt:  row.createdAt,
+    updatedAt:  row.updatedAt,
+    service:    row.service
+      ? {
+          id:           row.service.id,
+          slug:         row.service.slug,
+          title:        row.service.title,
+          deliveryType: row.service.deliveryType,
+          ...(detailed && row.service.features
+            ? { features: row.service.features.map((f) => ({ id: f.id, featureText: f.featureText })) }
+            : {}),
+        }
+      : null,
+    package:    row.servicePackage
+      ? {
+          id:       row.servicePackage.id,
+          name:     row.servicePackage.name,
+          price:    safeNum(row.servicePackage.price),
+          currency: row.servicePackage.currency || "MXN",
+        }
+      : null,
+    order:      row.order
+      ? {
+          id:          row.order.id,
+          orderNumber: row.order.orderNumber,
+          totalAmount: safeNum(row.order.totalAmount),
+          currency:    row.order.currency || "MXN",
+          status:      row.order.status,
+          paidAt:      row.order.paidAt,
+        }
+      : null,
+    ...(detailed
+      ? {
+          consultations: (row.consultations || []).map((c) => ({
+            id:           c.id,
+            scheduledAt:  c.scheduledAt,
+            durationMin:  c.durationMin,
+            meetingUrl:   c.meetingUrl,
+            status:       c.status,
+            notes:        c.notes || null,
+          })),
+          clientProject: row.clientProject
+            ? {
+                id:           row.clientProject.id,
+                projectName:  row.clientProject.projectName,
+                projectStatus: row.clientProject.projectStatus,
+                milestones: (row.clientProject.milestones || []).map((m) => ({
+                  id:          m.id,
+                  title:       m.title,
+                  dueDate:     m.dueDate,
+                  status:      m.status,
+                })),
+                files: (row.clientProject.files || []).map((f) => ({
+                  id:       f.id,
+                  fileName: f.fileName,
+                  fileSize: f.fileSize != null ? Number(f.fileSize) : null,
+                  createdAt: f.createdAt,
+                })),
+              }
+            : null,
+        }
+      : {}),
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Internal
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+function buildError(code, message, statusCode = 400) {
+  const err = new Error(message)
+  err.statusCode = statusCode
+  err.code = code
+  return err
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ *  orderByTier · public-facing "Choose Plan" entry point
+ *  Auto-provisions Service + ServicePackage on first hit + supports guest checkout.
+ *  ──────────────────────────────────────────────────────────────────── */
+
+async function orderByTier({
+  audience, tier, planName, price, priceUsd, currency = "MXN",
+  customerName, customerEmail, requirements, userId,
+}) {
+  if (!audience) throw buildError("VALIDATION_ERROR", "audience is required", 400)
+  if (!tier)     throw buildError("VALIDATION_ERROR", "tier is required", 400)
+  if (!planName) throw buildError("VALIDATION_ERROR", "planName is required", 400)
+
+  // Accept either `price` (canonical) or the legacy `priceUsd` field.
+  // Pricing is denominated in MXN by default — see currency arg.
+  const planPrice = price != null ? price : priceUsd
+  if (planPrice == null || isNaN(Number(planPrice))) {
+    throw buildError("VALIDATION_ERROR", "price is required and must be numeric", 400)
+  }
+  if (!customerEmail) throw buildError("VALIDATION_ERROR", "customerEmail is required", 400)
+
+  // Resolve user — auto-account flow for guests.
+  let resolvedUserId = userId || null
+  if (!resolvedUserId) {
+    const { findOrCreateUserForCheckout } = require("./authService")
+    const result = await findOrCreateUserForCheckout({ fullName: customerName, email: customerEmail })
+    resolvedUserId = result.user.id
+  }
+
+  // Find-or-create Service per audience.
+  const audienceLabel = audience.charAt(0).toUpperCase() + audience.slice(1)
+  const serviceSlug   = `${audience.toLowerCase()}-plan`
+
+  let service = await prisma.service.findUnique({ where: { slug: serviceSlug } })
+  if (!service) {
+    service = await prisma.service.create({
+      data: {
+        slug:             serviceSlug,
+        title:            `${audienceLabel} Plan`,
+        shortDescription: `Recurring engagement plans for ${audienceLabel.toLowerCase()} clients. Auto-provisioned from the public pricing matrix.`,
+        basePrice:        Number(planPrice),
+        currency,
+        deliveryType:     "subscription",
+        // BUGFIX: ServiceStatus enum is { draft, published, archived }.
+        // "active" raised a Prisma validation error on every checkout, which
+        // surfaced on the public Choose Plan page as "Request error".
+        // "published" is also required because createServiceOrder (the next
+        // step in this flow) filters by `status: "published"` only.
+        status:           "published",
+      },
+    })
+  } else if (service.status !== "published") {
+    // If a stale "draft" or other non-published row exists from a previous
+    // half-broken run, promote it so createServiceOrder can find it.
+    service = await prisma.service.update({
+      where: { id: service.id },
+      data:  { status: "published" },
+    })
+  }
+
+  // Find-or-create ServicePackage per tier.
+  let pkg = await prisma.servicePackage.findFirst({
+    where: { serviceId: service.id, name: planName },
+  })
+  if (!pkg) {
+    pkg = await prisma.servicePackage.create({
+      data: {
+        serviceId: service.id,
+        name:      planName,
+        price:     Number(planPrice),
+        currency,
+        isActive:  true,
+      },
+    })
+  } else if (Number(pkg.price) !== Number(planPrice)) {
+    console.warn(
+      `[orderByTier] price mismatch for ${planName}: client=${planPrice} ${currency} DB=${pkg.price} ${pkg.currency}. Honoring DB price.`
+    )
+  }
+
+  // Delegate to the existing createServiceOrder transaction.
+  return createServiceOrder({
+    userId:        resolvedUserId,
+    slug:          serviceSlug,
+    packageId:     pkg.id,
+    requirements,
+    customerName,
+    customerEmail,
+  })
+}
+
+module.exports = {
+  createServiceOrder,
+  orderByTier,
+  listUserServiceOrders,
+  getUserServiceOrderById,
+  serializeServiceOrder,
+}

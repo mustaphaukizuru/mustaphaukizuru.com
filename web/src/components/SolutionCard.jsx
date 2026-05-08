@@ -15,11 +15,11 @@ export default function SectionHeading({
       }`}
     >
       <div className={isLeft ? "max-w-3xl" : "max-w-3xl sm:mx-auto"}>
-        <h2 className="font-['Sora'] text-4xl font-bold tracking-tight text-[#420060] sm:text-5xl">
+        <h2 className="font-['Sora'] text-4xl font-bold tracking-tight text-violet sm:text-5xl">
           {title}
         </h2>
         {subtitle && (
-          <p className="mt-3 text-base leading-8 text-[#634F40]/80 sm:text-lg">
+          <p className="mt-3 text-base leading-8 text-charcoal-80/80 sm:text-lg">
             {subtitle}
           </p>
         )}

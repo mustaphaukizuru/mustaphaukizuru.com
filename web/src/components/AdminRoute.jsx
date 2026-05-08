@@ -10,10 +10,10 @@ export default function AdminRoute({ children }) {
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="relative h-10 w-10">
-            <div className="absolute inset-0 rounded-full border-4 border-[#ede4ef]" />
-            <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-[#420060]" />
+            <div className="absolute inset-0 rounded-full border-4 border-violet-pale" />
+            <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-violet" />
           </div>
-          <span className="text-[12px] font-medium text-[#634F40]/50">Loading admin…</span>
+          <span className="text-micro font-medium text-charcoal-80/50">Loading admin…</span>
         </div>
       </div>
     )

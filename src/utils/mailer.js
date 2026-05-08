@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const prisma = require("../lib/prisma");
+const { buildConsultationIcs } = require("./icsGenerator");
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SMTP TRANSPORT
@@ -27,7 +28,7 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
     }
   });
 } else {
-  console.warn("⚠  SMTP not configured — emails logged only");
+  console.warn("⚠  SMTP not configured. Emails logged only.");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -146,10 +147,10 @@ function layout({ preheader = "", body, footer }) {
         <a href="${base}" style="text-decoration:none;display:inline-block;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
             <td style="vertical-align:middle;padding-right:10px;">
-              <img src="${logoUrl}" alt="MU" width="38" height="38" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;border:2px solid #420060;" />
+              <img src="${logoUrl}" alt="MU" width="38" height="38" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;border:2px solid #5D3FD3;" />
             </td>
             <td style="vertical-align:middle;">
-              <span style="font-size:17px;font-weight:700;color:#420060;letter-spacing:-0.3px;">Mustapha Ukizuru</span>
+              <span style="font-size:17px;font-weight:700;color:#5D3FD3;letter-spacing:-0.3px;">Mustapha Ukizuru</span>
               <br/>
               <span style="font-size:11px;color:#8b8b9e;letter-spacing:0.3px;">Digital Products & Technology Consulting</span>
             </td>
@@ -157,7 +158,7 @@ function layout({ preheader = "", body, footer }) {
         </a>
       </td>
       <td style="vertical-align:middle;text-align:right;">
-        <a href="${base}/store" style="font-size:12px;color:#420060;text-decoration:none;font-weight:600;">Visit Store →</a>
+        <a href="${base}/store" style="font-size:12px;color:#5D3FD3;text-decoration:none;font-weight:600;">Visit Store →</a>
       </td>
     </tr>
     </table>
@@ -167,7 +168,7 @@ function layout({ preheader = "", body, footer }) {
   <tr><td style="background:#ffffff;border-radius:14px;box-shadow:0 1px 4px rgba(66,0,96,0.06);">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
     <!-- Indigo top accent -->
-    <tr><td style="height:4px;background:linear-gradient(90deg,#420060 0%,#634F40 100%);border-radius:14px 14px 0 0;font-size:0;line-height:0;">&nbsp;</td></tr>
+    <tr><td style="height:4px;background:linear-gradient(90deg,#5D3FD3 0%,#1A1B23 100%);border-radius:14px 14px 0 0;font-size:0;line-height:0;">&nbsp;</td></tr>
     <tr><td class="email-card" style="padding:32px 32px 28px 32px;">
       ${body}
     </td></tr>
@@ -185,7 +186,7 @@ function layout({ preheader = "", body, footer }) {
     </td></tr>
     <tr><td style="text-align:center;">
       <p style="margin:0 0 4px;font-size:12px;color:#8b8b9e;">
-        © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#420060;text-decoration:none;font-weight:600;">mustaphaukizuru.com</a>
+        © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#5D3FD3;text-decoration:none;font-weight:600;">mustaphaukizuru.com</a>
       </p>
       <p style="margin:0 0 4px;font-size:11px;color:#a8a8be;">
         <a href="${base}/store" style="color:#8b8b9e;text-decoration:none;">Store</a>
@@ -236,7 +237,7 @@ function greeting(name) {
 function cta(label, href) {
   return `
 <table role="presentation" class="email-cta" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0;">
-<tr><td style="border-radius:10px;background:#420060;text-align:center;">
+<tr><td style="border-radius:10px;background:#5D3FD3;text-align:center;">
   <a href="${href}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.2px;">${esc(label)}</a>
 </td></tr>
 </table>`;
@@ -273,9 +274,9 @@ function itemsTable(items) {
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:16px 0;">
   <thead>
     <tr>
-      <th style="text-align:left;padding:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8b8b9e;border-bottom:2px solid #420060;">Product</th>
-      <th style="text-align:center;padding:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8b8b9e;border-bottom:2px solid #420060;">Qty</th>
-      <th style="text-align:right;padding:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8b8b9e;border-bottom:2px solid #420060;">Price</th>
+      <th style="text-align:left;padding:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8b8b9e;border-bottom:2px solid #5D3FD3;">Product</th>
+      <th style="text-align:center;padding:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8b8b9e;border-bottom:2px solid #5D3FD3;">Qty</th>
+      <th style="text-align:right;padding:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#8b8b9e;border-bottom:2px solid #5D3FD3;">Price</th>
     </tr>
   </thead>
   <tbody>${rows}</tbody>
@@ -283,7 +284,7 @@ function itemsTable(items) {
 }
 
 function note(text) {
-  return `<p style="margin:20px 0 0;padding:14px 16px;background:#faf7fb;border-left:3px solid #420060;border-radius:0 8px 8px 0;font-size:13px;color:#5f6470;line-height:1.6;">${text}</p>`;
+  return `<p style="margin:20px 0 0;padding:14px 16px;background:#faf7fb;border-left:3px solid #5D3FD3;border-radius:0 8px 8px 0;font-size:13px;color:#5f6470;line-height:1.6;">${text}</p>`;
 }
 
 function smallText(text) {
@@ -294,7 +295,7 @@ function smallText(text) {
 // ORDER HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function getOrderId(order) { return esc(order?.orderNumber || order?.id || "—"); }
+function getOrderId(order) { return esc(order?.orderNumber || order?.id || "N/A"); }
 function getCustomerName(order) { return order?.customerName || "there"; }
 
 function orderBody({ order, title, intro, ctaLabel, ctaUrl, noteText }) {
@@ -305,8 +306,8 @@ function orderBody({ order, title, intro, ctaLabel, ctaUrl, noteText }) {
   html += paragraph(intro);
   html += detailTable([
     ["Order", `#${getOrderId(order)}`],
-    ["Status", `<span style="font-weight:700;color:#420060;">${esc(order?.status || "pending")}</span>`],
-    ["Total", `<span style="font-weight:700;color:#420060;">${money(order?.totalAmount)}</span>`],
+    ["Status", `<span style="font-weight:700;color:#5D3FD3;">${esc(order?.status || "pending")}</span>`],
+    ["Total", `<span style="font-weight:700;color:#5D3FD3;">${money(order?.totalAmount)}</span>`],
   ]);
   if (order?.items?.length > 0) {
     html += itemsTable(order.items);
@@ -317,7 +318,7 @@ function orderBody({ order, title, intro, ctaLabel, ctaUrl, noteText }) {
   if (noteText) {
     html += note(noteText);
   }
-  html += smallText(`If you have questions about this order, reply to this email or contact <a href="mailto:${esc(getSupportEmail())}" style="color:#420060;">${esc(getSupportEmail())}</a>.`);
+  html += smallText(`If you have questions about this order, reply to this email or contact <a href="mailto:${esc(getSupportEmail())}" style="color:#5D3FD3;">${esc(getSupportEmail())}</a>.`);
   return html;
 }
 
@@ -356,12 +357,12 @@ async function sendResetEmail(email, resetLink) {
     heading("Reset your password") +
     paragraph("We received a request to reset the password for your account. Click the button below to choose a new password.") +
     cta("Reset Password", resetLink) +
-    paragraph(`This link expires in <strong>1 hour</strong>. If you didn't request this, you can safely ignore this email — your password won't change.`) +
+    paragraph(`This link expires in <strong>1 hour</strong>. If you did not request this, you can safely ignore this email; your password will not change.`) +
     divider() +
-    smallText(`If the button doesn't work, copy this URL into your browser:<br/><a href="${resetLink}" style="color:#420060;word-break:break-all;">${esc(resetLink)}</a>`);
+    smallText(`If the button doesn't work, copy this URL into your browser:<br/><a href="${resetLink}" style="color:#5D3FD3;word-break:break-all;">${esc(resetLink)}</a>`);
 
   await safeSendMail(
-    { from: fromAddress(), to: email, subject: "Reset your password — Mustapha Ukizuru", html: layout({ preheader: "Password reset request", body }) },
+    { from: fromAddress(), to: email, subject: "Reset your password · Mustapha Ukizuru", html: layout({ preheader: "Password reset request", body }) },
     { templateKey: "password_reset" }
   );
 }
@@ -376,7 +377,7 @@ async function sendPasswordResetConfirmationEmail(email) {
     smallText(`Security notice: This change was made on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}.`);
 
   await safeSendMail(
-    { from: fromAddress(), to: email, subject: "Password changed — Mustapha Ukizuru", html: layout({ preheader: "Your password was updated", body }) },
+    { from: fromAddress(), to: email, subject: "Password changed · Mustapha Ukizuru", html: layout({ preheader: "Your password was updated", body }) },
     { templateKey: "password_changed" }
   );
 }
@@ -394,7 +395,7 @@ async function sendOrderPlacedEmail(order) {
     noteText: "Payment confirmation usually takes a few moments. If your order stays pending for more than 15 minutes, please check your payment method or contact support.",
   });
   await safeSendMail(
-    { from: fromAddress(), to: order.customerEmail, subject: `Order received — #${getOrderId(order)}`, html: layout({ preheader: `Order #${getOrderId(order)} received`, body }) },
+    { from: fromAddress(), to: order.customerEmail, subject: `Order received · #${getOrderId(order)}`, html: layout({ preheader: `Order #${getOrderId(order)} received`, body }) },
     { templateKey: "order_placed" }
   );
 }
@@ -405,12 +406,12 @@ async function sendOrderPaidEmail(order) {
   const body = orderBody({
     order,
     title: "Payment confirmed",
-    intro: "Your payment has been confirmed. Your digital products are now available in your member dashboard — ready to download.",
+    intro: "Your payment has been confirmed. Your digital products are now available in your member dashboard, ready to download.",
     ctaLabel: "Go to My Products",
     ctaUrl: `${base}/dashboard/products`,
   });
   await safeSendMail(
-    { from: fromAddress(), to: order.customerEmail, subject: `Payment confirmed — #${getOrderId(order)}`, html: layout({ preheader: "Your products are ready to download", body }) },
+    { from: fromAddress(), to: order.customerEmail, subject: `Payment confirmed · #${getOrderId(order)}`, html: layout({ preheader: "Your products are ready to download", body }) },
     { templateKey: "order_paid" }
   );
 }
@@ -423,7 +424,7 @@ async function sendOrderPendingEmail(order) {
     intro: "Your order status has been updated to pending. We're waiting for payment confirmation or review. No action is needed from you right now.",
   });
   await safeSendMail(
-    { from: fromAddress(), to: order.customerEmail, subject: `Order pending — #${getOrderId(order)}`, html: layout({ preheader: "Order status update", body }) },
+    { from: fromAddress(), to: order.customerEmail, subject: `Order pending · #${getOrderId(order)}`, html: layout({ preheader: "Order status update", body }) },
     { templateKey: "order_pending" }
   );
 }
@@ -436,7 +437,7 @@ async function sendOrderCancelledEmail(order) {
     intro: "Your order has been cancelled. If you believe this is a mistake or need assistance, please reach out to our support team.",
   });
   await safeSendMail(
-    { from: fromAddress(), to: order.customerEmail, subject: `Order cancelled — #${getOrderId(order)}`, html: layout({ preheader: "Your order was cancelled", body }) },
+    { from: fromAddress(), to: order.customerEmail, subject: `Order cancelled · #${getOrderId(order)}`, html: layout({ preheader: "Your order was cancelled", body }) },
     { templateKey: "order_cancelled" }
   );
 }
@@ -453,7 +454,7 @@ async function sendOrderFailedEmail(order) {
     noteText: "If you continue to experience issues, try a different payment method or contact your bank. Our support team is also here to help.",
   });
   await safeSendMail(
-    { from: fromAddress(), to: order.customerEmail, subject: `Payment failed — #${getOrderId(order)}`, html: layout({ preheader: "Payment could not be completed", body }) },
+    { from: fromAddress(), to: order.customerEmail, subject: `Payment failed · #${getOrderId(order)}`, html: layout({ preheader: "Payment could not be completed", body }) },
     { templateKey: "order_failed" }
   );
 }
@@ -467,7 +468,7 @@ async function sendOrderRefundedEmail(order) {
     noteText: "If you don't see the refund after 10 business days, please contact your payment provider first, then reach out to us if needed.",
   });
   await safeSendMail(
-    { from: fromAddress(), to: order.customerEmail, subject: `Refund processed — #${getOrderId(order)}`, html: layout({ preheader: "Your refund is on its way", body }) },
+    { from: fromAddress(), to: order.customerEmail, subject: `Refund processed · #${getOrderId(order)}`, html: layout({ preheader: "Your refund is on its way", body }) },
     { templateKey: "order_refunded" }
   );
 }
@@ -495,7 +496,7 @@ async function sendDownloadReadyEmail(order, product) {
     smallText("Downloads are available anytime from your dashboard. If you have trouble accessing your files, contact support.");
 
   await safeSendMail(
-    { from: fromAddress(), to: email, subject: `Download ready — ${esc(productTitle)}`, html: layout({ preheader: `${productTitle} is ready to download`, body }) },
+    { from: fromAddress(), to: email, subject: `Download ready · ${esc(productTitle)}`, html: layout({ preheader: `${productTitle} is ready to download`, body }) },
     { templateKey: "download_ready" }
   );
 }
@@ -515,14 +516,14 @@ async function sendContactFormEmail(data) {
     paragraph(`A message was submitted through the contact form.`) +
     detailTable([
       ["From", esc(name)],
-      ["Email", `<a href="mailto:${esc(email)}" style="color:#420060;">${esc(email)}</a>`],
-      ["Subject", esc(subject || "—")],
+      ["Email", `<a href="mailto:${esc(email)}" style="color:#5D3FD3;">${esc(email)}</a>`],
+      ["Subject", esc(subject || "N/A")],
     ]) +
     divider() +
     paragraph(`<em>"${esc(message)}"</em>`);
 
   await safeSendMail(
-    { from: fromAddress(), to: support, subject: `Contact: ${esc(name)} — ${esc(subject || "New message")}`, html: layout({ preheader: `New message from ${name}`, body: adminBody }) },
+    { from: fromAddress(), to: support, subject: `Contact: ${esc(name)} · ${esc(subject || "New message")}`, html: layout({ preheader: `New message from ${name}`, body: adminBody }) },
     { templateKey: "contact_admin" }
   );
 
@@ -533,10 +534,10 @@ async function sendContactFormEmail(data) {
     paragraph("Thank you for reaching out. We've received your message and will get back to you within <strong>24 hours</strong>.") +
     paragraph("For reference, here's what you sent us:") +
     note(esc(message)) +
-    smallText(`This is an automated confirmation. Please don't reply to this email — instead, email us at <a href="mailto:${esc(support)}" style="color:#420060;">${esc(support)}</a>.`);
+    smallText(`This is an automated confirmation. Please do not reply to this email; instead, write to us at <a href="mailto:${esc(support)}" style="color:#5D3FD3;">${esc(support)}</a>.`);
 
   await safeSendMail(
-    { from: fromAddress(), to: email, subject: "We received your message — Mustapha Ukizuru", html: layout({ preheader: "We'll respond within 24 hours", body: replyBody }) },
+    { from: fromAddress(), to: email, subject: "We received your message · Mustapha Ukizuru", html: layout({ preheader: "We will respond within 24 hours", body: replyBody }) },
     { templateKey: "contact_reply" }
   );
 }
@@ -549,7 +550,7 @@ async function sendSupportTicketEmail(ticket, user) {
   const email = user?.email || ticket?.email;
   if (!email) return;
   const base = getBaseUrl();
-  const ticketNum = ticket?.ticketNumber || ticket?.id?.slice(0, 8) || "—";
+  const ticketNum = ticket?.ticketNumber || ticket?.id?.slice(0, 8) || "N/A";
 
   const body =
     heading("Support ticket created") +
@@ -557,7 +558,7 @@ async function sendSupportTicketEmail(ticket, user) {
     paragraph(`Your support request has been submitted. Our team will review it and respond as soon as possible.`) +
     detailTable([
       ["Ticket", `#${esc(ticketNum)}`],
-      ["Subject", esc(ticket?.subject || "—")],
+      ["Subject", esc(ticket?.subject || "N/A")],
       ["Priority", esc(ticket?.priority || "medium")],
       ["Status", "Open"],
     ]) +
@@ -574,7 +575,7 @@ async function sendSupportReplyEmail(ticket, user, replyMessage) {
   const email = user?.email || ticket?.email;
   if (!email) return;
   const base = getBaseUrl();
-  const ticketNum = ticket?.ticketNumber || "—";
+  const ticketNum = ticket?.ticketNumber || "N/A";
 
   const body =
     heading("New reply on your ticket") +
@@ -611,20 +612,20 @@ async function sendNewsletterConfirmationEmail(email) {
       <tr><td style="padding:5px 0;font-size:14px;color:#3a3a4a;">→ Technology insights and guides</td></tr>
       <tr><td style="padding:5px 0;font-size:14px;color:#3a3a4a;">→ Service updates and announcements</td></tr>
     </table>` +
-    paragraph("We respect your inbox — expect quality content, not spam.") +
+    paragraph("We respect your inbox. Expect quality content, not spam.") +
     cta("Explore the Store", `${base}/store`);
 
   const footer = `
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
     <tr><td style="text-align:center;padding:0 0 10px 0;">
       <p style="margin:0 0 4px;font-size:12px;color:#8b8b9e;">
-        © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#420060;text-decoration:none;font-weight:600;">mustaphaukizuru.com</a>
+        © ${year} Mustapha Ukizuru · <a href="${base}" style="color:#5D3FD3;text-decoration:none;font-weight:600;">mustaphaukizuru.com</a>
       </p>
       <p style="margin:0 0 8px;font-size:11px;color:#a8a8be;">
         You subscribed to updates at mustaphaukizuru.com.
       </p>
       <p style="margin:0;font-size:12px;">
-        <a href="${unsubscribeUrl}" style="color:#420060;text-decoration:underline;font-weight:600;">Unsubscribe</a>
+        <a href="${unsubscribeUrl}" style="color:#5D3FD3;text-decoration:underline;font-weight:600;">Unsubscribe</a>
         &nbsp;&nbsp;·&nbsp;&nbsp;
         <a href="mailto:${esc(support)}" style="color:#8b8b9e;text-decoration:none;">Contact Support</a>
         &nbsp;&nbsp;·&nbsp;&nbsp;
@@ -637,11 +638,273 @@ async function sendNewsletterConfirmationEmail(email) {
     {
       from: fromAddress(),
       to: email,
-      subject: "You're subscribed — Mustapha Ukizuru",
+      subject: "You are subscribed · Mustapha Ukizuru",
       html: layout({ preheader: "You'll receive updates and product announcements", body, footer }),
       headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` },
     },
     { templateKey: "newsletter_confirm" }
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONSULTATION / BOOKING EMAILS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Build the nodemailer fields needed to ship an iCalendar invite alongside the
+ * HTML body. Returns { alternatives, attachments } — both are needed:
+ *   - alternatives → triggers Gmail/Outlook native "Yes / No / Maybe" UI.
+ *   - attachments  → makes Apple Mail / mobile clients show "Add to Calendar".
+ *
+ * @param {Object} consultation Prisma row + relations (user, assignedAdmin, service)
+ * @param {"REQUEST"|"CANCEL"} method
+ */
+function buildIcsMailParts(consultation, method = "REQUEST") {
+  if (!consultation) return { alternatives: undefined, attachments: undefined };
+
+  const ics = buildConsultationIcs(consultation, {
+    method,
+    fromEmail: process.env.SMTP_USER || "hello@mustaphaukizuru.com",
+    fromName:  consultation?.assignedAdmin?.fullName || "Mustapha Ukizuru",
+    baseUrl:   getBaseUrl(),
+  });
+
+  const filename = method === "CANCEL" ? "cancelled.ics" : "invite.ics";
+
+  return {
+    alternatives: [
+      {
+        contentType: `text/calendar; charset="utf-8"; method=${method}`,
+        content:     ics,
+      },
+    ],
+    attachments: [
+      {
+        filename,
+        content:     ics,
+        contentType: `text/calendar; charset="utf-8"; method=${method}`,
+      },
+    ],
+  };
+}
+
+/**
+ * Format a UTC Date as a human-readable string in the recipient's timezone.
+ */
+function formatScheduledTime(scheduledAt, timezone) {
+  if (!scheduledAt) return "N/A";
+  const d = scheduledAt instanceof Date ? scheduledAt : new Date(scheduledAt);
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "long", month: "long", day: "numeric", year: "numeric",
+      hour: "numeric", minute: "2-digit", timeZoneName: "short",
+      timeZone: timezone || "UTC",
+    }).format(d);
+  } catch {
+    return d.toUTCString();
+  }
+}
+
+function consultationDetailRows(consultation) {
+  const tz   = consultation?.timezone || "UTC";
+  const when = formatScheduledTime(consultation?.scheduledAt, tz);
+  const host = consultation?.assignedAdmin?.fullName || "Mustapha Ukizuru";
+  const svc  = consultation?.service?.title || "Consultation";
+  return [
+    ["Service",  esc(svc)],
+    ["When",     `<span style="font-weight:700;color:#420060;">${esc(when)}</span>`],
+    ["Duration", `${esc(consultation?.durationMin || 30)} minutes`],
+    ["Host",     esc(host)],
+    ["Timezone", esc(tz)],
+  ];
+}
+
+/**
+ * Booking i18n helper · returns the Spanish or English copy for each
+ * consultation-email surface depending on the resolved locale.
+ *
+ * The legacy mailer functions used to bake English copy directly into the
+ * function body. After the I18N rollout, callers pass the resolved locale
+ * (resolveUserLocale at the controller level) and the copy branches here.
+ *
+ * Keeping this localised here, rather than in DB-backed EmailTemplate rows,
+ * is intentional: consultation emails carry an ICS calendar attachment that
+ * the template service does not yet support. This branch keeps full ICS
+ * support while still serving Spanish customers Spanish copy.
+ */
+function bookingCopy(locale = "en") {
+  const isEs = String(locale).toLowerCase() === "es"
+  return {
+    confirmedHeading:    isEs ? "Tu consulta está confirmada"          : "Your consultation is confirmed",
+    confirmedThanks:     isEs ? "Gracias por reservar. Aquí están los detalles de tu reunión:"
+                              : "Thanks for booking. Here are your meeting details:",
+    yourNotes:           isEs ? "Tus notas:"                            : "Your notes:",
+    viewInDashboard:     isEs ? "Ver en el panel"                       : "View in Dashboard",
+    joinLinkLabel:       isEs ? "Enlace de la reunión:"                 : "Join link:",
+    pendingMeetingLink:  isEs ? "Te enviaremos el enlace antes de la llamada."
+                              : "A meeting link will be sent before the call.",
+    cancelLine:          isEs ? "¿Necesitas cambiar de planes? Reagenda o cancela al menos 12 horas antes de la llamada."
+                              : "Need to change plans? Reschedule or cancel at least 12 hours before the call.",
+    cancelLink:          isEs ? "Reagendar o cancelar"                  : "Reschedule or cancel",
+    rescheduledHeading:  isEs ? "Tu consulta se reagendó"               : "Your consultation was rescheduled",
+    rescheduledBody:     isEs ? "Tu reservación se movió a un nuevo horario:"
+                              : "Your booking has been moved to a new time:",
+    viewUpdated:         isEs ? "Ver reservación actualizada"           : "View Updated Booking",
+    rescheduleAgain:     isEs ? "Si este nuevo horario no te funciona, puedes volver a reagendar desde tu panel."
+                              : "If this new time doesn't work, you can reschedule again from your dashboard.",
+    cancelledHeading:    isEs ? "Tu consulta fue cancelada"             : "Your consultation was cancelled",
+    cancelledBody:       isEs ? "Cancelamos la siguiente reservación:"  : "We've cancelled the following booking:",
+    cancelledReason:     isEs ? "Motivo:"                               : "Reason:",
+    bookAnother:         isEs ? "Reservar otro horario"                 : "Book Another Time",
+    cancelledFooter:     isEs ? "Si fue un error, puedes reservar una nueva consulta desde la página de servicios."
+                              : "If this was a mistake, you can book a new consultation from the services page.",
+    preheaderConfirmed:  isEs ? "Tu consulta está en el calendario"     : "Your consultation is on the calendar",
+    preheaderRescheduled:isEs ? "Nuevo horario confirmado"              : "New time confirmed",
+    preheaderCancelled:  isEs ? "Reservación cancelada"                 : "Booking cancelled",
+    subjectConfirmed:    isEs ? "Reservación confirmada"                : "Booking confirmed",
+    subjectRescheduled:  isEs ? "Reagendada"                            : "Rescheduled",
+    subjectCancelled:    isEs ? "Cancelada · consulta del"              : "Cancelled · consultation on",
+  }
+}
+
+async function sendConsultationConfirmationEmail(consultation, { locale } = {}) {
+  const email = consultation?.user?.email;
+  if (!email) return;
+  const base = getBaseUrl();
+  const c    = bookingCopy(locale);
+
+  const meetingBlock = consultation.meetingLink
+    ? note(`${c.joinLinkLabel} <a href="${consultation.meetingLink}" style="color:#420060;">${esc(consultation.meetingLink)}</a>`)
+    : note(c.pendingMeetingLink);
+
+  const cancelUrl = consultation.confirmationToken
+    ? `${base}/booking/manage?token=${encodeURIComponent(consultation.confirmationToken)}`
+    : `${base}/dashboard/consultations`;
+
+  const body =
+    heading(c.confirmedHeading) +
+    greeting(consultation?.user?.fullName) +
+    paragraph(c.confirmedThanks) +
+    detailTable(consultationDetailRows(consultation)) +
+    (consultation.clientNotes
+      ? paragraph(`<strong>${c.yourNotes}</strong><br/><em>"${esc(consultation.clientNotes)}"</em>`)
+      : "") +
+    cta(c.viewInDashboard, `${base}/dashboard/consultations`) +
+    meetingBlock +
+    smallText(`${c.cancelLine.split("Reschedule").join("")}${c.cancelLine.includes("Reschedule") ? "" : ""} <a href="${cancelUrl}" style="color:#420060;">${c.cancelLink}</a>`);
+
+  const ics = buildIcsMailParts(consultation, "REQUEST");
+  await safeSendMail(
+    {
+      from: fromAddress(),
+      to: email,
+      subject: `${c.subjectConfirmed} · ${formatScheduledTime(consultation.scheduledAt, consultation.timezone)}`,
+      html: layout({ preheader: c.preheaderConfirmed, body }),
+      alternatives: ics.alternatives,
+      attachments:  ics.attachments,
+      icalEvent:    ics.attachments?.[0]
+        ? { method: "REQUEST", content: ics.attachments[0].content, filename: ics.attachments[0].filename }
+        : undefined,
+    },
+    { userId: consultation?.userId, templateKey: "consultation_confirmed" }
+  );
+}
+
+async function sendConsultationRescheduledEmail(consultation, { locale } = {}) {
+  const email = consultation?.user?.email;
+  if (!email) return;
+  const base = getBaseUrl();
+  const c    = bookingCopy(locale);
+
+  const body =
+    heading(c.rescheduledHeading) +
+    greeting(consultation?.user?.fullName) +
+    paragraph(c.rescheduledBody) +
+    detailTable(consultationDetailRows(consultation)) +
+    cta(c.viewUpdated, `${base}/dashboard/consultations`) +
+    smallText(c.rescheduleAgain);
+
+  const ics = buildIcsMailParts(consultation, "REQUEST");
+  await safeSendMail(
+    {
+      from: fromAddress(),
+      to: email,
+      subject: `${c.subjectRescheduled} · ${formatScheduledTime(consultation.scheduledAt, consultation.timezone)}`,
+      html: layout({ preheader: c.preheaderRescheduled, body }),
+      alternatives: ics.alternatives,
+      attachments:  ics.attachments,
+      icalEvent:    ics.attachments?.[0]
+        ? { method: "REQUEST", content: ics.attachments[0].content, filename: ics.attachments[0].filename }
+        : undefined,
+    },
+    { userId: consultation?.userId, templateKey: "consultation_rescheduled" }
+  );
+}
+
+async function sendConsultationCancelledEmail(consultation, { locale } = {}) {
+  const email = consultation?.user?.email;
+  if (!email) return;
+  const base = getBaseUrl();
+  const c    = bookingCopy(locale);
+
+  const body =
+    heading(c.cancelledHeading) +
+    greeting(consultation?.user?.fullName) +
+    paragraph(c.cancelledBody) +
+    detailTable(consultationDetailRows(consultation)) +
+    (consultation.cancellationReason
+      ? note(`${c.cancelledReason} ${esc(consultation.cancellationReason)}`)
+      : "") +
+    cta(c.bookAnother, `${base}/services`) +
+    smallText(c.cancelledFooter);
+
+  const ics = buildIcsMailParts(consultation, "CANCEL");
+  await safeSendMail(
+    {
+      from: fromAddress(),
+      to: email,
+      subject: `${c.subjectCancelled} ${formatScheduledTime(consultation.scheduledAt, consultation.timezone)}`,
+      html: layout({ preheader: c.preheaderCancelled, body }),
+      alternatives: ics.alternatives,
+      attachments:  ics.attachments,
+      icalEvent:    ics.attachments?.[0]
+        ? { method: "CANCEL", content: ics.attachments[0].content, filename: ics.attachments[0].filename }
+        : undefined,
+    },
+    { userId: consultation?.userId, templateKey: "consultation_cancelled" }
+  );
+}
+
+async function sendConsultationReminderEmail(consultation, hoursAway) {
+  const email = consultation?.user?.email;
+  if (!email) return;
+  const base = getBaseUrl();
+  const window = hoursAway >= 24 ? "tomorrow" : "in about an hour";
+
+  const body =
+    heading(`Reminder: your consultation is ${window}`) +
+    greeting(consultation?.user?.fullName) +
+    paragraph("Just a friendly reminder of your upcoming consultation:") +
+    detailTable(consultationDetailRows(consultation)) +
+    (consultation.meetingLink
+      ? cta("Join Meeting", consultation.meetingLink)
+      : note("A meeting link will be shared shortly before the call.")) +
+    smallText(`Need to cancel? Please give at least 12 hours' notice via your <a href="${base}/dashboard/consultations" style="color:#420060;">dashboard</a>.`);
+
+  const ics = buildIcsMailParts(consultation, "REQUEST");
+  await safeSendMail(
+    {
+      from: fromAddress(),
+      to: email,
+      subject: `Reminder · consultation ${window}`,
+      html: layout({ preheader: `Your consultation is ${window}`, body }),
+      alternatives: ics.alternatives,
+      attachments:  ics.attachments,
+      icalEvent:    ics.attachments?.[0]
+        ? { method: "REQUEST", content: ics.attachments[0].content, filename: ics.attachments[0].filename }
+        : undefined,
+    },
+    { userId: consultation?.userId, templateKey: hoursAway >= 24 ? "consultation_reminder_24h" : "consultation_reminder_1h" }
   );
 }
 
@@ -664,4 +927,9 @@ module.exports = {
   sendSupportReplyEmail,
   sendNewsletterConfirmationEmail,
   sendPasswordResetConfirmationEmail,
+  // Consultation / booking
+  sendConsultationConfirmationEmail,
+  sendConsultationRescheduledEmail,
+  sendConsultationCancelledEmail,
+  sendConsultationReminderEmail,
 };

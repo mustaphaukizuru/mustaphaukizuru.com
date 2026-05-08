@@ -1,0 +1,351 @@
+/* ════════════════════════════════════════════════════════════════════════
+   tokens.css · mustaphaukizuru.com Design System v1.0
+   ────────────────────────────────────────────────────────────────────────
+   The single source of truth for every visual decision. See
+   DESIGN_SYSTEM.md at the project root for the full spec.
+
+   Import this file FIRST in your global stylesheet (web/src/index.css):
+       @import "./styles/tokens.css";
+
+   All tokens use CSS custom properties so they're available to:
+     · Tailwind utilities (`bg-[var(--color-violet)]`)
+     · CSS-in-JS / Framer Motion (`color: 'var(--color-text-on-violet)'`)
+     · Email templates (inlined)
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — BRAND   ·  Source: Brand Identity v3.0 § 04 + § 18
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-violet:            #5D3FD3;  /* Royal Violet — Brand Anchor */
+  --color-violet-light:      #8B6FE8;  /* Violet text on dark surfaces */
+  --color-violet-deep:       #4A2EAB;  /* Hover/active violet */
+  --color-violet-pale:       #EDE9FB;  /* Pale violet — chip/callout bg */
+  --color-violet-ghost:      #F5F2FE;  /* Ghost violet — subtle wash */
+  --color-azure:             #0284C7;  /* Deep Azure — Action color */
+  --color-azure-pale:        #E0F2FE;  /* Azure pale — focus rings */
+  --color-azure-deep:        #0369A1;  /* Hover azure */
+  --color-cyan:              #7DD3FC;  /* Electric Cyan — accent only */
+  --color-terracotta:        #E9C46A;  /* Soft Terracotta — humanity */
+  --color-terracotta-deep:   #D4A847;  /* Hover terracotta */
+  --color-charcoal-80:       #1A1B23;  /* Midnight Charcoal — alias */
+
+  /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — SURFACE
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-surface-page:           #F8FAFC;       /* Cloud Mist canvas */
+  --color-surface-mist:           #F8FAFC;
+  --color-surface-cream:          #EFF1F5;       /* Slate 100 — dashboards */
+  --color-surface-card:           #FFFFFF;
+  --color-surface-elevated:       #FAFBFC;
+  --color-surface-dark:           #1A1B23;       /* Midnight Charcoal */
+  --color-surface-dark-elevated:  #2A2C3A;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — TEXT (every pair WCAG 2.1 AA validated)
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-text-primary:           #1A1B23;       /* Midnight Charcoal */
+  --color-text-secondary:         #475569;       /* Slate 600 */
+  --color-text-muted:             #64748B;       /* Slate Blue / Steel */
+  --color-text-on-violet:         #FFFFFF;       /* Default text on violet */
+  --color-text-on-violet-muted:   rgba(255, 255, 255, 0.78);
+  --color-text-on-violet-accent:  #E9C46A;       /* Terracotta highlight on violet */
+  --color-text-on-dark:           #FFFFFF;
+  --color-text-on-dark-muted:     rgba(255, 255, 255, 0.65);
+  --color-text-link:              #0284C7;       /* Deep Azure — every link */
+  --color-text-link-hover:        #0369A1;
+  --color-text-inverse:           #FFFFFF;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — ACTION
+     Brand v3 § 11 reserves Innovation Gradient for primary conversion.
+     `action-primary` here = Royal Violet for solid buttons; the gradient
+     itself is `--color-grad-innovation` further down.
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-action-primary:           #5D3FD3;     /* Royal Violet */
+  --color-action-primary-hover:     #4A2EAB;
+  --color-action-primary-active:    #3B2487;
+  --color-action-secondary:         #FFFFFF;
+  --color-action-secondary-hover:   #F8FAFC;
+  --color-action-ghost-hover:       #EDE9FB;
+  --color-action-destructive:        #E11D48;    /* Rose Signal */
+  --color-action-destructive-hover:  #BE123C;
+  --color-action-destructive-active: #9F1239;    /* Pressed state — replaces ad-hoc #991B1B */
+
+  /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — BORDER (slate-based, neutral)
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-border-subtle:         #EFF1F5;        /* Slate 100 */
+  --color-border-default:        #DCDCE4;        /* Slate 200 */
+  --color-border-strong:         #A0A8B8;        /* Slate 300 */
+  --color-border-violet:         rgba(93, 63, 211, 0.20);
+  --color-border-violet-strong:  #5D3FD3;
+  --color-border-on-dark:        rgba(255, 255, 255, 0.12);
+
+  /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — FEEDBACK (semantic) · Brand v3 § 04 Tier 5
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-feedback-success:       #10B981;       /* Neon Mint */
+  --color-feedback-success-bg:    #D1FAE5;
+  --color-feedback-success-text:  #065F46;
+
+  --color-feedback-warning:       #F59E0B;       /* Amber Glow */
+  --color-feedback-warning-bg:    #FEF3C7;
+  --color-feedback-warning-text:  #92400E;
+
+  --color-feedback-danger:        #E11D48;       /* Rose Signal */
+  --color-feedback-danger-bg:     #FFE4E6;
+  --color-feedback-danger-text:   #9F1239;
+
+  --color-feedback-info:          #0284C7;       /* Deep Azure */
+  --color-feedback-info-bg:       #E0F2FE;
+  --color-feedback-info-text:     #075985;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — GRADIENTS · Brand v3 § 06 (canonical only)
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-grad-innovation:  linear-gradient(135deg, #5D3FD3 0%, #0284C7 100%);
+  --color-grad-dawn:        linear-gradient(135deg, #5D3FD3 0%, #0284C7 50%, #7DD3FC 100%);
+  --color-grad-electric:    linear-gradient(135deg, #0284C7 0%, #7DD3FC 100%);
+  --color-grad-humanity:    linear-gradient(135deg, #E9C46A 0%, #F8FAFC 100%);
+
+  /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — SKELETON LOADER
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-skeleton-base:    #ECEAF0;
+  --color-skeleton-shine:   #F5F3F8;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     2 · TYPOGRAPHY — FAMILY
+     ─────────────────────────────────────────────────────────────────────── */
+  --font-display:  "Sora", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body:     "Sora", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:     "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     2 · TYPOGRAPHY — SCALE
+     Each token: font-size, line-height, letter-spacing baked in.
+     Mobile-first; desktop sizes set via media query at the bottom.
+     ─────────────────────────────────────────────────────────────────────── */
+  --text-micro-size:        10px;
+  --text-micro-line:        1.4;
+  --text-micro-tracking:    0.12em;
+
+  --text-meta-size:         12px;
+  --text-meta-line:         1.5;
+  --text-meta-tracking:     0;
+
+  --text-body-size:         14px;
+  --text-body-line:         1.65;
+  --text-body-tracking:     0;
+
+  --text-lead-size:         16px;
+  --text-lead-line:         1.55;
+  --text-lead-tracking:     -0.005em;
+
+  --text-card-size:         18px;
+  --text-card-line:         1.4;
+  --text-card-tracking:     -0.01em;
+
+  --text-section-size:      24px;
+  --text-section-line:      1.2;
+  --text-section-tracking:  -0.015em;
+
+  --text-page-size:         32px;
+  --text-page-line:         1.1;
+  --text-page-tracking:     -0.02em;
+
+  /* Display caps platform-wide at 52px (lg+). Ladder: 32 → 40 → 48 → 52.
+     Line-height tightens as size grows — matches Brand v3 §07
+     ("Hero · 5.5rem · 0.95"). At mobile we hold 1.05 so two-line
+     headlines still breathe; at lg+ we drop to 1.0 for the snap. */
+  --text-display-size:      32px;
+  --text-display-line:      1.05;
+  --text-display-tracking:  -0.025em;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     3 · SPACING — 4px base, allowed multiples only
+     ─────────────────────────────────────────────────────────────────────── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* Container max-width and gutters */
+  --container-max:        1280px;
+  --gutter-mobile:        16px;
+  --gutter-tablet:        24px;
+  --gutter-desktop:       32px;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     4 · RADIUS
+     ─────────────────────────────────────────────────────────────────────── */
+  --radius-sm:    6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   18px;
+  --radius-2xl:  22px;
+  --radius-full: 9999px;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     5 · SHADOW (3 elevations only)
+     ─────────────────────────────────────────────────────────────────────── */
+  --shadow-rest:     0 4px 16px  rgba(93, 63, 211, 0.06);
+  --shadow-hover:    0 12px 32px rgba(93, 63, 211, 0.12);
+  --shadow-overlay:  0 24px 60px rgba(93, 63, 211, 0.20);
+
+  /* ───────────────────────────────────────────────────────────────────────
+     6 · MOTION — DURATIONS
+     ─────────────────────────────────────────────────────────────────────── */
+  --motion-instant:     0ms;
+  --motion-fast:      150ms;
+  --motion-base:      250ms;
+  --motion-slow:      400ms;
+  --motion-deliberate: 600ms;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     6 · MOTION — EASINGS
+     ─────────────────────────────────────────────────────────────────────── */
+  --ease-standard:    cubic-bezier(0.22, 1.0, 0.36, 1.0);
+  --ease-decelerate:  cubic-bezier(0.0,  0.0, 0.2,  1.0);
+  --ease-accelerate:  cubic-bezier(0.4,  0.0, 1.0,  1.0);
+  --ease-spring:      cubic-bezier(0.16, 1.0, 0.3,  1.0);
+
+  /* ───────────────────────────────────────────────────────────────────────
+     7 · Z-INDEX (5 layers only — anything above z-toast is forbidden)
+     ─────────────────────────────────────────────────────────────────────── */
+  --z-base:      0;
+  --z-dropdown: 30;
+  --z-sticky:   40;
+  --z-modal:    60;
+  --z-toast:    80;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     8 · FOCUS RINGS
+     ─────────────────────────────────────────────────────────────────────── */
+  --ring-focus:          0 0 0 3px rgba(59, 130, 246, 0.40);
+  --ring-focus-on-dark:  0 0 0 3px rgba(255, 255, 255, 0.55);
+  --ring-focus-offset:   2px;
+
+  /* ───────────────────────────────────────────────────────────────────────
+     9 · COMPONENT TOKENS — derived from primitives above
+     ─────────────────────────────────────────────────────────────────────── */
+  --button-height-sm:   36px;
+  --button-height-md:   44px;
+  --button-height-lg:   52px;
+  --input-height:       44px;
+  --avatar-sm:          28px;
+  --avatar-md:          36px;
+  --avatar-lg:          44px;
+  --avatar-xl:          56px;
+  --icon-gap-body:      8px;
+  --icon-gap-hero:     12px;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   RESPONSIVE TYPOGRAPHY — display ladder + desktop sizes
+   ────────────────────────────────────────────────────────────────────────
+   Display ladder (hero headlines, .text-display):
+     mobile  32px  →  sm 40px  →  md 48px  →  lg 52px (ceiling)
+   The display ceiling is intentionally capped at 52px so every hero
+   across the platform shares the same maximum visual weight.
+   ════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 640px) {
+  :root {
+    --text-display-size:  40px;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --text-display-size:  48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --text-micro-size:    11px;
+    --text-meta-size:     13px;
+    --text-body-size:     15px;
+    --text-lead-size:     17px;
+    --text-card-size:     20px;
+    --text-section-size:  32px;
+    --text-page-size:     48px;
+    --text-display-size:  52px;     /* PLATFORM HARD CAP — never exceed */
+    --text-display-line:  1.0;      /* Tightens at hero scale per §07    */
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   REDUCED MOTION — global override
+   ════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast:        0ms;
+    --motion-base:        0ms;
+    --motion-slow:        0ms;
+    --motion-deliberate:  0ms;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   UTILITY CLASSES — typography (use these instead of arbitrary Tailwind sizes)
+   ────────────────────────────────────────────────────────────────────────
+   `text-micro` is a SIZING token only. It used to bake in
+   `text-transform: uppercase` and `font-weight: 700`, which forced every
+   subtitle, description, form label, and error message to render in ALL
+   CAPS — long-form text is harder to read in caps and feels shouty.
+   We now keep `text-micro` as size+tracking only, and any place that
+   genuinely wants an EYEBROW look opts in via Tailwind's `uppercase`
+   + `font-bold` (or `font-semibold`) classes. Hero eyebrows already
+   compose those classes explicitly, so they stay capitalized; everything
+   else returns to readable sentence/title case.
+   ════════════════════════════════════════════════════════════════════════ */
+.text-micro   { font-size: var(--text-micro-size);   line-height: var(--text-micro-line);   letter-spacing: var(--text-micro-tracking);   font-weight: 500; }
+.text-meta    { font-size: var(--text-meta-size);    line-height: var(--text-meta-line);    letter-spacing: var(--text-meta-tracking);    font-weight: 500; }
+.text-body    { font-size: var(--text-body-size);    line-height: var(--text-body-line);    letter-spacing: var(--text-body-tracking);    font-weight: 400; }
+.text-lead    { font-size: var(--text-lead-size);    line-height: var(--text-lead-line);    letter-spacing: var(--text-lead-tracking);    font-weight: 400; }
+.text-card    { font-size: var(--text-card-size);    line-height: var(--text-card-line);    letter-spacing: var(--text-card-tracking);    font-weight: 600; }
+.text-section { font-size: var(--text-section-size); line-height: var(--text-section-line); letter-spacing: var(--text-section-tracking); font-weight: 700; }
+.text-page    { font-size: var(--text-page-size);    line-height: var(--text-page-line);    letter-spacing: var(--text-page-tracking);    font-weight: 800; }
+.text-display { font-size: var(--text-display-size); line-height: var(--text-display-line); letter-spacing: var(--text-display-tracking); font-weight: 800; }
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   FOCUS-VISIBLE — applied globally; override per-component if needed
+   ════════════════════════════════════════════════════════════════════════ */
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+  outline-offset: var(--ring-focus-offset);
+}
+
+/* On dark / violet surfaces, swap to white ring */
+.bg-violet *:focus-visible,
+.bg-violet-deep *:focus-visible,
+.bg-charcoal *:focus-visible,
+[data-on-dark] *:focus-visible {
+  box-shadow: var(--ring-focus-on-dark);
+}
+
+
+/* ═══════�

@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import {
   clearStoredAuth, fetchMe, getStoredToken, getStoredUser,
   login as loginRequest, signup as signupRequest, storeAuth,
+  verifyLoginTwoFactor as verifyLoginTwoFactorRequest,
 } from "../services/authService"
 
 const AuthContext = createContext(null)
@@ -26,7 +27,7 @@ function normalizeUser(raw) {
 }
 
 export function AuthProvider({ children }) {
-  const [user,  setUser]  = useState(() => getStoredUser())
+  const [user, setUser] = useState(() => getStoredUser())
   const [token, setToken] = useState(() => getStoredToken())
   const [loading, setLoading] = useState(true)
 
@@ -63,7 +64,7 @@ export function AuthProvider({ children }) {
         const isNetworkError = err?.code === "NETWORK_ERROR" || err?.message?.includes("ERR_CONNECTION_REFUSED")
 
         if (isNetworkError) {
-          console.warn("[Auth] API unreachable — using cached auth state")
+          console.warn("[Auth] API unreachable, using cached auth state")
         } else {
           clearStoredAuth()
           setUser(null)
@@ -86,8 +87,42 @@ export function AuthProvider({ children }) {
     return enriched
   }, [])
 
+  /**
+   * Login (B09 update).
+   *
+   * Returns one of:
+   *   { requires2FA: true, twoFactorToken }   — caller must show the 2FA prompt
+   *   { user, token }                          — standard, session is now live
+   *
+   * If requires2FA is true, NO state is stored and `isAuthenticated` stays
+   * false. Only after `completeTwoFactorLogin()` succeeds does the session
+   * become live.
+   */
   const login = useCallback(async (payload) => {
     const data = await loginRequest(payload)
+
+    // ── 2FA gate — return as-is, no storage ──────────────────────────────
+    if (data?.requires2FA) {
+      return {
+        requires2FA: true,
+        twoFactorToken: data.twoFactorToken,
+      }
+    }
+
+    // ── Standard path ──────────────────────────────────────────────────────
+    const enriched = { ...data, user: normalizeUser(data.user) }
+    storeAuth(enriched)
+    setUser(enriched.user)
+    setToken(enriched.token)
+    return enriched
+  }, [])
+
+  /**
+   * Complete a 2FA-gated login. Called by LoginPage after the user types
+   * their 6-digit TOTP or a backup code.
+   */
+  const completeTwoFactorLogin = useCallback(async ({ twoFactorToken, code }) => {
+    const data = await verifyLoginTwoFactorRequest({ twoFactorToken, code })
     const enriched = { ...data, user: normalizeUser(data.user) }
     storeAuth(enriched)
     setUser(enriched.user)
@@ -130,6 +165,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user && !!token,
     signup,
     login,
+    completeTwoFactorLogin,
     loginWithGoogle,
     logout,
     updateUser,

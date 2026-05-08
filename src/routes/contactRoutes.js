@@ -4,13 +4,21 @@ const {
   addNewsletterSubscriber,
 } = require("../controllers/contactController");
 
+const {
+  contactRateLimiter,
+  newsletterRateLimiter,
+} = require("../middleware/rateLimiter");
+
 const router = express.Router();
-const { authRateLimiter } = require("../middleware/rateLimiter")
 
-router.post("/contact",    authRateLimiter, sendContactMessage);
-router.post("/newsletter", authRateLimiter, addNewsletterSubscriber);
+// B07 · contact uses its own 3/15-min limiter, newsletter has its own
+router.post("/contact",    contactRateLimiter,    sendContactMessage);
+router.post("/newsletter", newsletterRateLimiter, addNewsletterSubscriber);
 
-// Newsletter unsubscribe — GET for email link clicks
+// ─────────────────────────────────────────────────────────────────────────────
+// Legacy email-param unsubscribe — kept for links that went out before B07.
+// New links use GET /api/newsletter/unsubscribe/:token (see newsletterRoutes.js).
+// ─────────────────────────────────────────────────────────────────────────────
 router.get("/newsletter/unsubscribe", async (req, res) => {
   try {
     const { email } = req.query;
@@ -31,12 +39,15 @@ router.get("/newsletter/unsubscribe", async (req, res) => {
 
     await prisma.newsletterSubscriber.update({
       where: { email },
-      data: { status: "unsubscribed", unsubscribedAt: new Date() },
+      data:  { status: "unsubscribed", unsubscribedAt: new Date() },
     });
 
-    return res.send(unsubscribePage("You've been successfully unsubscribed. You won't receive any more emails from us.", true));
+    return res.send(unsubscribePage(
+      "You've been successfully unsubscribed. You won't receive any more emails from us.",
+      true
+    ));
   } catch (err) {
-    console.error("[unsubscribe]", err.message);
+    console.error("[unsubscribe legacy]", err.message);
     return res.status(500).send(unsubscribePage("Something went wrong. Please try again or contact support.", false));
   }
 });
@@ -53,7 +64,7 @@ function unsubscribePage(message, success) {
   </div>
   <h1 style="margin:0 0 12px;font-size:20px;color:#1a1a2e;">${success ? "Unsubscribed" : "Oops"}</h1>
   <p style="margin:0 0 24px;font-size:15px;color:#5f6470;line-height:1.6;">${message}</p>
-  <a href="${base}" style="display:inline-block;padding:12px 24px;background:#420060;color:#fff;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;">Back to Website</a>
+  <a href="${base}" style="display:inline-block;padding:12px 24px;background:#5D3FD3;color:#fff;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;">Back to Website</a>
 </div>
 </body>
 </html>`;

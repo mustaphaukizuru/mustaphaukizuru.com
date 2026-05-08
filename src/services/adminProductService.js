@@ -1,8 +1,48 @@
+// @ts-check
 const fs = require("fs")
 const path = require("path")
 const prisma = require("../lib/prisma")
 const { PRODUCT_FILE_DIR } = require("../middleware/uploadProductFile")
 const { PRODUCT_IMAGE_DIR } = require("../middleware/uploadProductImage")
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * F04 · I + K — JSON-field sanitizers.
+ *
+ * Both `specifications` and `productFaqs` are MySQL Json? columns. The admin
+ * frontend already filters empty rows before submit, but defense-in-depth:
+ * we re-validate server-side. Returns:
+ *   - clean array when the payload contains at least 1 valid row
+ *   - null when the array is empty/missing/malformed (so the column stays NULL)
+ * ──────────────────────────────────────────────────────────────────────────── */
+function sanitizeSpecifications(value) {
+  if (!Array.isArray(value)) return null
+  const cleaned = value
+    .filter(
+      (s) =>
+        s &&
+        typeof s.key === "string" &&
+        typeof s.value === "string" &&
+        s.key.trim() &&
+        s.value.trim()
+    )
+    .map((s) => ({ key: s.key.trim(), value: s.value.trim() }))
+  return cleaned.length > 0 ? cleaned : null
+}
+
+function sanitizeProductFaqs(value) {
+  if (!Array.isArray(value)) return null
+  const cleaned = value
+    .filter(
+      (f) =>
+        f &&
+        typeof f.question === "string" &&
+        typeof f.answer === "string" &&
+        f.question.trim() &&
+        f.answer.trim()
+    )
+    .map((f) => ({ question: f.question.trim(), answer: f.answer.trim() }))
+  return cleaned.length > 0 ? cleaned : null
+}
 
 async function getAdminProducts() {
   return prisma.product.findMany({
@@ -35,6 +75,9 @@ async function createAdminProduct(payload) {
     isNew,
     images = [],
     features = [],
+    // F04 · I + K — admin form sends these JSON arrays
+    specifications,
+    productFaqs,
   } = payload
 
   return prisma.product.create({
@@ -49,6 +92,9 @@ async function createAdminProduct(payload) {
       isActive: Boolean(isActive),
       isFeatured: Boolean(isFeatured),
       isNew: Boolean(isNew),
+      // F04 · I + K — persist sanitized JSON, or NULL when empty
+      specifications: sanitizeSpecifications(specifications),
+      productFaqs: sanitizeProductFaqs(productFaqs),
       images: {
         create: images.map((image, index) => ({
           url: image.url,
@@ -92,6 +138,9 @@ async function updateAdminProduct(productId, payload) {
     isFeatured,
     isNew,
     features,
+    // F04 · I + K — admin form sends these JSON arrays
+    specifications,
+    productFaqs,
   } = payload
 
   const data = {
@@ -105,6 +154,16 @@ async function updateAdminProduct(productId, payload) {
     isActive: Boolean(isActive),
     isFeatured: Boolean(isFeatured),
     isNew: Boolean(isNew),
+  }
+
+  // F04 · I + K — only touch JSON columns when payload actually included them.
+  // `undefined` = field omitted from request → leave existing value alone.
+  // Array (even empty) = explicit user intent → sanitize and persist (or NULL).
+  if (specifications !== undefined) {
+    data.specifications = sanitizeSpecifications(specifications)
+  }
+  if (productFaqs !== undefined) {
+    data.productFaqs = sanitizeProductFaqs(productFaqs)
   }
 
   // Update features if provided

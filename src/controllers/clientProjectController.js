@@ -1,0 +1,130 @@
+const path = require("path")
+const fs   = require("fs")
+const asyncHandler = require("../utils/asyncHandler")
+const prisma = require("../lib/prisma")
+const logger = require("../utils/logger")
+const { listMyProjects, getMyProject } = require("../services/clientProjectService")
+
+/* ────────────────────────────────────────────────────────────────────────
+ * SECURITY · resolveProjectFilePath
+ *
+ * Project files live at `public/files/projects/<projectId>/<filename>`. The
+ * static catch-all in app.js used to serve them WITHOUT authentication —
+ * anyone who guessed or leaked a URL could download another customer's
+ * deliverables. The streaming endpoint below replaces that; the deny
+ * middleware mounted in app.js blocks the static path.
+ *
+ * This helper resolves the on-disk absolute path with a startsWith()
+ * guard so a malicious filePath like `/files/projects/../etc/passwd`
+ * cannot escape the safe root. Same pattern used in downloadController.
+ * ──────────────────────────────────────────────────────────────────── */
+const PROJECT_FILES_ROOT = path.resolve(__dirname, "../../public/files/projects")
+
+function resolveSafePath(filePath) {
+  if (!filePath) return null
+  // Strip any leading `/files/projects/` and normalise slashes.
+  const rel = String(filePath)
+    .replace(/^[/\\]+/, "")
+    .replace(/^files[/\\]+projects[/\\]+/i, "")
+    .replace(/\\/g, "/")
+  const abs = path.resolve(PROJECT_FILES_ROOT, rel)
+  if (!abs.startsWith(PROJECT_FILES_ROOT)) return null
+  return abs
+}
+
+/* ────────────────────────────────────────────────────────────────────── */
+
+const listMine = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  const data = await listMyProjects(userId)
+  res.status(200).json({ success: true, data })
+})
+
+const getMine = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  const project = await getMyProject({ userId, projectId: req.params.id })
+  if (!project) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Project not found" } })
+  res.status(200).json({ success: true, data: project })
+})
+
+/**
+ * GET /api/v1/member/projects/:id/files/:fileId/download
+ *
+ * Authenticated, ownership-scoped streaming download for project files.
+ * Replaces the previous "everyone can hit /files/projects/<id>/<name>
+ * directly" static-serve path that exposed deliverables to anyone with
+ * a URL. Authorisation chain:
+ *
+ *   1. `protect` middleware on the route parent populates req.user
+ *   2. We re-verify the file belongs to a project the user owns
+ *   3. Path is resolved against the safe root with a startsWith guard
+ *   4. Stream with `Content-Disposition: attachment` + private no-store
+ *   5. Best-effort access log to ActivityLog
+ */
+const streamFile = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) {
+    return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  }
+
+  const { id: projectId, fileId } = req.params
+
+  // Single composite query: file row + parent project ownership in one round-trip.
+  const file = await prisma.projectFile.findFirst({
+    where: { id: String(fileId), projectId: String(projectId) },
+    include: {
+      project: { select: { id: true, userId: true, projectName: true } },
+    },
+  })
+
+  if (!file) {
+    return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "File not found" } })
+  }
+  if (file.project?.userId !== userId) {
+    // 404 (not 403) so we don't confirm existence to a non-owner.
+    return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "File not found" } })
+  }
+
+  const abs = resolveSafePath(file.filePath)
+  if (!abs) {
+    logger.warn("[project file] suspicious path rejected", { fileId: file.id, filePath: file.filePath })
+    return res.status(400).json({ success: false, error: { code: "INVALID_PATH", message: "Access denied" } })
+  }
+  if (!fs.existsSync(abs)) {
+    return res.status(404).json({ success: false, error: { code: "FILE_MISSING", message: "File is no longer available. Please contact support." } })
+  }
+
+  // Best-effort access log — fire-and-forget so a logging failure never
+  // blocks the download itself.
+  prisma.activityLog
+    .create({
+      data: {
+        userId,
+        action:      "project.file.downloaded",
+        entityType:  "ProjectFile",
+        entityId:    file.id,
+        description: `Downloaded ${file.fileName} from project ${file.project.projectName}`,
+        ipAddress:   req.ip || null,
+      },
+    })
+    .catch(() => null)
+
+  res.setHeader("Content-Disposition", `attachment; filename*=UTF-8\'\'${encodeURIComponent(file.fileName)}`)
+  res.setHeader("Cache-Control", "private, no-store")
+  if (file.fileType) res.setHeader("Content-Type", file.fileType)
+
+  const stream = fs.createReadStream(abs)
+  stream.on("error", (err) => {
+    logger.error("[project file stream]", err.message)
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: { code: "STREAM_ERROR", message: "Could not stream file" } })
+    } else {
+      res.end()
+    }
+  })
+  stream.pipe(res)
+})
+
+module.exports = { listMine, getMine, streamFile }

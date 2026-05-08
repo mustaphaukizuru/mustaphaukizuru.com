@@ -1,3 +1,4 @@
+// @ts-check
 const prisma = require("../lib/prisma")
 
 async function getAdminPayments({ page = 1, limit = 30 } = {}) {

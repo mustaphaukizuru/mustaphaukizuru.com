@@ -1,0 +1,92 @@
+{
+  "terms": {
+    "title": "Terms of Service",
+    "subtitle": "Last updated {{date}}",
+    "lastUpdated": "Last updated",
+    "intro": "Please read these terms carefully before using our platform or purchasing digital products.",
+    "questions": "Questions about these Terms?"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "subtitle": "How we collect, use, and protect your personal information."
+  },
+  "refund": {
+    "title": "Refund Policy",
+    "subtitle": "Clear, fair, and enforceable, for digital products and consulting services.",
+    "lastUpdated": "Last updated: May 2026",
+    "headline": {
+      "title": "Our policy in one line",
+      "body": "Refunds are available within <strong>14 days of purchase</strong>, provided the digital product has <strong>not been downloaded</strong>. Once any file from an order is downloaded, that item becomes non-refundable."
+    },
+    "eligible": {
+      "title": "Refunds Are Available When",
+      "items": [
+        "The request is made within 14 days of the original purchase date.",
+        "No file from the order has been downloaded yet (verified via download logs).",
+        "A duplicate charge was made due to a payment processing error.",
+        "The digital product is materially different from its public description, or a defect prevents normal use and our team cannot resolve it within 48 hours.",
+        "A consulting service was not delivered as outlined in the signed service agreement."
+      ]
+    },
+    "ineligible": {
+      "title": "Refunds Are Not Available When",
+      "items": [
+        "Any file from the order has been downloaded. Once accessed, the digital product is considered consumed.",
+        "The request is made more than 14 days after the original purchase date.",
+        "A change of mind after the product was downloaded, viewed, or used.",
+        "Incompatibility with third-party software, devices, or environments not specified in the product description.",
+        "Consulting hours that have already been delivered, or service packages that have been partially consumed.",
+        "Subscription renewals or recurring charges where the renewal notice was sent in advance."
+      ]
+    },
+    "process": {
+      "title": "How to Request a Refund",
+      "steps": [
+        {
+          "label": "Open a support ticket",
+          "descPrefix": "From your",
+          "descLink": "member dashboard → Support",
+          "descMid": "open a ticket of type",
+          "descEm": "Refund request",
+          "descSuffix": "with your order number and the reason. If you don't have an account, email"
+        },
+        {
+          "label": "Eligibility review",
+          "desc": "Our team checks the order against the policy above, including download logs, and replies within 3 business days."
+        },
+        {
+          "label": "Decision",
+          "desc": "If approved, the refund is issued to the original payment method. If declined, you receive a written explanation referencing the policy section that applies."
+        },
+        {
+          "label": "Funds returned",
+          "desc": "Approved refunds settle on your original payment method (PayPal or MercadoPago) within 5–10 business days. Bank timelines may extend this."
+        },
+        {
+          "label": "Access revoked",
+          "desc": "On any approved refund, whether partial or full, download access for the refunded items is immediately revoked. Existing downloaded copies must be deleted by the customer."
+        }
+      ]
+    },
+    "chargebacks": {
+      "title": "Before disputing a charge with your bank",
+      "body": "We resolve every legitimate refund request directly. Initiating a chargeback before contacting us delays resolution and incurs processor fees on both sides. Please reach out first; we respond within 3 business days. In the event of a chargeback, we provide payment processors with our policy, your acceptance at checkout, and the full download log as evidence."
+    },
+    "spanishSummary": {
+      "title": "Resumen en español (México · PROFECO)",
+      "body": "De acuerdo con el Artículo 56 de la Ley Federal de Protección al Consumidor, el consumidor cuenta con cinco días hábiles para revocar una compra a distancia, <strong>siempre que el producto digital no haya sido descargado o consumido</strong>. Una vez descargado, el producto se considera entregado y consumido, por lo que no procede el reembolso. Para servicios de consultoría parcialmente entregados, el reembolso se calcula sobre las horas no consumidas. Las solicitudes deben dirigirse a {{email}} dentro de los 14 días posteriores a la compra."
+    },
+    "support": {
+      "title": "Need help with a refund?"
+    }
+  },
+  "cookies": {
+    "title": "Cookie Policy",
+    "subtitle": "Plain-language guide to how this site uses cookies and how you stay in control.",
+    "alwaysOn": "Always on",
+    "changePrefs": "Change your preferences",
+    "resetClick": "Click below to reset and choose again.",
+    "managePrefs": "Manage cookie preferences",
+    "questions": "Cookie or privacy questions?"
+  }
+}

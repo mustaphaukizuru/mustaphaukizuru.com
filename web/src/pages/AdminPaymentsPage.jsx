@@ -1,24 +1,34 @@
-import { useEffect, useState } from "react"
-import { CreditCard, CheckCircle2, Clock3, XCircle, RefreshCw } from "lucide-react"
-import { MetricCard, StatusBadge, SectionCard, SkeletonCard, AlertBanner, TableWrapper, TableHead, EmptyState } from "../components/ui/index"
+import { useEffect, useMemo, useState } from "react"
+import {
+  CreditCard, CheckCircle2, Clock3, XCircle,
+} from "lucide-react"
+import { MetricCard, AlertBanner, SkeletonCard } from "../components/ui/index"
 import { fetchAdminPayments } from "../services/adminPaymentService"
+import DataTable from "../components/admin/DataTable"
+import StatusPill from "../components/admin/StatusPill"
 
-// Gateway display helpers
-const GATEWAY_LABELS = { mercadopago: "Mercado Pago", paypal: "PayPal" }
-const GATEWAY_COLORS = { mercadopago: "bg-[#e0f5ff] text-[#0369a1]", paypal: "bg-[#eef2ff] text-[#3730a3]" }
-
-function GatewayBadge({ gw }) {
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${GATEWAY_COLORS[gw] || "bg-[#f2f2f2] text-[#555]"}`}>
-      {GATEWAY_LABELS[gw] || gw || "—"}
-    </span>
-  )
-}
+/* ──────────────────────────────────────────────────────────────────────────
+ *  AdminPaymentsPage · Batch 6B-2
+ *
+ *  Refactored to use the shared <DataTable /> + <StatusPill /> primitives.
+ *
+ *  What changed:
+ *    - Local GatewayBadge inlined as a small render helper but uses the
+ *      shared StatusPill machinery (gateway taxonomy added to STATUS_MAP)
+ *    - Bespoke <table> markup replaced with <DataTable />
+ *    - Search across order #, customer name, email
+ *    - Sortable on amount, status, date, gateway
+ *    - Mono numerics on amount + dates
+ *
+ *  Preserved verbatim:
+ *    - fetchAdminPayments API contract (returns { payments, metrics })
+ *    - Metric cards (total / paid / pending / failed)
+ *  ──────────────────────────────────────────────────────────────────── */
 
 export default function AdminPaymentsPage() {
-  const [data,    setData]    = useState({ payments: [], metrics: {} })
+  const [data, setData] = useState({ payments: [], metrics: {} })
   const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState("")
+  const [error, setError] = useState("")
 
   async function load() {
     setLoading(true); setError("")
@@ -34,66 +44,124 @@ export default function AdminPaymentsPage() {
 
   useEffect(() => { load() }, [])
 
-  if (loading) return (
-    <section className="space-y-5">
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">{[1,2,3,4].map(i => <SkeletonCard key={i} />)}</div>
-      <SkeletonCard height="h-80" />
-    </section>
-  )
-
   const { payments = [], metrics = {} } = data
+
+  const columns = useMemo(() => [
+    {
+      key: "orderNumber",
+      label: "Order",
+      sortable: true,
+      searchable: true,
+      width: "1.0fr",
+      getValue: (row) => row.order?.orderNumber || row.orderId || "",
+      render: (row) => (
+        <span className="font-mono text-meta font-semibold tabular-nums text-violet">
+          #{row.order?.orderNumber || (row.orderId ? String(row.orderId).slice(0, 8) : "-")}
+        </span>
+      ),
+    },
+    {
+      key: "customer",
+      label: "Customer",
+      sortable: true,
+      searchable: true,
+      width: "1.4fr",
+      getValue: (row) => row.user?.fullName || row.user?.email || "",
+      render: (row) => (
+        <div className="min-w-0">
+          <div className="truncate text-meta font-medium text-charcoal-80">
+            {row.user?.fullName || "-"}
+          </div>
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+            {row.user?.email || ""}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "gateway",
+      label: "Gateway",
+      sortable: true,
+      width: "1.0fr",
+      getValue: (row) => row.paymentGateway || "",
+      render: (row) => row.paymentGateway ? <StatusPill status={row.paymentGateway} /> : <span className="text-charcoal-80/45">-</span>,
+    },
+    {
+      key: "amount",
+      label: "Amount",
+      sortable: true,
+      width: "0.8fr",
+      align: "right",
+      getValue: (row) => Number(row.amount || 0),
+      render: (row) => (
+        <span className="font-mono text-meta font-bold tabular-nums text-violet">
+          ${Number(row.amount || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      width: "0.9fr",
+      getValue: (row) => row.paymentStatus,
+      render: (row) => <StatusPill status={row.paymentStatus} />,
+    },
+    {
+      key: "date",
+      label: "Date",
+      sortable: true,
+      width: "0.9fr",
+      align: "right",
+      getValue: (row) => row.paidAt || row.createdAt,
+      render: (row) => (
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+          {new Date(row.paidAt || row.createdAt).toLocaleDateString(undefined, {
+            year: "numeric", month: "short", day: "numeric",
+          })}
+        </span>
+      ),
+    },
+  ], [])
+
+  if (loading && payments.length === 0) {
+    return (
+      <section className="space-y-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+        </div>
+        <SkeletonCard height="h-[400px]" />
+      </section>
+    )
+  }
 
   return (
     <section className="space-y-5">
       <AlertBanner type="error" message={error} onDismiss={() => setError("")} />
 
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
-        <MetricCard title="Total"   value={metrics.total   ?? 0} icon={CreditCard}   tone="purple" />
-        <MetricCard title="Paid"    value={metrics.paid    ?? 0} icon={CheckCircle2} tone="green"  />
-        <MetricCard title="Pending" value={metrics.pending ?? 0} icon={Clock3}       tone="amber"  />
-        <MetricCard title="Failed"  value={metrics.failed  ?? 0} icon={XCircle}      tone="red"    />
+      {/* Metric cards */}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard title="Total" value={metrics.total ?? 0} icon={CreditCard} tone="purple" />
+        <MetricCard title="Paid" value={metrics.paid ?? 0} icon={CheckCircle2} tone="green" />
+        <MetricCard title="Pending" value={metrics.pending ?? 0} icon={Clock3} tone="amber" />
+        <MetricCard title="Failed" value={metrics.failed ?? 0} icon={XCircle} tone="red" />
       </div>
 
-      <SectionCard
-        title={`Payment Records (${payments.length})`}
-        subtitle="Gateway transactions, statuses, and order references."
-        action={
-          <button type="button" onClick={load}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#634F40]/10 bg-[#f7f4f8] px-3 py-2 text-[12px] font-medium text-[#420060] transition hover:bg-[#ede4ef]">
-            <RefreshCw className="h-3.5 w-3.5" /> Refresh
-          </button>
-        }
-      >
-        {payments.length === 0 ? (
-          <EmptyState icon={CreditCard} title="No payments yet" description="Payment records will appear here after transactions." />
-        ) : (
-          <TableWrapper>
-            <TableHead columns={["Order", "Customer", "Gateway", "Amount", "Status", "Date"]} />
-            <tbody className="divide-y divide-[#634F40]/6">
-              {payments.map((p) => (
-                <tr key={p.id} className="transition hover:bg-[#faf8fb]">
-                  <td className="px-4 py-3.5">
-                    <div className="font-medium text-[#420060] text-[12px]">
-                      {p.order?.orderNumber || p.orderId?.slice(0, 8) || "—"}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5 text-[#634F40]/70">
-                    {p.user?.fullName || p.user?.email || "—"}
-                  </td>
-                  <td className="px-4 py-3.5"><GatewayBadge gw={p.paymentGateway} /></td>
-                  <td className="px-4 py-3.5 font-semibold text-[#420060]">
-                    ${Number(p.amount || 0).toFixed(2)}
-                  </td>
-                  <td className="px-4 py-3.5"><StatusBadge status={p.paymentStatus} /></td>
-                  <td className="px-4 py-3.5 text-[#634F40]/55 text-[12px]">
-                    {p.paidAt ? new Date(p.paidAt).toLocaleDateString() : new Date(p.createdAt).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </TableWrapper>
-        )}
-      </SectionCard>
+      {/* Data table */}
+      <DataTable
+        columns={columns}
+        rows={payments}
+        rowKey={(row) => row.id}
+        loading={loading}
+        onRefresh={load}
+        initialSort={{ key: "date", dir: "desc" }}
+        searchPlaceholder="Search by order # or customer…"
+        emptyState={{
+          icon: CreditCard,
+          title: "No payments yet",
+          description: "Payment records will appear here once transactions are processed.",
+        }}
+      />
     </section>
   )
 }

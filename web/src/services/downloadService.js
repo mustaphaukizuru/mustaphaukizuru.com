@@ -10,7 +10,7 @@ export async function getDownload(productId) {
     throw new Error("Product ID is required")
   }
 
-  const response = await authFetch(`/api/downloads/${productId}`, {
+  const response = await authFetch(`/api/v1/downloads/${productId}`, {
     method: "GET",
   })
 

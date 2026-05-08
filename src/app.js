@@ -11,8 +11,35 @@ const routes        = require("./routes")
 const notFound      = require("./middleware/notFound")
 const errorHandler  = require("./middleware/errorHandler")
 const { clientUrl } = require("./config/env")
+const { globalApiLimiter } = require("./middleware/rateLimiter")   // B10
+
+// B11 · Sentry — initialisation lives in src/lib/sentry.js. That module
+// returns `null` if @sentry/node isn't installed or SENTRY_DSN is unset,
+// so the handlers below degrade silently. Init runs once at require time.
+const Sentry = require("./lib/sentry")
 
 const app = express()
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Trust proxy
+// ─────────────────────────────────────────────────────────────────────────────
+// Hostinger sits a reverse proxy in front of Node. Without trust proxy,
+// req.ip would be 127.0.0.1 for every request — defeating per-IP rate
+// limiting entirely. Setting to 1 trusts the immediate hop (the Hostinger
+// proxy) and reads the originating IP from X-Forwarded-For. Do NOT set to
+// `true` (trust all hops) — that would let a client spoof X-Forwarded-For.
+app.set("trust proxy", 1)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// B11 · Sentry request handler — must be FIRST in the middleware chain.
+// Captures req/res context onto every event raised during the request cycle.
+// Skipped silently if Sentry isn't initialized.
+// ─────────────────────────────────────────────────────────────────────────────
+if (Sentry?.Handlers?.requestHandler) {
+  app.use(Sentry.Handlers.requestHandler())
+} else if (Sentry?.expressIntegration) {
+  // Sentry v8+ uses auto-instrumentation; no request handler needed.
+}
 
 // Compression
 app.use(compression({ level: 6, threshold: 1024 }))
@@ -53,26 +80,46 @@ app.use(cors({
   credentials: true,
 }))
 
-// Security headers
+// ─────────────────────────────────────────────────────────────────────────────
+// B10 · Security headers — extended CSP + HSTS preload + Referrer-Policy
+// ─────────────────────────────────────────────────────────────────────────────
 app.use(helmet({
-  crossOriginEmbedderPolicy: false,
+  crossOriginEmbedderPolicy: false,     // PayPal iframe requires this
   crossOriginOpenerPolicy:   false,
   crossOriginResourcePolicy: false,
   contentSecurityPolicy: {
     directives: {
       defaultSrc:  ["'self'"],
-      scriptSrc:   ["'self'", "https://accounts.google.com", "https://www.paypal.com",
-                    "https://www.paypalobjects.com", "https://sdk.mercadopago.com",
+      scriptSrc:   ["'self'",
+                    "https://accounts.google.com",
+                    "https://www.paypal.com",
+                    "https://www.paypalobjects.com",
+                    "https://sdk.mercadopago.com",
                     "https://http2.mlstatic.com"],
-      frameSrc:    ["https://accounts.google.com", "https://www.paypal.com",
-                    "https://www.mercadopago.com", "https://www.mercadopago.com.br"],
-      connectSrc:  ["'self'", "https://accounts.google.com", "https://oauth2.googleapis.com",
-                    "https://api.mercadopago.com", "https://www.paypal.com"],
+      frameSrc:    ["https://accounts.google.com",
+                    "https://www.paypal.com",
+                    "https://www.mercadopago.com",
+                    "https://www.mercadopago.com.br"],
+      connectSrc:  ["'self'",
+                    "https://accounts.google.com",
+                    "https://oauth2.googleapis.com",
+                    "https://api.mercadopago.com",
+                    "https://www.paypal.com"],
       imgSrc:      ["'self'", "data:", "https:"],
       styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc:     ["'self'", "https://fonts.gstatic.com"],
+      fontSrc:     ["'self'", "https://fonts.gstatic.com", "data:"],
+      objectSrc:   ["'none'"],
+      baseUri:     ["'self'"],
+      formAction:  ["'self'"],
+      upgradeInsecureRequests: [],
     },
   },
+  strictTransportSecurity: {
+    maxAge:            63072000,        // 2 years (preload requirement)
+    includeSubDomains: true,
+    preload:           true,
+  },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
 }))
 
 // Logging
@@ -84,12 +131,85 @@ app.use(process.env.NODE_ENV !== "production"
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))
 
-// API routes
-app.use("/api", routes)
+// ─────────────────────────────────────────────────────────────────────────────
+// B11 · Sentry surface tag — every admin request gets `surface=admin` on
+// the active scope so future errors are auto-tagged. No-op if Sentry isn't
+// initialised. Must sit AFTER body parsing and BEFORE the routes mount so
+// the tag is set when handlers throw.
+// ─────────────────────────────────────────────────────────────────────────────
+const { tagAdminSurface } = require("./middleware/sentryContext")
+app.use(["/api/admin", "/api/v1/admin"], tagAdminSurface)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// B10 · Global API rate limiter — 100 / 15 min / IP
+// Mounted BEFORE routes so it covers everything under /api. Endpoint-specific
+// limiters sit in front of individual routes and are ALSO checked.
+// ─────────────────────────────────────────────────────────────────────────────
+app.use("/api", globalApiLimiter, routes)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dynamic /sitemap.xml — mounted BEFORE express.static so it wins
+// over the legacy file at public/sitemap.xml. Cached in-process for 1 hour.
+// ─────────────────────────────────────────────────────────────────────────────
+const { getSitemapXml } = require("./services/sitemapService")
+app.get("/sitemap.xml", async (_req, res) => {
+  try {
+    const { xml } = await getSitemapXml()
+    res.setHeader("Content-Type",  "application/xml; charset=utf-8")
+    res.setHeader("Cache-Control", "public, max-age=3600")
+    res.status(200).send(xml)
+  } catch (err) {
+    console.error("[sitemap.xml] dynamic build failed, falling back:", err.message)
+    res.status(200).sendFile(path.join(__dirname, "../public/sitemap.xml"))
+  }
+})
+
+// SEO07 · Long-cache headers for hashed Vite assets + self-hosted fonts.
+// Vite emits content-hashed filenames into /assets, and /fonts ships
+// pinned variable-font filenames; both are safe to mark immutable for 1
+// year. The precedence here matters — these specific static handlers must
+// come BEFORE the catch-all `express.static(frontendPath, ...)` below so
+// these routes win the directive.
+app.use(
+  "/assets",
+  express.static(path.join(__dirname, "../public/assets"), {
+    maxAge: "1y",
+    immutable: true,
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable")
+    },
+  }),
+)
+app.use(
+  "/fonts",
+  express.static(path.join(__dirname, "../public/fonts"), {
+    maxAge: "1y",
+    immutable: true,
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable")
+      res.setHeader("X-Content-Type-Options", "nosniff")
+    },
+  }),
+)
 
 // Serve built React
-// src/app.js → __dirname = .../src → ../public = .../public ✓
 const frontendPath = path.join(__dirname, "../public")
+
+// SECURITY · block direct access to /files/projects/* — these are private
+// project deliverables (signed contracts, consultancy reports, etc.) that
+// must only be downloaded through the authenticated streaming endpoint at
+// `GET /api/v1/member/projects/:id/files/:fileId/download` (member side)
+// or the admin equivalent. Without this guard, the catch-all express.static
+// below would happily serve the file to anyone with the URL.
+app.use("/files/projects", (_req, res) => {
+  res.status(403).json({
+    success: false,
+    error: {
+      code:    "FORBIDDEN",
+      message: "Direct file access is not permitted. Download through your project dashboard.",
+    },
+  })
+})
 
 app.use(express.static(frontendPath, {
   maxAge: "7d",
@@ -107,6 +227,16 @@ app.get(/^\/(?!api).*/, (req, res) => {
 
 // Error handling
 app.use(notFound)
+
+// B11 · Sentry error handler — must come BEFORE our errorHandler so it
+// captures the raw exception, not the sanitized JSON we send to the client.
+// In Sentry v8+ use setupExpressErrorHandler instead; both are tried.
+if (Sentry?.Handlers?.errorHandler) {
+  app.use(Sentry.Handlers.errorHandler())
+} else if (Sentry?.setupExpressErrorHandler) {
+  Sentry.setupExpressErrorHandler(app)
+}
+
 app.use(errorHandler)
 
 module.exports = app

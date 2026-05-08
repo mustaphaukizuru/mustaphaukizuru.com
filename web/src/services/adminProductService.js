@@ -7,7 +7,7 @@ import { authFetch } from "../lib/api"
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function fetchAdminProducts() {
-  const response = await authFetch("/api/admin/products", {
+  const response = await authFetch("/api/v1/admin/products", {
     method: "GET",
   })
 
@@ -19,7 +19,7 @@ export async function fetchAdminProductById(id) {
     throw new Error("Product ID is required")
   }
 
-  const response = await authFetch(`/api/admin/products/${id}`, {
+  const response = await authFetch(`/api/v1/admin/products/${id}`, {
     method: "GET",
   })
 
@@ -27,7 +27,7 @@ export async function fetchAdminProductById(id) {
 }
 
 export async function createAdminProduct(payload) {
-  const response = await authFetch("/api/admin/products", {
+  const response = await authFetch("/api/v1/admin/products", {
     method: "POST",
     body: JSON.stringify(payload),
   })
@@ -40,7 +40,7 @@ export async function updateAdminProduct(id, payload) {
     throw new Error("Product ID is required")
   }
 
-  const response = await authFetch(`/api/admin/products/${id}`, {
+  const response = await authFetch(`/api/v1/admin/products/${id}`, {
     method: "PUT",
     body: JSON.stringify(payload),
   })
@@ -53,7 +53,7 @@ export async function deleteAdminProduct(id) {
     throw new Error("Product ID is required")
   }
 
-  return authFetch(`/api/admin/products/${id}`, {
+  return authFetch(`/api/v1/admin/products/${id}`, {
     method: "DELETE",
   })
 }
@@ -67,7 +67,7 @@ export async function uploadAdminProductFile(productId, formData) {
     throw new Error("A valid FormData object is required")
   }
 
-  const response = await authFetch(`/api/admin/products/${productId}/files`, {
+  const response = await authFetch(`/api/v1/admin/products/${productId}/files`, {
     method: "POST",
     body: formData,
   })
@@ -85,7 +85,7 @@ export async function setAdminPrimaryProductFile(productId, fileId) {
   }
 
   const response = await authFetch(
-    `/api/admin/products/${productId}/files/${fileId}/primary`,
+    `/api/v1/admin/products/${productId}/files/${fileId}/primary`,
     {
       method: "PATCH",
     }
@@ -103,7 +103,7 @@ export async function deleteAdminProductFile(productId, fileId) {
     throw new Error("File ID is required")
   }
 
-  return authFetch(`/api/admin/products/${productId}/files/${fileId}`, {
+  return authFetch(`/api/v1/admin/products/${productId}/files/${fileId}`, {
     method: "DELETE",
   })
 }
@@ -117,7 +117,7 @@ export async function uploadAdminProductImage(productId, formData) {
     throw new Error("A valid FormData object is required")
   }
 
-  const response = await authFetch(`/api/admin/products/${productId}/images`, {
+  const response = await authFetch(`/api/v1/admin/products/${productId}/images`, {
     method: "POST",
     body: formData,
   })
@@ -134,7 +134,7 @@ export async function deleteAdminProductImage(productId, imageId) {
     throw new Error("Image ID is required")
   }
 
-  return authFetch(`/api/admin/products/${productId}/images/${imageId}`, {
+  return authFetch(`/api/v1/admin/products/${productId}/images/${imageId}`, {
     method: "DELETE",
   })
 }

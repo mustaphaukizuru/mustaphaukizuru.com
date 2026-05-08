@@ -1,0 +1,123 @@
+{
+  "title": "Pago",
+  "header": {
+    "breadcrumb": {
+      "home": "Inicio",
+      "cart": "Carrito",
+      "checkout": "Pago"
+    },
+    "title": "Pago",
+    "subtitle": "Revisa tu pedido y completa tu compra de forma segura."
+  },
+  "sections": {
+    "billing": "Datos de facturación",
+    "payment": "Pago",
+    "summary": "Resumen del pedido",
+    "review": "Revisa tu pedido"
+  },
+  "form": {
+    "fullName": "Nombre completo",
+    "fullNamePlaceholder": "Tu nombre completo",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tu@correo.com",
+    "company": "Empresa",
+    "companyPlaceholder": "Acme Inc.",
+    "country": "País",
+    "taxId": "RFC / ID fiscal (opcional)",
+    "taxIdPlaceholder": "RFC, EIN, VAT, etc."
+  },
+  "validation": {
+    "nameRequired": "Ingresa tu nombre.",
+    "emailInvalid": "Ingresa un correo electrónico válido.",
+    "cartEmpty": "Tu carrito está vacío.",
+    "termsRequired": "Acepta los Términos y Condiciones para continuar."
+  },
+  "payment": {
+    "paypal": "PayPal",
+    "paypalDesc": "Paga de forma segura con PayPal, tarjeta de débito o crédito. Incluye protección al comprador.",
+    "mercadoPago": "Mercado Pago",
+    "mercadoPagoDesc": "Paga con tarjetas mexicanas, OXXO, SPEI y otros métodos de LATAM.",
+    "secure": "Pago seguro vía PayPal y Mercado Pago",
+    "processing": "Procesando el pago…",
+    "ariaLabel": "Método de pago",
+    "cancelled": "Cancelaste el pago en PayPal. Puedes intentarlo de nuevo.",
+    "renderFailed": "No pudimos cargar el botón de PayPal. Recarga e inténtalo de nuevo.",
+    "startFailed": "No se pudo iniciar el pago. Inténtalo de nuevo."
+  },
+  "delivery": {
+    "label": "Entrega digital",
+    "subtitle": "Descarga inmediatamente desde tu panel después del pago"
+  },
+  "terms": "Acepto los Términos del Servicio y la Política de Privacidad",
+  "termsAria": "Aceptar los términos y condiciones",
+  "actions": {
+    "placeOrder": "Confirmar pedido",
+    "continueShopping": "Seguir comprando",
+    "backToCart": "Volver al carrito"
+  },
+  "trust": {
+    "secure": "Pago seguro",
+    "instant": "Acceso inmediato",
+    "dashboard": "Disponible en tu panel de inmediato"
+  },
+  "summary": {
+    "items": "artículos",
+    "discountCode": "Código de descuento",
+    "discountPlaceholder": "Ingresa el código",
+    "applyDiscount": "Aplicar",
+    "removeCoupon": "Quitar cupón"
+  },
+  "success": {
+    "title": "¡Gracias por tu pedido!",
+    "subtitle": "Tus descargas están listas.",
+    "orderNumber": "Número de pedido",
+    "downloadCta": "Descargar ahora",
+    "dashboardCta": "Ir a mi panel",
+    "tryAgain": "Intentar de nuevo",
+    "backToStore": "Volver a la tienda",
+    "processingMP": "Mercado Pago está procesando el pago. Esta página se actualizará automáticamente en 20 segundos.",
+    "checkEmail": "Revisa tu correo para la confirmación del pedido y el recibo. Normalmente llega en menos de un minuto.",
+    "orderSummary": "Resumen del pedido",
+    "orderPreparing": "Estamos preparando los detalles del pedido. Recarga la página en un momento si no aparecen.",
+    "availableIn": "Disponible en tu",
+    "downloadsDashboard": "panel de descargas",
+    "whatNext": "Lo que sigue",
+    "downloadResources": "Descargar recursos",
+    "accessDashboard": "Acceder al panel",
+    "continueShopping": "Seguir comprando",
+    "successAria": "Éxito",
+    "completeAria": "Completado",
+    "subtotalLabel": "Subtotal",
+    "discountLabel": "Descuento",
+    "totalLabel": "Total"
+  },
+  "misc": {
+    "billingAddress": "Dirección de facturación",
+    "mercadoPagoAlt": "Mercado Pago",
+    "paypalAlt": "PayPal",
+    "paidVia": "Pagado vía",
+    "noChargeBody": "No se hizo ningún cargo en tu cuenta. Puedes volver al checkout y reintentar.",
+    "addressOptional": "Opcional, se usa para facturas y comprobantes fiscales.",
+    "noSavedAddresses": "Sin direcciones guardadas.",
+    "addOne": "Agrega una",
+    "addOneTail": "para acelerar futuros checkouts, o continúa sin ella.",
+    "mercadoPagoTitle": "Mercado Pago",
+    "mpRedirect": "Serás redirigido al checkout seguro de Mercado Pago. Aceptado: tarjetas (Visa, Mastercard, Amex), OXXO, SPEI, monedero Mercado Pago.",
+    "iAgree": "Acepto los",
+    "termsLink": "Términos y Condiciones",
+    "privacyLink": "Política de Privacidad",
+    "paymentOptions": "PayPal y Mercado Pago",
+    "completePayPal": "Pagar con PayPal",
+    "paymentOptionsLabel": "PayPal y Mercado Pago",
+    "termsShort": "Términos y Condiciones",
+    "qty": "Cant.",
+    "optional": "opcional",
+    "optionalForInvoices": "opcional · para facturas",
+    "selectCountry": "Selecciona un país…",
+    "manage": "Gestionar",
+    "default": "Predeterminada",
+    "sslSecured": "SSL seguro",
+    "thirtyDayRefund": "Reembolso 30 días",
+    "and": "y"
+  }
+}

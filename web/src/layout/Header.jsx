@@ -1,633 +1,606 @@
 import { useEffect, useRef, useState } from "react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 import {
-  Menu, X, ShoppingCart,
-  ChevronDown, LayoutDashboard, ShoppingBag, UserCog, LogOut, Shield,
+  Menu,
+  X,
+  ShoppingCart,
+  Search,
+  ChevronDown,
+  LayoutDashboard,
+  ShoppingBag,
+  UserCog,
+  LogOut,
+  Shield,
+  Heart,
 } from "lucide-react"
+
 import PrimaryButton from "../ui/PrimaryButton"
 import { useCart } from "../store/CartContext"
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
-import profilePhoto from "../assets/logos/Ukizuru_Mustapha_ProfilePhoto (1).png"
-const navLinks = [
-  { name: "Home", path: "/" },
-  { name: "About", path: "/about" },
-  { name: "Solutions", path: "/solutions" },
-  { name: "Services", path: "/services" },
-  { name: "Contact", path: "/contact" },
+import profilePhoto from "../assets/avatar/avatar-master.png"
+import BrandLogo from "../components/BrandLogo"
+import LanguageSwitcher from "../components/LanguageSwitcher"
+
+/**
+ * Header · V2.3 — wired {t("header.signOut")}
+ *
+ * Layout (desktop ≥ lg):
+ *   [Photo + Name · LEFT]        [ Home About Solutions Services Contact 🔍 | 🛒 Account [{t("header.exploreStore")}] · RIGHT ]
+ *
+ * V2.3 changes:
+ *   • {t("header.signOut")} now calls `logout()` from AuthContext and redirects home
+ *     instead of dispatching an unhandled custom event.
+ *   • Mobile menu also gets a {t("header.signOut")} row when authenticated, for parity.
+ *
+ * Behaviour preserved:
+ *   • Search button dispatches `ukz:open-search` (handled by SearchPalette).
+ *   • ⌘K / Ctrl+K shortcut still works globally.
+ *   • Sticky transparent → solid at 30 px scroll, 2 px violet progress bar.
+ */
+
+/* Primary navbar links — kept short and audience-facing. Editorial
+ * surfaces (Blog, Recommendations) live in the Footer instead, so the
+ * header stays focused on what visitors hire Mustapha for. */
+const NAV_LINKS = [
+  { nameKey: "header.home", to: "/" },
+  { nameKey: "header.about", to: "/about" },
+  { nameKey: "header.solutions", to: "/solutions" },
+  { nameKey: "header.services", to: "/services" },
+  { nameKey: "header.contact", to: "/contact" },
 ]
 
-// ─────────────────────────────────────────────
-// Animation styles (injected once)
-// ─────────────────────────────────────────────
-const STYLES_ID = "ukz-dropdown-css"
+const USER_MENU_ITEMS = [
+  { nameKey: "header.dashboard", to: "/dashboard", icon: LayoutDashboard },
+  { nameKey: "header.myOrders", to: "/dashboard/orders", icon: ShoppingBag },
+  { nameKey: "header.downloads", to: "/dashboard/downloads", icon: ShoppingBag },
+  { nameKey: "header.wishlist", to: "/dashboard/wishlist", icon: Heart },
+  { nameKey: "header.profile", to: "/dashboard/profile", icon: UserCog },
+]
 
-function useDropdownStyles() {
-  useEffect(() => {
-    if (document.getElementById(STYLES_ID)) return
-    const el = document.createElement("style")
-    el.id = STYLES_ID
-    el.textContent = `
-      @keyframes ukzDropIn {
-        0%   { opacity:0; transform:translateY(-10px) scale(.97); }
-        100% { opacity:1; transform:translateY(0) scale(1); }
-      }
-      @keyframes ukzDropOut {
-        0%   { opacity:1; transform:translateY(0) scale(1); }
-        100% { opacity:0; transform:translateY(-8px) scale(.98); }
-      }
-      @keyframes ukzSlideIn {
-        0%   { opacity:0; transform:translateX(-10px); }
-        100% { opacity:1; transform:translateX(0); }
-      }
-      @keyframes ukzPulse {
-        0%,100% { box-shadow:0 0 0 0 rgba(52,211,153,.4); }
-        50%     { box-shadow:0 0 0 4px rgba(52,211,153,0); }
-      }
-      @keyframes ukzExpandIn {
-        0%   { opacity:0; max-height:0; }
-        100% { opacity:1; max-height:500px; }
-      }
-      @keyframes ukzExpandOut {
-        0%   { opacity:1; max-height:500px; }
-        100% { opacity:0; max-height:0; }
-      }
-      .ukz-drop-in   { animation:ukzDropIn .26s cubic-bezier(.22,1,.36,1) forwards; }
-      .ukz-drop-out  { animation:ukzDropOut .18s cubic-bezier(.4,0,1,1) forwards; pointer-events:none; }
-      .ukz-slide-in  { opacity:0; animation:ukzSlideIn .3s cubic-bezier(.22,1,.36,1) forwards; }
-      .ukz-online    { animation:ukzPulse 2.5s ease-in-out infinite; }
-      .ukz-expand-in  { animation:ukzExpandIn .3s cubic-bezier(.22,1,.36,1) forwards; overflow:hidden; }
-      .ukz-expand-out { animation:ukzExpandOut .22s cubic-bezier(.4,0,1,1) forwards; overflow:hidden; }
-      .ukz-menu-item {
-        position:relative;
-        transition:all .15s ease;
-      }
-      .ukz-menu-item::after {
-        content:'';
-        position:absolute;
-        left:0; top:50%;
-        transform:translateY(-50%) scaleY(0);
-        width:3px; height:55%;
-        border-radius:0 3px 3px 0;
-        background:linear-gradient(180deg,#420060,#7c3aed);
-        transition:transform .2s cubic-bezier(.22,1,.36,1);
-      }
-      .ukz-menu-item:hover::after {
-        transform:translateY(-50%) scaleY(1);
-      }
-    `
-    document.head.appendChild(el)
-  }, [])
-}
+/* ─────────────────────────── helpers ────────────────────────────────────── */
 
-// ─────────────────────────────────────────────
-// Avatar
-// ─────────────────────────────────────────────
 function resolveAvatar(url) {
   if (!url) return null
   return url.startsWith("http") ? url : `${API_BASE_URL}${url}`
 }
 
-function UserAvatar({ user, size = 38, ring = false, pulse = true }) {
-  const src = resolveAvatar(user?.avatarUrl)
-  const initials = (user?.fullName || "U")
+function isMac() {
+  if (typeof navigator === "undefined") return false
+  const ua = navigator.platform || navigator.userAgent || ""
+  return /Mac|iPhone|iPad|iPod/i.test(ua)
+}
+
+function openSearchPalette() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("ukz:open-search"))
+  }
+}
+
+/**
+ * Defensively perform a sign out — calls AuthContext.logout if it exists,
+ * then redirects to home. Survives older AuthContext shapes that may
+ * have used a different function name.
+ */
+async function performSignOut(authValue, navigate) {
+  try {
+    if (authValue && typeof authValue.logout === "function") {
+      await authValue.logout()
+    } else if (authValue && typeof authValue.signOut === "function") {
+      await authValue.signOut()
+    } else {
+      // Fallback: clear local storage + dispatch the cleared event so any
+      // listener (e.g. CartProvider, dashboard guards) can react.
+      try { localStorage.removeItem("auth-token") } catch { /* ignore */ }
+      try { localStorage.removeItem("auth-user") } catch { /* ignore */ }
+      window.dispatchEvent(new CustomEvent("auth:cleared"))
+    }
+  } catch {
+    // Even if the server call fails, force-clear locally so the UI
+    // doesn't claim the user is still signed in.
+    try { localStorage.removeItem("auth-token") } catch { /* ignore */ }
+    try { localStorage.removeItem("auth-user") } catch { /* ignore */ }
+    window.dispatchEvent(new CustomEvent("auth:cleared"))
+  } finally {
+    if (typeof navigate === "function") navigate("/")
+  }
+}
+
+/* ─────────────────────────── components ─────────────────────────────────── */
+
+function UserAvatar({ user, size = 36 }) {
+  const src = resolveAvatar(user && user.avatarUrl)
+  const initials = ((user && user.fullName) || "U")
     .split(" ")
     .map((w) => w[0])
     .slice(0, 2)
     .join("")
     .toUpperCase()
-
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      {ring && (
-        <div className="absolute -inset-[3px] rounded-full bg-gradient-to-tr from-[#420060] via-[#7c3aed] to-[#a855f7] opacity-75 blur-[1px]" />
+    <div
+      className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-violet/15 bg-white"
+      style={{ width: size, height: size }}
+    >
+      {src ? (
+        <img
+          src={src}
+          alt={(user && user.fullName) || "Member"}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span className="font-mono text-[12px] font-bold text-violet">
+          {initials}
+        </span>
       )}
-
-      <div
-        className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-full shadow-sm ${
-          ring ? "border-[2.5px] border-white" : "border-2 border-[#420060]/15"
-        }`}
-        style={{ width: size, height: size, minWidth: size }}
-      >
-        {src ? (
-          <img
-            src={src}
-            alt={user?.fullName}
-            className="h-full w-full object-cover"
-            referrerPolicy="no-referrer"
-            onError={(e) => {
-              e.target.style.display = "none"
-              if (e.target.nextElementSibling) e.target.nextElementSibling.classList.remove("hidden")
-            }}
-          />
-        ) : null}
-
-        <div
-          className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#420060] to-[#7c3aed] ${src ? "hidden" : ""}`}
-        >
-          <span
-            className="font-['Sora'] font-bold leading-none text-white select-none"
-            style={{ fontSize: size * 0.36 }}
-          >
-            {initials}
-          </span>
-        </div>
-      </div>
-
-      <span
-        className={`absolute bottom-0 right-0 rounded-full border-2 border-white bg-emerald-400 ${pulse ? "ukz-online" : ""}`}
-        style={{ width: Math.max(size * 0.26, 8), height: Math.max(size * 0.26, 8) }}
-      />
     </div>
   )
 }
 
-// ─────────────────────────────────────────────
-// Desktop dropdown
-// ─────────────────────────────────────────────
-const menuItems = [
-  { name: "Dashboard",          path: "/dashboard",         icon: LayoutDashboard },
-  { name: "My Orders",          path: "/dashboard/orders",  icon: ShoppingBag },
-  { name: "Profile & Settings", path: "/dashboard/profile", icon: UserCog },
-]
+function CartBadge({ count }) {
+  if (!count) return null
+  const display = count > 9 ? "9+" : count
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-terracotta px-1 font-mono text-[10px] font-bold text-charcoal shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
+    >
+      {display}
+    </span>
+  )
+}
 
-function DesktopUserDropdown() {
-  useDropdownStyles()
+/* Search icon button — opens the global SearchPalette modal. */
+function SearchIconButton() {
+  const shortcut = isMac() ? "⌘K" : "Ctrl K"
+  const aria = `Search · ${shortcut}`
+  return (
+    <button
+      type="button"
+      onClick={openSearchPalette}
+      aria-label={aria}
+      title={aria}
+      className="inline-flex h-10 w-10 items-center justify-center rounded-full text-charcoal-80/75 transition hover:bg-violet/8 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+    >
+      <Search className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden="true" />
+    </button>
+  )
+}
 
-  const { user, logout } = useAuth()
+function UserMenu() {
+  const { t } = useTranslation("common")
+  const auth = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
-  const [exiting, setExiting] = useState(false)
   const ref = useRef(null)
   const location = useLocation()
-  const navigate = useNavigate()
 
-  const isAdmin = user?.role === "admin"
-  const allItems = isAdmin
-    ? [{ name: "Admin Panel", path: "/admin", icon: Shield, accent: true }, ...menuItems]
-    : menuItems
-
-  function close() {
-    if (!open) return
-    setExiting(true)
-    setTimeout(() => { setOpen(false); setExiting(false) }, 180)
-  }
-
-  function toggle() {
-    if (open) close()
-    else setOpen(true)
-  }
-
-  useEffect(() => { if (open) close() }, [location.pathname])
+  const user = auth && auth.user
 
   useEffect(() => {
-    if (!open) return
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) close() }
-    document.addEventListener("mousedown", h)
-    return () => document.removeEventListener("mousedown", h)
-  }, [open])
-
-  useEffect(() => {
-    if (!open) return
-    const h = (e) => { if (e.key === "Escape") close() }
-    document.addEventListener("keydown", h)
-    return () => document.removeEventListener("keydown", h)
-  }, [open])
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={toggle}
-        className="group flex items-center gap-1.5 rounded-full py-0.5 pl-0.5 pr-2 transition-all duration-200 hover:bg-[#420060]/5 active:scale-[0.97]"
-        aria-expanded={open}
-        aria-haspopup="true"
-      >
-        <UserAvatar user={user} size={36} ring pulse />
-        <ChevronDown
-          className={`h-3.5 w-3.5 text-[#634F40]/50 transition-transform duration-300 ease-out ${
-            open ? "rotate-180" : "group-hover:translate-y-[1px]"
-          }`}
-          strokeWidth={2.4}
-        />
-      </button>
-
-      {(open || exiting) && (
-        <div
-          className={`absolute right-0 top-[calc(100%+10px)] z-50 w-[272px] origin-top-right rounded-2xl border border-[#e8e0ec] bg-white shadow-[0_20px_60px_-12px_rgba(66,0,96,0.20),0_0_0_1px_rgba(66,0,96,0.04)] ${
-            exiting ? "ukz-drop-out" : "ukz-drop-in"
-          }`}
-          role="menu"
-        >
-          {/* User card */}
-          <div className="relative overflow-hidden rounded-t-2xl border-b border-[#f0e8f3] px-4 pb-4 pt-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#f9f5fb] to-[#f4f0f7]" />
-            <div className="relative flex items-center gap-3">
-              <UserAvatar user={user} size={46} ring={false} pulse={false} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-['Sora'] text-[0.93rem] font-bold text-[#1f2937]">
-                  {user?.fullName}
-                </p>
-                <p className="mt-0.5 truncate text-[0.76rem] text-[#634F40]/55">
-                  {user?.email}
-                </p>
-              </div>
-            </div>
-            {user?.role && (
-              <span className="relative mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#420060]/[0.08] px-2.5 py-1 text-[0.67rem] font-semibold uppercase tracking-widest text-[#420060]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#420060]/50" />
-                {user.role}
-              </span>
-            )}
-          </div>
-
-          {/* Menu links */}
-          <div className="px-2 py-2">
-            {allItems.map((item, i) => {
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  role="menuitem"
-                  onClick={close}
-                  className={`ukz-menu-item ukz-slide-in flex items-center gap-3 rounded-xl px-3 py-2.5 text-[0.87rem] font-medium ${
-                    item.accent
-                      ? "text-[#420060] hover:bg-[#f5eff6]"
-                      : "text-[#374151] hover:bg-[#f7f3f9] hover:text-[#420060]"
-                  }`}
-                  style={{ animationDelay: `${(i + 1) * 55}ms` }}
-                >
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                    item.accent ? "bg-[#420060]/[0.08]" : "bg-[#634F40]/[0.04]"
-                  }`}>
-                    <Icon className="h-4 w-4" strokeWidth={1.9} />
-                  </span>
-                  {item.name}
-                </Link>
-              )
-            })}
-          </div>
-
-          {/* Sign out */}
-          <div className="border-t border-[#f0e8f3] px-2 py-2">
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                close()
-                setTimeout(() => { logout(); navigate("/", { replace: true }) }, 200)
-              }}
-              className="ukz-menu-item ukz-slide-in flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[0.87rem] font-medium text-red-500/85 hover:bg-red-50 hover:text-red-600"
-              style={{ animationDelay: `${(allItems.length + 1) * 55}ms` }}
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50">
-                <LogOut className="h-4 w-4" strokeWidth={1.9} />
-              </span>
-              Sign Out
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Mobile user section — collapsible account menu
-// ─────────────────────────────────────────────
-function MobileUserSection({ onClose }) {
-  useDropdownStyles()
-
-  const { user, isAuthenticated, loading, logout } = useAuth()
-  const [expanded, setExpanded] = useState(false)
-  const [collapsing, setCollapsing] = useState(false)
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  if (loading) return <div className="h-14 animate-pulse rounded-full bg-[#634F40]/8" />
-
-  if (!isAuthenticated) {
-    return (
-      <Link
-        to="/login"
-        onClick={onClose}
-        state={{ from: location.pathname + location.search }}
-        className="flex items-center justify-center rounded-full border border-[#634F40]/15 bg-white px-6 py-4 text-[1.05rem] font-semibold text-[#1f2937] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
-      >
-        Member Login
-      </Link>
-    )
-  }
-
-  const isAdmin = user?.role === "admin"
-  const allItems = isAdmin
-    ? [{ name: "Admin Panel", path: "/admin", icon: Shield, accent: true }, ...menuItems]
-    : menuItems
-
-  function toggleExpand() {
-    if (expanded) {
-      setCollapsing(true)
-      setTimeout(() => { setExpanded(false); setCollapsing(false) }, 220)
-    } else {
-      setExpanded(true)
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      {/* User card — tap to expand/collapse account links */}
-      <button
-        type="button"
-        onClick={toggleExpand}
-        className="relative w-full overflow-hidden rounded-2xl border border-[#e8e0ec] bg-white px-4 py-3.5 text-left shadow-sm transition-all duration-200 active:scale-[0.99]"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-[#f9f5fb] to-[#f4f0f7]" />
-        <div className="relative flex items-center gap-3">
-          <UserAvatar user={user} size={44} ring pulse={false} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-['Sora'] text-[0.95rem] font-bold text-[#1f2937]">
-              {user?.fullName}
-            </p>
-            <p className="mt-0.5 truncate text-[0.78rem] text-[#634F40]/50">
-              {user?.email}
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {isAdmin && (
-              <span className="rounded-full bg-[#420060] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
-                Admin
-              </span>
-            )}
-            <ChevronDown
-              className={`h-4 w-4 text-[#634F40]/40 transition-transform duration-300 ${
-                expanded && !collapsing ? "rotate-180" : ""
-              }`}
-              strokeWidth={2.2}
-            />
-          </div>
-        </div>
-      </button>
-
-      {/* Expandable account links */}
-      {(expanded || collapsing) && (
-        <div className={collapsing ? "ukz-expand-out" : "ukz-expand-in"}>
-          <div className="flex flex-col gap-2">
-            {allItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  onClick={onClose}
-                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-[1.02rem] font-semibold transition-all duration-200 active:scale-[0.98] ${
-                    item.accent
-                      ? "bg-[#420060] text-white shadow-[0_6px_18px_rgba(66,0,96,0.20)] hover:-translate-y-0.5"
-                      : "text-[#374151] hover:bg-[#f1ebf2]"
-                  }`}
-                >
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                    item.accent ? "bg-white/15" : "bg-[#634F40]/[0.05]"
-                  }`}>
-                    <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
-                  </span>
-                  {item.name}
-                </Link>
-              )
-            })}
-
-            {/* Sign out */}
-            <button
-              type="button"
-              onClick={() => {
-                onClose()
-                logout()
-                navigate("/", { replace: true })
-              }}
-              className="flex items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-6 py-3.5 text-[1rem] font-semibold text-red-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md active:scale-[0.98]"
-            >
-              <LogOut className="h-5 w-5" strokeWidth={1.8} />
-              Sign Out
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ═════════════════════════════════════════════
-// HEADER — original layout
-// ═════════════════════════════════════════════
-export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const location = useLocation()
-  const { cartCount } = useCart()
-  const { isAuthenticated, loading } = useAuth()
-
-  useEffect(() => {
-    setMenuOpen(false)
+    setOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : ""
-    return () => {
-      document.body.style.overflow = ""
+    if (!open) return
+    function onClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
     }
-  }, [menuOpen])
+    function onKey(e) {
+      if (e.key === "Escape") setOpen(false)
+    }
+    document.addEventListener("mousedown", onClick)
+    document.addEventListener("keydown", onKey)
+    return () => {
+      document.removeEventListener("mousedown", onClick)
+      document.removeEventListener("keydown", onKey)
+    }
+  }, [open])
 
-  const isActive = (path) => location.pathname === path
+  async function handleSignOut() {
+    setOpen(false)
+    await performSignOut(auth, navigate)
+  }
+
+  const isAdmin = user && user.role === "admin"
+  const items = isAdmin
+    ? [{ nameKey: "header.adminPanel", to: "/admin", icon: Shield, accent: true }, ...USER_MENU_ITEMS]
+    : USER_MENU_ITEMS
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="group inline-flex items-center gap-1.5 rounded-full p-0.5 pr-2 transition hover:bg-violet/6 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+      >
+        <UserAvatar user={user} size={36} />
+        <ChevronDown
+          className={`h-3.5 w-3.5 text-charcoal-80/55 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {open ? (
+        <div
+          role="menu"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-[260px] origin-top-right overflow-hidden rounded-2xl border border-charcoal-80/8 bg-white shadow-[0_20px_60px_-12px_rgba(93,63,211,0.20),0_0_0_1px_rgba(93,63,211,0.04)]"
+        >
+          <div className="bg-gradient-to-br from-violet-pale to-white p-4">
+            <div className="flex items-center gap-3">
+              <UserAvatar user={user} size={42} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[14px] font-bold text-charcoal">
+                  {(user && user.fullName) || "Member"}
+                </p>
+                <p className="mt-0.5 truncate text-[12px] text-charcoal-80/60">
+                  {user && user.email}
+                </p>
+              </div>
+            </div>
+            {user && user.role ? (
+              <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-violet">
+                <span className="h-1.5 w-1.5 rounded-full bg-violet/60" />
+                {user.role}
+              </span>
+            ) : null}
+          </div>
+
+          <ul className="p-1.5">
+            {items.map((item) => {
+              const Icon = item.icon
+              const itemClass = item.accent
+                ? "bg-violet/8 text-violet hover:bg-violet/12"
+                : "text-charcoal-80/85 hover:bg-violet-pale/50 hover:text-violet"
+              return (
+                <li key={item.nameKey}>
+                  <Link
+                    to={item.to}
+                    role="menuitem"
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-[13.5px] font-medium transition ${itemClass}`}
+                  >
+                    <Icon className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                    {t(item.nameKey)}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+
+          <div className="border-t border-charcoal-80/6 p-1.5">
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[13.5px] font-medium text-rose transition hover:bg-rose/8"
+            >
+              <LogOut className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+              {t("header.signOut")}
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function MobileMenu({ open, onClose }) {
+  const { t } = useTranslation("common")
+  const auth = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const user = auth && auth.user
+  const isAuthenticated = auth && auth.isAuthenticated
+
+  useEffect(() => {
+    onClose()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname])
+
+  async function handleSignOut() {
+    onClose()
+    await performSignOut(auth, navigate)
+  }
+
+  const backdropClass = open ? "opacity-100" : "pointer-events-none opacity-0"
+  const panelClass = open ? "translate-x-0" : "translate-x-full"
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-[#634F40]/10 bg-[#F7F9F4] shadow-[0_6px_20px_rgba(66,0,96,0.04)]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#634F40]/15 bg-white shadow-sm">
-              <img
-                src={profilePhoto}
-                alt="Mustapha Ukizuru"
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            <span className="hidden font-['Sora'] text-[1.1rem] font-bold tracking-tight text-[#420060] sm:inline sm:text-[1.3rem]">
-              Mustapha Ukizuru
-            </span>
-          </Link>
-
-          <div className="hidden items-center gap-8 lg:flex">
-            <nav className="flex items-center gap-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`relative text-[1rem] font-medium transition-colors duration-200 ${
-                    isActive(link.path)
-                      ? "text-[#420060]"
-                      : "text-[#634F40]/75 hover:text-[#420060]"
-                  }`}
-                >
-                  {link.name}
-                  <span
-                    className={`absolute left-0 -bottom-1 h-[2px] rounded-full bg-[#420060] transition-all duration-300 ${
-                      isActive(link.path) ? "w-full" : "w-0"
-                    }`}
-                  />
-                </Link>
-              ))}
-            </nav>
-
-            <div className="h-8 w-px bg-[#634F40]/15" />
-
-            <div className="flex items-center gap-6">
-              <Link
-                to="/cart"
-                className="relative text-[#634F40]/75 transition duration-200 hover:scale-105 hover:text-[#420060]"
-                aria-label="Shopping cart"
-              >
-                <ShoppingCart className="h-7 w-7" strokeWidth={1.9} />
-                {cartCount > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#420060] px-1 text-[11px] font-semibold text-white">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-
-              {loading ? (
-                <div className="h-9 w-9 animate-pulse rounded-full bg-[#634F40]/10" />
-              ) : isAuthenticated ? (
-                <DesktopUserDropdown />
-              ) : (
-                <Link
-                  to="/login"
-                  className="text-[1rem] font-medium text-[#634F40]/75 transition duration-200 hover:text-[#420060]"
-                >
-                  Member Login
-                </Link>
-              )}
-
-              <Link to="/store">
-                <PrimaryButton>Explore Store</PrimaryButton>
-              </Link>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-5 lg:hidden">
-            <Link
-              to="/cart"
-              className="relative text-[#634F40]/80 transition duration-200 hover:text-[#420060]"
-              aria-label="Shopping cart"
-            >
-              <ShoppingCart className="h-7 w-7" strokeWidth={1.9} />
-              {cartCount > 0 && (
-                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#420060] px-1 text-[11px] font-semibold text-white">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => setMenuOpen(true)}
-              className="text-[#634F40]/80 transition duration-200 hover:text-[#420060]"
-              aria-label="Open menu"
-            >
-              <Menu className="h-8 w-8" strokeWidth={1.9} />
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* ── Mobile overlay ── */}
       <div
-        className={`fixed inset-0 z-[60] bg-black/20 transition-opacity duration-300 lg:hidden ${
-          menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-        }`}
-        onClick={() => setMenuOpen(false)}
+        className={`fixed inset-0 z-[60] bg-charcoal/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${backdropClass}`}
+        onClick={onClose}
+        aria-hidden="true"
       />
-
-      {/* ── Mobile sidebar — FULL WIDTH on phones, capped on tablets ── */}
       <aside
-        className={`fixed right-0 top-0 z-[70] flex h-dvh w-full flex-col bg-[#F7F9F4] shadow-2xl transition-transform duration-300 ease-out sm:max-w-[400px] lg:hidden ${
-          menuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("header.siteNav")}
+        className={`fixed right-0 top-0 z-[70] flex h-full w-[88vw] max-w-sm flex-col gap-6 overflow-y-auto bg-white p-6 shadow-2xl transition-transform duration-300 lg:hidden ${panelClass}`}
       >
-        {/* Sidebar header — pinned */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#634F40]/10 px-5 py-3.5">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#634F40]/15 bg-white shadow-sm">
-              <img
-                src={profilePhoto}
-                alt="Mustapha Ukizuru"
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            <span className="font-['Sora'] text-[1.05rem] font-bold tracking-tight text-[#634F40]">
-              Mustapha Ukizuru
+        <div className="flex items-center justify-between">
+          {/* Mark + name — the wordmark squashes at this size, so we render
+              the official M-mark in a violet tile and follow it with the
+              brand name as crisp display type. */}
+          <Link to="/" onClick={onClose} aria-label={t("header.homeAria")} className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet shadow-[0_8px_24px_-6px_rgba(93,63,211,0.45)] ring-1 ring-violet/15">
+              <BrandLogo variant="mark" theme="dark" size={20} />
+            </span>
+            <span className="text-[15px] font-bold leading-tight tracking-tight text-violet">
+              {t("header.brandName")}
             </span>
           </Link>
-
-          <div className="flex items-center gap-4">
-            <Link
-              to="/cart"
-              className="relative text-[#4b5563] transition duration-200 hover:text-[#420060]"
-              aria-label="Shopping cart"
-            >
-              <ShoppingCart className="h-7 w-7" strokeWidth={1.9} />
-              {cartCount > 0 && (
-                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#420060] px-1 text-[11px] font-semibold text-white">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => setMenuOpen(false)}
-              className="text-[#4b5563] transition duration-200 hover:text-[#420060]"
-              aria-label="Close menu"
-            >
-              <X className="h-8 w-8" strokeWidth={1.9} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("header.closeMenu")}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/70 transition hover:bg-charcoal-80/5"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-6">
-          <nav className="flex flex-col gap-3">
-            {navLinks.map((link) => {
-              const active = isActive(link.path)
+        <button
+          type="button"
+          onClick={() => {
+            onClose()
+            openSearchPalette()
+          }}
+          className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-charcoal-80/[0.03] px-3 py-3 text-left text-[14px] font-medium text-charcoal-80/65 transition hover:border-violet/30 hover:bg-violet-pale/40 hover:text-violet"
+        >
+          <Search className="h-4 w-4" aria-hidden="true" />
+          {t("header.searchPlaceholder")}
+        </button>
 
-              return (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`rounded-2xl px-4 py-3 text-[1.05rem] font-semibold transition-all duration-200 ${
-                    active
-                      ? "bg-[#ede4ef] text-[#420060]"
-                      : "text-[#374151] hover:bg-[#f1ebf2]"
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              )
-            })}
-          </nav>
+        <nav aria-label={t("header.primaryMobile")} className="flex flex-col gap-1">
+          {NAV_LINKS.map((link) => (
+            <NavLink
+              key={link.nameKey}
+              to={link.to}
+              end={link.to === "/"}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-semibold transition ${
+                  isActive
+                    ? "bg-violet-pale text-violet"
+                    : "text-charcoal-80/80 hover:bg-violet-pale/50 hover:text-violet"
+                }`
+              }
+            >
+              {t(link.nameKey)}
+            </NavLink>
+          ))}
+        </nav>
 
-          <div className="my-6 h-px w-full bg-[#634F40]/12" />
-
-          <div className="flex flex-col gap-4">
-            <MobileUserSection onClose={() => setMenuOpen(false)} />
-
-            <Link to="/store" onClick={() => setMenuOpen(false)}>
-              <PrimaryButton fullWidth className="py-4 text-[1rem]">
-                Explore Store
-              </PrimaryButton>
+        <div className="mt-auto flex flex-col gap-3 pt-6">
+          {isAuthenticated ? (
+            <>
+              <div className="flex items-center gap-3 rounded-2xl bg-violet-pale/60 p-3">
+                <UserAvatar user={user} size={44} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14px] font-bold text-charcoal">
+                    {(user && user.fullName) || "Member"}
+                  </p>
+                  <p className="mt-0.5 truncate text-[12px] text-charcoal-80/60">
+                    {user && user.email}
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-charcoal-80/5 px-4 py-2.5 text-[13.5px] font-semibold text-charcoal-80/85 hover:bg-charcoal-80/10"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                {t("header.openDashboard")}
+              </Link>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-rose/25 bg-rose/5 px-4 py-2.5 text-[13.5px] font-semibold text-rose transition hover:bg-rose/10"
+              >
+                <LogOut className="h-4 w-4" />
+                {t("header.signOut")}
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="inline-flex items-center justify-center rounded-full bg-charcoal-80/5 px-4 py-2.5 text-[13.5px] font-semibold text-charcoal-80/85 hover:bg-charcoal-80/10"
+            >
+              {t("header.account")}
             </Link>
+          )}
+
+          <Link to="/store" className="inline-flex items-center justify-center rounded-full">
+            <PrimaryButton className="w-full">{t("header.exploreStore")}</PrimaryButton>
+          </Link>
+
+          {/* Language switcher (mobile) */}
+          <div className="mt-2 flex items-center justify-center border-t border-charcoal-80/8 pt-4">
+            <LanguageSwitcher variant="text" />
           </div>
         </div>
       </aside>
     </>
+  )
+}
+
+/* ─────────────────────────── main Header ────────────────────────────────── */
+
+export default function Header() {
+  const { t } = useTranslation("common")
+  const { isAuthenticated, loading } = useAuth()
+  const { cartCount } = useCart()
+  const location = useLocation()
+  const [scrolled, setScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [scrollPct, setScrollPct] = useState(0)
+
+  useEffect(() => {
+    function onScroll() {
+      const y = window.scrollY || 0
+      setScrolled(y > 30)
+      const docH = document.documentElement.scrollHeight - window.innerHeight
+      setScrollPct(docH > 0 ? Math.min(100, (y / docH) * 100) : 0)
+    }
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [location.pathname])
+
+  const headerClass = scrolled
+    ? "bg-white/85 backdrop-blur-md shadow-[0_1px_0_rgba(26,27,35,0.06)]"
+    : "bg-white/0 backdrop-blur-0"
+
+  return (
+    <header
+      role="banner"
+      className={`sticky top-0 z-50 transition-all duration-300 ${headerClass}`}
+    >
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
+        {/* LEFT, photo + name */}
+        <Link
+          to="/"
+          aria-label={t("header.homeAria")}
+          className="flex shrink-0 items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+        >
+          <span className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-charcoal-80/15 bg-white shadow-sm">
+            <img
+              src={profilePhoto}
+              alt=""
+              aria-hidden="true"
+              className="h-full w-full object-cover"
+            />
+          </span>
+          <span className="hidden text-[16px] font-bold leading-tight tracking-tight text-violet sm:block sm:text-[18px]">
+            {t("header.brandName")}
+          </span>
+        </Link>
+
+        {/* RIGHT, nav · search · separator · cart · account · CTA · hamburger */}
+        <div className="flex items-center gap-2 lg:gap-3">
+          {/* Nav links (desktop only) */}
+          <nav
+            aria-label={t("header.primaryAria")}
+            className="hidden items-center gap-1 lg:flex"
+          >
+            {NAV_LINKS.map((link) => (
+              <NavLink
+                key={link.nameKey}
+                to={link.to}
+                end={link.to === "/"}
+                className={({ isActive }) =>
+                  `group relative inline-flex items-center rounded-md px-3 py-2 text-[15px] font-medium transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
+                    isActive
+                      ? "text-violet"
+                      : "text-charcoal-80/75 hover:text-violet"
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {t(link.nameKey)}
+                    <span
+                      className={`pointer-events-none absolute bottom-1 left-3 right-3 h-[2px] origin-left rounded-full bg-violet transition-transform duration-300 ${
+                        isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </>
+                )}
+              </NavLink>
+            ))}
+
+            {/* Search icon, last item in the nav, before the separator */}
+            <SearchIconButton />
+          </nav>
+
+          {/* Vertical separator (desktop only) */}
+          <span
+            aria-hidden="true"
+            className="hidden h-8 w-px bg-charcoal-80/15 lg:block"
+          />
+
+          {/* Language switcher (desktop only) */}
+          <span className="hidden lg:inline-flex">
+            <LanguageSwitcher />
+          </span>
+
+          {/* Cart */}
+          <Link
+            to="/cart"
+            aria-label={
+              cartCount
+                ? `Cart · ${cartCount} item${cartCount === 1 ? "" : "s"}`
+                : "Cart"
+            }
+            className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-charcoal-80/75 transition hover:bg-violet/8 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          >
+            <ShoppingCart
+              className="h-[20px] w-[20px]"
+              strokeWidth={1.9}
+              aria-hidden="true"
+            />
+            <CartBadge count={cartCount} />
+          </Link>
+
+          {/* Auth zone (desktop only) */}
+          {loading ? (
+            <div className="hidden h-9 w-9 animate-pulse rounded-full bg-charcoal-80/10 lg:block" />
+          ) : isAuthenticated ? (
+            <span className="hidden lg:inline-flex">
+              <UserMenu />
+            </span>
+          ) : (
+            <Link
+              to="/login"
+              state={{ from: location.pathname + location.search }}
+              className="hidden rounded-md px-2 py-1 text-[14px] font-semibold text-charcoal-80/80 transition hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 lg:inline-flex"
+            >
+              {t("header.account")}
+            </Link>
+          )}
+
+          {/* Primary CTA, {t("header.exploreStore")} (desktop only) */}
+          <Link
+            to="/store"
+            className="hidden rounded-full focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 lg:inline-flex"
+          >
+            <PrimaryButton className="!h-10 !px-5 !text-[14px]">
+              {t("header.exploreStore")}
+            </PrimaryButton>
+          </Link>
+
+          {/* Hamburger (mobile) */}
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label={t("header.openMenu")}
+            aria-expanded={mobileOpen}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-charcoal-80/80 transition hover:bg-charcoal-80/5 lg:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Scroll progress strip */}
+      <div className="absolute inset-x-0 bottom-0 h-[2px] bg-charcoal-80/0">
+        <div
+          className="h-full origin-left bg-violet transition-transform duration-150"
+          style={{ transform: `scaleX(${scrollPct / 100})` }}
+          aria-hidden="true"
+        />
+      </div>
+
+      <MobileMenu open={mobileOpen} onClose={() => setMobileOpen(false)} />
+    </header>
   )
 }

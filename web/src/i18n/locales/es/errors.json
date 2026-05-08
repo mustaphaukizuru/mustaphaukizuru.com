@@ -1,0 +1,63 @@
+{
+  "generic": "Algo salió mal. Inténtalo de nuevo.",
+  "network": "Error de red. Revisa tu conexión.",
+  "notFound": {
+    "title": "404",
+    "subtitle": "Página no encontrada",
+    "cta": "Volver al inicio"
+  },
+  "forbidden": {
+    "title": "403",
+    "subtitle": "No tienes acceso a esta página.",
+    "cta": "Volver al inicio"
+  },
+  "serverError": {
+    "title": "500",
+    "subtitle": "Error del servidor. Estamos en ello.",
+    "cta": "Recargar"
+  },
+  "search": {
+    "noResults": "Sin resultados",
+    "tryAgain": "Prueba con otra palabra."
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "email": "Ingresa un correo válido",
+    "password": "La contraseña debe tener al menos 8 caracteres",
+    "match": "Los valores no coinciden",
+    "tooLong": "Demasiado largo (máx {{max}} caracteres)",
+    "tooShort": "Demasiado corto (mín {{min}} caracteres)"
+  },
+  "actions": {
+    "tryAgain": "Intentar de nuevo",
+    "goBack": "Volver",
+    "home": "Inicio"
+  },
+  "configs": {
+    "NETWORK_ERROR": {
+      "title": "Sin conexión",
+      "message": "No pudimos conectar con el servidor. Verifica tu conexión a internet e inténtalo de nuevo."
+    },
+    "DB_UNAVAILABLE": {
+      "title": "Servicio temporalmente no disponible",
+      "message": "Nuestros servidores están tomando un breve descanso. Volveremos en un momento. Inténtalo de nuevo en unos instantes."
+    },
+    "FORBIDDEN": {
+      "title": "Acceso denegado",
+      "message": "No tienes permiso para acceder a esta página. Inicia sesión o contacta a soporte si crees que es un error."
+    },
+    "404": {
+      "title": "Página no encontrada",
+      "message": "La página que buscas no existe o pudo haber sido movida. Verifica la URL o vuelve al inicio."
+    },
+    "500": {
+      "title": "Algo salió mal",
+      "message": "Ocurrió un error inesperado de nuestro lado. Nuestro equipo ya fue notificado. Inténtalo de nuevo en un momento."
+    }
+  },
+  "support": {
+    "prefix": "Si sigue ocurriendo,",
+    "linkText": "contacta a soporte",
+    "suffix": "."
+  }
+}

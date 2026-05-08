@@ -1,6 +1,25 @@
-import { useNavigate, useRouteError, isRouteErrorResponse } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { motion } from "framer-motion"
 import { ArrowLeft, RefreshCw, Home, WifiOff, ServerCrash, Lock, SearchX } from "lucide-react"
+
+/**
+ * ErrorPage — universal error/404 display used by:
+ *   • The `*` catch-all route (e.g. <ErrorPage type="404" />)
+ *   • Any page that wants to render a themed error inline
+ *
+ * NOTE: This component deliberately does NOT use `useRouteError()` from
+ * react-router-dom. That hook only works inside a data router created via
+ * `createBrowserRouter`, and this app uses the component-based `<Routes>`
+ * pattern. Calling it here would throw during render.
+ *
+ * If you need to display route-specific errors, pass them explicitly via
+ * `type`, `title`, and `message` props.
+ *
+ * I18N · Phase 118 — copy keyed under the `errors` namespace; the icon
+ * + colour-class CONFIGS stay static (presentation only) and the user-
+ * visible labels resolve via t() at render time.
+ */
 
 const fadeUp = { hidden:{opacity:0,y:20}, show:{opacity:1,y:0,transition:{duration:0.45,ease:"easeOut"}} }
 const stagger = { hidden:{}, show:{transition:{staggerChildren:0.08}} }
@@ -10,40 +29,30 @@ const CONFIGS = {
     icon: WifiOff,
     iconBg: "bg-[#fff3e2] text-[#b46909]",
     code: "",
-    title: "No Connection",
-    message: "We couldn't reach the server. Please check your internet connection and try again.",
     actions: ["retry", "home"],
   },
   DB_UNAVAILABLE: {
     icon: ServerCrash,
-    iconBg: "bg-[#ede4ef] text-[#420060]",
+    iconBg: "bg-violet-pale text-violet",
     code: "503",
-    title: "Service Temporarily Unavailable",
-    message: "Our servers are taking a short break. We'll be back up in a moment. Please try again shortly.",
     actions: ["retry", "home"],
   },
   FORBIDDEN: {
     icon: Lock,
     iconBg: "bg-red-50 text-red-600",
     code: "403",
-    title: "Access Denied",
-    message: "You don't have permission to access this page. Please sign in or contact support if you believe this is an error.",
     actions: ["back", "home"],
   },
   404: {
     icon: SearchX,
-    iconBg: "bg-[#ede4ef] text-[#420060]",
+    iconBg: "bg-violet-pale text-violet",
     code: "404",
-    title: "Page Not Found",
-    message: "The page you're looking for doesn't exist or may have been moved. Check the URL or head back home.",
     actions: ["back", "home"],
   },
   500: {
     icon: ServerCrash,
     iconBg: "bg-red-50 text-red-600",
     code: "500",
-    title: "Something Went Wrong",
-    message: "An unexpected error occurred on our end. Our team has been notified. Please try again in a moment.",
     actions: ["retry", "home"],
   },
 }
@@ -53,24 +62,18 @@ function getConfig(type) {
 }
 
 export default function ErrorPage({ type, title, message, showRetry = true }) {
-  const navigate   = useNavigate()
-  const routeError = useRouteError?.()
+  const navigate = useNavigate()
+  const { t } = useTranslation("errors")
 
-  // Derive type from route error if not explicitly provided
-  let resolvedType = type
-  if (!resolvedType && routeError) {
-    if (isRouteErrorResponse?.(routeError)) {
-      resolvedType = String(routeError.status)
-    } else {
-      resolvedType = routeError?.code || "500"
-    }
-  }
-
-  const cfg    = getConfig(resolvedType)
-  const Icon   = cfg.icon
-  const label  = title   || cfg.title
-  const desc   = message || cfg.message
-  const code   = cfg.code
+  const resolvedType = type || "500"
+  const cfg = getConfig(resolvedType)
+  const Icon = cfg.icon
+  // Configs map onto i18n keys: errors.configs.<type>.{title,message}.
+  // `title`/`message` props still win when explicitly passed by callers
+  // (callers may already be passing pre-translated strings from a parent).
+  const label = title || t(`configs.${resolvedType}.title`)
+  const desc  = message || t(`configs.${resolvedType}.message`)
+  const code  = cfg.code
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
@@ -80,7 +83,7 @@ export default function ErrorPage({ type, title, message, showRetry = true }) {
       >
         {/* Icon */}
         <motion.div variants={fadeUp}
-          className={`flex h-24 w-24 items-center justify-center rounded-xl ${cfg.iconBg} shadow-[0_12px_32px_rgba(66,0,96,0.08)]`}
+          className={`flex h-24 w-24 items-center justify-center rounded-xl ${cfg.iconBg} shadow-[0_12px_32px_rgba(93,63,211,0.08)]`}
         >
           <Icon className="h-12 w-12" />
         </motion.div>
@@ -88,7 +91,7 @@ export default function ErrorPage({ type, title, message, showRetry = true }) {
         {/* Code */}
         {code && (
           <motion.div variants={fadeUp}
-            className="mt-4 text-[5rem] font-bold leading-none text-[#420060]/8 select-none"
+            className="mt-4 text-display font-bold leading-none text-violet/8 select-none"
           >
             {code}
           </motion.div>
@@ -96,7 +99,7 @@ export default function ErrorPage({ type, title, message, showRetry = true }) {
 
         {/* Title */}
         <motion.h1 variants={fadeUp}
-          className="text-[1.8rem] font-bold tracking-tight text-[#420060]"
+          className="text-section font-bold tracking-tight text-violet"
           style={{ marginTop: code ? "-1rem" : "1.5rem" }}
         >
           {label}
@@ -104,7 +107,7 @@ export default function ErrorPage({ type, title, message, showRetry = true }) {
 
         {/* Message */}
         <motion.p variants={fadeUp}
-          className="mt-3 text-[15px] leading-7 text-[#634F40]/65 max-w-sm"
+          className="mt-3 text-body leading-7 text-charcoal-80/65 max-w-sm"
         >
           {desc}
         </motion.p>
@@ -115,33 +118,33 @@ export default function ErrorPage({ type, title, message, showRetry = true }) {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#420060] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(66,0,96,0.20)] transition hover:-translate-y-0.5 hover:bg-[#2d003f]"
+              className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
             >
-              <RefreshCw className="h-4 w-4" /> Try Again
+              <RefreshCw className="h-4 w-4" /> {t("actions.tryAgain")}
             </button>
           )}
           {cfg.actions.includes("back") && (
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#634F40]/15 px-6 py-3.5 text-[14px] font-semibold text-[#420060] transition hover:bg-[#ede4ef]"
+              className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/15 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale"
             >
-              <ArrowLeft className="h-4 w-4" /> Go Back
+              <ArrowLeft className="h-4 w-4" /> {t("actions.goBack")}
             </button>
           )}
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#634F40]/15 px-6 py-3.5 text-[14px] font-semibold text-[#420060] transition hover:bg-[#ede4ef]"
+            className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/15 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale"
           >
-            <Home className="h-4 w-4" /> Home
+            <Home className="h-4 w-4" /> {t("actions.home")}
           </button>
         </motion.div>
 
         {/* Help link */}
-        <motion.p variants={fadeUp} className="mt-6 text-[12px] text-[#634F40]/40">
-          If this keeps happening,{" "}
-          <a href="/contact" className="text-[#420060] hover:underline">contact support</a>.
+        <motion.p variants={fadeUp} className="mt-6 text-micro text-charcoal-80/40">
+          {t("support.prefix")}{" "}
+          <a href="/contact" className="text-violet hover:underline">{t("support.linkText")}</a>{t("support.suffix")}
         </motion.p>
       </motion.div>
     </div>

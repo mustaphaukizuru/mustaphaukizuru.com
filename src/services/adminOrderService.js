@@ -1,3 +1,4 @@
+// @ts-check
 const prisma = require("../lib/prisma")
 
 function safeNum(val) {

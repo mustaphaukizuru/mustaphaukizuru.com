@@ -13,36 +13,52 @@ import {
   LineChart,
 } from "lucide-react"
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  homeData.js · I18N12 — bilingual key-based catalogue
+ *
+ *  After the I18N rollout, this file no longer ships English strings.
+ *  Instead it exposes:
+ *    · `titleKey` / `descriptionKey` — i18next keys under the `home` namespace
+ *    · `icon` — Lucide React component, locale-agnostic
+ *    · `roleKey` (testimonials only) — locale-routed role label
+ *
+ *  Consumers (Home.jsx) call `t(item.titleKey)` to render. Real customer
+ *  testimonial quotes (`text`) are kept in their original English on purpose —
+ *  translating a quote without the speaker's consent would misrepresent them.
+ *  When a Spanish-speaking customer ships a quote in Spanish we add a
+ *  parallel record with its own keys.
+ *  ──────────────────────────────────────────────────────────────────── */
+
 export const audiences = [
   {
-    title: "SMEs & Businesses",
-    description:
-      "Technology support for organizations that want stronger systems, better digital presence, and smarter operations.",
-    icon: Building2,
+    titleKey:       "home:audiences.smes.title",
+    descriptionKey: "home:audiences.smes.description",
+    icon:           Building2,
   },
   {
-    title: "Professionals & Individuals",
-    description:
-      "Practical consulting and digital solutions for professionals building modern workflows and online visibility.",
-    icon: BriefcaseBusiness,
+    titleKey:       "home:audiences.professionals.title",
+    descriptionKey: "home:audiences.professionals.description",
+    icon:           BriefcaseBusiness,
   },
   {
-    title: "Schools & Education",
-    description:
-      "Education-focused technology systems, STEM programs, digital learning tools, and infrastructure guidance.",
-    icon: GraduationCap,
+    titleKey:       "home:audiences.schools.title",
+    descriptionKey: "home:audiences.schools.description",
+    icon:           GraduationCap,
   },
 ]
 
 export const solutions = [
-  { title: "Digital Products", icon: BookOpen },
-  { title: "Professional Training & Workshops", icon: GraduationCap },
-  { title: "Website and Digital Systems", icon: MonitorSmartphone },
-  { title: "Technology Consulting", icon: BrainCircuit },
-  { title: "STEM, Coding, and Robotics Program Development", icon: Wrench },
-  { title: "IT Infrastructure & Digital Transformation", icon: Server },
+  { titleKey: "home:solutionsList.digitalProducts",          icon: BookOpen },
+  { titleKey: "home:solutionsList.professionalTraining",     icon: GraduationCap },
+  { titleKey: "home:solutionsList.websiteAndDigitalSystems", icon: MonitorSmartphone },
+  { titleKey: "home:solutionsList.technologyConsulting",     icon: BrainCircuit },
+  { titleKey: "home:solutionsList.stemCodingRobotics",       icon: Wrench },
+  { titleKey: "home:solutionsList.itInfrastructure",         icon: Server },
 ]
 
+/* featuredProducts is reference seed data only — actual featured products
+ * come from the API on Home mount. Kept English for legacy consumers
+ * (storybook, dev seeds). Not rendered on the public Home page. */
 export const featuredProducts = [
   {
     id: "digital-transformation-starter-toolkit",
@@ -96,72 +112,72 @@ export const featuredProducts = [
 
 export const processSteps = [
   {
-    title: "Discovery",
-    description:
-      "Understand your current systems, priorities, and the real challenges affecting progress.",
-    icon: Search,
+    titleKey:       "home:processSteps.discovery.title",
+    descriptionKey: "home:processSteps.discovery.description",
+    icon:           Search,
   },
   {
-    title: "Strategy",
-    description:
-      "Define a practical roadmap with clear objectives, technology choices, and implementation direction.",
-    icon: Lightbulb,
+    titleKey:       "home:processSteps.strategy.title",
+    descriptionKey: "home:processSteps.strategy.description",
+    icon:           Lightbulb,
   },
   {
-    title: "Implementation",
-    description:
-      "Translate the plan into reliable systems, platforms, workflows, and digital resources.",
-    icon: Settings2,
+    titleKey:       "home:processSteps.implementation.title",
+    descriptionKey: "home:processSteps.implementation.description",
+    icon:           Settings2,
   },
   {
-    title: "Optimization",
-    description:
-      "Refine performance, strengthen adoption, and improve long-term digital effectiveness.",
-    icon: LineChart,
+    titleKey:       "home:processSteps.optimization.title",
+    descriptionKey: "home:processSteps.optimization.description",
+    icon:           LineChart,
   },
 ]
 
+/* Real customer testimonials. `text` is the verbatim quote from the
+ * customer — never translated without explicit consent. `roleKey` routes
+ * the role label through i18n so the Spanish surface shows
+ * "Administradora escolar" instead of "School Administrator". */
 export const testimonials = [
   {
     initials: "AM",
-    name: "Aline M.",
-    role: "School Administrator",
-    rating: 5,
-    text: "The platform strategy and infrastructure guidance helped us modernize our digital learning environment with confidence.",
+    name:     "Aline M.",
+    roleKey:  "home:testimonialRoles.schoolAdministrator",
+    rating:   5,
+    text:     "The platform strategy and infrastructure guidance helped us modernize our digital learning environment with confidence.",
   },
   {
     initials: "JN",
-    name: "Jean N.",
-    role: "Business Owner",
-    rating: 5,
-    text: "The consulting approach was structured, practical, and focused on results. Our digital processes became more organized immediately.",
+    name:     "Jean N.",
+    roleKey:  "home:testimonialRoles.businessOwner",
+    rating:   5,
+    text:     "The consulting approach was structured, practical, and focused on results. Our digital processes became more organized immediately.",
   },
   {
     initials: "CK",
-    name: "Claudine K.",
-    role: "Education Coordinator",
-    rating: 4,
-    text: "The STEM and technology planning support gave us a clear path for building engaging learning experiences.",
+    name:     "Claudine K.",
+    roleKey:  "home:testimonialRoles.educationCoordinator",
+    rating:   4,
+    text:     "The STEM and technology planning support gave us a clear path for building engaging learning experiences.",
   },
   {
     initials: "TM",
-    name: "Theo M.",
-    role: "Operations Lead",
-    rating: 5,
-    text: "Strong communication, thoughtful planning, and modern systems thinking made the implementation process smooth.",
+    name:     "Theo M.",
+    roleKey:  "home:testimonialRoles.operationsLead",
+    rating:   5,
+    text:     "Strong communication, thoughtful planning, and modern systems thinking made the implementation process smooth.",
   },
   {
     initials: "SR",
-    name: "Sarah R.",
-    role: "Independent Professional",
-    rating: 4,
-    text: "The digital strategy recommendations helped me improve my online structure and work more efficiently.",
+    name:     "Sarah R.",
+    roleKey:  "home:testimonialRoles.independentProfessional",
+    rating:   4,
+    text:     "The digital strategy recommendations helped me improve my online structure and work more efficiently.",
   },
   {
     initials: "DK",
-    name: "David K.",
-    role: "IT Coordinator",
-    rating: 5,
-    text: "Reliable guidance and a professional process. The solutions were practical, scalable, and easy to adopt.",
+    name:     "David K.",
+    roleKey:  "home:testimonialRoles.itCoordinator",
+    rating:   5,
+    text:     "Reliable guidance and a professional process. The solutions were practical, scalable, and easy to adopt.",
   },
 ]

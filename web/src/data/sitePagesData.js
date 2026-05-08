@@ -1,41 +1,45 @@
+/* About page · Mission, Vision, Values cards.
+   Each description ≤ one short line — punchy, marketed, no over-explanation. */
 export const aboutMissionVisionValues = [
   {
     title: "Our Mission",
     description:
-      "Deliver practical technology solutions that help organizations and professionals modernize systems, improve efficiency, and achieve sustainable digital growth.",
+      "Help organizations and professionals modernize with practical technology.",
   },
   {
     title: "Our Vision",
     description:
-      "Build reliable, modern, and scalable digital environments where technology becomes a clear driver of innovation, learning, and business performance.",
+      "Digital environments where technology drives real outcomes.",
   },
   {
     title: "Our Values",
     description:
-      "Clarity, reliability, innovation, collaboration, and user-centered design guide every solution, service, and digital product developed for clients.",
+      "Clarity, reliability, and user-centered design on every engagement.",
   },
 ]
 
+/* About page · Areas of Focus / Expertise cards.
+   Each description ≤ one short line — keywords lead, no list-stuffing. */
 export const expertiseAreas = [
   {
     title: "Software Engineering",
     description:
-      "Modern web applications, structured systems, scalable interfaces, and implementation-oriented digital product design.",
+      "Modern web applications and scalable interfaces, built to ship.",
   },
   {
     title: "Cloud Systems",
     description:
-      "Cloud-based workflows, productivity systems, digital collaboration tools, and scalable service environments.",
+      "Cloud workflows and productivity systems that scale with the team.",
   },
   {
     title: "Digital Infrastructure",
     description:
-      "Infrastructure planning, system organization, operational reliability, security awareness, and modernization strategy.",
+      "Infrastructure planning, security, and modernization strategy.",
   },
   {
     title: "Education Technology",
     description:
-      "Digital learning environments, STEM programs, robotics integration, and practical technology support for schools.",
+      "Digital learning, STEM, and robotics, built for schools.",
   },
 ]
 
@@ -227,26 +231,28 @@ export const seamlessProcess = [
   },
 ]
 
+/* Services cards · brief, marketed copy. Each ≤ 110 chars / one sentence
+   so the card body never truncates with an ellipsis. */
 export const servicesCards = [
   {
     title: "Branding & Digital Presence",
     description:
-      "Build a professional digital identity with modern websites, brand systems, and online platforms that strengthen your organization’s visibility.",
+      "Modern websites and brand systems that lift your organization’s visibility.",
   },
   {
     title: "Digital Transformation Consulting",
     description:
-      "Receive expert guidance to modernize workflows, adopt new technologies, and create a clear roadmap for digital innovation.",
+      "Expert guidance to modernize workflows and roadmap your tech adoption.",
   },
   {
     title: "IT Infrastructure Setup & Management",
     description:
-      "Design and manage secure networks, devices, and systems that keep your organization running efficiently.",
+      "Secure networks, devices, and systems that keep operations running smoothly.",
   },
   {
     title: "Cloud Migration & Automation",
     description:
-      "Move systems to the cloud and automate processes to improve scalability, collaboration, and operational efficiency.",
+      "Move to the cloud and automate the routine work that slows teams down.",
   },
 ]
 

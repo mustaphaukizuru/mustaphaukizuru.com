@@ -8,7 +8,7 @@ import { authFetch } from "../lib/api"
 // ─────────────────────────────────────────────────────────────
 
 export async function fetchAdminDashboardStats() {
-  const response = await authFetch("/api/admin/dashboard", {
+  const response = await authFetch("/api/v1/admin/dashboard", {
     method: "GET",
   })
 

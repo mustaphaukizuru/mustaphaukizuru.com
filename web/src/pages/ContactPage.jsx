@@ -1,70 +1,790 @@
-import { useState } from "react"
-import { motion } from "framer-motion"
+/* ════════════════════════════════════════════════════════════════════════
+   ContactPage.jsx · F09 v3
+   ────────────────────────────────────────────────────────────────────────
+   Brand-adapted Flowbase-style contact panel:
+     · Charcoal hero (preserved) with eyebrow / headline / 3 trust pills
+     · Two-column rounded card on lg+ (violet info panel · white form)
+     · Phone field/number removed everywhere — replaced by a prominent
+       WhatsApp call-to-action pill that deep-links to wa.me
+     · Underline-style inputs (focus → violet) matching the reference
+     · Project-type radios mapped to backend `subject`
+     · Honeypot + apiRequest("/api/contact", …) contract preserved
+     · Framer Motion entrance + idle animations gated by reduced-motion
+     · WCAG AA contrast on all surfaces · fully responsive ≥ 320px
+
+   I18N · Phase 117 · ContactPage body migrated to t() with the
+   `contact` namespace. Constant arrays (AUDIENCES, INTEREST_OPTIONS,
+   TIER_OPTIONS, TIMELINE_OPTIONS) flipped to keyId-pattern so labels
+   resolve at render time. Sub-components mount their own
+   useTranslation hooks (the page-level hook does not cross component
+   boundaries — see hook-shadow incident in earlier phases).
+   ════════════════════════════════════════════════════════════════════════ */
+
+import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
+import { Link } from "react-router-dom"
+import { motion, useReducedMotion } from "framer-motion"
 import {
-  Send, CheckCircle2, Mail, User, MessageSquare,
-  MapPin, Clock, ArrowRight, Sparkles, Phone,
+  Send, CheckCircle2, Mail, MapPin, Sparkles,
+  GraduationCap, Briefcase, User, Layers, Clock as ClockIcon, Tag,
 } from "lucide-react"
-// social icons use inline SVG components below
-const contactPhoto  = "/images/pages/Conctact_Form_Image.svg"
 import { apiRequest } from "../lib/api"
+import ContactHero from "../components/heroes/ContactHero"
+import SocialLinks, { CONTACT_SOCIALS } from "../components/SocialLinks"
 
-// Lightweight inline social icons (replaces react-icons/fa bundle)
-function LinkedInIcon({ className }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
-}
-function TelegramIcon({ className }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.015 9.497c-.148.665-.54.827-1.093.514l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.887.718z"/></svg>
-}
-function WhatsAppIcon({ className }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.72.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.029 18.88c-1.161 0-2.305-.292-3.318-.844l-3.677.964.984-3.595c-.607-1.052-.927-2.246-.926-3.468.001-3.825 3.113-6.937 6.937-6.937 1.856.001 3.598.723 4.907 2.034 1.31 1.311 2.031 3.054 2.03 4.908-.001 3.825-3.113 6.938-6.937 6.938z"/></svg>
-}
-const FaLinkedinIn = LinkedInIcon
-const FaTelegramPlane = TelegramIcon
-const FaWhatsapp = WhatsAppIcon
+/* Social icons + animations are owned by the shared SocialLinks component
+ * imported above — no per-page glyph copies are required. */
 
-const fadeUp = { hidden:{opacity:0,y:24}, show:{opacity:1,y:0,transition:{duration:0.52,ease:"easeOut"}} }
-const stagger = { hidden:{}, show:{transition:{staggerChildren:0.09}} }
+/* ── Motion variants ─────────────────────────────────────────────────── */
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+}
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HERO
-// ─────────────────────────────────────────────────────────────────────────────
-function ContactHero() {
+/* ── Constants ──────────────────────────────────────────────────────── */
+const WHATSAPP_URL = "https://wa.me/525552139993"
+const EMAIL = "hello@mustaphaukizuru.com"
+const ADDRESS_LINES = ["Tlalnepantla de Baz,", "Estado de México, México"]
+
+/* ──────────────────────────────────────────────────────────────────
+ * AUDIENCES · 3-segment qualifier matching the Services + Solutions
+ * pages (Educator/School · Business/Team · Independent Pro).
+ * I18N · `labelKey` lands inside contact.audiences.<key>; the icon
+ * stays static on the row.
+ * ────────────────────────────────────────────────────────────────── */
+const AUDIENCES = [
+  { value: "education",    labelKey: "audiences.education",    Icon: GraduationCap },
+  { value: "business",     labelKey: "audiences.business",     Icon: Briefcase },
+  { value: "professional", labelKey: "audiences.professional", Icon: User },
+]
+
+/* ──────────────────────────────────────────────────────────────────
+ * INTEREST_OPTIONS · combined Service families (CS · BD · IC · WD ·
+ * ET · MS) and Solution packages. Each carries an `audiences` array
+ * so the dropdown filters down to relevant items per audience choice.
+ * Empty audiences = "all".
+ * I18N · `groupKey` lands inside contact.interests.groups.<key>;
+ * `labelKey` inside contact.interests.items.<value>.
+ * ────────────────────────────────────────────────────────────────── */
+const INTEREST_OPTIONS = [
+  { groupKey: "Services",  value: "CS", audiences: ["education", "business", "professional"] },
+  { groupKey: "Services",  value: "BD", audiences: ["education", "business", "professional"] },
+  { groupKey: "Services",  value: "IC", audiences: ["education", "business"] },
+  { groupKey: "Services",  value: "WD", audiences: ["education", "business", "professional"] },
+  { groupKey: "Services",  value: "ET", audiences: ["education"] },
+  { groupKey: "Services",  value: "MS", audiences: ["education", "business"] },
+  { groupKey: "Solutions", value: "smart-classroom",   audiences: ["education"] },
+  { groupKey: "Solutions", value: "stem-curriculum",   audiences: ["education"] },
+  { groupKey: "Solutions", value: "brand-foundation",  audiences: ["business", "professional"] },
+  { groupKey: "Solutions", value: "web-launch",        audiences: ["business", "professional"] },
+  { groupKey: "Solutions", value: "cloud-migration",   audiences: ["business"] },
+  { groupKey: "Solutions", value: "ai-integration",    audiences: ["business", "professional"] },
+  { groupKey: "Solutions", value: "managed-it",        audiences: ["business"] },
+  { groupKey: "Solutions", value: "personal-platform", audiences: ["professional"] },
+]
+
+/* Tier · matches Services pricing matrix */
+const TIER_OPTIONS = [
+  { value: "basic",    labelKey: "tiers.basic" },
+  { value: "medium",   labelKey: "tiers.medium" },
+  { value: "advanced", labelKey: "tiers.advanced" },
+  { value: "guidance", labelKey: "tiers.guidance" },
+]
+
+/* Timeline · when does the visitor want to start? */
+const TIMELINE_OPTIONS = [
+  { value: "asap",      labelKey: "timelines.asap" },
+  { value: "30d",       labelKey: "timelines.30d" },
+  { value: "60d",       labelKey: "timelines.60d" },
+  { value: "exploring", labelKey: "timelines.exploring" },
+]
+
+/* SOCIALS are sourced from CONTACT_SOCIALS in components/SocialLinks.jsx */
+
+/* HERO is now a standalone component imported above —
+   see web/src/components/heroes/ContactHero.jsx */
+
+/* ════════════════════════════════════════════════════════════════════
+   Underline input · floating-label-style with bottom border
+   ════════════════════════════════════════════════════════════════════ */
+function UnderlineField({
+  label, value, onChange, onBlur, type = "text", placeholder,
+  required, autoComplete, name, error,
+}) {
+  const showError = Boolean(error)
   return (
-    <section className="relative overflow-hidden bg-[#2E2F3A] py-20 lg:py-28">
-      {/* Background blobs */}
-      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-[#420060]/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-10 left-1/4 h-56 w-56 rounded-full bg-[#FFCCAF]/10 blur-2xl" />
+    <div className="group relative">
+      <label
+        htmlFor={`field-${name}`}
+        className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-charcoal-80/55"
+      >
+        {label}
+        {required ? <span className="ml-0.5 text-terracotta">*</span> : null}
+      </label>
+      <input
+        id={`field-${name}`}
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        required={required}
+        autoComplete={autoComplete}
+        aria-invalid={showError || undefined}
+        aria-describedby={showError ? `field-${name}-error` : undefined}
+        className={
+          "peer mt-1 w-full appearance-none border-0 border-b bg-transparent py-2 text-[15px] text-violet outline-none transition placeholder:text-charcoal-80/30 focus:ring-0 " +
+          (showError
+            ? "border-red-400 focus:border-red-500"
+            : "border-charcoal-80/15 focus:border-violet")
+        }
+      />
+      {/* Animated focus underline */}
+      <span
+        aria-hidden="true"
+        className={
+          "pointer-events-none absolute inset-x-0 -bottom-px block h-[2px] origin-left scale-x-0 transition-transform duration-300 peer-focus:scale-x-100 " +
+          (showError ? "bg-red-500" : "bg-violet")
+        }
+      />
+      {showError ? (
+        <p
+          id={`field-${name}-error`}
+          role="alert"
+          className="mt-1.5 text-[12px] font-medium text-red-600"
+        >
+          {error}
+        </p>
+      ) : null}
+    </div>
+  )
+}
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-6 text-center">
-          <motion.span variants={fadeUp} className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFCCAF]">
-            <Sparkles className="h-3.5 w-3.5" /> Let's Connect
-          </motion.span>
+/* ── Underline textarea (with character counter) ──────────────────── */
+function UnderlineTextarea({
+  label, value, onChange, onBlur, placeholder,
+  required, name, rows = 3, error, max,
+}) {
+  const showError = Boolean(error)
+  const count = value.length
+  const nearLimit = max && count > max * 0.85
+  return (
+    <div className="group relative">
+      <div className="flex items-center justify-between">
+        <label
+          htmlFor={`field-${name}`}
+          className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-charcoal-80/55"
+        >
+          {label}
+          {required ? <span className="ml-0.5 text-terracotta">*</span> : null}
+        </label>
+        {max ? (
+          <span
+            className={
+              "font-mono text-[11px] tabular-nums transition-colors " +
+              (count > max
+                ? "text-red-600"
+                : nearLimit
+                ? "text-terracotta"
+                : "text-charcoal-80/40")
+            }
+          >
+            {count} / {max}
+          </span>
+        ) : null}
+      </div>
+      <textarea
+        id={`field-${name}`}
+        name={name}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        required={required}
+        rows={rows}
+        maxLength={max ? max + 50 : undefined}
+        aria-invalid={showError || undefined}
+        aria-describedby={showError ? `field-${name}-error` : undefined}
+        className={
+          "peer mt-1 w-full resize-none appearance-none border-0 border-b bg-transparent py-2 text-[15px] leading-6 text-violet outline-none transition placeholder:text-charcoal-80/30 focus:ring-0 " +
+          (showError
+            ? "border-red-400 focus:border-red-500"
+            : "border-charcoal-80/15 focus:border-violet")
+        }
+      />
+      <span
+        aria-hidden="true"
+        className={
+          "pointer-events-none absolute inset-x-0 bottom-0 block h-[2px] origin-left scale-x-0 transition-transform duration-300 peer-focus:scale-x-100 " +
+          (showError ? "bg-red-500" : "bg-violet")
+        }
+      />
+      {showError ? (
+        <p
+          id={`field-${name}-error`}
+          role="alert"
+          className="mt-1.5 text-[12px] font-medium text-red-600"
+        >
+          {error}
+        </p>
+      ) : null}
+    </div>
+  )
+}
 
-          <motion.h1 variants={fadeUp} className="max-w-3xl text-[2.6rem] font-bold leading-[1.1] tracking-tight text-white sm:text-[3.2rem]">
-            Start Your Digital{" "}
-            <span className="text-[#FFCCAF]">Transformation</span>
-          </motion.h1>
+/* ── Spinner · used inside the submit button while sending ───────── */
+function Spinner({ className = "h-4 w-4" }) {
+  return (
+    <svg
+      className={`${className} animate-spin`}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
+      <path
+        d="M22 12a10 10 0 0 0-10-10"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
 
-          <motion.p variants={fadeUp} className="max-w-xl text-[16px] leading-7 text-white/55">
-            Whether you need digital consulting, infrastructure support, STEM programs, or technology strategy — reach out and let's discuss your goals.
-          </motion.p>
+/* ── Card-style radio (filled when checked) ──────────────────────── */
+function RadioPill({ label, value, current, onChange, name }) {
+  const checked = current === value
+  return (
+    <label
+      className={
+        "group relative flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 focus-within:ring-[3px] focus-within:ring-violet/25 " +
+        (checked
+          ? "border-violet bg-violet/[0.06] shadow-[0_2px_8px_rgba(93,63,211,0.08)]"
+          : "border-charcoal-80/12 hover:border-violet/40 hover:bg-violet-pale/30")
+      }
+    >
+      <span
+        aria-hidden="true"
+        className={
+          "relative flex h-[18px] w-[18px] flex-none items-center justify-center rounded-full border-2 transition-colors " +
+          (checked ? "border-violet" : "border-charcoal-80/30 group-hover:border-violet/60")
+        }
+      >
+        {checked ? (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+            className="block h-2.5 w-2.5 rounded-full bg-violet"
+          />
+        ) : null}
+      </span>
+      <span
+        className={
+          "text-[13px] leading-tight transition-colors sm:text-meta " +
+          (checked ? "font-semibold text-violet" : "text-charcoal-80/75")
+        }
+      >
+        {label}
+      </span>
+      <input
+        type="radio"
+        name={name}
+        value={value}
+        checked={checked}
+        onChange={() => onChange(value)}
+        className="sr-only"
+      />
+    </label>
+  )
+}
 
-          {/* Quick contact stats */}
-          <motion.div variants={fadeUp} className="flex flex-wrap justify-center gap-6 pt-2">
-            {[
-              { icon: Clock, label: "Response Time", value: "Within 24h" },
-              { icon: MapPin, label: "Location",      value: "Worldwide" },
-              { icon: Phone, label: "Availability",   value: "Mon – Sat" },
-            ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/6 px-5 py-3">
-                <Icon className="h-5 w-5 text-[#FFCCAF]" />
-                <div>
-                  <div className="text-[11px] text-white/40">{label}</div>
-                  <div className="text-[14px] font-semibold text-white">{value}</div>
-                </div>
+/* ════════════════════════════════════════════════════════════════════
+   CONTACT SECTION · two-column rounded card (info panel · form)
+   ════════════════════════════════════════════════════════════════════ */
+/* Field-level validation helpers */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const MESSAGE_MIN = 10
+const MESSAGE_MAX = 1000
+
+const INITIAL_FORM = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  audience: "",
+  interest: "",
+  tier: "",
+  timeline: "",
+  message: "",
+  consent: false,
+  website: "", // honeypot
+}
+
+function ContactSection() {
+  // I18N hook scope · ContactSection renders the form, which calls t()
+  // for placeholder text, error messages, and the "Sending…" / "Send message"
+  // button labels. The hook must be mounted inside this component — the
+  // page-level useTranslation in ContactPage doesn't reach across the
+  // component boundary. Was missing → ReferenceError on every render.
+  const { t } = useTranslation("contact")
+  const reduce = useReducedMotion()
+
+  // `website` is a honeypot — bots autofill it; real users never see it.
+  const [form, setForm] = useState(INITIAL_FORM)
+  const [touched, setTouched] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState("")
+  const [paramContext, setParamContext] = useState(null)
+
+  /* ──────────────────────────────────────────────────────────────────
+   * Read URL params on mount and pre-fill the form.
+   * Supported: intent · audience · tier · package · category
+   * Sources:
+   *   · Services pricing CTA   — /contact?intent=plan&audience=schools&tier=advanced
+   *   · Solutions packages CTA — /contact?intent=proposal&package=brand-foundation
+   *   · Services category link — /contact?intent=service&category=WD
+   * ────────────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    const intent = params.get("intent") || ""
+    const audKey = params.get("audience") || ""
+    const tierKey = params.get("tier") || ""
+    const pkg = params.get("package") || ""
+    const category = params.get("category") || ""
+
+    // Normalize audience: "schools" → "education", "smbs" → "business",
+    // "ind" / "individuals" / "pros" → "professional"
+    const audMap = {
+      schools: "education", education: "education", edu: "education",
+      smbs: "business", business: "business", smb: "business",
+      individuals: "professional", professional: "professional",
+      pros: "professional", ind: "professional",
+    }
+    const audience = audMap[audKey.toLowerCase()] || ""
+
+    const tier = TIER_OPTIONS.find((o) => o.value === tierKey.toLowerCase())?.value || ""
+    const interestPkg = pkg && INTEREST_OPTIONS.find((o) => o.value === pkg)?.value
+    const interestCat = category && INTEREST_OPTIONS.find((o) => o.value === category.toUpperCase())?.value
+    const interest = interestPkg || interestCat || ""
+
+    if (audience || tier || interest) {
+      setForm((f) => ({
+        ...f,
+        audience: audience || f.audience,
+        tier: tier || f.tier,
+        interest: interest || f.interest,
+      }))
+      setParamContext({ intent, audience, tier, interest })
+    }
+  }, [])
+
+  /* Live per-field validation — errors only surface after the user
+   * has interacted with that field (touched=true) or attempted submit.
+   * I18N · the messageMin/messageMax keys interpolate {{min}}/{{max}}. */
+  function validateField(field, value, allValues = form) {
+    switch (field) {
+      case "firstName":
+        return value.trim() ? "" : t("form.errors.firstName")
+      case "lastName":
+        return value.trim() ? "" : t("form.errors.lastName")
+      case "email":
+        if (!value.trim()) return t("form.errors.emailRequired")
+        if (!EMAIL_RE.test(value)) return t("form.errors.emailInvalid")
+        return ""
+      case "audience":
+        return value ? "" : t("form.errors.audience")
+      case "message":
+        if (!value.trim()) return t("form.errors.messageRequired")
+        if (value.trim().length < MESSAGE_MIN) return t("form.errors.messageMin", { min: MESSAGE_MIN })
+        if (value.length > MESSAGE_MAX) return t("form.errors.messageMax", { max: MESSAGE_MAX })
+        return ""
+      case "consent":
+        return value ? "" : t("form.errors.consent")
+      default:
+        return ""
+    }
+  }
+
+  const fieldErrors = {
+    firstName: validateField("firstName", form.firstName),
+    lastName: validateField("lastName", form.lastName),
+    email: validateField("email", form.email),
+    audience: validateField("audience", form.audience),
+    message: validateField("message", form.message),
+    consent: validateField("consent", form.consent),
+  }
+  const isValid = Object.values(fieldErrors).every((m) => !m)
+
+  function update(field) {
+    return (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
+  }
+  function updateBool(field) {
+    return (e) => setForm((f) => ({ ...f, [field]: e.target.checked }))
+  }
+  function markTouched(field) {
+    return () => setTouched((tt) => ({ ...tt, [field]: true }))
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    // Surface every field error on submit attempt
+    setTouched({
+      firstName: true, lastName: true, email: true,
+      audience: true, message: true, consent: true,
+    })
+    if (!isValid) {
+      setError(t("form.errors.fixFields"))
+      return
+    }
+    setError("")
+    setLoading(true)
+    try {
+      // Resolve labels for the email subject. We send English labels to
+      // the backend (the admin notification email is English) so we
+      // re-resolve via the EN namespace by accessing the option's
+      // labelKey through t() with `lng: "en"` would over-engineer it;
+      // instead we send the canonical option `value`s and let the
+      // server format the subject.
+      const interestLabel = form.interest
+        ? t(`interests.items.${form.interest}`)
+        : ""
+      const audienceLabel = form.audience
+        ? t(`audiences.${form.audience}`)
+        : ""
+      const tierLabel = form.tier
+        ? t(`tiers.${form.tier}`)
+        : ""
+      const timelineLabel = form.timeline
+        ? t(`timelines.${form.timeline}`)
+        : ""
+
+      const subjectParts = [audienceLabel, interestLabel, tierLabel].filter(Boolean)
+      const subject = subjectParts.length > 0 ? subjectParts.join(" · ") : t("form.errors.subjectFallback")
+
+      const payload = {
+        name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+        email: form.email.trim(),
+        subject,
+        message: [
+          form.message.trim(),
+          "",
+          "Lead context:",
+          audienceLabel && `Audience: ${audienceLabel}`,
+          interestLabel && `Interest: ${interestLabel}`,
+          tierLabel && `Tier: ${tierLabel}`,
+          timelineLabel && `Timeline: ${timelineLabel}`,
+          paramContext?.intent && `Source intent: ${paramContext.intent}`,
+        ].filter(Boolean).join("\n"),
+        website: form.website,
+      }
+      await apiRequest("/api/contact", { method: "POST", body: JSON.stringify(payload) })
+      setSuccess(true)
+      setForm(INITIAL_FORM)
+      setTouched({})
+    } catch (err) {
+      setError(err?.message || t("form.errors.sendFailed"))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <section className="py-16 sm:py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+        {/* "Two ways to reach me", clarifies Book vs. Send Message */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto mb-8 grid max-w-4xl gap-4 sm:mb-10 sm:grid-cols-2 sm:gap-5"
+        >
+          <Link
+            to="/book"
+            className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border-2 border-violet bg-violet p-5 text-white shadow-[0_14px_40px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(93,63,211,0.28)] sm:p-6"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
+                <ClockIcon className="h-4 w-4" aria-hidden="true" />
               </div>
-            ))}
+              <span className="rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] !text-white">
+                {t("callout.talkNow")}
+              </span>
+            </div>
+            <div>
+              <h3 className="text-[18px] font-bold !text-white sm:text-[19px]">{t("callout.bookTitle")}</h3>
+              <p className="mt-1 text-[13px] leading-6 !text-white/85">
+                {t("callout.bookBody")}
+              </p>
+            </div>
+            <span className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-bold !text-terracotta">
+              {t("callout.bookCta")}
+              <span className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">→</span>
+            </span>
+          </Link>
+
+          <a
+            href="#contact-form"
+            className="group relative flex flex-col gap-3 rounded-2xl border-2 border-violet/15 bg-white p-5 text-charcoal-80 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_14px_40px_rgba(93,63,211,0.12)] sm:p-6"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-pale text-violet">
+                <Send className="h-4 w-4" aria-hidden="true" />
+              </div>
+              <span className="rounded-full bg-violet-pale px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-violet">
+                {t("callout.haveQuestion")}
+              </span>
+            </div>
+            <div>
+              <h3 className="text-[18px] font-bold text-violet sm:text-[19px]">{t("callout.writeTitle")}</h3>
+              <p className="mt-1 text-[13px] leading-6 text-charcoal-80/70">
+                {t("callout.writeBody")}
+              </p>
+            </div>
+            <span className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-bold text-violet">
+              {t("callout.writeCta")}
+              <span className="transition-transform group-hover:translate-y-0.5" aria-hidden="true">↓</span>
+            </span>
+          </a>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_-20px_rgba(93,63,211,0.20)] ring-1 ring-charcoal-80/[0.06]"
+          id="contact-form"
+        >
+
+          {/* ════════════════════════════════════════════════════════
+               FORM panel · full-width centered
+               ════════════════════════════════════════════════════════ */}
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="bg-white p-6 sm:p-10 lg:p-12"
+          >
+            {success ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="flex flex-col items-center gap-4 py-10 text-center sm:py-14"
+              >
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 14 }}
+                  className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8f4ea] text-[#2FA36B]"
+                >
+                  <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
+                </motion.div>
+                <h3 className="text-card font-bold text-violet">{t("form.successDetail.title")}</h3>
+                <p className="max-w-xs text-meta text-charcoal-80/65">
+                  {t("form.successDetail.body")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSuccess(false)}
+                  className="mt-2 inline-flex items-center gap-1 text-meta font-semibold text-violet transition hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+                >
+                  {t("form.successDetail.again")}
+                </button>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6 sm:gap-7" noValidate>
+                {/* Honeypot (hidden) */}
+                <input
+                  type="text"
+                  name="website"
+                  value={form.website}
+                  onChange={update("website")}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: "-9999px", top: "-9999px",
+                    width: "1px", height: "1px", opacity: 0,
+                  }}
+                />
+
+                {error ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-medium text-red-700"
+                    role="alert"
+                  >
+                    {error}
+                  </motion.div>
+                ) : null}
+
+                {/* Context chip · only when URL params pre-filled the form */}
+                {paramContext ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex items-start gap-3 rounded-xl border border-terracotta/25 bg-terracotta/[0.08] px-4 py-3"
+                  >
+                    <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-terracotta-deep" aria-hidden="true" />
+                    <div className="flex flex-col gap-1 text-[12.5px] sm:text-[13px]">
+                      <span className="font-bold text-terracotta-deep">
+                        {t("form.context.title")}
+                      </span>
+                      <span className="text-charcoal-80/70">
+                        {t("form.context.inquiringAbout")}{" "}
+                        {[
+                          paramContext.audience && t(`audiences.${paramContext.audience}`),
+                          paramContext.interest && t(`interests.items.${paramContext.interest}`),
+                          paramContext.tier && `${t(`tiers.${paramContext.tier}`)} ${t("form.context.tier")}`,
+                        ].filter(Boolean).join(" · ") || t("form.context.yourSelection")}
+                      </span>
+                    </div>
+                  </motion.div>
+                ) : null}
+
+                {/* Row · First Name + Last Name */}
+                <motion.div variants={fadeUp} className="grid gap-6 sm:grid-cols-2 sm:gap-7">
+                  <UnderlineField
+                    name="firstName"
+                    label={t("form.firstName")}
+                    value={form.firstName}
+                    onChange={update("firstName")}
+                    onBlur={markTouched("firstName")}
+                    placeholder={t("form.firstNamePlaceholder")}
+                    autoComplete="given-name"
+                    error={touched.firstName ? fieldErrors.firstName : ""}
+                    required
+                  />
+                  <UnderlineField
+                    name="lastName"
+                    label={t("form.lastName")}
+                    value={form.lastName}
+                    onChange={update("lastName")}
+                    onBlur={markTouched("lastName")}
+                    placeholder={t("form.lastNamePlaceholder")}
+                    autoComplete="family-name"
+                    error={touched.lastName ? fieldErrors.lastName : ""}
+                    required
+                  />
+                </motion.div>
+
+                {/* Row · Mail */}
+                <motion.div variants={fadeUp}>
+                  <UnderlineField
+                    name="email"
+                    label={t("form.email")}
+                    type="email"
+                    value={form.email}
+                    onChange={update("email")}
+                    onBlur={markTouched("email")}
+                    placeholder={t("form.emailPlaceholder")}
+                    autoComplete="email"
+                    error={touched.email ? fieldErrors.email : ""}
+                    required
+                  />
+                </motion.div>
+
+                {/* Audience selector · 3 RadioPills */}
+                <motion.fieldset variants={fadeUp} className="border-0 p-0">
+                  <legend className="text-[13px] font-semibold text-charcoal sm:text-meta">
+                    {t("form.audienceLegend")}
+                  </legend>
+                  <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    {AUDIENCES.map(({ value, labelKey, Icon }) => (
+                      <RadioPill
+                        key={value}
+                        name="audience"
+                        value={value}
+                        current={form.audience}
+                        onChange={(v) => { setForm((f) => ({ ...f, audience: v })); markTouched("audience")() }}
+                        label={t(labelKey)}
+                        Icon={Icon}
+                      />
+                    ))}
+                  </div>
+                  {touched.audience && fieldErrors.audience && (
+                    <p className="mt-2 text-[12px] text-[#E11D48]">{fieldErrors.audience}</p>
+                  )}
+                </motion.fieldset>
+
+                {/* Message */}
+                <motion.div variants={fadeUp}>
+                  <UnderlineTextarea
+                    label={t("form.messageLabel")}
+                    name="message"
+                    value={form.message}
+                    onChange={update("message")}
+                    onBlur={markTouched("message")}
+                    placeholder={t("form.messagePlaceholder")}
+                    rows={5}
+                    maxLength={MESSAGE_MAX}
+                    error={touched.message ? fieldErrors.message : ""}
+                    required
+                  />
+                </motion.div>
+
+                {/* Consent */}
+                <motion.label variants={fadeUp} className="flex items-start gap-3 text-[13px] text-[#1A1B23]/75">
+                  <input
+                    type="checkbox"
+                    checked={form.consent}
+                    onChange={updateBool("consent")}
+                    onBlur={markTouched("consent")}
+                    className="mt-1 h-4 w-4 rounded border-[#1A1B23]/25 text-[#5D3FD3] focus:ring-2 focus:ring-[#5D3FD3]/30"
+                  />
+                  <span>
+                    {t("form.consent")}
+                  </span>
+                </motion.label>
+                {touched.consent && fieldErrors.consent && (
+                  <p className="-mt-3 ml-7 text-[12px] text-[#E11D48]">{fieldErrors.consent}</p>
+                )}
+
+                {error && (
+                  <motion.div
+                    variants={fadeUp}
+                    className="rounded-xl border border-[#FFE4E6] bg-[#FFE4E6] px-4 py-3 text-[13px] text-[#9F1239]"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+
+                {/* Submit */}
+                <motion.div variants={fadeUp} className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#5D3FD3] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(93,63,211,0.28)] transition hover:-translate-y-0.5 hover:bg-[#4A2EAB] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  >
+                    {loading ? (
+                      <>
+                        <Spinner /> {t("form.sending")}
+                      </>
+                    ) : (
+                      <>
+                        {t("form.submit")}
+                        <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                      </>
+                    )}
+                  </button>
+                </motion.div>
+              </form>
+            )}
           </motion.div>
         </motion.div>
       </div>
@@ -72,219 +792,106 @@ function ContactHero() {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CONTACT SECTION — image left, form right
-// ─────────────────────────────────────────────────────────────────────────────
-function ContactSection() {
-  const [form, setForm]       = useState({ name:"", email:"", message:"" })
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError]     = useState("")
-
-  function update(field) {
-    return (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    if (!form.name || !form.email || !form.message) {
-      setError("Please fill in all fields."); return
-    }
-    setError(""); setLoading(true)
-    try {
-      await apiRequest("/api/contact", { method:"POST", body: JSON.stringify(form) })
-      setSuccess(true); setForm({ name:"", email:"", message:"" })
-    } catch (err) {
-      setError(err.message || "Failed to send. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const socialLinks = [
-    {
-      label: "LinkedIn",
-      href:  "https://www.linkedin.com/in/mustaphaukizuru/",
-      icon:  FaLinkedinIn,
-      bg:    "bg-[#0077B5]",
-      hover: "hover:bg-[#005f93]",
-    },
-    {
-      label: "Telegram",
-      href:  "https://t.me/mustaphaukizuru",
-      icon:  FaTelegramPlane,
-      bg:    "bg-[#0088cc]",
-      hover: "hover:bg-[#006fa8]",
-    },
-    {
-      label: "WhatsApp",
-      href:  "https://wa.me/+525552139993",
-      icon:  FaWhatsapp,
-      bg:    "bg-[#25D366]",
-      hover: "hover:bg-[#1aad52]",
-    },
-  ]
-
+/* ════════════════════════════════════════════════════════════════════
+   ContactChannelsSection · Email · WhatsApp · Address quick-links
+   ──────────────────────────────────────────────────────────────────
+   I18N · scoped useTranslation; address lines stay as canonical
+   geographic data (the city name does not translate).
+   ════════════════════════════════════════════════════════════════════ */
+function ContactChannelsSection() {
+  const { t } = useTranslation("contact")
   return (
-    <section className="py-20 lg:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
-
-          {/* ── LEFT: Image + info + social ──────────────────────────────── */}
-          <motion.div
-            initial={{ opacity:0, x:-24 }} whileInView={{ opacity:1, x:0 }}
-            viewport={{ once:true }} transition={{ duration:0.55, ease:"easeOut" }}
-            className="flex flex-col gap-8"
-          >
-            {/* Portrait image */}
-            <div className="relative overflow-hidden rounded-xl">
-              <img
-                src={contactPhoto}
-                alt="Mustapha Ukizuru — Contact - Technology Consultant"
-                className="w-full object-cover object-top"
-              />
-            </div>
-
-            {/* Social media icons */}
-            <div className="flex flex-col gap-4">
-              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#634F40]/50">
-                Connect on
+    <section className="py-16 sm:py-20" style={{ backgroundColor: "rgba(248, 250, 252, 0.5)" }}>
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-[24px] font-bold text-[#5D3FD3] sm:text-[32px]">{t("channels.title")}</h2>
+          <p className="mt-3 text-[14px] leading-[1.65] text-[#475569]">
+            {t("channels.subtitle")}
+          </p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <a
+              href={`mailto:${EMAIL}`}
+              className="group flex items-start gap-3 rounded-xl border border-[#EFF1F5] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#5D3FD3]/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EDE9FB] text-[#5D3FD3]">
+                <Mail className="h-5 w-5" aria-hidden="true" />
               </div>
-              <div className="flex gap-3">
-                {socialLinks.map(({ label, href, icon: Icon, bg, hover }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    className={`flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-[0_6px_16px_rgba(0,0,0,0.12)] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(0,0,0,0.18)] ${bg} ${hover}`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </a>
-                ))}
+              <div>
+                <div className="text-[13px] font-bold text-[#5D3FD3]">{t("channels.email")}</div>
+                <div className="mt-0.5 text-[12px] text-[#475569]">{EMAIL}</div>
               </div>
-
-              {/* Contact info */}
-              <div className="space-y-3">
-                {[
-                  { icon: Mail,  label: "Email",    value: "hello@mustaphaukizuru.com" },
-                  { icon: Clock, label: "Response",  value: "Within 24 hours" },
-                  { icon: MapPin, label: "Location", value: "Available worldwide" },
-                ].map(({ icon: Icon, label, value }) => (
-                  <div key={label} className="flex items-center gap-3 text-[14px] text-[#634F40]/70">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <span className="text-[#634F40]/50">{label}:</span>
-                    <span className="font-medium text-[#420060]">{value}</span>
-                  </div>
-                ))}
+            </a>
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-start gap-3 rounded-xl border border-[#EFF1F5] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#5D3FD3]/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D1FAE5] text-[#10B981]">
+                <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
               </div>
-            </div>
-          </motion.div>
-
-          {/* ── RIGHT: Contact form ───────────────────────────────────────── */}
-          <motion.div
-            initial={{ opacity:0, x:24 }} whileInView={{ opacity:1, x:0 }}
-            viewport={{ once:true }} transition={{ duration:0.55, ease:"easeOut", delay:0.1 }}
-          >
-            <div className="rounded-xl border border-[#634F40]/10 bg-white p-8 shadow-[0_16px_48px_rgba(66,0,96,0.08)] lg:p-10">
-              <div className="mb-7">
-                <span className="inline-flex items-center gap-2 rounded-full bg-[#ede4ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#420060]">
-                  <Sparkles className="h-3 w-3" /> Get in Touch
-                </span>
-                <h2 className="mt-3 text-[1.7rem] font-bold tracking-tight text-[#420060]">
-                  Send a Message
-                </h2>
-                <p className="mt-2 text-[14px] leading-6 text-[#634F40]/60">
-                  Tell us about your project or technology needs and we'll get back to you within 24 hours.
-                </p>
+              <div>
+                <div className="text-[13px] font-bold text-[#5D3FD3]">{t("channels.whatsapp")}</div>
+                <div className="mt-0.5 text-[12px] text-[#475569]">{t("channels.whatsappBody")}</div>
               </div>
-
-              {success ? (
-                <div className="flex flex-col items-center gap-4 py-10 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#e8f4ea] text-[#2FA36B]">
-                    <CheckCircle2 className="h-8 w-8" />
-                  </div>
-                  <h4 className="text-[17px] font-bold text-[#420060]">Message Sent!</h4>
-                  <p className="text-[14px] text-[#634F40]/60">We'll respond within 24 hours.</p>
-                  <button type="button" onClick={() => setSuccess(false)}
-                    className="mt-2 text-[13px] font-medium text-[#420060] hover:underline"
-                  >
-                    Send another message
-                  </button>
+            </a>
+            <div className="flex items-start gap-3 rounded-xl border border-[#EFF1F5] bg-white p-5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FEF3C7] text-[#92400E]">
+                <MapPin className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div>
+                <div className="text-[13px] font-bold text-[#5D3FD3]">{t("channels.basedIn")}</div>
+                <div className="mt-0.5 text-[12px] leading-5 text-[#475569]">
+                  {ADDRESS_LINES.map((line) => <div key={line}>{line}</div>)}
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                  {error && (
-                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">{error}</div>
-                  )}
-
-                  {/* Name */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[12px] font-semibold text-[#420060]">Full Name</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#634F40]/35" />
-                      <input type="text" value={form.name} onChange={update("name")}
-                        placeholder="Your full name"
-                        className="w-full rounded-xl border border-[#634F40]/15 bg-[#fafafa] py-3.5 pl-11 pr-4 text-[14px] text-[#420060] outline-none transition focus:border-[#420060]/40 focus:ring-2 focus:ring-[#420060]/8 placeholder:text-[#634F40]/35"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Email */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[12px] font-semibold text-[#420060]">Email Address</label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#634F40]/35" />
-                      <input type="email" value={form.email} onChange={update("email")}
-                        placeholder="you@example.com"
-                        className="w-full rounded-xl border border-[#634F40]/15 bg-[#fafafa] py-3.5 pl-11 pr-4 text-[14px] text-[#420060] outline-none transition focus:border-[#420060]/40 focus:ring-2 focus:ring-[#420060]/8 placeholder:text-[#634F40]/35"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Message */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[12px] font-semibold text-[#420060]">Message</label>
-                    <div className="relative">
-                      <MessageSquare className="absolute left-4 top-4 h-4 w-4 text-[#634F40]/35" />
-                      <textarea rows={5} value={form.message} onChange={update("message")}
-                        placeholder="Tell us about your project or technology needs…"
-                        className="w-full resize-none rounded-xl border border-[#634F40]/15 bg-[#fafafa] py-3.5 pl-11 pr-4 text-[14px] text-[#420060] outline-none transition focus:border-[#420060]/40 focus:ring-2 focus:ring-[#420060]/8 placeholder:text-[#634F40]/35"
-                      />
-                    </div>
-                  </div>
-
-                  <button type="submit" disabled={loading}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#420060] to-[#2d003f] py-4 text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(66,0,96,0.24)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(66,0,96,0.30)] disabled:opacity-60"
-                  >
-                    {loading ? "Sending…" : "Get a Free Consultation"}
-                    <Send className="h-4 w-4" />
-                  </button>
-
-                  <p className="text-center text-[11px] text-[#634F40]/40">
-                    We respect your privacy. Your information is never shared.
-                  </p>
-                </form>
-              )}
+              </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PAGE
-// ─────────────────────────────────────────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════════════
+   ContactSocialsSection · social links footer
+   ──────────────────────────────────────────────────────────────────
+   Renders the canonical SocialLinks component with the contact-page
+   bundle (LinkedIn · GitHub · Telegram · Instagram · WhatsApp) in the
+   "filled" variant — official brand colors + sheen sweep + halo lift.
+   ════════════════════════════════════════════════════════════════════ */
+function ContactSocialsSection() {
+  const { t } = useTranslation("contact")
+  return (
+    <section className="py-12 sm:py-16">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 text-center">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">
+            {t("socials.findMe")}
+          </span>
+          <SocialLinks
+            platforms={CONTACT_SOCIALS}
+            variant="filled"
+            size="sm"
+            align="center"
+            ariaLabel={t("socials.ariaLabel")}
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   PAGE
+   ════════════════════════════════════════════════════════════════════ */
 export default function ContactPage() {
   return (
     <>
       <ContactHero />
       <ContactSection />
+      <ContactChannelsSection />
+      <ContactSocialsSection />
     </>
   )
 }

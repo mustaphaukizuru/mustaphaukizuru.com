@@ -11,7 +11,7 @@ export async function createPaypalSession(orderId) {
     throw new Error("Order ID is required")
   }
 
-  const response = await apiRequest("/api/paypal/create-order", {
+  const response = await apiRequest("/api/v1/paypal/create-order", {
     method: "POST",
     body: JSON.stringify({ orderId }),
   })
@@ -28,7 +28,7 @@ export async function capturePaypalSession(paypalOrderId, orderId) {
     throw new Error("Order ID is required")
   }
 
-  return apiRequest("/api/paypal/capture-order", {
+  return apiRequest("/api/v1/paypal/capture-order", {
     method: "POST",
     body: JSON.stringify({
       paypalOrderId,

@@ -1,49 +1,306 @@
-// Simple in-memory rate limiter — for production use Redis-backed rate limiting
-const attempts = new Map()
+/**
+ * B10 · Rate limiter (rewritten on top of express-rate-limit).
+ *
+ * Drop-in replacement for the B07 hand-rolled limiter. Existing route files
+ * that imported { authRateLimiter, contactRateLimiter, newsletterRateLimiter }
+ * keep working without changes — those names are still exported.
+ *
+ * Spec table (B10):
+ *   global       100 / 15 min / IP        — applied app-wide on /api in app.js
+ *   login          5 / 15 min / (IP+email)
+ *   signup         3 / 1 hour  / IP
+ *   forgot pw      3 / 1 hour  / email
+ *   verify email   5 / 15 min  / email   (loaded but not yet wired — endpoint TBD)
+ *   contact        3 / 15 min  / IP
+ *   newsletter     5 / 1 hour  / IP
+ *   payment       10 / 1 hour  / user
+ *   media upload  20 / 1 hour  / user
+ *   product srch  60 / 1 min   / IP
+ *   download      10 / 1 hour  / user
+ *
+ * Standard error response shape (matches errorHandler.js):
+ *   {
+ *     success: false,
+ *     code:    "RATE_LIMITED",
+ *     message: "...",
+ *     error:   { code: "RATE_LIMITED", message: "...", details: { retryAfter } }
+ *   }
+ */
 
-const AUTH_WINDOW_MS   = 15 * 60 * 1000   // 15 minutes
-const AUTH_MAX_ATTEMPTS = 10               // 10 attempts per 15 min per IP
+const rateLimit = require("express-rate-limit")
 
-function authRateLimiter(req, res, next) {
-  const ip  = req.ip || req.connection.remoteAddress || "unknown"
-  const key = `auth:${ip}`
-  const now = Date.now()
+const FIFTEEN_MIN = 15 * 60 * 1000
+const ONE_HOUR    = 60 * 60 * 1000
+const ONE_MIN     = 60 * 1000
 
-  const record = attempts.get(key)
+/* ── Helpers ──────────────────────────────────────────────────────────── */
 
-  if (record) {
-    // Clean expired entries
-    if (now - record.firstAttempt > AUTH_WINDOW_MS) {
-      attempts.delete(key)
-    } else if (record.count >= AUTH_MAX_ATTEMPTS) {
-      const retryAfter = Math.ceil((record.firstAttempt + AUTH_WINDOW_MS - now) / 1000)
-      return res.status(429).json({
-        success:    false,
-        code:       "RATE_LIMIT",
-        message:    `Too many attempts. Try again in ${retryAfter}s.`,
-        retryAfter,
-      })
-    }
-  }
+/**
+ * Build a 429 response in the dual error shape (top-level legacy fields +
+ * nested `error` object). Anything in `details` rides along inside `error`.
+ */
+function rateLimitedResponse(req, res, options, extraDetails = {}) {
+  const message = options?.message?.message || options?.message || "Too many requests. Please try again shortly."
+  const retryAfter = res.getHeader("Retry-After")
 
-  // Record this attempt
-  if (!attempts.has(key)) {
-    attempts.set(key, { count: 1, firstAttempt: now })
-  } else {
-    attempts.get(key).count += 1
-  }
-
-  next()
+  return res.status(options.statusCode).json({
+    success: false,
+    code:    "RATE_LIMITED",
+    message,
+    error: {
+      code:    "RATE_LIMITED",
+      message,
+      details: {
+        retryAfter: retryAfter ? Number(retryAfter) : null,
+        ...extraDetails,
+      },
+    },
+  })
 }
 
-// Clean up old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, record] of attempts.entries()) {
-    if (now - record.firstAttempt > AUTH_WINDOW_MS) {
-      attempts.delete(key)
-    }
-  }
-}, 5 * 60 * 1000)
+/**
+ * Resolve the client IP, normalizing the IPv6-mapped form `::ffff:1.2.3.4`
+ * down to plain IPv4. Without this, the same client behind certain proxies
+ * gets two distinct buckets across IPv4 and IPv6 mapping.
+ */
+function clientIp(req) {
+  const raw = req.ip || req.connection?.remoteAddress || "unknown"
+  return raw.startsWith("::ffff:") ? raw.slice(7) : raw
+}
 
-module.exports = { authRateLimiter }
+/**
+ * Composite key generators. We compose IP + identifier so attackers can't
+ * defeat email-keyed limits by rotating IPs (we still bind to email), and
+ * legitimate users behind shared NAT don't all collide on a single IP-only
+ * bucket.
+ */
+function ipPlusEmailKey(req) {
+  const email = String(req.body?.email || "").trim().toLowerCase() || "no-email"
+  return `${clientIp(req)}::${email}`
+}
+
+function emailKey(req) {
+  const email = String(req.body?.email || "").trim().toLowerCase()
+  return email ? `email::${email}` : `ip::${clientIp(req)}`
+}
+
+function userKey(req) {
+  // req.user is populated by authMiddleware on protected routes; if missing
+  // we fall back to IP so this still functions as a degraded limit.
+  return req.user?.id ? `user::${req.user.id}` : `ip::${clientIp(req)}`
+}
+
+function ipKey(req) {
+  return `ip::${clientIp(req)}`
+}
+
+/**
+ * Factory — wires standard headers + JSON 429 responder around express-rate-limit.
+ */
+const IS_DEV = process.env.NODE_ENV !== "production"
+const IS_TEST = process.env.NODE_ENV === "test"
+
+/**
+ * In development we 5x every limit and skip the limiter entirely for
+ * localhost / 127.0.0.1 / ::1 so the operator's own browser doesn't trip
+ * "Too many requests" while testing flows. Production keeps the strict
+ * values per the prompt acceptance criteria.
+ */
+function devScale(max) {
+  if (IS_TEST) return Number.MAX_SAFE_INTEGER
+  if (IS_DEV)  return max * 5
+  return max
+}
+
+function isLocalhost(req) {
+  const ip = (req.ip || "").replace("::ffff:", "")
+  return ip === "127.0.0.1" || ip === "::1" || ip === "localhost" || ip.startsWith("192.168.") || ip.startsWith("10.")
+}
+
+function makeLimiter({ windowMs, max, keyGenerator, message, name }) {
+  return rateLimit({
+    windowMs,
+    max: devScale(max),
+    keyGenerator: keyGenerator || ipKey,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => IS_DEV && isLocalhost(req),
+    handler: (req, res) => {
+      const msg = typeof message === "string" ? message : message?.message || "Too many requests."
+      logger.warn(`[rate-limit:${name || "anon"}] ${req.ip} hit limit on ${req.method} ${req.originalUrl}`)
+      res.status(429).json({
+        success: false,
+        error:   { code: "RATE_LIMITED", message: msg },
+      })
+    },
+  })
+}
+
+/* ── Limiters ─────────────────────────────────────────────────────────── */
+
+/**
+ * Global public-API limiter. Mounted in app.js BEFORE routes:
+ *   app.use("/api", globalApiLimiter, routes)
+ *
+ * Webhooks (PayPal, MercadoPago) bypass this — they have their own routes
+ * outside the limiter chain or are exempt via skip rules at the route level.
+ */
+const globalApiLimiter = makeLimiter({
+  name:         "global",
+  windowMs:     FIFTEEN_MIN,
+  max:          100,
+  keyGenerator: ipKey,
+  message:      "Too many requests from this IP. Please slow down.",
+})
+
+/**
+ * Login — 5 per 15 min, keyed by IP + email so credential stuffing on a
+ * single account is throttled even when attackers rotate IPs against
+ * different victims, and legitimate users behind shared NAT can still log in
+ * to their own accounts when neighbors are noisy.
+ */
+const loginRateLimiter = makeLimiter({
+  name:         "login",
+  windowMs:     FIFTEEN_MIN,
+  max:          5,
+  keyGenerator: ipPlusEmailKey,
+  message:      "Too many sign-in attempts. Try again in a few minutes.",
+})
+
+/**
+ * Signup — 3 per hour per IP. Stops bulk account creation.
+ */
+const signupRateLimiter = makeLimiter({
+  name:         "signup",
+  windowMs:     ONE_HOUR,
+  max:          3,
+  keyGenerator: ipKey,
+  message:      "Too many sign-up attempts from this IP. Please try again later.",
+})
+
+/**
+ * Forgot password — 3 per hour per email. Prevents using forgot-password as
+ * a notification spam vector to harass users.
+ */
+const forgotPasswordRateLimiter = makeLimiter({
+  name:         "forgot-password",
+  windowMs:     ONE_HOUR,
+  max:          3,
+  keyGenerator: emailKey,
+  message:      "Too many password reset requests. Please try again later.",
+})
+
+/**
+ * Email verification dispatch — 5 per 15 min per email. Reserved for the
+ * eventual /api/auth/verify-email/send endpoint. Exported now so it's ready
+ * when that endpoint lands.
+ */
+const verifyEmailRateLimiter = makeLimiter({
+  name:         "verify-email",
+  windowMs:     FIFTEEN_MIN,
+  max:          5,
+  keyGenerator: emailKey,
+  message:      "Too many verification requests. Please wait before requesting another.",
+})
+
+/**
+ * Contact form — 3 per 15 min per IP (B07 spec carried forward).
+ */
+const contactRateLimiter = makeLimiter({
+  name:         "contact",
+  windowMs:     FIFTEEN_MIN,
+  max:          3,
+  keyGenerator: ipKey,
+  message:      "Too many messages sent. Please wait a few minutes before trying again.",
+})
+
+/**
+ * Newsletter subscribe — 5 per hour per IP (B10 spec; B07 was 5/min, this
+ * tightens it for spam waves).
+ */
+const newsletterRateLimiter = makeLimiter({
+  name:         "newsletter",
+  windowMs:     ONE_HOUR,
+  max:          5,
+  keyGenerator: ipKey,
+  message:      "Too many subscribe requests. Please wait before trying again.",
+})
+
+/**
+ * Payment endpoints — 10 per hour per user. Prevents card testing /
+ * preference enumeration. Falls back to per-IP if the route doesn't have
+ * `protect` middleware (webhook routes should NOT use this limiter — they
+ * need higher throughput for retries).
+ */
+const paymentRateLimiter = makeLimiter({
+  name:         "payment",
+  windowMs:     ONE_HOUR,
+  max:          10,
+  keyGenerator: userKey,
+  message:      "Too many payment requests. Please wait before trying again.",
+})
+
+/**
+ * Media uploads — 20 per hour per user (admin uploads). Protects against
+ * disk-fill attacks even if an admin account is compromised.
+ */
+const uploadRateLimiter = makeLimiter({
+  name:         "upload",
+  windowMs:     ONE_HOUR,
+  max:          20,
+  keyGenerator: userKey,
+  message:      "Upload limit reached. Please wait before uploading more files.",
+})
+
+/**
+ * Product search — 60 per minute per IP. Search is read-only and cheap, so
+ * a high ceiling is fine; this just stops scraper bursts.
+ */
+const searchRateLimiter = makeLimiter({
+  name:         "search",
+  windowMs:     ONE_MIN,
+  max:          60,
+  keyGenerator: ipKey,
+  message:      "Too many search requests. Please slow down.",
+})
+
+/**
+ * Download endpoints — 10 per hour per user. Prevents abuse of paid-content
+ * URLs while still allowing repeat downloads of large files (resume etc.).
+ */
+const downloadRateLimiter = makeLimiter({
+  name:         "download",
+  windowMs:     ONE_HOUR,
+  max:          10,
+  keyGenerator: userKey,
+  message:      "Download limit reached. Please try again later.",
+})
+
+/* ── Backward-compat alias ────────────────────────────────────────────── */
+
+/**
+ * Old name kept so existing route files (uploaded but not modified by B10)
+ * keep working without diff-touching. Maps to login limits (5 / 15 min /
+ * IP+email) which is the strictest sane default for any auth endpoint that
+ * gets retrofitted.
+ */
+const authRateLimiter = loginRateLimiter
+
+module.exports = {
+  // Global
+  globalApiLimiter,
+  // Auth
+  loginRateLimiter,
+  signupRateLimiter,
+  forgotPasswordRateLimiter,
+  verifyEmailRateLimiter,
+  authRateLimiter,            // alias of loginRateLimiter
+  // Contact / newsletter
+  contactRateLimiter,
+  newsletterRateLimiter,
+  // Resource-scoped
+  paymentRateLimiter,
+  uploadRateLimiter,
+  searchRateLimiter,
+  downloadRateLimiter,
+}

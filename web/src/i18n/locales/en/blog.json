@@ -1,0 +1,58 @@
+{
+  "post": {
+    "errors": {
+      "notFound": "Article not found"
+    },
+    "seo": {
+      "titleSuffix": "Article"
+    },
+    "rail": {
+      "back": "Back to blog",
+      "fallbackKind": "Article",
+      "share": "Share",
+      "shareAria": "Share this article",
+      "tags": "Tags"
+    },
+    "meta": {
+      "minRead": "{{count}} min read"
+    },
+    "related": {
+      "title": "More from {{label}}",
+      "fallbackLabel": "the blog",
+      "readArticle": "Read article"
+    }
+  },
+  "list": {
+    "page": "Blog"
+  },
+  "author": {
+    "aria": "About the author",
+    "writtenBy": "Written by",
+    "getInTouch": "Get in touch"
+  },
+  "content": {
+    "placeholder": "The full article body is being prepared. Check back shortly."
+  },
+  "page": {
+    "title": "Insights & stories",
+    "subtitle": "Field notes from the workbench, IT strategy, full-stack engineering, EdTech, STEM education, and the occasional career story from Rwanda by way of Mexico.",
+    "clearFilters": "Clear filters",
+    "filtersAria": "Blog filters and tools",
+    "searchTitle": "Search articles",
+    "searchAria": "Search blog posts",
+    "allCategories": "All categories",
+    "popularTags": "Popular tags",
+    "recentPosts": "Recent posts",
+    "stayInLoop": "Stay in the loop",
+    "newsletterTitle": "New posts, in your inbox.",
+    "newsletterBody": "Quarterly digest of what shipped, what worked, and what didn't.",
+    "activeFilters": "Active filters",
+    "removeFilterAria": "Remove filter",
+    "readArticle": "Read article",
+    "minRead": "min read",
+    "paginationAria": "Blog pagination",
+    "noMatchTitle": "No articles match your filters",
+    "noMatchBody": "Try a broader search, pick a different category, or clear the filters and browse the full set.",
+    "clearFilters2": "Clear filters"
+  }
+}

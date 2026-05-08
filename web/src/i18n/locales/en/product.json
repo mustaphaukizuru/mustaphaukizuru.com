@@ -1,0 +1,126 @@
+{
+  "tabs": {
+    "description": "Description",
+    "features": "Features",
+    "files": "Files",
+    "reviews": "Reviews",
+    "faq": "FAQ"
+  },
+  "info": {
+    "fileSize": "File size",
+    "fileType": "File type",
+    "lastUpdate": "Last update",
+    "lastUpdated": "Last updated",
+    "version": "Version",
+    "license": "License",
+    "compatibility": "Compatibility",
+    "category": "Category",
+    "delivery": "Delivery"
+  },
+  "actions": {
+    "addToCart": "Add to cart",
+    "addingToCart": "Adding…",
+    "addedToCart": "Added!",
+    "buyNow": "Buy now",
+    "compare": "Compare",
+    "wishlist": "Save for later",
+    "wishlistAdd": "Add to wishlist",
+    "wishlistRemove": "Remove from wishlist",
+    "share": "Share",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied!",
+    "writeReview": "Write a review"
+  },
+  "social": {
+    "reviewSingular": "review",
+    "reviewPlural": "reviews",
+    "downloads": "downloads",
+    "seeReviews": "See {{count}} reviews",
+    "seeReview": "See 1 review"
+  },
+  "creator": {
+    "verifiedSeller": "Verified seller",
+    "by": "by",
+    "designedBy": "Designed by"
+  },
+  "trust": {
+    "secureCheckout": "Secure checkout",
+    "paymentMethods": "PayPal + MercadoPago",
+    "refundPolicy": "30-day refund",
+    "instantDownload": "Instant download",
+    "ariaLabel": "Purchase guarantees"
+  },
+  "description": {
+    "showLess": "Show less",
+    "learnMore": "Learn more about this item"
+  },
+  "highlights": {
+    "title": "Highlights"
+  },
+  "specs": {
+    "title": "Specifications"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions"
+  },
+  "carousel": {
+    "thumbnailsAria": "Product image thumbnails",
+    "imageAlt": "Product image"
+  },
+  "mobileBar": {
+    "ariaLabel": "Product purchase bar"
+  },
+  "files": {
+    "untitled": "Untitled file"
+  },
+  "errors": {
+    "notFound": "Product not found"
+  },
+  "category": {
+    "fallback": "Digital Product"
+  },
+  "related": "Related products",
+  "relatedHeading": "You may also like",
+  "reviews": {
+    "writeTitle": "Write a Review",
+    "signIn": "Sign in",
+    "alreadyReviewed": "You have already reviewed",
+    "yourRating": "Your Rating",
+    "placeholder": "Share your experience…",
+    "moderationNote": "Reviews from verified buyers go live immediately. Other reviews are queued for moderation.",
+    "noneYet": "No reviews yet. Be the first to review this product!",
+    "verifiedPurchase": "Verified Purchase",
+    "deleteTitle": "Delete review",
+    "awaitingModeration": "Awaiting moderation, only you can see this for now",
+    "replyFrom": "Reply from"
+  },
+  "detail": {
+    "noFiles": "No file list available yet",
+    "filesAfterPurchase": "Files will be revealed after purchase.",
+    "designedBy": "Designed by",
+    "specsComing": "Detailed specs coming soon",
+    "faqTitle": "Frequently asked questions",
+    "youMayLike": "You may also like",
+    "seeAll": "See all",
+    "backToStore": "Back to Store",
+    "whatYouGet": "What you get",
+    "filesInProduct": "Files in this product",
+    "contentsComing": "Product contents coming soon",
+    "addedToCart": "Added to Cart!",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now"
+  },
+  "misc": {
+    "primary": "Primary",
+    "includes": "Includes",
+    "more": "more",
+    "downloads": "downloads",
+    "updated": "Updated",
+    "added": "Added",
+    "storeBreadcrumb": "Store",
+    "featuredBadge": "Featured",
+    "newBadge": "New",
+    "qty": "Qty",
+    "share": "Share"
+  }
+}

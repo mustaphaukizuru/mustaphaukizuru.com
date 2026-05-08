@@ -1,207 +1,645 @@
-import { motion } from "framer-motion"
+/* ════════════════════════════════════════════════════════════════════════
+   SolutionsPage.jsx · v8 · Industry-standard 8-section solutions page
+   ────────────────────────────────────────────────────────────────────────
+   Strict structure (per outcome-focused solutions-page convention):
+
+     § 01 · Empathy Hero ··········· Outcome-focused headline
+     § 02 · Pain Points ············ Call out the challenges
+     § 03 · Solution Overview ······ How offerings address them
+     § 04 · Segmented Solutions ···· By 3 audiences (EDU / SMB / IND) → 8 packages
+     § 05 · Measurable Benefits ···· ROI-focused metrics
+     § 06 · Case Studies ··········· Real-world proof
+     § 07 · Implementation/Integration How it fits into the existing stack
+     § 08 · Outcome-Driven CTA ····· "Get Your Custom Plan"
+
+   Solutions page focuses on OUTCOMES, not capabilities (Services page does that).
+   ════════════════════════════════════════════════════════════════════════ */
+
+import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Link } from "react-router-dom"
-import { useState } from "react"
+import {
+  Sparkles, ArrowRight, Check, Star, Zap,
+  TrendingUp, Clock, ShieldCheck, Award, Globe2,
+  Users, Briefcase, GraduationCap, MessageCircle,
+  AlertCircle, Activity, Database, Workflow,
+} from "lucide-react"
 import Seo from "../components/seo/Seo"
+import SolutionsHero from "../components/heroes/SolutionsHero"
 import { pageSeo } from "../seo/pageSeo"
 import {
-  BookOpen, GraduationCap, MonitorSmartphone, BrainCircuit, Wrench, Server,
-  Search, Lightbulb, Settings2, LineChart, ArrowRight, Sparkles, CheckCircle2
-} from "lucide-react"
-import { solutions, processSteps } from "../data/homeData"
+  SOLUTION_PACKAGES, SOLUTION_PLANS,
+  RECENTLY_SHIPPED,
+} from "../data/solutionsCatalogue"
+import { AUDIENCE_LABELS } from "../data/servicesCatalogue"
 
-const fadeUp = { hidden:{opacity:0,y:24}, show:{opacity:1,y:0,transition:{duration:0.52,ease:"easeOut"}} }
-const stagger = { hidden:{}, show:{transition:{staggerChildren:0.09}} }
+/* ── Local helpers ──────────────────────────────────────────────────────── */
+const formatUsd = (n) => `$${Number(n).toLocaleString("en-US")}`
+const formatShipMonth = (iso) =>
+  new Intl.DateTimeFormat("en", { month: "short", year: "numeric" }).format(new Date(iso))
 
-function Container({ children, className="" }) {
+/* ── Motion variants ─────────────────────────────────────────────────────── */
+const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } }
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.04 } } }
+
+/* ── UI atoms ───────────────────────────────────────────────────────────── */
+function Container({ children, className = "" }) {
   return <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>
 }
 
-const solutionCards = [
-  { title:"Digital Products",                           desc:"Ready-to-use digital resources, templates, and technology tools designed to accelerate productivity and innovation.", icon: BookOpen, color:"bg-[#420060]" },
-  { title:"Professional Training & Workshops",          desc:"Hands-on training programs that help teams and professionals develop modern technology and digital skills.", icon: GraduationCap, color:"bg-[#4A6CFA]" },
-  { title:"Website and Digital Systems",                desc:"Design and development of modern websites, digital platforms, and integrated online systems.", icon: MonitorSmartphone, color:"bg-[#2E2F3A]" },
-  { title:"Technology Consulting",                      desc:"Strategic technology advisory services that help organizations design, implement, and optimize digital solutions.", icon: BrainCircuit, color:"bg-[#420060]" },
-  { title:"STEM, Coding & Robotics Program Development",desc:"Development of educational STEM programs that introduce coding, robotics, and computational thinking.", icon: Wrench, color:"bg-[#2FA36B]" },
-  { title:"IT Infrastructure & Digital Transformation", desc:"Modernization of IT systems, cloud infrastructure, and digital environments for scalable and secure operations.", icon: Server, color:"bg-[#634F40]" },
+function EyebrowChip({ children, tone = "violet" }) {
+  const tones = {
+    violet: "bg-violet-pale text-violet",
+    white: "bg-white/10 ring-1 ring-white/15 !text-terracotta",
+    mint: "bg-mint/15 text-mint",
+  }
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] sm:px-3 sm:text-[11px] ${tones[tone] || tones.violet}`}>
+      {children}
+    </span>
+  )
+}
+
+function SectionHeader({ eyebrow, title, subtitle, align = "center", invert }) {
+  const center = align === "center"
+  const titleColor = invert ? "!text-white" : "!text-violet"
+  const subColor = invert ? "!text-white/65" : "text-charcoal-80/70"
+  return (
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-80px" }}
+      className={`mb-10 flex flex-col gap-3 sm:mb-12 ${center ? "items-center text-center" : "items-start"}`}
+    >
+      {eyebrow ? (<motion.div variants={fadeUp}><EyebrowChip tone={invert ? "white" : "violet"}>{eyebrow}</EyebrowChip></motion.div>) : null}
+      <motion.h2 variants={fadeUp} className={`max-w-3xl text-[24px] font-bold leading-[1.14] tracking-tight ${titleColor} sm:text-[32px] md:text-[40px]`}>
+        {title}
+      </motion.h2>
+      {subtitle ? (
+        <motion.p variants={fadeUp} className={`max-w-2xl text-[13.5px] leading-6 sm:text-[15px] sm:leading-7 ${subColor} ${center ? "mx-auto" : ""}`}>
+          {subtitle}
+        </motion.p>
+      ) : null}
+    </motion.div>
+  )
+}
+
+/* ── Audience segments configuration ────────────────────────────────────── */
+const AUDIENCE_SEGMENTS = [
+  { code: "EDU", label: "Schools & Education", short: "Schools", Icon: GraduationCap, accent: "mint", priority: "Primary" },
+  { code: "SMB", label: "SMEs & Businesses", short: "Businesses", Icon: Briefcase, accent: "azure", priority: "Inbound" },
+  { code: "IND", label: "Individuals & Pros", short: "Individuals", Icon: Users, accent: "terracotta", priority: "Secondary" },
 ]
 
-const benefits = [
-  "Simplified digital workflows",
-  "Faster technology adoption",
-  "Better digital presence and platforms",
-  "Empowered teams through training",
-  "Secure and scalable infrastructure",
-  "Continuous technical guidance and support",
-]
+const segmentMatch = (pkgAudience, code) => String(pkgAudience || "").split(",").includes(code)
 
-const processExtended = [
-  { n:"01", title:"Discovery",          desc:"Understanding your current systems, goals, and technology challenges.", icon: Search },
-  { n:"02", title:"Strategy & Planning",desc:"Building a clear roadmap for digital improvement and implementation.", icon: Lightbulb },
-  { n:"03", title:"Solution Design",    desc:"Designing the right approach, tools, and systems for your context.", icon: BrainCircuit },
-  { n:"04", title:"Implementation",     desc:"Executing the plan with precision and clear communication throughout.", icon: Settings2 },
-  { n:"05", title:"Optimization",       desc:"Refining systems for performance, reliability, and long-term value.", icon: LineChart },
-  { n:"06", title:"Ongoing Support",    desc:"Providing continued guidance after delivery to ensure sustained results.", icon: ArrowRight },
-]
 
+/* ── Before & After illustration · self-contained inline SVG ────────────── */
+function BeforeAfterIllustration({ reduce }) {
+  const { t } = useTranslation("solutions")
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.96 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="relative mx-auto w-full max-w-[680px] lg:max-w-none"
+      role="img"
+      aria-label={t("beforeAfter.compareAria")}
+    >
+      <motion.div
+        animate={reduce ? undefined : { y: [0, -6, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <svg viewBox="0 0 580 480" className="block h-auto w-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="ba-shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="6" stdDeviation="9" floodOpacity="0.10" />
+            </filter>
+          </defs>
+
+          {/* Curved arrow · Before → After */}
+          <path d="M210 280 C 250 240, 285 215, 270 165" stroke="#1f2937" strokeWidth="1.6" fill="none" strokeDasharray="4 4" strokeLinecap="round" />
+          <polygon points="262,168 274,158 276,172" fill="#1f2937" />
+
+          {/* "Before" label + curl arrow */}
+          <g transform="translate(56, 90)">
+            <text x="0" y="0" fontFamily="'Caveat','Brush Script MT',cursive" fontSize="24" fontWeight="700" fill="#1f2937">Before</text>
+            <path d="M30 12 C 38 30, 28 48, 18 56" stroke="#1f2937" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+            <polygon points="14,52 22,50 18,62" fill="#1f2937" />
+          </g>
+
+          {/* PHONE wireframe · Before */}
+          <g transform="translate(50, 152)" filter="url(#ba-shadow)">
+            <rect x="0" y="0" width="150" height="252" rx="22" fill="white" stroke="#1f2937" strokeWidth="1.5" strokeDasharray="5 4" />
+            <rect x="62" y="14" width="26" height="3.5" rx="1.5" fill="#1f2937" />
+            <rect x="9" y="32" width="132" height="208" rx="9" fill="#fafafa" />
+            <text x="75" y="56" fontFamily="'Caveat',cursive" fontSize="9.5" fill="#9ca3af" textAnchor="middle">your old site</text>
+            <line x1="22" y1="74" x2="128" y2="74" stroke="#9ca3af" strokeWidth="0.7" strokeDasharray="2 2" />
+            <line x1="22" y1="86" x2="108" y2="86" stroke="#9ca3af" strokeWidth="0.7" strokeDasharray="2 2" />
+            <text x="75" y="130" fontFamily="'Caveat','Brush Script MT',cursive" fontSize="17" fontWeight="700" fill="#1f2937" textAnchor="middle">boring</text>
+            <text x="75" y="150" fontFamily="'Caveat','Brush Script MT',cursive" fontSize="17" fontWeight="700" fill="#1f2937" textAnchor="middle">{t("beforeAfter.plainPage")}</text>
+            <line x1="22" y1="172" x2="128" y2="172" stroke="#d1d5db" strokeWidth="0.6" />
+            <text x="75" y="190" fontFamily="'Caveat',cursive" fontSize="9" fill="#9ca3af" textAnchor="middle">no design system</text>
+            <rect x="40" y="208" width="70" height="20" rx="4" fill="none" stroke="#9ca3af" strokeWidth="0.8" />
+            <text x="75" y="221" fontFamily="sans-serif" fontSize="7" fill="#9ca3af" textAnchor="middle" fontWeight="700">CONTINUE</text>
+          </g>
+
+          {/* "After" label + curl arrow */}
+          <g transform="translate(380, 56)">
+            <text x="0" y="0" fontFamily="'Caveat','Brush Script MT',cursive" fontSize="24" fontWeight="700" fill="#1f2937">After</text>
+            <path d="M28 12 C 22 26, 30 40, 22 50" stroke="#1f2937" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+            <polygon points="18,46 26,46 22,58" fill="#1f2937" />
+          </g>
+
+          {/* AFTER stack · 3 panels */}
+          <g transform="translate(238, 76)">
+            {/* Top panel · olive header mockup */}
+            <g filter="url(#ba-shadow)">
+              <rect x="0" y="0" width="290" height="84" rx="13" fill="#cfd966" />
+              <circle cx="14" cy="14" r="3.6" fill="white" opacity="0.75" />
+              <circle cx="26" cy="14" r="3.6" fill="white" opacity="0.75" />
+              <circle cx="38" cy="14" r="3.6" fill="white" opacity="0.75" />
+              <rect x="60" y="9" width="200" height="12" rx="6" fill="white" opacity="0.55" />
+              <text x="160" y="19" fontFamily="sans-serif" fontSize="7" fill="#445214" textAnchor="middle" fontStyle="italic">your unique brand</text>
+              <text x="14" y="50" fontFamily="sans-serif" fontSize="11" fontWeight="800" fill="#445214">YOURNAME.COM</text>
+              <text x="125" y="50" fontFamily="sans-serif" fontSize="7" fontWeight="700" fill="#445214">HOME</text>
+              <text x="155" y="50" fontFamily="sans-serif" fontSize="7" fontWeight="700" fill="#445214">SOLUTIONS</text>
+              <text x="206" y="50" fontFamily="sans-serif" fontSize="7" fontWeight="700" fill="#445214">SERVICES</text>
+              <text x="250" y="50" fontFamily="sans-serif" fontSize="7" fontWeight="700" fill="#445214">CONTACT</text>
+              <line x1="14" y1="58" x2="276" y2="58" stroke="#445214" strokeWidth="0.8" opacity="0.25" />
+              <text x="14" y="72" fontFamily="sans-serif" fontSize="6.5" fill="#445214" opacity="0.7">{t("beforeAfter.yourBrand")}</text>
+            </g>
+
+            {/* Middle panel · mint with promo chip */}
+            <g transform="translate(0, 96)" filter="url(#ba-shadow)">
+              <rect x="0" y="0" width="290" height="100" rx="13" fill="#82d96a" />
+              <text x="14" y="32" fontFamily="sans-serif" fontSize="11" fontWeight="800" fill="#1f3508">YOU HAVE</text>
+              <text x="14" y="54" fontFamily="sans-serif" fontSize="14" fontWeight="800" fill="#1f3508">NEW LEADS &amp; SIGNUPS</text>
+              <text x="14" y="76" fontFamily="sans-serif" fontSize="8" fill="#1f3508" opacity="0.7">{t("beforeAfter.yourFunnel")}</text>
+              <rect x="167" y="38" width="108" height="32" rx="16" fill="#fed978" />
+              <text x="221" y="58" textAnchor="middle" fontFamily="sans-serif" fontSize="11" fontWeight="800" fill="#5a4506">CODE-2026</text>
+              <path d="M276 36 q4 -3 8 0" stroke="#1f2937" strokeWidth="1.2" fill="none" />
+            </g>
+
+            {/* Bottom panel · violet with 3 product/service tiles */}
+            <g transform="translate(0, 208)" filter="url(#ba-shadow)">
+              <rect x="0" y="0" width="290" height="138" rx="13" fill="#b8a4dd" />
+              <text x="14" y="22" fontFamily="sans-serif" fontSize="9" fontWeight="800" fill="#3c2b62">SUGGESTED · OUTCOMES YOU&apos;LL LOVE</text>
+              <g transform="translate(14, 32)">
+                <g>
+                  <rect x="0" y="0" width="80" height="92" rx="9" fill="#f5b08e" />
+                  <rect x="6" y="60" width="68" height="26" rx="6" fill="white" opacity="0.85" />
+                  <text x="40" y="76" fontFamily="sans-serif" fontSize="6.5" fontWeight="800" fill="#3c2b62" textAnchor="middle">VIEW SOLUTION</text>
+                </g>
+                <g transform="translate(90, 0)">
+                  <rect x="0" y="0" width="80" height="92" rx="9" fill="#ee8273" />
+                  <rect x="6" y="60" width="68" height="26" rx="6" fill="white" opacity="0.85" />
+                  <text x="40" y="76" fontFamily="sans-serif" fontSize="6.5" fontWeight="800" fill="#3c2b62" textAnchor="middle">VIEW SOLUTION</text>
+                </g>
+                <g transform="translate(180, 0)">
+                  <rect x="0" y="0" width="80" height="92" rx="9" fill="#3a3a3a" />
+                  <rect x="6" y="60" width="68" height="26" rx="6" fill="white" opacity="0.85" />
+                  <text x="40" y="76" fontFamily="sans-serif" fontSize="6.5" fontWeight="800" fill="#3c2b62" textAnchor="middle">VIEW SOLUTION</text>
+                </g>
+              </g>
+            </g>
+          </g>
+
+          {/* Doodles */}
+          <g fill="#1f2937" stroke="none">
+            <path d="M212 102 l3 -8 l3 8 l8 0 l-6 5 l3 8 l-8 -5 l-8 5 l3 -8 l-6 -5 z" />
+            <path d="M520 60 l3 -8 l3 8 l8 0 l-6 5 l3 8 l-8 -5 l-8 5 l3 -8 l-6 -5 z" />
+            <path d="M30 405 l2 -6 l2 6 l6 0 l-5 4 l2 6 l-5 -4 l-5 4 l2 -6 l-5 -4 z" opacity="0.7" />
+          </g>
+          <g stroke="#1f2937" strokeWidth="1.3" fill="none" strokeLinecap="round">
+            <path d="M158 70 q12 -4 24 4" />
+            <path d="M340 280 q14 6 26 0" />
+            <g transform="translate(548 256)">
+              <circle r="11" fill="white" stroke="#1f2937" strokeWidth="1.4" />
+              <path d="M-5 0 L-1 4 L5 -4" strokeWidth="1.8" />
+            </g>
+            <g transform="translate(155 412)">
+              <path d="M0 0 c -5 -6 -5 -14 0 -18 c 5 -4 10 0 10 5 c 0 -5 5 -9 10 -5 c 5 4 5 12 0 18 z" fill="#ee8273" stroke="#1f2937" strokeWidth="1.2" />
+            </g>
+            <g transform="translate(160 88)">
+              <rect x="0" y="0" width="16" height="11" rx="1" fill="white" stroke="#1f2937" strokeWidth="1" />
+              <path d="M0 0 L8 7 L16 0" />
+            </g>
+            <path d="M30 200 q -6 -2 -8 -8" />
+            <path d="M22 196 l 0 -6 m 0 6 l -6 -2" />
+          </g>
+        </svg>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   PAGE
+   ════════════════════════════════════════════════════════════════════════ */
 export default function SolutionsPage() {
-  const [toggle, setToggle] = useState("with")
+  const { t } = useTranslation("solutions")
+  const reduce = useReducedMotion()
+  const [activeAudience, setActiveAudience] = useState("EDU")
+
+  const segmented = SOLUTION_PACKAGES.filter((p) => segmentMatch(p.audience, activeAudience))
 
   return (
     <>
-     <Seo {...pageSeo.SolutionsPage} />
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-[#420060] py-20 lg:py-32">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-white/5 blur-3xl" />
+      <Seo {...(pageSeo.SolutionsPage || pageSeo.solutions || {})} />
+
+      {/* ╔════════════════════════════════════════════════════════════════
+           § 01 · HERO · doodle illustration · audience-fanned cards
+           ════════════════════════════════════════════════════════════════ */}
+      <SolutionsHero />
+
+            {/* ╔════════════════════════════════════════════════════════════════
+           § 02 · PAIN POINT IDENTIFICATION · "are you struggling with..."
+           ════════════════════════════════════════════════════════════════ */}
+      <section className="py-14 sm:py-16 lg:py-20">
         <Container>
-          <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
-            <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-6">
-              <motion.span variants={fadeUp} className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FFCCAF]">
-                <Sparkles className="h-3.5 w-3.5" /> Technology Solutions
-              </motion.span>
-              <motion.h1 variants={fadeUp} className="text-[2.4rem] font-bold leading-[1.1] tracking-tight text-white sm:text-[2.9rem]">
-                Technology Solutions for Modern Organizations
-              </motion.h1>
-              <motion.p variants={fadeUp} className="max-w-[480px] text-[16px] leading-7 text-white/60">
-                Digital platforms, consulting services, and infrastructure solutions designed to help organizations operate more efficiently and scale confidently.
-              </motion.p>
-              <motion.div variants={fadeUp}>
-                <Link to="/services" className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-[14px] font-semibold text-[#420060] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                  Explore Solutions <ArrowRight className="h-4 w-4" />
-                </Link>
-              </motion.div>
-            </motion.div>
+          <SectionHeader
+            eyebrow={t("pain.eyebrow")}
+            title={t("pain.title")}
+            subtitle={t("pain.subtitle")}
+          />
 
-            {/* Right visual */}
-            <motion.div initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }} transition={{ duration:0.6, delay:0.2 }} className="hidden lg:block">
-              <div className="grid grid-cols-2 gap-4">
-                {solutionCards.slice(0, 4).map(({ title, icon: Icon, color }) => (
-                  <div key={title} className="flex flex-col gap-3 rounded-xl border border-[#634F40]/10 bg-white p-5 shadow-[0_6px_20px_rgba(66,0,96,0.05)]">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-white ${color}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <p className="text-[12px] font-semibold leading-5 text-[#420060]">{title}</p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </Container>
-      </section>
-
-      {/* Solutions grid */}
-      <section className="py-20 lg:py-28">
-        <Container>
-          <div className="mb-12 flex flex-col items-center gap-3 text-center">
-            <span className="inline-flex items-center rounded-full bg-[#ede4ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#420060]">Explore Our Solutions</span>
-            <h2 className="text-[1.75rem] font-bold tracking-tight text-[#420060] sm:text-[2.1rem]">Explore the Solutions</h2>
-            <p className="max-w-2xl text-[15px] leading-7 text-[#634F40]/70">Six strategic technology solutions designed to support digital transformation and long-term growth.</p>
-          </div>
-
-          <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once:true }}
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-60px" }}
+            className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4"
           >
-            {solutionCards.map(({ title, desc, icon: Icon, color }) => (
-              <motion.div key={title} variants={fadeUp}
-                className="group flex flex-col gap-5 rounded-xl border border-[#634F40]/10 bg-white p-7 shadow-[0_8px_24px_rgba(66,0,96,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_20px_48px_rgba(66,0,96,0.10)]"
+            {[
+              { keyId: "schoolTechHeldTogether", Icon: AlertCircle },
+              { keyId: "shipMvpBeforeSeed",      Icon: Zap },
+              { keyId: "facultyAiNoPolicy",      Icon: ShieldCheck },
+              { keyId: "onlyOneWhoKnows",        Icon: AlertCircle },
+              { keyId: "websiteDoesntReflect",   Icon: Sparkles },
+              { keyId: "aiToolsLooseInOrg",      Icon: ShieldCheck },
+              { keyId: "saasNobodyUses",         Icon: Database },
+              { keyId: "reportsTakeDays",        Icon: Clock },
+            ].map((p) => (
+              <motion.div
+                key={p.keyId}
+                variants={fadeUp}
+                className="flex h-full flex-col rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_6px_20px_rgba(93,63,211,0.05)] transition hover:-translate-y-0.5 sm:p-6"
               >
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-white transition-transform group-hover:scale-110 ${color}`}>
-                  <Icon className="h-6 w-6" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-terracotta/15 text-terracotta-deep">
+                  <p.Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
-                <div>
-                  <h3 className="text-[16px] font-bold text-[#420060]">{title}</h3>
-                  <p className="mt-2 text-[14px] leading-6 text-[#634F40]/65">{desc}</p>
-                </div>
+                <p className="mt-4 flex-1 text-[14px] font-semibold leading-snug !text-violet sm:text-[15px]">
+                  &ldquo;{t(`pain.items.${p.keyId}.quote`)}&rdquo;
+                </p>
+                <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-charcoal-80/55 sm:text-[11.5px]">
+                  {t(`pain.items.${p.keyId}.audience`)}
+                </p>
               </motion.div>
             ))}
           </motion.div>
         </Container>
       </section>
 
-      {/* Benefits toggle */}
-      <section className="bg-[#F1EAE3] py-20 lg:py-28">
+      {/* ╔════════════════════════════════════════════════════════════════
+           § 03 · SOLUTION OVERVIEW · how offerings address those challenges
+           ════════════════════════════════════════════════════════════════ */}
+      <section className="bg-mist py-14 sm:py-16 lg:py-20">
         <Container>
-          <div className="mb-12 flex flex-col items-center gap-4 text-center">
-            <span className="inline-flex items-center rounded-full bg-[#ede4ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#420060]">Value</span>
-            <h2 className="text-[1.75rem] font-bold tracking-tight text-[#420060] sm:text-[2.1rem]">How These Solutions Benefit Your Organization</h2>
-            <p className="max-w-xl text-[15px] leading-7 text-[#634F40]/70">See how the right technology systems improve productivity, reliability, and operational efficiency.</p>
+          <div className="mx-auto max-w-3xl text-center">
+            <EyebrowChip>{t("approach.eyebrow")}</EyebrowChip>
+            <h2 className="mt-3 text-[24px] font-bold tracking-tight !text-violet sm:text-[32px] md:text-[38px]">
+              {t("approach.title")}
+            </h2>
+            <p className="mt-4 text-[13.5px] leading-7 text-charcoal-80/75 sm:text-[15.5px]">
+              {t("approach.subtitle")}
+            </p>
 
-            <div className="flex overflow-hidden rounded-xl border border-[#634F40]/15 bg-white p-1">
-              {["with", "without"].map((v) => (
-                <button key={v} type="button" onClick={() => setToggle(v)}
-                  className={`rounded-xl px-5 py-2.5 text-[13px] font-semibold capitalize transition-all ${
-                    toggle === v ? "bg-[#420060] text-white shadow-sm" : "text-[#634F40]/60 hover:text-[#420060]"
-                  }`}
-                >
-                  {v === "with" ? "With Our Solutions" : "Without Our Solutions"}
-                </button>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3 sm:gap-5">
+              {[
+                { Icon: Workflow, keyId: "composed" },
+                { Icon: Clock,    keyId: "timelined" },
+                { Icon: Activity, keyId: "outcomeLed" },
+              ].map(({ Icon, keyId }) => (
+                <div key={keyId} className="rounded-2xl border border-charcoal-80/10 bg-white p-5 text-left shadow-[0_4px_14px_rgba(93,63,211,0.04)]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet/10 text-violet">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <h3 className="mt-3 text-[14px] font-bold !text-violet sm:text-[15px]">{t(`approach.pillars.${keyId}.title`)}</h3>
+                  <p className="mt-1 text-[12px] leading-5 text-charcoal-80/70 sm:text-[12.5px]">{t(`approach.pillars.${keyId}.desc`)}</p>
+                </div>
               ))}
             </div>
           </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {benefits.map((b) => (
-              <div key={b} className={`flex items-start gap-3 rounded-xl border p-5 transition-all ${
-                toggle === "with"
-                  ? "border-[#2FA36B]/20 bg-white shadow-[0_6px_20px_rgba(47,163,107,0.06)]"
-                  : "border-[#634F40]/10 bg-white/40 opacity-50"
-              }`}>
-                <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${toggle === "with" ? "bg-[#e8f4ea] text-[#2FA36B]" : "bg-[#f2f2f2] text-[#999]"}`}>
-                  {toggle === "with" ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-[12px] font-bold">✕</span>}
-                </div>
-                <p className={`text-[14px] leading-6 font-medium ${toggle === "with" ? "text-[#420060]" : "text-[#634F40]/50"}`}>
-                  {b} {toggle === "with" ? "✓" : ""}
-                </p>
-              </div>
-            ))}
-          </div>
         </Container>
       </section>
 
-      {/* Process */}
-      <section className="py-20 lg:py-28">
+      {/* ╔════════════════════════════════════════════════════════════════
+           § 04 · BEFORE & AFTER · transformation showcase
+           ════════════════════════════════════════════════════════════════ */}
+      <section id="before-after" className="scroll-mt-12 bg-mist py-16 sm:py-20 lg:py-24">
         <Container>
-          <div className="mb-12 flex flex-col items-center gap-3 text-center">
-            <span className="inline-flex items-center rounded-full bg-[#ede4ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#420060]">Process</span>
-            <h2 className="text-[1.75rem] font-bold tracking-tight text-[#420060] sm:text-[2.1rem]">A Seamless Implementation Process</h2>
-            <p className="max-w-xl text-[15px] leading-7 text-[#634F40]/70">A clear workflow that ensures every technology solution is carefully planned, implemented, and optimized.</p>
-          </div>
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.3fr] lg:gap-12 xl:gap-16">
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {processExtended.map(({ n, title, desc, icon: Icon }) => (
-              <div key={title} className="flex flex-col gap-4 rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_6px_20px_rgba(66,0,96,0.04)]">
-                <div className="flex items-center justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <span className="text-[2rem] font-bold text-[#420060]/8">{n}</span>
-                </div>
-                <div>
-                  <h3 className="text-[16px] font-bold text-[#420060]">{title}</h3>
-                  <p className="mt-1.5 text-[13px] leading-5 text-[#634F40]/65">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Container>
-      </section>
+            {/* LEFT · empathy heading + body + CTAs */}
+            <motion.div
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={stagger}
+              className="max-w-xl"
+            >
+              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-[11px] font-semibold text-charcoal-80/80 ring-1 ring-charcoal-80/10 shadow-[0_4px_14px_rgba(93,63,211,0.04)]">
+                <Sparkles className="h-3 w-3 text-mint" aria-hidden="true" />
+                {t("beforeAfter.badge")}
+              </motion.div>
 
-      {/* CTA */}
-      <section className="pb-20 lg:pb-28">
-        <Container>
-          <div className="relative overflow-hidden rounded-xl bg-[#420060] px-8 py-14 text-center shadow-[0_24px_80px_rgba(66,0,96,0.28)]">
-            <div className="pointer-events-none absolute -right-12 -top-12 h-56 w-56 rounded-full bg-white/5" />
-            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#FFCCAF]">Ready?</span>
-            <h2 className="mx-auto mt-4 max-w-xl text-[1.9rem] font-bold text-white">Ready to Transform Your Digital Environment?</h2>
-            <p className="mx-auto mt-3 max-w-lg text-[15px] leading-7 text-white/60">Explore practical solutions designed to modernize your systems and accelerate innovation.</p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Link to="/services" className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-[14px] font-semibold text-[#420060] transition hover:-translate-y-0.5 hover:shadow-md">
-                Book Consultation <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link to="/store" className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-6 py-3.5 text-[14px] font-semibold text-white transition hover:bg-white/10 hover:-translate-y-0.5">
-                Visit Store
-              </Link>
+              <motion.h2
+                variants={fadeUp}
+                className="mt-5 text-[28px] font-bold leading-[1.08] tracking-tight text-charcoal-80 sm:text-[36px] md:text-[42px] lg:text-[48px]"
+              >
+                {t("beforeAfter.headingLeft")}{" "}
+                <span className="!text-violet">{t("beforeAfter.headingMiddle")}</span>{" "}
+                {t("beforeAfter.headingRight")}
+              </motion.h2>
+
+              <motion.p
+                variants={fadeUp}
+                className="mt-5 text-[14px] leading-7 text-charcoal-80/70 sm:text-[15px]"
+              >
+                {t("beforeAfter.body")}
+              </motion.p>
+
+              <motion.div variants={fadeUp} className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Link
+                  to="/contact?intent=proposal"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-[13px] font-semibold !text-white shadow-[0_12px_32px_rgba(93,63,211,0.25)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 sm:text-[14px]"
+                >
+                  {t("beforeAfter.ctaPrimary")}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </Link>
+                <a
+                  href="#segmented-anchor"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-charcoal-80/15 bg-white px-6 py-3.5 text-[13px] font-semibold !text-violet transition hover:bg-violet-pale/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/30 sm:text-[14px]"
+                >
+                  {t("beforeAfter.ctaSecondary")}
+                </a>
+              </motion.div>
+
+              <motion.p
+                variants={fadeUp}
+                className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-charcoal-80/55"
+              >
+                <span className="inline-flex items-center gap-1">
+                  <Check className="h-3 w-3 text-mint" aria-hidden="true" />
+                  {t("beforeAfter.trust1")}
+                </span>
+                <span aria-hidden="true">&middot;</span>
+                <span className="inline-flex items-center gap-1">
+                  <Check className="h-3 w-3 text-mint" aria-hidden="true" />
+                  {t("beforeAfter.trust2")}
+                </span>
+                <span aria-hidden="true">&middot;</span>
+                <span className="inline-flex items-center gap-1">
+                  <Check className="h-3 w-3 text-mint" aria-hidden="true" />
+                  {t("beforeAfter.trust3")}
+                </span>
+              </motion.p>
+            </motion.div>
+
+            {/* RIGHT · before/after illustration */}
+            <div className="relative flex items-center justify-center">
+              <BeforeAfterIllustration reduce={reduce} />
             </div>
           </div>
+        </Container>
+      </section>
+
+            {/* ╔════════════════════════════════════════════════════════════════
+           § 05 · MEASURABLE BENEFITS · ROI metrics
+           ════════════════════════════════════════════════════════════════ */}
+      <section id="segmented-anchor" className="scroll-mt-12 py-14 sm:py-16 lg:py-20" style={{ backgroundColor: "#1A1B23" }}>
+        <Container>
+          <SectionHeader
+            eyebrow={t("metrics.eyebrow")}
+            title={t("metrics.title")}
+            subtitle={t("metrics.subtitle")}
+            invert
+          />
+
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-60px" }}
+            className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-4"
+          >
+            {[
+              { value: "−60 %", labelKey: "adminTime",   Icon: Clock },
+              { value: "+30 %", labelKey: "leadGrowth",  Icon: TrendingUp },
+              { value: "99 %",  labelKey: "uptime",      Icon: ShieldCheck },
+              { value: "240ms", labelKey: "apiResponse", Icon: Zap },
+            ].map(({ value, labelKey, Icon }) => (
+              <motion.div
+                key={labelKey}
+                variants={fadeUp}
+                className="rounded-2xl border border-white/[0.10] bg-white/[0.04] p-5 backdrop-blur-md transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.07] sm:p-6"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-terracotta/15 text-terracotta">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <div className="mt-4 font-mono text-[26px] font-bold tabular-nums !text-white sm:text-[32px]">{value}</div>
+                <p className="mt-1 text-[11.5px] leading-5 !text-white/65 sm:text-[12.5px]">{t(`metrics.items.${labelKey}`)}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </Container>
+      </section>
+
+      {/* ╔════════════════════════════════════════════════════════════════
+           § 06 · SOCIAL PROOF / CASE STUDIES · real-world examples
+           ════════════════════════════════════════════════════════════════ */}
+      <section className="py-14 sm:py-16 lg:py-20">
+        <Container>
+          <SectionHeader
+            eyebrow={t("shipped.eyebrow")}
+            title={t("shipped.title")}
+            subtitle={t("shipped.subtitle")}
+          />
+
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-60px" }}
+            className="grid gap-5 sm:gap-6 md:grid-cols-3"
+          >
+            {RECENTLY_SHIPPED.map((rs) => (
+              <motion.article
+                key={rs.id}
+                variants={fadeUp}
+                whileHover={{ y: -2 }}
+                className="flex h-full flex-col rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)] sm:p-6"
+              >
+                <div className="flex items-center gap-2 text-[10.5px] font-semibold uppercase tracking-[0.12em] sm:text-[11px]">
+                  <motion.span
+                    aria-hidden="true"
+                    className="relative inline-flex h-2 w-2 items-center justify-center"
+                    animate={rs.isLive && !reduce ? { scale: [1, 1.15, 1] } : undefined}
+                    transition={{ duration: 1.6, repeat: rs.isLive && !reduce ? Infinity : 0, ease: "easeInOut" }}
+                  >
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-mint opacity-60" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-mint" />
+                  </motion.span>
+                  <span className="text-mint">{t("shipped.liveLabel")}</span>
+                  <span className="text-charcoal-80/40">·</span>
+                  <span className="font-mono tabular-nums text-charcoal-80/55">{formatShipMonth(rs.shippedAt)}</span>
+                </div>
+
+                <h3 className="mt-3 text-[14px] font-bold leading-tight !text-violet sm:text-[15.5px]">
+                  {rs.clientType}
+                </h3>
+                <p className="mt-1 text-[12px] !text-violet/80 sm:text-[12.5px]">
+                  {rs.solutionLabel}
+                </p>
+                <p className="mt-3 flex-1 text-[12.5px] leading-5 text-charcoal-80/75 sm:text-[13px]">
+                  <span className="font-semibold !text-violet">{t("shipped.outcomePrefix")} </span>
+                  {rs.outcome}
+                </p>
+              </motion.article>
+            ))}
+          </motion.div>
+        </Container>
+      </section>
+
+      {/* ╔════════════════════════════════════════════════════════════════
+           § 07 · IMPLEMENTATION / INTEGRATION · how it fits
+           ════════════════════════════════════════════════════════════════ */}
+      <section className="bg-mist py-14 sm:py-16 lg:py-20">
+        <Container>
+          <SectionHeader
+            eyebrow={t("fit.eyebrow")}
+            title={t("fit.title")}
+            subtitle={t("fit.subtitle")}
+          />
+
+          <div className="grid gap-5 lg:grid-cols-3 lg:gap-6">
+            {[
+              {
+                Icon: Database,
+                pillarKey: "data",
+                itemKeys: ["googleM365", "shopifyWoo", "payments", "sisLmsCrm"],
+              },
+              {
+                Icon: Workflow,
+                pillarKey: "deploy",
+                itemKeys: ["stranglerFig", "parallelRun", "cutoverPlan", "rollback"],
+              },
+              {
+                Icon: ShieldCheck,
+                pillarKey: "deliverables",
+                itemKeys: ["adrs", "runbooks", "training", "support30"],
+              },
+            ].map(({ Icon, pillarKey, itemKeys }) => (
+              <motion.div
+                key={pillarKey}
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="flex h-full flex-col rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_6px_20px_rgba(93,63,211,0.05)] sm:p-6"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet/10 text-violet">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <h3 className="mt-4 text-[15px] font-bold !text-violet sm:text-[16.5px]">{t(`fit.pillars.${pillarKey}.title`)}</h3>
+                <p className="mt-2 text-[12.5px] leading-5 text-charcoal-80/70 sm:text-[13px]">{t(`fit.pillars.${pillarKey}.desc`)}</p>
+                <ul className="mt-4 flex flex-col gap-1.5 border-t border-charcoal-80/8 pt-3">
+                  {itemKeys.map((itKey) => (
+                    <li key={itKey} className="flex items-start gap-2 text-[12px] leading-5 text-charcoal-80/80 sm:text-[12.5px]">
+                      <span className="mt-0.5 flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full bg-mint/15 text-mint">
+                        <Check className="h-2 w-2" strokeWidth={3} aria-hidden="true" />
+                      </span>
+                      {t(`fit.pillars.${pillarKey}.items.${itKey}`)}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* ╔════════════════════════════════════════════════════════════════
+           § 08 · OUTCOME-DRIVEN CTA
+           ════════════════════════════════════════════════════════════════ */}
+      <section className="pb-14 sm:pb-20 lg:pb-24">
+        <Container>
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="relative overflow-hidden rounded-3xl px-6 py-12 sm:px-12 sm:py-14 lg:px-16 lg:py-16"
+            style={{ backgroundImage: "radial-gradient(120% 120% at 0% 0%, #5D3FD3 0%, #4A2EAB 55%, #3B2487 100%)" }}
+          >
+            <span aria-hidden="true" className="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full bg-white/[0.06] blur-3xl sm:h-72 sm:w-72" />
+            <span aria-hidden="true" className="pointer-events-none absolute -right-16 -bottom-24 h-64 w-64 rounded-full bg-terracotta/15 blur-3xl sm:h-80 sm:w-80" />
+
+            <div className="relative grid items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:gap-12">
+              <div>
+                <EyebrowChip tone="white">
+                  <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+                  {t("cta.eyebrow")}
+                </EyebrowChip>
+
+                <h2 className="mt-4 text-[22px] font-bold leading-[1.1] tracking-tight !text-white sm:mt-5 sm:text-[32px] md:text-[40px]">
+                  {t("cta.headingPart1")}{" "}
+                  <span style={{ background: "linear-gradient(180deg,#FFD9BB 0%,#E9C46A 50%,#F0B58C 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                    {t("cta.headingPart2")}
+                  </span>{t("cta.headingDot")}
+                </h2>
+
+                <p className="mt-3 max-w-xl text-[13.5px] leading-6 !text-white/75 sm:mt-4 sm:text-[15px] sm:leading-7">
+                  {t("cta.body")}
+                </p>
+
+                <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
+                  <Link
+                    to="/book"
+                    className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-[13.5px] font-semibold !text-violet shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 sm:px-7 sm:py-3.5 sm:text-[14.5px]"
+                  >
+                    {t("cta.ctaPrimary")}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </Link>
+                  <Link
+                    to="/services"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/40 px-6 py-3 text-[13.5px] font-semibold !text-white transition hover:-translate-y-0.5 hover:border-white/70 hover:bg-white/[0.10] sm:px-7 sm:py-3.5 sm:text-[14.5px]"
+                  >
+                    {t("cta.ctaSecondary")}
+                  </Link>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {[
+                  { Icon: Clock,       value: "30 min",  labelKey: "firstCall" },
+                  { Icon: ShieldCheck, value: "0 risk",  labelKey: "noCommitment" },
+                  { Icon: Activity,    value: "48–72h",  labelKey: "customPlanSent" },
+                  { Icon: Award,       value: "8+ yrs",  labelKey: "experience" },
+                ].map(({ Icon, value, labelKey }) => (
+                  <div key={labelKey} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 backdrop-blur-md transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.08]">
+                    <Icon className="h-4 w-4 text-terracotta" aria-hidden="true" />
+                    <div className="mt-2 font-mono text-[18px] font-bold tabular-nums !text-white sm:text-[22px]">{value}</div>
+                    <div className="mt-1 text-[10px] !text-white/55 sm:text-[11.5px]">{t(`cta.stats.${labelKey}`)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </Container>
       </section>
     </>

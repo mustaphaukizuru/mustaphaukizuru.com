@@ -79,10 +79,24 @@ enum ServiceOrderStatus {
 }
 
 enum ConsultationStatus {
+  pending
+  confirmed
   scheduled
   completed
   cancelled
   rescheduled
+  no_show
+}
+
+enum AvailabilityExceptionType {
+  block
+  custom
+}
+
+enum MeetingProvider {
+  google_meet
+  zoom
+  manual
 }
 
 enum ProjectStatus {
@@ -110,6 +124,17 @@ enum TicketPriority {
   low
   medium
   high
+}
+
+/// SupportTicket category — drives admin UX (e.g. refund_request tickets get
+/// a "View order" + "Open refund modal" deep-link on AdminSupportPage).
+enum TicketCategory {
+  general
+  billing
+  technical
+  refund_request
+  feature_request
+  other
 }
 
 enum SenderRole {
@@ -143,29 +168,34 @@ enum ProductImageRole {
   extra
 }
 
+enum PortfolioStatus {
+  draft
+  published
+  archived
+}
+
 /// =============================================================
 /// USERS
 /// =============================================================
 
 model User {
-  id                   String     @id @default(cuid())
-  fullName             String
-  email                String     @unique
-  passwordHash         String?
-  role                 String     @default("member")
-  googleId             String?    @unique
-  avatarUrl            String?
-  authProvider         String     @default("local")
-  phone                String?
-  company              String?
-  status               UserStatus @default(active)
-  emailVerifiedAt      DateTime?
-  lastLoginAt          DateTime?
-  resetPasswordToken   String?
-  resetPasswordExpires DateTime?
-  createdAt            DateTime   @default(now())
-  updatedAt            DateTime   @updatedAt
-
+  id                    String           @id @default(cuid())
+  fullName              String
+  email                 String           @unique
+  passwordHash          String?
+  role                  String           @default("member")
+  googleId              String?          @unique
+  avatarUrl             String?
+  authProvider          String           @default("local")
+  phone                 String?
+  company               String?
+  status                UserStatus       @default(active)
+  emailVerifiedAt       DateTime?
+  lastLoginAt           DateTime?
+  resetPasswordToken    String?
+  resetPasswordExpires  DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
   profile               UserProfile?
   userRoles             UserRole[]
   sessions              Session[]
@@ -175,11 +205,15 @@ model User {
   carts                 Cart[]
   payments              Payment[]
   couponsUsed           CouponUsage[]
-  reviews               ProductReview[]
+  reviews               Review[]      @relation("AuthoredReviews")
+  adminReplies          Review[]      @relation("AdminReviewReplies")
+  reviewVotes           ReviewVote[]
+  createdRecommendations Recommendation[] @relation("CreatedRecommendations")
   downloadLogs          DownloadLog[]
   userDownloads         UserDownload[]
   createdProducts       Product[]        @relation("CreatedProducts")
   createdServices       Service[]        @relation("CreatedServices")
+  createdPortfolios     Portfolio[]      @relation("CreatedPortfolios")
   serviceOrders         ServiceOrder[]
   consultations         Consultation[]   @relation("UserConsultations")
   assignedConsultations Consultation[]   @relation("AssignedConsultations")
@@ -196,6 +230,13 @@ model User {
   updatedPages          Page[]           @relation("UpdatedPages")
   activityLogs          ActivityLog[]
   adminAuditLogs        AdminAuditLog[]
+  wishlist              Wishlist?
+  addresses             Address[]
+  twoFactorAuth         TwoFactorAuth?
+
+  // Booking — host-side relations (used when this user is the consultation host)
+  hostAvailabilityRules      AvailabilityRule[]      @relation("HostAvailabilityRules")
+  hostAvailabilityExceptions AvailabilityException[] @relation("HostAvailabilityExceptions")
 }
 
 model UserProfile {
@@ -336,7 +377,7 @@ model Product {
   description      String?       @db.Text
   fullDescription  String?       @db.Text
   price            Decimal       @db.Decimal(12, 2)
-  currency         String        @default("USD")
+  currency         String        @default("MXN")
   productType      String        @default("downloadable")
   status           ProductStatus @default(draft)
   sku              String?       @unique
@@ -350,6 +391,16 @@ model Product {
   fileSize         Int?
   fileType         String?
   version          String?
+  /// Etsy-style key/value highlights, e.g. [{"key":"Page size","value":"8.5x11"}]
+  titleEs            String?
+  shortDescriptionEs String?  @db.Text
+  descriptionEs      String?  @db.Text
+  fullDescriptionEs  String?  @db.Text
+  metaTitleEs        String?
+  metaDescriptionEs  String?  @db.Text
+  specifications   Json?
+  /// Product FAQs as JSON: [{"question":"...","answer":"..."}, ...]
+  productFaqs      Json?
   metaTitle        String?
   metaDescription  String?       @db.Text
   publishedAt      DateTime?
@@ -368,8 +419,10 @@ model Product {
   downloadLogs  DownloadLog[]
   userDownloads UserDownload[]
   tags          ProductTagMap[]
-  reviews       ProductReview[]
+  reviews       Review[]
+  recommendations Recommendation[]
   cartItems     CartItem[]
+  wishlistItems WishlistItem[]
 
   @@index([categoryId])
   @@index([createdById])
@@ -390,16 +443,17 @@ model ProductFeature {
 }
 
 model ProductFile {
-  id         String   @id @default(cuid())
-  productId  String
-  fileName   String
-  filePath   String
-  fileType   String?
+  id                  String   @id @default(cuid())
+  productId           String
+  fileName            String
+  filePath            String
+  fileType            String?
   /// fileSize in bytes as Int
-  fileSize   Int?
-  version    String?
-  isPrimary  Boolean  @default(false)
-  uploadedAt DateTime @default(now())
+  fileSize            Int?
+  version             String?
+  isPrimary           Boolean  @default(false)
+  maxDownloadsPerUser Int?
+  uploadedAt          DateTime @default(now())
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -442,20 +496,137 @@ model ProductTagMap {
   @@index([tagId])
 }
 
-model ProductReview {
-  id                 String   @id @default(cuid())
-  productId          String
+/// =============================================================
+/// REVIEW — unified model for product AND service reviews.
+/// Backed by the legacy `product_reviews` table via @@map; existing rows
+/// keep their ids and content. New nullable columns (status, serviceId,
+/// adminReply, etc.) are populated lazily as reviews are interacted with.
+/// =============================================================
+enum ReviewStatus {
+  pending      // awaiting moderation
+  approved     // visible publicly
+  hidden       // admin took it down (still in DB for audit)
+  flagged      // auto-mod or community flagged for human review
+  rejected     // admin explicitly rejected; soft-deleted
+}
+
+model Review {
+  id                 String       @id @default(cuid())
+  /// Discriminator — "product" or "service". Lets us treat reviews
+  /// uniformly without polymorphic FK juggling.
+  subjectType        String       @default("product") @db.VarChar(16)
+  productId          String?
+  serviceId          String?
+  /// The OrderItem that produced this review (anti-fake-review pin).
+  /// Required for verified-purchase reviews; null for legacy / unverified.
+  orderItemId        String?
   userId             String
   rating             Int
-  reviewText         String?  @db.Text
-  isVerifiedPurchase Boolean  @default(false)
-  createdAt          DateTime @default(now())
+  reviewText         String?      @db.Text
+  isVerifiedPurchase Boolean      @default(false)
+  status             ReviewStatus @default(pending)
+  flaggedReason      String?      @db.VarChar(120)
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Admin reply — public, displayed under the review on the product/service page.
+  adminReply         String?      @db.Text
+  adminReplyAt       DateTime?
+  adminReplyById     String?
+
+  /// Engagement signals (Sprint 1 wires storage; UI lands in Sprint 2)
+  helpfulCount       Int          @default(0)
+
+  /// Curation (Sprint 3 surfaces these on Home/Services)
+  featured           Boolean      @default(false)
+  featuredOrder      Int?
+
+  /// Trust transparency
+  editedAt           DateTime?
+
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  product     Product?    @relation(fields: [productId],      references: [id], onDelete: Cascade)
+  service     Service?    @relation(fields: [serviceId],      references: [id], onDelete: Cascade)
+  user        User        @relation("AuthoredReviews",        fields: [userId],         references: [id], onDelete: Cascade)
+  adminReplyBy User?      @relation("AdminReviewReplies",     fields: [adminReplyById], references: [id], onDelete: SetNull)
+  orderItem   OrderItem?  @relation(fields: [orderItemId],    references: [id], onDelete: SetNull)
+  votes       ReviewVote[]
 
   @@index([productId])
+  @@index([serviceId])
   @@index([userId])
+  @@index([status])
+  @@index([featured])
+  @@map("product_reviews")
+}
+
+/// =============================================================
+/// REVIEW VOTE — "Was this helpful?" tally with one vote per user.
+/// =============================================================
+model ReviewVote {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String
+  helpful   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId],   references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@index([userId])
+}
+
+/// =============================================================
+/// RECOMMENDATION — admin-curated picks (tools, books, partners,
+/// templates, services). Surfaces on /recommendations and contextually
+/// next to related products / services.
+/// =============================================================
+enum RecommendationStatus {
+  draft
+  published
+  archived
+}
+
+model Recommendation {
+  id              String               @id @default(cuid())
+  title           String
+  slug            String               @unique
+  summary         String               @db.Text
+  body            String?              @db.Text          // markdown
+  imageUrl        String?              @db.VarChar(512)
+  category        String               @default("tool") @db.VarChar(48)
+  /// tool | book | course | template | service | partner
+
+  priority        Int                  @default(0)       // sort, higher = earlier
+  status          RecommendationStatus @default(draft)
+
+  /// Optional internal links — at most one of these should be set.
+  productId       String?
+  serviceId       String?
+  externalUrl     String?              @db.VarChar(512)
+
+  /// Disclosure flag — surfaces "(affiliate)" on the public card.
+  isAffiliate     Boolean              @default(false)
+
+  /// SEO
+  metaTitle       String?              @db.VarChar(180)
+  metaDescription String?              @db.Text
+
+  createdById     String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  product   Product? @relation(fields: [productId],   references: [id], onDelete: SetNull)
+  service   Service? @relation(fields: [serviceId],   references: [id], onDelete: SetNull)
+  createdBy User?    @relation("CreatedRecommendations", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([productId])
+  @@index([serviceId])
 }
 
 /// =============================================================
@@ -469,7 +640,7 @@ model Service {
   shortDescription String        @db.Text
   fullDescription  String?       @db.Text
   basePrice        Decimal       @default(0.00) @db.Decimal(12, 2)
-  currency         String        @default("USD")
+  currency         String        @default("MXN")
   deliveryType     String
   status           ServiceStatus @default(draft)
   isFeatured       Boolean       @default(false)
@@ -479,15 +650,42 @@ model Service {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  createdBy     User?            @relation("CreatedServices", fields: [createdById], references: [id], onDelete: SetNull)
-  features      ServiceFeature[]
-  packages      ServicePackage[]
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
-  serviceOrders ServiceOrder[]
+  /// Audience grouping for the public Choose-Your-Plan matrix.
+  /// "professional" | "business" | "schools" — null for non-audience services.
+  audienceCode     String?       @db.VarChar(32)
+
+  /// =========================================================
+  /// BOOKING POLICY — controls public consultation booking
+  /// =========================================================
+  /// When isBookable=true, the public booking calendar exposes this service.
+  /// All time fields are interpreted in the host's timezone (per AvailabilityRule).
+  isBookable             Boolean @default(false)
+  bookingDurationMin     Int     @default(30)
+  bookingBufferMin       Int     @default(15)
+  bookingMinNoticeHours  Int     @default(24)
+  bookingMaxAdvanceDays  Int     @default(60)
+  bookingRequiresPayment Boolean @default(false)
+
+  createdBy         User?              @relation("CreatedServices", fields: [createdById], references: [id], onDelete: SetNull)
+  features          ServiceFeature[]
+  packages          ServicePackage[]
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  serviceOrders     ServiceOrder[]
+  availabilityRules AvailabilityRule[]
+  consultations     Consultation[]
+  reviews           Review[]
+  recommendations   Recommendation[]
 
   @@index([createdById])
   @@index([status])
+  @@index([isBookable])
+  titleEs            String?
+  shortDescriptionEs String?  @db.Text
+  descriptionEs      String?  @db.Text
+  metaTitleEs        String?
+  metaDescriptionEs  String?  @db.Text
+  @@index([audienceCode])
 }
 
 model ServiceFeature {
@@ -496,7 +694,8 @@ model ServiceFeature {
   featureText String @db.Text
   sortOrder   Int    @default(0)
 
-  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  service Service              @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  slots   PackageFeatureSlot[]
 
   @@index([serviceId])
 }
@@ -507,15 +706,44 @@ model ServicePackage {
   name        String
   description String?  @db.Text
   price       Decimal  @db.Decimal(12, 2)
-  currency    String   @default("USD")
+  currency    String   @default("MXN")
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
 
-  service       Service        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  serviceOrders ServiceOrder[]
+  /// Tier metadata for the public Choose-Your-Plan matrix.
+  /// tierKey: "basic" | "medium" | "advanced"
+  /// period:  "month" | "one-time" — display label only
+  /// popular: shows the "Most Popular" badge
+  /// saveLabel: small chip e.g. "Save 20%" / "All-inclusive"
+  tierKey     String?  @db.VarChar(32)
+  period      String?  @db.VarChar(32)
+  popular     Boolean  @default(false)
+  saveLabel   String?  @db.VarChar(64)
+
+  service        Service              @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceOrders  ServiceOrder[]
+  featureSlots   PackageFeatureSlot[]
 
   @@index([serviceId])
+  nameEs        String?
+  descriptionEs String?  @db.Text
+  @@index([tierKey])
+}
+
+/// Join row mapping which Service Features are included in a given Package.
+/// Drives the ✓/✗ matrix shown on the public Choose-Your-Plan page.
+model PackageFeatureSlot {
+  id        String @id @default(cuid())
+  packageId String
+  featureId String
+
+  package ServicePackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  feature ServiceFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, featureId])
+  @@index([packageId])
+  @@index([featureId])
 }
 
 /// =============================================================
@@ -523,18 +751,21 @@ model ServicePackage {
 /// =============================================================
 
 model Cart {
-  id           String     @id @default(cuid())
-  userId       String?
-  sessionToken String?
-  status       CartStatus @default(active)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id              String     @id @default(cuid())
+  userId          String?
+  sessionToken    String?
+  status          CartStatus @default(active)
+  appliedCouponId String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
-  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items CartItem[]
+  user          User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         CartItem[]
+  appliedCoupon Coupon?    @relation("CartAppliedCoupon", fields: [appliedCouponId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([sessionToken])
+  @@index([appliedCouponId])
 }
 
 model CartItem {
@@ -561,17 +792,29 @@ model CartItem {
 model Coupon {
   id            String       @id @default(cuid())
   code          String       @unique
+  description   String?      @db.Text
   discountType  DiscountType
   discountValue Decimal      @db.Decimal(12, 2)
-  usageLimit    Int?
-  usedCount     Int          @default(0)
-  startsAt      DateTime?
-  expiresAt     DateTime?
-  isActive      Boolean      @default(true)
-  createdAt     DateTime     @default(now())
 
-  orders Order[]
-  usages CouponUsage[]
+  // Global caps
+  usageLimit Int?
+  usedCount  Int  @default(0)
+
+  // B03 additions — per-user + minimum-order + stackable
+  minOrderAmount Decimal? @db.Decimal(12, 2)
+  maxUsesPerUser Int?
+  stackable      Boolean  @default(true)
+
+  // Validity window
+  startsAt  DateTime?
+  expiresAt DateTime?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  orders       Order[]
+  usages       CouponUsage[]
+  appliedCarts Cart[]        @relation("CartAppliedCoupon")
 }
 
 model CouponUsage {
@@ -591,48 +834,50 @@ model CouponUsage {
 }
 
 model Order {
-  id                 String      @id @default(cuid())
-  orderNumber        String      @unique
-  userId             String?
-  customerName       String
-  customerEmail      String
-  billingName        String?
-  billingEmail       String?
-  billingPhone       String?
-  billingCountry     String?
-  billingCity        String?
-  billingStateRegion String?
-  billingPostalCode  String?
-  status             OrderStatus @default(pending)
-  subtotalAmount     Decimal     @default(0.00) @db.Decimal(12, 2)
-  discountAmount     Decimal     @default(0.00) @db.Decimal(12, 2)
-  serviceFeeAmount   Decimal     @default(0.00) @db.Decimal(12, 2)
-  totalAmount        Decimal     @db.Decimal(12, 2)
-  currency           String      @default("USD")
-  couponId           String?
-  termsAcceptedAt          DateTime?
-  mercadoPagoPreferenceId  String?
-  paidAt             DateTime?
-  notes              String?     @db.Text
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
+  id                      String      @id @default(cuid())
+  orderNumber             String      @unique
+  userId                  String?
+  customerName            String
+  customerEmail           String
+  billingName             String?
+  billingEmail            String?
+  billingPhone            String?
+  billingCountry          String?
+  billingCity             String?
+  billingStateRegion      String?
+  billingPostalCode       String?
+  status                  OrderStatus @default(pending)
+  subtotalAmount          Decimal     @default(0.00) @db.Decimal(12, 2)
+  discountAmount          Decimal     @default(0.00) @db.Decimal(12, 2)
+  serviceFeeAmount        Decimal     @default(0.00) @db.Decimal(12, 2)
+  totalAmount             Decimal     @db.Decimal(12, 2)
+  currency                String      @default("MXN")
+  couponId                String?
+  termsAcceptedAt         DateTime?
+  mercadoPagoPreferenceId String?
+  paidAt                  DateTime?
+  notes                   String?     @db.Text
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
 
-  user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
-  coupon        Coupon?        @relation(fields: [couponId], references: [id], onDelete: SetNull)
-  items         OrderItem[]
-  invoices      Invoice[]
-  payments      Payment[]
-  refunds       Refund[]
-  downloadLogs  DownloadLog[]
-  userDownloads UserDownload[]
-  couponUsages  CouponUsage[]
-  serviceOrders ServiceOrder[]
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  coupon         Coupon?         @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  items          OrderItem[]
+  invoices       Invoice[]
+  payments       Payment[]
+  refunds        Refund[]
+  downloadLogs   DownloadLog[]
+  userDownloads  UserDownload[]
+  couponUsages   CouponUsage[]
+  serviceOrders  ServiceOrder[]
+  /// M16 — refund-request tickets opened by the customer reference back here.
+  supportTickets SupportTicket[]
 
   @@index([userId])
   @@index([couponId])
   @@index([status])
   @@index([createdAt])
-  @@index([userId, status])    // compound: member dashboard filter by user+status
+  @@index([userId, status]) // compound: member dashboard filter by user+status
   @@index([status, createdAt]) // compound: admin order list sorted by date+status
 }
 
@@ -656,6 +901,7 @@ model OrderItem {
   service       Service?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   userDownloads UserDownload[]
   serviceOrders ServiceOrder[]
+  reviews       Review[]
 
   @@index([orderId])
   @@index([productId])
@@ -684,7 +930,7 @@ model Payment {
   gatewayTransactionId String
   gatewaySessionId     String?
   amount               Decimal        @db.Decimal(12, 2)
-  currency             String         @default("USD")
+  currency             String         @default("MXN")
   paymentStatus        PaymentStatus  @default(pending)
   failureReason        String?        @db.Text
   paidAt               DateTime?
@@ -695,6 +941,11 @@ model Payment {
   user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
   refunds Refund[]
 
+  // Idempotency: one Payment per (gateway, gatewayTransactionId).
+  // Prevents duplicate Payment rows from racing webhook + capture-callback
+  // deliveries. Composite chosen because gatewayTransactionId is only
+  // unique within a single gateway namespace.
+  @@unique([paymentGateway, gatewayTransactionId], name: "payment_gateway_tx_uq")
   @@index([orderId])
   @@index([userId])
 }
@@ -702,11 +953,18 @@ model Payment {
 model PaymentWebhook {
   id             String         @id @default(cuid())
   paymentGateway PaymentGateway
+  gatewayEventId String?        // x-request-id (MP) or event.id (PayPal); null = couldn't extract
   eventType      String
   payloadJson    Json
   processed      Boolean        @default(false)
   processedAt    DateTime?
   createdAt      DateTime       @default(now())
+
+  // Idempotency: drop duplicate webhook deliveries from the same gateway.
+  // Nullable column means rows without an extractable event id are still
+  // accepted (MySQL treats NULLs as distinct under UNIQUE).
+  @@unique([paymentGateway, gatewayEventId], name: "webhook_event_uq")
+  @@index([paymentGateway, processed])
 }
 
 model Refund {
@@ -811,23 +1069,96 @@ model ServiceOrder {
 
 model Consultation {
   id              String             @id @default(cuid())
-  serviceOrderId  String
+  serviceOrderId  String?            // null for free discovery calls (no prior payment)
+  serviceId       String?            // direct link when no serviceOrder; informs duration / category
   userId          String
-  assignedAdminId String?
-  scheduledAt     DateTime
-  meetingLink     String?
-  status          ConsultationStatus @default(scheduled)
-  summaryNotes    String?            @db.Text
+  assignedAdminId String?            // host of the meeting; nullable until assigned
+  scheduledAt     DateTime           // UTC start time
+  endsAt          DateTime?          // UTC end time — derived on create from durationMin
+  durationMin     Int                @default(30)
+  timezone        String             @default("UTC")  // client's IANA tz captured at booking
+  meetingProvider MeetingProvider    @default(manual)
+  meetingLink     String?            // join URL (Google Meet / Zoom / manual)
+  status          ConsultationStatus @default(pending)
+  summaryNotes    String?            @db.Text       // host's post-meeting notes
+  clientNotes     String?            @db.Text       // client's pre-meeting notes / agenda
+  cancellationReason String?         @db.Text
+  cancelledAt     DateTime?
+  confirmedAt     DateTime?
+  completedAt     DateTime?
+  /// Signed token for guest-style cancel/reschedule via email link without login.
+  confirmationToken String?          @unique
+  /// Self-relation: when this row is a reschedule of a prior consultation.
+  rescheduledFromId String?
+  /// Reminder bookkeeping — set when 24h or 1h reminder dispatched.
+  reminderSentAt  DateTime?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
-  serviceOrder  ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
-  user          User         @relation("UserConsultations", fields: [userId], references: [id], onDelete: Cascade)
-  assignedAdmin User?        @relation("AssignedConsultations", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  serviceOrder    ServiceOrder?  @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  service         Service?       @relation(fields: [serviceId],      references: [id], onDelete: SetNull)
+  user            User           @relation("UserConsultations",      fields: [userId],          references: [id], onDelete: Cascade)
+  assignedAdmin   User?          @relation("AssignedConsultations",  fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  rescheduledFrom Consultation?  @relation("ConsultationReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
+  rescheduledTo   Consultation[] @relation("ConsultationReschedule")
 
+  /// Race-safe booking: a host can never be double-booked at the same start time.
+  /// Surfaces as Prisma P2002 → errorHandler returns 409 DUPLICATE_ENTRY.
+  @@unique([assignedAdminId, scheduledAt])
   @@index([serviceOrderId])
+  @@index([serviceId])
   @@index([userId])
   @@index([assignedAdminId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@index([rescheduledFromId])
+}
+
+/// =============================================================
+/// AVAILABILITY (booking calendar — recurring rules + exceptions)
+/// =============================================================
+
+model AvailabilityRule {
+  id              String   @id @default(cuid())
+  hostUserId      String                            // admin who owns this availability window
+  serviceId       String?                           // null = applies to any bookable service
+  dayOfWeek       Int                               // 0=Sunday … 6=Saturday (per JS Date.getDay)
+  startTime       String                            // "HH:mm" 24-hour, interpreted in `timezone`
+  endTime         String                            // "HH:mm" 24-hour, interpreted in `timezone`
+  timezone        String                            // IANA tz, e.g. "America/Mexico_City"
+  slotDurationMin Int      @default(30)
+  bufferMin       Int      @default(0)              // gap inserted after each generated slot
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  host    User     @relation("HostAvailabilityRules", fields: [hostUserId], references: [id], onDelete: Cascade)
+  service Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([hostUserId])
+  @@index([serviceId])
+  @@index([dayOfWeek])
+  @@index([isActive])
+}
+
+model AvailabilityException {
+  id         String                    @id @default(cuid())
+  hostUserId String
+  /// UTC midnight of the local exception date — interpretation uses `timezone`.
+  date       DateTime
+  type       AvailabilityExceptionType
+  /// startTime/endTime required when type=custom (adds availability outside recurring rules).
+  startTime  String?
+  endTime    String?
+  timezone   String
+  reason     String?
+  createdAt  DateTime                  @default(now())
+
+  host User @relation("HostAvailabilityExceptions", fields: [hostUserId], references: [id], onDelete: Cascade)
+
+  @@index([hostUserId])
+  @@index([date])
+  @@index([type])
 }
 
 model ClientProject {
@@ -843,9 +1174,9 @@ model ClientProject {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  serviceOrder  ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
-  user          User         @relation("UserClientProjects", fields: [userId], references: [id], onDelete: Cascade)
-  assignedAdmin User?        @relation("AssignedClientProjects", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  serviceOrder  ServiceOrder       @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  user          User               @relation("UserClientProjects", fields: [userId], references: [id], onDelete: Cascade)
+  assignedAdmin User?              @relation("AssignedClientProjects", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   milestones    ProjectMilestone[]
   files         ProjectFile[]
 
@@ -897,6 +1228,13 @@ model SupportTicket {
   message         String         @db.Text
   status          TicketStatus   @default(open)
   priority        TicketPriority @default(medium)
+  /// M16 — drives the admin "Open refund modal" deep-link on tickets that
+  /// originated from a member-side refund request.
+  category        TicketCategory @default(general)
+  /// M16 — optional FK to an Order. Populated when the ticket was created
+  /// via the "Request refund" flow on DashboardOrders so admins can jump
+  /// straight to AdminOrderDetail without copy-pasting the order number.
+  orderId         String?
   assignedAdminId String?
   resolvedAt      DateTime?
   closedAt        DateTime?
@@ -905,11 +1243,14 @@ model SupportTicket {
 
   user          User             @relation("UserSupportTickets", fields: [userId], references: [id], onDelete: Cascade)
   assignedAdmin User?            @relation("AssignedSupportTickets", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  order         Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
   messages      SupportMessage[]
 
   @@index([userId])
   @@index([assignedAdminId])
   @@index([status])
+  @@index([category])
+  @@index([orderId])
 }
 
 model SupportMessage {
@@ -931,15 +1272,15 @@ model SupportMessage {
 }
 
 model ContactMessage {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
   email     String
   phone     String?
   subject   String?
-  message   String   @db.Text
-  status    String   @default("new")
+  message   String    @db.Text
+  status    String    @default("new")
   repliedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 model NewsletterSubscriber {
@@ -948,6 +1289,11 @@ model NewsletterSubscriber {
   status         String    @default("subscribed")
   subscribedAt   DateTime  @default(now())
   unsubscribedAt DateTime?
+
+  // B07 · token-based unsubscribe + attribution
+  unsubscribeToken String? @unique
+  source           String?
+  name             String?
 }
 
 /// =============================================================
@@ -973,12 +1319,16 @@ model Notification {
 
 model EmailTemplate {
   id        String   @id @default(cuid())
-  key       String   @unique
+  key       String   
   subject   String
   htmlBody  String   @db.LongText
   textBody  String?  @db.LongText
   isActive  Boolean  @default(true)
   updatedAt DateTime @updatedAt
+  locale            String   @default("en")
+
+  @@unique([key, locale])
+  @@index([locale])
 }
 
 model EmailLog {
@@ -1024,6 +1374,10 @@ model Page {
 
   @@index([createdById])
   @@index([updatedById])
+  titleEs            String?
+  contentEs          String?  @db.Text
+  metaTitleEs        String?
+  metaDescriptionEs  String?  @db.Text
   @@index([status])
 }
 
@@ -1080,4 +1434,426 @@ model AdminAuditLog {
 
   @@index([adminUserId])
   @@index([createdAt])
+}
+
+model Portfolio {
+  id               String          @id @default(cuid())
+  title            String
+  slug             String          @unique
+  role             String
+  client           String?
+  category         String
+  coverImage       String?
+  gallery          Json?
+  shortDescription String          @db.Text
+  description      String?         @db.Text
+  challenge        String?         @db.Text
+  solution         String?         @db.Text
+  results          Json?
+  tools            Json?
+  tags             Json?
+  liveUrl          String?
+  repoUrl          String?
+  year             Int?
+  duration         String?
+  status           PortfolioStatus @default(published)
+  isFeatured       Boolean         @default(false)
+  displayOrder     Int             @default(0)
+  metaTitle        String?
+  metaDescription  String?         @db.Text
+  createdById      String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  createdBy User? @relation("CreatedPortfolios", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([isFeatured])
+  @@index([displayOrder])
+  titleEs            String?
+  shortDescriptionEs String?  @db.Text
+  descriptionEs      String?  @db.Text
+  metaTitleEs        String?
+  metaDescriptionEs  String?  @db.Text
+  @@index([category])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// B08 · Wishlist + Saved Addresses
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model Wishlist {
+  id        String         @id @default(cuid())
+  userId    String         @unique
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlistId String
+  productId  String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  addedAt    DateTime @default(now())
+
+  @@unique([wishlistId, productId])
+  @@index([productId])
+}
+
+model Address {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  label      String? // "Home", "Office" — short free-form label
+  fullName   String
+  company    String?
+  line1      String
+  line2      String?
+  city       String
+  state      String?
+  postalCode String
+  country    String // ISO 3166-1 alpha-2, e.g. "MX"
+  taxId      String? // Mexican RFC or country-specific tax ID
+  phone      String?
+  isDefault  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, isDefault])
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// B09 · Two-Factor Authentication (TOTP + backup codes)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model TwoFactorAuth {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  secret    String // base32-encoded TOTP secret
+  isEnabled Boolean @default(false) // false until first verify-and-enable
+
+  // Json array of { codeHash: string, used: boolean, usedAt: string|null }
+  // Codes are bcrypt-hashed; one-time-use; replaced en bloc on regenerate.
+  backupCodes Json
+
+  enabledAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+/// =============================================================
+/// M12 · BIO CMS (Experience · Certificate · Skill)
+/// Powers the About page sections; admin edits at /admin/bio.
+/// =============================================================
+
+model Experience {
+  id            String    @id @default(cuid())
+  role          String
+  company       String
+  companyLogo   String?
+  location      String?
+  startDate     DateTime
+  endDate       DateTime?
+  description   String    @db.Text
+  highlights    Json?
+  tools         Json?
+  displayOrder  Int       @default(0)
+  isVisible     Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([isVisible])
+  @@index([displayOrder])
+}
+
+/// =============================================================
+/// M12.5 · BIO · EDUCATION (mirrors Experience for academic history)
+/// =============================================================
+
+model Education {
+  id              String    @id @default(cuid())
+  degree          String
+  institution     String
+  institutionLogo String?
+  location        String?
+  startDate       DateTime
+  endDate         DateTime?       // null = currently studying
+  description     String    @db.Text
+  highlights      Json?
+  fieldOfStudy    String?
+  grade           String?
+  displayOrder    Int       @default(0)
+  isVisible       Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([isVisible])
+  @@index([displayOrder])
+}
+
+model Certificate {
+  id            String    @id @default(cuid())
+  title         String
+  issuer        String
+  issuerLogo    String?
+  issueDate     DateTime
+  expiryDate    DateTime?
+  credentialId  String?
+  credentialUrl String?
+  pdfUrl        String?
+  category      String?
+  displayOrder  Int       @default(0)
+  isVisible     Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([isVisible])
+  @@index([category])
+}
+
+enum SkillCategory {
+  frontend
+  backend
+  tools
+  database
+  cloud
+  language
+  soft_skill
+}
+
+model Skill {
+  id           String        @id @default(cuid())
+  name         String
+  category     SkillCategory
+  proficiency  Int                                   // 1-5
+  iconKey      String?
+  yearsUsing   Int?
+  displayOrder Int           @default(0)
+  isVisible    Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([isVisible])
+  @@index([category])
+}
+
+/// =============================================================
+/// M14 · PRIVACY-FIRST ANALYTICS
+/// Server-side, cookieless, no PII. Powered by hashed session IDs.
+/// =============================================================
+
+model PageView {
+  id           String   @id @default(cuid())
+  path         String   @db.VarChar(512)
+  referrer     String?  @db.VarChar(512)
+  country      String?  @db.VarChar(8)
+  device       String?  @db.VarChar(16)
+  uaHash       String?  @db.VarChar(64)
+  sessionHash  String?  @db.VarChar(64)
+  createdAt    DateTime @default(now())
+
+  @@index([path, createdAt])
+  @@index([createdAt])
+}
+
+model AnalyticsEvent {
+  id           String   @id @default(cuid())
+  name         String   @db.VarChar(64)
+  path         String?  @db.VarChar(512)
+  productId    String?
+  serviceId    String?
+  orderId      String?
+  amount       Decimal? @db.Decimal(10, 2)
+  meta         Json?
+  sessionHash  String?  @db.VarChar(64)
+  createdAt    DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([createdAt])
+}
+
+model DailyMetric {
+  id              String   @id @default(cuid())
+  date            DateTime @db.Date
+  pageviews       Int      @default(0)
+  sessions        Int      @default(0)
+  addToCart       Int      @default(0)
+  beginCheckout   Int      @default(0)
+  purchases       Int      @default(0)
+  revenue         Decimal  @default(0) @db.Decimal(12, 2)
+  topPath         String?  @db.VarChar(512)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+}
+
+/// =============================================================
+/// M16 · BLOG · BlogPost · BlogCategory · BlogTag · BlogTagMap
+/// Powers the public /blog index + admin CMS at /admin/blog.
+/// =============================================================
+
+enum BlogPostStatus {
+  draft
+  published
+  archived
+}
+
+model BlogCategory {
+  id           String     @id @default(cuid())
+  slug         String     @unique
+  label        String
+  accent       String     @default("#5D3FD3")           // Brand accent color
+  description  String?    @db.Text
+  displayOrder Int        @default(0)
+  isVisible    Boolean    @default(true)
+  posts        BlogPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isVisible, displayOrder])
+}
+
+model BlogTag {
+  id         String        @id @default(cuid())
+  slug       String        @unique
+  label      String
+  posts      BlogTagMap[]
+  createdAt  DateTime      @default(now())
+
+  @@index([slug])
+}
+
+model BlogTagMap {
+  postId String
+  tagId  String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    BlogTag  @relation(fields: [tagId],  references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+model BlogPost {
+  id              String         @id @default(cuid())
+  slug            String         @unique
+  title           String
+  excerpt         String         @db.Text
+  body            Json           // structured content blocks (see BlogContentRenderer)
+  cover           String?        @db.VarChar(512)
+  readMinutes     Int            @default(5)
+
+  status          BlogPostStatus @default(draft)
+  isFeatured      Boolean        @default(false)
+  publishedAt     DateTime?
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?        @db.Text
+
+  // Author — denormalised so historical posts keep their byline if the
+  // user is later anonymised. The optional userId fk preserves the link.
+  authorUserId    String?
+  authorName      String         @default("Mustapha Ukizuru")
+  authorRole      String         @default("IT Manager · Full-Stack Developer · CS Educator")
+  authorAvatar    String?
+
+  // Category — required, fkeyed
+  categoryId      String
+  category        BlogCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  tags            BlogTagMap[]
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([isFeatured, publishedAt])
+  @@index([categoryId])
+}
+
+/// =============================================================
+/// M19 · MARKETING · EmailCampaign · EmailCampaignRecipient
+/// Broadcast / newsletter / launch announcement emails. Distinct
+/// from EmailTemplate (transactional, single-event) — campaigns
+/// are authored ad-hoc and sent to a snapshot audience.
+/// =============================================================
+
+enum EmailCampaignStatus {
+  draft
+  scheduled
+  sending
+  sent
+  cancelled
+  failed
+}
+
+enum EmailCampaignAudience {
+  newsletter      // every NewsletterSubscriber whose status = "subscribed"
+  members         // every User row
+  custom          // explicit list of email addresses (recipientEmails JSON)
+}
+
+model EmailCampaign {
+  id              String                @id @default(cuid())
+  name            String                // internal label, never shown to recipients
+  subject         String
+  preheader       String?               @db.VarChar(255)
+  fromName        String                @default("Mustapha Ukizuru")
+  fromEmail       String                @default("hello@mustaphaukizuru.com")
+  replyTo         String?
+  body            Json                  // structured content blocks (BlogContentRenderer schema)
+
+  status          EmailCampaignStatus   @default(draft)
+  audience        EmailCampaignAudience @default(newsletter)
+  recipientEmails Json?                 // used when audience = "custom"
+
+  scheduledAt     DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  // Aggregate counters — kept on the parent for fast dashboard reads
+  totalRecipients Int                   @default(0)
+  sentCount       Int                   @default(0)
+  failedCount     Int                   @default(0)
+  openCount       Int                   @default(0)
+  clickCount      Int                   @default(0)
+
+  createdById     String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  recipients      EmailCampaignRecipient[]
+
+  @@index([status, scheduledAt])
+  @@index([createdAt])
+}
+
+model EmailCampaignRecipient {
+  id           String   @id @default(cuid())
+  campaignId   String
+  campaign     EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  email        String
+  userId       String?
+  status       String   @default("queued") // queued | sent | failed | bounced
+  providerId   String?
+  errorMessage String?  @db.Text
+  sentAt       DateTime?
+  openedAt     DateTime?
+  clickedAt    DateTime?
+  createdAt    DateTime @default(now())
+
+  @@unique([campaignId, email])
+  @@index([campaignId, status])
+  @@index([email])
 }

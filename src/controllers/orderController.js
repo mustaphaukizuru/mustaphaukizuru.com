@@ -1,56 +1,186 @@
 const asyncHandler = require("../utils/asyncHandler")
+const logger = require("../utils/logger")
 const {
   createOrder: createOrderService,
-  getOrderById: getOrderByIdService,
+  getEnrichedOrderById,
   getOrdersByUserId,
 } = require("../services/orderService")
 const { sendOrderPlacedEmail } = require("../utils/mailer")
 const { notifyOrderPlaced } = require("../services/notificationService")
+const { findOrCreateUserForCheckout } = require("../services/authService")
+const { sendTemplateEmail } = require("../services/emailService")
 
-// POST /api/orders — requires auth (userId needed for download entitlement)
+const { resolveUserLocale } = require("../utils/resolveUserLocale")
+/**
+ * POST /api/orders — soft-auth route. Works for:
+ *   1. Signed-in users  → uses req.user.id (existing behaviour)
+ *   2. Returning email  → reuses the matching User row, order shows in their dashboard
+ *   3. Brand-new email  → auto-creates a passwordless User, sends a "set
+ *      your password" claim link in the confirmation email so they can
+ *      access /dashboard/downloads without a separate sign-up step.
+ *
+ * Use `attachUserIfPresent` middleware (NOT `protect`) on the route so a
+ * stale/missing token doesn't block guest checkout.
+ */
+// RFC 5322 — pragmatic email regex. Stops typos and obvious garbage
+// without going overboard. The gateway will reject genuinely undeliverable
+// addresses on send.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 const createOrder = asyncHandler(async (req, res) => {
-  const { customerName, customerEmail, items } = req.body
-  const userId = req.user?.id   // protected route — always present
+  const { customerName, customerEmail, items, couponCode } = req.body
 
-  if (!customerName || !customerEmail) {
-    return res.status(400).json({ success: false, message: "customerName and customerEmail are required" })
+  if (!customerEmail || !String(customerEmail).trim()) {
+    return res.status(400).json({
+      success: false, code: "VALIDATION_ERROR",
+      message: "customerEmail is required",
+    })
+  }
+  if (!EMAIL_RE.test(String(customerEmail).trim())) {
+    return res.status(400).json({
+      success: false, code: "VALIDATION_ERROR",
+      message: "customerEmail is not a valid email address",
+    })
   }
   if (!items || !Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ success: false, message: "At least one order item is required" })
+    return res.status(400).json({
+      success: false, code: "VALIDATION_ERROR",
+      message: "At least one order item is required",
+    })
   }
 
-  const order = await createOrderService({ customerName, customerEmail, userId, items })
+  // Resolve the user that owns this order. Three paths — see JSDoc above.
+  let userId      = req.user?.id || null
+  let isNewUser   = false
+  let claimToken  = null
+  let resolvedName = customerName
 
-  // Send confirmation email (non-blocking)
-  sendOrderPlacedEmail(order).catch((err) =>
-    console.error("[createOrder] email failed:", err.message)
-  )
+  if (!userId) {
+    try {
+      const result = await findOrCreateUserForCheckout({
+        fullName: customerName,
+        email:    customerEmail,
+      })
+      userId       = result.user.id
+      isNewUser    = result.isNew
+      claimToken   = result.claimToken || null
+      resolvedName = result.user.fullName || customerName
+    } catch (err) {
+      logger.error("[createOrder] auto-account failed:", err.message)
+      return res.status(500).json({
+        success: false, code: "AUTO_ACCOUNT_FAILED",
+        message: "Could not create your account. Please try signing up first.",
+      })
+    }
+  }
+
+  let order
+  try {
+    order = await createOrderService({
+      customerName: resolvedName || customerEmail.split("@")[0],
+      customerEmail,
+      userId,
+      items,
+      couponCode,
+    })
+  } catch (err) {
+    // Surface coupon-validation failures as 400 with a clean shape so the
+    // frontend can display the message inline without parsing stack traces.
+    if (err?.code === "COUPON_INVALID") {
+      return res.status(400).json({
+        success: false,
+        code:    "COUPON_INVALID",
+        message: err.message,
+      })
+    }
+    throw err
+  }
+
+  // Brand-new buyers get a claim-account email with a one-click link to set
+  // their password. Existing customers get the usual order-placed email.
+  if (isNewUser && claimToken) {
+    const claimUrl = `${(process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")}/reset-password/${claimToken}?source=checkout`
+    sendTemplateEmail({
+      locale: resolveUserLocale({ req }),
+      to:          customerEmail,
+      templateKey: "auth.account-claim",
+      userId,
+      variables: {
+        customerName: resolvedName?.split(" ")[0] || "there",
+        orderNumber:  order.orderNumber,
+        claimUrl,
+      },
+    }).catch((err) => logger.error("[createOrder] claim email failed:", err.message))
+  } else {
+    // DB-driven template — admin can edit "order received, payment pending" copy.
+    const orderUrl = `${(process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")}/dashboard/orders/${order.id}`
+    const orderTotal = (() => {
+      try {
+        return new Intl.NumberFormat("en-US", { style: "currency", currency: order.currency || "MXN", maximumFractionDigits: 2 }).format(Number(order.totalAmount))
+      } catch { return `${order.totalAmount} ${order.currency || "MXN"}` }
+    })()
+    sendTemplateEmail({
+      locale: resolveUserLocale({ req }),
+      to:          customerEmail,
+      templateKey: "order.placed",
+      userId,
+      variables: {
+        customerName: resolvedName?.split(" ")[0] || "there",
+        orderNumber:  order.orderNumber,
+        orderTotal,
+        orderUrl,
+      },
+    }).catch((err) => logger.error("[createOrder] email failed:", err.message))
+  }
+
   notifyOrderPlaced(order).catch(() => {})
 
-  return res.status(201).json({ success: true, message: "Order created successfully", data: order })
+  return res.status(201).json({
+    success: true,
+    message: "Order created successfully",
+    data: { ...order, isNewUser },
+  })
 })
 
-// GET /api/orders/my
+/**
+ * GET /api/orders/my — list the current user's orders (list view)
+ */
 const getMyOrders = asyncHandler(async (req, res) => {
   const userId = req.user?.id
-  if (!userId) return res.status(401).json({ success: false, message: "Authentication required" })
+  if (!userId) {
+    return res.status(401).json({
+      success: false, code: "AUTH_MISSING",
+      message: "Authentication required",
+    })
+  }
 
   const orders = await getOrdersByUserId(userId)
   return res.status(200).json({ success: true, data: orders })
 })
 
-// GET /api/orders/:id
+/**
+ * GET /api/orders/:id — enriched single-order response (B04)
+ */
 const getOrderById = asyncHandler(async (req, res) => {
   const { id } = req.params
-  const order   = await getOrderByIdService(id)
 
-  if (!order) return res.status(404).json({ success: false, message: "Order not found" })
+  const order = await getEnrichedOrderById(id)
+
+  if (!order) {
+    return res.status(404).json({
+      success: false, code: "NOT_FOUND",
+      message: "Order not found",
+    })
+  }
 
   const isAdmin = req.user?.role === "admin"
   const isOwner = order.userId && req.user?.id === order.userId
 
   if (!isAdmin && !isOwner) {
-    return res.status(403).json({ success: false, message: "You do not have access to this order" })
+    return res.status(403).json({
+      success: false, code: "FORBIDDEN",
+      message: "You do not have access to this order",
+    })
   }
 
   return res.status(200).json({ success: true, data: order })

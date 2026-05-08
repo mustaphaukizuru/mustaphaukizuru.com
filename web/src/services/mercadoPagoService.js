@@ -14,7 +14,7 @@ export async function createMercadoPagoPreference(orderId) {
     throw new Error("Order ID is required")
   }
 
-  const response = await authFetch("/api/mercadopago/create-preference", {
+  const response = await authFetch("/api/v1/mercadopago/create-preference", {
     method: "POST",
     body: JSON.stringify({ orderId }),
   })
@@ -31,7 +31,7 @@ export async function getMercadoPagoStatus(orderId) {
     throw new Error("Order ID is required")
   }
 
-  const response = await authFetch(`/api/mercadopago/status/${orderId}`, {
+  const response = await authFetch(`/api/v1/mercadopago/status/${orderId}`, {
     method: "GET",
   })
 

@@ -1,0 +1,92 @@
+{
+  "terms": {
+    "title": "Términos del Servicio",
+    "subtitle": "Última actualización {{date}}",
+    "lastUpdated": "Última actualización",
+    "intro": "Por favor lee estos términos cuidadosamente antes de usar nuestra plataforma o comprar productos digitales.",
+    "questions": "¿Tienes preguntas sobre los Términos?"
+  },
+  "privacy": {
+    "title": "Política de Privacidad",
+    "subtitle": "Cómo recopilamos, usamos y protegemos tu información personal."
+  },
+  "refund": {
+    "title": "Política de Reembolso",
+    "subtitle": "Clara, justa y exigible, para productos digitales y servicios de consultoría.",
+    "lastUpdated": "Última actualización: mayo 2026",
+    "headline": {
+      "title": "Nuestra política en una línea",
+      "body": "Los reembolsos están disponibles dentro de los <strong>14 días posteriores a la compra</strong>, siempre que el producto digital <strong>no se haya descargado</strong>. Una vez que cualquier archivo de un pedido se descarga, ese ítem deja de ser reembolsable."
+    },
+    "eligible": {
+      "title": "Cuándo aplica un reembolso",
+      "items": [
+        "La solicitud se hace dentro de los 14 días posteriores a la fecha de compra.",
+        "Ningún archivo del pedido se ha descargado (verificado por los registros de descarga).",
+        "Se realizó un cargo duplicado por un error de procesamiento de pago.",
+        "El producto digital es materialmente distinto a su descripción pública, o un defecto impide su uso normal y nuestro equipo no puede resolverlo en 48 horas.",
+        "Un servicio de consultoría no se entregó según lo establecido en el acuerdo firmado."
+      ]
+    },
+    "ineligible": {
+      "title": "Cuándo no aplica un reembolso",
+      "items": [
+        "Cualquier archivo del pedido se descargó. Una vez accedido, el producto digital se considera consumido.",
+        "La solicitud se hace más de 14 días después de la fecha original de compra.",
+        "Un cambio de opinión después de descargar, ver o usar el producto.",
+        "Incompatibilidad con software, dispositivos o entornos de terceros no especificados en la descripción del producto.",
+        "Horas de consultoría ya entregadas, o paquetes parcialmente consumidos.",
+        "Renovaciones de suscripción o cargos recurrentes en los que se envió aviso de renovación con antelación."
+      ]
+    },
+    "process": {
+      "title": "Cómo solicitar un reembolso",
+      "steps": [
+        {
+          "label": "Abre un ticket de soporte",
+          "descPrefix": "Desde tu",
+          "descLink": "panel de miembro → Soporte",
+          "descMid": "abre un ticket de tipo",
+          "descEm": "Solicitud de reembolso",
+          "descSuffix": "con tu número de pedido y el motivo. Si no tienes cuenta, escribe a"
+        },
+        {
+          "label": "Revisión de elegibilidad",
+          "desc": "Nuestro equipo revisa el pedido contra la política anterior, incluyendo los registros de descarga, y responde en menos de 3 días hábiles."
+        },
+        {
+          "label": "Decisión",
+          "desc": "Si se aprueba, el reembolso se emite al método de pago original. Si se rechaza, recibirás una explicación por escrito que cite la sección de política que aplica."
+        },
+        {
+          "label": "Devolución de fondos",
+          "desc": "Los reembolsos aprobados se acreditan al método de pago original (PayPal o Mercado Pago) en 5–10 días hábiles. Los tiempos bancarios pueden extender este plazo."
+        },
+        {
+          "label": "Acceso revocado",
+          "desc": "En cualquier reembolso aprobado, parcial o total, el acceso a la descarga de los ítems reembolsados se revoca de inmediato. Las copias ya descargadas deben ser eliminadas por el cliente."
+        }
+      ]
+    },
+    "chargebacks": {
+      "title": "Antes de disputar un cargo con tu banco",
+      "body": "Resolvemos cada solicitud legítima de reembolso directamente. Iniciar un contracargo antes de contactarnos retrasa la resolución y genera comisiones del procesador para ambas partes. Por favor escríbenos primero; respondemos en menos de 3 días hábiles. En caso de contracargo, entregamos a los procesadores nuestra política, tu aceptación en el checkout y el registro completo de descargas como evidencia."
+    },
+    "spanishSummary": {
+      "title": "Resumen en español (México · PROFECO)",
+      "body": "De acuerdo con el Artículo 56 de la Ley Federal de Protección al Consumidor, el consumidor cuenta con cinco días hábiles para revocar una compra a distancia, <strong>siempre que el producto digital no haya sido descargado o consumido</strong>. Una vez descargado, el producto se considera entregado y consumido, por lo que no procede el reembolso. Para servicios de consultoría parcialmente entregados, el reembolso se calcula sobre las horas no consumidas. Las solicitudes deben dirigirse a {{email}} dentro de los 14 días posteriores a la compra."
+    },
+    "support": {
+      "title": "¿Necesitas ayuda con un reembolso?"
+    }
+  },
+  "cookies": {
+    "title": "Política de Cookies",
+    "subtitle": "Guía en lenguaje claro de cómo este sitio usa cookies y cómo mantienes el control.",
+    "alwaysOn": "Siempre activas",
+    "changePrefs": "Cambia tus preferencias",
+    "resetClick": "Haz clic abajo para restablecer y elegir de nuevo.",
+    "managePrefs": "Administrar preferencias de cookies",
+    "questions": "¿Preguntas sobre cookies o privacidad?"
+  }
+}

@@ -1,7 +1,7 @@
 import { authFetch } from "../lib/api"
 
 export async function fetchAdminPayments() {
-  const response = await authFetch("/api/admin/payments", { method: "GET" })
+  const response = await authFetch("/api/v1/admin/payments", { method: "GET" })
 
   // Backend returns { success, data: { payments, meta, metrics } }
   const payload = response?.data || response || {}
