@@ -1,0 +1,195 @@
+{
+  "hero": {
+    "eyebrow": "Contact",
+    "title": "Let's build something",
+    "subtitle": "Tell me about your project — I'll respond within 24 hours.",
+    "calendarAria": "Animated booking calendar showing open discovery-call slots, scheduled calls, and the project lifecycle from kickoff to ship",
+    "letsBuild": "let's build",
+    "repliesIn": "Replies in 24h",
+    "discoveryCall": "Discovery call",
+    "scheduleCall": "Schedule your call",
+    "liveAvailability": "Live availability",
+    "prevMonthAria": "Previous month",
+    "nextMonthAria": "Next month",
+    "pickSlot": "Pick a slot",
+    "justShipped": "Just shipped",
+    "shippedExample": "School ERP · v2.1 deployed",
+    "letsBuildCheck": "let's build something ✓",
+    "onlineReplies": "Online · replies within 24h",
+    "letsConnect": "Let's Connect",
+    "startYourDigital": "Start Your Digital",
+    "longCta": "Whether you need digital consulting, infrastructure support, STEM programs, or technology strategy, reach out and let us discuss your goals.",
+    "bookDiscovery": "Book a discovery call",
+    "sendMessage": "Send a message",
+    "legendOpenSlot": "Open slot",
+    "legendBooked": "Discovery call",
+    "legendInProgress": "In progress",
+    "legendInReview": "In review",
+    "legendDeployed": "Deployed"
+  },
+  "form": {
+    "name": "Your name",
+    "email": "Email",
+    "subject": "What's this about?",
+    "message": "Tell me more",
+    "submit": "Send message",
+    "sending": "Sending…",
+    "success": "Message sent. Talk soon.",
+    "error": "Something went wrong. Please try again.",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "Jane",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Doe",
+    "emailPlaceholder": "you@example.com",
+    "audienceLegend": "Which best describes you?",
+    "messageLabel": "Your message",
+    "messagePlaceholder": "Briefly describe what you're working on, and what success looks like.",
+    "consent": "I agree to be contacted about my enquiry. I can unsubscribe at any time.",
+    "successDetail": {
+      "title": "Message Sent",
+      "body": "Thank you. I'll respond within 24 hours.",
+      "again": "Send another message"
+    },
+    "context": {
+      "title": "We picked up where you left off",
+      "inquiringAbout": "Inquiring about:",
+      "yourSelection": "your selection",
+      "tier": "tier"
+    },
+    "errors": {
+      "firstName": "First name is required.",
+      "lastName": "Last name is required.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "audience": "Please pick the option that fits you best.",
+      "messageRequired": "Please add a short message.",
+      "messageMin": "Message should be at least {{min}} characters.",
+      "messageMax": "Message exceeds {{max}} characters.",
+      "consent": "Please confirm you agree to be contacted.",
+      "fixFields": "Please fix the highlighted fields and try again.",
+      "sendFailed": "Failed to send. Please try again.",
+      "subjectFallback": "Contact form inquiry"
+    }
+  },
+  "info": {
+    "officeAddress": "Office address",
+    "contactInfo": "Contact info",
+    "hours": "Working hours",
+    "weekdays": "Mon–Fri 09:00–18:00 (Mexico City)"
+  },
+  "callout": {
+    "talkNow": "Want to talk now",
+    "bookTitle": "Book a free 30-min call",
+    "bookBody": "Pick a time that works. Confirmed instantly with a calendar invite.",
+    "bookCta": "Open the calendar",
+    "haveQuestion": "Have a question",
+    "writeTitle": "Send me a message",
+    "writeBody": "Custom projects, pricing, or partnerships. Anything that does not fit a 30-min slot.",
+    "writeCta": "Jump to the form"
+  },
+  "audiences": {
+    "education": "Educator / School",
+    "business": "Business / Team",
+    "professional": "Independent Pro"
+  },
+  "interests": {
+    "groups": {
+      "Services": "Services",
+      "Solutions": "Solutions"
+    },
+    "items": {
+      "CS": "IT Consulting & Strategy",
+      "BD": "Brand & Digital Presence",
+      "IC": "IT Infrastructure & Cloud",
+      "WD": "Web, Application & AI",
+      "ET": "EdTech Implementation & Training",
+      "MS": "Managed Services & Support",
+      "smart-classroom": "Smart Classroom & LMS",
+      "stem-curriculum": "STEM Curriculum & Robotics",
+      "brand-foundation": "Brand Identity & Foundation",
+      "web-launch": "Web Launch & Growth",
+      "cloud-migration": "Cloud Migration & Automation",
+      "ai-integration": "AI Integration & Knowledge Base",
+      "managed-it": "Managed IT for SMBs",
+      "personal-platform": "Personal Brand Platform"
+    }
+  },
+  "tiers": {
+    "basic": "Basic",
+    "medium": "Medium",
+    "advanced": "Advanced",
+    "guidance": "Need guidance"
+  },
+  "timelines": {
+    "asap": "ASAP",
+    "30d": "Within 30 days",
+    "60d": "30 – 60 days",
+    "exploring": "Just exploring"
+  },
+  "channels": {
+    "title": "Other ways to reach me",
+    "subtitle": "Pick whichever feels easiest. I reply to all of these within one business day.",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "whatsappBody": "Quick async chat",
+    "basedIn": "Based in"
+  },
+  "socials": {
+    "findMe": "Find me on",
+    "ariaLabel": "Find Mustapha on social platforms"
+  },
+  "book": {
+    "badge": "Book a call",
+    "defaultTitle": "Book a free discovery call",
+    "subtitleWithService": "Pick a date, choose a time that works for you, and we'll meet on a video call.",
+    "subtitleGeneric": "A 30-minute conversation to explore how I can help you ship technology that lasts.",
+    "browseAll": "Looking for a specific service? Browse all services",
+    "discoveryCall": "Discovery Call",
+    "seoBookFmt": "Book {{title}}",
+    "seoDefault": "Book a Discovery Call",
+    "trust": {
+      "realtimeTitle": "Real-time availability",
+      "realtimeBody": "You only see times that are actually open, never overbookings.",
+      "timezoneTitle": "Your timezone, always",
+      "timezoneBody": "Times are shown in the timezone you choose at the top of the calendar.",
+      "cancelTitle": "Cancel up to 12 hours before",
+      "cancelBody": "Plans change. Reschedule or cancel from your dashboard whenever needed.",
+      "confidentialTitle": "Confidential by default",
+      "confidentialBody": "Whatever you share stays private. We respect every conversation."
+    },
+    "expect": {
+      "title": "What to expect",
+      "item1": "A focused conversation about your goals and constraints",
+      "item2": "Honest, expert-level technical input you can act on",
+      "item3": "Clear next steps, no pressure, no fluff"
+    }
+  },
+  "bookingCalendar": {
+    "monthYearAria": "Choose month and year",
+    "prevYearAria": "Previous year",
+    "nextYearAria": "Next year",
+    "bookableHighlight": "Bookable months are highlighted",
+    "bookingNeeds": "Bookings need at least",
+    "daysAhead": "days ahead. You can reschedule or cancel up to 12h before the call.",
+    "consultationBooked": "Your consultation is booked",
+    "confirmationOnWay": "A confirmation email is on its way to",
+    "viewDashboard": "View in dashboard",
+    "bookAnother": "Book another time",
+    "scheduleCall": "Schedule your call",
+    "timesShown": "Times shown in",
+    "timezoneAria": "Your timezone",
+    "prevMonthAria": "Previous month",
+    "nextMonthAria": "Next month",
+    "tapHighlighted": "Tap a highlighted day to see times",
+    "backToDate": "Back to date",
+    "noTimes": "No times available",
+    "tryDifferentDay": "Try a different day.",
+    "eachSlotIs": "Each slot is",
+    "chooseAnother": "Choose another time",
+    "yourBooking": "Your booking",
+    "discussLabel": "What would you like to discuss?",
+    "discussPlaceholder": "Share goals, links, or context so we can make the most of our time.",
+    "signInHint": "You'll be asked to sign in to confirm. Your selection is preserved.",
+    "confirmBooking": "Confirm booking"
+  }
+}

@@ -1,30 +1,73 @@
 {
   "name": "mustaphaukizuru-server",
-  "version": "1.0.0",
-  "description": "Mustapha Ukizuru — API + static frontend server",
+  "version": "2.0.0",
+  "description": "Mustapha Ukizuru API + static frontend server",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint:structure": "bash scripts/guard-duplicates.sh",
+    "backup": "bash scripts/backup-db.sh",
+    "smoke": "bash scripts/smoke-test.sh",
+    "deploy": "bash scripts/deploy.sh",
+    "seed:email": "node prisma/seed-email-templates.js",
+    "seed:bio": "node prisma/seed-bio.js",
+    "seed:audience-plans": "node prisma/seed-audience-plans.js",
+    "janitor:orders": "node scripts/cancel-stale-orders.js",
+    "optimize:images": "bash scripts/optimize-images.sh",
+    "seed:permissions": "node prisma/seed-permissions.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@sentry/node": "^8.55.1",
     "axios": "^1.7.9",
     "bcryptjs": "^3.0.2",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
+    "date-fns": "^2.30.0",
+    "date-fns-tz": "^2.0.1",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.4.1",
     "google-auth-library": "^9.15.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mercadopago": "^2.0.15",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^8.0.4"
+    "node-cron": "^3.0.3",
+    "nodemailer": "^8.0.4",
+    "pdfkit": "^0.18.0",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^3.1.14",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/test"
+    ],
+    "testMatch": [
+      "**/*.test.js",
+      "**/*.spec.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js",
+      "!src/lib/prisma.js"
+    ],
+    "coverageDirectory": "<rootDir>/coverage",
+    "verbose": true
   },
   "engines": {
     "node": ">=18.0.0"

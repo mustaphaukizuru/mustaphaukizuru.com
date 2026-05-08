@@ -1,0 +1,137 @@
+{
+  "hero": {
+    "eyebrow": "Tecnología · Educación · Productos digitales",
+    "title": "Construye tu futuro con tecnología que sí funciona",
+    "subtitle": "Ingeniería full-stack, consultoría y educación STEM desde Tlalnepantla, México. Plataformas reales, aulas reales, resultados reales.",
+    "ctaPrimary": "Ver servicios",
+    "ctaSecondary": "Explorar la tienda",
+    "ariaLabel": "Mustapha Ukizuru — ingeniería full-stack, consultoría y educación STEM desde Tlalnepantla, México",
+    "exploreServices": "Ver servicios",
+    "bookCall": "Agendar llamada",
+    "openToWork": "Abierto a trabajar",
+    "builtInLatam": "Construido en LATAM",
+    "activeProject": "Proyecto activo",
+    "paidQa": "pagado · en QA",
+    "featuredProduct": "Producto destacado",
+    "consultingAria": "Consultoría — 3 espacios abiertos este mes, haz clic para agendar una llamada",
+    "availableNow": "Disponible ahora",
+    "slotsOpen": "3 espacios abiertos · este mes",
+    "engineeredWith": "Construido con",
+    "buildingSince": "Construyendo desde 2018",
+    "yearsShipping": "años entregando",
+    "projectsShipped": "47 proyectos entregados",
+    "headlineBuilt": "Construido.",
+    "headlineShipped": "Lanzado.",
+    "headlineForYou": "Para ti.",
+    "welcomeBack": "Bienvenido,",
+    "milestoneThree": "Hito 3",
+    "cardConsulting": "Consultoría",
+    "cardStack": "Stack"
+  },
+  "sections": {
+    "audiences": {
+      "eyebrow": "Con quién trabajo",
+      "title": "Equipos listos para modernizarse",
+      "subtitle": "Colaboro con organizaciones y personas que buscan sistemas más sólidos, una presencia digital más clara y formas más inteligentes de trabajar."
+    },
+    "solutions": {
+      "eyebrow": "Soluciones",
+      "title": "Hecho para la forma en que realmente trabajas",
+      "subtitle": "Tecnología práctica que fortalece tus sistemas, mejora tu presencia digital y se mantiene fuera del camino.",
+      "cta": "Ver soluciones"
+    },
+    "featuredProducts": {
+      "eyebrow": "Tienda",
+      "title": "Plantillas y kits que yo mismo uso",
+      "subtitle": "Recursos prácticos y con criterio, creados desde proyectos reales con clientes, para que avances más rápido.",
+      "cta": "Ir a la tienda",
+      "emptyTitle": "Pronto habrá recursos nuevos",
+      "emptyBody": "Estoy terminando el siguiente lote de plantillas y kits. Vuelve a revisar esta semana.",
+      "emptyCta": "Avísame"
+    },
+    "featuredServices": {
+      "eyebrow": "Servicios",
+      "title": "Lo que hago",
+      "subtitle": "Consultoría senior, desarrollo full-stack y todo lo intermedio, ajustado al tamaño y al presupuesto de tu equipo.",
+      "cta": "Todos los servicios",
+      "learnMore": "Conocer más"
+    },
+    "featuredPortfolio": {
+      "eyebrow": "Portafolio",
+      "title": "Proyectos seleccionados",
+      "subtitle": "Proyectos recientes con escuelas, PYMEs y plataformas educativas.",
+      "cta": "Todos los proyectos"
+    },
+    "process": {
+      "eyebrow": "Cómo funciona",
+      "title": "Un camino claro de la idea al lanzamiento",
+      "subtitle": "Cuatro fases predecibles. Sin sorpresas ni desviaciones de alcance. Siempre sabrás qué sigue."
+    },
+    "testimonials": {
+      "eyebrow": "Testimonios",
+      "title": "En sus propias palabras",
+      "subtitle": "Lo que clientes y colaboradores han dicho después de trabajar juntos.",
+      "prevAria": "Testimonios anteriores",
+      "nextAria": "Testimonios siguientes"
+    },
+    "reviews": {
+      "title": "Reseñas recientes"
+    }
+  },
+  "audiences": {
+    "smes": {
+      "title": "PYMEs y empresas",
+      "description": "Sistemas más sólidos, presencia digital más clara y operaciones más inteligentes."
+    },
+    "professionals": {
+      "title": "Profesionales y particulares",
+      "description": "Flujos de trabajo modernos y visibilidad online clara para profesionales independientes."
+    },
+    "schools": {
+      "title": "Escuelas y educación",
+      "description": "Tecnología, STEM y aprendizaje digital, hechos para escuelas y docentes."
+    }
+  },
+  "solutionsList": {
+    "digitalProducts": "Productos digitales",
+    "professionalTraining": "Capacitación profesional y talleres",
+    "websiteAndDigitalSystems": "Sitios web y sistemas digitales",
+    "technologyConsulting": "Consultoría tecnológica",
+    "stemCodingRobotics": "Programas de STEM, programación y robótica",
+    "itInfrastructure": "Infraestructura de TI y transformación digital"
+  },
+  "processSteps": {
+    "discovery": {
+      "title": "Descubrimiento",
+      "description": "Entender tus sistemas actuales, tus prioridades y los retos reales que están frenando el avance."
+    },
+    "strategy": {
+      "title": "Estrategia",
+      "description": "Definir una hoja de ruta práctica con objetivos claros, decisiones tecnológicas y dirección de implementación."
+    },
+    "implementation": {
+      "title": "Implementación",
+      "description": "Convertir el plan en sistemas, plataformas, flujos y recursos digitales confiables."
+    },
+    "optimization": {
+      "title": "Optimización",
+      "description": "Afinar el rendimiento, fortalecer la adopción y mejorar la efectividad digital a largo plazo."
+    }
+  },
+  "testimonialRoles": {
+    "schoolAdministrator": "Administradora escolar",
+    "businessOwner": "Dueño de negocio",
+    "educationCoordinator": "Coordinadora educativa",
+    "operationsLead": "Líder de operaciones",
+    "independentProfessional": "Profesional independiente",
+    "itCoordinator": "Coordinador de TI"
+  },
+  "cta": {
+    "eyebrow": "Empecemos",
+    "titleLine1": "Pongámonos",
+    "titleLine2": "a trabajar.",
+    "body": "Software a la medida, soluciones digitales listas para usar y consultoría senior, todo bajo un mismo techo. La primera llamada es gratis, sin presión.",
+    "ctaBook": "Reserva una llamada gratis",
+    "ctaStore": "Explorar la tienda"
+  }
+}

@@ -1,98 +1,229 @@
 import { motion } from "framer-motion"
-import { RotateCcw, Calendar, Mail, CheckCircle2, XCircle, Clock } from "lucide-react"
+import { useTranslation, Trans } from "react-i18next"
+import {
+  RotateCcw, Calendar, Mail, CheckCircle2, XCircle, Clock,
+  ShieldCheck, Globe2, FileSearch,
+} from "lucide-react"
 import { Link } from "react-router-dom"
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  RefundPage · M15 — Option A policy, made explicit.
+ *
+ *  Policy in plain language:
+ *    Refunds are available within 14 days of purchase, ONLY IF the product
+ *    has not been downloaded. Downloaded items are non-refundable. Admins
+ *    can override in exceptional cases (defective file, duplicate charge,
+ *    not-as-described).
+ *
+ *  Why explicit:
+ *    – PROFECO/Mexico (LFPC Art. 56): distance-sales cancellation right
+ *      generally does not apply once a digital good has been accessed.
+ *      Stating this clearly + requiring acceptance at checkout is the
+ *      strongest legal defence in a consumer complaint.
+ *    – Payment processors (PayPal/MercadoPago) side with the merchant in
+ *      a chargeback dispute when the policy is published, accepted, and
+ *      the access log proves delivery.
+ *
+ *  I18N · Phase 118 — every visible string is keyed under
+ *  `legal.refund.*`. Inline <strong> emphasis inside body copy is
+ *  preserved via <Trans> / dangerouslySetInnerHTML so we don't lose
+ *  the typographic emphasis in either locale.
+ *  ──────────────────────────────────────────────────────────────────── */
+
+const fadeUp = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4, ease: "easeOut" },
+}
+
+const SUPPORT_EMAIL = "hello@mustaphaukizuru.com"
+
 export default function RefundPage() {
+  const { t } = useTranslation("legal")
+
+  // i18next returnObjects path returns the array straight from JSON; we
+  // use this for the eligible/ineligible bullet lists and the 5-step
+  // process diagram so the page DOM stays identical to the original.
+  const eligibleItems   = t("refund.eligible.items",   { returnObjects: true }) || []
+  const ineligibleItems = t("refund.ineligible.items", { returnObjects: true }) || []
+  const processSteps    = t("refund.process.steps",    { returnObjects: true }) || []
+
   return (
-    <div className="bg-[#F7F9F4]">
-      <section className="bg-[#420060] py-16 text-center">
+    <div className="bg-mist">
+      <section className="py-16 text-center" style={{ backgroundColor: "#5D3FD3" }}>
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-[#FFCCAF]">
+          <motion.div {...fadeUp} className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-white">
             <RotateCcw className="h-7 w-7" />
-          </div>
-          <h1 className="mt-5 text-[2.2rem] font-bold text-white">Refund Policy</h1>
-          <p className="mt-3 text-[15px] text-white/55">Our policy for digital product purchases and consulting services.</p>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[12px] text-white/50">
-            <Calendar className="h-3.5 w-3.5" /> Last updated: March 2026
-          </div>
+          </motion.div>
+          <motion.h1 {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }} className="mt-5 text-page font-bold text-white">
+            {t("refund.title")}
+          </motion.h1>
+          <motion.p {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }} className="mt-3 text-body text-white/65">
+            {t("refund.subtitle")}
+          </motion.p>
+          <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.15 }} className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white/55">
+            <Calendar className="h-3.5 w-3.5" /> {t("refund.lastUpdated")}
+          </motion.div>
         </div>
       </section>
 
       <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
         <div className="flex flex-col gap-6">
 
+          {/* Headline policy statement */}
+          <motion.div
+            {...fadeUp}
+            className="rounded-xl border border-[#5D3FD3]/15 bg-[#EDE9FB] p-6 shadow-[0_4px_16px_rgba(93,63,211,0.08)]"
+          >
+            <div className="flex items-start gap-4">
+              <div className="rounded-xl bg-white/70 p-3 text-[#5D3FD3] shrink-0">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-body font-bold text-[#5D3FD3]">{t("refund.headline.title")}</h2>
+                <p
+                  className="mt-2 text-meta text-[#5D3FD3]/85"
+                  dangerouslySetInnerHTML={{ __html: t("refund.headline.body") }}
+                />
+              </div>
+            </div>
+          </motion.div>
+
           {/* Eligible */}
-          <div className="rounded-xl border border-[#2FA36B]/20 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
-            <h2 className="mb-4 flex items-center gap-2 text-[16px] font-bold text-[#420060]">
-              <CheckCircle2 className="h-5 w-5 text-[#2FA36B]" /> When Refunds Are Eligible
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.05 }}
+            className="rounded-xl border border-[#2FA36B]/20 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+          >
+            <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-[#5D3FD3]">
+              <CheckCircle2 className="h-5 w-5 text-[#2FA36B]" /> {t("refund.eligible.title")}
             </h2>
-            <ul className="space-y-3 text-[14px] text-[#634F40]/70">
-              {[
-                "Technical issue preventing download that our team cannot resolve within 48 hours",
-                "Digital product significantly different from what was described",
-                "Duplicate charge due to a processing error",
-                "Service not delivered as outlined in the service agreement",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2">
+            <ul className="space-y-3 text-meta text-charcoal-80/75">
+              {eligibleItems.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2FA36B]" />
-                  {item}
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Not eligible */}
-          <div className="rounded-xl border border-red-200/40 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
-            <h2 className="mb-4 flex items-center gap-2 text-[16px] font-bold text-[#420060]">
-              <XCircle className="h-5 w-5 text-red-500" /> Refunds Are Not Available For
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.1 }}
+            className="rounded-xl border border-red-200/40 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+          >
+            <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-[#5D3FD3]">
+              <XCircle className="h-5 w-5 text-red-500" /> {t("refund.ineligible.title")}
             </h2>
-            <ul className="space-y-3 text-[14px] text-[#634F40]/70">
-              {[
-                "Change of mind after a digital product has been downloaded",
-                "Incompatibility with third-party software not specified in the product description",
-                "Partially consumed consulting or service packages",
-                "Requests made more than 14 days after the purchase date",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2">
+            <ul className="space-y-3 text-meta text-charcoal-80/75">
+              {ineligibleItems.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2">
                   <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
-                  {item}
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Process */}
-          <div className="rounded-xl border border-[#634F40]/10 bg-white p-6 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
-            <h2 className="mb-4 flex items-center gap-2 text-[16px] font-bold text-[#420060]">
-              <Clock className="h-5 w-5 text-[#4A6CFA]" /> How to Request a Refund
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.15 }}
+            className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+          >
+            <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-[#5D3FD3]">
+              <Clock className="h-5 w-5 text-azure" /> {t("refund.process.title")}
             </h2>
             <div className="space-y-4">
-              {[
-                { step: "1", label: "Contact us",      desc: "Email hello@mustaphaukizuru.com with your order number and reason." },
-                { step: "2", label: "Review",           desc: "Our team reviews your request within 3 business days." },
-                { step: "3", label: "Decision",         desc: "You receive a decision and, if approved, the refund is processed." },
-                { step: "4", label: "Refund issued",    desc: "Approved refunds are returned to the original payment method within 5–10 business days." },
-              ].map(({ step, label, desc }) => (
-                <div key={step} className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ede4ef] text-[12px] font-bold text-[#420060]">{step}</div>
-                  <div>
-                    <div className="text-[14px] font-semibold text-[#420060]">{label}</div>
-                    <div className="text-[13px] text-[#634F40]/65">{desc}</div>
+              {processSteps.map((step, idx) => {
+                const stepNum = String(idx + 1)
+                // Step 1 has the inline support-ticket Link + email anchor —
+                // we render its body manually from the keyed pieces so we
+                // can keep the <Link> + <em> + <a> elements untouched.
+                const isStepOne = idx === 0
+                return (
+                  <div key={stepNum} className="flex items-start gap-4">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EDE9FB] text-micro font-bold text-[#5D3FD3]">
+                      {stepNum}
+                    </div>
+                    <div>
+                      <div className="text-meta font-semibold text-[#5D3FD3]">{step.label}</div>
+                      <div className="text-meta text-charcoal-80/70">
+                        {isStepOne ? (
+                          <>
+                            {step.descPrefix}{" "}
+                            <Link to="/dashboard/support" className="font-semibold text-[#5D3FD3] underline-offset-2 hover:underline">
+                              {step.descLink}
+                            </Link>{" "}
+                            {step.descMid} <em>{step.descEm}</em> {step.descSuffix}{" "}
+                            <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-[#5D3FD3] underline-offset-2 hover:underline">
+                              {SUPPORT_EMAIL}
+                            </a>
+                            .
+                          </>
+                        ) : step.desc}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex items-center gap-4 rounded-xl bg-[#420060] p-6 text-white">
+          {/* Chargebacks notice */}
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.2 }}
+            className="rounded-xl border border-amber-200/60 bg-amber-50 p-6"
+          >
+            <h2 className="mb-3 flex items-center gap-2 text-body font-bold text-amber-900">
+              <FileSearch className="h-5 w-5" /> {t("refund.chargebacks.title")}
+            </h2>
+            <p className="text-meta text-amber-900/85">
+              {t("refund.chargebacks.body")}
+            </p>
+          </motion.div>
+
+          {/* Spanish summary, PROFECO compliance */}
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.25 }}
+            className="rounded-xl border border-[#5D3FD3]/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+            lang="es"
+          >
+            <h2 className="mb-3 flex items-center gap-2 text-body font-bold text-[#5D3FD3]">
+              <Globe2 className="h-5 w-5" /> {t("refund.spanishSummary.title")}
+            </h2>
+            <p
+              className="text-meta text-charcoal-80/80"
+              dangerouslySetInnerHTML={{
+                __html: t("refund.spanishSummary.body", {
+                  email: `<a href="mailto:${SUPPORT_EMAIL}" class="font-semibold text-[#5D3FD3] underline-offset-2 hover:underline">${SUPPORT_EMAIL}</a>`,
+                }),
+              }}
+            />
+          </motion.div>
+
+          <motion.div
+            {...fadeUp}
+            transition={{ ...fadeUp.transition, delay: 0.3 }}
+            className="flex items-center gap-4 rounded-xl bg-[#5D3FD3] p-6 text-white"
+          >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
               <Mail className="h-6 w-6" />
             </div>
             <div>
-              <div className="font-semibold">Need help with a refund?</div>
-              <a href="mailto:hello@mustaphaukizuru.com" className="mt-1 text-[13px] text-white/60 hover:text-white hover:underline">hello@mustaphaukizuru.com</a>
+              <div className="font-semibold">{t("refund.support.title")}</div>
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="mt-1 text-meta text-white/65 hover:text-white hover:underline"
+              >
+                {SUPPORT_EMAIL}
+              </a>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

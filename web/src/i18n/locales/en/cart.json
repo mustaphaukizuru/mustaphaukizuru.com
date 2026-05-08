@@ -1,0 +1,61 @@
+{
+  "title": "Your cart",
+  "header": {
+    "title": "Shopping Cart",
+    "breadcrumb": {
+      "home": "Home",
+      "store": "Store",
+      "cart": "Cart"
+    },
+    "clearCart": "Clear cart"
+  },
+  "empty": {
+    "title": "Your cart is empty",
+    "subtitle": "Browse the store to add digital products.",
+    "subtitleLong": "Browse the store and add digital products or consulting packages to get started.",
+    "cta": "Browse store",
+    "browseStore": "Browse Store",
+    "viewServices": "View Services",
+    "browseByCategory": "Browse by category"
+  },
+  "summary": {
+    "title": "Order Summary",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "tax": "Tax",
+    "taxLabel": "Tax (digital goods)",
+    "total": "Total",
+    "couponCode": "Coupon code",
+    "applyCoupon": "Apply",
+    "applying": "Applying…",
+    "couponInvalid": "This coupon is not valid",
+    "couponPlaceholderAuth": "Discount code",
+    "couponPlaceholderGuest": "Sign in to use a coupon",
+    "couponLabel": "Discount code",
+    "couponSignIn": "Please sign in to apply a coupon.",
+    "couponEnter": "Enter a coupon code.",
+    "couponRemove": "Remove coupon",
+    "discountApplied": "Discount applied:"
+  },
+  "actions": {
+    "remove": "Remove",
+    "removeItem": "Remove item",
+    "removeFromCart": "Remove from cart",
+    "decreaseQty": "Decrease quantity",
+    "increaseQty": "Increase quantity",
+    "checkout": "Checkout",
+    "signInToCheckout": "Sign In to Checkout",
+    "continueShopping": "Continue shopping"
+  },
+  "trust": {
+    "ssl": "SSL encrypted secure checkout",
+    "instant": "Instant digital delivery",
+    "dashboard": "Download from your dashboard"
+  },
+  "item": {
+    "each": "each",
+    "categoryFallback": "Digital"
+  },
+  "itemCount_one": "{{count}} item",
+  "itemCount_other": "{{count}} items"
+}

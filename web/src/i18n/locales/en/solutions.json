@@ -1,0 +1,169 @@
+{
+  "hero": {
+    "eyebrow": "Solutions",
+    "title": "Digital solutions for schools, SMEs, and professionals",
+    "subtitle": "Tailored systems built for your specific market and constraints.",
+    "solutionsShipped": "Solutions Shipped",
+    "activePrograms": "active programs · 4 audiences",
+    "schoolsServed": "schools served",
+    "countriesContinents": "4 countries · 3 continents",
+    "updatedAgo": "Updated 2h ago",
+    "viewFullReport": "View full report",
+    "achieveReal": "Achieve Real Outcomes",
+    "withProductized": "with Productized",
+    "longSubtitle": "Outcome-led programs for schools, SMBs, and independent professionals. Fixed scope, transparent pricing, and documented handover end to end.",
+    "trustCountries": "Trusted across 4 countries",
+    "yearsShipping": "8+ years shipping",
+    "getStartedAria": "Get started: book a free discovery call",
+    "getStarted": "Get Started",
+    "ourSolutions": "Our Solutions",
+    "yoyGrowth": "+18% YoY growth",
+    "liveBadge": "Live",
+    "peakDeliveryIn": "peak delivery in",
+    "peakQuarter": "Q3 2026",
+    "onTrack": "On-Track",
+    "solutionsEyebrow": "Solutions",
+    "solutionsWord": "Solutions",
+    "fiveStarAria": "five star rating"
+  },
+  "pain": {
+    "eyebrow": "The pain",
+    "title": "Does any of this sound like you?",
+    "subtitle": "Eight recurring patterns we see across schools, businesses, and independent professionals.",
+    "items": {
+      "schoolTechHeldTogether": {
+        "quote": "Our school's tech is held together with spreadsheets and goodwill.",
+        "audience": "School director · EDU"
+      },
+      "shipMvpBeforeSeed": {
+        "quote": "I need to ship an MVP before our seed round runs out.",
+        "audience": "Founder · SMB"
+      },
+      "facultyAiNoPolicy": {
+        "quote": "Faculty want to use AI but we have no policy in place.",
+        "audience": "Principal · EDU"
+      },
+      "onlyOneWhoKnows": {
+        "quote": "I am the only one who knows how this system works, and I am tired.",
+        "audience": "IT lead · SMB"
+      },
+      "websiteDoesntReflect": {
+        "quote": "My website does not reflect the level of work I actually do.",
+        "audience": "Independent · IND"
+      },
+      "aiToolsLooseInOrg": {
+        "quote": "We have AI tools loose in the org but no governance, and it is a risk.",
+        "audience": "Director · SMB / EDU"
+      },
+      "saasNobodyUses": {
+        "quote": "Our team pays for SaaS tools nobody actually uses end-to-end.",
+        "audience": "Operations lead · SMB"
+      },
+      "reportsTakeDays": {
+        "quote": "Every report takes days to compile, by hand, every single time.",
+        "audience": "Department head · EDU / SMB"
+      }
+    }
+  },
+  "approach": {
+    "eyebrow": "The approach",
+    "title": "Eight productized programs. One outcome each.",
+    "subtitle": "Each Solution is a fixed-scope bundle of services from the catalog, designed to deliver a specific, measurable outcome on a defined timeline. You do not pick services à la carte and hope they fit; you pick the program that names your problem and ships the result.",
+    "pillars": {
+      "composed": {
+        "title": "Composed",
+        "desc": "Bundled from atomic services"
+      },
+      "timelined": {
+        "title": "Timelined",
+        "desc": "Days, weeks, or months scoped"
+      },
+      "outcomeLed": {
+        "title": "Outcome-led",
+        "desc": "Measured by what you get, not what we do"
+      }
+    }
+  },
+  "beforeAfter": {
+    "badge": "Before · After · Outcomes",
+    "headingLeft": "Transform your",
+    "headingMiddle": "outdated digital presence",
+    "headingRight": "into a polished, conversion-ready system",
+    "body": "Our productized Solutions take your current setup, including a dated brand, manual processes, and scattered tools, and rebuild it into a modern, integrated system that earns trust, drives action, and scales with you.",
+    "ctaPrimary": "Get your custom plan",
+    "ctaSecondary": "See package examples",
+    "trust1": "2–6 week turnaround",
+    "trust2": "Documented handover",
+    "trust3": "No long contracts"
+  },
+  "metrics": {
+    "eyebrow": "The result",
+    "title": "Measurable outcomes, not promises",
+    "subtitle": "What clients actually see after a Solution ships. Production metrics from systems running today.",
+    "items": {
+      "adminTime": "Typical reduction in admin time after automation",
+      "leadGrowth": "Average growth in lead capture (12-month measurement)",
+      "uptime": "Uptime on deployed services in production",
+      "apiResponse": "Average API response time across deployed APIs"
+    }
+  },
+  "shipped": {
+    "eyebrow": "Recently shipped",
+    "title": "Live in production · last 90 days",
+    "subtitle": "Three deployments shipped this quarter. Newer beats bigger when comparing solo delivery to agency cycles.",
+    "liveLabel": "Live",
+    "outcomePrefix": "Outcome:"
+  },
+  "fit": {
+    "eyebrow": "How it fits",
+    "title": "Slots into your stack, not around it",
+    "subtitle": "Every Solution is designed to integrate with what you already run. No rip-and-replace.",
+    "pillars": {
+      "data": {
+        "title": "Where data lives",
+        "desc": "Solutions plug into the stack you already run. No forced migration.",
+        "items": {
+          "googleM365": "Google Workspace · M365",
+          "shopifyWoo": "Shopify · WooCommerce",
+          "payments": "MercadoPago · Stripe · PayPal",
+          "sisLmsCrm": "SIS · LMS · CRM"
+        }
+      },
+      "deploy": {
+        "title": "How it deploys",
+        "desc": "Phased rollouts, parallel-run validation, documented cutover and rollback.",
+        "items": {
+          "stranglerFig": "Strangler-fig migrations",
+          "parallelRun": "Parallel-run validation",
+          "cutoverPlan": "Documented cutover plan",
+          "rollback": "Rollback procedures included"
+        }
+      },
+      "deliverables": {
+        "title": "What you get back",
+        "desc": "An artifact pack you keep, never a black box.",
+        "items": {
+          "adrs": "Architecture Decision Records",
+          "runbooks": "Operational runbooks",
+          "training": "Training & onboarding materials",
+          "support30": "30-day post-launch support"
+        }
+      }
+    }
+  },
+  "cta": {
+    "eyebrow": "Take the first step",
+    "headingPart1": "Talk to a solution architect.",
+    "headingPart2": "Get a custom plan",
+    "headingDot": ".",
+    "body": "30 minutes, no commitment. The call ends with a clear diagnosis and a recommended Solution, whether or not we end up working together.",
+    "ctaPrimary": "Get your custom plan",
+    "ctaSecondary": "Browse services",
+    "stats": {
+      "firstCall": "First call · free",
+      "noCommitment": "No commitment",
+      "customPlanSent": "Custom plan sent",
+      "experience": "Experience"
+    }
+  }
+}

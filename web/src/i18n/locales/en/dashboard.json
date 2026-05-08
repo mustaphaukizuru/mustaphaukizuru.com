@@ -1,0 +1,811 @@
+{
+  "nav": {
+    "overview": "Overview",
+    "products": "My products",
+    "downloads": "Downloads",
+    "orders": "Orders",
+    "consultations": "Consultations",
+    "support": "Support",
+    "wishlist": "Wishlist",
+    "addresses": "Addresses",
+    "twoFactor": "Two-step verification",
+    "profile": "Profile",
+    "projects": "Projects",
+    "serviceOrders": "Service orders"
+  },
+  "stats": {
+    "totalOrders": "Total orders",
+    "totalSpent": "Total spent",
+    "downloads": "Downloads",
+    "savedItems": "Saved items"
+  },
+  "projects": {
+    "errors": {
+      "load": "Could not load your projects.",
+      "loadOne": "Could not load this project.",
+      "notFound": "Project not found."
+    },
+    "metrics": {
+      "total": "Total projects",
+      "active": "Active",
+      "completed": "Completed"
+    },
+    "list": {
+      "title": "Your projects",
+      "subtitle": "Track milestones, deliverables, and timeline for every consulting engagement.",
+      "empty": "No projects yet",
+      "emptyBody": "When you order a consulting service, your project workspace will appear here automatically.",
+      "browseServices": "Browse services"
+    },
+    "card": {
+      "due": "Due {{date}}",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files",
+      "milestones": "Milestones",
+      "open": "Open project"
+    },
+    "detail": {
+      "back": "Back to projects",
+      "started": "Started {{date}}",
+      "due": "Due {{date}}",
+      "lead": "Lead: {{name}}",
+      "progress": "Progress",
+      "timeline": "Timeline",
+      "milestones_one": "{{count}} milestone",
+      "milestones_other": "{{count}} milestones",
+      "noMilestones": "No milestones yet, your project lead will add them as the work begins.",
+      "milestoneDue": "Due {{date}}",
+      "milestoneCompleted": "Completed {{date}}",
+      "deliverables": "Deliverables",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files",
+      "noFiles": "No files shared yet.",
+      "fileFallback": "file"
+    }
+  },
+  "wishlist": {
+    "errors": {
+      "load": "Could not load wishlist.",
+      "remove": "Could not remove from wishlist",
+      "moveCart": "Could not move to cart"
+    },
+    "toast": {
+      "removed": "Removed from wishlist",
+      "movedGeneric": "Moved to cart",
+      "movedNamed": "{{title}} moved to cart"
+    },
+    "intro": {
+      "savedForLater": "Saved for later",
+      "title": "My Wishlist",
+      "subtitleEmpty": "Save products to come back to them later.",
+      "subtitle_one": "{{total}} product saved · {{active}} available for purchase",
+      "subtitle_other": "{{total}} products saved · {{active}} available for purchase",
+      "browseStore": "Browse Store"
+    },
+    "empty": {
+      "title": "Nothing saved yet",
+      "body": "Tap the heart icon on any product to save it to your wishlist for later."
+    },
+    "card": {
+      "unavailable": "Unavailable",
+      "untitled": "Untitled product",
+      "noDescription": "No description available.",
+      "savedOn": "Saved {{date}}",
+      "moveToCart": "Move to Cart",
+      "remove": "Remove from wishlist",
+      "busy": "…"
+    }
+  },
+  "serviceOrders": {
+    "errors": {
+      "load": "Failed to load service orders."
+    },
+    "empty": {
+      "title": "No service orders yet",
+      "body": "When you purchase a consulting service, it'll appear here so you can track milestones and consultations.",
+      "browseServices": "Browse services"
+    },
+    "status": {
+      "new": {
+        "label": "Pending",
+        "desc": "We've received your order. We'll be in touch shortly to schedule the kickoff."
+      },
+      "active": {
+        "label": "In progress",
+        "desc": "Work is underway. Track progress via consultations and project milestones below."
+      },
+      "on_hold": {
+        "label": "On hold",
+        "desc": "Temporarily paused. Please reach out via Support if you have questions."
+      },
+      "completed": {
+        "label": "Completed",
+        "desc": "All deliverables are signed off. Thank you for working with me."
+      },
+      "cancelled": {
+        "label": "Cancelled",
+        "desc": "This service order was cancelled. Contact Support if this is unexpected."
+      }
+    },
+    "card": {
+      "fallbackTitle": "Service order",
+      "package": "Package: {{name}}",
+      "stepperLabel": "Service order progress",
+      "started": "Started",
+      "endTarget": "Target end",
+      "consultations": "Consultations",
+      "milestones": "Milestones",
+      "viewDetails": "View details",
+      "openTicket": "Open ticket"
+    }
+  },
+  "profile": {
+    "fallback": {
+      "memberName": "Member",
+      "role": "member"
+    },
+    "toast": {
+      "profileUpdated": "Profile updated",
+      "profileFailed": "Failed to update",
+      "avatarUpdated": "Avatar updated",
+      "avatarUploadFail": "Upload failed",
+      "avatarRemoved": "Avatar removed",
+      "avatarRemoveFail": "Failed to remove avatar",
+      "passwordChanged": "Password changed successfully",
+      "passwordFailed": "Failed to change password"
+    },
+    "passwordErrors": {
+      "allRequired": "All fields required",
+      "mismatch": "New passwords do not match",
+      "tooShort": "Password must be at least 6 characters"
+    },
+    "card": {
+      "uploadPhoto": "Upload Photo",
+      "removePhoto": "Remove",
+      "memberSince": "Member since",
+      "status": "Status",
+      "active": "Active"
+    },
+    "account": {
+      "title": "Account Information",
+      "subtitle": "Your personal details and account settings.",
+      "edit": "Edit",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "fields": {
+        "fullName": "Full Name",
+        "email": "Email",
+        "role": "Role",
+        "memberSince": "Member Since",
+        "phone": "Phone",
+        "company": "Company",
+        "emailReadOnly": "Email (read-only)"
+      },
+      "placeholders": {
+        "fullName": "Your full name",
+        "phone": "Your phone",
+        "company": "Organization"
+      }
+    },
+    "password": {
+      "title": "Password",
+      "subtitle": "Keep your account secure",
+      "change": "Change Password",
+      "cancel": "Cancel",
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm Password",
+      "submit": "Change Password",
+      "saving": "Changing…"
+    }
+  },
+  "products": {
+    "errors": {
+      "load": "Failed to load products.",
+      "loginRequired": "You must be logged in to download this file.",
+      "downloadFailed": "Download failed.",
+      "downloadUnavailable": "Download not available."
+    },
+    "toast": {
+      "downloadStarted": "Download started: {{filename}}"
+    },
+    "metrics": {
+      "owned": "Products Owned",
+      "ownedSubtitle": "Paid downloadable products",
+      "files": "Files Available",
+      "filesSubtitle": "Across your purchased products",
+      "latest": "Latest Purchase",
+      "latestSubtitle": "Most recent paid access date",
+      "ready": "Ready to Download",
+      "readySubtitle": "Secure member-only access"
+    },
+    "list": {
+      "empty": "No paid downloadable products yet.",
+      "fallbackTitle": "Product",
+      "purchasedOn": "Purchased on {{date}}",
+      "orderNumber": "Order #{{number}}",
+      "paid": "Paid",
+      "availableFiles": "Available Files"
+    },
+    "file": {
+      "version": "Version: v{{value}}",
+      "primary": "Primary file",
+      "additional": "Additional file",
+      "preparing": "Preparing...",
+      "download": "Download"
+    }
+  },
+  "support": {
+    "errors": {
+      "loadTickets": "Failed to load tickets.",
+      "createTicket": "Failed to create ticket.",
+      "sendReply": "Failed to send reply.",
+      "subjectMessageRequired": "Subject and message are required."
+    },
+    "metrics": {
+      "totalTitle": "Total Tickets",
+      "totalSubtitle": "All support requests",
+      "openTitle": "Open",
+      "openSubtitle": "Awaiting response",
+      "resolvedTitle": "Resolved",
+      "resolvedSubtitle": "Closed tickets"
+    },
+    "list": {
+      "title": "Support Tickets",
+      "subtitle": "All your support requests and their current status.",
+      "newTicket": "New Ticket",
+      "ticketNumber": "Ticket #{{number}}",
+      "messages_one": "{{count}} message",
+      "messages_other": "{{count}} messages"
+    },
+    "empty": {
+      "title": "No support tickets yet",
+      "body": "Having an issue? Open a ticket and our team will get back to you.",
+      "openCta": "Open a Ticket"
+    },
+    "create": {
+      "title": "Open Support Ticket",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "Brief description of your issue",
+      "priorityLabel": "Priority",
+      "priorityLow": "Low",
+      "priorityMedium": "Medium",
+      "priorityHigh": "High",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Describe your issue in detail...",
+      "submit": "Submit Ticket",
+      "submitting": "Submitting...",
+      "cancel": "Cancel"
+    },
+    "thread": {
+      "ticketNumberLabel": "Ticket #{{number}}",
+      "noMessages": "No messages yet.",
+      "supportTeam": "Support Team",
+      "you": "You",
+      "replyPlaceholder": "Write your reply...",
+      "send": "Send Reply",
+      "sending": "Sending..."
+    }
+  },
+  "addresses": {
+    "errors": {
+      "load": "Could not load addresses",
+      "delete": "Could not delete address",
+      "setDefault": "Could not set default address",
+      "save": "Could not save address"
+    },
+    "toast": {
+      "defaultUpdated": "Default address updated",
+      "removed": "Address removed",
+      "deleteConfirm": "Delete address \"{{label}}\"? This can't be undone."
+    },
+    "intro": {
+      "savedLocations": "Saved Locations",
+      "title": "My Addresses",
+      "body": "Save addresses for faster checkout. One address can be marked as default.",
+      "addAddress": "Add Address"
+    },
+    "empty": {
+      "title": "No addresses saved",
+      "body": "Add an address to pre-fill it at checkout. First address becomes your default automatically.",
+      "addFirst": "Add your first address"
+    },
+    "section": {
+      "title": "Saved addresses",
+      "savedCount": "{{count}} saved",
+      "defaultSet": "1 default set",
+      "noDefaultSet": "no default set"
+    },
+    "row": {
+      "fallbackLabel": "Address",
+      "default": "Default",
+      "taxIdPrefix": "Tax ID:",
+      "setDefault": "Set default",
+      "edit": "Edit",
+      "deleteAria": "Delete address"
+    },
+    "form": {
+      "titleEdit": "Edit address",
+      "titleAdd": "Add a new address",
+      "subtitleEdit": "Update this saved address.",
+      "subtitleAdd": "Fill in the details, this will be saved for faster checkout.",
+      "labels": {
+        "label": "Label",
+        "fullName": "Full name *",
+        "company": "Company",
+        "line1": "Address line 1 *",
+        "line2": "Address line 2",
+        "city": "City *",
+        "state": "State / Region",
+        "postalCode": "Postal code *",
+        "country": "Country *",
+        "phone": "Phone",
+        "rfc": "RFC (optional)",
+        "taxId": "Tax ID (optional)"
+      },
+      "placeholders": {
+        "label": "e.g. Home, Office",
+        "fullName": "Recipient's full name",
+        "company": "(optional)",
+        "line1": "Street + number",
+        "line2": "Apt, suite, building (optional)",
+        "city": "Ciudad",
+        "state": "Estado / Provincia",
+        "postalCode": "C.P.",
+        "phone": "+52 55 ...",
+        "rfc": "AAAA000000XXX",
+        "taxId": "VAT / EIN / local tax ID"
+      },
+      "rfcHint": "Registro Federal de Contribuyentes. Only needed for facturación (invoicing).",
+      "useAsDefault": "Use this as my default address for checkout",
+      "saveChanges": "Save changes",
+      "addAddress": "Add address",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    }
+  },
+  "orders": {
+    "errors": {
+      "load": "Failed to load order history.",
+      "loginRequired": "You must be logged in.",
+      "invoiceMissing": "Invoice not yet available for this order.",
+      "invoiceFailed": "Invoice download failed ({{status}}).",
+      "downloadGeneric": "Could not download invoice.",
+      "refundFallback": "Could not submit refund request"
+    },
+    "toast": {
+      "refundSubmitted": "Refund request submitted ({{ticket}}). We'll review and reply within 3 business days.",
+      "refundSubmittedTitle": "Request received",
+      "refundErrorTitle": "Could not submit request"
+    },
+    "metrics": {
+      "total": "Total Orders",
+      "totalSubtitle": "All recorded purchases",
+      "paid": "Paid Orders",
+      "paidSubtitle": "Completed successful orders",
+      "pending": "Pending Orders",
+      "pendingSubtitle": "Awaiting completion",
+      "spent": "Total Spent",
+      "spentSubtitle": "Across paid purchases"
+    },
+    "status": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "refunded": "Refunded",
+      "cancelled": "Cancelled",
+      "failed": "Failed",
+      "ariaLabel": "Order {{label}}"
+    },
+    "table": {
+      "title": "All Orders",
+      "subtitle": "Click a column header to sort. Most recent orders appear first by default.",
+      "searchLabel": "Search orders",
+      "searchPlaceholder": "Order # or status…",
+      "clearSearch": "Clear search",
+      "countOf": "{{shown}} of {{total}}",
+      "headers": {
+        "orderNumber": "Order #",
+        "date": "Date",
+        "total": "Total",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "sortAria": "Sort by {{label}} {{direction}}",
+      "sortAsc": "ascending",
+      "sortDesc": "descending",
+      "items_one": "{{count}} item",
+      "items_other": "{{count}} items"
+    },
+    "row": {
+      "viewAria": "View order {{number}}",
+      "view": "View",
+      "viewTitle": "View details",
+      "invoiceAria": "Download invoice for order {{number}}",
+      "invoiceTitle": "Download invoice",
+      "invoice": "Invoice",
+      "invoiceBusy": "…",
+      "refundedTitle": "Funds returned to your original payment method (5–10 business days).",
+      "refundedAria": "Refund processed, funds returned to original payment method",
+      "refunded": "Refunded",
+      "requestRefund": "Request refund",
+      "requestRefundAria": "Request a refund for order {{number}}",
+      "requestRefundTitle": "Eligible within {{days}} days of purchase. Subject to policy review."
+    },
+    "empty": {
+      "title": "No orders yet",
+      "body": "When you complete a purchase, it'll appear here with full status history and downloadable invoices.",
+      "browseStore": "Browse Store",
+      "noMatch": "No orders match your search."
+    },
+    "loading": "Loading orders",
+    "refundModal": {
+      "ariaLabel": "Request a refund",
+      "close": "Close",
+      "title": "Request a refund",
+      "subtitle": "Order #{{number}} · ${{amount}}",
+      "policyHeading": "Before you submit",
+      "policyBody": "Refunds follow our <link>14-day policy</link>. Items already downloaded are not eligible for refund. Our team will review your request within <strong>3 business days</strong> and reply via email + your support inbox.",
+      "policyLinkText": "14-day policy",
+      "reasonLabel": "Reason for refund",
+      "reasonRequired": "(required)",
+      "reasonPlaceholder": "Describe what went wrong. The more context you give, the faster we can review.",
+      "minHint": "Minimum 10 characters.",
+      "cancel": "Cancel",
+      "submit": "Submit request",
+      "submitting": "Submitting…"
+    }
+  },
+  "downloads": {
+    "errors": {
+      "load": "Failed to load downloads.",
+      "loginRequired": "You must be logged in to download.",
+      "downloadFailed": "Download failed.",
+      "downloadUnavailable": "Download not available."
+    },
+    "toast": {
+      "downloadStarted": "Download started: {{filename}}"
+    },
+    "loading": "Loading downloads",
+    "metrics": {
+      "paid": "Paid Orders",
+      "paidSubtitle": "Orders with download access",
+      "files": "Files Available",
+      "filesSubtitle": "Downloadable files across products",
+      "latest": "Latest Access",
+      "latestSubtitle": "Most recent purchase date",
+      "ready": "Ready to Download",
+      "readySubtitle": "Secure member-only access"
+    },
+    "library": {
+      "title": "Your Download Library",
+      "subtitle": "All files available from your paid orders.",
+      "searchLabel": "Search downloads",
+      "searchPlaceholder": "Search files…",
+      "clearSearch": "Clear search",
+      "gridView": "Grid view",
+      "listView": "List view",
+      "refresh": "Refresh",
+      "refreshAria": "Refresh downloads"
+    },
+    "empty": {
+      "title": "No downloads available yet",
+      "body": "Purchase a digital product and it will appear here for secure download access.",
+      "browseStore": "Browse Store",
+      "noProducts": "No products match your search.",
+      "noFiles": "No files match your search."
+    },
+    "card": {
+      "fallbackTitle": "Product",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files",
+      "purchasedOn": "Purchased {{date}}",
+      "orderNumber": "Order #{{number}}"
+    },
+    "file": {
+      "latest": "Latest",
+      "primary": "Primary",
+      "primaryFile": "Primary file",
+      "additional": "Additional",
+      "remaining_one": "{{count}} download left",
+      "remaining_other": "{{count}} downloads left",
+      "downloadAria": "Download {{name}}",
+      "limitReached": "Limit reached",
+      "preparing": "Preparing…",
+      "download": "Download",
+      "paid": "Paid"
+    }
+  },
+  "consultations": {
+    "errors": {
+      "load": "Could not load consultations",
+      "cancel": "Could not cancel",
+      "reschedule": "Could not reschedule"
+    },
+    "toast": {
+      "rescheduledTitle": "Rescheduled",
+      "rescheduleErrTitle": "Reschedule failed"
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "rescheduled": "Rescheduled",
+      "no_show": "No-show"
+    },
+    "metrics": {
+      "upcoming": "Upcoming",
+      "upcomingSubtitle": "Active bookings",
+      "completed": "Completed",
+      "completedSubtitle": "All-time",
+      "total": "Total",
+      "totalSubtitle": "All consultations"
+    },
+    "section": {
+      "upcomingTitle": "Upcoming",
+      "upcomingSubtitle": "Your next scheduled calls. Reschedule or cancel up to 12h before the start time.",
+      "pastTitle": "Past",
+      "pastSubtitle": "Completed, cancelled, or rescheduled bookings.",
+      "bookCall": "Book a call"
+    },
+    "empty": {
+      "title": "No upcoming consultations",
+      "body": "Book a discovery call or service consultation when you're ready.",
+      "bookCall": "Book a call"
+    },
+    "row": {
+      "fallbackService": "Discovery call",
+      "fallbackHost": "Mustapha Ukizuru",
+      "minutesWith": "{{minutes}} minutes · with {{name}}",
+      "notesPrefix": "Notes:",
+      "reasonPrefix": "Reason:",
+      "joinMeeting": "Join meeting",
+      "viewLink": "View link",
+      "reschedule": "Reschedule",
+      "cancel": "Cancel"
+    },
+    "cancelModal": {
+      "eyebrow": "Cancel booking",
+      "title": "Are you sure?",
+      "close": "Close",
+      "reasonLabel": "Reason",
+      "optional": "(optional)",
+      "reasonPlaceholder": "Anything we should know?",
+      "keep": "Keep booking",
+      "confirm": "Cancel booking"
+    },
+    "rescheduleDrawer": {
+      "eyebrow": "Reschedule",
+      "title": "Pick a new time",
+      "currently": "Currently: {{when}}",
+      "close": "Close",
+      "prev": "← Prev",
+      "next": "Next →",
+      "noDays": "No available days this month.",
+      "timesOn": "Times on {{date}}",
+      "noTimes": "No times available."
+    }
+  },
+  "twoFactor": {
+    "errors": {
+      "loadStatus": "Could not load 2FA status",
+      "startSetup": "Could not start 2FA setup",
+      "verifyFailed": "Verification failed",
+      "actionFailed": "Action failed",
+      "passwordRequired": "Password is required"
+    },
+    "toast": {
+      "enabled": "2FA enabled, save your backup codes!",
+      "disabled": "2FA disabled",
+      "regenerated": "New backup codes generated"
+    },
+    "hero": {
+      "eyebrow": "Account Security",
+      "title": "Two-Factor Authentication",
+      "bodyEnabled": "Your account is protected with an extra security layer. You'll need a code from your authenticator app each time you sign in.",
+      "bodyDisabled": "Add an extra layer of security. After password sign-in, you'll need a code from an authenticator app like Google Authenticator or Authy.",
+      "enabledPill": "Enabled",
+      "since": "Since {{date}}"
+    },
+    "disabled": {
+      "title": "Get started",
+      "subtitle": "You'll need an authenticator app on your phone or password manager.",
+      "apps": {
+        "google": {
+          "name": "Google Authenticator",
+          "desc": "iOS · Android"
+        },
+        "authy": {
+          "name": "Authy",
+          "desc": "Multi-device, cloud backup"
+        },
+        "managers": {
+          "name": "1Password / Bitwarden",
+          "desc": "Built-in TOTP support"
+        }
+      },
+      "starting": "Setting up…",
+      "enable": "Enable 2FA"
+    },
+    "stale": {
+      "body": "A 2FA enrollment is in progress but the QR was lost.",
+      "restart": "Restart setup"
+    },
+    "setup": {
+      "title": "Step 1, Scan the QR code",
+      "subtitle": "Use your authenticator app to scan this code, then enter the 6-digit code it generates below.",
+      "qrAlt": "2FA QR code",
+      "qrUnavailable": "QR unavailable",
+      "manualLabel": "Manual entry code",
+      "step2Title": "Step 2, Verify the code",
+      "step2Body": "Enter the 6-digit code your authenticator app shows right now to finish enabling 2FA.",
+      "codeLabel": "6-digit verification code",
+      "verifying": "Verifying…",
+      "verifyEnable": "Verify and Enable 2FA",
+      "cancelSetup": "Cancel setup"
+    },
+    "enabled": {
+      "title": "2FA settings",
+      "subtitle": "Manage your second-factor methods and backup codes.",
+      "backupTitle": "Backup codes",
+      "backupRemaining": "{{remaining}} of {{total}} remaining",
+      "backupUsedSuffix": " · {{used}} already used",
+      "backupLowWarning": "Running low, regenerate to get a fresh batch.",
+      "regenerate": "Regenerate",
+      "disableTitle": "Disable 2FA",
+      "disableBody": "Turn off two-factor authentication. Your backup codes will be deleted.",
+      "disable": "Disable"
+    },
+    "backupModal": {
+      "title": "Save your backup codes",
+      "subtitle": "You won't see these again. Store them somewhere safe, each works once.",
+      "downloadTxt": "Download .txt",
+      "copyAll": "Copy all",
+      "copied": "Copied",
+      "saved": "I've saved them, close",
+      "fileBrand": "Mustapha Ukizuru, Two-Factor Backup Codes",
+      "fileGenerated": "Generated: {{date}}",
+      "fileWarning": "Each code can be used only once. Store them somewhere safe."
+    },
+    "passwordModal": {
+      "disable": {
+        "title": "Disable two-factor authentication",
+        "description": "Enter your password to disable 2FA. Your backup codes will be deleted.",
+        "confirm": "Disable 2FA"
+      },
+      "regenerate": {
+        "title": "Regenerate backup codes",
+        "description": "Enter your password to generate a new set of backup codes. Your previous codes will stop working immediately.",
+        "confirm": "Regenerate codes"
+      },
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Your account password",
+      "close": "Close",
+      "cancel": "Cancel",
+      "working": "Working…"
+    }
+  },
+  "overview": {
+    "errors": {
+      "load": "Failed to load dashboard."
+    },
+    "loading": "Loading dashboard",
+    "adminPreview": {
+      "pill": "Admin preview",
+      "body": "You're viewing the member dashboard as an administrator.",
+      "back": "Back to Admin Panel →"
+    },
+    "welcome": {
+      "eyebrow": "Member Overview",
+      "greeting": "Welcome back, {{name}}",
+      "fallbackName": "Member",
+      "subtitle": "Here's a snapshot of your activity, downloads, and active projects.",
+      "unread": "unread",
+      "browseStore": "Browse store"
+    },
+    "profileWidget": {
+      "title": "Complete your profile",
+      "lead": "Add",
+      "andMore": ", and more",
+      "tail": " to make checkout faster.",
+      "cta": "Complete now",
+      "fields": {
+        "fullName": "Full name",
+        "email": "Email",
+        "avatar": "Avatar",
+        "phone": "Phone",
+        "country": "Country",
+        "bio": "Short bio"
+      }
+    },
+    "kpi": {
+      "orders": "Orders",
+      "ordersSubtitle": "All recorded purchases",
+      "downloads": "Downloads",
+      "downloadsSubtitle": "Files ready to download",
+      "totalSpent": "Total spent",
+      "totalSpentSubtitle_one": "Across {{count}} paid order",
+      "totalSpentSubtitle_other": "Across {{count}} paid orders",
+      "openTickets": "Open tickets",
+      "openTicketsNone": "No active tickets",
+      "openTicketsAwaiting": "Awaiting a response"
+    },
+    "spend": {
+      "title": "Spend Trend",
+      "subtitle": "Last 6 months",
+      "emptyTitle": "No purchases yet",
+      "emptyBody": "Your spending trend will appear after your first paid order.",
+      "chartAria": "6-month spend chart"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "emptyTitle": "No activity yet",
+      "emptyBody": "Orders, downloads, and support actions will appear here.",
+      "orderTitle": "Order #{{number}}",
+      "ticketFallback": "Support ticket"
+    },
+    "activeProjects": {
+      "title": "Active Projects",
+      "inProgress": "{{count}} in progress",
+      "viewAll": "View all",
+      "due": "Due {{date}}",
+      "milestonesShort": "{{done}}/{{total}} milestones"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "unread": "{{count}} unread",
+      "viewAll": "View all",
+      "fallback": "Notification"
+    },
+    "recentOrders": {
+      "title": "Recent Orders",
+      "subtitle": "Latest purchases & status",
+      "viewAll": "View all",
+      "emptyTitle": "No orders yet",
+      "emptyLead": "Browse the store",
+      "emptyTail": " to get started."
+    },
+    "availableDownloads": {
+      "title": "Available Downloads",
+      "subtitle": "Ready to download",
+      "library": "Library",
+      "emptyTitle": "No downloads yet",
+      "emptyBody": "Paid product files will appear here.",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files"
+    },
+    "quickActions": {
+      "browseStore": "Browse store",
+      "viewOrders": "View orders",
+      "editProfile": "Edit profile",
+      "getSupport": "Get support"
+    },
+    "timeAgo": {
+      "justNow": "just now",
+      "minutes": "{{count}}m",
+      "hours": "{{count}}h",
+      "days": "{{count}}d"
+    }
+  },
+  "notifDropdown": {
+    "markAllRead": "Mark all read",
+    "allCaughtUp": "All caught up",
+    "noNotifs": "No notifications yet"
+  },
+  "layout": {
+    "navAria": "Dashboard navigation",
+    "closeMenu": "Close menu",
+    "backToWebsite": "Back to Website",
+    "backWebsiteAria": "Back to website",
+    "skipMain": "Skip to main content",
+    "memberArea": "Member Area",
+    "memberAreaSubtitle": "Your digital product hub",
+    "memberDashboard": "Member Dashboard",
+    "openMenu": "Open menu",
+    "searchDashboard": "Search dashboard",
+    "openSupport": "Open support",
+    "quickNav": "Quick navigation"
+  }
+}

@@ -1,8 +1,31 @@
 import { useEffect, useMemo, useState } from "react"
-import { Download, ArrowDownToLine, PackageOpen, UserRound } from "lucide-react"
+import {
+  Download, ArrowDownToLine, PackageOpen, UserRound,
+} from "lucide-react"
 import { fetchAdminDownloads } from "../services/adminDownloadService"
-import { MetricCard, EmptyState, StatusBadge, SectionCard, SkeletonCard } from "../components/ui/index"
+import { MetricCard } from "../components/ui/index"
+import DataTable from "../components/admin/DataTable"
+import StatusPill from "../components/admin/StatusPill"
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  AdminDownloadsPage · Batch 6B-4
+ *
+ *  Refactored to use shared DataTable + StatusPill primitives.
+ *
+ *  What changed:
+ *    - Bespoke download activity grid replaced with sortable DataTable
+ *    - Search across user name, email, product title, order #
+ *    - Top Products card kept but visually refined to match v3 tokens
+ *    - Order status uses StatusPill
+ *    - All numerics in JetBrains Mono
+ *    - Mojibake "â€¦" / "-" fixed to clean characters
+ *
+ *  Preserved verbatim:
+ *    - fetchAdminDownloads API contract
+ *    - 4-card metrics (total / unique products / unique users / top product)
+ *    - Top Products list (separate card — better as a ranked list than table)
+ *    - "Latest 100 download records" banner copy
+ *  ──────────────────────────────────────────────────────────────────── */
 
 export default function AdminDownloadsPage() {
   const [data, setData] = useState({
@@ -13,57 +36,129 @@ export default function AdminDownloadsPage() {
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState("")
 
-  useEffect(() => {
-    async function loadDownloads() {
-      try {
-        setLoading(true)
-        setErrorMessage("")
-        const result = await fetchAdminDownloads()
-        setData({
-          downloads: Array.isArray(result?.downloads) ? result.downloads : [],
-          topProducts: Array.isArray(result?.topProducts) ? result.topProducts : [],
-          totalDownloads: Number(result?.totalDownloads || 0),
-        })
-      } catch (error) {
-        setErrorMessage(error.message || "Failed to load downloads.")
-      } finally {
-        setLoading(false)
-      }
+  async function loadDownloads() {
+    try {
+      setLoading(true); setErrorMessage("")
+      const result = await fetchAdminDownloads()
+      setData({
+        downloads: Array.isArray(result?.downloads) ? result.downloads : [],
+        topProducts: Array.isArray(result?.topProducts) ? result.topProducts : [],
+        totalDownloads: Number(result?.totalDownloads || 0),
+      })
+    } catch (error) {
+      setErrorMessage(error.message || "Failed to load downloads.")
+    } finally {
+      setLoading(false)
     }
+  }
 
-    loadDownloads()
-  }, [])
+  useEffect(() => { loadDownloads() }, [])
 
-  const uniqueUsers = useMemo(() => {
-    return new Set((data.downloads || []).map((item) => item.user?.id).filter(Boolean)).size
-  }, [data.downloads])
+  const uniqueUsers = useMemo(
+    () => new Set((data.downloads || []).map((item) => item.user?.id).filter(Boolean)).size,
+    [data.downloads]
+  )
 
-  const uniqueProducts = useMemo(() => {
-    return new Set((data.downloads || []).map((item) => item.product?.id).filter(Boolean)).size
-  }, [data.downloads])
+  const uniqueProducts = useMemo(
+    () => new Set((data.downloads || []).map((item) => item.product?.id).filter(Boolean)).size,
+    [data.downloads]
+  )
+
+  const columns = useMemo(() => [
+    {
+      key: "user",
+      label: "User",
+      sortable: true,
+      searchable: true,
+      width: "1.4fr",
+      getValue: (row) => row.user?.fullName || row.user?.email || "",
+      render: (row) => (
+        <div className="min-w-0">
+          <div className="truncate text-meta font-semibold text-violet">
+            {row.user?.fullName || "Unnamed User"}
+          </div>
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+            {row.user?.email || "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "product",
+      label: "Product",
+      sortable: true,
+      searchable: true,
+      width: "1.5fr",
+      getValue: (row) => row.product?.title || "",
+      render: (row) => (
+        <div className="min-w-0">
+          <div className="truncate text-meta font-semibold text-violet">
+            {row.product?.title || "Product"}
+          </div>
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+            /store/{row.product?.slug || "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "order",
+      label: "Order",
+      sortable: true,
+      searchable: true,
+      width: "1.0fr",
+      getValue: (row) => row.order?.orderNumber || row.order?.id || "",
+      render: (row) => (
+        <div className="min-w-0">
+          <div className="truncate font-mono text-meta font-semibold tabular-nums text-violet">
+            {row.order?.orderNumber ? `#${row.order.orderNumber}` : "-"}
+          </div>
+          {row.order?.status && (
+            <div className="mt-0.5">
+              <StatusPill status={row.order.status} />
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "createdAt",
+      label: "When",
+      sortable: true,
+      width: "1.0fr",
+      align: "right",
+      getValue: (row) => row.createdAt || "",
+      render: (row) => (
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
+          {row.createdAt ? new Date(row.createdAt).toLocaleString(undefined, {
+            year: "numeric", month: "short", day: "numeric",
+            hour: "2-digit", minute: "2-digit",
+          }) : "-"}
+        </span>
+      ),
+    },
+  ], [])
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h2 className="text-[18px] font-semibold text-[#420060]">Download Activity</h2>
-          <p className="mt-1 text-[12px] text-[#634F40]/70">
-            Monitor digital delivery, member access, and top downloaded products.
-          </p>
-        </div>
-
-        <div className="rounded-xl bg-[#fbf8fb] px-4 py-2 text-[12px] text-[#634F40]/70">
-          Latest 100 download records
-        </div>
-      </div>
-
-      {errorMessage ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+      {errorMessage && (
+        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
           {errorMessage}
         </div>
-      ) : null}
+      )}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {/* Page intro */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <p className="text-meta text-charcoal-80/70">
+          Monitor digital delivery, member access, and top downloaded products.
+        </p>
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+          Latest 100 download records
+        </span>
+      </div>
+
+      {/* Metrics */}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Total Downloads"
           value={data.totalDownloads}
@@ -94,142 +189,86 @@ export default function AdminDownloadsPage() {
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr]">
-        <div className="overflow-hidden rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_10px_24px_rgba(66,0,96,0.04)] sm:p-5">
+      {/* Two-column: Top products list + Download activity table */}
+      <div className="grid gap-4 xl:grid-cols-[1fr_1.5fr]">
+        {/* Top products card (kept as ranked list, better than table for top-N) */}
+        <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="truncate text-[16px] font-semibold text-[#420060] sm:text-[18px]">Top Downloaded Products</h3>
-              <p className="mt-1 text-[12px] text-[#634F40]/70">
-                Ranked by recorded download count.
-              </p>
+              <h3 className="truncate text-card font-bold text-violet">Top Downloaded Products</h3>
+              <p className="mt-0.5 text-micro text-charcoal-80/65">Ranked by recorded download count.</p>
             </div>
-
-            <div className="shrink-0 rounded-xl bg-[#ede4ef] p-2.5 text-[#420060] sm:p-3">
-              <Download className="h-4 w-4 sm:h-5 sm:w-5" />
+            <div className="shrink-0 rounded-xl bg-violet-pale p-2.5 text-violet">
+              <Download className="h-4 w-4" aria-hidden="true" />
             </div>
           </div>
 
           {loading ? (
-            <div className="mt-5 space-y-3">
+            <div className="mt-4 space-y-2">
               {[1, 2, 3, 4].map((item) => (
-                <div
-                  key={item}
-                  className="h-[72px] animate-pulse rounded-xl border border-[#634F40]/10 bg-[#fbf8fb]"
-                />
+                <div key={item} className="h-[64px] animate-pulse rounded-lg bg-[#f5eff6]/60" />
               ))}
             </div>
           ) : data.topProducts.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-dashed border-[#d9ccd9] bg-[#fbf9fb] px-4 py-6 text-[13px] text-[#634F40]/70">
+            <div className="mt-4 rounded-lg border border-dashed border-charcoal-80/15 bg-[#fafafa] px-4 py-6 text-center text-meta text-charcoal-80/65">
               No download data available yet.
             </div>
           ) : (
-            <div className="mt-5 space-y-3">
-              {data.topProducts.map((item, index) => (
-                <div
-                  key={item.productId || index}
-                  className="flex items-center gap-3 rounded-xl border border-[#634F40]/10 bg-[#fbf8fb] px-3 py-3 sm:px-4 sm:py-4"
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[12px] font-bold text-[#420060]">
-                    {index + 1}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13px] font-semibold text-[#420060] sm:text-[14px]">
-                      {item.title}
+            <div className="mt-4 space-y-2">
+              {data.topProducts.map((item, index) => {
+                const max = Math.max(...data.topProducts.map((p) => p.downloads || 0), 1)
+                const ratio = ((item.downloads || 0) / max) * 100
+                return (
+                  <div
+                    key={item.productId || index}
+                    className="rounded-lg border border-charcoal-80/8 bg-[#fafafa] px-3 py-3 transition hover:border-violet/15 hover:bg-violet-pale/30"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-violet-pale font-mono text-[11px] font-bold text-violet">
+                        {index + 1}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-meta font-semibold text-violet">{item.title}</div>
+                        <div className="mt-0.5 truncate font-mono text-[10px] text-charcoal-80/55">
+                          {item.productId?.slice(0, 12)}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <div className="font-mono text-meta font-bold tabular-nums text-violet">
+                          {item.downloads}
+                        </div>
+                        <div className="text-[10px] text-charcoal-80/55">downloads</div>
+                      </div>
                     </div>
-                    <div className="mt-0.5 truncate text-[11px] text-[#634F40]/65 sm:text-[12px]">
-                      Product ID: {item.productId?.slice(0, 12)}…
+                    {/* Bar */}
+                    <div className="mt-2 h-1 overflow-hidden rounded-full bg-charcoal-80/8">
+                      <div
+                        className="h-full rounded-full bg-violet transition-all duration-500"
+                        style={{ width: `${ratio}%` }}
+                      />
                     </div>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-[16px] font-bold text-[#420060] sm:text-[18px]">{item.downloads}</div>
-                    <div className="text-[10px] text-[#634F40]/60 sm:text-[11px]">downloads</div>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-[#634F40]/10 bg-white p-4 shadow-[0_10px_24px_rgba(66,0,96,0.04)] sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="truncate text-[16px] font-semibold text-[#420060] sm:text-[18px]">Recent Download Activity</h3>
-              <p className="mt-1 text-[12px] text-[#634F40]/70">
-                Latest digital delivery events.
-              </p>
-            </div>
-
-            <div className="shrink-0 rounded-xl bg-[#eef3fb] p-2.5 text-[#2f5ea8] sm:p-3">
-              <ArrowDownToLine className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="mt-5 space-y-3">
-              {[1, 2, 3, 4, 5].map((item) => (
-                <div
-                  key={item}
-                  className="h-[68px] animate-pulse rounded-xl border border-[#634F40]/10 bg-[#fbf8fb]"
-                />
-              ))}
-            </div>
-          ) : data.downloads.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-dashed border-[#d9ccd9] bg-[#fbf9fb] px-4 py-6 text-[13px] text-[#634F40]/70">
-              No recent download activity found.
-            </div>
-          ) : (
-            <div className="mt-5 overflow-hidden rounded-xl border border-[#634F40]/10">
-              <div className="overflow-x-auto">
-                <div className="min-w-[600px]">
-                  <div className="grid grid-cols-[1fr_1fr_0.8fr_1fr] gap-3 border-b border-[#634F40]/10 bg-[#fbf8fb] px-4 py-3 text-[12px] font-semibold text-[#634F40]/75">
-                    <div>User</div>
-                    <div>Product</div>
-                    <div>Order</div>
-                    <div>Date</div>
-                  </div>
-
-              {data.downloads.map((item) => (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-[1fr_1fr_0.8fr_1fr] gap-3 border-b border-[#634F40]/8 px-4 py-4 text-[13px] last:border-b-0"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-[#420060]">
-                      {item.user?.fullName || "Unnamed User"}
-                    </div>
-                    <div className="mt-1 truncate text-[12px] text-[#634F40]/65">
-                      {item.user?.email || "—"}
-                    </div>
-                  </div>
-
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-[#420060]">
-                      {item.product?.title || "Product"}
-                    </div>
-                    <div className="mt-1 truncate text-[12px] text-[#634F40]/65">
-                      {item.product?.slug || "—"}
-                    </div>
-                  </div>
-
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-[#420060]">
-                      {item.order?.orderNumber || item.order?.id || "—"}
-                    </div>
-                    <div className="mt-1 text-[12px] text-[#634F40]/65">
-                      {item.order?.status || "—"}
-                    </div>
-                  </div>
-
-                  <div className="text-[12px] text-[#634F40]/75">
-                    {item.createdAt ? new Date(item.createdAt).toLocaleString() : "—"}
-                  </div>
-                </div>
-              ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Activity DataTable */}
+        <DataTable
+          columns={columns}
+          rows={data.downloads}
+          rowKey={(row) => row.id}
+          loading={loading}
+          onRefresh={loadDownloads}
+          initialSort={{ key: "createdAt", dir: "desc" }}
+          searchPlaceholder="Search user, product, order…"
+          emptyState={{
+            icon: ArrowDownToLine,
+            title: "No download activity",
+            description: "Recent downloads will appear here as members access their files.",
+          }}
+        />
       </div>
     </section>
   )

@@ -1,0 +1,227 @@
+{
+  "hero": {
+    "eyebrow": "Servicios",
+    "title": "Servicios de tecnología que mueven la aguja",
+    "subtitle": "Consultoría IT, desarrollo full-stack, transformación IT escolar y desarrollo de programas STEM.",
+    "compositionAria": "Composición del hero: retrato de cliente satisfecho con tarjetas de estadísticas que muestran 96 servicios entregados y 82+ engagements completados",
+    "happyClientAlt": "Cliente satisfecho de Mustapha Ukizuru",
+    "servicePlan": "Plan de servicio",
+    "nowBooking": "Agendando ahora",
+    "capacityOpen": "Capacidad Q3 abierta",
+    "honestPrice": "Precio honesto",
+    "builtRight": "construido bien",
+    "pricedFair": "precio justo",
+    "deliveredFast": "entrega rápida",
+    "bookCallAria": "Agenda una llamada de descubrimiento de 30 minutos",
+    "bookCallCta": "Agendar llamada",
+    "downloadCatalog": "Descargar catálogo",
+    "atomicServices": "Servicios atómicos",
+    "servicesLabel": "Servicios",
+    "engagements": "Proyectos",
+    "onTimeDelivery": "Entrega a tiempo",
+    "servicesEyebrow": "Servicios",
+    "headlinePremium": "Tecnología premium.",
+    "headlineWebsitesApps": "Sitios web, apps, IA, estrategia TI —"
+  },
+  "sections": {
+    "browseAll": "Ver todos los servicios",
+    "consulting": "Consultoría IT",
+    "websiteSystems": "Sistemas web",
+    "schoolIT": "Transformación IT escolar",
+    "stem": "Programas STEM"
+  },
+  "cta": {
+    "choosePlan": "Elegir plan",
+    "viewDetails": "Ver detalles",
+    "bookConsultation": "Agendar consulta"
+  },
+  "overview": {
+    "eyebrow": "Lo que ofrezco",
+    "title": "Servicios de tecnología",
+    "subtitle": "Servicios especializados diseñados para mejorar sistemas digitales, confiabilidad de infraestructura y estrategia tecnológica."
+  },
+  "value": {
+    "eyebrow": "Valor",
+    "title": "Cómo estos servicios benefician a tu organización",
+    "subtitle": "Mira cómo los sistemas tecnológicos correctos mejoran la productividad, la confiabilidad y la eficiencia operativa.",
+    "toggle": {
+      "with": "Con mis servicios",
+      "without": "Sin mis servicios",
+      "ariaLabel": "Alternar comparación de beneficios"
+    },
+    "footer": "Los resultados varían según el alcance · benchmarks compartidos en la llamada de alcance"
+  },
+  "why": {
+    "eyebrow": "Por qué elegirme",
+    "titlePart1": "Entrega senior en la que puedes",
+    "titlePart2": "confiar de principio a fin"
+  },
+  "social": {
+    "eyebrow": "Prueba social",
+    "title": "Certificado, acreditado, entregando hoy",
+    "subtitle": "Instituciones donde he trabajado y certificaciones activas. Cada afirmación es verificable.",
+    "credentialsAria": "Certificaciones e instituciones",
+    "testimonialQuote": "Una comunicación clara, una planeación cuidadosa y un pensamiento sistémico moderno hicieron que la implementación fluyera sin tropiezos.",
+    "testimonialName": "Theo M.",
+    "testimonialRole": "Líder de operaciones"
+  },
+  "process": {
+    "eyebrow": "Proceso",
+    "title": "Seis pasos del brief a la entrega",
+    "subtitle": "La misma estructura en cada familia de servicios. Solo cambia el contenido."
+  },
+  "pricing": {
+    "eyebrow": "Precios",
+    "title": "Elige tu plan",
+    "subtitle": "Programas adaptados por audiencia. Elige el camino que coincide con tu etapa y luego la profundidad del engagement que se ajuste a tu ambición.",
+    "audienceAria": "Audiencia de precios",
+    "mostPopular": "Más popular",
+    "getStarted": "Empieza aquí",
+    "serviceDetails": "Detalles del servicio",
+    "currency": "MXN",
+    "catalog": {
+      "title": "¿Necesitas el catálogo completo?",
+      "subtitleLeft": "Descarga el catálogo completo con los",
+      "subtitleRight": "servicios, sus resultados, entregables y tipos de engagement.",
+      "pdfLabel": "PDF · 110 KB",
+      "mdLabel": "Markdown · 57 KB"
+    }
+  },
+  "faq": {
+    "eyebrow": "Preguntas frecuentes",
+    "title": "Preguntas comunes antes de la primera llamada",
+    "subtitle": "Busca, filtra por tema o revisa todo el listado. ¿Sigues con dudas? Agenda una consulta gratis de 30 minutos.",
+    "searchPlaceholder": "Buscar…",
+    "searchAria": "Buscar preguntas frecuentes",
+    "filterByTopic": "Filtrar por tema",
+    "filterAria": "Filtrar preguntas por categoría",
+    "countFormat": "{{count}} de {{total}} preguntas",
+    "emptyTitle": "Sin coincidencias",
+    "emptyBody": "Prueba con otra palabra clave o limpia el filtro.",
+    "emptyReset": "Limpiar filtros",
+    "stillHaveQuestions": "¿Todavía tienes dudas?",
+    "stillHaveBody": "Agenda una consulta gratis de 30 minutos y revisamos tu caso específico. Sin compromiso, solo un siguiente paso claro.",
+    "bookConsult": "Agendar consulta"
+  },
+  "finalCta": {
+    "eyebrow": "Da el primer paso",
+    "titlePart1": "Seis familias.",
+    "titlePart2": "Una llamada de descubrimiento para encontrar la tuya.",
+    "body": "30 minutos. Sin compromiso. La llamada te da un siguiente paso claro, trabajemos juntos o no.",
+    "ctaPrimary": "Agenda tu consulta",
+    "ctaSecondary": "Ver soluciones",
+    "stats": {
+      "yearsExperience": "Años de experiencia",
+      "catalogServices": "Servicios en catálogo",
+      "countriesServed": "Países atendidos",
+      "avgResponse": "Respuesta promedio"
+    }
+  },
+  "detail": {
+    "errors": {
+      "notFound": "Servicio no encontrado",
+      "unavailable": "El servicio que buscas ya no está disponible.",
+      "backToServices": "Volver a servicios"
+    },
+    "breadcrumb": {
+      "home": "Inicio",
+      "services": "Servicios"
+    },
+    "hero": {
+      "featured": "Servicio destacado",
+      "packagesLabel": "paquete",
+      "packagesLabelPlural": "paquetes"
+    },
+    "features": {
+      "title": "Qué incluye"
+    },
+    "packages": {
+      "eyebrow": "Precios",
+      "title": "Elige un paquete",
+      "subtitle": "Elige la opción que se ajuste a tu etapa. Puedes cambiar o subir de nivel después.",
+      "mostPopular": "Más popular",
+      "selected": "Seleccionado",
+      "select": "Elegir este paquete"
+    },
+    "order": {
+      "title": "Confirma tu orden",
+      "subtitle": "Cuéntanos sobre tu proyecto. Lo revisamos y te respondemos en un día hábil.",
+      "requirementsLabel": "Requerimientos (opcional)",
+      "requirementsPlaceholder": "Cuéntanos sobre tu proyecto, plazos y cualquier necesidad específica.",
+      "preferredDateLabel": "Fecha de inicio preferida (opcional)",
+      "signinHint": "Te pediremos iniciar sesión antes de confirmar la orden.",
+      "submitButton": "Confirmar orden",
+      "submitting": "Confirmando orden…"
+    },
+    "reviews": {
+      "eyebrow": "Reseñas de clientes",
+      "title": "Lo que dicen los clientes",
+      "subtitle": "Reseñas de proyectos completados con este servicio. Los clientes verificados pueden dejar una reseña desde su panel; las reseñas de no clientes pasan a moderación."
+    },
+    "related": {
+      "eyebrow": "Más por explorar",
+      "title": "Servicios relacionados",
+      "viewAll": "Ver todos"
+    }
+  },
+  "checkout": {
+    "errors": {
+      "notFound": "Plan no encontrado",
+      "notFoundBody": "No reconocimos el plan que elegiste. Selecciona un nivel desde la página de precios.",
+      "backToServices": "Volver a servicios",
+      "backToPlans": "Volver a planes",
+      "planInvalid": "No reconocimos el plan. Elige un nivel desde la página de precios.",
+      "nameRequired": "Ingresa tu nombre.",
+      "emailInvalid": "Ingresa un correo electrónico válido.",
+      "termsRequired": "Acepta los Términos y Condiciones para continuar.",
+      "mpFailed": "No pudimos iniciar el pago con Mercado Pago.",
+      "mpNoUrl": "Mercado Pago no devolvió una URL de pago.",
+      "paypalCancel": "Pago con PayPal cancelado.",
+      "paypalFailed": "El pago con PayPal falló."
+    },
+    "plan": {
+      "mostPopular": "Más popular",
+      "includedTitle": "Qué incluye"
+    },
+    "form": {
+      "title": "Tus datos",
+      "prefilled": "Pre-llenamos esto desde tu cuenta.",
+      "guest": "No necesitas cuenta — la creamos por ti para que accedas a tu panel del proyecto.",
+      "fullName": "Nombre completo",
+      "email": "Correo electrónico",
+      "requirementsLabel": "Requerimientos del proyecto",
+      "requirementsHint": "(opcional · nos ayuda a prepararnos)",
+      "requirementsPlaceholder": "En qué necesitas ayuda, plazos, cualquier cosa que debamos saber de antemano."
+    },
+    "payment": {
+      "title": "Pago",
+      "totalToday": "Total a pagar",
+      "termsAccept": "Acepto los",
+      "terms": "Términos y Condiciones",
+      "and": "y la",
+      "refundPolicy": "Política de Reembolso",
+      "payMP": "Pagar con Mercado Pago",
+      "starting": "Iniciando el pago…",
+      "loadingPayPal": "Cargando PayPal…",
+      "paypalFailed": "El pago con PayPal falló."
+    },
+    "trust": {
+      "secure": "Pago cifrado y seguro",
+      "instant": "Confirmación inmediata por correo",
+      "dashboard": "Espacio del proyecto listo en tu panel"
+    }
+  },
+  "reviews": {
+    "writeTitle": "Comparte tu experiencia",
+    "signIn": "Inicia sesión",
+    "alreadyReviewed": "Ya reseñaste",
+    "yourRating": "Tu calificación",
+    "placeholder": "Resultado, estilo de trabajo, lo que te sorprendió…",
+    "moderationNote": "Las reseñas de clientes con engagements completados se publican de inmediato. El resto pasa por moderación.",
+    "noneYet": "Aún no hay reseñas. Sé el primero en compartir tu experiencia.",
+    "verifiedClient": "Cliente verificado",
+    "deleteTitle": "Eliminar reseña",
+    "awaitingModeration": "En moderación, por ahora solo tú la ves",
+    "replyFrom": "Respuesta de"
+  }
+}

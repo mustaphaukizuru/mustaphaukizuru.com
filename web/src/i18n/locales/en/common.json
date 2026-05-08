@@ -1,0 +1,352 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "solutions": "Solutions",
+    "store": "Store",
+    "portfolio": "Portfolio",
+    "blog": "Blog",
+    "contact": "Contact",
+    "recommendations": "Recommendations"
+  },
+  "button": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "learnMore": "Learn more",
+    "getStarted": "Get started",
+    "bookNow": "Book now",
+    "contactUs": "Contact us",
+    "download": "Download",
+    "addToCart": "Add to cart",
+    "buyNow": "Buy now",
+    "checkout": "Checkout",
+    "exploreServices": "Explore services",
+    "browseStore": "Browse store",
+    "viewAll": "View all",
+    "tryAgain": "Try again",
+    "retry": "Retry"
+  },
+  "form": {
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "phone": "Phone",
+    "message": "Message",
+    "subject": "Subject",
+    "company": "Company",
+    "required": "Required",
+    "optional": "Optional",
+    "search": "Search",
+    "searchPlaceholder": "Search…",
+    "selectAnOption": "Select an option"
+  },
+  "status": {
+    "loading": "Loading…",
+    "success": "Success",
+    "error": "Error",
+    "noData": "No data",
+    "emptyState": "Nothing here yet",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "updating": "Updating…"
+  },
+  "footer": {
+    "tagline": "All rights reserved.",
+    "copyright": "Mustapha Ukizuru ·",
+    "sections": {
+      "services": "Services",
+      "products": "Products",
+      "company": "Company",
+      "resources": "Resources",
+      "legal": "Legal",
+      "follow": "Follow"
+    },
+    "links": {
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "refund": "Refund Policy",
+      "cookies": "Cookies",
+      "sitemap": "Sitemap"
+    },
+    "homeAria": "Mustapha Ukizuru, home",
+    "stayConnected": "Stay connected",
+    "stayConnectedSuffix": "let's stay",
+    "newsletterBody": "Get insights, product updates, and announcements when they drop, about once a month. No spam, ever.",
+    "emailAria": "Email address for newsletter",
+    "emailPlaceholder": "Type your email here…",
+    "quickLinksAria": "Footer quick links",
+    "paymentsAria": "Accepted payment methods",
+    "stayPart": "let's stay",
+    "newsletterBody2": "Get insights, product updates, and announcements when they drop, about once a quarter.",
+    "emailAria2": "Email address for newsletter",
+    "copyrightText": "Mustapha Ukizuru ·",
+    "letApostrophe": "Let’",
+    "connectedHighlight": "connected",
+    "unsubscribeAnytime": "Unsubscribe anytime.",
+    "mercadoPagoAcceptedAlt": "MercadoPago accepted",
+    "paypalAcceptedAlt": "PayPal accepted",
+    "legalAria": "Legal",
+    "stayHeadlineLead": "Let’s stay",
+    "stayHeadlineHighlight": "connected",
+    "navHome": "Home",
+    "navAbout": "About",
+    "navServices": "Services",
+    "navSolutions": "Solutions",
+    "navStore": "Store",
+    "navBlog": "Blog",
+    "navRecs": "Recs",
+    "navContact": "Contact",
+    "legalTerms": "Terms & Conditions",
+    "legalPrivacy": "Privacy Policy",
+    "legalCookies": "Cookie Policy",
+    "legalRefund": "Refund Policy"
+  },
+  "language": {
+    "english": "English",
+    "spanish": "Spanish",
+    "switchTo": "Switch to {{lang}}",
+    "ariaSelector": "Language selector"
+  },
+  "meta": {
+    "siteName": "Mustapha Ukizuru",
+    "siteTagline": "Complexity, simplified."
+  },
+  "unsub": {
+    "title": "You've been unsubscribed",
+    "body": "You won't receive any more newsletter emails from us. If this was a mistake, you can re-subscribe any time from the site footer.",
+    "back": "Back to website",
+    "support": "Contact support",
+    "trailer": "If you continue to receive emails, please email us directly at"
+  },
+  "header": {
+    "siteNav": "Site navigation",
+    "homeAria": "Mustapha Ukizuru, home",
+    "brandName": "Mustapha Ukizuru",
+    "closeMenu": "Close menu",
+    "primaryMobile": "Primary mobile",
+    "openDashboard": "Open dashboard",
+    "signOut": "Sign out",
+    "exploreStore": "Explore Store",
+    "openMenu": "Open menu",
+    "home": "Home",
+    "about": "About",
+    "solutions": "Solutions",
+    "services": "Services",
+    "contact": "Contact",
+    "dashboard": "Dashboard",
+    "myOrders": "My orders",
+    "downloads": "Downloads",
+    "wishlist": "Wishlist",
+    "profile": "Profile",
+    "adminPanel": "Admin Panel",
+    "account": "Account",
+    "searchPlaceholder": "Search products, services…",
+    "primaryAria": "Primary"
+  },
+  "cookies": {
+    "title": "Cookie preferences",
+    "subtitle": "Choose what we may store",
+    "body": "Toggle each category below. Strictly necessary cookies are required for the site to work — these stay on by default.",
+    "closeAria": "Close cookie preferences",
+    "alwaysOn": "Always on",
+    "rejectAll": "Reject all",
+    "acceptAll": "Accept all",
+    "savePrefs": "Save preferences",
+    "consentAria": "Cookie consent",
+    "bannerTitle": "Cookies & your privacy",
+    "bannerBody": "We use strictly necessary cookies to keep this site secure, plus optional analytics cookies if you accept them. You can change this anytime.",
+    "policyLink": "Cookie Policy",
+    "toggleNote": "Toggle each category below. Strictly necessary cookies are required for the site to work — these are always on.",
+    "savePrefs2": "Save preferences",
+    "yourPrivacy": "Cookies & your privacy",
+    "shortBody": "We use strictly necessary cookies to keep this site secure, plus optional analytics. You can change preferences anytime."
+  },
+  "search": {
+    "placeholder": "Type a command or search...",
+    "searchAria": "Search products",
+    "closeAria": "Close search",
+    "searchBy": "Search by",
+    "brandSig": "Mustapha Ukizuru",
+    "startTyping": "Start typing to find products",
+    "navigate": "to navigate ·",
+    "openHint": "to open",
+    "noResults": "No results found",
+    "noMatch": "Nothing matched. Try a different keyword or browse the store directly.",
+    "clear": "Clear search",
+    "errorTitle": "Search couldn't run",
+    "errorBody": "Try again",
+    "placeholder2": "Type a command or search…"
+  },
+  "cart": {
+    "drawer": {
+      "title": "Your cart",
+      "closeAria": "Close cart",
+      "emptyTitle": "Your cart is empty",
+      "emptyBody": "Add a product or service to get started.",
+      "browseStore": "Browse store",
+      "viewFullCart": "View full cart"
+    }
+  },
+  "userMenu": {
+    "memberLogin": "Member Login",
+    "adminPanel": "Admin Panel",
+    "myOrders": "My Orders",
+    "profileSettings": "Profile & Settings"
+  },
+  "offline": {
+    "youreOffline": "You're offline",
+    "featuresHint": "· Some features may not work",
+    "dismissAria": "Dismiss offline banner"
+  },
+  "loading": {
+    "brandAlt": "Mustapha Ukizuru",
+    "skipAria": "Skip the loading splash",
+    "skipLabel": "Skip splash"
+  },
+  "errorBoundary": {
+    "homeAria": "Mustapha Ukizuru, home",
+    "brandAlt": "Mustapha Ukizuru",
+    "title": "Unexpected error",
+    "body": "We hit a snag rendering this view.",
+    "backHome": "Back to home",
+    "devDetail": "Developer detail"
+  },
+  "auth": {
+    "shell": {
+      "skipToForm": "Skip to form",
+      "backHome": "Back to Home",
+      "rights": "Mustapha Ukizuru. All rights reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms & Conditions",
+      "aboutAria": "About Mustapha Ukizuru"
+    },
+    "marketing": {
+      "trustedTitle": "Trusted by three kinds of teams.",
+      "trustedBody": "Independent professionals, growing businesses, and ambitious institutions one partner across all of them.",
+      "geoBody": "Across LATAM, East Africa, the EU, and Türkiye.",
+      "partnerTitle": "One trusted partner.",
+      "partnerBody": "Digital products, expert consulting, and education solutions designed to work together end-to-end.",
+      "deliveryTitle": "Clear, precise, reliably on time.",
+      "deliveryBody": "Most projects turn into long-term partnerships for the same simple reasons: clarity, precision, and on-time delivery.",
+      "testimonial": "Clear, calm, and on time. Mustapha handled the build end to end, including payments and operational launch.",
+      "exploreStore": "Explore the store",
+      "brandAlt": "Mustapha Ukizuru",
+      "brandName": "Mustapha Ukizuru",
+      "studioName": "Technology Studio",
+      "studioRole": "Consulting & Education",
+      "slidesAria": "Marketing slides",
+      "trustedBody2": "Independent professionals, growing businesses, and ambitious institutions one partner across all of them.",
+      "partnerBody2": "Digital products, expert consulting, and education solutions designed to work together.",
+      "deliveryBody2": "Most projects turn into long-term partnerships for the same simple reasons: clarity, precision, and on-time delivery.",
+      "testimonial2": "Clear, calm, and on time Mustapha handled the build end to end, including payments and operational launch.",
+      "testimonialQuote": "“Clear, calm, and on time Mustapha handled the build end to end, including payments and design, without missing a beat.”",
+      "testimonialFigcaption": "Founder, EdTech startup · México",
+      "owasp": "OWASP-aligned · encrypted",
+      "langs": "EN · ES · TR · KIN",
+      "pillarsHeadline1": "Three services.",
+      "pillarsServiceProductsTitle": "Digital Products",
+      "pillarsServiceProductsBody": "Templates, dashboards, and assets ready to ship.",
+      "pillarsServiceConsultingTitle": "Technology Consulting",
+      "pillarsServiceConsultingBody": "Architecture, audits, and hands-on builds.",
+      "pillarsServiceStemTitle": "STEM & School Solutions",
+      "pillarsServiceStemBody": "Curricula, labs, and tooling for educators.",
+      "audienceProsLabel": "Professionals",
+      "audienceProsNote": "Founders · Engineers · Designers",
+      "audienceInstitutionsLabel": "Institutions",
+      "audienceInstitutionsNote": "Schools · NGOs · Universities",
+      "audienceSmesLabel": "SMEs",
+      "audienceSmesNote": "Small & medium businesses",
+      "donutTotal": "Total",
+      "donutSince": "since 2021"
+    },
+    "preview": {
+      "salesRevenue": "Sales Revenue",
+      "revenueTrending": "Revenue trending up",
+      "salesTargets": "Sales Targets",
+      "closedWon": "Closed Won by Type",
+      "closedWonGrew": "Closed won grew",
+      "segmentation": "Customer Segmentation",
+      "smallBusiness": "Small Business",
+      "conversion": "Conversion Rates",
+      "completion": "Task Completion"
+    },
+    "twofa": {
+      "tipPaste": "Tip: paste your full 6-digit code in any box.",
+      "backupCode": "Backup code",
+      "backupOnce": "Each backup code works only once. Mark it used and store the rest somewhere safe.",
+      "useDifferent": "Use a different account"
+    },
+    "brand": {
+      "backHome": "Back to Home",
+      "name": "Mustapha Ukizuru",
+      "title": "Technology Consultant",
+      "rights": "Mustapha Ukizuru · mustaphaukizuru.com · All rights reserved."
+    }
+  },
+  "ui": {
+    "pagination": {
+      "first": "First page",
+      "previous": "Previous page",
+      "next": "Next page",
+      "last": "Last page"
+    },
+    "skeleton": {
+      "loadingText": "Loading text",
+      "loadingRow": "Loading row",
+      "loadingMetric": "Loading metric",
+      "loadingTable": "Loading table"
+    },
+    "ai": {
+      "attachFile": "Attach a file",
+      "sendShortcut": "Cmd/Ctrl + ↵ to send",
+      "stopGenerating": "Stop generating"
+    },
+    "compare": {
+      "trayAria": "Product comparison tray",
+      "clearAria": "Clear comparison",
+      "clearAll": "Clear all",
+      "viewComparison": "View comparison"
+    },
+    "pricing": {
+      "mostPopular": "Most Popular",
+      "getStarted": "Get Started"
+    }
+  },
+  "system": {
+    "closePanel": "Close panel",
+    "dismissNotif": "Dismiss notification",
+    "closeDialog": "Close dialog",
+    "closeNotif": "Close notification",
+    "scrollTop": "Scroll to top",
+    "clearSearch": "Clear search",
+    "preview": "Preview unavailable"
+  },
+  "components": {
+    "visitSite": "Visit Site",
+    "clearHistory": "Clear history",
+    "spokenLanguages": "Levels follow the Common European Framework of Reference for Languages (CEFR).",
+    "learnMore": "Learn more",
+    "mostPopular": "Most popular"
+  },
+  "bookingCalendar": {
+    "stepDate": "Date",
+    "stepTime": "Time",
+    "stepConfirm": "Confirm",
+    "hNotice": "h notice and can be made up to",
+    "bookingShort": "Booking",
+    "bookingEllipsis": "Booking…",
+    "checkingAvailability": "Checking availability…",
+    "minutesLong": "minutes long.",
+    "minutes": "minutes",
+    "optionalTag": "(optional)",
+    "confirmBooking": "Confirm booking"
+  }
+}

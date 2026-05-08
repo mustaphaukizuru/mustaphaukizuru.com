@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const logger = require("../utils/logger")
 
 /**
  * Create an in-app notification for a user.
@@ -11,7 +12,7 @@ async function notify(userId, { type, title, message, linkUrl }) {
       data: { userId, type, title, message, linkUrl: linkUrl || null },
     })
   } catch (err) {
-    console.error("[notify]", err.message)
+    logger.error("[notify]", err.message)
     return null
   }
 }

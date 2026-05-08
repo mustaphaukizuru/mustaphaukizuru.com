@@ -1,0 +1,352 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "about": "Acerca de",
+    "services": "Servicios",
+    "solutions": "Soluciones",
+    "store": "Tienda",
+    "portfolio": "Portafolio",
+    "blog": "Blog",
+    "contact": "Contacto",
+    "recommendations": "Recomendaciones"
+  },
+  "button": {
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "continue": "Continuar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "close": "Cerrar",
+    "learnMore": "Saber más",
+    "getStarted": "Comenzar",
+    "bookNow": "Reservar ahora",
+    "contactUs": "Contáctanos",
+    "download": "Descargar",
+    "addToCart": "Agregar al carrito",
+    "buyNow": "Comprar ahora",
+    "checkout": "Finalizar compra",
+    "exploreServices": "Explorar servicios",
+    "browseStore": "Ir a la tienda",
+    "viewAll": "Ver todo",
+    "tryAgain": "Intentar de nuevo",
+    "retry": "Reintentar"
+  },
+  "form": {
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "phone": "Teléfono",
+    "message": "Mensaje",
+    "subject": "Asunto",
+    "company": "Empresa",
+    "required": "Obligatorio",
+    "optional": "Opcional",
+    "search": "Buscar",
+    "searchPlaceholder": "Buscar…",
+    "selectAnOption": "Selecciona una opción"
+  },
+  "status": {
+    "loading": "Cargando…",
+    "success": "Listo",
+    "error": "Error",
+    "noData": "Sin datos",
+    "emptyState": "Aún no hay nada aquí",
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "updating": "Actualizando…"
+  },
+  "footer": {
+    "tagline": "Todos los derechos reservados.",
+    "copyright": "Mustapha Ukizuru ·",
+    "sections": {
+      "services": "Servicios",
+      "products": "Productos",
+      "company": "Empresa",
+      "resources": "Recursos",
+      "legal": "Legal",
+      "follow": "Sigue"
+    },
+    "links": {
+      "terms": "Términos",
+      "privacy": "Privacidad",
+      "refund": "Política de reembolso",
+      "cookies": "Cookies",
+      "sitemap": "Mapa del sitio"
+    },
+    "homeAria": "Mustapha Ukizuru, inicio",
+    "stayConnected": "Mantente conectado",
+    "stayConnectedSuffix": "estemos en contacto",
+    "newsletterBody": "Recibe insights, actualizaciones de productos y anuncios cuando lanzo algo, aprox. una vez al mes. Sin spam.",
+    "emailAria": "Correo electrónico para el newsletter",
+    "emailPlaceholder": "Escribe tu correo aquí…",
+    "quickLinksAria": "Enlaces rápidos del pie de página",
+    "paymentsAria": "Métodos de pago aceptados",
+    "stayPart": "estemos en contacto",
+    "newsletterBody2": "Recibe insights, actualizaciones de producto y anuncios cuando salgan, aprox. una vez por trimestre.",
+    "emailAria2": "Correo electrónico para el newsletter",
+    "copyrightText": "Mustapha Ukizuru ·",
+    "letApostrophe": "Mante",
+    "connectedHighlight": "conectados",
+    "unsubscribeAnytime": "Cancela cuando quieras.",
+    "mercadoPagoAcceptedAlt": "MercadoPago aceptado",
+    "paypalAcceptedAlt": "PayPal aceptado",
+    "legalAria": "Legales",
+    "stayHeadlineLead": "Mantente",
+    "stayHeadlineHighlight": "conectado",
+    "navHome": "Inicio",
+    "navAbout": "Acerca",
+    "navServices": "Servicios",
+    "navSolutions": "Soluciones",
+    "navStore": "Tienda",
+    "navBlog": "Blog",
+    "navRecs": "Recomendaciones",
+    "navContact": "Contacto",
+    "legalTerms": "Términos y condiciones",
+    "legalPrivacy": "Política de privacidad",
+    "legalCookies": "Política de cookies",
+    "legalRefund": "Política de reembolsos"
+  },
+  "language": {
+    "english": "Inglés",
+    "spanish": "Español",
+    "switchTo": "Cambiar a {{lang}}",
+    "ariaSelector": "Selector de idioma"
+  },
+  "meta": {
+    "siteName": "Mustapha Ukizuru",
+    "siteTagline": "Complejidad, simplificada."
+  },
+  "unsub": {
+    "title": "Te diste de baja correctamente",
+    "body": "Ya no recibirás más correos del newsletter. Si fue un error, puedes volver a suscribirte cuando quieras desde el pie de página del sitio.",
+    "back": "Volver al sitio",
+    "support": "Contactar a soporte",
+    "trailer": "Si sigues recibiendo correos, escríbenos directamente a"
+  },
+  "header": {
+    "siteNav": "Navegación del sitio",
+    "homeAria": "Mustapha Ukizuru, inicio",
+    "brandName": "Mustapha Ukizuru",
+    "closeMenu": "Cerrar menú",
+    "primaryMobile": "Móvil principal",
+    "openDashboard": "Abrir panel",
+    "signOut": "Cerrar sesión",
+    "exploreStore": "Ver tienda",
+    "openMenu": "Abrir menú",
+    "home": "Inicio",
+    "about": "Acerca",
+    "solutions": "Soluciones",
+    "services": "Servicios",
+    "contact": "Contacto",
+    "dashboard": "Panel",
+    "myOrders": "Mis pedidos",
+    "downloads": "Descargas",
+    "wishlist": "Favoritos",
+    "profile": "Perfil",
+    "adminPanel": "Panel admin",
+    "account": "Cuenta",
+    "searchPlaceholder": "Buscar productos, servicios…",
+    "primaryAria": "Principal"
+  },
+  "cookies": {
+    "title": "Preferencias de cookies",
+    "subtitle": "Elige qué podemos guardar",
+    "body": "Activa o desactiva cada categoría. Las cookies estrictamente necesarias son obligatorias para el funcionamiento del sitio — siempre están activas.",
+    "closeAria": "Cerrar preferencias de cookies",
+    "alwaysOn": "Siempre activas",
+    "rejectAll": "Rechazar todas",
+    "acceptAll": "Aceptar todas",
+    "savePrefs": "Guardar preferencias",
+    "consentAria": "Consentimiento de cookies",
+    "bannerTitle": "Cookies y tu privacidad",
+    "bannerBody": "Usamos cookies estrictamente necesarias para mantener el sitio seguro y cookies opcionales de analítica si las aceptas. Puedes cambiarlo cuando quieras.",
+    "policyLink": "Política de cookies",
+    "toggleNote": "Activa o desactiva cada categoría. Las cookies estrictamente necesarias son obligatorias para el funcionamiento del sitio — siempre están activas.",
+    "savePrefs2": "Guardar preferencias",
+    "yourPrivacy": "Cookies y tu privacidad",
+    "shortBody": "Usamos cookies estrictamente necesarias para mantener el sitio seguro, además de analíticas opcionales. Puedes cambiar tus preferencias en cualquier momento."
+  },
+  "search": {
+    "placeholder": "Escribe un comando o busca...",
+    "searchAria": "Buscar productos",
+    "closeAria": "Cerrar búsqueda",
+    "searchBy": "Buscado por",
+    "brandSig": "Mustapha Ukizuru",
+    "startTyping": "Escribe para encontrar productos",
+    "navigate": "para navegar ·",
+    "openHint": "para abrir",
+    "noResults": "Sin resultados",
+    "noMatch": "Nada coincide. Prueba con otra palabra clave o explora la tienda directamente.",
+    "clear": "Limpiar búsqueda",
+    "errorTitle": "La búsqueda no pudo ejecutarse",
+    "errorBody": "Inténtalo de nuevo",
+    "placeholder2": "Escribe un comando o busca…"
+  },
+  "cart": {
+    "drawer": {
+      "title": "Tu carrito",
+      "closeAria": "Cerrar carrito",
+      "emptyTitle": "Tu carrito está vacío",
+      "emptyBody": "Agrega un producto o servicio para empezar.",
+      "browseStore": "Ver tienda",
+      "viewFullCart": "Ver carrito completo"
+    }
+  },
+  "userMenu": {
+    "memberLogin": "Acceso de miembro",
+    "adminPanel": "Panel de administración",
+    "myOrders": "Mis pedidos",
+    "profileSettings": "Perfil y ajustes"
+  },
+  "offline": {
+    "youreOffline": "Estás sin conexión",
+    "featuresHint": "· Algunas funciones pueden no estar disponibles",
+    "dismissAria": "Cerrar aviso sin conexión"
+  },
+  "loading": {
+    "brandAlt": "Mustapha Ukizuru",
+    "skipAria": "Saltar la pantalla de carga",
+    "skipLabel": "Saltar"
+  },
+  "errorBoundary": {
+    "homeAria": "Mustapha Ukizuru, inicio",
+    "brandAlt": "Mustapha Ukizuru",
+    "title": "Error inesperado",
+    "body": "Tuvimos un problema renderizando esta vista.",
+    "backHome": "Volver al inicio",
+    "devDetail": "Detalle del desarrollador"
+  },
+  "auth": {
+    "shell": {
+      "skipToForm": "Saltar al formulario",
+      "backHome": "Volver al inicio",
+      "rights": "Mustapha Ukizuru. Todos los derechos reservados.",
+      "privacy": "Política de privacidad",
+      "terms": "Términos y condiciones",
+      "aboutAria": "Sobre Mustapha Ukizuru"
+    },
+    "marketing": {
+      "trustedTitle": "La confianza de tres tipos de equipos.",
+      "trustedBody": "Profesionales independientes, empresas en crecimiento e instituciones ambiciosas — un solo aliado para todos.",
+      "geoBody": "En LATAM, África Oriental, la UE y Turquía.",
+      "partnerTitle": "Un aliado de confianza.",
+      "partnerBody": "Productos digitales, consultoría experta y soluciones educativas diseñadas para trabajar de extremo a extremo.",
+      "deliveryTitle": "Claro, preciso, siempre a tiempo.",
+      "deliveryBody": "La mayoría de los proyectos se vuelven alianzas a largo plazo por razones simples: claridad, precisión y entregas a tiempo.",
+      "testimonial": "Claro, calmado y a tiempo. Mustapha llevó el build de extremo a extremo, incluyendo pagos y lanzamiento operativo.",
+      "exploreStore": "Ver la tienda",
+      "brandAlt": "Mustapha Ukizuru",
+      "brandName": "Mustapha Ukizuru",
+      "studioName": "Estudio de tecnología",
+      "studioRole": "Consultoría y educación",
+      "slidesAria": "Diapositivas de marketing",
+      "trustedBody2": "Profesionales independientes, empresas en crecimiento e instituciones ambiciosas — un solo aliado para todos.",
+      "partnerBody2": "Productos digitales, consultoría experta y soluciones educativas diseñadas para trabajar juntas.",
+      "deliveryBody2": "La mayoría de los proyectos se vuelven alianzas a largo plazo por razones simples: claridad, precisión y entregas a tiempo.",
+      "testimonial2": "Claro, calmado y a tiempo. Mustapha llevó el build de extremo a extremo, incluyendo pagos y lanzamiento operativo.",
+      "testimonialQuote": "“Claro, tranquilo y a tiempo: Mustapha llevó el desarrollo de principio a fin, incluyendo pagos y diseño, sin saltarse un paso.”",
+      "testimonialFigcaption": "Fundador, startup EdTech · México",
+      "owasp": "Alineado con OWASP · cifrado",
+      "langs": "EN · ES · TR · KIN",
+      "pillarsHeadline1": "Tres servicios.",
+      "pillarsServiceProductsTitle": "Productos digitales",
+      "pillarsServiceProductsBody": "Plantillas, dashboards y recursos listos para lanzar.",
+      "pillarsServiceConsultingTitle": "Consultoría tecnológica",
+      "pillarsServiceConsultingBody": "Arquitectura, auditorías y desarrollo a tu lado.",
+      "pillarsServiceStemTitle": "Soluciones STEM y escolares",
+      "pillarsServiceStemBody": "Currículums, laboratorios y herramientas para docentes.",
+      "audienceProsLabel": "Profesionales",
+      "audienceProsNote": "Fundadores · Ingenieros · Diseñadores",
+      "audienceInstitutionsLabel": "Instituciones",
+      "audienceInstitutionsNote": "Escuelas · ONG · Universidades",
+      "audienceSmesLabel": "PyMEs",
+      "audienceSmesNote": "Pequeñas y medianas empresas",
+      "donutTotal": "Total",
+      "donutSince": "desde 2021"
+    },
+    "preview": {
+      "salesRevenue": "Ingresos por ventas",
+      "revenueTrending": "Ingresos al alza",
+      "salesTargets": "Metas de ventas",
+      "closedWon": "Cerrados ganados por tipo",
+      "closedWonGrew": "Los cerrados ganados crecieron",
+      "segmentation": "Segmentación de clientes",
+      "smallBusiness": "Pequeña empresa",
+      "conversion": "Tasas de conversión",
+      "completion": "Cumplimiento de tareas"
+    },
+    "twofa": {
+      "tipPaste": "Tip: pega tu código completo de 6 dígitos en cualquier casilla.",
+      "backupCode": "Código de respaldo",
+      "backupOnce": "Cada código de respaldo funciona solo una vez. Marca el usado y guarda el resto en un lugar seguro.",
+      "useDifferent": "Usar otra cuenta"
+    },
+    "brand": {
+      "backHome": "Volver al inicio",
+      "name": "Mustapha Ukizuru",
+      "title": "Consultor en Tecnología",
+      "rights": "Mustapha Ukizuru · mustaphaukizuru.com · Todos los derechos reservados."
+    }
+  },
+  "ui": {
+    "pagination": {
+      "first": "Primera página",
+      "previous": "Página anterior",
+      "next": "Página siguiente",
+      "last": "Última página"
+    },
+    "skeleton": {
+      "loadingText": "Cargando texto",
+      "loadingRow": "Cargando fila",
+      "loadingMetric": "Cargando métrica",
+      "loadingTable": "Cargando tabla"
+    },
+    "ai": {
+      "attachFile": "Adjuntar archivo",
+      "sendShortcut": "Cmd/Ctrl + ↵ para enviar",
+      "stopGenerating": "Detener generación"
+    },
+    "compare": {
+      "trayAria": "Bandeja de comparación de productos",
+      "clearAria": "Limpiar comparación",
+      "clearAll": "Limpiar todo",
+      "viewComparison": "Ver comparación"
+    },
+    "pricing": {
+      "mostPopular": "Más popular",
+      "getStarted": "Comenzar"
+    }
+  },
+  "system": {
+    "closePanel": "Cerrar panel",
+    "dismissNotif": "Cerrar notificación",
+    "closeDialog": "Cerrar diálogo",
+    "closeNotif": "Cerrar notificación",
+    "scrollTop": "Subir al inicio",
+    "clearSearch": "Limpiar búsqueda",
+    "preview": "Vista previa no disponible"
+  },
+  "components": {
+    "visitSite": "Visitar sitio",
+    "clearHistory": "Limpiar historial",
+    "spokenLanguages": "Los niveles siguen el Marco Común Europeo de Referencia para las Lenguas (MCER).",
+    "learnMore": "Saber más",
+    "mostPopular": "Más popular"
+  },
+  "bookingCalendar": {
+    "stepDate": "Fecha",
+    "stepTime": "Hora",
+    "stepConfirm": "Confirmar",
+    "hNotice": "h de aviso y se puede hacer hasta",
+    "bookingShort": "Reservar",
+    "bookingEllipsis": "Reservando…",
+    "checkingAvailability": "Verificando disponibilidad…",
+    "minutesLong": "minutos.",
+    "minutes": "minutos",
+    "optionalTag": "(opcional)",
+    "confirmBooking": "Confirmar reserva"
+  }
+}

@@ -13,8 +13,8 @@ export const siteConfig = {
     "Technology consulting, digital products, website systems, school IT transformation, and STEM education solutions for businesses, professionals, and educational institutions.",
   siteUrl: SITE_URL,
   locale: "en_US",
-  themeColor: "#420060",
-  backgroundColor: "#F7F9F4",
+  themeColor: "#5D3FD3",
+  backgroundColor: "#F8FAFC",
   contactEmail: "hello@mustaphaukizuru.com",
   social: {
     linkedin: "https://www.linkedin.com/in/mustaphaukizuru/",
@@ -71,4 +71,84 @@ export function trimText(value = "", maxLength = 160) {
   const normalized = stripHtml(value);
   if (normalized.length <= maxLength) return normalized;
   return `${normalized.slice(0, maxLength - 1).trim()}…`;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SEO08 · Local SEO — LocalBusiness schema (Tlalnepantla, Estado de México, MX)
+   Used by Seo.jsx on home / about / contact / services pages.
+   ───────────────────────────────────────────────────────────────────────────── */
+export const LOCAL_BUSINESS_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": `${SITE_URL}/#localbusiness`,
+  name: "Mustapha Ukizuru, Technology Consulting",
+  url: SITE_URL,
+  email: "hello@mustaphaukizuru.com",
+  image: `${SITE_URL}/og/og-default.png`,
+  logo: `${SITE_URL}/web-app-manifest-512x512.png`,
+  priceRange: "$$",
+  areaServed: ["MX", "US", "RW", "TR", "Worldwide"],
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Tlalnepantla de Baz",
+    addressRegion: "Estado de México",
+    postalCode: "54080",
+    addressCountry: "MX",
+  },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 19.5419,
+    longitude: -99.1957,
+  },
+  sameAs: [
+    "https://www.linkedin.com/in/mustaphaukizuru/",
+    "https://github.com/mustaphaukizuru",
+    "https://t.me/mustaphaukizuru",
+    "https://www.instagram.com/mustaphaukizuru/",
+  ],
+};
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SEO02 · Auto-build BreadcrumbList from a pathname
+   E.g. /store/products/great-product → Home › Store › Products › Great Product
+   ───────────────────────────────────────────────────────────────────────────── */
+export function buildBreadcrumbList(pathname = "/", overrides = {}) {
+  const safe = String(pathname || "/").split("?")[0].split("#")[0];
+  if (!safe || safe === "/") return null;
+
+  const segments = safe.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+  if (segments.length === 0) return null;
+
+  const items = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: SITE_URL + "/",
+    },
+  ];
+
+  let acc = "";
+  segments.forEach((seg, idx) => {
+    acc += "/" + seg;
+    const overrideName = overrides[acc];
+    const name =
+      overrideName ||
+      decodeURIComponent(seg)
+        .replace(/[-_]/g, " ")
+        .replace(/\b\w/g, (m) => m.toUpperCase());
+
+    items.push({
+      "@type": "ListItem",
+      position: idx + 2,
+      name,
+      item: SITE_URL + acc,
+    });
+  });
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items,
+  };
 }

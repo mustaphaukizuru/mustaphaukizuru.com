@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Mustapha Ukizuru — Service Catalog v1.0</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <link rel="stylesheet" href="data:text/css,body{font-family:Sora,system-ui,sans-serif;max-width:880px;margin:40px auto;padding:0 24px;color:%231a1b23;line-height:1.6}h1,h2,h3,h4{color:%235D3FD3;line-height:1.25;margin-top:2em}h1{font-size:2em;border-bottom:3px solid %235D3FD3;padding-bottom:.3em}h2{font-size:1.5em;border-bottom:1px solid %23dcdce4;padding-bottom:.2em}table{border-collapse:collapse;width:100%25;margin:1em 0;font-size:.92em}th,td{border:1px solid %23dcdce4;padding:8px 12px;text-align:left}th{background:%23ede9fe;color:%235D3FD3}code{background:%23eff1f5;padding:2px 6px;border-radius:3px;font-family:ui-monospace,monospace}strong{color:%231a1b23}hr{border:none;border-top:1px solid %23dcdce4;margin:2em 0}@media print{body{max-width:none;margin:0;padding:24px}}" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Mustapha Ukizuru — Service Catalog v1.0</h1>
+</header>
+<h1 id="mustapha-ukizuru-service-catalog">Mustapha Ukizuru — Service Catalog</h1>
+<p><strong>Brand:</strong> Technology Consulting · Digital Products · STEM and School Solutions <strong>Owner:</strong> Mustapha Ukizuru <strong>Domain:</strong> mustaphaukizuru.com <strong>Version:</strong> 1.0 <strong>Effective Date:</strong> 29 April 2026 <strong>Review Cycle:</strong> Quarterly <strong>Status:</strong> Production-ready</p>
+<hr />
+<h2 id="part-i-governance">PART I — GOVERNANCE</h2>
+<h3 id="catalog-scope-and-purpose">1. Catalog Scope and Purpose</h3>
+<p>This catalog defines the complete set of professional services offered under the Mustapha Ukizuru brand. It is the single source of truth for what is sold, how it is sold, who it is sold to, and how it is delivered. The catalog supports four operational uses: customer-facing marketing on mustaphaukizuru.com, sales conversations and proposals, internal delivery planning and pricing, and quarterly portfolio governance.</p>
+<h3 id="catalog-architecture">2. Catalog Architecture</h3>
+<p>The catalog is organized in four layers, top-down:</p>
+<ul>
+<li><strong>Source</strong> — the brand and capability stack: Mustapha Ukizuru.</li>
+<li><strong>Categories</strong> — six top-level service families.</li>
+<li><strong>Services</strong> — atomic SKUs within each category, each independently sellable.</li>
+<li><strong>Deliverables</strong> — the specific outputs produced within each service.</li>
+</ul>
+<p>Solutions (multi-service bundled engagements with a single all-in price) are composed from atomic services and documented separately in Part IV.</p>
+<h3 id="naming-conventions">3. Naming Conventions</h3>
+<p><strong>Service identifier schema:</strong> <code>UKZ-{CC}-{NNN}</code></p>
+<ul>
+<li><code>UKZ</code> — brand prefix (Mustapha Ukizuru)</li>
+<li><code>CC</code> — two-letter category code</li>
+<li><code>NNN</code> — three-digit sequential service number within category</li>
+</ul>
+<p><strong>Category codes:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Code</th>
+<th>Category</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CS</td>
+<td>IT Consulting and Strategy</td>
+</tr>
+<tr class="even">
+<td>BD</td>
+<td>Brand and Digital Presence</td>
+</tr>
+<tr class="odd">
+<td>IC</td>
+<td>IT Infrastructure and Cloud</td>
+</tr>
+<tr class="even">
+<td>WD</td>
+<td>Web, Application and AI Development</td>
+</tr>
+<tr class="odd">
+<td>ET</td>
+<td>EdTech Implementation and Training</td>
+</tr>
+<tr class="even">
+<td>MS</td>
+<td>Managed Services and Support</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Service name pattern:</strong> <code>{Noun phrase} + {format suffix}</code> (for example, <em>Technology Assessment and Audit</em>, <em>Custom Web Application Build</em>, <em>Fractional CTO Retainer</em>). Format suffixes telegraph the consumption mode in two seconds.</p>
+<p><strong>Approved format suffixes:</strong> Audit, Assessment, Sprint, Build, Workshop, Cohort, Program, Retainer, Service, Implementation, Setup, Rollout, Migration, Engagement, Pack, Toolkit.</p>
+<h3 id="metadata-schema">4. Metadata Schema</h3>
+<p>Every service record contains the following fields:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ID</td>
+<td>UKZ-{CC}-{NNN} unique identifier</td>
+</tr>
+<tr class="even">
+<td>Name</td>
+<td>Service name following naming convention</td>
+</tr>
+<tr class="odd">
+<td>Outcome</td>
+<td>One-sentence value statement</td>
+</tr>
+<tr class="even">
+<td>Audience</td>
+<td>Target segment(s): EDU, SMB, IND, or combinations</td>
+</tr>
+<tr class="odd">
+<td>Format</td>
+<td>Service, Product, or Hybrid</td>
+</tr>
+<tr class="even">
+<td>Engagement</td>
+<td>Audit, Sprint, Build, Workshop, Cohort, Retainer, etc.</td>
+</tr>
+<tr class="odd">
+<td>Duration</td>
+<td>Typical delivery timeframe</td>
+</tr>
+<tr class="even">
+<td>Pricing model</td>
+<td>Fixed scope, T&amp;M, monthly retainer, per-seat, per-unit</td>
+</tr>
+<tr class="odd">
+<td>Tier</td>
+<td>1 (Flagship), 2 (Standard), or 3 (Specialized)</td>
+</tr>
+<tr class="even">
+<td>Status</td>
+<td>Active, Beta, Roadmap, Retired</td>
+</tr>
+<tr class="odd">
+<td>Deliverables</td>
+<td>Specific outputs produced</td>
+</tr>
+<tr class="even">
+<td>Related</td>
+<td>Cross-references to other services</td>
+</tr>
+</tbody>
+</table>
+<h3 id="audience-codes">5. Audience Codes</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Code</th>
+<th>Segment</th>
+<th>Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>EDU</td>
+<td>Schools and educational institutions</td>
+<td>Primary</td>
+</tr>
+<tr class="even">
+<td>IND</td>
+<td>Individuals and professionals</td>
+<td>Secondary</td>
+</tr>
+<tr class="odd">
+<td>SMB</td>
+<td>SMEs and businesses</td>
+<td>Tertiary (inbound)</td>
+</tr>
+<tr class="even">
+<td>ALL</td>
+<td>All three segments</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="service-tiers">6. Service Tiers</h3>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 30%" />
+<col style="width: 53%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Tier</th>
+<th>Definition</th>
+<th>Marketing Treatment</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Flagship — highest revenue per engagement, strongest differentiation</td>
+<td>Featured on homepage; lead in sales conversations</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Standard — actively sold, known buyer demand</td>
+<td>Listed on services page; sold on inbound and qualified outbound</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Specialized — available on request, niche or low-volume</td>
+<td>Listed in capabilities reference; sold on direct request only</td>
+</tr>
+</tbody>
+</table>
+<h3 id="engagement-types">7. Engagement Types</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Engagement</th>
+<th>Form</th>
+<th>Default Pricing</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Audit</td>
+<td>One-shot diagnostic assessment</td>
+<td>Fixed scope</td>
+</tr>
+<tr class="even">
+<td>Assessment</td>
+<td>Structured evaluation with recommendations</td>
+<td>Fixed scope</td>
+</tr>
+<tr class="odd">
+<td>Sprint</td>
+<td>Time-boxed delivery (1-8 weeks)</td>
+<td>Fixed scope</td>
+</tr>
+<tr class="even">
+<td>Build</td>
+<td>Scoped engineering project</td>
+<td>Fixed scope or T&amp;M</td>
+</tr>
+<tr class="odd">
+<td>Implementation</td>
+<td>Deployment of a defined system</td>
+<td>Fixed scope</td>
+</tr>
+<tr class="even">
+<td>Setup</td>
+<td>Configuration of an existing platform</td>
+<td>Fixed scope</td>
+</tr>
+<tr class="odd">
+<td>Rollout</td>
+<td>Multi-phase deployment</td>
+<td>Fixed scope</td>
+</tr>
+<tr class="even">
+<td>Migration</td>
+<td>Workload transfer between systems</td>
+<td>Fixed scope</td>
+</tr>
+<tr class="odd">
+<td>Workshop</td>
+<td>Facilitated session(s) with deliverable</td>
+<td>Day rate</td>
+</tr>
+<tr class="even">
+<td>Cohort</td>
+<td>Multi-participant program</td>
+<td>Per-seat</td>
+</tr>
+<tr class="odd">
+<td>Program</td>
+<td>Multi-month structured engagement</td>
+<td>Bundled all-in</td>
+</tr>
+<tr class="even">
+<td>Engagement</td>
+<td>Defined scope with clear endpoint</td>
+<td>Fixed or milestone-based</td>
+</tr>
+<tr class="odd">
+<td>Retainer</td>
+<td>Recurring monthly engagement</td>
+<td>Monthly fixed</td>
+</tr>
+<tr class="even">
+<td>Pack</td>
+<td>Bundled deliverables</td>
+<td>Per-unit</td>
+</tr>
+<tr class="odd">
+<td>Toolkit</td>
+<td>Self-serve digital product</td>
+<td>Per-unit</td>
+</tr>
+</tbody>
+</table>
+<h3 id="service-lifecycle-and-status">8. Service Lifecycle and Status</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Status</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Active</td>
+<td>Currently sold and delivered</td>
+</tr>
+<tr class="even">
+<td>Beta</td>
+<td>Limited availability, gathering market validation</td>
+</tr>
+<tr class="odd">
+<td>Roadmap</td>
+<td>Planned for future release; not currently sold</td>
+</tr>
+<tr class="even">
+<td>Retired</td>
+<td>No longer offered; preserved for historical reference</td>
+</tr>
+</tbody>
+</table>
+<p>All services are reviewed quarterly. Services in <em>Roadmap</em> status for more than two consecutive quarters without forward motion are retired or deferred.</p>
+<hr />
+<h2 id="part-ii-catalog-index">PART II — CATALOG INDEX</h2>
+<h3 id="master-index-by-category">9. Master Index by Category</h3>
+<h4 id="it-consulting-and-strategy-cs-12-services">IT Consulting and Strategy (CS) — 12 services</h4>
+<table>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Service</th>
+<th>Tier</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>UKZ-CS-001</td>
+<td>Technology Assessment and Audit</td>
+<td>2</td>
+<td>ALL</td>
+</tr>
+<tr class="even">
+<td>UKZ-CS-002</td>
+<td>Annual Technology Roadmap</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-CS-003</td>
+<td>Software Architecture Review</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-CS-004</td>
+<td>Vendor Selection and Procurement Advisory</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-CS-005</td>
+<td>Technical Due Diligence Report</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-CS-006</td>
+<td>Cybersecurity Posture Review</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-CS-007</td>
+<td>AI Strategy and Adoption Roadmap</td>
+<td>1</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-CS-008</td>
+<td>Engineering and IT Hiring Support</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-CS-009</td>
+<td>Project Recovery Consultation</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-CS-010</td>
+<td>Fractional CTO Retainer</td>
+<td>1</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-CS-011</td>
+<td>Virtual IT Director Retainer</td>
+<td>1</td>
+<td>EDU</td>
+</tr>
+<tr class="even">
+<td>UKZ-CS-012</td>
+<td>Executive Technology Briefing Service</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+</tbody>
+</table>
+<h4 id="brand-and-digital-presence-bd-14-services">Brand and Digital Presence (BD) — 14 services</h4>
+<table>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Service</th>
+<th>Tier</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>UKZ-BD-001</td>
+<td>Brand Identity System</td>
+<td>1</td>
+<td>ALL</td>
+</tr>
+<tr class="even">
+<td>UKZ-BD-002</td>
+<td>Brand Refresh and Audit</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-BD-003</td>
+<td>Brand Naming and Tagline Service</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-BD-004</td>
+<td>Print Collateral Suite</td>
+<td>2</td>
+<td>ALL</td>
+</tr>
+<tr class="odd">
+<td>UKZ-BD-005</td>
+<td>Presentation and Document Templates</td>
+<td>2</td>
+<td>ALL</td>
+</tr>
+<tr class="even">
+<td>UKZ-BD-006</td>
+<td>Digital Asset Pack</td>
+<td>2</td>
+<td>ALL</td>
+</tr>
+<tr class="odd">
+<td>UKZ-BD-007</td>
+<td>Personal Website Build</td>
+<td>1</td>
+<td>IND</td>
+</tr>
+<tr class="even">
+<td>UKZ-BD-008</td>
+<td>Business Website Build</td>
+<td>1</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-BD-009</td>
+<td>Landing Page Build</td>
+<td>2</td>
+<td>SMB, IND</td>
+</tr>
+<tr class="even">
+<td>UKZ-BD-010</td>
+<td>Website Performance and SEO Service</td>
+<td>2</td>
+<td>ALL</td>
+</tr>
+<tr class="odd">
+<td>UKZ-BD-011</td>
+<td>Social Media Presence Setup</td>
+<td>2</td>
+<td>SMB, IND</td>
+</tr>
+<tr class="even">
+<td>UKZ-BD-012</td>
+<td>Content System Build</td>
+<td>2</td>
+<td>SMB, IND</td>
+</tr>
+<tr class="odd">
+<td>UKZ-BD-013</td>
+<td>Analytics and Tracking Setup</td>
+<td>2</td>
+<td>ALL</td>
+</tr>
+<tr class="even">
+<td>UKZ-BD-014</td>
+<td>Bilingual Content Localization</td>
+<td>3</td>
+<td>ALL</td>
+</tr>
+</tbody>
+</table>
+<h4 id="it-infrastructure-and-cloud-ic-16-services">IT Infrastructure and Cloud (IC) — 16 services</h4>
+<table>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Service</th>
+<th>Tier</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>UKZ-IC-001</td>
+<td>Network Design and Deployment</td>
+<td>1</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-IC-002</td>
+<td>Server Infrastructure Setup</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-IC-003</td>
+<td>Device Fleet Setup and Imaging</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-IC-004</td>
+<td>Google Workspace Administration Setup</td>
+<td>1</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-IC-005</td>
+<td>Microsoft 365 Administration Setup</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-IC-006</td>
+<td>Identity and Access Management Implementation</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-IC-007</td>
+<td>Helpdesk and Ticketing System Setup</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-IC-008</td>
+<td>Cloud Migration Assessment</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-IC-009</td>
+<td>GCP Cloud Migration</td>
+<td>1</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-IC-010</td>
+<td>AWS Cloud Migration</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-IC-011</td>
+<td>Containerization and CI/CD Implementation</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-IC-012</td>
+<td>Workflow Automation Implementation</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-IC-013</td>
+<td>Cloud Cost Optimization Service</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-IC-014</td>
+<td>OWASP Security Audit and Hardening</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-IC-015</td>
+<td>Backup and Disaster Recovery Implementation</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-IC-016</td>
+<td>Observability and Monitoring Setup</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+</tbody>
+</table>
+<h4 id="web-application-and-ai-development-wd-18-services">Web, Application and AI Development (WD) — 18 services</h4>
+<table>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Service</th>
+<th>Tier</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>UKZ-WD-001</td>
+<td>Custom Web Application Build</td>
+<td>1</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-002</td>
+<td>SaaS MVP Build</td>
+<td>1</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-003</td>
+<td>E-commerce Platform Build</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-004</td>
+<td>Custom CMS Build</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-005</td>
+<td>Internal Tool and Admin Dashboard Build</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-006</td>
+<td>REST and GraphQL API Development</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-007</td>
+<td>Authentication and Payment Integration</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-008</td>
+<td>Third-Party Service Integration</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-009</td>
+<td>Claude and LLM API Integration</td>
+<td>1</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-010</td>
+<td>AI Chatbot and Virtual Assistant Build</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-011</td>
+<td>Knowledge Base AI and RAG System</td>
+<td>1</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-012</td>
+<td>AI Document Processing Pipeline</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-013</td>
+<td>AI Agent and Workflow Build</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-014</td>
+<td>AI Content Auditing System</td>
+<td>3</td>
+<td>EDU</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-015</td>
+<td>Business Intelligence Dashboard Build</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-016</td>
+<td>Data Pipeline and Warehouse Setup</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-017</td>
+<td>Performance Optimization Engagement</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-018</td>
+<td>Legacy System Modernization</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+</tbody>
+</table>
+<h4 id="edtech-implementation-and-training-et-12-services">EdTech Implementation and Training (ET) — 12 services</h4>
+<table>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Service</th>
+<th>Tier</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>UKZ-ET-001</td>
+<td>LMS Selection and Strategy Consultation</td>
+<td>2</td>
+<td>EDU</td>
+</tr>
+<tr class="even">
+<td>UKZ-ET-002</td>
+<td>LMS Deployment and Migration</td>
+<td>1</td>
+<td>EDU</td>
+</tr>
+<tr class="odd">
+<td>UKZ-ET-003</td>
+<td>Google Workspace for Education Rollout</td>
+<td>1</td>
+<td>EDU</td>
+</tr>
+<tr class="even">
+<td>UKZ-ET-004</td>
+<td>Student Information System Integration</td>
+<td>2</td>
+<td>EDU</td>
+</tr>
+<tr class="odd">
+<td>UKZ-ET-005</td>
+<td>Parent Portal Setup and Training</td>
+<td>2</td>
+<td>EDU</td>
+</tr>
+<tr class="even">
+<td>UKZ-ET-006</td>
+<td>Faculty Professional Development Cohort</td>
+<td>1</td>
+<td>EDU</td>
+</tr>
+<tr class="odd">
+<td>UKZ-ET-007</td>
+<td>Google Certified Educator Preparation Cohort</td>
+<td>2</td>
+<td>EDU</td>
+</tr>
+<tr class="even">
+<td>UKZ-ET-008</td>
+<td>AI for Educators Training Program</td>
+<td>1</td>
+<td>EDU</td>
+</tr>
+<tr class="odd">
+<td>UKZ-ET-009</td>
+<td>Bilingual Digital Content Production</td>
+<td>2</td>
+<td>EDU</td>
+</tr>
+<tr class="even">
+<td>UKZ-ET-010</td>
+<td>Smart Classroom and STEM Lab Setup</td>
+<td>2</td>
+<td>EDU</td>
+</tr>
+<tr class="odd">
+<td>UKZ-ET-011</td>
+<td>Digital Citizenship and AUP Implementation</td>
+<td>2</td>
+<td>EDU</td>
+</tr>
+<tr class="even">
+<td>UKZ-ET-012</td>
+<td>Student Data Privacy Compliance Service</td>
+<td>3</td>
+<td>EDU</td>
+</tr>
+</tbody>
+</table>
+<h4 id="managed-services-and-support-ms-10-services">Managed Services and Support (MS) — 10 services</h4>
+<table>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Service</th>
+<th>Tier</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>UKZ-MS-001</td>
+<td>Managed IT Operations Retainer</td>
+<td>1</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-MS-002</td>
+<td>Managed Cloud Operations Retainer</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-MS-003</td>
+<td>Managed Application Maintenance Retainer</td>
+<td>2</td>
+<td>SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-MS-004</td>
+<td>Managed Website Hosting and Maintenance</td>
+<td>2</td>
+<td>ALL</td>
+</tr>
+<tr class="odd">
+<td>UKZ-MS-005</td>
+<td>Managed Workspace Administration</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-MS-006</td>
+<td>Managed LMS Administration for Schools</td>
+<td>1</td>
+<td>EDU</td>
+</tr>
+<tr class="odd">
+<td>UKZ-MS-007</td>
+<td>Helpdesk-as-a-Service Retainer</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-MS-008</td>
+<td>Managed Cybersecurity Monitoring</td>
+<td>3</td>
+<td>SMB</td>
+</tr>
+<tr class="odd">
+<td>UKZ-MS-009</td>
+<td>Managed Compliance Monitoring</td>
+<td>3</td>
+<td>EDU, SMB</td>
+</tr>
+<tr class="even">
+<td>UKZ-MS-010</td>
+<td>Quarterly Health Check Service</td>
+<td>2</td>
+<td>EDU, SMB</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total:</strong> 82 active services across 6 categories.</p>
+<h3 id="index-by-audience">10. Index by Audience</h3>
+<p><strong>Schools and Educational Institutions (EDU) — primary segment</strong> CS-001, CS-002, CS-004, CS-006, CS-007, CS-011, CS-012; BD-001, BD-002, BD-004, BD-005, BD-006, BD-008, BD-010, BD-013, BD-014; IC-001 through IC-007, IC-012, IC-014, IC-015; WD-004, WD-005, WD-009, WD-011, WD-012, WD-014, WD-015; all ET; MS-001, MS-004, MS-005, MS-006, MS-007, MS-009, MS-010.</p>
+<p><strong>SMEs and Businesses (SMB) — tertiary (inbound priority)</strong> All CS except CS-011; BD-001, BD-002, BD-003, BD-004, BD-005, BD-006, BD-008, BD-009, BD-010, BD-011, BD-012, BD-013, BD-014; all IC; all WD; MS-001 through MS-005, MS-007, MS-008, MS-009, MS-010.</p>
+<p><strong>Individuals and Professionals (IND) — secondary</strong> BD-001, BD-004, BD-005, BD-006, BD-007, BD-009, BD-010, BD-011, BD-012, BD-013, BD-014; MS-004.</p>
+<h3 id="index-by-engagement-type">11. Index by Engagement Type</h3>
+<table>
+<colgroup>
+<col style="width: 48%" />
+<col style="width: 52%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Engagement</th>
+<th>Service IDs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Audit / Assessment</td>
+<td>CS-001, CS-003, CS-005, CS-006, BD-002, IC-008, IC-014, WD-014, WD-017, MS-010</td>
+</tr>
+<tr class="even">
+<td>Sprint / Build</td>
+<td>BD-007, BD-008, BD-009, IC-001, IC-002, IC-003, IC-009, IC-010, IC-011, WD-001 through WD-008, WD-010, WD-011, WD-013, WD-015, WD-016, WD-018, ET-002, ET-004, ET-005, ET-009, ET-010</td>
+</tr>
+<tr class="odd">
+<td>Setup / Rollout / Implementation</td>
+<td>BD-006, BD-010, BD-011, BD-012, BD-013, IC-004, IC-005, IC-006, IC-007, IC-012, IC-015, IC-016, WD-009, WD-012, ET-003, ET-011, ET-012</td>
+</tr>
+<tr class="even">
+<td>Workshop / Cohort / Program</td>
+<td>CS-007, CS-012, ET-006, ET-007, ET-008</td>
+</tr>
+<tr class="odd">
+<td>Retainer</td>
+<td>CS-010, CS-011, all MS</td>
+</tr>
+<tr class="even">
+<td>Pack</td>
+<td>BD-003, BD-004, BD-005</td>
+</tr>
+</tbody>
+</table>
+<h3 id="flagship-services-tier-1">12. Flagship Services (Tier 1)</h3>
+<p>The following 13 services are featured on the homepage and lead all sales conversations:</p>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 33%" />
+<col style="width: 51%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Service</th>
+<th>Why Flagship</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>UKZ-CS-007</td>
+<td>AI Strategy and Adoption Roadmap</td>
+<td>Highest-demand 2026 advisory topic; engineering-credible</td>
+</tr>
+<tr class="even">
+<td>UKZ-CS-010</td>
+<td>Fractional CTO Retainer</td>
+<td>Highest revenue-per-hour SME offering</td>
+</tr>
+<tr class="odd">
+<td>UKZ-CS-011</td>
+<td>Virtual IT Director Retainer</td>
+<td>Most defensible school-facing offering</td>
+</tr>
+<tr class="even">
+<td>UKZ-BD-001</td>
+<td>Brand Identity System</td>
+<td>Cross-segment foundational sale</td>
+</tr>
+<tr class="odd">
+<td>UKZ-BD-007</td>
+<td>Personal Website Build</td>
+<td>Individual-segment lead offering</td>
+</tr>
+<tr class="even">
+<td>UKZ-BD-008</td>
+<td>Business Website Build</td>
+<td>Cross-segment foundational sale</td>
+</tr>
+<tr class="odd">
+<td>UKZ-IC-001</td>
+<td>Network Design and Deployment</td>
+<td>School and SME infrastructure foundation</td>
+</tr>
+<tr class="even">
+<td>UKZ-IC-004</td>
+<td>Google Workspace Administration Setup</td>
+<td>Universal cloud-workspace foundation</td>
+</tr>
+<tr class="odd">
+<td>UKZ-IC-009</td>
+<td>GCP Cloud Migration</td>
+<td>Default-stack cloud expertise differentiator</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-001</td>
+<td>Custom Web Application Build</td>
+<td>Core engineering capability</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-002</td>
+<td>SaaS MVP Build</td>
+<td>Highest-velocity engineering offer</td>
+</tr>
+<tr class="even">
+<td>UKZ-WD-009</td>
+<td>Claude and LLM API Integration</td>
+<td>Engineering-meets-AI differentiator</td>
+</tr>
+<tr class="odd">
+<td>UKZ-WD-011</td>
+<td>Knowledge Base AI and RAG System</td>
+<td>High-value modern AI offering</td>
+</tr>
+<tr class="even">
+<td>UKZ-ET-002</td>
+<td>LMS Deployment and Migration</td>
+<td>School-facing technical anchor</td>
+</tr>
+<tr class="odd">
+<td>UKZ-ET-003</td>
+<td>Google Workspace for Education Rollout</td>
+<td>School-facing core offering</td>
+</tr>
+<tr class="even">
+<td>UKZ-ET-006</td>
+<td>Faculty Professional Development Cohort</td>
+<td>Anchored in Google Certified Educator L2</td>
+</tr>
+<tr class="odd">
+<td>UKZ-ET-008</td>
+<td>AI for Educators Training Program</td>
+<td>Most current school-facing topic</td>
+</tr>
+<tr class="even">
+<td>UKZ-MS-001</td>
+<td>Managed IT Operations Retainer</td>
+<td>Cross-segment recurring revenue anchor</td>
+</tr>
+<tr class="odd">
+<td>UKZ-MS-006</td>
+<td>Managed LMS Administration for Schools</td>
+<td>School-facing recurring revenue anchor</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="part-iii-service-detail">PART III — SERVICE DETAIL</h2>
+<h3 id="category-cs-it-consulting-and-strategy">13. Category CS — IT Consulting and Strategy</h3>
+<p>Senior advisory work where clients buy judgment on what to build, what to buy, what to fix, and what to leave alone. Highest revenue-per-hour tier.</p>
+<hr />
+<p><strong>UKZ-CS-001 · Technology Assessment and Audit</strong> <em>Tier 2 · Audit · Fixed scope · 2–4 weeks · ALL</em> <strong>Outcome:</strong> Comprehensive current-state assessment of infrastructure, applications, and processes with prioritized remediation roadmap. <strong>Includes:</strong> Infrastructure inventory · Application portfolio review · Process audit · Gap analysis · Risk assessment · Prioritized recommendations · Executive summary · Technical detail report. <strong>Related:</strong> CS-002, CS-006, IC-001.</p>
+<p><strong>UKZ-CS-002 · Annual Technology Roadmap</strong> <em>Tier 2 · Workshop + Document · Fixed scope · 4–6 weeks · EDU, SMB</em> <strong>Outcome:</strong> Twelve-month technology roadmap aligned with business or institutional objectives, including budget, milestones, and process automation opportunities. <strong>Includes:</strong> Stakeholder workshops · Strategic objective alignment · Initiative prioritization · Capacity and budget planning · Risk and dependency mapping · Quarterly milestone definition · Process automation opportunity assessment · Roadmap document and presentation. <strong>Related:</strong> CS-007, CS-013.</p>
+<p><strong>UKZ-CS-003 · Software Architecture Review</strong> <em>Tier 2 · Audit · Fixed scope · 2–3 weeks · SMB</em> <strong>Outcome:</strong> Independent assessment of system architecture with actionable recommendations for scalability, maintainability, and modernization. <strong>Includes:</strong> Architecture diagram review · Code structure analysis · Database design review · Technology stack evaluation · Scalability bottleneck identification · Refactoring recommendations · Architecture decision record templates. <strong>Related:</strong> CS-005, WD-017, WD-018.</p>
+<p><strong>UKZ-CS-004 · Vendor Selection and Procurement Advisory</strong> <em>Tier 2 · Engagement · Fixed scope · 3–6 weeks · EDU, SMB</em> <strong>Outcome:</strong> Independent vendor evaluation, comparison matrix, and contract negotiation support that surfaces the best-fit option without vendor bias. <strong>Includes:</strong> Requirements definition · Vendor longlist research · Comparison matrix · RFP drafting and management · Demo coordination · Reference checks · Contract review and negotiation support · Final recommendation report.</p>
+<p><strong>UKZ-CS-005 · Technical Due Diligence Report</strong> <em>Tier 3 · Assessment · Fixed scope · 2–4 weeks · SMB</em> <strong>Outcome:</strong> Code, architecture, and engineering team assessment for investors, acquirers, or board-level technology decisions. <strong>Includes:</strong> Code quality review · Architecture assessment · Security posture review · Technical debt quantification · Team evaluation · Scalability analysis · Investor-grade report with executive summary.</p>
+<p><strong>UKZ-CS-006 · Cybersecurity Posture Review</strong> <em>Tier 2 · Audit · Fixed scope · 2–3 weeks · EDU, SMB</em> <strong>Outcome:</strong> Comprehensive security assessment with prioritized remediation plan and compliance gap analysis (LFPDPPP, GDPR, FERPA). <strong>Includes:</strong> Asset and data inventory · Access control review · Network security assessment · OWASP application review · Compliance gap analysis · Incident response readiness check · Prioritized remediation roadmap · Executive risk summary. <strong>Related:</strong> IC-014, ET-012.</p>
+<p><strong>UKZ-CS-007 · AI Strategy and Adoption Roadmap</strong> <em>Tier 1 · Workshop + Document · Fixed scope · 3–4 weeks · EDU, SMB</em> <strong>Outcome:</strong> AI use-case discovery, adoption roadmap, and acceptable-use framework that gets the institution started without breaking what already works. <strong>Includes:</strong> Stakeholder discovery workshops · Use-case identification and prioritization · Build-vs-buy analysis · Tooling recommendations (Claude, ChatGPT, Gemini, custom) · AI ethics and safety framework · Acceptable use policy template · Pilot project recommendations · Twelve-month adoption roadmap · Executive briefing. <strong>Related:</strong> WD-009, WD-011, ET-008.</p>
+<p><strong>UKZ-CS-008 · Engineering and IT Hiring Support</strong> <em>Tier 3 · Engagement · Fixed scope · 4–8 weeks · SMB</em> <strong>Outcome:</strong> End-to-end hiring support that produces qualified, technically vetted candidates for engineering and IT roles. <strong>Includes:</strong> Job description writing · Hiring rubric definition · Sourcing strategy · Resume screening · Technical screen design and execution · Interview panel preparation · Final-round interview support · Offer guidance.</p>
+<p><strong>UKZ-CS-009 · Project Recovery Consultation</strong> <em>Tier 3 · Engagement · Fixed scope · 4–8 weeks · SMB</em> <strong>Outcome:</strong> Diagnosis and turnaround plan for stalled or failing technology initiatives, with optional execution leadership. <strong>Includes:</strong> Project diagnosis · Stakeholder interviews · Root cause analysis · Salvage-vs-restart recommendation · Recovery roadmap · Optional interim leadership through recovery.</p>
+<p><strong>UKZ-CS-010 · Fractional CTO Retainer</strong> <em>Tier 1 · Retainer · Monthly fixed · Ongoing · SMB</em> <strong>Outcome:</strong> Monthly technical leadership for SMEs and startups that need a CTO without the full-time cost. <strong>Includes:</strong> Weekly leadership cadence · Engineering team oversight · Technical hiring support · Roadmap and architecture decisions · Vendor and tool selection · Code review and standards · Investor and board technical communication · Async availability. <strong>Related:</strong> CS-002, CS-008.</p>
+<p><strong>UKZ-CS-011 · Virtual IT Director Retainer</strong> <em>Tier 1 · Retainer · Monthly fixed · Ongoing · EDU</em> <strong>Outcome:</strong> Monthly fractional IT leadership for schools without a dedicated technology director. <strong>Includes:</strong> Weekly leadership cadence · IT operations oversight · Faculty and admin liaison · Procurement guidance · Cybersecurity oversight · Technology budget planning · EdTech vendor management · Board and leadership reporting. <strong>Related:</strong> CS-012, MS-001, MS-006.</p>
+<p><strong>UKZ-CS-012 · Executive Technology Briefing Service</strong> <em>Tier 2 · Workshop · Per session · Quarterly cadence · EDU, SMB</em> <strong>Outcome:</strong> Quarterly executive-facing technology briefing covering posture, risks, opportunities, and recommended actions. <strong>Includes:</strong> Pre-briefing data gathering · Executive summary deck · Live presentation · Q&amp;A facilitation · Action item documentation · Optional follow-up advisory.</p>
+<hr />
+<h3 id="category-bd-brand-and-digital-presence">14. Category BD — Brand and Digital Presence</h3>
+<p>Visual identity, the surfaces that carry it, and the systems that distribute it. Sold as integrated engagements because identity without deployment is incomplete.</p>
+<hr />
+<p><strong>UKZ-BD-001 · Brand Identity System</strong> <em>Tier 1 · Build · Fixed scope · 4–6 weeks · ALL</em> <strong>Outcome:</strong> Complete visual identity system that gives the brand a coherent, professional look across every surface. <strong>Includes:</strong> Brand discovery workshop · Logo design (primary, secondary, submark) in vector formats · Color palette · Typography system · Brand guidelines document · Brand voice and messaging guidelines · Usage rules and accessibility specs · Asset library handover. <strong>Related:</strong> BD-004, BD-005, BD-006.</p>
+<p><strong>UKZ-BD-002 · Brand Refresh and Audit</strong> <em>Tier 2 · Audit + Build · Fixed scope · 3–5 weeks · EDU, SMB</em> <strong>Outcome:</strong> Diagnostic and selective refresh of an existing brand identity that preserves equity while modernizing weak elements. <strong>Includes:</strong> Brand audit report · Competitive landscape review · Refresh recommendations · Selective asset redesign · Updated brand guidelines · Migration plan for legacy assets.</p>
+<p><strong>UKZ-BD-003 · Brand Naming and Tagline Service</strong> <em>Tier 3 · Sprint · Fixed scope · 2–4 weeks · SMB</em> <strong>Outcome:</strong> Strategically-developed brand name and tagline with trademark and domain availability validation. <strong>Includes:</strong> Naming strategy workshop · Naming exploration (50+ candidates) · Shortlist validation · Trademark and domain availability check · Tagline development · Bilingual EN-ES validation · Final recommendation report.</p>
+<p><strong>UKZ-BD-004 · Print Collateral Suite</strong> <em>Tier 2 · Pack · Fixed scope · 2–3 weeks · ALL</em> <strong>Outcome:</strong> Complete print-ready collateral suite for daily business and event use. <strong>Includes:</strong> Letterhead · Business cards · Email signature · Folders · Badges · Lanyards · Certificates · Flyers · Posters · Brochures · Trifolds · One-pagers · All files print-ready and editable.</p>
+<p><strong>UKZ-BD-005 · Presentation and Document Templates</strong> <em>Tier 2 · Pack · Fixed scope · 1–2 weeks · ALL</em> <strong>Outcome:</strong> Branded presentation and document template system for consistent deliverables across every author. <strong>Includes:</strong> Pitch deck template (PowerPoint, Google Slides, Keynote) · Internal presentation template · Document template (Word, Google Docs) · Report template · Proposal template · Style guide for template usage.</p>
+<p><strong>UKZ-BD-006 · Digital Asset Pack</strong> <em>Tier 2 · Pack · Fixed scope · 1–2 weeks · ALL</em> <strong>Outcome:</strong> Complete set of digital banners and social media assets for every channel. <strong>Includes:</strong> Web banners · Email headers · LinkedIn covers · YouTube channel art · Twitter/X headers · Instagram and Facebook templates · Story and reel templates · Iconography pack · Custom illustration set.</p>
+<p><strong>UKZ-BD-007 · Personal Website Build</strong> <em>Tier 1 · Build · Fixed scope · 2–4 weeks · IND</em> <strong>Outcome:</strong> Custom personal portfolio website on a custom domain that establishes professional presence and supports career or business goals. <strong>Includes:</strong> Discovery and content strategy · Domain and hosting setup · Custom design aligned to personal brand · Up to 6 pages (home, about, work, services, blog, contact) · Mobile-responsive · Accessibility (WCAG 2.1 AA) · SEO foundations · Analytics setup · Two rounds of revisions. <strong>Related:</strong> BD-001, BD-010, BD-013.</p>
+<p><strong>UKZ-BD-008 · Business Website Build</strong> <em>Tier 1 · Build · Fixed scope · 4–8 weeks · EDU, SMB</em> <strong>Outcome:</strong> Production-grade business or institutional website that supports lead generation, credibility, and ongoing content publishing. <strong>Includes:</strong> Discovery and IA workshop · Sitemap and wireframes · Custom design · Up to 12 pages · CMS setup (Wagtail, WordPress, or custom) · Mobile-responsive · WCAG 2.1 AA accessibility · SEO foundations · Form and CTA integration · Analytics setup · Documentation and training. <strong>Related:</strong> BD-001, BD-010, BD-013, MS-004.</p>
+<p><strong>UKZ-BD-009 · Landing Page Build</strong> <em>Tier 2 · Build · Fixed scope · 1–2 weeks · SMB, IND</em> <strong>Outcome:</strong> High-conversion landing page for a specific campaign, product launch, or lead-capture goal. <strong>Includes:</strong> Conversion strategy session · Custom design · Copywriting support · Form and CTA setup · A/B test variant · Analytics and conversion tracking · Mobile optimization.</p>
+<p><strong>UKZ-BD-010 · Website Performance and SEO Service</strong> <em>Tier 2 · Audit + Implementation · Fixed scope · 2–3 weeks · ALL</em> <strong>Outcome:</strong> Measurable website performance improvement and on-page SEO optimization for visibility and Core Web Vitals compliance. <strong>Includes:</strong> Performance audit · Core Web Vitals analysis · Image and asset optimization · Caching configuration · CDN setup · Technical SEO audit · On-page optimization · Structured data implementation · Search Console setup · Before/after benchmark report.</p>
+<p><strong>UKZ-BD-011 · Social Media Presence Setup</strong> <em>Tier 2 · Setup · Fixed scope · 1–2 weeks · SMB, IND</em> <strong>Outcome:</strong> Optimized social media presence across all relevant channels with consistent branding and discoverability. <strong>Includes:</strong> LinkedIn profile optimization · Twitter/X optimization · Instagram, TikTok, YouTube setup · Facebook business page · Google Business Profile · Online reputation audit · Channel strategy recommendations.</p>
+<p><strong>UKZ-BD-012 · Content System Build</strong> <em>Tier 2 · Setup · Fixed scope · 2–3 weeks · SMB, IND</em> <strong>Outcome:</strong> Complete content production and distribution system across newsletter, blog, and email marketing. <strong>Includes:</strong> Content strategy session · Newsletter setup (Beehiiv, Substack, ConvertKit) · Blog setup and editorial workflow · Email marketing platform configuration · Lead magnet design · Content calendar template · Editorial guidelines · Distribution playbook. <strong>Related:</strong> BD-013, BD-014.</p>
+<p><strong>UKZ-BD-013 · Analytics and Tracking Setup</strong> <em>Tier 2 · Setup · Fixed scope · 1 week · ALL</em> <strong>Outcome:</strong> Privacy-compliant analytics and tracking infrastructure that produces actionable data without violating user privacy. <strong>Includes:</strong> Google Analytics 4 setup · Search Console configuration · Tag Manager setup · Conversion goal definition · Event tracking · Privacy-compliant cookie consent · Custom dashboard · Quarterly review template.</p>
+<p><strong>UKZ-BD-014 · Bilingual Content Localization</strong> <em>Tier 3 · Service · Per project · Variable · ALL</em> <strong>Outcome:</strong> Professional EN-ES content adaptation that preserves voice, intent, and cultural fit across languages. <strong>Includes:</strong> Source content review · Translation and adaptation · Cultural localization · SEO localization · Bilingual content asset library · Style guide for ongoing translations.</p>
+<hr />
+<h3 id="category-ic-it-infrastructure-and-cloud">15. Category IC — IT Infrastructure and Cloud</h3>
+<p>The systems that everything else runs on. On-premise, hybrid, and cloud-native treated as one continuous discipline.</p>
+<hr />
+<p><strong>UKZ-IC-001 · Network Design and Deployment</strong> <em>Tier 1 · Build · Fixed scope · 4–8 weeks · EDU, SMB</em> <strong>Outcome:</strong> Production-grade network for a single or multi-building site that supports current users and scales with growth. <strong>Includes:</strong> Site survey · Network design (TCP/IP, DNS, DHCP, VPN, LAN, WAN) · Wi-Fi planning and coverage optimization · Cabling consultation and project management · Equipment specification · Configuration and deployment · Documentation and runbooks · Knowledge transfer. <strong>Related:</strong> IC-002, IC-006, IC-014, MS-001.</p>
+<p><strong>UKZ-IC-002 · Server Infrastructure Setup</strong> <em>Tier 2 · Build · Fixed scope · 2–4 weeks · EDU, SMB</em> <strong>Outcome:</strong> Properly configured server infrastructure on Linux or Windows Server, hardened and ready for production use. <strong>Includes:</strong> Hardware specification · OS installation and hardening · Service configuration · User and group setup · Backup configuration · Monitoring setup · Documentation.</p>
+<p><strong>UKZ-IC-003 · Device Fleet Setup and Imaging</strong> <em>Tier 2 · Setup · Fixed scope · 2–4 weeks · EDU, SMB</em> <strong>Outcome:</strong> Standardized device fleet ready for distribution to users, with consistent configuration and security baseline. <strong>Includes:</strong> Device specification · Imaging and configuration · Security hardening · Software deployment · Asset tagging and inventory · Distribution coordination · End-user setup documentation.</p>
+<p><strong>UKZ-IC-004 · Google Workspace Administration Setup</strong> <em>Tier 1 · Rollout · Fixed scope · 3–4 weeks · EDU, SMB</em> <strong>Outcome:</strong> Fully configured Google Workspace tenant with users provisioned, policies set, and admin documentation in place. <strong>Includes:</strong> Domain setup and verification · User provisioning · Group structure · Sharing and security policies · Email migration · Drive structure · Calendar setup · Admin documentation · Admin training session. <strong>Related:</strong> ET-003, MS-005.</p>
+<p><strong>UKZ-IC-005 · Microsoft 365 Administration Setup</strong> <em>Tier 2 · Rollout · Fixed scope · 3–4 weeks · EDU, SMB</em> <strong>Outcome:</strong> Fully configured Microsoft 365 tenant with users provisioned, policies set, and admin documentation in place. <strong>Includes:</strong> Tenant setup · User provisioning · License assignment · SharePoint and Teams structure · Email migration · Security baseline · Compliance configuration · Admin documentation · Admin training session.</p>
+<p><strong>UKZ-IC-006 · Identity and Access Management Implementation</strong> <em>Tier 2 · Implementation · Fixed scope · 3–6 weeks · EDU, SMB</em> <strong>Outcome:</strong> Centralized identity and access management with single sign-on, multi-factor authentication, and role-based access control. <strong>Includes:</strong> Identity provider selection · SSO implementation · MFA rollout (passwordless where possible) · Role and group design · Conditional access policies · Audit logging · User onboarding/offboarding workflow · Documentation.</p>
+<p><strong>UKZ-IC-007 · Helpdesk and Ticketing System Setup</strong> <em>Tier 2 · Setup · Fixed scope · 2–3 weeks · EDU, SMB</em> <strong>Outcome:</strong> Production-ready helpdesk system with ticket workflows, SLA definitions, and reporting in place. <strong>Includes:</strong> Platform selection (JIRA, Zendesk, Freshdesk) · Workflow configuration · Category and priority taxonomy · SLA definition · Knowledge base structure · Email and portal integration · Reporting dashboards · Agent training. <strong>Related:</strong> MS-007.</p>
+<p><strong>UKZ-IC-008 · Cloud Migration Assessment</strong> <em>Tier 2 · Assessment · Fixed scope · 2–3 weeks · SMB</em> <strong>Outcome:</strong> Cloud readiness assessment with migration strategy, target architecture, and cost projection. <strong>Includes:</strong> Current-state inventory · Application portfolio assessment · Cloud target selection (GCP vs AWS vs hybrid) · Migration approach (rehost, replatform, refactor) · Cost projection · Risk register · Migration roadmap.</p>
+<p><strong>UKZ-IC-009 · GCP Cloud Migration</strong> <em>Tier 1 · Migration · Fixed scope · 6–12 weeks · SMB</em> <strong>Outcome:</strong> Workload migration to Google Cloud Platform with cost optimization, security baseline, and runbook handover. <strong>Includes:</strong> Project setup and IAM configuration · Network and VPC design · Compute Engine, Cloud Run, GKE workload migration · Cloud SQL database migration · Cloud Storage setup · Cost optimization · Security baseline · Runbook documentation · Post-migration support. <strong>Related:</strong> IC-013, MS-002.</p>
+<p><strong>UKZ-IC-010 · AWS Cloud Migration</strong> <em>Tier 2 · Migration · Fixed scope · 6–12 weeks · SMB</em> <strong>Outcome:</strong> Workload migration to AWS with cost optimization, security baseline, and runbook handover. <strong>Includes:</strong> Account setup and IAM · VPC design · EC2, ECS, Lambda workload migration · RDS database migration · S3 setup · Cost optimization · Security baseline · Runbook documentation · Post-migration support.</p>
+<p><strong>UKZ-IC-011 · Containerization and CI/CD Implementation</strong> <em>Tier 2 · Implementation · Fixed scope · 3–5 weeks · SMB</em> <strong>Outcome:</strong> Production-grade containerization and continuous integration/deployment pipeline that accelerates safe delivery. <strong>Includes:</strong> Docker containerization · Multi-stage build optimization · Container registry setup · CI/CD pipeline (GitHub Actions, Cloud Build, AWS CodePipeline) · Test automation integration · Deployment automation · Rollback procedures · Documentation. <strong>Related:</strong> IC-016.</p>
+<p><strong>UKZ-IC-012 · Workflow Automation Implementation</strong> <em>Tier 2 · Implementation · Fixed scope · 2–6 weeks · EDU, SMB</em> <strong>Outcome:</strong> Custom workflow automation that eliminates manual processes and recovers staff hours each week. <strong>Includes:</strong> Process discovery · Automation opportunity assessment · Tool selection (Python, n8n, Zapier, Make) · Pipeline design and build · Scheduled jobs and webhooks · Error handling and alerting · Documentation and handover.</p>
+<p><strong>UKZ-IC-013 · Cloud Cost Optimization Service</strong> <em>Tier 3 · Audit + Implementation · Fixed scope · 2–4 weeks · SMB</em> <strong>Outcome:</strong> Measurable reduction in cloud spend through right-sizing, reserved capacity, and architectural recommendations. <strong>Includes:</strong> Cost analysis · Resource utilization audit · Right-sizing recommendations · Reserved instance and savings plan analysis · Architectural optimization opportunities · Implementation of agreed changes · Before/after cost report.</p>
+<p><strong>UKZ-IC-014 · OWASP Security Audit and Hardening</strong> <em>Tier 2 · Audit + Implementation · Fixed scope · 3–4 weeks · SMB</em> <strong>Outcome:</strong> OWASP-aligned security audit with prioritized remediation and hardening of identified vulnerabilities. <strong>Includes:</strong> Application security audit · Infrastructure security review · Dependency vulnerability scan · Configuration hardening · Secrets management review · Remediation of high-priority issues · Security documentation. <strong>Related:</strong> CS-006.</p>
+<p><strong>UKZ-IC-015 · Backup and Disaster Recovery Implementation</strong> <em>Tier 2 · Implementation · Fixed scope · 2–4 weeks · EDU, SMB</em> <strong>Outcome:</strong> Automated backup, tested recovery procedures, and a documented business continuity plan. <strong>Includes:</strong> Recovery objective definition (RTO, RPO) · Backup strategy design · Backup automation setup · Off-site replication · Recovery testing · Continuity plan documentation · Tabletop exercise.</p>
+<p><strong>UKZ-IC-016 · Observability and Monitoring Setup</strong> <em>Tier 3 · Setup · Fixed scope · 2–3 weeks · SMB</em> <strong>Outcome:</strong> Production-grade logging, metrics, and alerting that surface problems before users notice them. <strong>Includes:</strong> Logging architecture · Metrics collection · Distributed tracing setup · Dashboard design · Alert rule configuration · On-call rotation setup · Runbook templates.</p>
+<hr />
+<h3 id="category-wd-web-application-and-ai-development">16. Category WD — Web, Application and AI Development</h3>
+<p>The full engineering tier. Building software systems end-to-end on Django, React, PostgreSQL, Docker, and GCP, extended with modern AI tooling.</p>
+<hr />
+<p><strong>UKZ-WD-001 · Custom Web Application Build</strong> <em>Tier 1 · Build · Fixed scope · 6–16 weeks · SMB</em> <strong>Outcome:</strong> Production-ready custom web application built on Django and React, fully tested and deployed. <strong>Includes:</strong> Discovery and requirements · Architecture design · Database schema · Backend development (Django) · Frontend development (React) · Authentication · Real-time features · Mobile-responsive UI · WCAG 2.1 AA accessibility · Testing · Deployment · Documentation. <strong>Related:</strong> WD-006, WD-007, MS-003.</p>
+<p><strong>UKZ-WD-002 · SaaS MVP Build</strong> <em>Tier 1 · Sprint · Fixed scope · 4–8 weeks · SMB</em> <strong>Outcome:</strong> Working SaaS MVP delivered in four to eight weeks at fixed scope and fixed price, ready for first paying customers. <strong>Includes:</strong> Scope and feature definition · Multi-tenant architecture · Authentication and authorization · Subscription billing (Stripe) · Admin dashboard · Customer-facing application · Onboarding flow · Email notifications · Deployment to GCP · Launch support. <strong>Related:</strong> WD-007, WD-009.</p>
+<p><strong>UKZ-WD-003 · E-commerce Platform Build</strong> <em>Tier 2 · Build · Fixed scope · 6–12 weeks · SMB</em> <strong>Outcome:</strong> Custom e-commerce platform or Shopify customization tailored to a specific business workflow. <strong>Includes:</strong> Catalog architecture · Cart and checkout · Payment integration (Stripe, Mercado Pago, Conekta) · Inventory management · Order fulfillment workflow · Customer account · Admin dashboard · SEO foundations · Deployment.</p>
+<p><strong>UKZ-WD-004 · Custom CMS Build</strong> <em>Tier 2 · Build · Fixed scope · 4–8 weeks · EDU, SMB</em> <strong>Outcome:</strong> Custom content management system on Wagtail, WordPress, or Django that fits the specific publishing workflow. <strong>Includes:</strong> Content model design · Editor experience · Workflow and approval · Media management · Multi-author support · API for headless use · Migration from existing CMS · Editor training.</p>
+<p><strong>UKZ-WD-005 · Internal Tool and Admin Dashboard Build</strong> <em>Tier 2 · Build · Fixed scope · 3–8 weeks · EDU, SMB</em> <strong>Outcome:</strong> Custom internal tools and reporting dashboards that eliminate manual workflows across departments. <strong>Includes:</strong> Workflow discovery · Database design · Admin UI · Reporting and exports · User management · Integration with existing systems · Documentation · User training. <strong>Related:</strong> IC-012, WD-015.</p>
+<p><strong>UKZ-WD-006 · REST and GraphQL API Development</strong> <em>Tier 2 · Build · Fixed scope · 3–8 weeks · SMB</em> <strong>Outcome:</strong> Production-grade REST or GraphQL API with authentication, documentation, and third-party integration ready. <strong>Includes:</strong> API design · Schema definition · Endpoint implementation · Authentication and authorization · Rate limiting · Versioning strategy · OpenAPI or GraphQL schema documentation · Postman collection · Integration test suite.</p>
+<p><strong>UKZ-WD-007 · Authentication and Payment Integration</strong> <em>Tier 2 · Build · Fixed scope · 2–4 weeks · SMB</em> <strong>Outcome:</strong> Production-ready authentication and payment systems integrated into a new or existing application. <strong>Includes:</strong> OAuth, JWT, or SSO authentication · Multi-factor authentication · Role-based access control · Stripe, PayPal, Mercado Pago, or Conekta integration · Subscription billing · Webhook handling · Admin and user-facing UI · Testing.</p>
+<p><strong>UKZ-WD-008 · Third-Party Service Integration</strong> <em>Tier 3 · Build · Fixed scope · 1–3 weeks per integration · SMB</em> <strong>Outcome:</strong> Reliable integration with third-party services (Twilio, SendGrid, Google APIs, CRMs) with error handling and monitoring. <strong>Includes:</strong> Integration design · API client implementation · Webhook handling · Error handling and retry logic · Monitoring and alerting · Documentation.</p>
+<p><strong>UKZ-WD-009 · Claude and LLM API Integration</strong> <em>Tier 1 · Build · Fixed scope · 2–6 weeks · EDU, SMB</em> <strong>Outcome:</strong> Production-grade integration of Anthropic Claude, OpenAI, or Google Gemini APIs into existing applications or workflows. <strong>Includes:</strong> Use-case scoping · API integration · Prompt engineering and tuning · Response handling and validation · Cost monitoring · Rate limiting and fallback · Logging · Documentation · Integration test suite. <strong>Related:</strong> WD-010, WD-011, CS-007.</p>
+<p><strong>UKZ-WD-010 · AI Chatbot and Virtual Assistant Build</strong> <em>Tier 2 · Build · Fixed scope · 4–8 weeks · SMB</em> <strong>Outcome:</strong> Production AI chatbot or virtual assistant integrated into a website or customer service workflow, with handoff to human agents. <strong>Includes:</strong> Use-case definition · Conversation design · LLM integration · Context and memory management · Human handoff workflow · Admin UI · Analytics · Deployment.</p>
+<p><strong>UKZ-WD-011 · Knowledge Base AI and RAG System</strong> <em>Tier 1 · Build · Fixed scope · 4–10 weeks · EDU, SMB</em> <strong>Outcome:</strong> Custom retrieval-augmented generation system on a private knowledge base, with semantic search and grounded answers. <strong>Includes:</strong> Content ingestion pipeline · Embedding generation · Vector database setup (Pinecone, Weaviate, pgvector) · Retrieval pipeline · Custom GPT or Claude Project setup · Citation and source tracking · Admin UI for content management · Evaluation framework. <strong>Related:</strong> WD-009, WD-012.</p>
+<p><strong>UKZ-WD-012 · AI Document Processing Pipeline</strong> <em>Tier 2 · Build · Fixed scope · 3–6 weeks · EDU, SMB</em> <strong>Outcome:</strong> Automated document processing pipeline using LLMs for extraction, summarization, and classification at scale. <strong>Includes:</strong> Document intake design · OCR for scanned documents · LLM-based extraction · Validation and human-review queue · Output to target systems · Cost monitoring · Quality dashboard.</p>
+<p><strong>UKZ-WD-013 · AI Agent and Workflow Build</strong> <em>Tier 3 · Build · Fixed scope · 4–10 weeks · SMB</em> <strong>Outcome:</strong> Multi-step AI agent or workflow that performs complex tasks autonomously with appropriate guardrails. <strong>Includes:</strong> Use-case definition · Agent architecture (LangChain, LlamaIndex, custom) · Tool integration · Memory and state management · Safety guardrails · Monitoring · Human-in-the-loop checkpoints · Documentation.</p>
+<p><strong>UKZ-WD-014 · AI Content Auditing System</strong> <em>Tier 3 · Build · Fixed scope · 3–6 weeks · EDU</em> <strong>Outcome:</strong> AI-content detection and academic integrity system for schools concerned about plagiarism and unattributed AI use. <strong>Includes:</strong> Detection model integration · Submission workflow · Teacher review interface · Reporting dashboard · Policy framework · Integration with LMS. <strong>Related:</strong> ET-008, ET-011.</p>
+<p><strong>UKZ-WD-015 · Business Intelligence Dashboard Build</strong> <em>Tier 2 · Build · Fixed scope · 3–6 weeks · EDU, SMB</em> <strong>Outcome:</strong> Custom business intelligence dashboard on Looker Studio, Power BI, or Metabase with KPI tracking and automated reporting. <strong>Includes:</strong> KPI definition workshop · Data source integration · Dashboard design · Automated refresh · Scheduled reports · Alert thresholds · User access control · Training.</p>
+<p><strong>UKZ-WD-016 · Data Pipeline and Warehouse Setup</strong> <em>Tier 3 · Build · Fixed scope · 4–8 weeks · SMB</em> <strong>Outcome:</strong> Production data pipeline and warehouse on BigQuery, Redshift, or Snowflake, with ETL, modeling, and analytics-ready schemas. <strong>Includes:</strong> Data source inventory · ETL pipeline design and build · Data warehouse setup · Dimensional modeling · Data quality monitoring · BI integration · Documentation.</p>
+<p><strong>UKZ-WD-017 · Performance Optimization Engagement</strong> <em>Tier 2 · Audit + Implementation · Fixed scope · 2–4 weeks · SMB</em> <strong>Outcome:</strong> Measurable application performance improvement with documented before/after benchmarks. <strong>Includes:</strong> Performance audit · Bottleneck identification · Database query optimization · Caching strategy · Frontend performance optimization · Load testing · Before/after benchmark report.</p>
+<p><strong>UKZ-WD-018 · Legacy System Modernization</strong> <em>Tier 2 · Engagement · Fixed scope or T&amp;M · 8–24 weeks · SMB</em> <strong>Outcome:</strong> Phased migration of aging PHP, ASP, or WordPress systems onto a modern Django and React stack with feature parity and improved performance. <strong>Includes:</strong> Current-state assessment · Modernization strategy (strangler fig, big-bang, or hybrid) · Data migration · Incremental rebuild · Parallel-run validation · Cutover plan · Post-launch support.</p>
+<hr />
+<h3 id="category-et-edtech-implementation-and-training">17. Category ET — EdTech Implementation and Training</h3>
+<p>Helping institutions and educators actually use the technology they have invested in. Anchored in Google Certified Educator L2 and four years inside an international school in Mexico.</p>
+<hr />
+<p><strong>UKZ-ET-001 · LMS Selection and Strategy Consultation</strong> <em>Tier 2 · Consultation · Fixed scope · 2–3 weeks · EDU</em> <strong>Outcome:</strong> Independent LMS selection (Google Classroom, Moodle, Canvas, Edmodo, Schoology) with implementation roadmap. <strong>Includes:</strong> Requirements workshop · Vendor evaluation · Comparison matrix · Demo coordination · Reference checks · Final recommendation · Implementation roadmap. <strong>Related:</strong> ET-002, CS-004.</p>
+<p><strong>UKZ-ET-002 · LMS Deployment and Migration</strong> <em>Tier 1 · Migration · Fixed scope · 6–12 weeks · EDU</em> <strong>Outcome:</strong> Production LMS deployment with content migrated from existing platforms and faculty trained for term start. <strong>Includes:</strong> Tenant setup · User provisioning · Course structure setup · Content migration · Integration with SIS and Workspace · Faculty training · Student onboarding materials · Go-live support · Post-launch support. <strong>Related:</strong> ET-003, ET-006, MS-006.</p>
+<p><strong>UKZ-ET-003 · Google Workspace for Education Rollout</strong> <em>Tier 1 · Rollout · Fixed scope · 4–6 weeks · EDU</em> <strong>Outcome:</strong> Fully configured Google Workspace for Education domain with users provisioned, classrooms ready, and faculty trained. <strong>Includes:</strong> Domain setup · User provisioning · Organizational unit structure · Sharing and security policies · Classroom setup · Drive structure for staff and students · Email migration · Faculty training · Student onboarding. <strong>Related:</strong> IC-004, ET-006.</p>
+<p><strong>UKZ-ET-004 · Student Information System Integration</strong> <em>Tier 2 · Integration · Fixed scope · 4–8 weeks · EDU</em> <strong>Outcome:</strong> SIS integrated with LMS, parent portal, and reporting systems for unified student data flow. <strong>Includes:</strong> SIS evaluation · Data mapping · Integration design and build · Sync automation · Validation testing · Documentation · Admin training.</p>
+<p><strong>UKZ-ET-005 · Parent Portal Setup and Training</strong> <em>Tier 2 · Setup · Fixed scope · 3–6 weeks · EDU</em> <strong>Outcome:</strong> Production parent portal with grades, attendance, communications, and parent-facing training delivered. <strong>Includes:</strong> Platform selection or custom build · Configuration · SIS integration · Bilingual EN-ES interface · Parent training sessions · Faculty training · Support documentation.</p>
+<p><strong>UKZ-ET-006 · Faculty Professional Development Cohort</strong> <em>Tier 1 · Cohort · Per-seat · 6–12 weeks · EDU</em> <strong>Outcome:</strong> Structured faculty cohort program that transforms how teachers use EdTech tools in daily instruction. <strong>Includes:</strong> Pre-assessment of digital fluency · Eight live sessions · Self-paced practice activities · Coaching office hours · Project-based application in real classrooms · Final showcase · Post-program assessment. <strong>Related:</strong> ET-007, ET-008.</p>
+<p><strong>UKZ-ET-007 · Google Certified Educator Preparation Cohort</strong> <em>Tier 2 · Cohort · Per-seat · 8–10 weeks · EDU</em> <strong>Outcome:</strong> Faculty cohort fully prepared for and supported through Google Certified Educator Level 1 or Level 2 certification. <strong>Includes:</strong> Curriculum aligned to certification objectives · Live training sessions · Practice scenarios · Mock exam · Exam coaching · Certification reimbursement coordination.</p>
+<p><strong>UKZ-ET-008 · AI for Educators Training Program</strong> <em>Tier 1 · Program · Per-seat or institutional · 6–8 weeks · EDU</em> <strong>Outcome:</strong> Faculty trained to use AI tools (Claude, ChatGPT, Gemini) responsibly and effectively in lesson planning, content creation, and assessment. <strong>Includes:</strong> AI fundamentals for educators · Tool-specific training · Prompt engineering for teaching · Lesson planning with AI · Assessment design · Academic integrity framework · Acceptable use policy · Practical application projects. <strong>Related:</strong> CS-007, WD-014, ET-011.</p>
+<p><strong>UKZ-ET-009 · Bilingual Digital Content Production</strong> <em>Tier 2 · Service · Per project · Variable · EDU</em> <strong>Outcome:</strong> High-quality bilingual EN-ES digital learning content (slides, videos, interactives) ready for classroom use. <strong>Includes:</strong> Curriculum alignment review · Content design · Bilingual production · Interactive elements (Quizizz, Edpuzzle, Nearpod) · Video recording and editing · LMS publishing · Style guide for ongoing in-house production.</p>
+<p><strong>UKZ-ET-010 · Smart Classroom and STEM Lab Setup</strong> <em>Tier 2 · Setup · Fixed scope · 4–8 weeks · EDU</em> <strong>Outcome:</strong> Production-ready technology-integrated classroom or STEM/robotics lab with devices, network, software, and instructional design. <strong>Includes:</strong> Space planning · Equipment specification (interactive boards, projectors, devices, robotics kits) · Network and power design · Installation coordination · Software setup · Initial curriculum content · Faculty orientation.</p>
+<p><strong>UKZ-ET-011 · Digital Citizenship and AUP Implementation</strong> <em>Tier 2 · Implementation · Fixed scope · 2–4 weeks · EDU</em> <strong>Outcome:</strong> School-wide acceptable use policy and digital citizenship framework implemented with student, parent, and faculty rollout. <strong>Includes:</strong> AUP drafting · BYOD policy · Digital citizenship curriculum · AI acceptable use policy · Parent communication pack · Faculty training · Student onboarding · Annual review template.</p>
+<p><strong>UKZ-ET-012 · Student Data Privacy Compliance Service</strong> <em>Tier 3 · Service · Fixed scope · 4–6 weeks · EDU</em> <strong>Outcome:</strong> Student data privacy compliance posture aligned with applicable regulations (LFPDPPP for Mexico, FERPA for US-aligned schools, GDPR where relevant). <strong>Includes:</strong> Data inventory · Vendor compliance audit · Data flow mapping · Policy and procedure documentation · Faculty and staff training · Parent disclosure templates · Annual review framework.</p>
+<hr />
+<h3 id="category-ms-managed-services-and-support">18. Category MS — Managed Services and Support</h3>
+<p>The recurring-revenue layer. A different commercial model rather than a different skill set. The natural follow-on to every project.</p>
+<hr />
+<p><strong>UKZ-MS-001 · Managed IT Operations Retainer</strong> <em>Tier 1 · Retainer · Monthly fixed · Ongoing · EDU, SMB</em> <strong>Outcome:</strong> Fully managed IT operations with defined SLAs across networks, devices, identity, and platforms. <strong>Includes:</strong> SLA-backed incident response · Proactive monitoring · Patching and updates · User onboarding/offboarding · Vendor coordination · Monthly performance report · Quarterly business review. <strong>Related:</strong> IC-001, MS-007.</p>
+<p><strong>UKZ-MS-002 · Managed Cloud Operations Retainer</strong> <em>Tier 2 · Retainer · Monthly fixed · Ongoing · SMB</em> <strong>Outcome:</strong> Ongoing management of cloud infrastructure on GCP or AWS with cost optimization, security monitoring, and incident response. <strong>Includes:</strong> 24/7 monitoring · Incident response · Cost optimization · Security posture management · Patching and updates · Backup verification · Monthly cost and performance report. <strong>Related:</strong> IC-009, IC-010, IC-013.</p>
+<p><strong>UKZ-MS-003 · Managed Application Maintenance Retainer</strong> <em>Tier 2 · Retainer · Monthly fixed · Ongoing · SMB</em> <strong>Outcome:</strong> Ongoing maintenance, bug fixes, dependency updates, and minor enhancements for production applications. <strong>Includes:</strong> Monthly maintenance window · Dependency updates · Security patching · Bug fixes (within retainer hours) · Minor feature enhancements · Performance monitoring · Monthly report.</p>
+<p><strong>UKZ-MS-004 · Managed Website Hosting and Maintenance</strong> <em>Tier 2 · Retainer · Monthly fixed · Ongoing · ALL</em> <strong>Outcome:</strong> Hosted, maintained, and monitored website with backups, updates, and uptime guarantees. <strong>Includes:</strong> Hosting · Daily backups · Security monitoring · Updates (CMS, plugins, dependencies) · Performance monitoring · SSL renewal · Minor content updates · Monthly report.</p>
+<p><strong>UKZ-MS-005 · Managed Workspace Administration</strong> <em>Tier 2 · Retainer · Monthly fixed · Ongoing · EDU, SMB</em> <strong>Outcome:</strong> Ongoing administration of Google Workspace or Microsoft 365 tenant including user lifecycle, policy enforcement, and support. <strong>Includes:</strong> User provisioning and deprovisioning · License management · Policy enforcement · Security monitoring · End-user support · Quarterly admin review.</p>
+<p><strong>UKZ-MS-006 · Managed LMS Administration for Schools</strong> <em>Tier 1 · Retainer · Monthly fixed · Ongoing · EDU</em> <strong>Outcome:</strong> Ongoing LMS administration for schools without a dedicated EdTech administrator. <strong>Includes:</strong> User provisioning each term · Course setup · Integration management · Faculty support · Student support · Issue resolution · Term-end reporting · Annual rollover.</p>
+<p><strong>UKZ-MS-007 · Helpdesk-as-a-Service Retainer</strong> <em>Tier 2 · Retainer · Monthly fixed · Ongoing · EDU, SMB</em> <strong>Outcome:</strong> Outsourced helpdesk function with tiered response times and bilingual EN-ES support. <strong>Includes:</strong> Tier 1 to Tier 3 support · SLA-backed response · Ticket management · Knowledge base maintenance · Escalation procedures · Bilingual support · Monthly performance report.</p>
+<p><strong>UKZ-MS-008 · Managed Cybersecurity Monitoring</strong> <em>Tier 3 · Retainer · Monthly fixed · Ongoing · SMB</em> <strong>Outcome:</strong> Continuous security monitoring, alerting, and incident response for production environments. <strong>Includes:</strong> SIEM integration · Threat monitoring · Alert triage · Incident response · Monthly threat report · Quarterly security review.</p>
+<p><strong>UKZ-MS-009 · Managed Compliance Monitoring</strong> <em>Tier 3 · Retainer · Monthly fixed · Ongoing · EDU, SMB</em> <strong>Outcome:</strong> Ongoing compliance posture monitoring for LFPDPPP, GDPR, or FERPA with quarterly attestation. <strong>Includes:</strong> Control monitoring · Vendor compliance tracking · Policy review · Quarterly attestation report · Annual compliance review · Remediation coordination.</p>
+<p><strong>UKZ-MS-010 · Quarterly Health Check Service</strong> <em>Tier 2 · Audit · Per quarter · Ongoing · EDU, SMB</em> <strong>Outcome:</strong> Quarterly review of infrastructure, security, and operational posture with prioritized recommendations. <strong>Includes:</strong> Infrastructure review · Security posture review · Performance review · Cost review · Recommendations report · Executive presentation.</p>
+<hr />
+<h2 id="part-iv-solution-composition">PART IV — SOLUTION COMPOSITION</h2>
+<p>Solutions are bundled offerings composed from atomic services. Each Solution targets one primary segment, has a single all-in price, a defined timeline, and a clear outcome promise.</p>
+<h3 id="flagship-solutions">19. Flagship Solutions</h3>
+<h4 id="school-tech-transformation-program-edu-primary">School Tech Transformation Program <em>(EDU primary)</em></h4>
+<p>End-to-end school technology modernization in 90 days plus six-month leadership engagement. <strong>Composed of:</strong> UKZ-CS-001, UKZ-IC-001, UKZ-IC-004, UKZ-ET-002, UKZ-ET-003, UKZ-ET-006, UKZ-CS-011 (months 4–9).</p>
+<h4 id="bilingual-stem-program-launch-edu-primary">Bilingual STEM Program Launch <em>(EDU primary)</em></h4>
+<p>Full CS and STEM curriculum design plus faculty enablement, delivered in parallel English and Spanish. <strong>Composed of:</strong> UKZ-ET-006, UKZ-ET-008, UKZ-ET-009, UKZ-ET-010.</p>
+<h4 id="school-ai-adoption-program-edu-primary">School AI Adoption Program <em>(EDU primary)</em></h4>
+<p>Responsible adoption of AI tools across faculty, students, and curriculum within one term. <strong>Composed of:</strong> UKZ-CS-007, UKZ-ET-008, UKZ-ET-011, UKZ-WD-014 (optional).</p>
+<h4 id="fractional-cto-engagement-smb-primary">Fractional CTO Engagement <em>(SMB primary)</em></h4>
+<p>Monthly technical leadership for SMEs and startups that need a CTO without the full-time cost. <strong>Composed of:</strong> UKZ-CS-010 (anchor), UKZ-CS-002 (annual), UKZ-CS-008 (as needed).</p>
+<h4 id="mvp-to-launch-package-smb-primary">MVP-to-Launch Package <em>(SMB primary)</em></h4>
+<p>Working SaaS MVP delivered in eight weeks at fixed scope and fixed price, ready for first paying customers. <strong>Composed of:</strong> UKZ-WD-002, UKZ-WD-007, UKZ-IC-009, UKZ-MS-003 (post-launch).</p>
+<h4 id="business-it-foundation-smb-primary">Business IT Foundation <em>(SMB primary)</em></h4>
+<p>Network, cloud, Workspace, and security baseline configured for new or growing offices. <strong>Composed of:</strong> UKZ-IC-001, UKZ-IC-004, UKZ-IC-006, UKZ-IC-014, UKZ-IC-015.</p>
+<h4 id="ai-powered-knowledge-base-smb-and-edu">AI-Powered Knowledge Base <em>(SMB and EDU)</em></h4>
+<p>Custom RAG system on private knowledge base, with semantic search and grounded answers. <strong>Composed of:</strong> UKZ-CS-007, UKZ-WD-009, UKZ-WD-011, UKZ-MS-003 (ongoing).</p>
+<h4 id="personal-brand-and-web-foundation-ind-primary">Personal Brand and Web Foundation <em>(IND primary)</em></h4>
+<p>Complete personal brand identity plus production-ready portfolio website on a custom domain. <strong>Composed of:</strong> UKZ-BD-001, UKZ-BD-007, UKZ-BD-011, UKZ-BD-013.</p>
+<hr />
+<h2 id="part-v-appendices">PART V — APPENDICES</h2>
+<h3 id="appendix-a-glossary">Appendix A — Glossary</h3>
+<p><strong>Catalog Item.</strong> An atomic service SKU as defined in this catalog. <strong>Solution.</strong> A composite offering composed of multiple Catalog Items, sold as one transaction. <strong>Engagement.</strong> Any sold transaction, atomic or bundled. <strong>Tier.</strong> Service prominence level (1 Flagship, 2 Standard, 3 Specialized). <strong>Retainer.</strong> Recurring monthly engagement with defined scope and SLAs. <strong>Sprint.</strong> Time-boxed delivery with fixed scope, typically 1–8 weeks. <strong>SLA.</strong> Service-Level Agreement defining response times and availability. <strong>LFPDPPP.</strong> Mexican federal law on data protection (Ley Federal de Protección de Datos Personales en Posesión de los Particulares).</p>
+<h3 id="appendix-b-document-revision-history">Appendix B — Document Revision History</h3>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 20%" />
+<col style="width: 26%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1.0</td>
+<td>29 April 2026</td>
+<td>Mustapha Ukizuru</td>
+<td>Initial publication of the consolidated 6-category service catalog with 82 services and 8 flagship Solutions.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>End of catalog.</em></p>
+</body>
+</html>

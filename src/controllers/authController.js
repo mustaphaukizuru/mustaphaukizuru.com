@@ -3,7 +3,12 @@ const bcrypt = require("bcryptjs");
 const asyncHandler = require("../utils/asyncHandler");
 const generateToken = require("../utils/generateToken");
 const prisma = require("../lib/prisma");
-const { sendResetEmail, sendWelcomeEmail, sendPasswordResetConfirmationEmail } = require("../utils/mailer");
+const {
+  sendPasswordResetConfirmationEmail,
+  sendResetEmail, // template-free fallback (built inline in mailer.js)
+} = require("../utils/mailer");
+const { sendTemplateEmail } = require("../services/emailService");
+const { resolveUserLocale } = require("../utils/resolveUserLocale");
 const { notifyWelcome, notifyPasswordChanged } = require("../services/notificationService");
 
 const {
@@ -41,8 +46,23 @@ const signup = asyncHandler(async (req, res) => {
   const user = await registerUser({ fullName, email, password });
   const token = generateToken(user);
 
-  // Welcome email + in-app notification (non-blocking)
-  sendWelcomeEmail(user).catch((e) => console.error("[signup] welcome email:", e.message))
+  // Welcome email + in-app notification (non-blocking).
+  // Uses the DB-driven template so admin can customize the copy from the
+  // EmailTemplates panel without redeploying.
+  const dashboardUrl = `${(process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")}/dashboard`
+  // I18N05 · respect the locale the visitor signed up under (URL prefix /es,
+  // Accept-Language, or explicit body.locale). Falls back to "en".
+  const signupLocale = resolveUserLocale({ req });
+  sendTemplateEmail({
+    to:          user.email,
+    templateKey: "auth.welcome",
+    userId:      user.id,
+    locale:      signupLocale,
+    variables: {
+      customerName: user.fullName?.split(" ")[0] || "there",
+      dashboardUrl,
+    },
+  }).catch((e) => console.error("[signup] welcome email:", e.message))
   notifyWelcome(user).catch(() => {})
 
   res.status(201).json({
@@ -52,6 +72,18 @@ const signup = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Login with optional 2FA branch (B09).
+ *
+ * If the user has 2FA enabled, loginUser returns:
+ *   { requires2FA: true, twoFactorToken, userId }
+ *
+ * In that case we return a 200 with `{ data: { requires2FA, twoFactorToken } }`.
+ * The frontend swaps to its 2FA prompt and POSTs to /api/auth/2fa/login-verify
+ * to exchange the temp token + 2FA code for the real session JWT.
+ *
+ * Otherwise, the existing { user, token } shape is returned unchanged.
+ */
 const login = asyncHandler(async (req, res) => {
   const { email, password, rememberMe } = req.body;
 
@@ -63,8 +95,22 @@ const login = asyncHandler(async (req, res) => {
   }
 
   try {
-    const user = await loginUser({ email, password });
-    // rememberMe=true → 30-day token; false/missing → 7-day default
+    const result = await loginUser({ email, password, rememberMe: Boolean(rememberMe) });
+
+    // ── 2FA-gated path ──────────────────────────────────────────────────
+    if (result?.requires2FA) {
+      return res.status(200).json({
+        success: true,
+        message: "Two-factor authentication required",
+        data: {
+          requires2FA:    true,
+          twoFactorToken: result.twoFactorToken,
+        },
+      });
+    }
+
+    // ── Standard path ───────────────────────────────────────────────────
+    const user = result;
     const token = generateToken(user, Boolean(rememberMe));
 
     return res.status(200).json({
@@ -145,10 +191,11 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true },
+    select: { id: true, email: true, fullName: true },
   });
 
   if (!user) {
+    // Neutral response — do not leak whether the email exists.
     return res.status(200).json({
       success: true,
       message: "If the email exists, a reset link has been generated.",
@@ -158,7 +205,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const rawToken = crypto.randomBytes(32).toString("hex");
   const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-  const expiry = new Date(Date.now() + 60 * 60 * 1000);
+  const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
   const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
   const resetLink = `${frontendUrl}/reset-password/${rawToken}`;
 
@@ -182,23 +229,68 @@ const forgotPassword = asyncHandler(async (req, res) => {
     // Keep reset flow working even if PasswordReset table is not available yet.
   }
 
+  // ── Email dispatch with hard fallback ─────────────────────────────────
+  // Primary path: DB-driven template "auth.password-reset" (admin-editable
+  // via EmailTemplates panel). Fallback path: template-free `sendResetEmail`
+  // built inline in mailer.js — guarantees the user receives the link even
+  // if the EmailTemplate row is missing, inactive, or contains bad markup.
+  //
+  // Both paths log to EmailLog (sent | failed) so the admin can audit
+  // delivery from the dashboard.
   let mailSent = false;
-  let emailError = null;
+  let lastError = null;
 
   try {
-    await sendResetEmail(user.email, resetLink);
-    mailSent = true;
+    const resetLocale = resolveUserLocale({ req });
+    const result = await sendTemplateEmail({
+      to:          user.email,
+      templateKey: "auth.password-reset",
+      userId:      user.id,
+      locale:      resetLocale,
+      variables: {
+        customerName: user.fullName?.split(" ")[0] || "there",
+        resetUrl:     resetLink,
+      },
+    });
+    if (result?.ok) {
+      mailSent = true;
+    } else {
+      lastError = new Error(result?.error || "Reset email template send failed");
+      console.warn(
+        `[forgotPassword] template path failed (${lastError.message}) — falling back to inline email`,
+      );
+    }
   } catch (error) {
-    emailError = error;
-    console.error("Failed to send reset email:", error.message);
+    lastError = error;
+    console.warn(
+      `[forgotPassword] template path threw (${error.message}) — falling back to inline email`,
+    );
   }
 
-  // ⚠ NEVER expose resetLink in response — even in dev.
-  // The token must only travel via email to prevent interception/logging attacks.
+  // Fallback — only attempt if the template path did not deliver.
+  if (!mailSent) {
+    try {
+      await sendResetEmail(user.email, resetLink);
+      mailSent = true;
+      console.log(`[forgotPassword] inline fallback delivered → ${user.email}`);
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `[forgotPassword] inline fallback also failed for ${user.email}:`,
+        error.message,
+      );
+    }
+  }
+
+  // ⚠ NEVER expose resetLink in production responses — the token must only
+  // travel via email to prevent interception/logging attacks.
+  // In non-production environments, surface a `devResetUrl` so Mustapha can
+  // recover during local dev when SMTP is unavailable.
+  const isDev = process.env.NODE_ENV !== "production";
   return res.status(200).json({
     success: true,
     message: "If this email is registered, a reset link will be sent shortly.",
-    data: {},
+    data: isDev && !mailSent ? { devResetUrl: resetLink } : {},
   });
 });
 
@@ -210,10 +302,10 @@ const resetPassword = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Token and new password are required" });
   }
   if (password.length < 8) {
-    return res.status(400).json({ success: false, message: "Password must be at least 8 characters" })
+    return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
   }
   if (password.length > 128) {
-    return res.status(400).json({ success: false, message: "Password too long" })
+    return res.status(400).json({ success: false, message: "Password too long" });
   }
 
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
@@ -254,11 +346,13 @@ const resetPassword = asyncHandler(async (req, res) => {
     // Optional table.
   }
 
-  // Confirmation email + in-app notification (non-blocking)
-  sendPasswordResetConfirmationEmail(user.email).catch((e) => console.error("[resetPassword] email:", e.message))
-  notifyPasswordChanged(user).catch(() => {})
+  // Confirmation email + in-app notification (non-blocking).
+  sendPasswordResetConfirmationEmail(user.email).catch((e) =>
+    console.error("[resetPassword] confirmation email:", e.message),
+  );
+  notifyPasswordChanged(user).catch(() => {});
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Password updated successfully.",
   });

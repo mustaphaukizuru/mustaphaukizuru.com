@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, matchPath } from "react-router-dom";
 import Seo from "./seo/Seo";
 import { buildProductSeo, buildServiceCollectionSeo, shouldNoindex, staticSeoByRoute } from "../seo/pageSeo";
+import { getSpanishOverride, stripLanguagePrefix } from "../seo/pageSeoEs";
+import { detectLanguageFromPath } from "../i18n/utils/detectLanguageFromPath";
 import { DEFAULT_OG_IMAGE, absoluteUrl, siteConfig, trimText } from "../seo/siteSeo";
 import { fetchProductBySlug } from "../services/productService";
 import { API_BASE_URL } from "../lib/api";
@@ -79,15 +81,23 @@ export default function SeoRouteManager() {
   }, [pathname, productMatch?.params?.slug]);
 
   const seo = useMemo(() => {
-    if (pathname === "/") {
+    // I18N07 · Spanish pageSeo merge — strip /es prefix, look up the
+    // English base, then merge the Spanish override on top.
+    const cleanPath = stripLanguagePrefix(pathname);
+    const lang = detectLanguageFromPath(pathname);
+    const esOverride = lang === "es" ? getSpanishOverride(pathname) : null;
+
+    if (cleanPath === "/") {
       return {
         ...staticSeoByRoute["/"],
+        ...(esOverride || {}),
         jsonLd: buildHomeSchemas(),
       };
     }
 
-    if (pathname === "/services") {
-      return buildServiceCollectionSeo(pathname);
+    if (cleanPath === "/services") {
+      const base = buildServiceCollectionSeo(pathname);
+      return esOverride ? { ...base, ...esOverride, jsonLd: base.jsonLd } : base;
     }
 
     if (productMatch) {
@@ -108,7 +118,7 @@ export default function SeoRouteManager() {
       };
     }
 
-    return staticSeoByRoute[pathname] || {
+    return { ...(staticSeoByRoute[cleanPath] || {}), ...(esOverride || {}) } || {
       title: "Professional Technology Platform",
       description: siteConfig.defaultDescription,
       image: DEFAULT_OG_IMAGE,

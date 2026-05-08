@@ -1,0 +1,56 @@
+{
+  "hero": {
+    "eyebrow": "Portfolio",
+    "title": "Selected Work",
+    "subtitle": "A curated collection of full-stack development, digital design, and educational-technology projects. Each one solves a real problem, the case studies dig into the how and the why."
+  },
+  "filters": {
+    "all": "All",
+    "search": "Search work",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{total}}"
+  },
+  "card": {
+    "featured": "Featured",
+    "caseStudy": "Case study",
+    "live": "Live"
+  },
+  "empty": "No projects match your filters.",
+  "states": {
+    "errorFallback": "Failed to load portfolio",
+    "emptyTitle": "No projects found",
+    "emptyQuery": "Try a different search term.",
+    "emptyDefault": "New work will be published here soon."
+  },
+  "cta": {
+    "title": "Have a project in mind?",
+    "subtitle": "Let's discuss how we can bring it to life.",
+    "button": "Start a conversation"
+  },
+  "seo": {
+    "title": "Portfolio · Mustapha Ukizuru",
+    "description": "Selected work, full-stack development, design, branding, and school digital integration projects.",
+    "schemaName": "Portfolio",
+    "schemaDesc": "Selected projects."
+  },
+  "detail": {
+    "notFound": "Project not found",
+    "notFoundBody": "This project may not exist or has been moved.",
+    "backToPortfolio": "Back to portfolio",
+    "year": "Year",
+    "role": "Role",
+    "client": "Client",
+    "tools": "Tools",
+    "challenge": "The challenge",
+    "solution": "The solution",
+    "results": "Results",
+    "viewSite": "View live site",
+    "visitLive": "Visit live site",
+    "toolsTechTitle": "Tools & technologies",
+    "projectFactsTitle": "Project facts",
+    "moreToExplore": "More to explore",
+    "relatedProjects": "Related projects",
+    "viewAll": "View all"
+  }
+}

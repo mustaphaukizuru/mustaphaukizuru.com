@@ -1,0 +1,58 @@
+{
+  "post": {
+    "errors": {
+      "notFound": "Artículo no encontrado"
+    },
+    "seo": {
+      "titleSuffix": "Artículo"
+    },
+    "rail": {
+      "back": "Volver al blog",
+      "fallbackKind": "Artículo",
+      "share": "Compartir",
+      "shareAria": "Comparte este artículo",
+      "tags": "Etiquetas"
+    },
+    "meta": {
+      "minRead": "{{count}} min de lectura"
+    },
+    "related": {
+      "title": "Más de {{label}}",
+      "fallbackLabel": "el blog",
+      "readArticle": "Leer artículo"
+    }
+  },
+  "list": {
+    "page": "Blog"
+  },
+  "author": {
+    "aria": "Sobre el autor",
+    "writtenBy": "Escrito por",
+    "getInTouch": "Ponte en contacto"
+  },
+  "content": {
+    "placeholder": "El cuerpo completo del artículo se está preparando. Vuelve pronto."
+  },
+  "page": {
+    "title": "Insights y artículos",
+    "subtitle": "Notas de campo desde el taller, estrategia de TI, ingeniería full-stack, EdTech, educación STEM, y de vez en cuando una historia de carrera desde Ruanda pasando por México.",
+    "clearFilters": "Limpiar filtros",
+    "filtersAria": "Filtros y herramientas del blog",
+    "searchTitle": "Buscar artículos",
+    "searchAria": "Buscar posts del blog",
+    "allCategories": "Todas las categorías",
+    "popularTags": "Etiquetas populares",
+    "recentPosts": "Posts recientes",
+    "stayInLoop": "Mantente al tanto",
+    "newsletterTitle": "Nuevos posts en tu bandeja.",
+    "newsletterBody": "Resumen trimestral de lo entregado, lo que funcionó y lo que no.",
+    "activeFilters": "Filtros activos",
+    "removeFilterAria": "Eliminar filtro",
+    "readArticle": "Leer artículo",
+    "minRead": "min de lectura",
+    "paginationAria": "Paginación del blog",
+    "noMatchTitle": "Ningún artículo coincide con tus filtros",
+    "noMatchBody": "Prueba una búsqueda más amplia, elige otra categoría o limpia los filtros para ver todo el catálogo.",
+    "clearFilters2": "Limpiar filtros"
+  }
+}

@@ -1,12 +1,82 @@
-node_modules
-**/node_modules
+# =============================================================================
+#  mustaphaukizuru.com · .gitignore
+#  Node.js + Express + Prisma + React (Vite) full-stack monorepo.
+# =============================================================================
+
+# ── Secrets (NEVER commit) ──────────────────────────────────────────────────
 .env
 .env.*
-**/.env
-**/.env.*
-dist
-build
-coverage
+!.env.example
+web/.env
+web/.env.*
+!web/.env.example
+
+# ── B01 cleanup backups ─────────────────────────────────────────────────────
+backups/
+
+# ── Dependencies ────────────────────────────────────────────────────────────
+node_modules/
+web/node_modules/
+.pnp
+.pnp.js
+
+# ── Build artefacts ─────────────────────────────────────────────────────────
+# NOTE: /public/ is intentionally NOT ignored — Vite emits the SPA bundle
+# there (see vite.config.js outDir: '../public') and Express serves it.
+# If your deploy pipeline rebuilds on the server, uncomment the line below.
+# /public/
+dist/
+build/
+web/dist/
+web/build/
+
+# ── Logs ────────────────────────────────────────────────────────────────────
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Runtime / caches ────────────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+.vite/
+web/.vite/
+*.tsbuildinfo
+.npm/
+.eslintcache
+
+# ── Prisma ──────────────────────────────────────────────────────────────────
+# Generated Prisma Client lives inside node_modules; nothing to ignore here.
+# But ignore any DB dumps or migration backups accidentally created locally.
+*.sql.bak
+prisma/migrations/.backup/
+
+# ── Uploads (user-generated content, never in git) ──────────────────────────
+uploads/
+public/uploads/
+public/media/
+public/avatars/
+
+# ── OS / Editor cruft ───────────────────────────────────────────────────────
 .DS_Store
-.vscode
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*~
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.history/
+
+# ── Misc tooling ────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.pid
+*.seed
+*.pid.lock
+.env.local

@@ -1,217 +1,441 @@
-import { useEffect, useState } from "react"
-import { Link, useNavigate, useLocation } from "react-router-dom"
-import { motion } from "framer-motion"
-import { Eye, EyeOff, Mail, Lock, Sparkles } from "lucide-react"
-import AuthBrandPanel from "../components/AuthBrandPanel"
+/* ════════════════════════════════════════════════════════════════════════
+   LoginPage · v6 · Cusana split-screen layout · hardened security UX
+   ────────────────────────────────────────────────────────────────────────
+   Preserves the existing auth contract:
+     · email + password + rememberMe → AuthContext.login()
+     · 2FA-gated path · routes to <TwoFactorPrompt /> when requires2FA
+     · Google credential path · via <GoogleLoginButton />
+     · "{t("login.rememberMe")}" persists email in localStorage (existing key)
+
+   Security upgrades on top of v5:
+     · Caps-Lock indicator on password field
+     · Honeypot field ("website") — silently rejects submissions from bots
+     · 429 / RATE_LIMIT response triggers an in-page countdown lockout
+     · Email is trimmed + lowercased before submission
+     · ARIA live region on errors · `role="alert"` for SR announcements
+     · Disable submit when form is empty or while a request is in flight
+     · prefers-reduced-motion respected via Framer Motion useReducedMotion
+
+   Visual: form on the LEFT, dark hero with dashboard widgets on the RIGHT
+   (matches reference designs).
+   ════════════════════════════════════════════════════════════════════════ */
+
+import { useEffect, useMemo, useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
+import { motion, useReducedMotion } from "framer-motion"
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  Loader2,
+  AlertCircle,
+  ShieldAlert,
+} from "lucide-react"
+
+import AuthShell from "../components/auth/AuthShell"
+import BrandMark from "../components/auth/BrandMark"
 import GoogleLoginButton from "../components/GoogleLoginButton"
+import TwoFactorPrompt from "../components/auth/TwoFactorPrompt"
 import { useAuth } from "../context/AuthContext"
+import useCapsLock from "../hooks/useCapsLock"
+import useCountdown from "../hooks/useCountdown"
 
-const fadeUp = { hidden:{opacity:0,y:16}, show:{opacity:1,y:0,transition:{duration:0.38,ease:"easeOut"}} }
-const stagger = { hidden:{}, show:{transition:{staggerChildren:0.06}} }
+const REMEMBER_KEY = "ukizuru-remember-email"
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function AuthInput({ icon: Icon, type="text", value, onChange, placeholder, right, autoComplete }) {
-  return (
-    <div className="relative">
-      {Icon && <Icon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#634F40]/35 pointer-events-none" />}
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        className="w-full rounded-xl border border-[#634F40]/15 bg-[#fafafa] py-3.5 pl-11 pr-10 text-[14px] text-[#420060] outline-none transition focus:border-[#420060]/40 focus:bg-white focus:ring-2 focus:ring-[#420060]/8 placeholder:text-[#634F40]/35"
-      />
-      {right && <div className="absolute right-3 top-1/2 -translate-y-1/2">{right}</div>}
-    </div>
-  )
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] },
+  },
+}
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
 }
 
 export default function LoginPage() {
-  const navigate   = useNavigate()
-  const location   = useLocation()
-  const { login, isAuthenticated } = useAuth()
+  const { t } = useTranslation("auth")
+  const navigate = useNavigate()
+  const location = useLocation()
+  const reduce = useReducedMotion()
+  const { login, completeTwoFactorLogin, isAuthenticated } = useAuth()
 
-  const [email,    setEmail]    = useState("")
+  // ── Form state ──────────────────────────────────────────────────────
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [showPw,   setShowPw]   = useState(false)
+  const [showPw, setShowPw] = useState(false)
   const [remember, setRemember] = useState(false)
-  const [loading,  setLoading]  = useState(false)
-  const [error,    setError]    = useState("")
+  const [honeypot, setHoneypot] = useState("") // bot trap
 
-  // Restore saved email if remember-me was set
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  // ── 2FA branch state ───────────────────────────────────────────────
+  const [twoFactorToken, setTwoFactorToken] = useState(null)
+  const [twoFactorError, setTwoFactorError] = useState("")
+  const [twoFactorLoading, setTwoFactorLoading] = useState(false)
+
+  // ── Helpers ────────────────────────────────────────────────────────
+  const capsOn = useCapsLock()
+  const lockout = useCountdown()
+
+  // Restore saved email if remember-me was previously set.
   useEffect(() => {
-    const saved = localStorage.getItem("ukizuru-remember-email")
-    if (saved) { setEmail(saved); setRemember(true) }
+    try {
+      const saved = localStorage.getItem(REMEMBER_KEY)
+      if (saved) {
+        setEmail(saved)
+        setRemember(true)
+      }
+    } catch {
+      /* localStorage unavailable — silently ignore */
+    }
   }, [])
 
-  // Redirect if already logged in
+  // Redirect if already authenticated.
   useEffect(() => {
     if (isAuthenticated) {
       navigate(location.state?.from || "/dashboard", { replace: true })
     }
   }, [isAuthenticated, navigate, location])
 
+  // Email validity (presentational only — server is the source of truth).
+  const emailValid = useMemo(() => EMAIL_RE.test(email.trim()), [email])
+  // Only disable for transient/security states. Empty-field validation
+  // happens inside handleSubmit so a user who clicks Submit with empty
+  // fields gets a clear "Please enter your email and password" message
+  // instead of a silently-disabled button.
+  const submitDisabled = loading || lockout.isRunning
+
+  // ── Submit ─────────────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault()
     setError("")
-    if (!email || !password) { setError("Please enter your email and password."); return }
+
+    // Bot trap — honeypot must remain empty.
+    if (honeypot) return
+
+    const cleanEmail = email.trim().toLowerCase()
+    if (!cleanEmail || !password) {
+      setError("Please enter your email and password.")
+      return
+    }
+    if (!EMAIL_RE.test(cleanEmail)) {
+      setError("Please enter a valid email address.")
+      return
+    }
+    if (lockout.isRunning) return
 
     setLoading(true)
     try {
-      // Pass rememberMe → backend generates 30d token when true
-      await login({ email, password, rememberMe: remember })
+      const result = await login({
+        email: cleanEmail,
+        password,
+        rememberMe: remember,
+      })
 
-      // Persist email for next login if remember-me checked
-      if (remember) localStorage.setItem("ukizuru-remember-email", email)
-      else          localStorage.removeItem("ukizuru-remember-email")
+      // ── 2FA branch ────────────────────────────────────────────────
+      if (result?.requires2FA) {
+        setTwoFactorToken(result.twoFactorToken)
+        return
+      }
 
+      // ── Standard success ──────────────────────────────────────────
+      try {
+        if (remember) localStorage.setItem(REMEMBER_KEY, cleanEmail)
+        else localStorage.removeItem(REMEMBER_KEY)
+      } catch {
+        /* ignore */
+      }
       navigate(location.state?.from || "/dashboard", { replace: true })
     } catch (err) {
-      const code = err.code || ""
-      const msg  = err.message || ""
-      if (code === "NETWORK_ERROR" || msg.includes("connect")) {
-        setError("Cannot reach the server. Please check your connection and try again.")
+      const code = err?.code || ""
+      const status = err?.status || 0
+      const msg = err?.toUserMessage?.() || err?.message || ""
+
+      if (code === "NETWORK_ERROR") {
+        setError("Cannot reach the server. Check your connection and try again.")
       } else if (code === "AUTH_SUSPENDED") {
         setError("Your account has been suspended. Please contact support.")
       } else if (code === "DB_UNAVAILABLE") {
-        setError("Service is temporarily unavailable. Please try again in a moment.")
-      } else if (code === "RATE_LIMIT") {
-        setError("Too many sign-in attempts. Please wait a few minutes before trying again.")
+        setError("Service is temporarily unavailable. Please try again shortly.")
+      } else if (status === 429 || code === "RATE_LIMIT") {
+        const seconds = Number(err?.details?.retryAfter) || 60
+        lockout.start(seconds)
+        setError(
+          `Too many sign-in attempts. Please wait ${seconds} seconds before trying again.`,
+        )
+      } else if (status === 401) {
+        setError("Incorrect email or password.")
       } else {
-        setError(msg || "Incorrect email or password.")
+        setError(msg || "Sign-in failed. Please try again.")
       }
     } finally {
       setLoading(false)
     }
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
-      <div className="w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-[0_24px_80px_rgba(66,0,96,0.14)] lg:grid lg:grid-cols-2">
-        <AuthBrandPanel
-          title="Welcome to Your Digital Hub"
-          subtitle="Access your purchased digital products, manage consulting services, and track your digital transformation journey."
-          bullets={["Instant download access", "Order history & invoices", "Service tracking & consultations"]}
+  // ── 2FA verify ─────────────────────────────────────────────────────
+  async function handleTwoFactorSubmit(code) {
+    setTwoFactorError("")
+    setTwoFactorLoading(true)
+    try {
+      await completeTwoFactorLogin({ twoFactorToken, code })
+      try {
+        if (remember) localStorage.setItem(REMEMBER_KEY, email.trim().toLowerCase())
+      } catch {
+        /* ignore */
+      }
+      navigate(location.state?.from || "/dashboard", { replace: true })
+    } catch (err) {
+      const msg = err?.toUserMessage?.() || err?.message || "Verification failed."
+      setTwoFactorError(msg)
+      throw err
+    } finally {
+      setTwoFactorLoading(false)
+    }
+  }
+
+  function cancelTwoFactor() {
+    setTwoFactorToken(null)
+    setTwoFactorError("")
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────
+  if (twoFactorToken) {
+    return (
+      <AuthShell
+      >
+        <TwoFactorPrompt
+          email={email.trim().toLowerCase()}
+          loading={twoFactorLoading}
+          error={twoFactorError}
+          onSubmit={handleTwoFactorSubmit}
+          onCancel={cancelTwoFactor}
         />
+      </AuthShell>
+    )
+  }
 
-        {/* Right: form */}
-        <motion.div variants={stagger} initial="hidden" animate="show"
-          className="flex flex-col justify-center px-6 py-8 sm:px-12 sm:py-12"
-        >
-          {/* Mobile back link */}
-          <Link
-            to="/"
-            className="mb-5 inline-flex w-fit items-center gap-2 text-[13px] font-medium text-[#420060] transition hover:text-[#2d003f] lg:hidden"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            Back to Home
-          </Link>
-
-          <motion.div variants={fadeUp}>
-            <span className="inline-flex items-center gap-2 rounded-xl bg-[#ede4ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#420060]">
-              <Sparkles className="h-3 w-3" /> Member Login
-            </span>
-            <h1 className="mt-3 text-[1.7rem] font-bold tracking-tight text-[#420060]">Sign In</h1>
-            <p className="mt-1 text-[14px] text-[#634F40]/60">Enter your credentials to access your account.</p>
-          </motion.div>
-
-          {error && (
-            <motion.div variants={fadeUp}
-              className="mt-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700"
-            >
-              <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span>{error}</span>
-            </motion.div>
-          )}
-
-          <motion.form variants={stagger} onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-            <motion.div variants={fadeUp}>
-              <label className="mb-1.5 block text-[12px] font-semibold text-[#420060]">Email Address</label>
-              <AuthInput icon={Mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com" autoComplete="email" />
-            </motion.div>
-
-            <motion.div variants={fadeUp}>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label className="text-[12px] font-semibold text-[#420060]">Password</label>
-                <Link to="/forgot-password" className="text-[12px] font-medium text-[#420060] hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-              <AuthInput icon={Lock} type={showPw ? "text" : "password"} value={password}
-                onChange={(e) => setPassword(e.target.value)} placeholder="Your password"
-                autoComplete="current-password"
-                right={
-                  <button type="button" onClick={() => setShowPw(!showPw)}
-                    className="text-[#634F40]/40 hover:text-[#420060] transition">
-                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                }
-              />
-            </motion.div>
-
-            {/* Remember me */}
-            <motion.div variants={fadeUp}>
-              <label className="flex cursor-pointer items-center gap-3">
-                <div
-                  onClick={() => setRemember(!remember)}
-                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border-2 transition-all ${
-                    remember ? "border-[#420060] bg-[#420060]" : "border-[#634F40]/25 bg-white"
-                  }`}
-                >
-                  {remember && (
-                    <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-                <span className="select-none text-[13px] text-[#634F40]/70">
-                  Remember me for <span className="font-semibold text-[#420060]">30 days</span>
-                </span>
-              </label>
-            </motion.div>
-
-            <motion.button variants={fadeUp} type="submit" disabled={loading}
-              className="w-full rounded-xl bg-[#420060] py-3.5 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(66,0,96,0.20)] transition hover:-translate-y-0.5 hover:bg-[#2d003f] disabled:opacity-60"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-                  </svg>
-                  Signing in…
-                </span>
-              ) : "Sign In"}
-            </motion.button>
-          </motion.form>
-
-          {/* Google login */}
-          <motion.div variants={fadeUp} className="mt-5">
-            <div className="relative flex items-center gap-3 py-1">
-              <div className="h-px flex-1 bg-[#634F40]/10" />
-              <span className="text-[12px] text-[#634F40]/40">or continue with</span>
-              <div className="h-px flex-1 bg-[#634F40]/10" />
-            </div>
-            <div className="mt-3">
-              <GoogleLoginButton />
-            </div>
-          </motion.div>
-
-          <motion.p variants={fadeUp} className="mt-6 text-center text-[13px] text-[#634F40]/60">
-            Don't have an account?{" "}
-            <Link to="/signup" className="font-semibold text-[#420060] hover:underline">Create Account</Link>
-          </motion.p>
-
-          <motion.p variants={fadeUp} className="mt-3 text-center text-[11px] leading-5 text-[#634F40]/35">
-            By continuing you agree to our{" "}
-            <Link to="/terms" className="hover:underline">Terms</Link>{" "}and{" "}
-            <Link to="/privacy" className="hover:underline">Privacy Policy</Link>.
-          </motion.p>
+  return (
+    <AuthShell>
+      <motion.div
+        initial="hidden"
+        animate="show"
+        variants={reduce ? undefined : stagger}
+      >
+        {/* Brand mark + headline */}
+        <motion.div variants={fadeUp} className="text-center">
+          <BrandMark />
+          <h1 className="mt-5 font-display text-[1.75rem] font-bold tracking-tight text-charcoal">
+            {t("login.welcomeBack")}
+          </h1>
+          <p className="mt-2 text-[14px] leading-6 text-charcoal-80/65">
+            {t("login.subtitle")}
+          </p>
         </motion.div>
-      </div>
-    </div>
+
+        {/* Error banner */}
+        {error && (
+          <motion.div
+            variants={fadeUp}
+            role="alert"
+            aria-live="assertive"
+            className="mt-6 flex items-start gap-3 rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] text-rose-700"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="leading-relaxed">{error}</span>
+          </motion.div>
+        )}
+
+        <motion.form
+          variants={reduce ? undefined : stagger}
+          onSubmit={handleSubmit}
+          noValidate
+          className="mt-6 flex flex-col gap-4"
+        >
+          {/* Honeypot · invisible to humans, enticing to bots */}
+          <input
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            aria-hidden="true"
+            className="absolute left-[-9999px] h-0 w-0 opacity-0"
+          />
+
+          {/* Email */}
+          <motion.div variants={fadeUp}>
+            <label
+              htmlFor="login-email"
+              className="mb-1.5 block text-[12px] font-semibold text-charcoal"
+            >
+              Email
+            </label>
+            <div className="group relative">
+              <Mail
+                aria-hidden="true"
+                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35 transition group-focus-within:text-violet"
+              />
+              <input
+                id="login-email"
+                type="email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("login.emailPlaceholder")}
+                autoComplete="email"
+                inputMode="email"
+                spellCheck={false}
+                autoCapitalize="none"
+                autoCorrect="off"
+                required
+                disabled={loading || lockout.isRunning}
+                className="block w-full rounded-xl border border-charcoal-80/15 bg-white py-3.5 pl-11 pr-4 text-[14px] text-charcoal outline-none transition placeholder:text-charcoal-80/35 focus:border-violet focus:ring-[3px] focus:ring-violet/15 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </div>
+          </motion.div>
+
+          {/* Password */}
+          <motion.div variants={fadeUp}>
+            <label
+              htmlFor="login-password"
+              className="mb-1.5 block text-[12px] font-semibold text-charcoal"
+            >
+              Password
+            </label>
+            <div className="group relative">
+              <Lock
+                aria-hidden="true"
+                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35 transition group-focus-within:text-violet"
+              />
+              <input
+                id="login-password"
+                type={showPw ? "text" : "password"}
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("login.passwordPlaceholder")}
+                autoComplete="current-password"
+                required
+                disabled={loading || lockout.isRunning}
+                className="block w-full rounded-xl border border-charcoal-80/15 bg-white py-3.5 pl-11 pr-12 text-[14px] text-charcoal outline-none transition placeholder:text-charcoal-80/35 focus:border-violet focus:ring-[3px] focus:ring-violet/15 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                aria-label={showPw ? "Hide password" : "Show password"}
+                aria-pressed={showPw}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+              >
+                {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+
+            {/* Caps-Lock advisory · live region */}
+            {capsOn && (
+              <p
+                role="status"
+                aria-live="polite"
+                className="mt-1.5 inline-flex items-center gap-1.5 rounded-md bg-amber/10 px-2 py-1 text-[11px] font-medium text-amber-700"
+              >
+                <ShieldAlert className="h-3 w-3" /> {t("login.capsLockOn")}
+              </p>
+            )}
+          </motion.div>
+
+          {/* Remember + Forgot */}
+          <motion.div
+            variants={fadeUp}
+            className="flex items-center justify-between"
+          >
+            <label className="inline-flex cursor-pointer select-none items-center gap-2 text-[13px] text-charcoal-80/75">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="h-4 w-4 rounded border-charcoal-80/30 text-violet focus:ring-violet/20"
+              />
+              <span>{t("login.rememberMe")}</span>
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-[13px] font-semibold text-violet transition hover:text-violet-deep"
+            >
+              {t("login.forgot")}
+            </Link>
+          </motion.div>
+
+          {/* Submit · dark CTA matches reference */}
+          <motion.button
+            variants={fadeUp}
+            type="submit"
+            disabled={submitDisabled}
+            aria-busy={loading || undefined}
+            aria-describedby={lockout.isRunning ? "login-lockout-hint" : undefined}
+            className="mt-1 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Signing in…
+              </span>
+            ) : lockout.isRunning ? (
+              `Try again in ${lockout.seconds}s`
+            ) : (
+              "Sign In"
+            )}
+          </motion.button>
+
+          {/* Surface the lockout reason when active so the user knows the
+              button is disabled by the rate-limiter, not by validation. */}
+          {lockout.isRunning && !loading && (
+            <p
+              id="login-lockout-hint"
+              role="status"
+              aria-live="polite"
+              className="-mt-1 text-center text-[11.5px] text-rose-700"
+            >
+              {t("login.tooMany")}
+            </p>
+          )}
+        </motion.form>
+
+        {/* Divider · {t("login.orLoginWith")} */}
+        <motion.div variants={fadeUp} className="mt-6">
+          <div className="relative flex items-center gap-3">
+            <div className="h-px flex-1 bg-charcoal-80/10" />
+            <span className="text-[12px] font-medium text-charcoal-80/50">
+              {t("login.orLoginWith")}
+            </span>
+            <div className="h-px flex-1 bg-charcoal-80/10" />
+          </div>
+          <div className="mt-4">
+            <GoogleLoginButton />
+          </div>
+        </motion.div>
+
+        {/* Footer link */}
+        <motion.p
+          variants={fadeUp}
+          className="mt-7 text-center text-[13px] text-charcoal-80/65"
+        >
+          {t("login.noAccount")}{" "}
+          <Link
+            to="/signup"
+            className="font-semibold text-violet transition hover:text-violet-deep"
+          >
+            {t("login.signUp")}
+          </Link>
+        </motion.p>
+      </motion.div>
+    </AuthShell>
   )
 }

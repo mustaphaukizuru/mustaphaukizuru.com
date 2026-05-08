@@ -1,17 +1,27 @@
 const express = require("express")
-const { protect } = require("../middleware/authMiddleware")
-const { createPreference, webhook, getPaymentStatus } = require("../controllers/mercadoPagoController")
+
+const {
+  createPreference,
+  webhook,
+  getPaymentStatus,
+  issueRefund,
+} = require("../controllers/mercadoPagoController")
+
+const { paymentRateLimiter } = require("../middleware/rateLimiter")
+const { protect, adminOnly } = require("../middleware/authMiddleware")
 
 const router = express.Router()
 
-// Authenticated: create preference before redirecting to MP checkout
-router.post("/create-preference",    protect, createPreference)
+// Authenticated checkout flow.
+router.post("/create-preference", protect, paymentRateLimiter, createPreference)
+router.get("/status/:orderId",    protect,                     getPaymentStatus)
 
-// Webhook from Mercado Pago (no auth — MP calls this directly)
-router.post("/webhook",              webhook)
-router.get("/webhook",               webhook)  // MP IPN sometimes sends GET
+// Refunds — admin only.
+router.post("/refund", protect, adminOnly, issueRefund)
 
-// Poll payment status after redirect back
-router.get("/status/:orderId",       protect, getPaymentStatus)
+// Webhook — exempt from auth + rate limiter (MP retries for 24h).
+// MP sends POST (body) and sometimes GET (query); accept both.
+router.post("/webhook", webhook)
+router.get("/webhook",  webhook)
 
 module.exports = router

@@ -1,90 +1,224 @@
-const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
-const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
-const PAYPAL_BASE_URL = process.env.PAYPAL_BASE_URL;
+// ─────────────────────────────────────────────────────────────────────────────
+// PayPal — Orders v2 + Webhooks · V2
+//
+// V2 changes:
+//   • Webhook signature verification via /v1/notifications/verify-webhook-signature
+//     (PayPal's own endpoint — no shared secret needed; uses the cert chain).
+//   • Idempotent capture — capturePaypalOrder now refuses to capture an order
+//     that's already in COMPLETED state and instead returns the existing
+//     capture data, so a double-click on the front-end never charges twice.
+//   • Refund support — refundPaypalCapture(captureId, { amount, currency, note }).
+//   • Token cache — getAccessToken() caches the bearer token for ~9 minutes
+//     instead of re-fetching on every call.
+//   • Cleaner error messages — failures bubble up as Error("PayPal: <reason>")
+//     so the global errorHandler emits a tidy message.
+// ─────────────────────────────────────────────────────────────────────────────
 
-async function getAccessToken() {
-  const auth = Buffer.from(
-    `${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`
-  ).toString("base64");
+const logger = require("../utils/logger")
 
-  const response = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${auth}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "grant_type=client_credentials",
-  });
+const PAYPAL_BASE_URL      = () => process.env.PAYPAL_BASE_URL || "https://api-m.sandbox.paypal.com"
+const PAYPAL_CLIENT_ID     = () => process.env.PAYPAL_CLIENT_ID
+const PAYPAL_CLIENT_SECRET = () => process.env.PAYPAL_CLIENT_SECRET
+const PAYPAL_WEBHOOK_ID    = () => process.env.PAYPAL_WEBHOOK_ID
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`PayPal access token failed: ${errorText}`);
+/* ─────────────────── access token (with 9-minute cache) ────────────────── */
+
+let _tokenCache = { token: null, expiresAt: 0 }
+
+async function getAccessToken({ force = false } = {}) {
+  if (!force && _tokenCache.token && Date.now() < _tokenCache.expiresAt) {
+    return _tokenCache.token
   }
 
-  const data = await response.json();
-  return data.access_token;
+  const id = PAYPAL_CLIENT_ID()
+  const secret = PAYPAL_CLIENT_SECRET()
+  if (!id || !secret) throw new Error("PayPal: missing PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET")
+
+  const auth = Buffer.from(`${id}:${secret}`).toString("base64")
+  const res = await fetch(`${PAYPAL_BASE_URL()}/v1/oauth2/token`, {
+    method:  "POST",
+    headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" },
+    body:    "grant_type=client_credentials",
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`PayPal: access token failed (${res.status}): ${text}`)
+  }
+  const data = await res.json()
+  _tokenCache = {
+    token:     data.access_token,
+    // Subtract 60 s safety margin from the expires_in window.
+    expiresAt: Date.now() + Math.max(0, (data.expires_in - 60) * 1000),
+  }
+  return _tokenCache.token
 }
 
-async function createPaypalOrder({ orderId, orderNumber, totalAmount, currency = "USD" }) {
-  const accessToken = await getAccessToken();
-
-  const response = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders`, {
-    method: "POST",
+async function authedFetch(path, options = {}, { retried = false } = {}) {
+  const token = await getAccessToken()
+  const res = await fetch(`${PAYPAL_BASE_URL()}${path}`, {
+    ...options,
     headers: {
-      Authorization: `Bearer ${accessToken}`,
+      Authorization:  `Bearer ${token}`,
       "Content-Type": "application/json",
+      ...(options.headers || {}),
     },
-    body: JSON.stringify({
-      intent: "CAPTURE",
-      purchase_units: [
-        {
-          reference_id: orderId,
-          invoice_id: orderNumber,
-          custom_id: orderId,
-          amount: {
-            currency_code: currency,
-            value: Number(totalAmount).toFixed(2),
-          },
-        },
-      ],
-      application_context: {
-        shipping_preference: "NO_SHIPPING",
-        user_action: "PAY_NOW",
-      },
-    }),
-  });
+  })
+  // If our cached token expired between cache-hit and use, refresh once.
+  if (res.status === 401 && !retried) {
+    _tokenCache = { token: null, expiresAt: 0 }
+    return authedFetch(path, options, { retried: true })
+  }
+  return res
+}
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`PayPal create order failed: ${errorText}`);
+/* ───────────────────────── create order ────────────────────────────────── */
+
+async function createPaypalOrder({ orderId, orderNumber, totalAmount, currency = "MXN", returnUrl, cancelUrl }) {
+  const body = {
+    intent: "CAPTURE",
+    purchase_units: [{
+      reference_id: orderId,
+      invoice_id:   orderNumber,
+      custom_id:    orderId,
+      amount: {
+        currency_code: currency,
+        value:         Number(totalAmount).toFixed(2),
+      },
+    }],
+    application_context: {
+      shipping_preference: "NO_SHIPPING",
+      user_action:         "PAY_NOW",
+      brand_name:          "Mustapha Ukizuru",
+      ...(returnUrl ? { return_url: returnUrl } : {}),
+      ...(cancelUrl ? { cancel_url: cancelUrl } : {}),
+    },
   }
 
-  return response.json();
+  const res = await authedFetch("/v2/checkout/orders", {
+    method:  "POST",
+    headers: { "PayPal-Request-Id": `order-${orderId}` },     // idempotency
+    body:    JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`PayPal: create order failed (${res.status}): ${text}`)
+  }
+  return res.json()
 }
+
+/* ───────────────────────── capture (idempotent) ────────────────────────── */
 
 async function capturePaypalOrder(paypalOrderId) {
-  const accessToken = await getAccessToken();
+  if (!paypalOrderId) throw new Error("PayPal: paypalOrderId required")
 
-  const response = await fetch(
-    `${PAYPAL_BASE_URL}/v2/checkout/orders/${paypalOrderId}/capture`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
+  // Pre-flight: if it's already captured, return the existing record instead
+  // of POSTing /capture again (which 422s with ORDER_ALREADY_CAPTURED).
+  const lookup = await authedFetch(`/v2/checkout/orders/${paypalOrderId}`, { method: "GET" })
+  if (lookup.ok) {
+    const data = await lookup.json()
+    if (data?.status === "COMPLETED") {
+      return { ...data, _idempotent: true }
     }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`PayPal capture failed: ${errorText}`);
   }
 
-  return response.json();
+  const res = await authedFetch(`/v2/checkout/orders/${paypalOrderId}/capture`, {
+    method:  "POST",
+    headers: { "PayPal-Request-Id": `cap-${paypalOrderId}` },
+    body:    JSON.stringify({}),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    // ORDER_ALREADY_CAPTURED on the capture endpoint isn't fatal — re-fetch.
+    if (text.includes("ORDER_ALREADY_CAPTURED")) {
+      const fallback = await authedFetch(`/v2/checkout/orders/${paypalOrderId}`, { method: "GET" })
+      if (fallback.ok) return { ...(await fallback.json()), _idempotent: true }
+    }
+    throw new Error(`PayPal: capture failed (${res.status}): ${text}`)
+  }
+  return res.json()
+}
+
+/* ─────────────────────── refund a capture ──────────────────────────────── */
+
+async function refundPaypalCapture(captureId, { amount, currency = "MXN", note } = {}) {
+  if (!captureId) throw new Error("PayPal: captureId required")
+
+  const body = {}
+  if (amount != null) body.amount = { value: Number(amount).toFixed(2), currency_code: currency }
+  if (note)           body.note_to_payer = note.slice(0, 255)
+
+  const res = await authedFetch(`/v2/payments/captures/${captureId}/refund`, {
+    method:  "POST",
+    headers: { "PayPal-Request-Id": `refund-${captureId}-${Date.now()}` },
+    body:    JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`PayPal: refund failed (${res.status}): ${text}`)
+  }
+  return res.json()
+}
+
+/* ──────────────── verify webhook signature ─────────────────────────────── */
+
+/**
+ * verifyPaypalWebhookSignature
+ *
+ * Posts the inbound headers + body to PayPal's verify endpoint. PayPal returns
+ * `verification_status: "SUCCESS" | "FAILURE"`.
+ *
+ * Returns `true` when:
+ *   - PAYPAL_WEBHOOK_ID is unset (dev — skip), OR
+ *   - the verify endpoint returns SUCCESS.
+ *
+ * @param {object} input
+ * @param {object} input.headers   The request headers (Express req.headers)
+ * @param {object|string} input.body  The request body (Buffer | string | parsed object)
+ *
+ * IMPORTANT: To verify correctly, we need the EXACT raw JSON string that
+ * PayPal POSTed to us — not a pretty-printed version. Mount the webhook
+ * route with an express.raw({ type: "application/json" }) middleware so
+ * `req.body` is a Buffer, then JSON.parse(body.toString()) for processing,
+ * but pass the raw Buffer to this verifier.
+ */
+async function verifyPaypalWebhookSignature({ headers, body }) {
+  const webhookId = PAYPAL_WEBHOOK_ID()
+  if (!webhookId) {
+    logger.warn("[PayPal webhook] PAYPAL_WEBHOOK_ID not set — skipping signature verification (dev mode)")
+    return true
+  }
+
+  let webhookEvent = body
+  if (Buffer.isBuffer(body))    webhookEvent = JSON.parse(body.toString("utf8"))
+  if (typeof body === "string") webhookEvent = JSON.parse(body)
+
+  const verifyBody = {
+    auth_algo:         headers["paypal-auth-algo"],
+    cert_url:          headers["paypal-cert-url"],
+    transmission_id:   headers["paypal-transmission-id"],
+    transmission_sig:  headers["paypal-transmission-sig"],
+    transmission_time: headers["paypal-transmission-time"],
+    webhook_id:        webhookId,
+    webhook_event:     webhookEvent,
+  }
+
+  const res = await authedFetch("/v1/notifications/verify-webhook-signature", {
+    method: "POST",
+    body:   JSON.stringify(verifyBody),
+  })
+  if (!res.ok) {
+    logger.warn(`[PayPal webhook] verify endpoint returned ${res.status}`)
+    return false
+  }
+  const data = await res.json()
+  return data?.verification_status === "SUCCESS"
 }
 
 module.exports = {
   createPaypalOrder,
   capturePaypalOrder,
-};
+  refundPaypalCapture,
+  verifyPaypalWebhookSignature,
+  // exported for testing
+  getAccessToken,
+}

@@ -1,0 +1,811 @@
+{
+  "nav": {
+    "overview": "Inicio",
+    "products": "Mis productos",
+    "downloads": "Descargas",
+    "orders": "Pedidos",
+    "consultations": "Consultas",
+    "support": "Soporte",
+    "wishlist": "Lista de deseos",
+    "addresses": "Direcciones",
+    "twoFactor": "Verificación en dos pasos",
+    "profile": "Perfil",
+    "projects": "Proyectos",
+    "serviceOrders": "Pedidos de servicios"
+  },
+  "stats": {
+    "totalOrders": "Pedidos totales",
+    "totalSpent": "Total gastado",
+    "downloads": "Descargas",
+    "savedItems": "Guardados"
+  },
+  "projects": {
+    "errors": {
+      "load": "No pudimos cargar tus proyectos.",
+      "loadOne": "No pudimos cargar este proyecto.",
+      "notFound": "Proyecto no encontrado."
+    },
+    "metrics": {
+      "total": "Total de proyectos",
+      "active": "Activos",
+      "completed": "Completados"
+    },
+    "list": {
+      "title": "Tus proyectos",
+      "subtitle": "Sigue los hitos, entregables y la línea de tiempo de cada engagement de consultoría.",
+      "empty": "Aún no hay proyectos",
+      "emptyBody": "Cuando contrates un servicio de consultoría, tu espacio de proyecto aparecerá aquí automáticamente.",
+      "browseServices": "Ver servicios"
+    },
+    "card": {
+      "due": "Vence {{date}}",
+      "files_one": "{{count}} archivo",
+      "files_other": "{{count}} archivos",
+      "milestones": "Hitos",
+      "open": "Abrir proyecto"
+    },
+    "detail": {
+      "back": "Volver a proyectos",
+      "started": "Inició el {{date}}",
+      "due": "Vence el {{date}}",
+      "lead": "Líder: {{name}}",
+      "progress": "Progreso",
+      "timeline": "Línea de tiempo",
+      "milestones_one": "{{count}} hito",
+      "milestones_other": "{{count}} hitos",
+      "noMilestones": "Aún no hay hitos. Tu líder de proyecto los agregará al iniciar el trabajo.",
+      "milestoneDue": "Vence {{date}}",
+      "milestoneCompleted": "Completado {{date}}",
+      "deliverables": "Entregables",
+      "files_one": "{{count}} archivo",
+      "files_other": "{{count}} archivos",
+      "noFiles": "Aún no se han compartido archivos.",
+      "fileFallback": "archivo"
+    }
+  },
+  "wishlist": {
+    "errors": {
+      "load": "No pudimos cargar tu lista de deseos.",
+      "remove": "No pudimos quitarlo de la lista de deseos",
+      "moveCart": "No pudimos moverlo al carrito"
+    },
+    "toast": {
+      "removed": "Quitado de la lista de deseos",
+      "movedGeneric": "Movido al carrito",
+      "movedNamed": "{{title}} se movió al carrito"
+    },
+    "intro": {
+      "savedForLater": "Guardado para después",
+      "title": "Mi lista de deseos",
+      "subtitleEmpty": "Guarda productos para volver a ellos más tarde.",
+      "subtitle_one": "{{total}} producto guardado · {{active}} disponible para comprar",
+      "subtitle_other": "{{total}} productos guardados · {{active}} disponibles para comprar",
+      "browseStore": "Ver tienda"
+    },
+    "empty": {
+      "title": "Nada guardado aún",
+      "body": "Toca el corazón en cualquier producto para guardarlo en tu lista de deseos."
+    },
+    "card": {
+      "unavailable": "No disponible",
+      "untitled": "Producto sin título",
+      "noDescription": "Sin descripción disponible.",
+      "savedOn": "Guardado el {{date}}",
+      "moveToCart": "Mover al carrito",
+      "remove": "Quitar de la lista de deseos",
+      "busy": "…"
+    }
+  },
+  "serviceOrders": {
+    "errors": {
+      "load": "No pudimos cargar tus órdenes de servicio."
+    },
+    "empty": {
+      "title": "Aún no hay órdenes de servicio",
+      "body": "Cuando contrates un servicio de consultoría, aparecerá aquí para que puedas seguir hitos y consultas.",
+      "browseServices": "Ver servicios"
+    },
+    "status": {
+      "new": {
+        "label": "Pendiente",
+        "desc": "Recibimos tu orden. Te contactaremos pronto para coordinar el arranque."
+      },
+      "active": {
+        "label": "En progreso",
+        "desc": "El trabajo está en marcha. Sigue el avance en consultas y hitos del proyecto."
+      },
+      "on_hold": {
+        "label": "En pausa",
+        "desc": "Temporalmente en pausa. Contáctanos por Soporte si tienes preguntas."
+      },
+      "completed": {
+        "label": "Completada",
+        "desc": "Todos los entregables están aprobados. Gracias por confiar en mí."
+      },
+      "cancelled": {
+        "label": "Cancelada",
+        "desc": "Esta orden de servicio se canceló. Contáctanos por Soporte si fue inesperado."
+      }
+    },
+    "card": {
+      "fallbackTitle": "Orden de servicio",
+      "package": "Paquete: {{name}}",
+      "stepperLabel": "Avance de la orden de servicio",
+      "started": "Iniciada",
+      "endTarget": "Fin estimado",
+      "consultations": "Consultas",
+      "milestones": "Hitos",
+      "viewDetails": "Ver detalles",
+      "openTicket": "Abrir ticket"
+    }
+  },
+  "profile": {
+    "fallback": {
+      "memberName": "Miembro",
+      "role": "miembro"
+    },
+    "toast": {
+      "profileUpdated": "Perfil actualizado",
+      "profileFailed": "No se pudo actualizar",
+      "avatarUpdated": "Avatar actualizado",
+      "avatarUploadFail": "La subida falló",
+      "avatarRemoved": "Avatar eliminado",
+      "avatarRemoveFail": "No se pudo eliminar el avatar",
+      "passwordChanged": "Contraseña cambiada con éxito",
+      "passwordFailed": "No se pudo cambiar la contraseña"
+    },
+    "passwordErrors": {
+      "allRequired": "Todos los campos son obligatorios",
+      "mismatch": "Las contraseñas nuevas no coinciden",
+      "tooShort": "La contraseña debe tener al menos 6 caracteres"
+    },
+    "card": {
+      "uploadPhoto": "Subir foto",
+      "removePhoto": "Eliminar",
+      "memberSince": "Miembro desde",
+      "status": "Estado",
+      "active": "Activo"
+    },
+    "account": {
+      "title": "Información de la cuenta",
+      "subtitle": "Tus datos personales y la configuración de tu cuenta.",
+      "edit": "Editar",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "fields": {
+        "fullName": "Nombre completo",
+        "email": "Correo electrónico",
+        "role": "Rol",
+        "memberSince": "Miembro desde",
+        "phone": "Teléfono",
+        "company": "Empresa",
+        "emailReadOnly": "Correo (solo lectura)"
+      },
+      "placeholders": {
+        "fullName": "Tu nombre completo",
+        "phone": "Tu teléfono",
+        "company": "Organización"
+      }
+    },
+    "password": {
+      "title": "Contraseña",
+      "subtitle": "Mantén tu cuenta segura",
+      "change": "Cambiar contraseña",
+      "cancel": "Cancelar",
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar contraseña",
+      "submit": "Cambiar contraseña",
+      "saving": "Cambiando…"
+    }
+  },
+  "products": {
+    "errors": {
+      "load": "No pudimos cargar los productos.",
+      "loginRequired": "Debes iniciar sesión para descargar este archivo.",
+      "downloadFailed": "La descarga falló.",
+      "downloadUnavailable": "Descarga no disponible."
+    },
+    "toast": {
+      "downloadStarted": "Descarga iniciada: {{filename}}"
+    },
+    "metrics": {
+      "owned": "Productos adquiridos",
+      "ownedSubtitle": "Productos descargables pagados",
+      "files": "Archivos disponibles",
+      "filesSubtitle": "En tus productos comprados",
+      "latest": "Última compra",
+      "latestSubtitle": "Fecha más reciente de acceso pagado",
+      "ready": "Listos para descargar",
+      "readySubtitle": "Acceso seguro solo para miembros"
+    },
+    "list": {
+      "empty": "Aún no hay productos descargables pagados.",
+      "fallbackTitle": "Producto",
+      "purchasedOn": "Comprado el {{date}}",
+      "orderNumber": "Pedido #{{number}}",
+      "paid": "Pagado",
+      "availableFiles": "Archivos disponibles"
+    },
+    "file": {
+      "version": "Versión: v{{value}}",
+      "primary": "Archivo principal",
+      "additional": "Archivo adicional",
+      "preparing": "Preparando…",
+      "download": "Descargar"
+    }
+  },
+  "support": {
+    "errors": {
+      "loadTickets": "No pudimos cargar los tickets.",
+      "createTicket": "No se pudo crear el ticket.",
+      "sendReply": "No se pudo enviar la respuesta.",
+      "subjectMessageRequired": "El asunto y el mensaje son obligatorios."
+    },
+    "metrics": {
+      "totalTitle": "Total de tickets",
+      "totalSubtitle": "Todas tus solicitudes de soporte",
+      "openTitle": "Abiertos",
+      "openSubtitle": "Esperando respuesta",
+      "resolvedTitle": "Resueltos",
+      "resolvedSubtitle": "Tickets cerrados"
+    },
+    "list": {
+      "title": "Tickets de soporte",
+      "subtitle": "Todas tus solicitudes y su estado actual.",
+      "newTicket": "Nuevo ticket",
+      "ticketNumber": "Ticket #{{number}}",
+      "messages_one": "{{count}} mensaje",
+      "messages_other": "{{count}} mensajes"
+    },
+    "empty": {
+      "title": "Aún no hay tickets de soporte",
+      "body": "¿Tienes un problema? Abre un ticket y nuestro equipo te responderá.",
+      "openCta": "Abrir un ticket"
+    },
+    "create": {
+      "title": "Abrir ticket de soporte",
+      "subjectLabel": "Asunto",
+      "subjectPlaceholder": "Descripción breve de tu problema",
+      "priorityLabel": "Prioridad",
+      "priorityLow": "Baja",
+      "priorityMedium": "Media",
+      "priorityHigh": "Alta",
+      "messageLabel": "Mensaje",
+      "messagePlaceholder": "Describe tu problema con detalle…",
+      "submit": "Enviar ticket",
+      "submitting": "Enviando…",
+      "cancel": "Cancelar"
+    },
+    "thread": {
+      "ticketNumberLabel": "Ticket #{{number}}",
+      "noMessages": "Aún no hay mensajes.",
+      "supportTeam": "Equipo de soporte",
+      "you": "Tú",
+      "replyPlaceholder": "Escribe tu respuesta…",
+      "send": "Enviar respuesta",
+      "sending": "Enviando…"
+    }
+  },
+  "addresses": {
+    "errors": {
+      "load": "No pudimos cargar tus direcciones",
+      "delete": "No pudimos eliminar la dirección",
+      "setDefault": "No pudimos establecer la dirección predeterminada",
+      "save": "No pudimos guardar la dirección"
+    },
+    "toast": {
+      "defaultUpdated": "Dirección predeterminada actualizada",
+      "removed": "Dirección eliminada",
+      "deleteConfirm": "¿Eliminar la dirección \"{{label}}\"? Esto no se puede deshacer."
+    },
+    "intro": {
+      "savedLocations": "Ubicaciones guardadas",
+      "title": "Mis direcciones",
+      "body": "Guarda direcciones para un checkout más rápido. Puedes marcar una como predeterminada.",
+      "addAddress": "Agregar dirección"
+    },
+    "empty": {
+      "title": "Sin direcciones guardadas",
+      "body": "Agrega una dirección para pre-llenarla en el checkout. La primera se marca como predeterminada automáticamente.",
+      "addFirst": "Agregar tu primera dirección"
+    },
+    "section": {
+      "title": "Direcciones guardadas",
+      "savedCount": "{{count}} guardadas",
+      "defaultSet": "1 predeterminada",
+      "noDefaultSet": "sin predeterminada"
+    },
+    "row": {
+      "fallbackLabel": "Dirección",
+      "default": "Predeterminada",
+      "taxIdPrefix": "RFC:",
+      "setDefault": "Marcar predeterminada",
+      "edit": "Editar",
+      "deleteAria": "Eliminar dirección"
+    },
+    "form": {
+      "titleEdit": "Editar dirección",
+      "titleAdd": "Agregar nueva dirección",
+      "subtitleEdit": "Actualiza esta dirección guardada.",
+      "subtitleAdd": "Llena los datos; se guardará para un checkout más rápido.",
+      "labels": {
+        "label": "Etiqueta",
+        "fullName": "Nombre completo *",
+        "company": "Empresa",
+        "line1": "Dirección línea 1 *",
+        "line2": "Dirección línea 2",
+        "city": "Ciudad *",
+        "state": "Estado / Región",
+        "postalCode": "Código postal *",
+        "country": "País *",
+        "phone": "Teléfono",
+        "rfc": "RFC (opcional)",
+        "taxId": "Tax ID (opcional)"
+      },
+      "placeholders": {
+        "label": "ej. Casa, Oficina",
+        "fullName": "Nombre completo del destinatario",
+        "company": "(opcional)",
+        "line1": "Calle + número",
+        "line2": "Depto, piso, edificio (opcional)",
+        "city": "Ciudad",
+        "state": "Estado / Provincia",
+        "postalCode": "C.P.",
+        "phone": "+52 55 …",
+        "rfc": "AAAA000000XXX",
+        "taxId": "VAT / EIN / tax ID local"
+      },
+      "rfcHint": "Registro Federal de Contribuyentes. Solo se necesita para facturación.",
+      "useAsDefault": "Usar esta como mi dirección predeterminada en el checkout",
+      "saveChanges": "Guardar cambios",
+      "addAddress": "Agregar dirección",
+      "saving": "Guardando…",
+      "cancel": "Cancelar"
+    }
+  },
+  "orders": {
+    "errors": {
+      "load": "No pudimos cargar el historial de pedidos.",
+      "loginRequired": "Debes iniciar sesión.",
+      "invoiceMissing": "La factura aún no está disponible para este pedido.",
+      "invoiceFailed": "La descarga de la factura falló ({{status}}).",
+      "downloadGeneric": "No pudimos descargar la factura.",
+      "refundFallback": "No pudimos enviar la solicitud de reembolso"
+    },
+    "toast": {
+      "refundSubmitted": "Solicitud de reembolso enviada ({{ticket}}). Revisaremos y responderemos en menos de 3 días hábiles.",
+      "refundSubmittedTitle": "Solicitud recibida",
+      "refundErrorTitle": "No pudimos enviar la solicitud"
+    },
+    "metrics": {
+      "total": "Total de pedidos",
+      "totalSubtitle": "Todas las compras registradas",
+      "paid": "Pedidos pagados",
+      "paidSubtitle": "Pedidos completados con éxito",
+      "pending": "Pedidos pendientes",
+      "pendingSubtitle": "Esperando completar",
+      "spent": "Gasto total",
+      "spentSubtitle": "En compras pagadas"
+    },
+    "status": {
+      "paid": "Pagado",
+      "pending": "Pendiente",
+      "refunded": "Reembolsado",
+      "cancelled": "Cancelado",
+      "failed": "Fallido",
+      "ariaLabel": "Pedido {{label}}"
+    },
+    "table": {
+      "title": "Todos los pedidos",
+      "subtitle": "Haz clic en el encabezado de una columna para ordenar. Los más recientes aparecen primero por defecto.",
+      "searchLabel": "Buscar pedidos",
+      "searchPlaceholder": "Pedido # o estado…",
+      "clearSearch": "Limpiar búsqueda",
+      "countOf": "{{shown}} de {{total}}",
+      "headers": {
+        "orderNumber": "Pedido #",
+        "date": "Fecha",
+        "total": "Total",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "sortAria": "Ordenar por {{label}} {{direction}}",
+      "sortAsc": "ascendente",
+      "sortDesc": "descendente",
+      "items_one": "{{count}} artículo",
+      "items_other": "{{count}} artículos"
+    },
+    "row": {
+      "viewAria": "Ver pedido {{number}}",
+      "view": "Ver",
+      "viewTitle": "Ver detalles",
+      "invoiceAria": "Descargar factura del pedido {{number}}",
+      "invoiceTitle": "Descargar factura",
+      "invoice": "Factura",
+      "invoiceBusy": "…",
+      "refundedTitle": "Fondos devueltos a tu método de pago original (5–10 días hábiles).",
+      "refundedAria": "Reembolso procesado, fondos devueltos al método de pago original",
+      "refunded": "Reembolsado",
+      "requestRefund": "Solicitar reembolso",
+      "requestRefundAria": "Solicitar reembolso del pedido {{number}}",
+      "requestRefundTitle": "Elegible dentro de {{days}} días posteriores a la compra. Sujeto a revisión."
+    },
+    "empty": {
+      "title": "Aún no hay pedidos",
+      "body": "Cuando completes una compra, aparecerá aquí con su historial de estado y facturas descargables.",
+      "browseStore": "Ver tienda",
+      "noMatch": "Ningún pedido coincide con tu búsqueda."
+    },
+    "loading": "Cargando pedidos",
+    "refundModal": {
+      "ariaLabel": "Solicitar reembolso",
+      "close": "Cerrar",
+      "title": "Solicitar reembolso",
+      "subtitle": "Pedido #{{number}} · ${{amount}}",
+      "policyHeading": "Antes de enviar",
+      "policyBody": "Los reembolsos siguen nuestra <link>política de 14 días</link>. Los artículos ya descargados no son elegibles para reembolso. Nuestro equipo revisará tu solicitud en menos de <strong>3 días hábiles</strong> y responderá por correo y en tu bandeja de soporte.",
+      "policyLinkText": "política de 14 días",
+      "reasonLabel": "Motivo del reembolso",
+      "reasonRequired": "(obligatorio)",
+      "reasonPlaceholder": "Cuéntanos qué pasó. Cuanto más contexto nos des, más rápido podemos revisar.",
+      "minHint": "Mínimo 10 caracteres.",
+      "cancel": "Cancelar",
+      "submit": "Enviar solicitud",
+      "submitting": "Enviando…"
+    }
+  },
+  "downloads": {
+    "errors": {
+      "load": "No pudimos cargar las descargas.",
+      "loginRequired": "Debes iniciar sesión para descargar.",
+      "downloadFailed": "La descarga falló.",
+      "downloadUnavailable": "Descarga no disponible."
+    },
+    "toast": {
+      "downloadStarted": "Descarga iniciada: {{filename}}"
+    },
+    "loading": "Cargando descargas",
+    "metrics": {
+      "paid": "Pedidos pagados",
+      "paidSubtitle": "Pedidos con acceso a descargas",
+      "files": "Archivos disponibles",
+      "filesSubtitle": "Archivos descargables en tus productos",
+      "latest": "Acceso más reciente",
+      "latestSubtitle": "Fecha de compra más reciente",
+      "ready": "Listos para descargar",
+      "readySubtitle": "Acceso seguro solo para miembros"
+    },
+    "library": {
+      "title": "Tu biblioteca de descargas",
+      "subtitle": "Todos los archivos disponibles desde tus pedidos pagados.",
+      "searchLabel": "Buscar descargas",
+      "searchPlaceholder": "Buscar archivos…",
+      "clearSearch": "Limpiar búsqueda",
+      "gridView": "Vista de cuadrícula",
+      "listView": "Vista de lista",
+      "refresh": "Actualizar",
+      "refreshAria": "Actualizar descargas"
+    },
+    "empty": {
+      "title": "Aún no hay descargas disponibles",
+      "body": "Compra un producto digital y aparecerá aquí con acceso seguro a la descarga.",
+      "browseStore": "Ver tienda",
+      "noProducts": "Ningún producto coincide con tu búsqueda.",
+      "noFiles": "Ningún archivo coincide con tu búsqueda."
+    },
+    "card": {
+      "fallbackTitle": "Producto",
+      "files_one": "{{count}} archivo",
+      "files_other": "{{count}} archivos",
+      "purchasedOn": "Comprado el {{date}}",
+      "orderNumber": "Pedido #{{number}}"
+    },
+    "file": {
+      "latest": "Última",
+      "primary": "Principal",
+      "primaryFile": "Archivo principal",
+      "additional": "Adicional",
+      "remaining_one": "{{count}} descarga restante",
+      "remaining_other": "{{count}} descargas restantes",
+      "downloadAria": "Descargar {{name}}",
+      "limitReached": "Límite alcanzado",
+      "preparing": "Preparando…",
+      "download": "Descargar",
+      "paid": "Pagado"
+    }
+  },
+  "consultations": {
+    "errors": {
+      "load": "No pudimos cargar las consultas",
+      "cancel": "No pudimos cancelar",
+      "reschedule": "No pudimos reagendar"
+    },
+    "toast": {
+      "rescheduledTitle": "Reagendada",
+      "rescheduleErrTitle": "El reagendado falló"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "confirmed": "Confirmada",
+      "scheduled": "Agendada",
+      "completed": "Completada",
+      "cancelled": "Cancelada",
+      "rescheduled": "Reagendada",
+      "no_show": "No asistió"
+    },
+    "metrics": {
+      "upcoming": "Próximas",
+      "upcomingSubtitle": "Reservas activas",
+      "completed": "Completadas",
+      "completedSubtitle": "Histórico",
+      "total": "Total",
+      "totalSubtitle": "Todas las consultas"
+    },
+    "section": {
+      "upcomingTitle": "Próximas",
+      "upcomingSubtitle": "Tus próximas llamadas agendadas. Puedes reagendar o cancelar hasta 12 h antes del inicio.",
+      "pastTitle": "Anteriores",
+      "pastSubtitle": "Reservas completadas, canceladas o reagendadas.",
+      "bookCall": "Agendar llamada"
+    },
+    "empty": {
+      "title": "Sin consultas próximas",
+      "body": "Agenda una llamada de descubrimiento o consulta de servicio cuando estés listo.",
+      "bookCall": "Agendar llamada"
+    },
+    "row": {
+      "fallbackService": "Llamada de descubrimiento",
+      "fallbackHost": "Mustapha Ukizuru",
+      "minutesWith": "{{minutes}} minutos · con {{name}}",
+      "notesPrefix": "Notas:",
+      "reasonPrefix": "Motivo:",
+      "joinMeeting": "Entrar a la reunión",
+      "viewLink": "Ver enlace",
+      "reschedule": "Reagendar",
+      "cancel": "Cancelar"
+    },
+    "cancelModal": {
+      "eyebrow": "Cancelar reserva",
+      "title": "¿Estás seguro?",
+      "close": "Cerrar",
+      "reasonLabel": "Motivo",
+      "optional": "(opcional)",
+      "reasonPlaceholder": "¿Algo que debamos saber?",
+      "keep": "Mantener reserva",
+      "confirm": "Cancelar reserva"
+    },
+    "rescheduleDrawer": {
+      "eyebrow": "Reagendar",
+      "title": "Elige un nuevo horario",
+      "currently": "Actualmente: {{when}}",
+      "close": "Cerrar",
+      "prev": "← Anterior",
+      "next": "Siguiente →",
+      "noDays": "No hay días disponibles este mes.",
+      "timesOn": "Horarios el {{date}}",
+      "noTimes": "No hay horarios disponibles."
+    }
+  },
+  "twoFactor": {
+    "errors": {
+      "loadStatus": "No pudimos cargar el estado de 2FA",
+      "startSetup": "No pudimos iniciar la configuración de 2FA",
+      "verifyFailed": "La verificación falló",
+      "actionFailed": "La acción falló",
+      "passwordRequired": "La contraseña es obligatoria"
+    },
+    "toast": {
+      "enabled": "2FA habilitado, ¡guarda tus códigos de respaldo!",
+      "disabled": "2FA deshabilitado",
+      "regenerated": "Nuevos códigos de respaldo generados"
+    },
+    "hero": {
+      "eyebrow": "Seguridad de la cuenta",
+      "title": "Autenticación de dos factores",
+      "bodyEnabled": "Tu cuenta está protegida con una capa de seguridad adicional. Necesitarás un código de tu app autenticadora cada vez que inicies sesión.",
+      "bodyDisabled": "Agrega una capa extra de seguridad. Después del inicio de sesión con contraseña, necesitarás un código de una app como Google Authenticator o Authy.",
+      "enabledPill": "Habilitado",
+      "since": "Desde {{date}}"
+    },
+    "disabled": {
+      "title": "Comencemos",
+      "subtitle": "Necesitarás una app autenticadora en tu teléfono o en tu gestor de contraseñas.",
+      "apps": {
+        "google": {
+          "name": "Google Authenticator",
+          "desc": "iOS · Android"
+        },
+        "authy": {
+          "name": "Authy",
+          "desc": "Multi-dispositivo, respaldo en la nube"
+        },
+        "managers": {
+          "name": "1Password / Bitwarden",
+          "desc": "Soporte TOTP integrado"
+        }
+      },
+      "starting": "Configurando…",
+      "enable": "Habilitar 2FA"
+    },
+    "stale": {
+      "body": "Hay una inscripción de 2FA en progreso pero se perdió el QR.",
+      "restart": "Reiniciar configuración"
+    },
+    "setup": {
+      "title": "Paso 1, escanea el código QR",
+      "subtitle": "Usa tu app autenticadora para escanear este código y luego ingresa abajo el código de 6 dígitos que genera.",
+      "qrAlt": "Código QR de 2FA",
+      "qrUnavailable": "QR no disponible",
+      "manualLabel": "Código de entrada manual",
+      "step2Title": "Paso 2, verifica el código",
+      "step2Body": "Ingresa el código de 6 dígitos que muestra tu app autenticadora ahora mismo para terminar de habilitar 2FA.",
+      "codeLabel": "Código de verificación de 6 dígitos",
+      "verifying": "Verificando…",
+      "verifyEnable": "Verificar y habilitar 2FA",
+      "cancelSetup": "Cancelar configuración"
+    },
+    "enabled": {
+      "title": "Ajustes de 2FA",
+      "subtitle": "Gestiona tus métodos de segundo factor y los códigos de respaldo.",
+      "backupTitle": "Códigos de respaldo",
+      "backupRemaining": "{{remaining}} de {{total}} restantes",
+      "backupUsedSuffix": " · {{used}} ya usados",
+      "backupLowWarning": "Quedan pocos, regenera para obtener un nuevo lote.",
+      "regenerate": "Regenerar",
+      "disableTitle": "Deshabilitar 2FA",
+      "disableBody": "Apagar la autenticación de dos factores. Tus códigos de respaldo se eliminarán.",
+      "disable": "Deshabilitar"
+    },
+    "backupModal": {
+      "title": "Guarda tus códigos de respaldo",
+      "subtitle": "No volverás a verlos. Guárdalos en un lugar seguro; cada uno funciona una sola vez.",
+      "downloadTxt": "Descargar .txt",
+      "copyAll": "Copiar todos",
+      "copied": "Copiados",
+      "saved": "Los guardé, cerrar",
+      "fileBrand": "Mustapha Ukizuru, códigos de respaldo de dos factores",
+      "fileGenerated": "Generado: {{date}}",
+      "fileWarning": "Cada código se puede usar solo una vez. Guárdalos en un lugar seguro."
+    },
+    "passwordModal": {
+      "disable": {
+        "title": "Deshabilitar autenticación de dos factores",
+        "description": "Ingresa tu contraseña para deshabilitar 2FA. Tus códigos de respaldo se eliminarán.",
+        "confirm": "Deshabilitar 2FA"
+      },
+      "regenerate": {
+        "title": "Regenerar códigos de respaldo",
+        "description": "Ingresa tu contraseña para generar un nuevo set de códigos de respaldo. Los anteriores dejarán de funcionar de inmediato.",
+        "confirm": "Regenerar códigos"
+      },
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "La contraseña de tu cuenta",
+      "close": "Cerrar",
+      "cancel": "Cancelar",
+      "working": "Procesando…"
+    }
+  },
+  "overview": {
+    "errors": {
+      "load": "No pudimos cargar el panel."
+    },
+    "loading": "Cargando panel",
+    "adminPreview": {
+      "pill": "Vista previa de administrador",
+      "body": "Estás viendo el panel de miembro como administrador.",
+      "back": "Volver al panel de administrador →"
+    },
+    "welcome": {
+      "eyebrow": "Resumen del miembro",
+      "greeting": "Bienvenido de vuelta, {{name}}",
+      "fallbackName": "Miembro",
+      "subtitle": "Aquí tienes un vistazo a tu actividad, descargas y proyectos activos.",
+      "unread": "sin leer",
+      "browseStore": "Ver tienda"
+    },
+    "profileWidget": {
+      "title": "Completa tu perfil",
+      "lead": "Agrega",
+      "andMore": " y más",
+      "tail": " para que el checkout sea más rápido.",
+      "cta": "Completar ahora",
+      "fields": {
+        "fullName": "Nombre completo",
+        "email": "Correo electrónico",
+        "avatar": "Avatar",
+        "phone": "Teléfono",
+        "country": "País",
+        "bio": "Bio breve"
+      }
+    },
+    "kpi": {
+      "orders": "Pedidos",
+      "ordersSubtitle": "Todas las compras registradas",
+      "downloads": "Descargas",
+      "downloadsSubtitle": "Archivos listos para descargar",
+      "totalSpent": "Gasto total",
+      "totalSpentSubtitle_one": "En {{count}} pedido pagado",
+      "totalSpentSubtitle_other": "En {{count}} pedidos pagados",
+      "openTickets": "Tickets abiertos",
+      "openTicketsNone": "Sin tickets activos",
+      "openTicketsAwaiting": "Esperando respuesta"
+    },
+    "spend": {
+      "title": "Tendencia de gasto",
+      "subtitle": "Últimos 6 meses",
+      "emptyTitle": "Aún no hay compras",
+      "emptyBody": "Tu tendencia de gasto aparecerá después de tu primer pedido pagado.",
+      "chartAria": "Gráfico de gasto de 6 meses"
+    },
+    "activity": {
+      "title": "Actividad reciente",
+      "emptyTitle": "Aún no hay actividad",
+      "emptyBody": "Los pedidos, descargas y acciones de soporte aparecerán aquí.",
+      "orderTitle": "Pedido #{{number}}",
+      "ticketFallback": "Ticket de soporte"
+    },
+    "activeProjects": {
+      "title": "Proyectos activos",
+      "inProgress": "{{count}} en progreso",
+      "viewAll": "Ver todos",
+      "due": "Vence el {{date}}",
+      "milestonesShort": "{{done}}/{{total}} hitos"
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "unread": "{{count}} sin leer",
+      "viewAll": "Ver todas",
+      "fallback": "Notificación"
+    },
+    "recentOrders": {
+      "title": "Pedidos recientes",
+      "subtitle": "Compras recientes y estado",
+      "viewAll": "Ver todos",
+      "emptyTitle": "Aún no hay pedidos",
+      "emptyLead": "Ver la tienda",
+      "emptyTail": " para empezar."
+    },
+    "availableDownloads": {
+      "title": "Descargas disponibles",
+      "subtitle": "Listas para descargar",
+      "library": "Biblioteca",
+      "emptyTitle": "Aún no hay descargas",
+      "emptyBody": "Los archivos de productos pagados aparecerán aquí.",
+      "files_one": "{{count}} archivo",
+      "files_other": "{{count}} archivos"
+    },
+    "quickActions": {
+      "browseStore": "Ver tienda",
+      "viewOrders": "Ver pedidos",
+      "editProfile": "Editar perfil",
+      "getSupport": "Obtener soporte"
+    },
+    "timeAgo": {
+      "justNow": "ahora mismo",
+      "minutes": "{{count}} min",
+      "hours": "{{count}} h",
+      "days": "{{count}} d"
+    }
+  },
+  "notifDropdown": {
+    "markAllRead": "Marcar todas como leídas",
+    "allCaughtUp": "Todo al día",
+    "noNotifs": "Aún sin notificaciones"
+  },
+  "layout": {
+    "navAria": "Navegación del panel",
+    "closeMenu": "Cerrar menú",
+    "backToWebsite": "Volver al sitio",
+    "backWebsiteAria": "Volver al sitio",
+    "skipMain": "Saltar al contenido principal",
+    "memberArea": "Área de miembros",
+    "memberAreaSubtitle": "Tu hub de productos digitales",
+    "memberDashboard": "Panel de miembro",
+    "openMenu": "Abrir menú",
+    "searchDashboard": "Buscar en el panel",
+    "openSupport": "Abrir soporte",
+    "quickNav": "Navegación rápida"
+  }
+}

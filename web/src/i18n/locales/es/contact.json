@@ -1,0 +1,195 @@
+{
+  "hero": {
+    "eyebrow": "Contacto",
+    "title": "Construyamos algo",
+    "subtitle": "Cuéntame sobre tu proyecto — respondo en menos de 24 horas.",
+    "calendarAria": "Calendario animado que muestra horarios disponibles, llamadas programadas y el ciclo del proyecto desde el inicio hasta la entrega",
+    "letsBuild": "construyamos",
+    "repliesIn": "Respuestas en 24h",
+    "discoveryCall": "Llamada de descubrimiento",
+    "scheduleCall": "Agenda tu llamada",
+    "liveAvailability": "Disponibilidad en vivo",
+    "prevMonthAria": "Mes anterior",
+    "nextMonthAria": "Mes siguiente",
+    "pickSlot": "Elige un horario",
+    "justShipped": "Recién entregado",
+    "shippedExample": "ERP escolar · v2.1 desplegado",
+    "letsBuildCheck": "construyamos algo ✓",
+    "onlineReplies": "En línea · respuestas en menos de 24h",
+    "letsConnect": "Conectemos",
+    "startYourDigital": "Comienza tu",
+    "longCta": "Ya sea consultoría digital, soporte de infraestructura, programas STEM o estrategia tecnológica, escríbeme y conversemos sobre tus metas.",
+    "bookDiscovery": "Agendar llamada de descubrimiento",
+    "sendMessage": "Enviar un mensaje",
+    "legendOpenSlot": "Espacio abierto",
+    "legendBooked": "Llamada de descubrimiento",
+    "legendInProgress": "En progreso",
+    "legendInReview": "En revisión",
+    "legendDeployed": "Desplegado"
+  },
+  "form": {
+    "name": "Tu nombre",
+    "email": "Correo electrónico",
+    "subject": "¿De qué se trata?",
+    "message": "Cuéntame más",
+    "submit": "Enviar mensaje",
+    "sending": "Enviando…",
+    "success": "Mensaje enviado. Hablamos pronto.",
+    "error": "Algo salió mal. Inténtalo de nuevo.",
+    "firstName": "Nombre",
+    "firstNamePlaceholder": "Jane",
+    "lastName": "Apellido",
+    "lastNamePlaceholder": "Doe",
+    "emailPlaceholder": "tu@ejemplo.com",
+    "audienceLegend": "¿Qué te describe mejor?",
+    "messageLabel": "Tu mensaje",
+    "messagePlaceholder": "Cuéntame brevemente en qué estás trabajando y cómo se ve el éxito.",
+    "consent": "Acepto recibir respuesta sobre mi consulta. Puedo darme de baja en cualquier momento.",
+    "successDetail": {
+      "title": "Mensaje enviado",
+      "body": "Gracias. Te respondo en menos de 24 horas.",
+      "again": "Enviar otro mensaje"
+    },
+    "context": {
+      "title": "Retomamos donde lo dejaste",
+      "inquiringAbout": "Estás preguntando sobre:",
+      "yourSelection": "tu selección",
+      "tier": "nivel"
+    },
+    "errors": {
+      "firstName": "El nombre es obligatorio.",
+      "lastName": "El apellido es obligatorio.",
+      "emailRequired": "El correo electrónico es obligatorio.",
+      "emailInvalid": "Ingresa un correo electrónico válido.",
+      "audience": "Elige la opción que mejor te describa.",
+      "messageRequired": "Escribe un mensaje breve.",
+      "messageMin": "El mensaje debe tener al menos {{min}} caracteres.",
+      "messageMax": "El mensaje supera los {{max}} caracteres.",
+      "consent": "Confirma que aceptas que te contactemos.",
+      "fixFields": "Corrige los campos resaltados e inténtalo de nuevo.",
+      "sendFailed": "No se pudo enviar. Inténtalo de nuevo.",
+      "subjectFallback": "Consulta desde el formulario de contacto"
+    }
+  },
+  "info": {
+    "officeAddress": "Dirección",
+    "contactInfo": "Información de contacto",
+    "hours": "Horario laboral",
+    "weekdays": "Lun–Vie 09:00–18:00 (Ciudad de México)"
+  },
+  "callout": {
+    "talkNow": "¿Quieres hablar ya?",
+    "bookTitle": "Agenda una llamada gratuita de 30 min",
+    "bookBody": "Elige un horario. Confirmado al instante con invitación al calendario.",
+    "bookCta": "Abrir el calendario",
+    "haveQuestion": "¿Tienes una pregunta?",
+    "writeTitle": "Escríbeme un mensaje",
+    "writeBody": "Proyectos a medida, precios o alianzas. Todo lo que no quepa en 30 minutos.",
+    "writeCta": "Ir al formulario"
+  },
+  "audiences": {
+    "education": "Educador / Escuela",
+    "business": "Empresa / Equipo",
+    "professional": "Profesional independiente"
+  },
+  "interests": {
+    "groups": {
+      "Services": "Servicios",
+      "Solutions": "Soluciones"
+    },
+    "items": {
+      "CS": "Consultoría y estrategia de TI",
+      "BD": "Marca y presencia digital",
+      "IC": "Infraestructura de TI y cloud",
+      "WD": "Web, aplicaciones e IA",
+      "ET": "Implementación y capacitación EdTech",
+      "MS": "Servicios gestionados y soporte",
+      "smart-classroom": "Aula inteligente y LMS",
+      "stem-curriculum": "Currículo STEM y robótica",
+      "brand-foundation": "Identidad y fundación de marca",
+      "web-launch": "Lanzamiento web y crecimiento",
+      "cloud-migration": "Migración a la nube y automatización",
+      "ai-integration": "Integración de IA y base de conocimiento",
+      "managed-it": "TI gestionada para PyMEs",
+      "personal-platform": "Plataforma de marca personal"
+    }
+  },
+  "tiers": {
+    "basic": "Básico",
+    "medium": "Medio",
+    "advanced": "Avanzado",
+    "guidance": "Necesito orientación"
+  },
+  "timelines": {
+    "asap": "Lo antes posible",
+    "30d": "En 30 días",
+    "60d": "30 – 60 días",
+    "exploring": "Solo explorando"
+  },
+  "channels": {
+    "title": "Otras formas de contactarme",
+    "subtitle": "Elige la que más te acomode. Respondo a todas en menos de un día hábil.",
+    "email": "Correo",
+    "whatsapp": "WhatsApp",
+    "whatsappBody": "Chat asíncrono rápido",
+    "basedIn": "Ubicado en"
+  },
+  "socials": {
+    "findMe": "Encuéntrame en",
+    "ariaLabel": "Encuentra a Mustapha en redes sociales"
+  },
+  "book": {
+    "badge": "Agenda una llamada",
+    "defaultTitle": "Agenda una llamada de descubrimiento gratuita",
+    "subtitleWithService": "Elige fecha y horario, y nos vemos por videollamada.",
+    "subtitleGeneric": "Una conversación de 30 minutos para explorar cómo puedo ayudarte a construir tecnología que perdure.",
+    "browseAll": "¿Buscas un servicio específico? Ver todos los servicios",
+    "discoveryCall": "Llamada de descubrimiento",
+    "seoBookFmt": "Agendar {{title}}",
+    "seoDefault": "Agendar llamada de descubrimiento",
+    "trust": {
+      "realtimeTitle": "Disponibilidad en tiempo real",
+      "realtimeBody": "Solo verás horarios realmente abiertos, sin sobrecupo.",
+      "timezoneTitle": "Tu zona horaria, siempre",
+      "timezoneBody": "Los horarios se muestran en la zona horaria que elijas arriba del calendario.",
+      "cancelTitle": "Cancela hasta 12 horas antes",
+      "cancelBody": "Los planes cambian. Reagenda o cancela desde tu panel cuando lo necesites.",
+      "confidentialTitle": "Confidencial por defecto",
+      "confidentialBody": "Lo que compartas queda en privado. Respetamos cada conversación."
+    },
+    "expect": {
+      "title": "Qué esperar",
+      "item1": "Una conversación enfocada en tus objetivos y restricciones",
+      "item2": "Aportes técnicos honestos, de nivel experto, accionables",
+      "item3": "Próximos pasos claros, sin presión, sin relleno"
+    }
+  },
+  "bookingCalendar": {
+    "monthYearAria": "Elegir mes y año",
+    "prevYearAria": "Año anterior",
+    "nextYearAria": "Año siguiente",
+    "bookableHighlight": "Los meses con disponibilidad están resaltados",
+    "bookingNeeds": "Las reservas requieren al menos",
+    "daysAhead": "días de antelación. Puedes reagendar o cancelar hasta 12h antes de la llamada.",
+    "consultationBooked": "Tu consulta está reservada",
+    "confirmationOnWay": "Te llega un correo de confirmación a",
+    "viewDashboard": "Ver en el panel",
+    "bookAnother": "Reservar otro horario",
+    "scheduleCall": "Agenda tu llamada",
+    "timesShown": "Horarios en",
+    "timezoneAria": "Tu zona horaria",
+    "prevMonthAria": "Mes anterior",
+    "nextMonthAria": "Mes siguiente",
+    "tapHighlighted": "Toca un día resaltado para ver horarios",
+    "backToDate": "Volver a la fecha",
+    "noTimes": "Sin horarios disponibles",
+    "tryDifferentDay": "Prueba otro día.",
+    "eachSlotIs": "Cada horario es de",
+    "chooseAnother": "Elegir otro horario",
+    "yourBooking": "Tu reserva",
+    "discussLabel": "¿De qué te gustaría hablar?",
+    "discussPlaceholder": "Comparte metas, enlaces o contexto para aprovechar el tiempo al máximo.",
+    "signInHint": "Te pediremos iniciar sesión para confirmar. Tu selección se conserva.",
+    "confirmBooking": "Confirmar reserva"
+  }
+}

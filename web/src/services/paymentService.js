@@ -5,7 +5,7 @@ export async function createCheckoutSession(orderId) {
     throw new Error("Order ID is required")
   }
 
-  const response = await apiRequest("/api/payments/create-checkout-session", {
+  const response = await apiRequest("/api/v1/payments/create-checkout-session", {
     method: "POST",
     body: JSON.stringify({ orderId }),
   })

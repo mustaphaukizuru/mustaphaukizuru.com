@@ -97,6 +97,6 @@ export const aboutProjects = [
     tags: ["Web Development", "School Systems", "Digital Integration"],
     year: "2023–2024",
     link: "/projects/colegio-raindrop-website",
-    website: "https://www.colegioraindrop.edu.mx/",  
+    website: "https://www.colegioraindrop.edu.mx/", 
   },
 ]

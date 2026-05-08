@@ -1,0 +1,118 @@
+{
+  "hero": {
+    "eyebrow": "Store",
+    "title": "Digital products store",
+    "subtitle": "Templates, toolkits, STEM resources — instant download, secure checkout.",
+    "viewProduct": "View product",
+    "featuredLive": "Featured · live from store",
+    "comingSoon": "Featured products coming soon",
+    "featuredAria": "Featured products",
+    "prevProductAria": "Previous product",
+    "nextProductAria": "Next product",
+    "premiumDigital": "Premium Digital Store",
+    "headline": "Tools & Resources Built for",
+    "longSubtitle": "Production-ready digital products for educators, creators, schools, and technology professionals. Every download is structured for immediate implementation.",
+    "trustCrafted": "Crafted by a senior practitioner",
+    "trustCountries": "Trusted across 4 countries",
+    "productsLive": "products live",
+    "shopNow": "Shop now",
+    "browseCategories": "Browse categories",
+    "guaranteesAria": "Store guarantees",
+    "instantDownload": "Instant download",
+    "secureCheckout": "Secure checkout",
+    "headlineAccent": "Real-World Results"
+  },
+  "toolbar": {
+    "filtersAria": "Store filters",
+    "filtersTitle": "Filters",
+    "reset": "Reset",
+    "searchAria": "Search products",
+    "clearSearch": "Clear search",
+    "categoryHeader": "Category",
+    "sortHeader": "Sort by",
+    "sortAria": "Sort products",
+    "viewHeader": "View",
+    "viewGrid": "Grid",
+    "viewList": "List"
+  },
+  "categories": {
+    "all": "All",
+    "templates": "Templates",
+    "itToolkits": "IT Toolkits",
+    "csResources": "CS Resources",
+    "stemRobotics": "STEM & Robotics",
+    "businessRes": "Business Res."
+  },
+  "sortOptions": {
+    "priceLow": "Price: Low to High",
+    "priceHigh": "Price: High to Low",
+    "newest": "Newest First",
+    "nameAsc": "Name: A → Z"
+  },
+  "filters": {
+    "all": "All",
+    "search": "Search products…",
+    "category": "Category",
+    "sort": "Sort by",
+    "priceLow": "Price: low to high",
+    "priceHigh": "Price: high to low",
+    "newest": "Newest",
+    "popular": "Most popular"
+  },
+  "card": {
+    "new": "New",
+    "featured": "Featured",
+    "outOfStock": "Out of stock",
+    "inStock": "In stock",
+    "rating": "{{rating}} stars",
+    "viewProduct": "View product",
+    "viewDetails": "View details",
+    "view": "View",
+    "added": "Added",
+    "addToCart": "Add to Cart",
+    "addShort": "Add",
+    "instantAccess": "Instant access",
+    "categoryFallback": "Digital"
+  },
+  "results": {
+    "found_one": "{{count}} product found",
+    "found_other": "{{count}} products found",
+    "showing": "Showing",
+    "of": "of",
+    "productSingular": "product",
+    "productPlural": "products"
+  },
+  "section": {
+    "collection": "Store Collection",
+    "allProducts": "All Products"
+  },
+  "empty": {
+    "title": "No products match your search",
+    "subtitle": "Try a different search term or browse another category to discover what's available.",
+    "subtitleShort": "Try clearing the search or picking a different category.",
+    "resetFilters": "Reset Filters"
+  },
+  "pagination": {
+    "ariaLabel": "Pagination",
+    "previousAria": "Previous page",
+    "nextAria": "Next page",
+    "pageAria": "Page {{page}}"
+  },
+  "errors": {
+    "loadFailed": "Failed to load products."
+  },
+  "compare": {
+    "title": "Compare products",
+    "emptyTitle": "Nothing to compare yet",
+    "emptyBody": "Use the \"Compare\" button on any product card or product page to add it here. You can compare up to four products side-by-side.",
+    "browseStore": "Browse the store",
+    "addMoreStore": "Add more from store",
+    "clearAll": "Clear all",
+    "addToCart": "Add to cart",
+    "addProduct": "Add product",
+    "atGlance": "At a glance",
+    "noReviews": "No reviews yet",
+    "fileType": "File type",
+    "fileSize": "File size"
+  }
+}

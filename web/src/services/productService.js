@@ -98,7 +98,7 @@ function normalizeProduct(product) {
       product.price !== undefined && product.price !== null
         ? Number(product.price)
         : 0,
-    currency: product.currency || "USD",
+    currency: product.currency || "MXN",
     productType: product.productType || "downloadable",
     deliveryType: getDeliveryType(product, files),
     fileType: getPrimaryFileType(product, files),
@@ -149,4 +149,30 @@ export async function fetchProductBySlug(slug) {
 export async function fetchCategories() {
   const response = await apiRequest("/api/products/categories")
   return Array.isArray(response?.data) ? response.data : []
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * fetchFeaturedProducts
+ * ────────────────────────────────────────────────────────────────────────
+ * Returns up to `limit` products flagged `isFeatured = true` in the DB.
+ * Backend route: /api/products?featured=true&limit=N
+ *
+ * Used by StoreHero.jsx to populate the auto-rotating featured carousel.
+ * Falls back to an empty array on network or shape errors so the hero
+ * gracefully degrades to its skeleton state.
+ * ────────────────────────────────────────────────────────────────────── */
+export async function fetchFeaturedProducts(limit = 5) {
+  try {
+    const safeLimit = Math.max(1, Math.min(12, Number(limit) || 5))
+    const response = await apiRequest(
+      `/api/products?featured=true&limit=${safeLimit}`
+    )
+    const products = Array.isArray(response?.data) ? response.data : []
+    return products.map(normalizeProduct).filter(Boolean).slice(0, safeLimit)
+  } catch (err) {
+    if (typeof console !== "undefined") {
+      console.info("[productService] fetchFeaturedProducts unavailable.", err?.code)
+    }
+    return []
+  }
 }

@@ -1,0 +1,61 @@
+{
+  "title": "Tu carrito",
+  "header": {
+    "title": "Carrito de compras",
+    "breadcrumb": {
+      "home": "Inicio",
+      "store": "Tienda",
+      "cart": "Carrito"
+    },
+    "clearCart": "Vaciar carrito"
+  },
+  "empty": {
+    "title": "Tu carrito está vacío",
+    "subtitle": "Explora la tienda para agregar productos digitales.",
+    "subtitleLong": "Explora la tienda y agrega productos digitales o paquetes de consultoría para empezar.",
+    "cta": "Ir a la tienda",
+    "browseStore": "Explorar la tienda",
+    "viewServices": "Ver servicios",
+    "browseByCategory": "Explorar por categoría"
+  },
+  "summary": {
+    "title": "Resumen del pedido",
+    "subtotal": "Subtotal",
+    "discount": "Descuento",
+    "tax": "Impuestos",
+    "taxLabel": "Impuestos (productos digitales)",
+    "total": "Total",
+    "couponCode": "Código de descuento",
+    "applyCoupon": "Aplicar",
+    "applying": "Aplicando…",
+    "couponInvalid": "Este cupón no es válido",
+    "couponPlaceholderAuth": "Código de descuento",
+    "couponPlaceholderGuest": "Inicia sesión para usar un cupón",
+    "couponLabel": "Código de descuento",
+    "couponSignIn": "Inicia sesión para aplicar un cupón.",
+    "couponEnter": "Ingresa un código de cupón.",
+    "couponRemove": "Quitar cupón",
+    "discountApplied": "Descuento aplicado:"
+  },
+  "actions": {
+    "remove": "Quitar",
+    "removeItem": "Quitar artículo",
+    "removeFromCart": "Quitar del carrito",
+    "decreaseQty": "Disminuir cantidad",
+    "increaseQty": "Aumentar cantidad",
+    "checkout": "Pagar",
+    "signInToCheckout": "Inicia sesión para pagar",
+    "continueShopping": "Seguir comprando"
+  },
+  "trust": {
+    "ssl": "Pago seguro con cifrado SSL",
+    "instant": "Entrega digital instantánea",
+    "dashboard": "Descarga desde tu panel"
+  },
+  "item": {
+    "each": "c/u",
+    "categoryFallback": "Digital"
+  },
+  "itemCount_one": "{{count}} artículo",
+  "itemCount_other": "{{count}} artículos"
+}

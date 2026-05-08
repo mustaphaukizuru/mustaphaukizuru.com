@@ -2,9 +2,10 @@ const dotenv = require("dotenv")
 dotenv.config()
 
 // ─────────────────────────────────────────────────────────────
-// Validate required variables
+// B11 · Validate required variables + crypto soundness
 // ─────────────────────────────────────────────────────────────
-const REQUIRED_ENV = ["DATABASE_URL", "JWT_SECRET"]
+
+const REQUIRED_ENV = ["DATABASE_URL", "JWT_SECRET", "CLIENT_URL"]
 
 REQUIRED_ENV.forEach((key) => {
   if (!process.env[key]) {
@@ -13,65 +14,101 @@ REQUIRED_ENV.forEach((key) => {
   }
 })
 
-// ─────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────
+const MIN_JWT_SECRET_LENGTH = 64
+if (process.env.JWT_SECRET.length < MIN_JWT_SECRET_LENGTH) {
+  console.error(
+    `❌ JWT_SECRET is too short (${process.env.JWT_SECRET.length} chars). ` +
+    `Minimum is ${MIN_JWT_SECRET_LENGTH} characters. ` +
+    `Generate a strong one with: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
+  )
+  process.exit(1)
+}
+
 const toNumber = (value, fallback) => {
   const n = Number(value)
   return Number.isFinite(n) ? n : fallback
 }
 
-// ─────────────────────────────────────────────────────────────
-// Config
-// ─────────────────────────────────────────────────────────────
 const config = {
-  // Core
   port: toNumber(process.env.PORT, 3000),
   nodeEnv: process.env.NODE_ENV || "production",
 
-  // URLs
-  clientUrl: process.env.CLIENT_URL || "https://mustaphaukizuru.com",
-  frontendUrl: process.env.FRONTEND_URL || "https://mustaphaukizuru.com",
+  clientUrl: process.env.CLIENT_URL,
+  frontendUrl: process.env.FRONTEND_URL || process.env.CLIENT_URL,
 
-  // Auth
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
 
-  // Database
   databaseUrl: process.env.DATABASE_URL,
 
-  // Email (optional)
   smtpHost: process.env.SMTP_HOST || null,
   smtpPort: toNumber(process.env.SMTP_PORT, 465),
   smtpUser: process.env.SMTP_USER || null,
   smtpPass: process.env.SMTP_PASS || null,
 
-  // Mercado Pago (optional)
-  mpAccessToken: process.env.MP_ACCESS_TOKEN || null,
-  mpPublicKey: process.env.MP_PUBLIC_KEY || null,
+  // Mercado Pago (optional · checkout disabled when missing)
+  mpAccessToken:    process.env.MP_ACCESS_TOKEN     || null,
+  mpPublicKey:      process.env.MP_PUBLIC_KEY       || null,
+  mpWebhookSecret:  process.env.MP_WEBHOOK_SECRET   || null,
 
-  // PayPal (optional)
-  paypalClientId: process.env.PAYPAL_CLIENT_ID || null,
-  paypalSecret: process.env.PAYPAL_CLIENT_SECRET || null,
-  paypalBaseUrl:
-    process.env.PAYPAL_BASE_URL || "https://api-m.paypal.com",
+  // PayPal (optional · checkout disabled when missing)
+  paypalClientId:   process.env.PAYPAL_CLIENT_ID    || null,
+  paypalSecret:     process.env.PAYPAL_CLIENT_SECRET|| null,
+  paypalWebhookId:  process.env.PAYPAL_WEBHOOK_ID   || null,
+  paypalBaseUrl:    process.env.PAYPAL_BASE_URL     || "https://api-m.paypal.com",
+
+  sentryDsn: process.env.SENTRY_DSN || null,
+  logLevel:  process.env.LOG_LEVEL || (process.env.NODE_ENV === "production" ? "info" : "debug"),
 }
 
 // ─────────────────────────────────────────────────────────────
-// Optional warnings (non-blocking)
+// Pre-flight checks for payment + email integrations.
+// Runs in every non-development environment (production AND staging),
+// because staging that's exposed to the public can still accept money
+// and send mail.
 // ─────────────────────────────────────────────────────────────
-if (config.nodeEnv === "production") {
-  const warnings = []
+const isLive = config.nodeEnv === "production" || config.nodeEnv === "staging"
 
-  if (!config.smtpHost) warnings.push("SMTP not configured")
-  if (!config.paypalClientId) warnings.push("PayPal not configured")
-  if (!config.mpAccessToken) warnings.push("MercadoPago not configured")
+if (isLive) {
+  const warnings = []
+  const errors   = []
+
+  if (!config.smtpHost) warnings.push("SMTP not configured (transactional emails will fail silently)")
+
+  // MercadoPago — partial config = booby trap
+  if (!config.mpAccessToken) {
+    warnings.push("MP_ACCESS_TOKEN missing — MercadoPago checkout disabled")
+  } else if (!config.mpWebhookSecret) {
+    errors.push("MP_ACCESS_TOKEN is set but MP_WEBHOOK_SECRET is missing — webhook signature verification will be SKIPPED, allowing payment forgery")
+  }
+
+  // PayPal — same pattern
+  if (!config.paypalClientId || !config.paypalSecret) {
+    warnings.push("PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET missing — PayPal checkout disabled")
+  } else if (!config.paypalWebhookId) {
+    errors.push("PayPal credentials are set but PAYPAL_WEBHOOK_ID is missing — webhook signature verification will be SKIPPED, allowing payment forgery")
+  }
+
+  if (!config.sentryDsn) warnings.push("SENTRY_DSN not set (error tracking disabled)")
 
   if (warnings.length > 0) {
-    console.warn("⚠️ Optional services missing:", warnings.join(", "))
+    console.warn("⚠️  Optional services missing:")
+    warnings.forEach((w) => console.warn("    · " + w))
+  }
+  if (errors.length > 0) {
+    console.error("❌ Critical configuration error(s):")
+    errors.forEach((e) => console.error("    · " + e))
+    if (config.nodeEnv === "production") {
+      console.error(
+        "\n   Refusing to start in production with payment-forgery exposure.\n" +
+        "   Set the missing webhook secrets, or unset the gateway credentials\n" +
+        "   to fully disable that gateway, then restart.\n"
+      )
+      process.exit(1)
+    } else {
+      console.error("    (allowed to continue in non-production · DO NOT EXPOSE PUBLICLY)\n")
+    }
   }
 }
-
-// ─────────────────────────────────────────────────────────────
 
 module.exports = config

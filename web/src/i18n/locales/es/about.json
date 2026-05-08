@@ -1,0 +1,149 @@
+{
+  "hero": {
+    "eyebrow": "Acerca de",
+    "title": "Hola, soy Mustapha",
+    "subtitle": "Gerente de TI, desarrollador full-stack y docente de ciencias de la computación. Construyo sistemas digitales que hacen sentir simples las cosas complejas.",
+    "helloIAm": "Hola, soy",
+    "yearsExperience": "Años de experiencia",
+    "projectsDelivered": "Proyectos entregados",
+    "contactAria": "Contactar a Mustapha",
+    "openCvAria": "Abrir CV en pestaña nueva",
+    "viewCv": "Ver mi CV",
+    "portraitAlt": "Mustapha Ukizuru",
+    "tagline1": "Diseño sistemas digitales modernos,",
+    "tagline2": "y amo lo que hago.",
+    "clientReviews": "Reseñas de clientes",
+    "basedOnFeedback": "Basado en feedback de clientes",
+    "connectLabel": "Conecta",
+    "technologyKicker": "Tecnología",
+    "consultantWord": "Consultor."
+  },
+  "sections": {
+    "mission": "Nuestra misión",
+    "vision": "Nuestra visión",
+    "values": "Nuestros valores",
+    "expertise": "Áreas de experiencia",
+    "skills": "Habilidades",
+    "experience": "Experiencia",
+    "education": "Educación",
+    "certifications": "Certificaciones",
+    "languages": "Idiomas"
+  },
+  "cta": {
+    "downloadCV": "Descargar CV",
+    "letsTalk": "Hablemos",
+    "contactInfo": "Información de contacto",
+    "officeAddress": "Dirección"
+  },
+  "core": {
+    "eyebrow": "Competencias clave",
+    "title": "Habilidades más allá del stack",
+    "subtitle": "Lo que aporto a los equipos más allá de la ejecución técnica — criterio independiente, comunicación multilingüe y un sesgo de constructor por entregar resultados.",
+    "photoAlt": "Mustapha Ukizuru — Gerente de TI y Desarrollador Full-Stack",
+    "items": {
+      "problemSolving": {
+        "title": "Resolución autónoma de problemas",
+        "desc": "Entrego soluciones listas para producción con supervisión mínima en entornos complejos y ambiguos."
+      },
+      "communication": {
+        "title": "Comunicación intercultural",
+        "desc": "Trabajo con fluidez en equipos diversos y con stakeholders en cuatro idiomas — inglés, español, turco y kinyarwanda."
+      },
+      "leadership": {
+        "title": "Liderazgo y mentoría",
+        "desc": "Lidero trabajo de ingeniería y TI, y he sido mentor de más de 80 estudiantes en desarrollo de software práctico."
+      },
+      "adaptability": {
+        "title": "Adaptabilidad",
+        "desc": "Rindo de forma consistente en entornos acelerados y con recursos limitados — desde startups hasta escuelas y equipos de empresa."
+      },
+      "strategy": {
+        "title": "Pensamiento estratégico",
+        "desc": "Combino ejecución técnica con una perspectiva sistémica sobre costo, escala y mantenibilidad a largo plazo."
+      }
+    }
+  },
+  "mvv": {
+    "eyebrow": "Principios fundamentales",
+    "title": "Misión, visión y valores",
+    "subtitle": "Los principios que guían cada proyecto, alianza y resultado que creamos."
+  },
+  "expertise": {
+    "eyebrow": "Experiencia",
+    "title": "Áreas de enfoque",
+    "subtitle": "Dominios especializados en los que entregamos resultados consistentes y de alto impacto."
+  },
+  "journey": {
+    "eyebrow": "Trayectoria",
+    "title": "Trayectoria profesional",
+    "subtitle": "Una carrera construida a través de liderazgo en tecnología, educación y consultoría con manos en el código.",
+    "education": "Educación",
+    "educationSubtitle": "Formación académica y formal",
+    "experience": "Experiencia",
+    "experienceSubtitle": "Carrera profesional",
+    "datePending": "Fecha por confirmar",
+    "present": "Actualidad"
+  },
+  "credentials": {
+    "eyebrow": "Credenciales",
+    "italic": "Conoce",
+    "title": "Mis certificaciones",
+    "subtitle": "Credenciales de industria que demuestran experiencia técnica y desarrollo profesional continuo.",
+    "knowMore": "Saber más"
+  },
+  "tech": {
+    "eyebrow": "Stack tecnológico",
+    "title": "Las herramientas detrás del trabajo",
+    "subtitle": "Los frameworks, lenguajes y plataformas que uso a diario en proyectos web, de backend e infraestructura.",
+    "categories": {
+      "frontend": "Frontend",
+      "backend": "Backend",
+      "database": "Bases de datos",
+      "toolsAndPlatforms": "Herramientas y plataformas"
+    }
+  },
+  "skills": {
+    "engineered": "Diseñado para entregar.",
+    "builtToScale": "Construido para escalar.",
+    "intro": "Cinco años entre ingeniería de producto, infraestructura de TI y educación STEM, enfocado en entregar resultados duraderos.",
+    "filterAria": "Filtrar habilidades por capacidad",
+    "allCapabilities": "Todas las capacidades",
+    "applyToProject": "Mira cómo aplicaría esto a tu proyecto"
+  },
+  "portfolio": {
+    "eyebrow": "Portafolio",
+    "title": "Proyectos seleccionados",
+    "subtitle": "Soluciones tecnológicas y sistemas digitales entregados en múltiples industrias y organizaciones.",
+    "linkLearnMore": "Conocer más",
+    "linkCaseStudy": "Ver caso de estudio",
+    "errorState": "Portafolio temporalmente no disponible. Inténtalo de nuevo más tarde.",
+    "emptyState": "Más proyectos en camino."
+  },
+  "ctaBand": {
+    "headingPart1": "Redefinamos tu",
+    "headingPart2": "negocio",
+    "headingPart3": "juntos",
+    "body": "Conéctate conmigo y empecemos a convertir ideas en software listo para producción hoy.",
+    "contactMe": "Contáctame",
+    "officeAddress": "Dirección de oficina",
+    "officeAddressBody1": "Tlalnepantla de Baz,",
+    "officeAddressBody2": "Estado de México, México",
+    "contactInfo": "Información de contacto"
+  },
+  "certificate": {
+    "verify": "Verificar credencial",
+    "clickToOpen": "Clic para abrir",
+    "zoomOut": "Alejar",
+    "zoomIn": "Acercar",
+    "openNewTab": "Abrir en pestaña nueva",
+    "renderError": "No pudimos renderizar este certificado en línea.",
+    "prevPage": "Página anterior",
+    "nextPage": "Página siguiente"
+  },
+  "dashboardWidget": {
+    "welcomeBack": "Bienvenido de vuelta",
+    "activeProjects": "Proyectos activos",
+    "recentClients": "Clientes recientes",
+    "viewAll": "Ver todo"
+  }
+}

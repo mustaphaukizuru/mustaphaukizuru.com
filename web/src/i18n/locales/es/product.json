@@ -1,0 +1,126 @@
+{
+  "tabs": {
+    "description": "Descripción",
+    "features": "Características",
+    "files": "Archivos",
+    "reviews": "Reseñas",
+    "faq": "Preguntas frecuentes"
+  },
+  "info": {
+    "fileSize": "Tamaño del archivo",
+    "fileType": "Tipo de archivo",
+    "lastUpdate": "Última actualización",
+    "lastUpdated": "Última actualización",
+    "version": "Versión",
+    "license": "Licencia",
+    "compatibility": "Compatibilidad",
+    "category": "Categoría",
+    "delivery": "Entrega"
+  },
+  "actions": {
+    "addToCart": "Agregar al carrito",
+    "addingToCart": "Agregando…",
+    "addedToCart": "¡Agregado!",
+    "buyNow": "Comprar ahora",
+    "compare": "Comparar",
+    "wishlist": "Guardar para después",
+    "wishlistAdd": "Agregar a favoritos",
+    "wishlistRemove": "Quitar de favoritos",
+    "share": "Compartir",
+    "copyLink": "Copiar enlace",
+    "linkCopied": "¡Enlace copiado!",
+    "writeReview": "Escribir una reseña"
+  },
+  "social": {
+    "reviewSingular": "reseña",
+    "reviewPlural": "reseñas",
+    "downloads": "descargas",
+    "seeReviews": "Ver {{count}} reseñas",
+    "seeReview": "Ver 1 reseña"
+  },
+  "creator": {
+    "verifiedSeller": "Vendedor verificado",
+    "by": "por",
+    "designedBy": "Diseñado por"
+  },
+  "trust": {
+    "secureCheckout": "Pago seguro",
+    "paymentMethods": "PayPal + Mercado Pago",
+    "refundPolicy": "Reembolso a 30 días",
+    "instantDownload": "Descarga instantánea",
+    "ariaLabel": "Garantías de compra"
+  },
+  "description": {
+    "showLess": "Mostrar menos",
+    "learnMore": "Conoce más sobre este artículo"
+  },
+  "highlights": {
+    "title": "Lo más destacado"
+  },
+  "specs": {
+    "title": "Especificaciones"
+  },
+  "faq": {
+    "title": "Preguntas frecuentes"
+  },
+  "carousel": {
+    "thumbnailsAria": "Miniaturas del producto",
+    "imageAlt": "Imagen del producto"
+  },
+  "mobileBar": {
+    "ariaLabel": "Barra de compra del producto"
+  },
+  "files": {
+    "untitled": "Archivo sin título"
+  },
+  "errors": {
+    "notFound": "Producto no encontrado"
+  },
+  "category": {
+    "fallback": "Producto digital"
+  },
+  "related": "Productos relacionados",
+  "relatedHeading": "También te puede interesar",
+  "reviews": {
+    "writeTitle": "Escribir reseña",
+    "signIn": "Inicia sesión",
+    "alreadyReviewed": "Ya reseñaste",
+    "yourRating": "Tu calificación",
+    "placeholder": "Comparte tu experiencia…",
+    "moderationNote": "Las reseñas de compradores verificados se publican de inmediato. El resto pasa por moderación.",
+    "noneYet": "Aún no hay reseñas. ¡Sé el primero en reseñar este producto!",
+    "verifiedPurchase": "Compra verificada",
+    "deleteTitle": "Eliminar reseña",
+    "awaitingModeration": "En moderación, por ahora solo tú la ves",
+    "replyFrom": "Respuesta de"
+  },
+  "detail": {
+    "noFiles": "Aún sin lista de archivos",
+    "filesAfterPurchase": "Los archivos se revelarán después de la compra.",
+    "designedBy": "Diseñado por",
+    "specsComing": "Especificaciones detalladas próximamente",
+    "faqTitle": "Preguntas frecuentes",
+    "youMayLike": "También te puede gustar",
+    "seeAll": "Ver todo",
+    "backToStore": "Volver a la tienda",
+    "whatYouGet": "Qué incluye",
+    "filesInProduct": "Archivos en este producto",
+    "contentsComing": "Contenido del producto próximamente",
+    "addedToCart": "¡Agregado al carrito!",
+    "addToCart": "Agregar al carrito",
+    "buyNow": "Comprar ahora"
+  },
+  "misc": {
+    "primary": "Principal",
+    "includes": "Incluye",
+    "more": "más",
+    "downloads": "descargas",
+    "updated": "Actualizado",
+    "added": "Agregado",
+    "storeBreadcrumb": "Tienda",
+    "featuredBadge": "Destacado",
+    "newBadge": "Nuevo",
+    "qty": "Cant.",
+    "share": "Compartir"
+  }
+}

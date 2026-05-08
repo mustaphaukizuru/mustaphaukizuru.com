@@ -5,7 +5,7 @@ import { authFetch } from "../lib/api"
 // ─────────────────────────────────────────────────────────────
 
 export async function fetchAdminOrders() {
-  const response = await authFetch("/api/admin/orders", {
+  const response = await authFetch("/api/v1/admin/orders", {
     method: "GET",
   })
 
@@ -21,7 +21,7 @@ export async function fetchAdminOrderById(orderId) {
     throw new Error("Order ID is required")
   }
 
-  const response = await authFetch(`/api/admin/orders/${orderId}`, {
+  const response = await authFetch(`/api/v1/admin/orders/${orderId}`, {
     method: "GET",
   })
 
@@ -38,7 +38,7 @@ export async function updateAdminOrderStatus(orderId, status) {
   }
 
   const response = await authFetch(
-    `/api/admin/orders/${orderId}/status`,
+    `/api/v1/admin/orders/${orderId}/status`,
     {
       method: "PATCH",
       body: JSON.stringify({ status }),

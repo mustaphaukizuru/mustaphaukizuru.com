@@ -13,13 +13,14 @@ import {
 } from "lucide-react"
 import { useNotifications, NOTIFICATION_TYPES } from "../../context/NotificationContext"
 
+import { useTranslation } from "react-i18next"
 // ─────────────────────────────────────────────────────────────────────────────
 // Icon & color map per notification type
 // ─────────────────────────────────────────────────────────────────────────────
 const TYPE_META = {
   [NOTIFICATION_TYPES.ORDER_PLACED]: {
     icon: ShoppingCart,
-    color: "bg-[#ede4ef] text-[#420060]",
+    color: "bg-violet-pale text-violet",
   },
   [NOTIFICATION_TYPES.PAYMENT_SUCCESS]: {
     icon: CreditCard,
@@ -75,7 +76,7 @@ function NotificationItem({ notification, onRead }) {
       type="button"
       onClick={() => onRead(notification.id)}
       className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-[#f7f4f8] ${
-        !notification.isRead ? "bg-[#faf7fb]" : ""
+        !notification.isRead ? "bg-[#F5F2FE]" : ""
       }`}
     >
       <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${meta.color}`}>
@@ -84,21 +85,21 @@ function NotificationItem({ notification, onRead }) {
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="text-[13px] font-semibold leading-5 text-[#420060]">
+          <div className="text-meta font-semibold leading-5 text-violet">
             {notification.title}
           </div>
           {!notification.isRead && (
-            <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#420060]" />
+            <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-violet" />
           )}
         </div>
 
         {notification.message && (
-          <div className="mt-0.5 line-clamp-2 text-[12px] leading-5 text-[#634F40]/70">
+          <div className="mt-0.5 line-clamp-2 text-micro leading-5 text-charcoal-80/70">
             {notification.message}
           </div>
         )}
 
-        <div className="mt-1 text-[11px] text-[#634F40]/50">
+        <div className="mt-1 text-micro text-charcoal-80/50">
           {timeAgo(notification.createdAt)}
         </div>
       </div>
@@ -110,6 +111,7 @@ function NotificationItem({ notification, onRead }) {
 // Main dropdown component
 // ─────────────────────────────────────────────────────────────────────────────
 export default function NotificationDropdown() {
+  const { t } = useTranslation("dashboard")
   const { notifications, loading, unreadCount, fetchNotifications, markAsRead, markAllAsRead } =
     useNotifications()
   const [open, setOpen] = useState(false)
@@ -145,12 +147,12 @@ export default function NotificationDropdown() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#634F40]/10 bg-white text-[#420060] transition hover:bg-[#f4eef6]"
+        className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-[#f4eef6]"
         aria-label="Notifications"
       >
         <Bell className="h-4.5 w-4.5" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#420060] text-[10px] font-bold text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-violet text-micro font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -158,13 +160,13 @@ export default function NotificationDropdown() {
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[360px] rounded-xl border border-[#634F40]/10 bg-white shadow-[0_20px_60px_rgba(66,0,96,0.14)]">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[360px] rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgba(93,63,211,0.14)]">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[#634F40]/10 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-charcoal-80/10 px-4 py-3">
             <div>
-              <div className="text-[15px] font-semibold text-[#420060]">Notifications</div>
+              <div className="text-body font-semibold text-violet">Notifications</div>
               {unreadCount > 0 && (
-                <div className="text-[11px] text-[#634F40]/60">{unreadCount} unread</div>
+                <div className="text-micro text-charcoal-80/60">{unreadCount} unread</div>
               )}
             </div>
 
@@ -173,16 +175,16 @@ export default function NotificationDropdown() {
                 <button
                   type="button"
                   onClick={markAllAsRead}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#634F40]/10 px-3 py-1.5 text-[11px] font-medium text-[#420060] transition hover:bg-[#f4eef6]"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-charcoal-80/10 px-3 py-1.5 text-micro font-medium text-violet transition hover:bg-[#f4eef6]"
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
-                  Mark all read
+                  {t("notifDropdown.markAllRead")}
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-xl text-[#634F40]/50 transition hover:bg-[#f4eef6] hover:text-[#420060]"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-xl text-charcoal-80/50 transition hover:bg-[#f4eef6] hover:text-violet"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -199,14 +201,14 @@ export default function NotificationDropdown() {
               </div>
             ) : notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#ede4ef] text-[#420060]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Bell className="h-6 w-6" />
                 </div>
-                <div className="mt-3 text-[13px] font-semibold text-[#420060]">
-                  All caught up
+                <div className="mt-3 text-meta font-semibold text-violet">
+                  {t("notifDropdown.allCaughtUp")}
                 </div>
-                <div className="mt-1 text-[12px] text-[#634F40]/60">
-                  No notifications yet
+                <div className="mt-1 text-micro text-charcoal-80/60">
+                  {t("notifDropdown.noNotifs")}
                 </div>
               </div>
             ) : (

@@ -1,144 +1,284 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { loginWithGoogleCredential } from "../services/authService"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GoogleLoginButton
-// Global singleton guard prevents GSI initialize() being called more than once
-// even if multiple instances mount (LoginPage + SignupPage in same session)
-// ─────────────────────────────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────────────
+ *  GoogleLoginButton · v2 · Brand Identity v3.0
+ *  ────────────────────────────────────────────────────────────────────────
+ *  A single, brand-aligned button — replaces the prior native-GSI render
+ *  plus hand-rolled fallback. On click, triggers Google's One-Tap prompt;
+ *  the credential flows back through the callback we register at
+ *  `google.accounts.id.initialize()`.
+ *
+ *  Auth flow contract — UNCHANGED from prior version:
+ *    · On successful Google credential → loginWithGoogleCredential()
+ *    · Pass result through useAuth().loginWithGoogle()
+ *    · Redirect to: explicit `redirectTo` > location.state.from > role default
+ *    · Admin users → /admin; everyone else → /dashboard
+ *
+ *  Brand alignment (Brand v3.0 §11 button variants · §10 elevation):
+ *    · Cloud-Mist surface · 1px charcoal/12 hairline · rounded-xl
+ *    · Sora 600 · 14px label · charcoal/85 (4.96:1 contrast — WCAG AA)
+ *    · Crisp 4-color official Google "G" mark (18px SVG, sharp at 2x)
+ *    · Hover: −0.5px lift · shadow blooms · border deepens
+ *    · Active: snaps back, shadow collapses
+ *    · Focus-visible: 3px Deep Azure ring · 2px offset
+ *    · Loading: spinner + "Signing you in…" · aria-busy
+ *    · Disabled: 60% opacity · cursor-not-allowed · no hover lift
+ *    · Min 48px height — exceeds WCAG 44px touch-target minimum
+ *    · Full-width fluid · respects parent max-width on every breakpoint
+ *
+ *  Props:
+ *    label?         · "signin" (default) · "signup" · "continue"
+ *    onSuccess?(data)
+ *    redirectTo?    · explicit destination after auth
+ *    className?     · escape hatch for outer wrapper
+ *  ──────────────────────────────────────────────────────────────────────── */
 
-export default function GoogleLoginButton({ onSuccess, redirectTo }) {
-  const buttonRef      = useRef(null)
-  const navigate       = useNavigate()
-  const location       = useLocation()
+const LABEL_MAP = {
+  signin: "Sign in with Google",
+  signup: "Sign up with Google",
+  continue: "Continue with Google",
+}
+
+export default function GoogleLoginButton({
+  label = "signin",
+  onSuccess,
+  redirectTo,
+  className = "",
+}) {
+  const navigate = useNavigate()
+  const location = useLocation()
   const { loginWithGoogle } = useAuth()
 
-  const [error,        setError]        = useState("")
-  const [loading,      setLoading]      = useState(false)
-  const [sdkReady,     setSdkReady]     = useState(false)
-  const [renderFailed, setRenderFailed] = useState(false)
-  const renderedRef    = useRef(false)   // per-instance: did this button render?
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [sdkReady, setSdkReady] = useState(false)
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
-  const handleCredential = useCallback(async (credential) => {
-    setError("")
-    setLoading(true)
-    try {
-      const data = await loginWithGoogleCredential(credential)
-      loginWithGoogle(data)
-      // Return to origin page or explicit redirectTo, NOT always dashboard
-      const dest = redirectTo
-        || location.state?.from
-        || (data.user?.role === "admin" ? "/admin" : "/dashboard")
-      navigate(dest, { replace: true })
-      onSuccess?.(data)
-    } catch (err) {
-      setError(err.message || "Google sign-in failed. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }, [loginWithGoogle, navigate, location, redirectTo, onSuccess])
+  /* ── Auth callback ─────────────────────────────────────────────────── */
+  const handleCredential = useCallback(
+    async (credential) => {
+      setError("")
+      setLoading(true)
+      try {
+        const data = await loginWithGoogleCredential(credential)
+        loginWithGoogle(data)
+        const dest =
+          redirectTo ||
+          location.state?.from ||
+          (data.user?.role === "admin" ? "/admin" : "/dashboard")
+        navigate(dest, { replace: true })
+        onSuccess?.(data)
+      } catch (err) {
+        setError(err.message || "Google sign-in failed. Please try again.")
+      } finally {
+        setLoading(false)
+      }
+    },
+    [loginWithGoogle, navigate, location, redirectTo, onSuccess]
+  )
 
-  // ── Wait for Google SDK ───────────────────────────────────────────────────
+  /* ── CWV · lazy-load the GSI script on first mount ─────────────────
+   *
+   *  Previously the Google Identity Services SDK was loaded by a
+   *  `<script src="https://accounts.google.com/gsi/client" async defer>`
+   *  in index.html, which downloaded ~80 KB of JS on EVERY public page
+   *  even though only LoginPage / SignupPage / GoogleLoginButton actually
+   *  need it. Now the script is injected into the document head only when
+   *  GoogleLoginButton mounts. Polling continues to work as before.
+   *  Subsequent mounts in the same session reuse the already-attached
+   *  script (idempotent insert via id check).
+   *  ────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (!clientId) return
-    if (window.google?.accounts?.id) { setSdkReady(true); return }
+    if (window.google?.accounts?.id) {
+      setSdkReady(true)
+      return
+    }
+
+    // Inject the SDK script tag if it's not already there. Idempotent —
+    // re-mounting the component (e.g. nav between LoginPage and SignupPage)
+    // detects the existing element and skips the second insert.
+    const SCRIPT_ID = "google-gsi-client"
+    if (!document.getElementById(SCRIPT_ID)) {
+      const el = document.createElement("script")
+      el.id    = SCRIPT_ID
+      el.src   = "https://accounts.google.com/gsi/client"
+      el.async = true
+      el.defer = true
+      document.head.appendChild(el)
+    }
 
     let attempts = 0
     function tryInit() {
-      if (window.google?.accounts?.id) { setSdkReady(true); return }
+      if (window.google?.accounts?.id) {
+        setSdkReady(true)
+        return
+      }
       if (attempts++ < 25) setTimeout(tryInit, 200)
     }
     tryInit()
   }, [clientId])
 
-  // ── Render button when SDK ready ─────────────────────────────────────────
+  /* ── Initialize GSI once SDK is ready. We re-register the callback per
+   * mount so the latest closure handles credentials correctly across
+   * route changes (LoginPage ↔ SignupPage in the same session). ───── */
   useEffect(() => {
-    if (!sdkReady || !clientId || !buttonRef.current || renderedRef.current) return
-
+    if (!sdkReady || !clientId) return
     try {
-      // SINGLETON: initialize the GSI SDK only once per browser session
-      // Multiple component mounts (login + signup pages) must NOT re-initialize
-      if (!window.__gsiInitialized) {
-        window.google.accounts.id.initialize({
-          client_id:              clientId,
-          callback:               (res) => handleCredential(res.credential),
-          auto_select:            false,
-          cancel_on_tap_outside:  true,
-        })
-        window.__gsiInitialized = true
-      } else {
-        // Re-register callback for new component instance (important for route changes)
-        window.google.accounts.id.initialize({
-          client_id:              clientId,
-          callback:               (res) => handleCredential(res.credential),
-          auto_select:            false,
-          cancel_on_tap_outside:  true,
-        })
-      }
-
-      buttonRef.current.innerHTML = ""
-      window.google.accounts.id.renderButton(buttonRef.current, {
-        theme:          "outline",
-        size:           "large",
-        shape:          "rectangular",
-        text:           "signin_with",
-        width:          buttonRef.current.offsetWidth || 340,
-        logo_alignment: "left",
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (res) => handleCredential(res.credential),
+        auto_select: false,
+        cancel_on_tap_outside: true,
       })
-      renderedRef.current = true
-
-      // Detect if render produced an iframe (actual Google button)
-      setTimeout(() => {
-        if (buttonRef.current && !buttonRef.current.querySelector("iframe")) {
-          setRenderFailed(true)
-        }
-      }, 1000)
     } catch (err) {
-      console.warn("[GoogleLoginButton] render failed:", err.message)
-      setRenderFailed(true)
+      // GSI rarely throws here, but if it does we surface a clear error
+      // on click rather than crashing the page.
+      // eslint-disable-next-line no-console
+      console.warn("[GoogleLoginButton] init failed:", err.message)
     }
   }, [sdkReady, clientId, handleCredential])
 
+  /* ── Click handler ─────────────────────────────────────────────────── */
+  const handleClick = () => {
+    setError("")
+    if (!sdkReady) {
+      setError("Google sign-in is still loading. Please try again in a moment.")
+      return
+    }
+    try {
+      window.google.accounts.id.prompt((notification) => {
+        // Common reasons One Tap is suppressed:
+        //   · User dismissed it three times in 24h
+        //   · Third-party cookies disabled in the browser
+        //   · ITP/Privacy modes (Safari, Brave) without exception
+        if (
+          notification?.isNotDisplayed?.() ||
+          notification?.isSkippedMoment?.()
+        ) {
+          setError(
+            "We could not start Google sign-in. Enable third-party cookies for accounts.google.com or use the email form above."
+          )
+        }
+      })
+    } catch (err) {
+      setError(err.message || "Could not start Google sign-in.")
+    }
+  }
+
   if (!clientId) return null
 
-  return (
-    <div className="flex w-full flex-col gap-3">
-      {/* Native Google button */}
-      {!renderFailed && (
-        <div
-          ref={buttonRef}
-          className="w-full overflow-hidden rounded-xl"
-          style={{ minHeight: 44 }}
-        />
-      )}
+  const labelText = loading
+    ? "Signing you in…"
+    : LABEL_MAP[label] || LABEL_MAP.signin
 
-      {/* Branded fallback if SDK button didn't render */}
-      {renderFailed && (
-        <button
-          type="button"
-          onClick={() => window.google?.accounts?.id?.prompt?.()}
-          disabled={loading}
-          className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#634F40]/15 bg-white px-4 py-3.5 text-[14px] font-semibold text-[#420060] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#fafafa] disabled:opacity-60"
-        >
-          <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          {loading ? "Signing in…" : "Continue with Google"}
-        </button>
-      )}
+  return (
+    <div className={`flex w-full flex-col gap-2.5 ${className}`}>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={loading}
+        aria-busy={loading || undefined}
+        aria-label={labelText}
+        className={[
+          /* layout */
+          "group relative inline-flex w-full items-center justify-center gap-3",
+          "min-h-[48px] px-5 py-3 sm:py-3.5",
+          /* surface */
+          "rounded-xl border border-charcoal-80/12 bg-white",
+          "shadow-[0_1px_2px_rgba(26,27,35,0.04)]",
+          /* type */
+          "font-display text-[14px] font-semibold text-charcoal-80/85 sm:text-[14.5px]",
+          /* motion */
+          "transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          /* hover */
+          "hover:-translate-y-0.5 hover:border-charcoal-80/22 hover:bg-mist",
+          "hover:shadow-[0_8px_20px_-6px_rgba(26,27,35,0.18)]",
+          /* active */
+          "active:translate-y-0 active:shadow-[0_1px_2px_rgba(26,27,35,0.04)]",
+          /* focus */
+          "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2",
+          /* disabled */
+          "disabled:cursor-not-allowed disabled:opacity-60",
+          "disabled:hover:translate-y-0 disabled:hover:bg-white",
+          "disabled:hover:shadow-[0_1px_2px_rgba(26,27,35,0.04)]",
+        ].join(" ")}
+      >
+        {loading ? <SpinnerIcon /> : <GoogleGMark />}
+        <span className="truncate">{labelText}</span>
+      </button>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+        <div
+          role="alert"
+          className="rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] leading-[1.5] text-rose"
+        >
           {error}
         </div>
       )}
     </div>
+  )
+}
+
+/* ── Google "G" · official 4-color brand mark ────────────────────────────
+ * Vector at 18×18 viewBox · stays sharp at any DPI · permitted under
+ * Google's Sign-in with Google branding guidelines so long as the button
+ * label includes "Google" verbatim. */
+function GoogleGMark() {
+  return (
+    <svg
+      viewBox="0 0 18 18"
+      className="h-[18px] w-[18px] shrink-0"
+      aria-hidden="true"
+    >
+      <path
+        fill="#4285F4"
+        d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"
+      />
+      <path
+        fill="#34A853"
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.583-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.547 0 9c0 1.453.348 2.827.957 4.042l3.007-2.332z"
+      />
+      <path
+        fill="#EA4335"
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+      />
+    </svg>
+  )
+}
+
+/* ── Spinner · inherits currentColor from the button label ─────────────── */
+function SpinnerIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px] shrink-0 animate-spin"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.2"
+        strokeWidth="3"
+      />
+      <path
+        d="M12 2a10 10 0 0 1 10 10"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
   )
 }

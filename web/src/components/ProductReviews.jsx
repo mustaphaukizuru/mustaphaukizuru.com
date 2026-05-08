@@ -1,11 +1,33 @@
+/* ════════════════════════════════════════════════════════════════════════
+   ProductReviews.jsx · public review surface for the product detail page
+   ────────────────────────────────────────────────────────────────────────
+   Sprint-2 additions over the original component:
+     · Admin replies render under each review when present.
+     · "Helpful" vote button — idempotent, optimistic, login-gated.
+     · Submission feedback distinguishes "live now" from "in the queue".
+     · The component name and props stay the same so existing imports
+       (`<ProductReviews slug={...} productTitle={...} />`) keep working.
+
+   Keeps the original visual language: terracotta stars, violet headings.
+   ════════════════════════════════════════════════════════════════════════ */
+
 import { useCallback, useEffect, useState } from "react"
-import { Star, CheckCircle2, MessageSquare, ThumbsUp, Trash2 } from "lucide-react"
-import { fetchProductReviews, submitProductReview, deleteProductReview } from "../services/reviewService"
+import {
+  Star, CheckCircle2, MessageSquare, ThumbsUp, Trash2, Clock3, Sparkles,
+} from "lucide-react"
+import {
+  fetchProductReviews,
+  submitProductReview,
+  deleteProductReview,
+  markReviewHelpful,
+} from "../services/reviewService"
 import { getStoredUser, getStoredToken } from "../lib/api"
+
+import { useTranslation } from "react-i18next"
+/* ─── atoms ───────────────────────────────────────────────────────────── */
 
 function StarRating({ rating, size = 16, interactive = false, onChange }) {
   const [hover, setHover] = useState(0)
-
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => {
@@ -19,10 +41,11 @@ function StarRating({ rating, size = 16, interactive = false, onChange }) {
             onMouseEnter={() => interactive && setHover(star)}
             onMouseLeave={() => interactive && setHover(0)}
             onClick={() => interactive && onChange?.(star)}
+            aria-label={interactive ? `Rate ${star} of 5` : undefined}
           >
             <Star
               style={{ width: size, height: size }}
-              className={filled ? "fill-[#FFCCAF] text-[#FFCCAF]" : "text-[#634F40]/20"}
+              className={filled ? "fill-terracotta text-terracotta" : "text-charcoal-80/20"}
             />
           </button>
         )
@@ -34,16 +57,13 @@ function StarRating({ rating, size = 16, interactive = false, onChange }) {
 function RatingBar({ label, count, total }) {
   const pct = total > 0 ? (count / total) * 100 : 0
   return (
-    <div className="flex items-center gap-2 text-[12px]">
-      <span className="w-4 text-right font-semibold text-[#420060]">{label}</span>
-      <Star className="h-3 w-3 fill-[#FFCCAF] text-[#FFCCAF]" />
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#634F40]/8">
-        <div
-          className="h-full rounded-full bg-[#FFCCAF] transition-all"
-          style={{ width: `${pct}%` }}
-        />
+    <div className="flex items-center gap-2 text-micro">
+      <span className="w-4 text-right font-semibold text-violet">{label}</span>
+      <Star className="h-3 w-3 fill-terracotta text-terracotta" />
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-charcoal-80/8">
+        <div className="h-full rounded-full bg-terracotta transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <span className="w-6 text-right text-[#634F40]/50">{count}</span>
+      <span className="w-6 text-right text-charcoal-80/50">{count}</span>
     </div>
   )
 }
@@ -71,7 +91,69 @@ function getInitials(name = "") {
     .slice(0, 2) || "?"
 }
 
+/* ─── helpful button — local optimistic state ─────────────────────────── */
+
+function HelpfulButton({ review, isLoggedIn, isOwner }) {
+  const [count, setCount] = useState(review.helpfulCount || 0)
+  const [voted, setVoted] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  // Owners can't vote on their own review; logged-out users see a disabled
+  // button and a softer label so they understand why.
+  const disabled = busy || !isLoggedIn || isOwner
+
+  async function handleClick() {
+    if (disabled) return
+    setBusy(true)
+    // Optimistic toggle so the UI feels instant.
+    const wasVoted = voted
+    setVoted(!wasVoted)
+    setCount((n) => n + (wasVoted ? -1 : 1))
+    try {
+      const result = await markReviewHelpful(review.id)
+      // Server is the source of truth; reconcile if it disagreed.
+      if (typeof result?.helpfulCount === "number") setCount(result.helpfulCount)
+      if (typeof result?.helpful === "boolean") setVoted(result.helpful)
+    } catch {
+      setVoted(wasVoted)
+      setCount((n) => n + (wasVoted ? 1 : -1))
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={disabled}
+      title={
+        !isLoggedIn ? "Sign in to mark this helpful"
+        : isOwner ? "You can't vote on your own review"
+        : voted ? "You found this helpful, click to undo"
+        : "Mark as helpful"
+      }
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-semibold transition ${
+        voted
+          ? "bg-violet text-white"
+          : "bg-violet-pale/60 text-violet hover:bg-violet-pale"
+      } ${disabled && !voted ? "opacity-60" : ""}`}
+    >
+      <ThumbsUp className={`h-3 w-3 ${voted ? "fill-white" : ""}`} />
+      <span>Helpful</span>
+      {count > 0 && (
+        <span className={`font-mono tabular-nums ${voted ? "text-white" : "text-violet"}`}>
+          · {count}
+        </span>
+      )}
+    </button>
+  )
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Page-level component
+   ════════════════════════════════════════════════════════════════════════ */
+
 export default function ProductReviews({ slug, productTitle }) {
+  const { t } = useTranslation("product")
   const [reviews, setReviews] = useState([])
   const [stats, setStats] = useState({ averageRating: 0, totalReviews: 0, distribution: {} })
   const [loading, setLoading] = useState(true)
@@ -93,30 +175,31 @@ export default function ProductReviews({ slug, productTitle }) {
       setReviews(data.reviews || [])
       setStats(data.stats || { averageRating: 0, totalReviews: 0, distribution: {} })
     } catch {
-      // silent
+      // silent — keep prior state
     } finally {
       setLoading(false)
     }
   }, [slug])
 
-  useEffect(() => {
-    loadReviews()
-  }, [loadReviews])
+  useEffect(() => { loadReviews() }, [loadReviews])
 
   async function handleSubmit(e) {
     e.preventDefault()
     setFormError("")
     setFormSuccess("")
-
-    if (formRating < 1) {
-      setFormError("Please select a rating.")
-      return
-    }
+    if (formRating < 1) { setFormError("Please select a rating."); return }
 
     try {
       setSubmitting(true)
-      await submitProductReview(slug, { rating: formRating, reviewText: formText.trim() })
-      setFormSuccess("Your review has been posted!")
+      const result = await submitProductReview(slug, { rating: formRating, reviewText: formText.trim() })
+      // Distinguish auto-approved vs queued. Backend returns a tailored
+      // message string + the new review's status.
+      setFormSuccess(
+        result?.message
+          || (result?.status === "approved"
+                ? "Thanks, your review is live."
+                : "Thanks, your review is in the queue and will appear once approved.")
+      )
       setFormRating(0)
       setFormText("")
       setShowForm(false)
@@ -133,9 +216,7 @@ export default function ProductReviews({ slug, productTitle }) {
     try {
       await deleteProductReview(slug, reviewId)
       await loadReviews()
-    } catch {
-      // silent
-    }
+    } catch { /* silent */ }
   }
 
   const alreadyReviewed = reviews.some((r) => r.user?.id === currentUser?.id)
@@ -145,12 +226,12 @@ export default function ProductReviews({ slug, productTitle }) {
     <div className="space-y-6">
       {/* ── Stats summary ── */}
       <div className="grid gap-6 sm:grid-cols-[auto_1fr]">
-        <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-[#faf7fb] px-8 py-6">
-          <div className="text-[2.8rem] font-bold leading-none text-[#420060]">
+        <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-[#F5F2FE] px-8 py-6">
+          <div className="text-page font-bold leading-none text-violet">
             {stats.averageRating.toFixed(1)}
           </div>
           <StarRating rating={Math.round(stats.averageRating)} size={18} />
-          <div className="mt-1 text-[12px] text-[#634F40]/50">
+          <div className="mt-1 text-micro text-charcoal-80/50">
             {stats.totalReviews} {stats.totalReviews === 1 ? "review" : "reviews"}
           </div>
         </div>
@@ -162,55 +243,57 @@ export default function ProductReviews({ slug, productTitle }) {
         </div>
       </div>
 
-      {/* ── Write review button / form ── */}
+      {/* ── Submit feedback ── */}
       {formSuccess && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          {formSuccess}
+        <div className="flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{formSuccess}</span>
         </div>
       )}
 
+      {/* ── Write review CTA / form ── */}
       {isLoggedIn && !alreadyReviewed && !showForm && (
         <button
           type="button"
           onClick={() => { setShowForm(true); setFormSuccess("") }}
-          className="flex items-center gap-2 rounded-xl border border-[#420060]/15 px-5 py-3 text-sm font-semibold text-[#420060] transition hover:bg-[#faf7fb]"
+          className="flex items-center gap-2 rounded-xl border border-violet/15 px-5 py-3 text-sm font-semibold text-violet transition hover:bg-[#F5F2FE]"
         >
-          <MessageSquare className="h-4 w-4" />
-          Write a Review
+          <MessageSquare className="h-4 w-4" /> {t("reviews.writeTitle")}
         </button>
       )}
 
       {!isLoggedIn && (
-        <div className="rounded-xl border border-[#634F40]/10 bg-[#faf7fb] px-5 py-4 text-sm text-[#634F40]/70">
-          <a href="/login" className="font-semibold text-[#420060] underline">Sign in</a> to leave a review.
+        <div className="rounded-xl border border-charcoal-80/10 bg-[#F5F2FE] px-5 py-4 text-sm text-charcoal-80/70">
+          <a href="/login" className="font-semibold text-violet underline">{t("reviews.signIn")}</a> to leave a review.
         </div>
       )}
 
       {alreadyReviewed && !formSuccess && (
-        <div className="rounded-xl border border-[#420060]/10 bg-[#faf7fb] px-5 py-3 text-sm text-[#634F40]/70">
+        <div className="rounded-xl border border-violet/10 bg-[#F5F2FE] px-5 py-3 text-sm text-charcoal-80/70">
           <CheckCircle2 className="mr-1.5 inline h-4 w-4 text-[#2FA36B]" />
-          You have already reviewed this product.
+          {t("reviews.alreadyReviewed")} {productTitle ? <em>{productTitle}</em> : "this product"}.
         </div>
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-[#420060]/10 bg-white p-5 shadow-[0_4px_16px_rgba(66,0,96,0.04)]">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 rounded-xl border border-violet/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+        >
           <div>
-            <label className="mb-2 block text-sm font-semibold text-[#420060]">Your Rating</label>
+            <label className="mb-2 block text-sm font-semibold text-violet">{t("reviews.yourRating")}</label>
             <StarRating rating={formRating} size={28} interactive onChange={setFormRating} />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-[#634F40]">
-              Review (optional)
-            </label>
+            <label className="mb-1 block text-sm font-medium text-charcoal-80">Review (optional)</label>
             <textarea
               rows={4}
               value={formText}
               onChange={(e) => setFormText(e.target.value)}
-              placeholder="Share your experience with this product..."
-              className="w-full rounded-xl border border-[#634F40]/12 bg-[#fafafa] px-4 py-3 text-sm outline-none focus:border-[#420060]/30"
-              maxLength={2000}
+              placeholder={t("reviews.placeholder")}
+              className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 text-sm outline-none focus:border-violet/30"
+              maxLength={5000}
             />
           </div>
 
@@ -220,18 +303,21 @@ export default function ProductReviews({ slug, productTitle }) {
             </div>
           )}
 
+          <p className="text-micro text-charcoal-80/55">
+            {t("reviews.moderationNote")}
+          </p>
+
           <div className="flex gap-3">
             <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-xl bg-[#420060] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#2d003f] disabled:opacity-60"
+              type="submit" disabled={submitting}
+              className="rounded-xl bg-violet px-6 py-3 text-sm font-semibold text-white transition hover:bg-violet-deep disabled:opacity-60"
             >
               {submitting ? "Submitting..." : "Submit Review"}
             </button>
             <button
               type="button"
               onClick={() => { setShowForm(false); setFormError("") }}
-              className="rounded-xl border border-[#634F40]/15 px-5 py-3 text-sm font-medium text-[#634F40] transition hover:bg-[#fafafa]"
+              className="rounded-xl border border-charcoal-80/15 px-5 py-3 text-sm font-medium text-charcoal-80 transition hover:bg-[#fafafa]"
             >
               Cancel
             </button>
@@ -243,65 +329,104 @@ export default function ProductReviews({ slug, productTitle }) {
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-xl bg-[#ede4ef]/50" />
+            <div key={i} className="h-24 animate-pulse rounded-xl bg-violet-pale/50" />
           ))}
         </div>
       ) : reviews.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[#634F40]/15 bg-[#fafafa] px-6 py-8 text-center text-sm text-[#634F40]/50">
-          No reviews yet. Be the first to review this product!
+        <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-[#fafafa] px-6 py-8 text-center text-sm text-charcoal-80/50">
+          {t("reviews.noneYet")}
         </div>
       ) : (
         <div className="space-y-4">
-          {reviews.map((review) => (
-            <div
-              key={review.id}
-              className="rounded-xl border border-[#634F40]/8 bg-white p-5 shadow-[0_2px_8px_rgba(66,0,96,0.03)]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#420060]/10 text-xs font-bold text-[#420060]">
-                    {getInitials(review.user?.fullName)}
+          {reviews.map((review) => {
+            const isOwner = currentUser?.id === review.user?.id
+            const canDelete = currentUser && (isOwner || currentUser.role === "admin")
+            return (
+              <article
+                key={review.id}
+                className="rounded-xl border border-charcoal-80/8 bg-white p-5 shadow-[0_2px_8px_rgba(93,63,211,0.03)]"
+              >
+                <header className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet/10 text-xs font-bold text-violet">
+                      {getInitials(review.user?.fullName)}
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-semibold text-violet">
+                          {review.user?.fullName || "Anonymous"}
+                        </span>
+                        {review.isVerifiedPurchase && (
+                          <span className="flex items-center gap-1 rounded-full bg-[#2FA36B]/10 px-2 py-0.5 text-micro font-bold text-[#2FA36B]">
+                            <CheckCircle2 className="h-3 w-3" /> {t("reviews.verifiedPurchase")}
+                          </span>
+                        )}
+                        {review.featured && (
+                          <span className="flex items-center gap-1 rounded-full bg-violet px-2 py-0.5 text-micro font-bold uppercase tracking-wide text-white">
+                            <Sparkles className="h-3 w-3" /> Featured
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <StarRating rating={review.rating} size={13} />
+                        <span className="text-micro text-charcoal-80/40">
+                          {timeAgo(review.createdAt)}
+                          {review.editedAt && " · edited"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-[#420060]">
-                        {review.user?.fullName || "Anonymous"}
-                      </span>
-                      {review.isVerifiedPurchase && (
-                        <span className="flex items-center gap-1 rounded-full bg-[#2FA36B]/10 px-2 py-0.5 text-[10px] font-bold text-[#2FA36B]">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Verified Purchase
+
+                  {canDelete && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(review.id)}
+                      className="rounded-lg p-1.5 text-charcoal-80/30 transition hover:bg-red-50 hover:text-red-500"
+                      title={t("reviews.deleteTitle")}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </header>
+
+                {review.reviewText && (
+                  <p className="mt-3 text-meta leading-6 text-charcoal-80/75">{review.reviewText}</p>
+                )}
+
+                {/* Owner's "Pending" badge — only visible to the author so the
+                    public can't see the queue length, but the reviewer knows
+                    why their review isn't yet visible to others. */}
+                {isOwner && review.status && review.status !== "approved" && (
+                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-micro font-semibold text-amber-700">
+                    <Clock3 className="h-3 w-3" /> {t("reviews.awaitingModeration")}
+                  </div>
+                )}
+
+                {/* Engagement row */}
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <HelpfulButton review={review} isLoggedIn={isLoggedIn} isOwner={isOwner} />
+                </div>
+
+                {/* Admin reply */}
+                {review.adminReply && (
+                  <div className="mt-4 rounded-xl border-l-4 border-violet bg-violet-pale/40 p-4">
+                    <div className="flex items-center gap-2 text-micro font-bold uppercase tracking-wide text-violet">
+                      <MessageSquare className="h-3 w-3" />
+                      {t("reviews.replyFrom")} {review.adminReplyBy?.fullName || "the team"}
+                      {review.adminReplyAt && (
+                        <span className="font-normal text-charcoal-80/50 normal-case tracking-normal">
+                          · {timeAgo(review.adminReplyAt)}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <StarRating rating={review.rating} size={13} />
-                      <span className="text-[11px] text-[#634F40]/40">
-                        {timeAgo(review.createdAt)}
-                      </span>
-                    </div>
+                    <p className="mt-1.5 whitespace-pre-wrap text-meta leading-6 text-charcoal-80/85">
+                      {review.adminReply}
+                    </p>
                   </div>
-                </div>
-
-                {currentUser && (currentUser.id === review.user?.id || currentUser.role === "admin") && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(review.id)}
-                    className="rounded-lg p-1.5 text-[#634F40]/30 transition hover:bg-red-50 hover:text-red-500"
-                    title="Delete review"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
                 )}
-              </div>
-
-              {review.reviewText && (
-                <p className="mt-3 text-[13px] leading-6 text-[#634F40]/75">
-                  {review.reviewText}
-                </p>
-              )}
-            </div>
-          ))}
+              </article>
+            )
+          })}
         </div>
       )}
     </div>

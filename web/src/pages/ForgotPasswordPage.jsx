@@ -1,141 +1,358 @@
-import { useState } from "react"
-import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
-import { Mail, ArrowLeft, CheckCircle2, Sparkles, RotateCcw } from "lucide-react"
-import AuthBrandPanel from "../components/AuthBrandPanel"
-import { apiRequest } from "../lib/api"
+/* ════════════════════════════════════════════════════════════════════════
+   ForgotPasswordPage · v7 · marketing-rail layout
+   ────────────────────────────────────────────────────────────────────────
+   Existing contract preserved:
+     · POST /api/auth/forgot-password { email }
+     · Backend always returns 200 with neutral copy (no user enumeration)
 
-const fadeUp = { hidden:{opacity:0,y:16}, show:{opacity:1,y:0,transition:{duration:0.38,ease:"easeOut"}} }
-const stagger = { hidden:{}, show:{transition:{staggerChildren:0.06}} }
+   Security & UX:
+     · 60-second resend cooldown
+     · Smart "Open Gmail / Outlook / Yahoo / iCloud / Proton" deep link
+     · Honeypot field "address" — silently rejects bot submissions
+     · Email is trimmed + lowercased before submission
+     · ARIA live region on errors
+     · Dev-mode fallback: surfaces resetUrl if SMTP failed (NODE_ENV !== production)
+     · prefers-reduced-motion respected
+   ════════════════════════════════════════════════════════════════════════ */
+
+import { useMemo, useState } from "react"
+import { Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
+import { motion, useReducedMotion } from "framer-motion"
+import {
+  Mail,
+  ArrowLeft,
+  AlertCircle,
+  Loader2,
+  Inbox,
+  ExternalLink,
+} from "lucide-react"
+
+import AuthShell from "../components/auth/AuthShell"
+import useCountdown from "../hooks/useCountdown"
+import { apiPost } from "../lib/api"
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const RESEND_SECONDS = 60
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] } },
+}
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
+}
+
+function inboxForEmail(email = "") {
+  const domain = email.split("@")[1]?.toLowerCase() || ""
+  if (!domain) return null
+  if (/(^|\.)gmail\.com$/.test(domain) || /(^|\.)googlemail\.com$/.test(domain)) {
+    return { label: "Open Gmail", url: "https://mail.google.com" }
+  }
+  if (/(outlook|hotmail|live|msn)\.com$/.test(domain)) {
+    return { label: "Open Outlook", url: "https://outlook.live.com/mail" }
+  }
+  if (/(yahoo|ymail|rocketmail)\.com$/.test(domain)) {
+    return { label: "Open Yahoo Mail", url: "https://mail.yahoo.com" }
+  }
+  if (/(^|\.)icloud\.com$/.test(domain) || /(^|\.)me\.com$/.test(domain)) {
+    return { label: "Open iCloud Mail", url: "https://www.icloud.com/mail" }
+  }
+  if (/(^|\.)proton(mail)?\.(com|me)$/.test(domain)) {
+    return { label: "Open Proton Mail", url: "https://mail.proton.me" }
+  }
+  return { label: `Open ${domain}`, url: `https://${domain}` }
+}
 
 export default function ForgotPasswordPage() {
-  const [email,   setEmail]   = useState("")
-  const [loading, setLoading] = useState(false)
-  const [sent,    setSent]    = useState(false)
-  const [error,   setError]   = useState("")
+  const { t } = useTranslation("auth")
+  const reduce = useReducedMotion()
+  const cooldown = useCountdown()
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+  const [email, setEmail] = useState("")
+  const [honeypot, setHoneypot] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [sent, setSent] = useState(false)
+  // devResetUrl is only ever populated outside production AND only when the
+  // server's email pipeline failed — see authController.forgotPassword.
+  // It exists so Mustapha can recover local-dev flows when SMTP is broken.
+  const [devResetUrl, setDevResetUrl] = useState("")
+
+  const emailValid = useMemo(() => EMAIL_RE.test(email.trim()), [email])
+  const inbox = useMemo(() => inboxForEmail(email.trim()), [email])
+
+  async function submitRequest(e) {
+    e?.preventDefault?.()
     setError("")
-    if (!email.trim()) { setError("Please enter your email address."); return }
+    if (honeypot) return
+    const cleanEmail = email.trim().toLowerCase()
+    if (!EMAIL_RE.test(cleanEmail)) {
+      setError(t("forgot.invalidEmail"))
+      return
+    }
+    if (cooldown.isRunning) return
 
     setLoading(true)
     try {
-      await apiRequest("/api/auth/forgot-password", { method:"POST", body: JSON.stringify({ email }) })
+      const resp = await apiPost("/api/auth/forgot-password", { email: cleanEmail })
+      const devUrl = resp?.data?.devResetUrl || ""
+      setDevResetUrl(devUrl)
       setSent(true)
+      cooldown.start(RESEND_SECONDS)
     } catch (err) {
-      const code = err.code || ""
-      if (code === "NETWORK_ERROR") setError("Cannot reach the server. Please check your connection.")
-      else if (code === "DB_UNAVAILABLE") setError("Service temporarily unavailable. Please try again shortly.")
-      else setError(err.message || "Failed to send reset link. Please try again.")
+      const code = err?.code || ""
+      const msg = err?.toUserMessage?.() || err?.message || ""
+      if (code === "NETWORK_ERROR") {
+        setError("Cannot reach the server. Check your connection and try again.")
+      } else if (code === "DB_UNAVAILABLE") {
+        setError("Service temporarily unavailable. Please try again shortly.")
+      } else {
+        setError(msg || "Failed to send reset link. Please try again.")
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
-      <div className="w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-[0_24px_80px_rgba(66,0,96,0.14)] lg:grid lg:grid-cols-2">
-        <AuthBrandPanel
-          title="Reset Your Password"
-          subtitle="Enter your email and we'll send you a secure link to create a new password."
-          bullets={["Link expires in 1 hour", "Check your spam folder too", "Contact support if you need help"]}
-        />
-
-        <motion.div variants={stagger} initial="hidden" animate="show"
-          className="flex flex-col justify-center px-6 py-8 sm:px-12 sm:py-12"
+  if (sent) {
+    return (
+      <AuthShell>
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={reduce ? undefined : stagger}
+          className="text-center"
         >
-          {/* Mobile back to home */}
-          <Link
-            to="/"
-            className="mb-3 inline-flex w-fit items-center gap-2 text-[13px] font-medium text-[#420060] transition hover:text-[#2d003f] lg:hidden"
+          <motion.div
+            variants={fadeUp}
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet to-violet-deep shadow-[0_12px_36px_rgba(93,63,211,0.40)] ring-4 ring-violet-pale"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            Back to Home
-          </Link>
+            <Inbox className="h-7 w-7 text-white" />
+          </motion.div>
 
-          <Link to="/login" className="mb-6 inline-flex items-center gap-2 text-[13px] text-[#634F40]/55 hover:text-[#420060] transition">
-            <ArrowLeft className="h-4 w-4" /> Back to Sign In
-          </Link>
+          <motion.h1
+            variants={fadeUp}
+            className="mt-6 font-display text-[1.75rem] font-bold tracking-tight text-charcoal"
+          >
+            {t("forgot.checkEmail")}
+          </motion.h1>
+          <motion.p
+            variants={fadeUp}
+            className="mt-2 text-[14px] leading-6 text-charcoal-80/65"
+          >
+            {t("forgot.weSent")}{" "}
+            <span className="font-semibold text-charcoal">{email.trim().toLowerCase()}</span>{t("forgot.checkInbox")}
+          </motion.p>
 
-          {sent ? (
-            <motion.div variants={stagger} className="flex flex-col items-center gap-6 text-center py-4">
-              <motion.div variants={fadeUp}
-                className="flex h-20 w-20 items-center justify-center rounded-xl bg-[#e8f4ea] text-[#2FA36B] shadow-[0_8px_24px_rgba(47,163,107,0.15)]"
+          <motion.div variants={fadeUp} className="mt-7 flex flex-col gap-3">
+            {inbox && (
+              <a
+                href={inbox.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
               >
-                <CheckCircle2 className="h-10 w-10" />
-              </motion.div>
-              <motion.div variants={fadeUp}>
-                <h2 className="text-[1.5rem] font-bold text-[#420060]">Check Your Email</h2>
-                <p className="mt-2 text-[14px] leading-7 text-[#634F40]/60">
-                  If <span className="font-semibold text-[#420060]">{email}</span> has an account,
-                  a reset link has been sent. It expires in 1 hour.
-                </p>
-              </motion.div>
-              <motion.div variants={fadeUp} className="w-full space-y-3">
-                <button type="button" onClick={() => { setSent(false); setEmail("") }}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#634F40]/15 bg-[#fafafa] py-3 text-[13px] font-medium text-[#420060] transition hover:bg-[#ede4ef]"
-                >
-                  <RotateCcw className="h-4 w-4" /> Try a different email
-                </button>
-                <Link to="/login"
-                  className="flex w-full items-center justify-center rounded-xl bg-[#420060] py-3 text-[13px] font-semibold text-white transition hover:bg-[#2d003f]"
-                >
-                  Back to Sign In
-                </Link>
-              </motion.div>
-              <motion.p variants={fadeUp} className="text-[12px] text-[#634F40]/40">
-                Didn't receive it? Check your spam folder or{" "}
-                <Link to="/contact" className="text-[#420060] hover:underline">contact support</Link>.
-              </motion.p>
-            </motion.div>
-          ) : (
-            <>
-              <motion.div variants={fadeUp}>
-                <span className="inline-flex items-center gap-2 rounded-xl bg-[#ede4ef] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#420060]">
-                  <Sparkles className="h-3 w-3" /> Password Reset
-                </span>
-                <h1 className="mt-3 text-[1.7rem] font-bold tracking-tight text-[#420060]">Forgot Password?</h1>
-                <p className="mt-1 text-[14px] text-[#634F40]/60">Enter your email and we'll send you a reset link.</p>
-              </motion.div>
+                {inbox.label}
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            )}
 
-              {error && (
-                <motion.div variants={fadeUp}
-                  className="mt-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700"
-                >
-                  <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <span>{error}</span>
-                </motion.div>
+            <button
+              type="button"
+              onClick={submitRequest}
+              disabled={loading || cooldown.isRunning}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-charcoal-80/15 bg-white py-3 text-[13px] font-semibold text-violet transition hover:bg-violet-pale disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Resending…
+                </>
+              ) : cooldown.isRunning ? (
+                `Resend in ${cooldown.seconds}s`
+              ) : (
+                "Resend email"
               )}
+            </button>
+          </motion.div>
 
-              <motion.form variants={stagger} onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-                <motion.div variants={fadeUp}>
-                  <label className="mb-1.5 block text-[12px] font-semibold text-[#420060]">Email Address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#634F40]/35 pointer-events-none" />
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com" autoComplete="email"
-                      className="w-full rounded-xl border border-[#634F40]/15 bg-[#fafafa] py-3.5 pl-11 pr-4 text-[14px] text-[#420060] outline-none transition focus:border-[#420060]/40 focus:bg-white focus:ring-2 focus:ring-[#420060]/8 placeholder:text-[#634F40]/35"
-                    />
-                  </div>
-                </motion.div>
-
-                <motion.button variants={fadeUp} type="submit" disabled={loading}
-                  className="w-full rounded-xl bg-[#420060] py-3.5 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(66,0,96,0.20)] transition hover:-translate-y-0.5 hover:bg-[#2d003f] disabled:opacity-60"
-                >
-                  {loading ? <span className="flex items-center justify-center gap-2">
-                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-                    </svg>Sending…</span> : "Send Reset Link"}
-                </motion.button>
-              </motion.form>
-            </>
+          {devResetUrl && (
+            <motion.div
+              variants={fadeUp}
+              role="status"
+              className="mt-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-left text-[12px] text-amber-900"
+            >
+              <strong className="block text-[11px] uppercase tracking-wider text-amber-800">
+                {t("forgot.devMode")}
+              </strong>
+              <p className="mt-1 leading-5">
+                {t("forgot.emailUndelivered")}
+              </p>
+              <a
+                href={devResetUrl}
+                className="mt-1 block break-all font-mono text-[11px] text-violet hover:underline"
+              >
+                {devResetUrl}
+              </a>
+            </motion.div>
           )}
+
+          <motion.p
+            variants={fadeUp}
+            className="mt-6 text-[12.5px] text-charcoal-80/55"
+          >
+            {t("forgot.didntReceive")}{" "}
+            <Link to="/contact" className="font-semibold text-violet hover:text-violet-deep">
+              {t("forgot.contactSupport")}
+            </Link>
+            .
+          </motion.p>
+
+          <motion.div variants={fadeUp} className="mt-8">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-charcoal-80/65 transition hover:text-violet"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {t("forgot.backToSignin")}
+            </Link>
+          </motion.div>
         </motion.div>
-      </div>
-    </div>
+      </AuthShell>
+    )
+  }
+
+  return (
+    <AuthShell>
+      <motion.div
+        initial="hidden"
+        animate="show"
+        variants={reduce ? undefined : stagger}
+      >
+        <motion.div variants={fadeUp}>
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-charcoal-80/65 transition hover:text-violet"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back
+          </Link>
+        </motion.div>
+
+        <motion.div variants={fadeUp} className="mt-6 text-center">
+          <h1 className="font-display text-[1.75rem] font-bold tracking-tight text-charcoal">
+            {t("forgot.title")}
+          </h1>
+          <p className="mt-2 text-[14px] leading-6 text-charcoal-80/65">
+            {t("forgot.subtitle")}
+          </p>
+        </motion.div>
+
+        {error && (
+          <motion.div
+            variants={fadeUp}
+            role="alert"
+            aria-live="assertive"
+            className="mt-6 flex items-start gap-3 rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] text-rose-700"
+          >
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="leading-relaxed">{error}</span>
+          </motion.div>
+        )}
+
+        <motion.form
+          variants={reduce ? undefined : stagger}
+          onSubmit={submitRequest}
+          noValidate
+          className="mt-6 flex flex-col gap-4"
+        >
+          <input
+            type="text"
+            name="address"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            aria-hidden="true"
+            className="absolute left-[-9999px] h-0 w-0 opacity-0"
+          />
+
+          <motion.div variants={fadeUp}>
+            <label htmlFor="forgot-email" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
+              Email
+            </label>
+            <div className="group relative">
+              <Mail
+                aria-hidden="true"
+                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35 transition group-focus-within:text-violet"
+              />
+              <input
+                id="forgot-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("forgot.emailPlaceholder")}
+                autoComplete="email"
+                inputMode="email"
+                spellCheck={false}
+                autoCapitalize="none"
+                autoCorrect="off"
+                required
+                disabled={loading}
+                className="block w-full rounded-xl border border-charcoal-80/15 bg-white py-3.5 pl-11 pr-4 text-[14px] text-charcoal outline-none transition placeholder:text-charcoal-80/35 focus:border-violet focus:ring-[3px] focus:ring-violet/15 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </div>
+          </motion.div>
+
+          <motion.button
+            variants={fadeUp}
+            type="submit"
+            disabled={loading || cooldown.isRunning}
+            aria-busy={loading || undefined}
+            aria-describedby={!emailValid && email.length > 0 ? "forgot-email-hint" : (cooldown.isRunning ? "forgot-cooldown-hint" : undefined)}
+            className="mt-1 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Sending…
+              </span>
+            ) : cooldown.isRunning ? (
+              `Try again in ${cooldown.seconds}s`
+            ) : (
+              "Submit"
+            )}
+          </motion.button>
+
+          {/* Surfacing why the user might not see what they expect:
+              · empty form → submit fires validation, shows error inline
+              · invalid email → hint below the button (button stays clickable
+                so the validation message can render predictably)
+              · cooldown → countdown is on the button itself */}
+          {!loading && !cooldown.isRunning && email.length > 0 && !emailValid && (
+            <p
+              id="forgot-email-hint"
+              role="status"
+              aria-live="polite"
+              className="-mt-1 text-center text-[11.5px] text-rose-700"
+            >
+              {t("forgot.invalidEmail")}
+            </p>
+          )}
+          {cooldown.isRunning && !loading && (
+            <p
+              id="forgot-cooldown-hint"
+              role="status"
+              aria-live="polite"
+              className="-mt-1 text-center text-[11.5px] text-charcoal-80/60"
+            >
+              Wait {cooldown.seconds}s before requesting another reset link.
+            </p>
+          )}
+        </motion.form>
+      </motion.div>
+    </AuthShell>
   )
 }

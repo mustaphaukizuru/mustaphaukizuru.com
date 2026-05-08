@@ -1,49 +1,57 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { Eye } from "lucide-react"
+import {
+  Eye, ShoppingCart, CheckCircle2, Clock3, DollarSign, AlertCircle,
+} from "lucide-react"
 import { fetchAdminOrders, updateAdminOrderStatus } from "../services/adminOrderService"
-import { MetricCard, EmptyState, StatusBadge, SectionCard, SkeletonCard } from "../components/ui/index"
+import { useToast } from "../context/ToastContext"
+import { MetricCard } from "../components/ui/index"
+import DataTable from "../components/admin/DataTable"
+import StatusPill from "../components/admin/StatusPill"
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  AdminOrdersPage · Batch 6B-2
+ *
+ *  Refactored to use the shared <DataTable /> + <StatusPill /> primitives.
+ *
+ *  What changed:
+ *    - Bespoke `<table>` markup replaced with <DataTable /> (sortable,
+ *      sticky headers, pagination, search, all from the primitive)
+ *    - Local AdminStatusBadge removed — uses shared StatusPill
+ *    - Search filters across order #, customer name, customer email
+ *    - Initial sort: createdAt desc (most recent first)
+ *    - Mono numerics (order #, total, dates)
+ *    - Inline status update select preserved with toast on change
+ *    - Empty state directs admin to investigate why no orders exist
+ *
+ *  Preserved verbatim:
+ *    - fetchAdminOrders + updateAdminOrderStatus API contracts
+ *    - All 5 status options (pending/paid/failed/cancelled/refunded)
+ *    - Metric cards (total / paid / pending / revenue)
+ *  ──────────────────────────────────────────────────────────────────── */
 
 const STATUS_OPTIONS = ["pending", "paid", "failed", "cancelled", "refunded"]
 
-function AdminStatusBadge({ value }) {
-  const map = {
-    paid: "bg-[#e5f4e8] text-[#3b8f47]",
-    pending: "bg-[#fff3e2] text-[#b46909]",
-    failed: "bg-red-50 text-red-600",
-    cancelled: "bg-[#f2f2f2] text-[#666]",
-    refunded: "bg-[#eef2ff] text-[#4f46e5]",
-  }
-
-  return (
-    <span className={`rounded-full px-3 py-1 text-[12px] font-medium ${map[value] || "bg-[#f2f2f2] text-[#666]"}`}>
-      {value}
-    </span>
-  )
-}
-
 export default function AdminOrdersPage() {
+  const { showSuccess, showError } = useToast()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState("")
+  const [errorMessage, setError] = useState("")
   const [updatingId, setUpdatingId] = useState("")
 
   async function loadOrders() {
     try {
-      setLoading(true)
-      setErrorMessage("")
+      setLoading(true); setError("")
       const data = await fetchAdminOrders()
       setOrders(Array.isArray(data) ? data : [])
     } catch (error) {
-      setErrorMessage(error.message || "Failed to load orders.")
+      setError(error.message || "Failed to load orders.")
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    loadOrders()
-  }, [])
+  useEffect(() => { loadOrders() }, [])
 
   const metrics = useMemo(() => {
     const paid = orders.filter((o) => o.status === "paid").length
@@ -51,129 +59,164 @@ export default function AdminOrdersPage() {
     const revenue = orders
       .filter((o) => o.status === "paid")
       .reduce((sum, order) => sum + Number(order.totalAmount || 0), 0)
-
-    return {
-      total: orders.length,
-      paid,
-      pending,
-      revenue,
-    }
+    return { total: orders.length, paid, pending, revenue }
   }, [orders])
 
   async function handleStatusChange(orderId, nextStatus) {
     try {
-      setUpdatingId(orderId)
-      setErrorMessage("")
+      setUpdatingId(orderId); setError("")
       await updateAdminOrderStatus(orderId, nextStatus)
-      await loadOrders()
+      showSuccess(`Order marked ${nextStatus.replace(/_/g, " ")}`)
+      try { await loadOrders() } catch (re) { console.warn("[Orders] reload failed:", re) }
     } catch (error) {
-      setErrorMessage(error.message || "Failed to update order status.")
+      console.error("[Orders] status update failed:", error)
+      const msg = error.message || "Failed to update order status."
+      setError(msg)
+      showError(msg, "Could not update order")
     } finally {
       setUpdatingId("")
     }
   }
 
+  const columns = useMemo(() => [
+    {
+      key: "orderNumber",
+      label: "Order",
+      sortable: true,
+      searchable: true,
+      width: "1.4fr",
+      getValue: (row) => row.orderNumber || row.id,
+      render: (row) => (
+        <div className="min-w-0">
+          <div className="font-mono text-meta font-semibold tabular-nums text-violet">
+            #{row.orderNumber || String(row.id).slice(0, 8)}
+          </div>
+          <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/55">
+            {new Date(row.createdAt).toLocaleString(undefined, {
+              year: "numeric", month: "short", day: "numeric",
+              hour: "2-digit", minute: "2-digit",
+            })}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "customer",
+      label: "Customer",
+      sortable: true,
+      searchable: true,
+      width: "1.3fr",
+      getValue: (row) => row.customerName || row.customerEmail || "",
+      render: (row) => (
+        <div className="min-w-0">
+          <div className="truncate text-meta font-medium text-charcoal-80">
+            {row.customerName || "Customer"}
+          </div>
+          <div className="mt-0.5 truncate text-micro text-charcoal-80/65">
+            {row.customerEmail || "-"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "items",
+      label: "Items",
+      sortable: true,
+      width: "0.5fr",
+      align: "center",
+      getValue: (row) => row.items?.length || 0,
+      render: (row) => (
+        <span className="font-mono text-meta tabular-nums text-charcoal-80/85">
+          {row.items?.length || 0}
+        </span>
+      ),
+    },
+    {
+      key: "totalAmount",
+      label: "Total",
+      sortable: true,
+      width: "0.8fr",
+      align: "right",
+      getValue: (row) => Number(row.totalAmount || 0),
+      render: (row) => (
+        <span className="font-mono text-meta font-bold tabular-nums text-violet">
+          ${Number(row.totalAmount || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      width: "1.2fr",
+      getValue: (row) => row.status,
+      render: (row) => (
+        <div className="flex flex-col gap-1.5">
+          <StatusPill status={row.status} />
+          <select
+            value={row.status}
+            disabled={updatingId === row.id}
+            onChange={(e) => handleStatusChange(row.id, e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={`Update status for order ${row.orderNumber || row.id}`}
+            className="rounded border border-charcoal-80/12 bg-white px-2 py-1 font-mono text-[10px] tabular-nums text-charcoal-80/85 outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20 disabled:opacity-50"
+          >
+            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+      ),
+    },
+    {
+      key: "actions",
+      label: "",
+      width: "0.6fr",
+      align: "right",
+      render: (row) => (
+        <Link
+          to={`/admin/orders/${row.id}`}
+          aria-label={`View order ${row.orderNumber || row.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-violet/15 bg-white px-3 py-1.5 text-micro font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+        >
+          <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+          View
+        </Link>
+      ),
+    },
+  ], [updatingId])
+
   return (
     <section className="space-y-5">
-      <div>
-        <h2 className="text-[18px] font-semibold text-[#420060]">Order Table</h2>
-        <p className="mt-1 text-[12px] text-[#634F40]/70">
-          Review orders, update statuses, and inspect order details.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title="Total Orders" value={metrics.total} />
-        <MetricCard title="Paid Orders" value={metrics.paid} accent="text-[#3b8f47]" />
-        <MetricCard title="Pending Orders" value={metrics.pending} accent="text-[#b46909]" />
-        <MetricCard title="Revenue" value={`$${metrics.revenue.toFixed(2)}`} />
-      </div>
-
-      {errorMessage ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+      {errorMessage && (
+        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {errorMessage}
         </div>
-      ) : null}
+      )}
 
-      <div className="rounded-xl border border-[#634F40]/10 bg-white p-5 shadow-[0_10px_24px_rgba(66,0,96,0.04)]">
-        {loading ? (
-          <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-[#fbf9fb] px-4 py-12 text-center text-[13px] text-[#634F40]/70">
-            Loading orders...
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-[#634F40]/10">
-            <div className="overflow-x-auto">
-              <div className="min-w-[700px]">
-            <div className="grid grid-cols-[1.3fr_1.2fr_0.45fr_0.6fr_0.7fr_0.5fr] gap-3 border-b border-[#634F40]/10 bg-[#fbf8fb] px-4 py-3 text-[12px] font-semibold text-[#634F40]/75">
-              <div>Order</div>
-              <div>Customer</div>
-              <div>Items</div>
-              <div>Total</div>
-              <div>Status</div>
-              <div>Actions</div>
-            </div>
-
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="grid grid-cols-[1.3fr_1.2fr_0.45fr_0.6fr_0.7fr_0.5fr] gap-3 border-b border-[#634F40]/8 px-4 py-4 text-[13px] last:border-b-0"
-              >
-                <div>
-                  <div className="font-semibold text-[#420060]">
-                    #{order.orderNumber || order.id}
-                  </div>
-                  <div className="mt-1 text-[12px] text-[#634F40]/70">
-                    {new Date(order.createdAt).toLocaleString()}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="font-medium text-[#634F40]">
-                    {order.customerName || "Customer"}
-                  </div>
-                  <div className="mt-1 text-[12px] text-[#634F40]/70">
-                    {order.customerEmail || "—"}
-                  </div>
-                </div>
-
-                <div className="text-[#634F40]">{order.items?.length || 0}</div>
-
-                <div className="font-semibold text-[#420060]">
-                  ${Number(order.totalAmount || 0).toFixed(2)}
-                </div>
-
-                <div className="space-y-2">
-                  <AdminStatusBadge value={order.status} />
-                  <select
-                    value={order.status}
-                    disabled={updatingId === order.id}
-                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                    className="block rounded-xl border border-[#634F40]/10 bg-white px-3 py-2 text-[12px] text-[#634F40] outline-none"
-                  >
-                    {STATUS_OPTIONS.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <Link
-                    to={`/admin/orders/${order.id}`}
-                    className="inline-flex items-center gap-2 rounded-xl border border-[#420060]/15 px-4 py-2.5 text-[13px] font-medium text-[#420060] transition hover:bg-[#420060]/5"
-                  >
-                    <Eye className="h-4 w-4" />
-                    View
-                  </Link>
-                </div>
-              </div>
-            ))}
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Metric cards */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard title="Total Orders" value={metrics.total} icon={ShoppingCart} tone="purple" />
+        <MetricCard title="Paid Orders" value={metrics.paid} icon={CheckCircle2} tone="green" />
+        <MetricCard title="Pending Orders" value={metrics.pending} icon={Clock3} tone="amber" />
+        <MetricCard title="Revenue" value={`$${metrics.revenue.toFixed(2)}`} icon={DollarSign} tone="blue" />
       </div>
+
+      {/* Data table */}
+      <DataTable
+        columns={columns}
+        rows={orders}
+        rowKey={(row) => row.id}
+        loading={loading}
+        onRefresh={loadOrders}
+        initialSort={{ key: "orderNumber", dir: "desc" }}
+        searchPlaceholder="Search by order #, customer..."
+        emptyState={{
+          icon: ShoppingCart,
+          title: "No orders yet",
+          description: "Orders will appear here when customers complete a purchase.",
+        }}
+      />
     </section>
   )
 }

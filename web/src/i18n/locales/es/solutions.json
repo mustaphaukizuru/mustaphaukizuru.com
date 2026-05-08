@@ -1,0 +1,169 @@
+{
+  "hero": {
+    "eyebrow": "Soluciones",
+    "title": "Soluciones digitales para escuelas, PyMES y profesionales",
+    "subtitle": "Sistemas a la medida construidos para tu mercado y restricciones específicos.",
+    "solutionsShipped": "Soluciones entregadas",
+    "activePrograms": "programas activos · 4 audiencias",
+    "schoolsServed": "escuelas atendidas",
+    "countriesContinents": "4 países · 3 continentes",
+    "updatedAgo": "Actualizado hace 2h",
+    "viewFullReport": "Ver reporte completo",
+    "achieveReal": "Logra resultados reales",
+    "withProductized": "con paquetes",
+    "longSubtitle": "Programas orientados a resultados para escuelas, PyMEs y profesionales independientes. Alcance fijo, precios transparentes y entrega documentada de extremo a extremo.",
+    "trustCountries": "Confianza en 4 países",
+    "yearsShipping": "8+ años entregando",
+    "getStartedAria": "Comienza: agenda una llamada gratis",
+    "getStarted": "Comenzar",
+    "ourSolutions": "Nuestras soluciones",
+    "yoyGrowth": "+18% crecimiento anual",
+    "liveBadge": "En vivo",
+    "peakDeliveryIn": "entrega máxima en",
+    "peakQuarter": "T3 2026",
+    "onTrack": "En curso",
+    "solutionsEyebrow": "Soluciones",
+    "solutionsWord": "Soluciones",
+    "fiveStarAria": "calificación de cinco estrellas"
+  },
+  "pain": {
+    "eyebrow": "El problema",
+    "title": "¿Algo de esto te suena familiar?",
+    "subtitle": "Ocho patrones recurrentes que vemos en escuelas, empresas y profesionales independientes.",
+    "items": {
+      "schoolTechHeldTogether": {
+        "quote": "La tecnología de nuestra escuela se sostiene con hojas de cálculo y buena voluntad.",
+        "audience": "Directora escolar · EDU"
+      },
+      "shipMvpBeforeSeed": {
+        "quote": "Tengo que lanzar un MVP antes de que se acabe la ronda semilla.",
+        "audience": "Fundador · PYME"
+      },
+      "facultyAiNoPolicy": {
+        "quote": "Los docentes quieren usar IA, pero no tenemos políticas claras.",
+        "audience": "Director · EDU"
+      },
+      "onlyOneWhoKnows": {
+        "quote": "Soy el único que sabe cómo funciona este sistema, y ya estoy harto.",
+        "audience": "Líder de TI · PYME"
+      },
+      "websiteDoesntReflect": {
+        "quote": "Mi sitio web no refleja el nivel de trabajo que realmente hago.",
+        "audience": "Independiente · IND"
+      },
+      "aiToolsLooseInOrg": {
+        "quote": "Tenemos herramientas de IA sueltas en la organización, sin gobernanza, y eso es un riesgo.",
+        "audience": "Director · PYME / EDU"
+      },
+      "saasNobodyUses": {
+        "quote": "Pagamos suscripciones de SaaS que nadie usa de punta a punta.",
+        "audience": "Líder de operaciones · PYME"
+      },
+      "reportsTakeDays": {
+        "quote": "Cada informe toma días en armarse a mano, cada vez.",
+        "audience": "Jefe de área · EDU / PYME"
+      }
+    }
+  },
+  "approach": {
+    "eyebrow": "El enfoque",
+    "title": "Ocho programas productizados. Un resultado cada uno.",
+    "subtitle": "Cada Solución es un paquete de alcance fijo, formado por servicios del catálogo, diseñado para entregar un resultado específico y medible en un plazo definido. No eliges servicios sueltos esperando que encajen; eliges el programa que pone nombre a tu problema y entrega el resultado.",
+    "pillars": {
+      "composed": {
+        "title": "Compuesta",
+        "desc": "Armada con servicios atómicos"
+      },
+      "timelined": {
+        "title": "Con cronograma",
+        "desc": "Plazo en días, semanas o meses"
+      },
+      "outcomeLed": {
+        "title": "Orientada a resultados",
+        "desc": "Se mide por lo que recibes, no por lo que hacemos"
+      }
+    }
+  },
+  "beforeAfter": {
+    "badge": "Antes · Después · Resultados",
+    "headingLeft": "Transforma tu",
+    "headingMiddle": "presencia digital desactualizada",
+    "headingRight": "en un sistema pulido y listo para convertir",
+    "body": "Nuestras Soluciones productizadas toman tu configuración actual —marca anticuada, procesos manuales y herramientas dispersas— y la reconstruyen en un sistema moderno e integrado que genera confianza, impulsa la acción y crece contigo.",
+    "ctaPrimary": "Obtén tu plan a la medida",
+    "ctaSecondary": "Ver ejemplos de paquetes",
+    "trust1": "Entrega en 2–6 semanas",
+    "trust2": "Entrega documentada",
+    "trust3": "Sin contratos largos"
+  },
+  "metrics": {
+    "eyebrow": "El resultado",
+    "title": "Resultados medibles, no promesas",
+    "subtitle": "Lo que ven los clientes después de que una Solución entra en producción. Métricas reales de sistemas vivos hoy.",
+    "items": {
+      "adminTime": "Reducción típica de tiempo administrativo tras la automatización",
+      "leadGrowth": "Crecimiento promedio en captación de leads (medición a 12 meses)",
+      "uptime": "Disponibilidad de servicios desplegados en producción",
+      "apiResponse": "Tiempo promedio de respuesta de las APIs desplegadas"
+    }
+  },
+  "shipped": {
+    "eyebrow": "Lanzados recientemente",
+    "title": "En producción · últimos 90 días",
+    "subtitle": "Tres despliegues lanzados este trimestre. Lo más reciente le gana a lo más grande cuando comparas entrega solitaria con ciclos de agencia.",
+    "liveLabel": "En vivo",
+    "outcomePrefix": "Resultado:"
+  },
+  "fit": {
+    "eyebrow": "Cómo encaja",
+    "title": "Encaja en tu stack, no a su alrededor",
+    "subtitle": "Cada Solución se diseña para integrarse con lo que ya tienes funcionando. Sin reemplazar todo.",
+    "pillars": {
+      "data": {
+        "title": "Dónde viven los datos",
+        "desc": "Las Soluciones se conectan al stack que ya usas. Sin migraciones forzadas.",
+        "items": {
+          "googleM365": "Google Workspace · M365",
+          "shopifyWoo": "Shopify · WooCommerce",
+          "payments": "MercadoPago · Stripe · PayPal",
+          "sisLmsCrm": "SIS · LMS · CRM"
+        }
+      },
+      "deploy": {
+        "title": "Cómo se despliega",
+        "desc": "Lanzamientos por fases, validación en paralelo, plan de transición y reversión documentado.",
+        "items": {
+          "stranglerFig": "Migraciones tipo strangler-fig",
+          "parallelRun": "Validación en paralelo",
+          "cutoverPlan": "Plan de transición documentado",
+          "rollback": "Procedimientos de reversión incluidos"
+        }
+      },
+      "deliverables": {
+        "title": "Qué te llevas",
+        "desc": "Un paquete de entregables que conservas, nunca una caja negra.",
+        "items": {
+          "adrs": "Registros de Decisiones de Arquitectura (ADRs)",
+          "runbooks": "Manuales operativos",
+          "training": "Materiales de capacitación y onboarding",
+          "support30": "30 días de soporte post-lanzamiento"
+        }
+      }
+    }
+  },
+  "cta": {
+    "eyebrow": "Da el primer paso",
+    "headingPart1": "Habla con un arquitecto de soluciones.",
+    "headingPart2": "Obtén un plan a la medida",
+    "headingDot": ".",
+    "body": "30 minutos, sin compromiso. La llamada termina con un diagnóstico claro y una Solución recomendada, trabajemos juntos o no.",
+    "ctaPrimary": "Obtén tu plan a la medida",
+    "ctaSecondary": "Ver servicios",
+    "stats": {
+      "firstCall": "Primera llamada · gratis",
+      "noCommitment": "Sin compromiso",
+      "customPlanSent": "Plan a la medida enviado",
+      "experience": "de experiencia"
+    }
+  }
+}

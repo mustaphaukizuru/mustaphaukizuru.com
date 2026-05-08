@@ -1,0 +1,160 @@
+const asyncHandler = require("../utils/asyncHandler")
+const path  = require("path")
+const fs    = require("fs/promises")
+const logger = require("../utils/logger")
+const {
+  listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
+  createMilestone, updateMilestone, deleteMilestone,
+  attachFile, deleteFile,
+  VALID_PROJECT_STATUSES, VALID_MILESTONE_STATUSES,
+} = require("../services/clientProjectService")
+const { sendTemplateEmail } = require("../services/emailService")
+
+const { resolveUserLocale } = require("../utils/resolveUserLocale")
+function badRequest(res, message)        { return res.status(400).json({ success: false, error: { code: "VALIDATION_ERROR", message } }) }
+function notFound(res)                    { return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Project or milestone not found" } }) }
+
+/* ── Projects ────────────────────────────────────────────────────────── */
+const listProjects = asyncHandler(async (_req, res) => {
+  const data = await listAdminProjects()
+  res.status(200).json({ success: true, data })
+})
+
+const getProject = asyncHandler(async (req, res) => {
+  const project = await getAdminProject(req.params.id)
+  if (!project) return notFound(res)
+  res.status(200).json({ success: true, data: project })
+})
+
+const createProject = asyncHandler(async (req, res) => {
+  if (!req.body?.serviceOrderId) return badRequest(res, "serviceOrderId is required")
+  if (!req.body?.userId)         return badRequest(res, "userId is required")
+  if (!req.body?.projectName)    return badRequest(res, "projectName is required")
+  try {
+    const created = await createAdminProject(req.body)
+    res.status(201).json({ success: true, data: created })
+  } catch (e) {
+    if (e?.code === "P2002") return badRequest(res, "A project already exists for that service order")
+    if (e?.code === "P2003") return badRequest(res, "Service order or user not found")
+    throw e
+  }
+})
+
+const updateProject = asyncHandler(async (req, res) => {
+  try {
+    const updated = await updateAdminProject(req.params.id, req.body)
+    res.status(200).json({ success: true, data: updated })
+  } catch (e) {
+    if (e?.code === "P2025") return notFound(res)
+    if (e?.message?.startsWith("Invalid project status")) return badRequest(res, e.message)
+    throw e
+  }
+})
+
+const removeProject = asyncHandler(async (req, res) => {
+  try {
+    const result = await deleteAdminProject(req.params.id)
+    res.status(200).json({ success: true, data: result })
+  } catch (e) {
+    if (e?.code === "P2025") return notFound(res)
+    throw e
+  }
+})
+
+/* ── Milestones ──────────────────────────────────────────────────────── */
+const addMilestone = asyncHandler(async (req, res) => {
+  if (!req.body?.title) return badRequest(res, "title is required")
+  try {
+    const created = await createMilestone(req.params.id, req.body)
+    res.status(201).json({ success: true, data: created })
+  } catch (e) {
+    if (e?.code === "P2003") return badRequest(res, "Project not found")
+    throw e
+  }
+})
+
+const patchMilestone = asyncHandler(async (req, res) => {
+  try {
+    const { milestone, project, isNewlyComplete } = await updateMilestone(req.params.milestoneId, req.body)
+    // Fire customer email when admin marks a milestone done — first transition only.
+    if (isNewlyComplete) {
+      const dashboardUrl = `${(process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")}/dashboard/projects/${project.id}`
+      sendTemplateEmail({
+      locale: resolveUserLocale({ req }),
+        to:          (await fetchUserEmail(project.userId)),
+        templateKey: "project.milestone-completed",
+        userId:      project.userId,
+        variables: {
+          projectName:    project.projectName,
+          milestoneTitle: milestone.title,
+          dashboardUrl,
+        },
+      }).catch((err) => logger.error("[milestone] customer email failed:", err.message))
+    }
+    res.status(200).json({ success: true, data: milestone })
+  } catch (e) {
+    if (e?.code === "P2025") return notFound(res)
+    if (e?.message?.startsWith("Invalid milestone status")) return badRequest(res, e.message)
+    throw e
+  }
+})
+
+const removeMilestone = asyncHandler(async (req, res) => {
+  try {
+    const result = await deleteMilestone(req.params.milestoneId)
+    res.status(200).json({ success: true, data: result })
+  } catch (e) {
+    if (e?.code === "P2025") return notFound(res)
+    throw e
+  }
+})
+
+/* ── Files (multer-uploaded; stores under public/files/projects/) ────── */
+const uploadFile = asyncHandler(async (req, res) => {
+  if (!req.file) return badRequest(res, "No file uploaded")
+  const projectId = req.params.id
+
+  // Path served at /files/projects/<projectId>/<filename>
+  const relPath = `/files/projects/${projectId}/${req.file.filename}`
+  try {
+    const created = await attachFile(projectId, {
+      fileName:     req.file.originalname,
+      filePath:     relPath,
+      fileType:     req.file.mimetype,
+      uploadedById: req.user?.id,
+    })
+    res.status(201).json({ success: true, data: created })
+  } catch (e) {
+    // Best-effort cleanup if DB insert fails
+    try { await fs.unlink(req.file.path) } catch {}
+    throw e
+  }
+})
+
+const removeFile = asyncHandler(async (req, res) => {
+  try {
+    const result = await deleteFile(req.params.fileId)
+    // Best-effort disk cleanup
+    if (result.filePath?.startsWith("/files/")) {
+      const abs = path.join(__dirname, "../../public", result.filePath)
+      try { await fs.unlink(abs) } catch {} // tolerate already-missing files
+    }
+    res.status(200).json({ success: true, data: { id: result.id, deleted: true } })
+  } catch (e) {
+    if (e?.code === "P2025") return notFound(res)
+    throw e
+  }
+})
+
+/* ── helper ──────────────────────────────────────────────────────────── */
+async function fetchUserEmail(userId) {
+  const prisma = require("../lib/prisma")
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } })
+  return u?.email || null
+}
+
+module.exports = {
+  listProjects, getProject, createProject, updateProject, removeProject,
+  addMilestone, patchMilestone, removeMilestone,
+  uploadFile, removeFile,
+}

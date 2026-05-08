@@ -1,0 +1,56 @@
+{
+  "hero": {
+    "eyebrow": "Portafolio",
+    "title": "Trabajo seleccionado",
+    "subtitle": "Una colección curada de proyectos de desarrollo full-stack, diseño digital y tecnología educativa. Cada uno resuelve un problema real; los casos de estudio profundizan en el cómo y el por qué."
+  },
+  "filters": {
+    "all": "Todo",
+    "search": "Buscar proyectos",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageOf": "Página {{page}} de {{total}}"
+  },
+  "card": {
+    "featured": "Destacado",
+    "caseStudy": "Caso de estudio",
+    "live": "En vivo"
+  },
+  "empty": "Ningún proyecto coincide con tus filtros.",
+  "states": {
+    "errorFallback": "No se pudo cargar el portafolio",
+    "emptyTitle": "Sin proyectos por ahora",
+    "emptyQuery": "Prueba con otro término de búsqueda.",
+    "emptyDefault": "Pronto publicaremos nuevos proyectos aquí."
+  },
+  "cta": {
+    "title": "¿Tienes un proyecto en mente?",
+    "subtitle": "Hablemos de cómo darle vida.",
+    "button": "Iniciar una conversación"
+  },
+  "seo": {
+    "title": "Portafolio · Mustapha Ukizuru",
+    "description": "Trabajos seleccionados: desarrollo full-stack, diseño, branding e integración digital escolar.",
+    "schemaName": "Portafolio",
+    "schemaDesc": "Proyectos seleccionados."
+  },
+  "detail": {
+    "notFound": "Proyecto no encontrado",
+    "notFoundBody": "Este proyecto no existe o ha sido movido.",
+    "backToPortfolio": "Volver al portafolio",
+    "year": "Año",
+    "role": "Rol",
+    "client": "Cliente",
+    "tools": "Herramientas",
+    "challenge": "El reto",
+    "solution": "La solución",
+    "results": "Resultados",
+    "viewSite": "Ver sitio en vivo",
+    "visitLive": "Visitar sitio en vivo",
+    "toolsTechTitle": "Herramientas y tecnologías",
+    "projectFactsTitle": "Datos del proyecto",
+    "moreToExplore": "Más para explorar",
+    "relatedProjects": "Proyectos relacionados",
+    "viewAll": "Ver todos"
+  }
+}
