@@ -383,8 +383,19 @@ function TimelineEntry({ item, index, total, accent }) {
         <div className={`mb-2 inline-flex rounded-full px-2.5 py-0.5 font-mono text-micro font-semibold tabular-nums tracking-[0.05em] ${chipClass}`}>
           {item.period}
         </div>
-        <div className="text-meta font-bold text-violet leading-5">{item.title}</div>
-        <p className="mt-1.5 text-micro leading-5 text-charcoal-80/65">{item.description}</p>
+        <div className="text-meta font-bold leading-5 text-violet">
+          {item.title}
+        </div>
+        {item.org && (
+          <div className="mt-1 text-micro leading-5 text-charcoal-80/70">
+            {item.org}
+          </div>
+        )}
+        {(item.summary || item.description) && (
+          <p className="mt-2 text-micro leading-5 text-charcoal-80/70">
+            {item.summary || item.description}
+          </p>
+        )}
       </div>
     </motion.div>
   )
@@ -464,11 +475,14 @@ export default function AboutPage() {
     const start = fmtMonthYear(e.startDate)
     const end = e.endDate ? fmtMonthYear(e.endDate) : t("journey.present")
     const period = start ? `${start} – ${end}` : t("journey.datePending")
-    return {
-      period,
-      title: `${e.role}${e.company ? " · " + e.company : ""}`,
-      description: e.description,
-    }
+    // Rich org line — "Company · Location" — matches the visual hierarchy
+    // of the static fallback array. Location is a separate column on the
+    // Experience model, so we compose it here.
+    const org = e.location ? `${e.company || ""} · ${e.location}` : (e.company || null)
+    const bullets = Array.isArray(e.bullets) || Array.isArray(e.highlights)
+      ? (e.bullets || e.highlights)
+      : null
+    return { period, title: e.role, org, summary: e.description, bullets }
   })
 
   // Education: same shape as experience (period · title · description)
@@ -487,6 +501,13 @@ export default function AboutPage() {
   // a *seed reference* and as a fallback while the user runs the seed
   // script (npm run seed:bio) — once at least one row exists in the DB
   // the public page reflects the live data.
+  // ── Experience precedence ──────────────────────────────────────────
+  // Once the DB has been seeded (admin /admin/bio "Seed originals (6)"),
+  // the API is the single source of truth — exactly the 6 canonical
+  // roles, fully editable from the admin. The static `experienceTimeline`
+  // remains the seed reference + empty-state fallback. No merging here:
+  // dedup by (title, org) failed because static `org` includes location
+  // while the DB `company` column does not, surfacing duplicates.
   const displayedExperience = apiExperienceMapped.length > 0
     ? apiExperienceMapped
     : experienceTimeline
@@ -668,7 +689,8 @@ export default function AboutPage() {
            Background: soft mist gradient. All text WCAG AA on white cards.
           ══════════════════════════════════════════════════════════════════ */}
       <section
-        className="relative overflow-hidden py-20 lg:py-28"
+        id="journey"
+        className="scroll-mt-24 relative overflow-hidden py-20 lg:py-28"
         style={{ background: "linear-gradient(180deg, var(--color-mist) 0%, #f8f3fa 60%, var(--color-mist) 100%)" }}
       >
         {/* Decorative subtle blob */}
@@ -692,13 +714,15 @@ export default function AboutPage() {
             </motion.p>
           </motion.div>
 
-          <div className="grid gap-10 lg:grid-cols-2">
-            {/* Education column */}
+          <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.15fr] lg:gap-12 xl:gap-16">
+            {/* Education column · sticky on lg+ so the longer Experience
+                column on the right scrolls past while Education stays put. */}
             <motion.div
               variants={fadeUp}
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, margin: "-60px" }}
+              className="lg:sticky lg:top-28 lg:self-start"
             >
               <div className="mb-8 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_20px_rgba(93,63,211,0.30)]">
