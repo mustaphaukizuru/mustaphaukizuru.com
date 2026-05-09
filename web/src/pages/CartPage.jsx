@@ -117,6 +117,10 @@ function CartItem({ item, onUpdateQty, onRemove }) {
   const imgUrl = item.imageUrl
     ? (item.imageUrl.startsWith("http") ? item.imageUrl : `${API_BASE_URL}${item.imageUrl}`)
     : null
+  // Local broken-image flag — flips to true on <img> onError so we can
+  // gracefully fall back to the Package icon instead of showing a
+  // browser-default broken-image glyph.
+  const [imgBroken, setImgBroken] = useState(false)
 
   // Track shake state — fires once when delete is clicked, then unmounts
   // via AnimatePresence's exit animation
@@ -141,8 +145,14 @@ function CartItem({ item, onUpdateQty, onRemove }) {
       <div className="flex gap-3 sm:gap-4">
         {/* Image */}
         <div className="h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl bg-violet-pale sm:h-[90px] sm:w-[90px]">
-          {imgUrl ? (
-            <img src={imgUrl} alt={item.title} className="h-full w-full object-cover" loading="lazy" />
+          {imgUrl && !imgBroken ? (
+            <img
+              src={imgUrl}
+              alt={item.title}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              onError={() => setImgBroken(true)}
+            />
           ) : (
             <div className="flex h-full items-center justify-center text-violet/30">
               <Package className="h-8 w-8" aria-hidden="true" />
@@ -502,5 +512,5 @@ export default function CartPage() {
         )}
       </Container>
     </div>
-  )
+  );
 }

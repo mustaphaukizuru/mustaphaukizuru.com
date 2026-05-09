@@ -35,7 +35,12 @@
     "couponSignIn": "Please sign in to apply a coupon.",
     "couponEnter": "Enter a coupon code.",
     "couponRemove": "Remove coupon",
-    "discountApplied": "Discount applied:"
+    "discountApplied": "Discount applied:",
+    "checkout": "Checkout",
+    "continueShopping": "Continue shopping",
+    "trustSsl": "SSL encrypted secure checkout",
+    "trustInstant": "Instant digital delivery",
+    "trustDashboard": "Download from your dashboard"
   },
   "actions": {
     "remove": "Remove",

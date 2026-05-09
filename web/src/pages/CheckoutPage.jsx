@@ -80,11 +80,18 @@ function OrderItem({ item }) {
   const imgUrl = item.imageUrl
     ? (item.imageUrl.startsWith("http") ? item.imageUrl : `${API_BASE_URL}${item.imageUrl}`)
     : null
+  const [imgBroken, setImgBroken] = useState(false)
   return (
     <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/8 bg-[#fafafa] p-3">
       <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-violet-pale">
-        {imgUrl ? (
-          <img src={imgUrl} alt={item.title} className="h-full w-full object-cover" loading="lazy" />
+        {imgUrl && !imgBroken ? (
+          <img
+            src={imgUrl}
+            alt={item.title}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            onError={() => setImgBroken(true)}
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-violet/30">
             <Package className="h-6 w-6" aria-hidden="true" />
