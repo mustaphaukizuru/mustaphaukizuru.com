@@ -97,8 +97,11 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
 
   return (
     <aside
+      id="categories"
       aria-label={t("toolbar.filtersAria")}
-      className="sticky top-[88px] flex flex-col gap-5 self-start rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_18px_rgba(93,63,211,0.04)]"
+      // scroll-mt-24 offsets the sticky site header so the rail is visible
+      // when StoreHero's "Browse categories" CTA jumps via the #categories hash.
+      className="scroll-mt-24 sticky top-[88px] flex flex-col gap-5 self-start rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_18px_rgba(93,63,211,0.04)]"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -634,7 +637,7 @@ export default function Store() {
             onReset={resetFilters}
           />
 
-          <div>
+          <div id="products" className="scroll-mt-24">
         {error && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">{error}</div>
         )}

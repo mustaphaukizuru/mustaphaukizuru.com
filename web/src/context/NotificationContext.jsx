@@ -29,12 +29,15 @@ export function NotificationProvider({ children }) {
   const [lastFetched, setLastFetched] = useState(null)
 
   // ── Fetch from backend ─────────────────────────────────────────────────────
-  const fetchNotifications = useCallback(async () => {
+  // The optional `force` flag bypasses the 30s debounce. Used by the
+  // DashboardNotificationsPage refresh button so users can pull the latest
+  // state on demand without waiting for the next debounced window.
+  const fetchNotifications = useCallback(async (force = false) => {
     const token = getStoredToken()
     if (!token) return
 
-    // Debounce: skip if fetched within last 30 seconds
-    if (lastFetched && Date.now() - lastFetched < 30_000) return
+    // Debounce: skip if fetched within last 30 seconds (unless forced).
+    if (!force && lastFetched && Date.now() - lastFetched < 30_000) return
 
     setLoading(true)
     try {

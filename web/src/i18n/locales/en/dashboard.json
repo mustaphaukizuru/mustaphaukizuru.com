@@ -794,18 +794,52 @@
     "allCaughtUp": "All caught up",
     "noNotifs": "No notifications yet"
   },
-  "layout": {
-    "navAria": "Dashboard navigation",
-    "closeMenu": "Close menu",
-    "backToWebsite": "Back to Website",
-    "backWebsiteAria": "Back to website",
-    "skipMain": "Skip to main content",
-    "memberArea": "Member Area",
-    "memberAreaSubtitle": "Your digital product hub",
-    "memberDashboard": "Member Dashboard",
-    "openMenu": "Open menu",
-    "searchDashboard": "Search dashboard",
-    "openSupport": "Open support",
-    "quickNav": "Quick navigation"
-  }
+  "notificationsPage": {
+    "eyebrow": "Activity",
+    "title": "Notifications",
+    "subtitle": "Order updates, downloads, payments, support replies — everything in one place.",
+    "metrics": {
+      "total": "Total",
+      "totalSubtitle": "All notifications",
+      "unread": "Unread",
+      "unreadSubtitle": "Awaiting your attention",
+      "today": "Today",
+      "todaySubtitle": "Last 24 hours"
+    },
+      "filters": {
+        "all": "All",
+        "unread": "Unread",
+        "read": "Read"
+      },
+      "actions": {
+        "markAllRead": "Mark all as read",
+        "refresh": "Refresh"
+      },
+      "empty": {
+        "title": "You're all caught up",
+        "body": "When something needs your attention \u2014 an order update, a new download, a support reply \u2014 it'll show up here.",
+        "browseStore": "Browse the store"
+      },
+      "errors": {
+        "load": "Could not load your notifications."
+      },
+      "row": {
+        "markRead": "Mark as read",
+        "newBadge": "New"
+      }
+    },
+    "layout": {
+      "navAria": "Dashboard navigation",
+      "closeMenu": "Close menu",
+      "backToWebsite": "Back to Website",
+      "backWebsiteAria": "Back to website",
+      "skipMain": "Skip to main content",
+      "memberArea": "Member Area",
+      "memberAreaSubtitle": "Your digital product hub",
+      "memberDashboard": "Member Dashboard",
+      "openMenu": "Open menu",
+      "searchDashboard": "Search dashboard",
+      "openSupport": "Open support",
+      "quickNav": "Quick navigation"
+    }
 }

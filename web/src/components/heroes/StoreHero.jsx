@@ -424,10 +424,14 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
               <span>{productCount} {t("hero.productsLive")}</span>
             </div>
 
-            {/* CTAs · primary + secondary */}
+            {/* CTAs · primary + secondary
+                Both jump to anchor sections that live on the Store page where
+                StoreHero is mounted (id="products" for the grid, id="categories"
+                for the filter rail). The `scroll-mt-*` utility on those targets
+                offsets the sticky header so the section title isn't hidden. */}
             <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
               <a
-                href="#categories"
+                href="#products"
                 className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet shadow-[0_14px_36px_rgba(233, 196, 106,0.30)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
               >
                 {t("hero.shopNow")}
