@@ -3,18 +3,39 @@ import { useTranslation } from "react-i18next"
 import { Download, Package, Sparkles, FileArchive, Clock3 } from "lucide-react"
 import { fetchMyOrders } from "../services/orderService"
 import { getStoredToken } from "../services/authService"
+import { API_BASE_URL } from "../lib/api"
 import { MetricCard, EmptyState, StatusBadge, SectionCard, SkeletonCard } from "../components/ui/index"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 
 /* I18N · Phase 119B — strings keyed under `dashboard.products.*`.
  * The download flow's "Authorization" header and Content-Disposition
  * parsing stays unchanged — only the user-visible toasts and labels
- * resolve via t(). */
+ * resolve via t().
+ *
+ * Bug fix · Member-dashboard parity with DashboardDownloadsPage:
+ *   1. Use centralized API_BASE_URL from lib/api so production base
+ *      URL resolution is identical to the working downloads page
+ *      (avoids "Failed to fetch" caused by trailing-slash drift or
+ *      a stale localhost fallback in production builds).
+ *   2. Resolve product cover image by scanning images[] for
+ *      isPrimary / imageRole==="cover" / first usable URL — same
+ *      contract as cart, checkout, and downloads.
+ *   3. Add onError fallback so a broken upload still renders the
+ *      Package icon instead of a torn image.
+ *   4. Defensive validation on download IDs to surface a clear
+ *      error instead of a confusing fetch failure when the data
+ *      shape is partial.
+ */
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000"
+function resolveProductImage(product) {
+  if (!Array.isArray(product?.images) || product.images.length === 0) return null
+  const primary =
+    product.images.find((img) => img?.isPrimary) ||
+    product.images.find((img) => img?.imageRole === "cover") ||
+    product.images.find((img) => img?.url)
+  if (!primary?.url) return null
+  return primary.url.startsWith("http") ? primary.url : `${API_BASE_URL}${primary.url}`
+}
 
 
 export default function DashboardProductsPage() {
@@ -85,6 +106,17 @@ export default function DashboardProductsPage() {
   }, [myProducts, localeTag])
 
   const handleDownloadFile = async (productId, file) => {
+    // Defensive ID validation — when the data path is partial (e.g. an
+    // order item missing its product relation), productId or file.id can
+    // be undefined and the fetch URL collapses to ".../undefined/file/...".
+    // That request resolves to a 404 (or a CORS-blocked response on some
+    // hosts) and bubbles up as the cryptic "Failed to fetch". Surface a
+    // clean message instead and bail out before the network call.
+    if (!productId || !file?.id) {
+      setErrorMessage(t("products.errors.downloadUnavailable"))
+      return
+    }
+
     const key = `${productId}:${file.id}`
     try {
       setErrorMessage("")
@@ -96,6 +128,8 @@ export default function DashboardProductsPage() {
         throw new Error(t("products.errors.loginRequired"))
       }
 
+      // Use centralized API_BASE_URL (already trailing-slash-stripped by
+      // lib/api) — matches DashboardDownloadsPage's working request.
       const downloadUrl = `${API_BASE_URL}/api/downloads/${productId}/file/${file.id}`
       setDownloadingKey((prev) => new Set(prev).add(key))
 
@@ -221,119 +255,136 @@ export default function DashboardProductsPage() {
       ) : (
         <div className="grid gap-4">
           {myProducts.map((product, index) => (
-            <div
+            <ProductRow
               key={`${product.orderId}-${product.productId}-${index}`}
-              className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgba(93,63,211,0.04)]"
-            >
-              <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row">
-                <div className="h-full w-full overflow-hidden rounded-xl bg-[#f4f1f4] sm:h-44 ">
-                  {product.images?.[0]?.url ? (
-                    <img
-                      src={
-                        product.images[0].url.startsWith("http")
-                          ? product.images[0].url
-                          : `${API_BASE_URL}${product.images[0].url}`
-                      }
-                      alt={product.images[0].altText || product.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-charcoal-80/50">
-                      <Package className="h-10 w-10" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="min-w-0">
-                      <h3 className="text-subsection font-bold text-violet">
-                        {product.title}
-                      </h3>
-                      <p className="mt-1 text-micro text-charcoal-80/70">
-                        {t("products.list.purchasedOn", { date: new Date(product.purchasedAt).toLocaleString(localeTag) })}
-                      </p>
-                      <p className="mt-1 text-micro text-charcoal-80/70">
-                        {t("products.list.orderNumber", { number: product.orderNumber || product.orderId })}
-                      </p>
-                    </div>
-
-                    <div className="rounded-full bg-[#e5f4e8] px-4 py-2 text-micro font-semibold text-[#3b8f47]">
-                      {t("products.list.paid")}
-                    </div>
-                  </div>
-
-                  <div className="mt-5">
-                    <h4 className="text-body font-semibold text-violet">
-                      {t("products.list.availableFiles")}
-                    </h4>
-
-                    <div className="mt-3 grid gap-3">
-                      {product.files.map((file) => {
-                        const key = `${product.productId}:${file.id}`
-
-                        // F04 · A+B — Resolve icon, label, and tone from the file
-                        // so member's "My Products" view matches the public/admin
-                        // visual language.
-                        const styles = getFileTypeStyles(file.fileType || file.fileName || "")
-                        const TypeIcon = styles.icon
-                        const sizeDisplay = file.fileSize ? formatFileSize(file.fileSize) : ""
-                        const versionValue = file.version ? String(file.version).replace(/^v/i, "").replace(/v$/i, "") : ""
-
-                        return (
-                          <div
-                            key={file.id}
-                            className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4 md:flex-row md:items-center md:justify-between"
-                          >
-                            <div className="flex items-start gap-3 min-w-0">
-                              <div
-                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${styles.chip}`}
-                                aria-hidden="true"
-                              >
-                                <TypeIcon className="h-5 w-5" />
-                              </div>
-
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="truncate text-meta font-medium text-violet" title={file.fileName}>
-                                    {file.fileName}
-                                  </span>
-                                  <span
-                                    className={`shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold ${styles.chip}`}
-                                  >
-                                    {styles.label}
-                                  </span>
-                                </div>
-                                <div className="mt-1 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/70">
-                                  {file.version && <span>{t("products.file.version", { value: versionValue })}</span>}
-                                  {file.version && sizeDisplay && <span>·</span>}
-                                  {sizeDisplay && <span className="font-mono tabular-nums">{sizeDisplay}</span>}
-                                  {(file.version || sizeDisplay) && <span>·</span>}
-                                  <span>{file.isPrimary ? t("products.file.primary") : t("products.file.additional")}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadFile(product.productId, file)}
-                              disabled={downloadingKey.has(key)}
-                              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-violet px-4 py-3 text-meta font-semibold text-white transition hover:bg-violet-deep disabled:opacity-70"
-                            >
-                              <Download className="h-4 w-4" />
-                              {downloadingKey.has(key) ? t("products.file.preparing") : t("products.file.download")}
-                            </button>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              product={product}
+              localeTag={localeTag}
+              t={t}
+              downloadingKey={downloadingKey}
+              onDownload={handleDownloadFile}
+            />
           ))}
         </div>
       )}
     </section>
+  )
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  ProductRow — extracted so the cover-image hook (img-broken state) lives
+ *  per-card. Without per-row state, a single broken image would mask the
+ *  fallback for every other card.
+ *  ────────────────────────────────────────────────────────────────────── */
+function ProductRow({ product, localeTag, t, downloadingKey, onDownload }) {
+  const [imgBroken, setImgBroken] = useState(false)
+  const coverUrl = resolveProductImage(product)
+  const showImage = coverUrl && !imgBroken
+
+  return (
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
+      <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row">
+        <div className="aspect-[4/3] w-full shrink-0 overflow-hidden rounded-xl bg-violet-pale lg:h-44 lg:w-60">
+          {showImage ? (
+            <img
+              src={coverUrl}
+              alt={product.images?.[0]?.altText || product.title}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              onError={() => setImgBroken(true)}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-violet/30">
+              <Package className="h-10 w-10" aria-hidden="true" />
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0">
+              <h3 className="text-subsection font-bold text-violet">
+                {product.title}
+              </h3>
+              <p className="mt-1 text-micro text-charcoal-80/70">
+                {t("products.list.purchasedOn", { date: new Date(product.purchasedAt).toLocaleString(localeTag) })}
+              </p>
+              <p className="mt-1 text-micro text-charcoal-80/70">
+                {t("products.list.orderNumber", { number: product.orderNumber || product.orderId })}
+              </p>
+            </div>
+
+            <div className="rounded-full bg-[#e5f4e8] px-4 py-2 text-micro font-semibold text-[#3b8f47]">
+              {t("products.list.paid")}
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <h4 className="text-body font-semibold text-violet">
+              {t("products.list.availableFiles")}
+            </h4>
+
+            <div className="mt-3 grid gap-3">
+              {product.files.map((file) => {
+                const key = `${product.productId}:${file.id}`
+
+                // F04 · A+B — Resolve icon, label, and tone from the file
+                // so member's "My Products" view matches the public/admin
+                // visual language.
+                const styles = getFileTypeStyles(file.fileType || file.fileName || "")
+                const TypeIcon = styles.icon
+                const sizeDisplay = file.fileSize ? formatFileSize(file.fileSize) : ""
+                const versionValue = file.version ? String(file.version).replace(/^v/i, "").replace(/v$/i, "") : ""
+
+                return (
+                  <div
+                    key={file.id}
+                    className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${styles.chip}`}
+                        aria-hidden="true"
+                      >
+                        <TypeIcon className="h-5 w-5" />
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate text-meta font-medium text-violet" title={file.fileName}>
+                            {file.fileName}
+                          </span>
+                          <span
+                            className={`shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold ${styles.chip}`}
+                          >
+                            {styles.label}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/70">
+                          {file.version && <span>{t("products.file.version", { value: versionValue })}</span>}
+                          {file.version && sizeDisplay && <span>·</span>}
+                          {sizeDisplay && <span className="font-mono tabular-nums">{sizeDisplay}</span>}
+                          {(file.version || sizeDisplay) && <span>·</span>}
+                          <span>{file.isPrimary ? t("products.file.primary") : t("products.file.additional")}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onDownload(product.productId, file)}
+                      disabled={downloadingKey.has(key)}
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-violet px-4 py-3 text-meta font-semibold text-white transition hover:bg-violet-deep disabled:opacity-70"
+                    >
+                      <Download className="h-4 w-4" />
+                      {downloadingKey.has(key) ? t("products.file.preparing") : t("products.file.download")}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
