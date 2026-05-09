@@ -1035,7 +1035,7 @@ export default function ProductDetail() {
   const [searchParams, setSearchParams] = useSearchParams()
   // #4 · record this view in localStorage for the recently-viewed strip
   useTrackProductView(product)
-  const VALID_TABS = ["description", "features", "reviews", "specs", "faq"]
+  const VALID_TABS = ["description", "included", "specs", "reviews"]
   const urlTab = searchParams.get("tab")
   const activeTab = VALID_TABS.includes(urlTab) ? urlTab : "description"
   const setActiveTab = (id) => {
