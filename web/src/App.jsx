@@ -79,6 +79,7 @@ const DashboardProductsPage = lazy(() => import("./pages/DashboardProductsPage")
 const DashboardDownloadsPage = lazy(() => import("./pages/DashboardDownloadsPage"));
 const DashboardOrdersPage = lazy(() => import("./pages/DashboardOrdersPage"));
 const DashboardOrderDetailPage = lazy(() => import("./pages/DashboardOrderDetailPage"));
+const DashboardNotificationsPage = lazy(() => import("./pages/DashboardNotificationsPage"));
 const DashboardSupportPage = lazy(() => import("./pages/DashboardSupportPage"));
 const DashboardServiceOrdersPage = lazy(() => import("./pages/DashboardServiceOrdersPage")); // #5
 const ComparePage = lazy(() => import("./pages/ComparePage")); // #3
@@ -237,6 +238,7 @@ export default function App() {
               <Route path="downloads" element={<DashboardDownloadsPage />} />
               <Route path="orders" element={<DashboardOrdersPage />} />
               <Route path="orders/:orderId" element={<DashboardOrderDetailPage />} />
+              <Route path="notifications" element={<DashboardNotificationsPage />} />
               <Route path="consultations" element={<DashboardConsultationsPage />} />
               <Route path="wishlist" element={<DashboardWishlistPage />} />
               <Route path="addresses" element={<DashboardAddressesPage />} />
