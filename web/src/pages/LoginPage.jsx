@@ -117,8 +117,17 @@ export default function LoginPage() {
     e.preventDefault()
     setError("")
 
-    // Bot trap — honeypot must remain empty.
-    if (honeypot) return
+    // Bot trap — honeypot must remain empty. If it's filled, treat as
+    // browser autofill (not a bot) and clear it before the next submit
+    // rather than silently blocking. Real bots fill consistently — log
+    // for diagnostics but don't kill the flow on first occurrence.
+    if (honeypot) {
+      // eslint-disable-next-line no-console
+      console.warn("[login] honeypot was filled — clearing and retrying")
+      setHoneypot("")
+      setError("Please click Sign In again.")
+      return
+    }
 
     const cleanEmail = email.trim().toLowerCase()
     if (!cleanEmail || !password) {
@@ -259,15 +268,22 @@ export default function LoginPage() {
           noValidate
           className="mt-6 flex flex-col gap-4"
         >
-          {/* Honeypot · invisible to humans, enticing to bots */}
+          {/* Honeypot · invisible to humans, enticing to bots.
+              The name is intentionally non-standard so Chrome / Safari
+              autofill heuristics don't fill it for real users — autofill
+              of `website`, `address`, `name`, etc. would silently block
+              login. autoComplete="new-password" is the one value the
+              major browsers actually respect for defeating autofill. */}
           <input
             type="text"
-            name="website"
+            name="ukz_trap_field_xq7"
             tabIndex={-1}
-            autoComplete="off"
+            autoComplete="new-password"
             value={honeypot}
             onChange={(e) => setHoneypot(e.target.value)}
             aria-hidden="true"
+            data-lpignore="true"
+            data-1p-ignore="true"
             className="absolute left-[-9999px] h-0 w-0 opacity-0"
           />
 
@@ -410,12 +426,12 @@ export default function LoginPage() {
 
         {/* Divider · {t("login.orLoginWith")} */}
         <motion.div variants={fadeUp} className="mt-6">
-          <div className="relative flex items-center gap-3">
-            <div className="h-px flex-1 bg-charcoal-80/10" />
-            <span className="text-[12px] font-medium text-charcoal-80/50">
+          <div className="flex items-center gap-3 text-[11.5px] text-charcoal-80/45">
+            <span className="h-px flex-1 bg-charcoal-80/12" />
+            <span className="font-semibold uppercase tracking-[0.16em]">
               {t("login.orLoginWith")}
             </span>
-            <div className="h-px flex-1 bg-charcoal-80/10" />
+            <span className="h-px flex-1 bg-charcoal-80/12" />
           </div>
           <div className="mt-4">
             <GoogleLoginButton />
