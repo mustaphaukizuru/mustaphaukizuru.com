@@ -1,0 +1,254 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# mustaphaukizuru.com — Continuous Integration
+# Closes audit finding C-07 (no CI build gate)
+# Drop into .github/workflows/ci.yml at repo root
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: CI
+
+on:
+  pull_request:
+    branches: [master, develop]
+  push:
+    branches: [master, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ────────────────────────────────────────────────────────────────────────────
+  # 1 · Structural integrity gates
+  # ────────────────────────────────────────────────────────────────────────────
+  structural-gates:
+    name: Structural integrity gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Forbid duplicate nested directories (audit C-01)
+        run: bash scripts/guard-duplicates.sh
+
+      - name: Forbid legacy palette references (audit C-03)
+        run: bash scripts/check-legacy-palette.sh
+
+      - name: Enforce centralized API utility (audit H-11)
+        run: bash scripts/check-api-discipline.sh
+
+      - name: Forbid TODO / FIXME / XXX in shipping code (DoD § 12 #1)
+        run: |
+          if grep -rEn "(TODO|FIXME|XXX)" src web/src \
+              --include="*.js" --include="*.jsx" --include="*.ts" --include="*.tsx" \
+              --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=tests; then
+            echo "::error::TODO/FIXME/XXX found in shipping code (DoD § 12 #1)"
+            exit 1
+          fi
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 2 · Backend build & lint
+  # ────────────────────────────────────────────────────────────────────────────
+  backend:
+    name: Backend (Node + Express + Prisma)
+    runs-on: ubuntu-latest
+    needs: structural-gates
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Lint backend
+        run: npm run lint --if-present
+
+      - name: Run backend tests
+        run: npm test --if-present
+        env:
+          NODE_ENV: test
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 3 · Frontend build & lint
+  # ────────────────────────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend (React + Vite)
+    runs-on: ubuntu-latest
+    needs: structural-gates
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: web
+        run: npm run lint --if-present
+
+      - name: Build (audit C-07 — pre-push parity)
+        working-directory: web
+        run: npm run build
+
+      - name: Verify bundle size budget (≤ 150 kB gzip)
+        working-directory: web
+        run: |
+          TOTAL=$(find dist/assets -name '*.js' -exec gzip -c {} + | wc -c)
+          BUDGET=153600
+          echo "Bundle size (gzip): $TOTAL bytes · budget: $BUDGET bytes"
+          if [ "$TOTAL" -gt "$BUDGET" ]; then
+            echo "::error::Bundle exceeds 150 kB gzip budget (rulebook § 11)"
+            exit 1
+          fi
+
+      - name: Run frontend unit tests
+        working-directory: web
+        run: npm run test:unit --if-present
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+          retention-days: 7
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 4 · Security audit
+  # ────────────────────────────────────────────────────────────────────────────
+  security:
+    name: Security audit
+    runs-on: ubuntu-latest
+    needs: structural-gates
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: npm audit (backend)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: false
+
+      - name: npm audit (frontend)
+        working-directory: web
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: false
+
+      - name: Scan git history for committed secrets
+        run: |
+          if git log --all -p --since="30 days ago" \
+              | grep -iE "(api[_-]?key|secret|password|token)\\s*=\\s*['\"][^'\"]{16,}" \
+              | grep -v "process.env" | grep -v ".env.example"; then
+            echo "::error::Possible secret committed in last 30 days"
+            exit 1
+          fi
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 5 · E2E (Playwright) — runs on PR to master only
+  # ────────────────────────────────────────────────────────────────────────────
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.event_name == 'pull_request' && github.base_ref == 'master'
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testpw
+          MYSQL_DATABASE: mustaphaukizuru_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd web && npm ci
+
+      - name: Push schema to test DB
+        run: npx prisma db push --skip-generate
+        env:
+          DATABASE_URL: mysql://root:testpw@localhost:3306/mustaphaukizuru_test
+
+      - name: Install Playwright browsers
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E suite (auth · checkout · admin)
+        working-directory: web
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: mysql://root:testpw@localhost:3306/mustaphaukizuru_test
+          JWT_SECRET: test-jwt-secret-do-not-use-in-production-64-chars-minimum-x
+          MERCADOPAGO_ACCESS_TOKEN: TEST-mercadopago-sandbox
+          PAYPAL_CLIENT_ID: TEST-paypal-sandbox
+          PAYPAL_CLIENT_SECRET: TEST-paypal-sandbox-secret
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report
+          retention-days: 14
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 6 · Lighthouse CI — runs on PR to master only
+  # ────────────────────────────────────────────────────────────────────────────
+  lighthouse:
+    name: Lighthouse CI (perf ≥ 95)
+    runs-on: ubuntu-latest
+    needs: frontend
+    if: github.event_name == 'pull_request' && github.base_ref == 'master'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build for preview
+        working-directory: web
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        working-directory: web
+        run: |
+          npm install -g @lhci/cli@0.13
+          lhci autorun --config=../lighthouserc.json
+        continue-on-error: false
