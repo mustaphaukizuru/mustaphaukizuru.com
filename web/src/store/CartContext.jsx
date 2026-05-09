@@ -26,14 +26,24 @@ function resolveImageUrl(url = "") {
 }
 
 function getPrimaryImage(product) {
-  if (!Array.isArray(product?.images) || product.images.length === 0) {
-    return product?.imageUrl || ""
+  // Layer 1 — scan the canonical images[] array for a primary/cover/first image
+  if (Array.isArray(product?.images) && product.images.length > 0) {
+    const primary =
+      product.images.find((image) => image?.isPrimary) ||
+      product.images.find((image) => image?.imageRole === "cover") ||
+      product.images.find((image) => image?.url)
+    if (primary?.url) return resolveImageUrl(primary.url)
   }
-  const primary =
-    product.images.find((image) => image?.isPrimary) ||
-    product.images.find((image) => image?.imageRole === "cover") ||
-    product.images[0]
-  return resolveImageUrl(primary?.url || "")
+  // Layer 2 — fall through to flat fields the backend or client may set
+  // (different endpoints + legacy callers use different keys).
+  const flat =
+    product?.imageUrl ||
+    product?.image ||
+    product?.coverImage ||
+    product?.thumbnail ||
+    product?.thumbnailUrl ||
+    ""
+  return flat ? resolveImageUrl(flat) : ""
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -55,9 +65,11 @@ function adaptGuestItem(raw) {
 }
 
 function adaptServerItem(item) {
-  const imageUrl = item.product?.imageUrl
-    ? resolveImageUrl(item.product.imageUrl)
-    : ""
+  // Use the same comprehensive image resolver the guest path uses.
+  // Backend serializeProduct returns images[] but no top-level imageUrl,
+  // so we have to scan the array — checking only item.product.imageUrl
+  // would silently miss every server cart row.
+  const imageUrl = item.product ? getPrimaryImage(item.product) : ""
   return {
     id: item.productId || item.serviceId || item.id,
     lineId: item.id,
@@ -337,7 +349,7 @@ export function CartProvider({ children }) {
     ? serverCart.totals.total || 0
     : Math.max(0, subtotal - discount + tax)
 
-  const appliedCoupon = isAuthenticated ? serverCart?.appliedCoupon || null : null
+  const appliedCoupon = isAuthenticated ? serverCart?.coupons?.[0] || null : null
 
   const value = {
     cartItems,
@@ -346,28 +358,27 @@ export function CartProvider({ children }) {
     discount,
     tax,
     total,
-    appliedCoupon,
-    addToCart,
-    removeFromCart,
+    serverCart,
+    loading,
+    error,
     drawerOpen,
     openDrawer,
     closeDrawer,
     toggleDrawer,
+    addToCart,
+    removeFromCart,
     updateQuantity,
     clearCart,
     applyCoupon,
     removeCoupon,
-    refreshCart,
-    loading,
-    error,
-    isAuthenticated,
+    appliedCoupon,
   }
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 
 export function useCart() {
-  const context = useContext(CartContext)
-  if (!context) throw new Error("useCart must be used inside CartProvider")
-  return context
+  const ctx = useContext(CartContext)
+  if (!ctx) throw new Error("useCart must be used within a CartProvider")
+  return ctx
 }

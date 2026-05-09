@@ -35,7 +35,12 @@
     "couponSignIn": "Inicia sesión para aplicar un cupón.",
     "couponEnter": "Ingresa un código de cupón.",
     "couponRemove": "Quitar cupón",
-    "discountApplied": "Descuento aplicado:"
+    "discountApplied": "Descuento aplicado:",
+    "checkout": "Pagar",
+    "continueShopping": "Seguir comprando",
+    "trustSsl": "Pago seguro con cifrado SSL",
+    "trustInstant": "Entrega digital instantánea",
+    "trustDashboard": "Descarga desde tu panel"
   },
   "actions": {
     "remove": "Quitar",
