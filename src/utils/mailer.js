@@ -712,7 +712,7 @@ function consultationDetailRows(consultation) {
   const svc  = consultation?.service?.title || "Consultation";
   return [
     ["Service",  esc(svc)],
-    ["When",     `<span style="font-weight:700;color:#420060;">${esc(when)}</span>`],
+    ["When",     `<span style="font-weight:700;color:#5D3FD3;">${esc(when)}</span>`],
     ["Duration", `${esc(consultation?.durationMin || 30)} minutes`],
     ["Host",     esc(host)],
     ["Timezone", esc(tz)],
@@ -774,7 +774,7 @@ async function sendConsultationConfirmationEmail(consultation, { locale } = {}) 
   const c    = bookingCopy(locale);
 
   const meetingBlock = consultation.meetingLink
-    ? note(`${c.joinLinkLabel} <a href="${consultation.meetingLink}" style="color:#420060;">${esc(consultation.meetingLink)}</a>`)
+    ? note(`${c.joinLinkLabel} <a href="${consultation.meetingLink}" style="color:#5D3FD3;">${esc(consultation.meetingLink)}</a>`)
     : note(c.pendingMeetingLink);
 
   const cancelUrl = consultation.confirmationToken
@@ -791,7 +791,7 @@ async function sendConsultationConfirmationEmail(consultation, { locale } = {}) 
       : "") +
     cta(c.viewInDashboard, `${base}/dashboard/consultations`) +
     meetingBlock +
-    smallText(`${c.cancelLine.split("Reschedule").join("")}${c.cancelLine.includes("Reschedule") ? "" : ""} <a href="${cancelUrl}" style="color:#420060;">${c.cancelLink}</a>`);
+    smallText(`${c.cancelLine.split("Reschedule").join("")}${c.cancelLine.includes("Reschedule") ? "" : ""} <a href="${cancelUrl}" style="color:#5D3FD3;">${c.cancelLink}</a>`);
 
   const ics = buildIcsMailParts(consultation, "REQUEST");
   await safeSendMail(
@@ -889,7 +889,7 @@ async function sendConsultationReminderEmail(consultation, hoursAway) {
     (consultation.meetingLink
       ? cta("Join Meeting", consultation.meetingLink)
       : note("A meeting link will be shared shortly before the call.")) +
-    smallText(`Need to cancel? Please give at least 12 hours' notice via your <a href="${base}/dashboard/consultations" style="color:#420060;">dashboard</a>.`);
+    smallText(`Need to cancel? Please give at least 12 hours' notice via your <a href="${base}/dashboard/consultations" style="color:#5D3FD3;">dashboard</a>.`);
 
   const ics = buildIcsMailParts(consultation, "REQUEST");
   await safeSendMail(

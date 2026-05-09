@@ -80,3 +80,7 @@ coverage/
 *.seed
 *.pid.lock
 .env.local
+
+# Workspace document folders (Cowork sessions)
+mustaphaukizuru.com*Full-Stack SaaS Platform/
+

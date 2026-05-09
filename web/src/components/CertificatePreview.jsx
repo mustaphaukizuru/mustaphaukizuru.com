@@ -341,7 +341,10 @@ function PdfPageImage({ src, scale = 1.4 }) {
 /* ─────────────────────────────── modal ─────────────────────────────────── */
 
 function CertificateModal({ src, title, issuer, onClose }) {
-  const { t } = useTranslation("common")
+  // Certificate strings live under the `about` namespace alongside the
+  // tile copy. Using `common` here returned raw keys (e.g.
+  // "certificate.renderError") because no matching subtree existed there.
+  const { t } = useTranslation("about")
   const [pageIndex, setPageIndex] = useState(1)
   const [pageCount, setPageCount] = useState(1)
   const [zoom, setZoom] = useState(1)

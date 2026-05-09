@@ -64,30 +64,95 @@ export const educationTimeline = [
   },
 ]
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  experienceTimeline · single source of truth for the public About page
+ *  fallback. Each entry follows this shape:
+ *    {
+ *      period:   "December 2022 – Present",
+ *      title:    "IT Manager · Full-Stack Developer · ICT Coordinator · CS Educator",
+ *      org:      "Colegio de Excelencia Raindrop · Tlalnepantla de Baz, Mexico",
+ *      summary:  "Lead end-to-end ICT operations …",
+ *      bullets:  [ "Built and optimized …", … ],
+ *    }
+ *  TimelineEntry on AboutPage renders all four when present and falls back
+ *  to legacy `description`-only rows so existing seeds keep working.
+ *  ────────────────────────────────────────────────────────────────────── */
 export const experienceTimeline = [
   {
-    period: "Dec 2022 – Present",
-    title: "IT Manager & Computer Science Teacher",
-    description:
-      "Colegio de Excelencia Raindrop. Leading IT systems, teaching computer science, and supporting digital learning implementation.",
+    period: "December 2022 – Present",
+    title: "IT Manager · Full-Stack Developer · ICT Coordinator · CS Educator",
+    org: "Colegio de Excelencia Raindrop · Tlalnepantla de Baz, Estado de México, Mexico",
+    summary:
+      "Lead end-to-end ICT operations and full-stack engineering for a 100-plus user campus, while designing and delivering the Computer Science and STEM curriculum for secondary-level students.",
+    bullets: [
+      "Built and optimized the school web infrastructure on Python and Google Cloud Platform — delivered a 40% improvement in page-load performance and 99% uptime for over 100 daily users.",
+      "Led a full network infrastructure upgrade across TCP/IP, DNS, DHCP, and VPN systems, reducing operational downtime by over 30% and sustaining 99% campus-wide uptime.",
+      "Administered end-to-end technical support for hardware, software, and network systems across the entire campus, holding a consistent sub-two-hour issue resolution standard.",
+      "Developed internal automation tools and reporting dashboards in Python, Django, and JavaScript, eliminating manual workflows across 12 departments and recovering significant staff hours each week.",
+      "Integrated Google Workspace and LMS platforms into daily academic operations, fully digitalizing instructional and administrative processes and onboarding 40 faculty members.",
+      "Designed, developed, and delivered the school Computer Science and STEM curriculum for secondary-level students, covering Python, Java, web development, data literacy, and computational thinking.",
+      "Mentored 10 students in Python, Java, and web development — coached a project team that advanced to the XIX InfoMatrix Ibero-American Science and Technology National Finals 2025 (SOLACYT).",
+    ],
   },
   {
-    period: "Sep 2021 – Sep 2022",
-    title: "Assistant Project Manager",
-    description:
-      "Design Office of Africa. Coordinated project activities, digital processes, and operational support across technical workflows.",
+    period: "September 2021 – September 2022",
+    title: "Assistant Project Manager · Technical Systems",
+    org: "Design Office of Africa Ltd. · Kigali, Rwanda",
+    summary:
+      "Coordinated technical project delivery and IT operations across concurrent engineering and design workstreams.",
+    bullets: [
+      "Coordinated technical timelines, task assignments, and delivery milestones across concurrent projects using JIRA — consistently meeting deadlines on time and within scope.",
+      "Managed internal digital systems and IT infrastructure, maintaining 99% uptime and ensuring data integrity across all operational platforms.",
+      "Provided direct IT support and troubleshooting to internal teams across hardware, software, and network issues, resolving incidents promptly to prevent disruption to project delivery.",
+      "Produced multilingual technical documentation in English, Turkish, and Kinyarwanda for cross-functional stakeholder teams.",
+    ],
   },
   {
-    period: "Jan 2021 – Aug 2021",
-    title: "ICT Infrastructure & Support Director / ICT Teacher",
-    description:
-      "Intellectual Schools AC. Managed ICT infrastructure and delivered educational technology support and training.",
+    period: "January 2021 – August 2021",
+    title: "ICT Infrastructure Director · Backend Developer · Technical Support Lead",
+    org: "Intellectual Schools AC · Addis Ababa, Ethiopia",
+    summary:
+      "Directed all ICT operations and led the institutional web and backend redesign across a multi-building campus serving 1,000-plus students and 60 faculty.",
+    bullets: [
+      "Redesigned the institutional web and backend infrastructure, achieving a 50% improvement in website performance through server-side optimization, database query tuning, and caching strategies.",
+      "Reduced system downtime by 30% by deploying proactive infrastructure monitoring, configuring automated alerts, and establishing scheduled preventive maintenance protocols.",
+      "Managed the full scope of IT support operations across the multi-building campus — covering hardware, software, and network systems with an average issue resolution time of under two hours.",
+      "Led the deployment of Google Workspace and LMS platforms across the institution, improving digital tool adoption by 60% in the first quarter and enabling hybrid e-learning at scale.",
+    ],
   },
   {
-    period: "2020 – 2021",
-    title: "Teaching, Digital Support, and Technology Roles",
-    description:
-      "Combined experience in software instruction, ICT support, translation, and digital operations across education and business contexts.",
+    period: "January 2020 – December 2020",
+    title: "Software Development Instructor · Curriculum Designer",
+    org: "St. Emmanuel School Complex · Kigali, Rwanda",
+    summary:
+      "Designed and delivered the institutional software development curriculum from foundational programming through application deployment.",
+    bullets: [
+      "Designed and delivered a full-cycle STEM and software development curriculum in Python, Java, JavaScript, and web development.",
+      "Introduced Git and GitHub version control practices into student workflows — reduced code integration errors by an estimated 35% and built habits of collaborative, professional-standard development.",
+      "Developed structured lesson plans, rubrics, and project-based assessments aligned with international CS education standards.",
+    ],
+  },
+  {
+    period: "May 2020 – December 2020",
+    title: "Sales & Marketing Officer · Digital Systems",
+    org: "Blueflame Ltd. · Kigali, Rwanda",
+    summary:
+      "Drove digital marketing and customer-acquisition strategy through CRM-driven campaigns and conversion-optimized email systems.",
+    bullets: [
+      "Generated a 25% increase in company revenue through a data-driven digital marketing strategy combining CRM automation, audience segmentation, and campaign performance analytics.",
+      "Built HTML, CSS, and JavaScript email marketing campaigns that measurably improved customer conversion rates and audience engagement.",
+    ],
+  },
+  {
+    period: "September 2018 – May 2020",
+    title: "Translator & Interpreter",
+    org: "Umut Ltd. · Kigali, Rwanda",
+    summary:
+      "Delivered professional interpretation and document translation services in Turkish, English, and Kinyarwanda across business, legal, and diplomatic contexts.",
+    bullets: [
+      "Provided professional interpretation and translation in three working languages for international stakeholders.",
+      "Served clients across business, legal, and diplomatic environments — built the multilingual professional foundation that anchors the entire current brand.",
+    ],
   },
 ]
 
