@@ -46,7 +46,7 @@
   "trust": {
     "secureCheckout": "Pago seguro",
     "paymentMethods": "PayPal + Mercado Pago",
-    "refundPolicy": "Reembolso a 30 días",
+    "lifetimeUpdates": "Actualizaciones de por vida",
     "instantDownload": "Descarga instantánea",
     "ariaLabel": "Garantías de compra"
   },
