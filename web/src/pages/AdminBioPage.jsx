@@ -125,6 +125,102 @@ export default function AdminBioPage() {
   )
 }
 
+/* Authoritative experience seed · mirrors web/src/data/sitePagesData.js
+ * and prisma/seed-bio.js. Used by the "Seed originals" button below so the
+ * owner can populate the DB without SSH access — each row becomes a normal
+ * editable record. Idempotent: rows with the same role+company key are
+ * skipped (case-insensitive). */
+const SEED_EXPERIENCE = [
+  {
+    role: "IT Manager · Full-Stack Developer · ICT Coordinator · CS Educator",
+    company: "Colegio de Excelencia Raindrop",
+    location: "Tlalnepantla de Baz, Estado de México, Mexico",
+    startDate: "2022-12-01",
+    endDate: null,
+    description:
+      "Lead end-to-end ICT operations and full-stack engineering for a 100-plus user campus, while designing and delivering the Computer Science and STEM curriculum for secondary-level students.",
+    highlights: [
+      "Built and optimized the school web infrastructure on Python and Google Cloud Platform — delivered a 40% improvement in page-load performance and 99% uptime for over 100 daily users.",
+      "Led a full network infrastructure upgrade across TCP/IP, DNS, DHCP, and VPN systems, reducing operational downtime by over 30% and sustaining 99% campus-wide uptime.",
+      "Administered end-to-end technical support for hardware, software, and network systems across the entire campus, holding a consistent sub-two-hour issue resolution standard.",
+      "Developed internal automation tools and reporting dashboards in Python, Django, and JavaScript, eliminating manual workflows across 12 departments and recovering significant staff hours each week.",
+      "Integrated Google Workspace and LMS platforms into daily academic operations, fully digitalizing instructional and administrative processes and onboarding 40 faculty members.",
+      "Designed, developed, and delivered the school Computer Science and STEM curriculum for secondary-level students, covering Python, Java, web development, data literacy, and computational thinking.",
+      "Mentored 10 students in Python, Java, and web development — coached a project team that advanced to the XIX InfoMatrix Ibero-American Science and Technology National Finals 2025 (SOLACYT).",
+    ],
+  },
+  {
+    role: "Assistant Project Manager · Technical Systems",
+    company: "Design Office of Africa Ltd.",
+    location: "Kigali, Rwanda",
+    startDate: "2021-09-01",
+    endDate: "2022-09-01",
+    description:
+      "Coordinated technical project delivery and IT operations across concurrent engineering and design workstreams.",
+    highlights: [
+      "Coordinated technical timelines, task assignments, and delivery milestones across concurrent projects using JIRA — consistently meeting deadlines on time and within scope.",
+      "Managed internal digital systems and IT infrastructure, maintaining 99% uptime and ensuring data integrity across all operational platforms.",
+      "Provided direct IT support and troubleshooting to internal teams across hardware, software, and network issues, resolving incidents promptly to prevent disruption to project delivery.",
+      "Produced multilingual technical documentation in English, Turkish, and Kinyarwanda for cross-functional stakeholder teams.",
+    ],
+  },
+  {
+    role: "ICT Infrastructure Director · Backend Developer · Technical Support Lead",
+    company: "Intellectual Schools AC",
+    location: "Addis Ababa, Ethiopia",
+    startDate: "2021-01-01",
+    endDate: "2021-08-01",
+    description:
+      "Directed all ICT operations and led the institutional web and backend redesign across a multi-building campus serving 1,000-plus students and 60 faculty.",
+    highlights: [
+      "Redesigned the institutional web and backend infrastructure, achieving a 50% improvement in website performance through server-side optimization, database query tuning, and caching strategies.",
+      "Reduced system downtime by 30% by deploying proactive infrastructure monitoring, configuring automated alerts, and establishing scheduled preventive maintenance protocols.",
+      "Managed the full scope of IT support operations across the multi-building campus — covering hardware, software, and network systems with an average issue resolution time of under two hours.",
+      "Led the deployment of Google Workspace and LMS platforms across the institution, improving digital tool adoption by 60% in the first quarter and enabling hybrid e-learning at scale.",
+    ],
+  },
+  {
+    role: "Software Development Instructor · Curriculum Designer",
+    company: "St. Emmanuel School Complex",
+    location: "Kigali, Rwanda",
+    startDate: "2020-01-01",
+    endDate: "2020-12-01",
+    description:
+      "Designed and delivered the institutional software development curriculum from foundational programming through application deployment.",
+    highlights: [
+      "Designed and delivered a full-cycle STEM and software development curriculum in Python, Java, JavaScript, and web development.",
+      "Introduced Git and GitHub version control practices into student workflows — reduced code integration errors by an estimated 35% and built habits of collaborative, professional-standard development.",
+      "Developed structured lesson plans, rubrics, and project-based assessments aligned with international CS education standards.",
+    ],
+  },
+  {
+    role: "Sales & Marketing Officer · Digital Systems",
+    company: "Blueflame Ltd.",
+    location: "Kigali, Rwanda",
+    startDate: "2020-05-01",
+    endDate: "2020-12-01",
+    description:
+      "Drove digital marketing and customer-acquisition strategy through CRM-driven campaigns and conversion-optimized email systems.",
+    highlights: [
+      "Generated a 25% increase in company revenue through a data-driven digital marketing strategy combining CRM automation, audience segmentation, and campaign performance analytics.",
+      "Built HTML, CSS, and JavaScript email marketing campaigns that measurably improved customer conversion rates and audience engagement.",
+    ],
+  },
+  {
+    role: "Translator & Interpreter",
+    company: "Umut Ltd.",
+    location: "Kigali, Rwanda",
+    startDate: "2018-09-01",
+    endDate: "2020-05-01",
+    description:
+      "Delivered professional interpretation and document translation services in Turkish, English, and Kinyarwanda across business, legal, and diplomatic contexts.",
+    highlights: [
+      "Provided professional interpretation and translation in three working languages for international stakeholders.",
+      "Served clients across business, legal, and diplomatic environments — built the multilingual professional foundation that anchors the entire current brand.",
+    ],
+  },
+]
+
 /* ─────────────────── Experience Tab ─────────────────── */
 
 function ExperienceTab() {
@@ -133,6 +229,7 @@ function ExperienceTab() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [editing, setEditing] = useState(null)
+  const [seeding, setSeeding] = useState(false)
 
   const reload = useCallback(async () => {
     setLoading(true); setError("")
@@ -186,9 +283,93 @@ function ExperienceTab() {
     }
   }
 
+  /* Bulk-import the 6 authoritative experience entries so the owner can edit
+   * / delete / reorder them like any other row. Skips entries whose
+   * (role, company) key already exists (case-insensitive). Mirrors the
+   * certificates section's "Seed originals" pattern. */
+  const onSeedOriginals = async () => {
+    if (!window.confirm(
+      `Add the ${SEED_EXPERIENCE.length} authoritative experience entries to the database?\n\nThey'll be fully editable from this panel. Existing rows with the same role + company are skipped.`
+    )) return
+    setSeeding(true)
+    const existing = new Set(
+      items.map((x) => `${(x.role || "").trim().toLowerCase()}::${(x.company || "").trim().toLowerCase()}`)
+    )
+    let added = 0, skipped = 0, failed = 0
+
+    for (let i = 0; i < SEED_EXPERIENCE.length; i += 1) {
+      const seed = SEED_EXPERIENCE[i]
+      const key = `${seed.role.trim().toLowerCase()}::${seed.company.trim().toLowerCase()}`
+      if (existing.has(key)) { skipped += 1; continue }
+      try {
+        await adminCreateExperience({
+          role:         seed.role,
+          company:      seed.company,
+          location:     seed.location,
+          startDate:    seed.startDate,
+          endDate:      seed.endDate,
+          description:  seed.description,
+          highlights:   seed.highlights,
+          displayOrder: i,
+          isVisible:    true,
+        })
+        added += 1
+      } catch (e) {
+        console.error("[Bio · Experience] seed failed for:", seed.role, e)
+        failed += 1
+      }
+    }
+
+    setSeeding(false)
+    if (added > 0) toast.showSuccess(`Added ${added} experience entr${added === 1 ? "y" : "ies"}${skipped ? ` · skipped ${skipped}` : ""}${failed ? ` · ${failed} failed` : ""}`)
+    else if (skipped === SEED_EXPERIENCE.length) (toast.showInfo?.("All entries already in the database.") || toast.showSuccess("Already up to date."))
+    else if (failed > 0) toast.showError(`${failed} entr${failed === 1 ? "y" : "ies"} failed to import.`, "Seed incomplete")
+    await reload()
+  }
+
   return (
-    <Section title="Experience" onAdd={() => setEditing({})} onRefresh={reload} loading={loading}>
-      <Body loading={loading} error={error} empty={items.length === 0} emptyText="No experience entries yet.">
+    <Section
+      title="Experience"
+      onAdd={() => setEditing({})}
+      onRefresh={reload}
+      loading={loading}
+      action={
+        <div className="flex items-center gap-3">
+          <a
+            href="/about#journey"
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs font-semibold text-azure hover:underline"
+          >
+            View on About page ↗
+          </a>
+          <button
+            type="button"
+            onClick={onSeedOriginals}
+            disabled={seeding || loading}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-violet/20 bg-white px-2.5 py-1 text-xs font-semibold text-violet hover:bg-violet-pale disabled:opacity-60"
+            title="Insert the 6 authoritative experience entries into the DB so they become editable here"
+          >
+            {seeding ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            Seed originals ({SEED_EXPERIENCE.length})
+          </button>
+        </div>
+      }
+    >
+      <Body
+        loading={loading}
+        error={error}
+        empty={items.length === 0}
+        emptyText={
+          <span>
+            No experience entries yet.{" "}
+            <button type="button" onClick={onSeedOriginals} disabled={seeding} className="font-semibold text-violet underline-offset-2 hover:underline">
+              {seeding ? "Importing…" : `Import the ${SEED_EXPERIENCE.length} originals`}
+            </button>{" "}
+            or click <span className="font-semibold">Add</span> to create one from scratch.
+          </span>
+        }
+      >
         <ul className="divide-y divide-slate-200">
           {items.map((x) => (
             <li key={x.id} className="flex items-start gap-3 py-4">

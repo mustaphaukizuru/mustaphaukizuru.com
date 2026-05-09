@@ -172,7 +172,7 @@ export default function DashboardNotificationsPage() {
     <section className="space-y-5">
       {/* Page heading */}
       <header className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
-        <span className="inline-flex items-center gap-2 rounded-full bg-[#ede4ef] px-3 py-1 text-micro font-semibold uppercase tracking-[0.18em] text-violet">
+        <span className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.18em] text-violet">
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           {t("notificationsPage.eyebrow")}
         </span>

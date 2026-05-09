@@ -86,7 +86,7 @@ const changePassword = async (req, res) => {
     const isMatch = await bcrypt.compare(currentPassword, user?.passwordHash || "")
     if (!isMatch) return res.status(401).json({ success: false, message: "Current password is incorrect" })
 
-    const hash = await bcrypt.hash(newPassword, 10)
+    const hash = await bcrypt.hash(newPassword, 12)
     await prisma.user.update({ where: { id: userId }, data: { passwordHash: hash } })
     return res.status(200).json({ success: true, message: "Password changed successfully" })
   } catch (err) {

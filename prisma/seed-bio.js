@@ -27,30 +27,96 @@ const prisma = new PrismaClient()
 // Kept as plain JS so this script has no frontend dependency.
 // ─────────────────────────────────────────────────────────────────────────
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Authoritative experience data · 6 roles, mirrors web/src/data/sitePagesData.js
+ *  • description = lead summary paragraph rendered on the public timeline
+ *  • highlights  = JSON array of quantified achievement bullets (used by
+ *                  CV export, structured-data schema, and the admin UI)
+ *  • location    = city, region/country
+ *  Date format: YYYY-MM-01 for the first of the month.
+ *  ────────────────────────────────────────────────────────────────────── */
 const EXPERIENCE = [
   {
-    role:        "IT Manager & Computer Science Teacher",
+    role:        "IT Manager · Full-Stack Developer · ICT Coordinator · CS Educator",
     company:     "Colegio de Excelencia Raindrop",
-    location:    "Tlalnepantla de Baz, Mexico",
+    location:    "Tlalnepantla de Baz, Estado de México, Mexico",
     startDate:   new Date("2022-12-01"),
-    endDate:     null, // current
-    description: "Leading IT systems, teaching computer science, and supporting digital learning implementation.",
+    endDate:     null,
+    description: "Lead end-to-end ICT operations and full-stack engineering for a 100-plus user campus, while designing and delivering the Computer Science and STEM curriculum for secondary-level students.",
+    highlights: [
+      "Built and optimized the school web infrastructure on Python and Google Cloud Platform — delivered a 40% improvement in page-load performance and 99% uptime for over 100 daily users.",
+      "Led a full network infrastructure upgrade across TCP/IP, DNS, DHCP, and VPN systems, reducing operational downtime by over 30% and sustaining 99% campus-wide uptime.",
+      "Administered end-to-end technical support for hardware, software, and network systems across the entire campus, holding a consistent sub-two-hour issue resolution standard.",
+      "Developed internal automation tools and reporting dashboards in Python, Django, and JavaScript, eliminating manual workflows across 12 departments and recovering significant staff hours each week.",
+      "Integrated Google Workspace and LMS platforms into daily academic operations, fully digitalizing instructional and administrative processes and onboarding 40 faculty members.",
+      "Designed, developed, and delivered the school Computer Science and STEM curriculum for secondary-level students, covering Python, Java, web development, data literacy, and computational thinking.",
+      "Mentored 10 students in Python, Java, and web development — coached a project team that advanced to the XIX InfoMatrix Ibero-American Science and Technology National Finals 2025 (SOLACYT).",
+    ],
   },
   {
-    role:        "Assistant Project Manager",
-    company:     "Design Office of Africa",
-    location:    "Rwanda",
+    role:        "Assistant Project Manager · Technical Systems",
+    company:     "Design Office of Africa Ltd.",
+    location:    "Kigali, Rwanda",
     startDate:   new Date("2021-09-01"),
     endDate:     new Date("2022-09-01"),
-    description: "Coordinated project activities, digital processes, and operational support across technical workflows.",
+    description: "Coordinated technical project delivery and IT operations across concurrent engineering and design workstreams.",
+    highlights: [
+      "Coordinated technical timelines, task assignments, and delivery milestones across concurrent projects using JIRA — consistently meeting deadlines on time and within scope.",
+      "Managed internal digital systems and IT infrastructure, maintaining 99% uptime and ensuring data integrity across all operational platforms.",
+      "Provided direct IT support and troubleshooting to internal teams across hardware, software, and network issues, resolving incidents promptly to prevent disruption to project delivery.",
+      "Produced multilingual technical documentation in English, Turkish, and Kinyarwanda for cross-functional stakeholder teams.",
+    ],
   },
   {
-    role:        "ICT Infrastructure & Support Director / ICT Teacher",
+    role:        "ICT Infrastructure Director · Backend Developer · Technical Support Lead",
     company:     "Intellectual Schools AC",
-    location:    "Ethiopia",
+    location:    "Addis Ababa, Ethiopia",
     startDate:   new Date("2021-01-01"),
     endDate:     new Date("2021-08-01"),
-    description: "Managed ICT infrastructure and delivered educational technology support and training.",
+    description: "Directed all ICT operations and led the institutional web and backend redesign across a multi-building campus serving 1,000-plus students and 60 faculty.",
+    highlights: [
+      "Redesigned the institutional web and backend infrastructure, achieving a 50% improvement in website performance through server-side optimization, database query tuning, and caching strategies.",
+      "Reduced system downtime by 30% by deploying proactive infrastructure monitoring, configuring automated alerts, and establishing scheduled preventive maintenance protocols.",
+      "Managed the full scope of IT support operations across the multi-building campus — covering hardware, software, and network systems with an average issue resolution time of under two hours.",
+      "Led the deployment of Google Workspace and LMS platforms across the institution, improving digital tool adoption by 60% in the first quarter and enabling hybrid e-learning at scale.",
+    ],
+  },
+  {
+    role:        "Software Development Instructor · Curriculum Designer",
+    company:     "St. Emmanuel School Complex",
+    location:    "Kigali, Rwanda",
+    startDate:   new Date("2020-01-01"),
+    endDate:     new Date("2020-12-01"),
+    description: "Designed and delivered the institutional software development curriculum from foundational programming through application deployment.",
+    highlights: [
+      "Designed and delivered a full-cycle STEM and software development curriculum in Python, Java, JavaScript, and web development.",
+      "Introduced Git and GitHub version control practices into student workflows — reduced code integration errors by an estimated 35% and built habits of collaborative, professional-standard development.",
+      "Developed structured lesson plans, rubrics, and project-based assessments aligned with international CS education standards.",
+    ],
+  },
+  {
+    role:        "Sales & Marketing Officer · Digital Systems",
+    company:     "Blueflame Ltd.",
+    location:    "Kigali, Rwanda",
+    startDate:   new Date("2020-05-01"),
+    endDate:     new Date("2020-12-01"),
+    description: "Drove digital marketing and customer-acquisition strategy through CRM-driven campaigns and conversion-optimized email systems.",
+    highlights: [
+      "Generated a 25% increase in company revenue through a data-driven digital marketing strategy combining CRM automation, audience segmentation, and campaign performance analytics.",
+      "Built HTML, CSS, and JavaScript email marketing campaigns that measurably improved customer conversion rates and audience engagement.",
+    ],
+  },
+  {
+    role:        "Translator & Interpreter",
+    company:     "Umut Ltd.",
+    location:    "Kigali, Rwanda",
+    startDate:   new Date("2018-09-01"),
+    endDate:     new Date("2020-05-01"),
+    description: "Delivered professional interpretation and document translation services in Turkish, English, and Kinyarwanda across business, legal, and diplomatic contexts.",
+    highlights: [
+      "Provided professional interpretation and translation in three working languages for international stakeholders.",
+      "Served clients across business, legal, and diplomatic environments — built the multilingual professional foundation that anchors the entire current brand.",
+    ],
   },
 ]
 
@@ -139,19 +205,41 @@ const SKILLS = [
 // ─────────────────────────────────────────────────────────────────────────
 
 async function seedExperience() {
-  let created = 0, skipped = 0
-  for (const item of EXPERIENCE) {
-    const exists = await prisma.experience.findFirst({
+  // Upsert by (role, company) so re-running the seed refreshes existing rows
+  // — important when the source content evolves but the role+company key
+  // stays stable. Switching from skip-if-exists prevents stale legacy rows
+  // from masking the curated content on the public timeline.
+  let created = 0, updated = 0
+  for (let i = 0; i < EXPERIENCE.length; i++) {
+    const item = EXPERIENCE[i]
+    const existing = await prisma.experience.findFirst({
       where: { role: item.role, company: item.company },
       select: { id: true },
     })
-    if (exists) { skipped++; continue }
-    await prisma.experience.create({
-      data: { ...item, displayOrder: created, isVisible: true },
-    })
-    created++
+    if (existing) {
+      await prisma.experience.update({
+        where: { id: existing.id },
+        data: { ...item, displayOrder: i, isVisible: true },
+      })
+      updated++
+    } else {
+      await prisma.experience.create({
+        data: { ...item, displayOrder: i, isVisible: true },
+      })
+      created++
+    }
   }
-  return { created, skipped }
+  // Optional cleanup: remove any legacy rows NOT in the authoritative list
+  // (matched by role+company key) so stale entries can't reappear in admin.
+  const keepKeys = new Set(EXPERIENCE.map((e) => `${e.role}::${e.company}`))
+  const all = await prisma.experience.findMany({ select: { id: true, role: true, company: true } })
+  const stale = all.filter((r) => !keepKeys.has(`${r.role}::${r.company}`))
+  let removed = 0
+  for (const s of stale) {
+    await prisma.experience.delete({ where: { id: s.id } })
+    removed++
+  }
+  return { created, updated, removed, skipped: 0 }
 }
 
 async function seedEducation() {
@@ -211,7 +299,7 @@ async function main() {
   console.log("─".repeat(60))
 
   const exp   = await seedExperience()
-  console.log(`  Experience    : ${exp.created} created, ${exp.skipped} skipped (already exist)`)
+  console.log(`  Experience    : ${exp.created} created, ${exp.updated} updated, ${exp.removed} removed (legacy rows pruned)`)
 
   const edu   = await seedEducation()
   console.log(`  Education     : ${edu.created} created, ${edu.skipped} skipped`)
