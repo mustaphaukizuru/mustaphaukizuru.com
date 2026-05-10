@@ -51,6 +51,14 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      # Phase 9 · CI hardening — re-introduce the npm audit gate that the
+      # green-by-construction rewrite (commit d33faa0) removed. We block
+      # only on `moderate` and above so we don't fail on noisy low-CVSS
+      # advisories that don't affect the runtime, while still catching
+      # the kind of issue that bit us with multer 1.x earlier.
+      - name: Audit backend dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
       - name: Run backend tests
         run: npm test
         env:
