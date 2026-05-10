@@ -232,7 +232,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
       {/* Messages */}
       <div className="space-y-3" role="log" aria-label="Conversation messages">
         {messages.length === 0 && (
-          <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-[#fafafa] p-4 text-center text-micro text-charcoal-80/55">
+          <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist p-4 text-center text-micro text-charcoal-80/55">
             No messages yet.
           </div>
         )}
@@ -242,7 +242,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
             className={`rounded-lg p-4 text-meta ${
               msg.isAdmin
                 ? "border border-violet/15 bg-violet-pale/40 text-violet"
-                : "border border-charcoal-80/10 bg-[#fafafa] text-charcoal-80"
+                : "border border-charcoal-80/10 bg-mist text-charcoal-80"
             }`}
           >
             <div className="mb-1.5 flex items-center justify-between gap-2">

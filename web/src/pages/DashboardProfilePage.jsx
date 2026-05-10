@@ -16,7 +16,7 @@ import { useToast } from "../context/ToastContext"
 
 function InfoRow({ label, value, icon: Icon }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/8 bg-[#fafafa] p-4">
+    <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/8 bg-mist p-4">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
         <Icon className="h-4 w-4" />
       </div>
@@ -257,7 +257,7 @@ export default function DashboardProfilePage() {
                     <div className="relative">
                       <Icon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35" />
                       <input type="text" value={form[field]||""} onChange={(e) => setForm(f=>({...f,[field]:e.target.value}))} placeholder={t(placeholderKey)}
-                        className="w-full rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-3 pl-10 pr-4 text-meta text-violet outline-none focus:border-violet/40"
+                        className="w-full rounded-xl border border-charcoal-80/15 bg-mist py-3 pl-10 pr-4 text-meta text-violet outline-none focus:border-violet/40"
                       />
                     </div>
                   </div>
@@ -310,7 +310,7 @@ export default function DashboardProfilePage() {
                       <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35" />
                       <input type={showPw[show]?"text":"password"} value={pwForm[key]}
                         onChange={(e) => setPwForm(f=>({...f,[key]:e.target.value}))}
-                        className="w-full rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-3 pl-10 pr-10 text-meta text-violet outline-none focus:border-violet/40"
+                        className="w-full rounded-xl border border-charcoal-80/15 bg-mist py-3 pl-10 pr-10 text-meta text-violet outline-none focus:border-violet/40"
                       />
                       <button type="button" onClick={()=>setShowPw(s=>({...s,[show]:!s[show]}))}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-80/40 hover:text-violet"

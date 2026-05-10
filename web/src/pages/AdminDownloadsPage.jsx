@@ -206,11 +206,11 @@ export default function AdminDownloadsPage() {
           {loading ? (
             <div className="mt-4 space-y-2">
               {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="h-[64px] animate-pulse rounded-lg bg-[#f5eff6]/60" />
+                <div key={item} className="h-[64px] animate-pulse rounded-lg bg-violet-ghost/60" />
               ))}
             </div>
           ) : data.topProducts.length === 0 ? (
-            <div className="mt-4 rounded-lg border border-dashed border-charcoal-80/15 bg-[#fafafa] px-4 py-6 text-center text-meta text-charcoal-80/65">
+            <div className="mt-4 rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-6 text-center text-meta text-charcoal-80/65">
               No download data available yet.
             </div>
           ) : (
@@ -221,7 +221,7 @@ export default function AdminDownloadsPage() {
                 return (
                   <div
                     key={item.productId || index}
-                    className="rounded-lg border border-charcoal-80/8 bg-[#fafafa] px-3 py-3 transition hover:border-violet/15 hover:bg-violet-pale/30"
+                    className="rounded-lg border border-charcoal-80/8 bg-mist px-3 py-3 transition hover:border-violet/15 hover:bg-violet-pale/30"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-violet-pale font-mono text-[11px] font-bold text-violet">

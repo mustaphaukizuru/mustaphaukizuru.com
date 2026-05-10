@@ -482,7 +482,7 @@ export default function AdminProductFormPage() {
                     placeholder="Product title"
                     value={form.title}
                     onChange={(e) => handleTitleChange(e.target.value)}
-                    className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 outline-none focus:border-violet/30"
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                     required
                   />
                 </div>
@@ -494,7 +494,7 @@ export default function AdminProductFormPage() {
                     placeholder="product-slug"
                     value={form.slug}
                     onChange={(e) => updateField("slug", e.target.value)}
-                    className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 outline-none focus:border-violet/30"
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                     required
                   />
                 </div>
@@ -507,7 +507,7 @@ export default function AdminProductFormPage() {
                     placeholder="0.00"
                     value={form.price}
                     onChange={(e) => updateField("price", e.target.value)}
-                    className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 outline-none focus:border-violet/30"
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                     required
                   />
                 </div>
@@ -517,7 +517,7 @@ export default function AdminProductFormPage() {
                   <select
                     value={form.category}
                     onChange={(e) => updateField("category", e.target.value)}
-                    className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 outline-none focus:border-violet/30"
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                   >
                     <option value="">Select category</option>
                     {PRODUCT_CATEGORIES.map((category) => (
@@ -547,7 +547,7 @@ export default function AdminProductFormPage() {
                     placeholder="Brief summary of the product (1-2 sentences)"
                     value={form.shortDescription}
                     onChange={(e) => updateField("shortDescription", e.target.value)}
-                    className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 outline-none focus:border-violet/30"
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                   />
                 </div>
 
@@ -563,7 +563,7 @@ export default function AdminProductFormPage() {
                     placeholder="Detailed product description, explain what it includes, who it's for, and how it helps"
                     value={form.description}
                     onChange={(e) => updateField("description", e.target.value)}
-                    className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 outline-none focus:border-violet/30"
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                   />
                 </div>
 
@@ -579,7 +579,7 @@ export default function AdminProductFormPage() {
                     placeholder="Extended description with implementation details, usage instructions, or additional context"
                     value={form.fullDescription}
                     onChange={(e) => updateField("fullDescription", e.target.value)}
-                    className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 outline-none focus:border-violet/30"
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                   />
                 </div>
               </div>
@@ -598,7 +598,7 @@ export default function AdminProductFormPage() {
                 {form.features.map((feature, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-2 rounded-xl border border-charcoal-80/10 bg-[#fafafa] px-4 py-2.5"
+                    className="flex items-center gap-2 rounded-xl border border-charcoal-80/10 bg-mist px-4 py-2.5"
                   >
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet/10 text-xs font-bold text-violet">
                       {index + 1}
@@ -636,7 +636,7 @@ export default function AdminProductFormPage() {
                 ))}
 
                 {form.features.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-[#fafafa] px-4 py-3 text-sm text-charcoal-80/50">
+                  <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/50">
                     No features added yet. Add features like "Instant digital download", "Ready-to-use template", etc.
                   </div>
                 )}
@@ -653,7 +653,7 @@ export default function AdminProductFormPage() {
                         addFeature()
                       }
                     }}
-                    className="flex-1 rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 text-sm outline-none focus:border-violet/30"
+                    className="flex-1 rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 text-sm outline-none focus:border-violet/30"
                   />
                   <button
                     type="button"
@@ -681,7 +681,7 @@ export default function AdminProductFormPage() {
                 {form.specifications.map((spec, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-1 gap-2 rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-3 sm:grid-cols-[1fr_2fr_auto]"
+                    className="grid grid-cols-1 gap-2 rounded-xl border border-charcoal-80/10 bg-mist p-3 sm:grid-cols-[1fr_2fr_auto]"
                   >
                     <input
                       type="text"
@@ -729,7 +729,7 @@ export default function AdminProductFormPage() {
                 ))}
 
                 {form.specifications.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-[#fafafa] px-4 py-3 text-sm text-charcoal-80/50">
+                  <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/50">
                     No highlights yet. Add metadata like "Delivery / Digital download", "Page size / 8.5x11", etc.
                   </div>
                 )}
@@ -759,7 +759,7 @@ export default function AdminProductFormPage() {
                 {form.productFaqs.map((faq, index) => (
                   <div
                     key={index}
-                    className="rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4"
+                    className="rounded-xl border border-charcoal-80/10 bg-mist p-4"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet/10 text-xs font-bold text-violet">
@@ -815,7 +815,7 @@ export default function AdminProductFormPage() {
                 ))}
 
                 {form.productFaqs.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-[#fafafa] px-4 py-3 text-sm text-charcoal-80/50">
+                  <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/50">
                     No FAQs yet. Add common buyer questions and answers.
                   </div>
                 )}
@@ -834,7 +834,7 @@ export default function AdminProductFormPage() {
             <div>
               <h2 className="text-lg font-bold text-violet">Status & Visibility</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-[#fafafa] px-4 py-3">
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-mist px-4 py-3">
                   <input
                     type="checkbox"
                     checked={form.isActive}
@@ -844,7 +844,7 @@ export default function AdminProductFormPage() {
                   <span className="text-sm font-medium text-charcoal-80">Active</span>
                 </label>
 
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-[#fafafa] px-4 py-3">
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-mist px-4 py-3">
                   <input
                     type="checkbox"
                     checked={form.isFeatured}
@@ -854,7 +854,7 @@ export default function AdminProductFormPage() {
                   <span className="text-sm font-medium text-charcoal-80">Featured</span>
                 </label>
 
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-[#fafafa] px-4 py-3">
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-mist px-4 py-3">
                   <input
                     type="checkbox"
                     checked={form.isNew}
@@ -874,7 +874,7 @@ export default function AdminProductFormPage() {
               </p>
 
               {!isEdit ? (
-                <div className="mt-4 rounded-xl border border-[#e7dce8] bg-[#fafafa] px-4 py-3 text-sm text-charcoal-80/70">
+                <div className="mt-4 rounded-xl border border-[#e7dce8] bg-mist px-4 py-3 text-sm text-charcoal-80/70">
                   Save the product first, then upload files.
                 </div>
               ) : (
@@ -887,7 +887,7 @@ export default function AdminProductFormPage() {
                         placeholder="e.g. Main Package v1.0"
                         value={fileLabel}
                         onChange={(e) => setFileLabel(e.target.value)}
-                        className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 text-sm outline-none"
+                        className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 text-sm outline-none"
                       />
                     </div>
 
@@ -898,7 +898,7 @@ export default function AdminProductFormPage() {
                         placeholder="e.g. 1.0"
                         value={fileVersion}
                         onChange={(e) => setFileVersion(e.target.value)}
-                        className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 text-sm outline-none"
+                        className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 text-sm outline-none"
                       />
                     </div>
 
@@ -907,7 +907,7 @@ export default function AdminProductFormPage() {
                       <input
                         type="file"
                         onChange={(e) => setFileUpload(e.target.files?.[0] || null)}
-                        className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-2.5 text-sm outline-none"
+                        className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-2.5 text-sm outline-none"
                       />
                     </div>
                   </div>
@@ -923,7 +923,7 @@ export default function AdminProductFormPage() {
 
                   <div className="space-y-3">
                     {(form.files || []).length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-[#fafafa] px-4 py-3 text-sm text-charcoal-80/70">
+                      <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/70">
                         No product files uploaded yet.
                       </div>
                     ) : (
@@ -936,7 +936,7 @@ export default function AdminProductFormPage() {
                         return (
                           <div
                             key={file.id}
-                            className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4 md:flex-row md:items-center md:justify-between"
+                            className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4 md:flex-row md:items-center md:justify-between"
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               {/* Colored file-type icon chip */}
@@ -1006,7 +1006,7 @@ export default function AdminProductFormPage() {
               </p>
 
               {!isEdit ? (
-                <div className="mt-4 rounded-xl border border-[#e7dce8] bg-[#fafafa] px-4 py-3 text-sm text-charcoal-80/70">
+                <div className="mt-4 rounded-xl border border-[#e7dce8] bg-mist px-4 py-3 text-sm text-charcoal-80/70">
                   Save the product first, then upload images.
                 </div>
               ) : (
@@ -1019,7 +1019,7 @@ export default function AdminProductFormPage() {
                         placeholder="Describe the image for accessibility"
                         value={imageAltText}
                         onChange={(e) => setImageAltText(e.target.value)}
-                        className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 text-sm outline-none"
+                        className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 text-sm outline-none"
                       />
                     </div>
 
@@ -1029,7 +1029,7 @@ export default function AdminProductFormPage() {
                         type="file"
                         accept="image/*"
                         onChange={(e) => setImageUpload(e.target.files?.[0] || null)}
-                        className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-2.5 text-sm outline-none"
+                        className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-2.5 text-sm outline-none"
                       />
                     </div>
                   </div>
@@ -1045,7 +1045,7 @@ export default function AdminProductFormPage() {
 
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {(form.images || []).length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-[#fafafa] px-4 py-3 text-sm text-charcoal-80/70">
+                      <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/70">
                         No product images uploaded yet.
                       </div>
                     ) : (
@@ -1054,7 +1054,7 @@ export default function AdminProductFormPage() {
                         .map((image, idx) => (
                           <div
                             key={image.id || image.url}
-                            className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-[#fafafa]"
+                            className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-mist"
                           >
                             <div className="aspect-[4/3] bg-white">
                               <img

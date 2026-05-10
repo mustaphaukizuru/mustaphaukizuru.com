@@ -14,8 +14,11 @@ export default function AuthLayout({ children }) {
     <div
       className="min-h-screen overflow-x-hidden"
       style={{
+        // Brand v3.1 · violet-tinted dawn wash. All three stops now flow
+        // from the canonical palette (mist → violet-ghost → slate-100)
+        // so the auth surface stays brand-locked when @theme updates.
         background:
-          "linear-gradient(145deg, var(--color-mist) 0%, #f0e9f3 50%, #EFF1F5 100%)",
+          "linear-gradient(145deg, var(--color-mist) 0%, var(--color-violet-ghost) 50%, var(--color-slate-100) 100%)",
       }}
     >
       {children}

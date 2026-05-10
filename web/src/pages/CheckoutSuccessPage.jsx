@@ -325,7 +325,7 @@ export default function CheckoutSuccessPage() {
                       const dls = downloadsByProduct[productId] || []
 
                       return (
-                        <div key={item.id || productId} className="rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4">
+                        <div key={item.id || productId} className="rounded-xl border border-charcoal-80/10 bg-mist p-4">
                           <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0 flex-1">
                               <div className="text-meta font-semibold text-violet">{title}</div>

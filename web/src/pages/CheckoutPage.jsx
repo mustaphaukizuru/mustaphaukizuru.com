@@ -83,7 +83,7 @@ function OrderItem({ item }) {
     : null
   const [imgBroken, setImgBroken] = useState(false)
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/8 bg-[#fafafa] p-3">
+    <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/8 bg-mist p-3">
       <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-violet-pale">
         {imgUrl && !imgBroken ? (
           <img
@@ -506,7 +506,7 @@ export default function CheckoutPage() {
                         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                         placeholder={t(placeholderKey)}
                         required={key === "customerName" || key === "customerEmail"}
-                        className="w-full rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-3.5 pl-10 pr-4 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
+                        className="w-full rounded-xl border border-charcoal-80/15 bg-mist py-3.5 pl-10 pr-4 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
                       />
                     </div>
                   </div>
@@ -525,7 +525,7 @@ export default function CheckoutPage() {
                       id="country"
                       value={form.country}
                       onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                      className="w-full appearance-none rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-3.5 pl-10 pr-9 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
+                      className="w-full appearance-none rounded-xl border border-charcoal-80/15 bg-mist py-3.5 pl-10 pr-9 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
                     >
                       <option value="">{t("misc.selectCountry")}</option>
                       {COUNTRY_OPTIONS.map((c) => (
@@ -547,7 +547,7 @@ export default function CheckoutPage() {
                       value={form.company}
                       onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
                       placeholder={t("form.companyPlaceholder")}
-                      className="w-full rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-3.5 pl-10 pr-4 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
+                      className="w-full rounded-xl border border-charcoal-80/15 bg-mist py-3.5 pl-10 pr-4 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
                     />
                   </div>
                 </div>
@@ -564,7 +564,7 @@ export default function CheckoutPage() {
                       onChange={(e) => setForm((f) => ({ ...f, taxId: e.target.value }))}
                       placeholder={t("form.taxIdPlaceholder")}
                       autoComplete="off"
-                      className="w-full rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-3.5 pl-10 pr-4 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
+                      className="w-full rounded-xl border border-charcoal-80/15 bg-mist py-3.5 pl-10 pr-4 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
                     />
                   </div>
                 </div>
@@ -608,7 +608,7 @@ export default function CheckoutPage() {
               {addressesLoading ? (
                 <div className="h-14 animate-pulse rounded-xl bg-violet-pale" />
               ) : addresses.length === 0 ? (
-                <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4 text-micro text-charcoal-80/70">
+                <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4 text-micro text-charcoal-80/70">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-charcoal-80/50" aria-hidden="true" />
                   <div>
                     {t("misc.noSavedAddresses")}{" "}
@@ -857,7 +857,7 @@ export default function CheckoutPage() {
                         onChange={(e) => { setCouponCode(e.target.value); setCouponError("") }}
                         placeholder={t("summary.discountPlaceholder")}
                         autoComplete="off"
-                        className="w-full rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-2.5 pl-9 pr-3 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
+                        className="w-full rounded-xl border border-charcoal-80/15 bg-mist py-2.5 pl-9 pr-3 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
                       />
                     </div>
                     <button

@@ -186,7 +186,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
 
           <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
             {/* Qty controls */}
-            <div className="flex items-center overflow-hidden rounded-xl border border-charcoal-80/12 bg-[#fafafa]">
+            <div className="flex items-center overflow-hidden rounded-xl border border-charcoal-80/12 bg-mist">
               <button
                 type="button"
                 onClick={() => onUpdateQty(item.id, item.quantity - 1)}

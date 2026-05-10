@@ -245,7 +245,7 @@ export default function DashboardOrdersPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("orders.table.searchPlaceholder")}
-                className="w-[220px] rounded-xl border border-charcoal-80/15 bg-[#fafafa] py-2.5 pl-9 pr-8 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
+                className="w-[220px] rounded-xl border border-charcoal-80/15 bg-mist py-2.5 pl-9 pr-8 text-meta text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
               />
               {search && (
                 <button
@@ -287,7 +287,7 @@ export default function DashboardOrdersPage() {
             </Link>
           </div>
         ) : filteredAndSorted.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-[#fafafa] p-6 text-center text-meta text-charcoal-80/60">
+          <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
             {t("orders.empty.noMatch")}
           </div>
         ) : (
@@ -313,7 +313,7 @@ export default function DashboardOrdersPage() {
                   return (
                     <div
                       key={order.id}
-                      className="grid grid-cols-[1.2fr_1.1fr_0.9fr_0.7fr_1fr] gap-3 border-b border-charcoal-80/8 px-4 py-4 text-meta last:border-b-0 transition hover:bg-[#fafafa]"
+                      className="grid grid-cols-[1.2fr_1.1fr_0.9fr_0.7fr_1fr] gap-3 border-b border-charcoal-80/8 px-4 py-4 text-meta last:border-b-0 transition hover:bg-mist"
                     >
                       <div className="min-w-0">
                         <div className="font-mono font-semibold tabular-nums text-violet">

@@ -201,7 +201,7 @@ function TableSkeleton({ rows = 6 }) {
   return (
     <div className="space-y-2 p-4" role="status" aria-busy="true" aria-label="Loading data">
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="h-11 animate-pulse rounded-lg bg-[#f5eff6]/60" />
+        <div key={i} className="h-11 animate-pulse rounded-lg bg-violet-ghost/60" />
       ))}
     </div>
   )
@@ -350,7 +350,7 @@ export default function DataTable({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={searchPlaceholder}
-              className="h-9 w-[220px] rounded-lg border border-charcoal-80/12 bg-[#fafafa] pl-9 pr-7 text-micro text-violet outline-none transition focus:border-violet/40 focus:bg-white focus:ring-[3px] focus:ring-azure/20"
+              className="h-9 w-[220px] rounded-lg border border-charcoal-80/12 bg-mist pl-9 pr-7 text-micro text-violet outline-none transition focus:border-violet/40 focus:bg-white focus:ring-[3px] focus:ring-azure/20"
             />
             {search && (
               <button
@@ -455,7 +455,7 @@ export default function DataTable({
                   role="row"
                   aria-rowindex={(page - 1) * pageSize + idx + 2}
                   className={`group grid items-center gap-3 border-b border-charcoal-80/6 px-4 py-3 text-meta last:border-b-0 transition ${
-                    isSelected ? "bg-violet-pale/40" : "hover:bg-[#fafafa]"
+                    isSelected ? "bg-violet-pale/40" : "hover:bg-mist"
                   } ${rowAction ? "cursor-pointer" : ""}`}
                   style={{ gridTemplateColumns: gridCols }}
                   onClick={rowAction ? () => rowAction(row) : undefined}

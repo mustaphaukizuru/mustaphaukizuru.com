@@ -305,7 +305,7 @@ function ProductRow({ product, localeTag, t, downloadingKey, onDownload }) {
                 return (
                   <div
                     key={file.id}
-                    className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4 md:flex-row md:items-center md:justify-between"
+                    className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4 md:flex-row md:items-center md:justify-between"
                   >
                     <div className="flex items-start gap-3 min-w-0">
                       <div

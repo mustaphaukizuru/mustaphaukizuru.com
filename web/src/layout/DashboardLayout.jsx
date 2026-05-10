@@ -157,7 +157,7 @@ function SidebarItem({ item }) {
           // position regardless of state.
           isActive
             ? "bg-violet-pale border-l-[4px] border-l-azure pl-[calc(0.75rem-4px)] pr-3 text-violet shadow-[inset_0_0_0_1px_rgba(93,63,211,0.06)]"
-            : "border-l-[4px] border-l-transparent pl-[calc(0.75rem-4px)] pr-3 text-charcoal-80 hover:bg-[#f5eff6] hover:text-violet",
+            : "border-l-[4px] border-l-transparent pl-[calc(0.75rem-4px)] pr-3 text-charcoal-80 hover:bg-violet-ghost hover:text-violet",
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2",
         ].join(" ")
       }
@@ -246,7 +246,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
               type="button"
               onClick={onClose}
               aria-label={t("layout.closeMenu")}
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-charcoal-80 transition hover:bg-[#f5eff6] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-charcoal-80 transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -421,7 +421,7 @@ export default function DashboardLayout() {
                   to="/"
                   aria-label={t("layout.backWebsiteAria")}
                   title={t("layout.backWebsiteAria")}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-[#f5eff6] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
                 >
                   <Globe className="h-[18px] w-[18px]" aria-hidden="true" />
                 </Link>
@@ -430,7 +430,7 @@ export default function DashboardLayout() {
                   type="button"
                   onClick={() => setMobileMenuOpen(true)}
                   aria-label={t("layout.openMenu")}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-[#f5eff6] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
                 >
                   <Menu className="h-5 w-5" aria-hidden="true" />
                 </button>
@@ -453,7 +453,7 @@ export default function DashboardLayout() {
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <label htmlFor="dashboard-search" className="sr-only">{t("layout.searchDashboard")}</label>
-                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-[#fafafa] px-4 py-3 transition focus-within:border-violet/40 focus-within:ring-[3px] focus-within:ring-azure/20">
+                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-mist px-4 py-3 transition focus-within:border-violet/40 focus-within:ring-[3px] focus-within:ring-azure/20">
                     <Search className="h-4 w-4 text-charcoal-80/45" aria-hidden="true" />
                     <input
                       id="dashboard-search"

@@ -570,7 +570,7 @@ export default function AdminPortfolioFormPage() {
               options={STATUS_OPTIONS}
             />
             <Field label="Featured" hint="Pin this project to home and portfolio.">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-[#fafafa] px-3 py-2 text-meta text-violet transition hover:bg-violet-pale">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-mist px-3 py-2 text-meta text-violet transition hover:bg-violet-pale">
                 <input
                   type="checkbox"
                   checked={form.isFeatured}

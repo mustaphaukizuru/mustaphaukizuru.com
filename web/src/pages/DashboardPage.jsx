@@ -595,7 +595,7 @@ export default function DashboardPage() {
                 <Link
                   key={p.id}
                   to={`/dashboard/projects/${p.id}`}
-                  className="rounded-xl border border-charcoal-80/8 bg-[#fafafa] p-4 transition hover:border-violet/20 hover:bg-violet-pale/30 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                  className="rounded-xl border border-charcoal-80/8 bg-mist p-4 transition hover:border-violet/20 hover:bg-violet-pale/30 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-pale text-violet">

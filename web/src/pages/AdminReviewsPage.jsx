@@ -209,7 +209,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
         )}
         {review.status !== "hidden" && (
           <button type="button" onClick={() => onQuickAction(review, "hide")} aria-label="Hide"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f5eff6] text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-ghost text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
           >
             <EyeOff className="h-4 w-4" />
           </button>
@@ -332,7 +332,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {subject && (
-            <section className="mb-5 rounded-xl border border-[#1A1B23]/10 bg-[#fafafa] p-4">
+            <section className="mb-5 rounded-xl border border-[#1A1B23]/10 bg-mist p-4">
               <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#1A1B23]/55">
                 {review.subjectType === "service" ? "Service" : "Product"}
               </div>
@@ -423,7 +423,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             )}
             {review.status !== "hidden" && (
               <button type="button" onClick={() => setStatus("hidden")} disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#f5eff6] px-3.5 py-2 text-[12px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB] disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-violet-ghost px-3.5 py-2 text-[12px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB] disabled:opacity-60"
               >
                 <EyeOff className="h-3.5 w-3.5" /> Hide
               </button>
@@ -470,7 +470,7 @@ function BulkBar({ count, onAction, onClear, busy }) {
         <button onClick={() => onAction("approve")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-[#e5f4e8] px-3 py-1.5 text-[12px] font-semibold text-[#3b8f47] hover:bg-[#d4ebd9] disabled:opacity-60">
           <CheckCircle2 className="h-3.5 w-3.5" /> Approve
         </button>
-        <button onClick={() => onAction("hide")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-[#f5eff6] px-3 py-1.5 text-[12px] font-semibold text-[#5D3FD3] hover:bg-[#EDE9FB] disabled:opacity-60">
+        <button onClick={() => onAction("hide")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-violet-ghost px-3 py-1.5 text-[12px] font-semibold text-[#5D3FD3] hover:bg-[#EDE9FB] disabled:opacity-60">
           <EyeOff className="h-3.5 w-3.5" /> Hide
         </button>
         <button onClick={() => onAction("reject")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-rose-50 px-3 py-1.5 text-[12px] font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60">
@@ -656,7 +656,7 @@ export default function AdminReviewsPage() {
 
       {loading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-[#f5eff6]" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-violet-ghost" />)}
         </div>
       ) : visible.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#1A1B23]/20 bg-white p-10 text-center">

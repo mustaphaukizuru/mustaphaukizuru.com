@@ -619,7 +619,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
               placeholder="e.g. 1"
             />
             <Field label="Stackable" hint="Allows combining with other coupons">
-              <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-[#fafafa] px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">
+              <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-mist px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">
                 <input
                   type="checkbox"
                   checked={form.stackable}
@@ -647,7 +647,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
           </div>
 
           <Field label="Active">
-            <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-[#fafafa] px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">
+            <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-mist px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">
               <input
                 type="checkbox"
                 checked={form.isActive}
@@ -749,7 +749,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
           ) : (
             <ul className="space-y-3">
               {rows.map((row) => (
-                <li key={row.id} className="rounded-xl border border-charcoal-80/8 bg-[#fafafa] p-4">
+                <li key={row.id} className="rounded-xl border border-charcoal-80/8 bg-mist p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="truncate text-meta font-medium text-violet">

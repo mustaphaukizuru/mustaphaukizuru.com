@@ -162,7 +162,7 @@ export default function AdminPortfolioPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search title, slug, or category…"
             aria-label="Search portfolio"
-            className="h-9 w-full rounded-lg border border-charcoal-80/12 bg-[#fafafa] pl-9 pr-7 text-micro text-violet outline-none transition focus:border-violet/40 focus:bg-white focus:ring-[3px] focus:ring-azure/20"
+            className="h-9 w-full rounded-lg border border-charcoal-80/12 bg-mist pl-9 pr-7 text-micro text-violet outline-none transition focus:border-violet/40 focus:bg-white focus:ring-[3px] focus:ring-azure/20"
           />
           {query && (
             <button

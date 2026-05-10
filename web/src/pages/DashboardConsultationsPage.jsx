@@ -248,7 +248,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                     if (month === 1) { setMonth(12); setYear((y) => y - 1) }
                     else { setMonth((m) => m - 1) }
                   }}
-                  className="rounded-xl px-3 py-2 text-[13px] font-semibold text-[#5D3FD3] hover:bg-[#f5eff6]"
+                  className="rounded-xl px-3 py-2 text-[13px] font-semibold text-[#5D3FD3] hover:bg-violet-ghost"
                 >
                   {t("consultations.rescheduleDrawer.prev")}
                 </button>
@@ -259,7 +259,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                     if (month === 12) { setMonth(1); setYear((y) => y + 1) }
                     else { setMonth((m) => m + 1) }
                   }}
-                  className="rounded-xl px-3 py-2 text-[13px] font-semibold text-[#5D3FD3] hover:bg-[#f5eff6]"
+                  className="rounded-xl px-3 py-2 text-[13px] font-semibold text-[#5D3FD3] hover:bg-violet-ghost"
                 >
                   {t("consultations.rescheduleDrawer.next")}
                 </button>
@@ -267,7 +267,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
 
               {daysLoading ? (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {[1,2,3,4,5,6,7,8].map((i) => <div key={i} className="h-10 animate-pulse rounded-xl bg-[#f5eff6]" />)}
+                  {[1,2,3,4,5,6,7,8].map((i) => <div key={i} className="h-10 animate-pulse rounded-xl bg-violet-ghost" />)}
                 </div>
               ) : days.length === 0 ? (
                 <p className="text-center text-[12px] text-[#1A1B23]/60">{t("consultations.rescheduleDrawer.noDays")}</p>
@@ -282,7 +282,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                         "rounded-xl border px-3 py-2.5 text-[12px] font-semibold transition",
                         date === d
                           ? "border-transparent bg-[#5D3FD3] text-white"
-                          : "border-[#5D3FD3]/15 bg-white text-[#5D3FD3] hover:bg-[#f5eff6]",
+                          : "border-[#5D3FD3]/15 bg-white text-[#5D3FD3] hover:bg-violet-ghost",
                       ].join(" ")}
                     >
                       {new Date(`${d}T12:00:00Z`).toLocaleDateString(localeTag, { weekday: "short", month: "short", day: "numeric", timeZone: tz })}
@@ -298,7 +298,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                   </div>
                   {slotsLoading ? (
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                      {[1,2,3,4,5,6].map((i) => <div key={i} className="h-10 animate-pulse rounded-xl bg-[#f5eff6]" />)}
+                      {[1,2,3,4,5,6].map((i) => <div key={i} className="h-10 animate-pulse rounded-xl bg-violet-ghost" />)}
                     </div>
                   ) : slots.length === 0 ? (
                     <p className="text-[12px] text-[#1A1B23]/60">{t("consultations.rescheduleDrawer.noTimes")}</p>
