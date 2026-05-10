@@ -131,6 +131,38 @@ async function notifyReviewPosted(userId, productTitle) {
   })
 }
 
+// ── Projects (Phase 6 — auto-created from paid service orders) ──
+
+/**
+ * Fires when a ClientProject is auto-created from a paid ServiceOrder.
+ * The link lands on the new project's detail page so the client can see
+ * the milestone scaffold right away.
+ */
+async function notifyProjectCreated(userId, project) {
+  if (!userId || !project?.id) return null
+  return notify(userId, {
+    type: "system",
+    title: "Your project workspace is ready",
+    message: `${project.projectName || "Your project"} is set up with a planning timeline. Track milestones and deliverables from your dashboard.`,
+    linkUrl: `/dashboard/projects/${project.id}`,
+  })
+}
+
+/**
+ * In-app counterpart of the project.milestone-completed email — gives the
+ * client a notification badge in addition to the email when admin marks a
+ * milestone done.
+ */
+async function notifyProjectMilestoneCompleted(userId, { project, milestone }) {
+  if (!userId || !project?.id || !milestone?.title) return null
+  return notify(userId, {
+    type: "system",
+    title: `${milestone.title} · completed`,
+    message: `Milestone "${milestone.title}" on ${project.projectName || "your project"} is marked complete.`,
+    linkUrl: `/dashboard/projects/${project.id}`,
+  })
+}
+
 // ── Contact ──
 
 async function notifyContactReceived(email) {
@@ -166,4 +198,6 @@ module.exports = {
   notifySupportReply,
   notifyReviewPosted,
   notifyContactReceived,
+  notifyProjectCreated,
+  notifyProjectMilestoneCompleted,
 }

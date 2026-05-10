@@ -1,5 +1,47 @@
 const prisma = require("../lib/prisma")
 const { ensureInvoice } = require("./invoiceService")
+const { notifyProjectCreated } = require("./notificationService")
+
+/**
+ * Default milestone scaffold seeded on every newly auto-created ClientProject.
+ * Five generic phases covering the full engagement lifecycle — admins can
+ * add, rename, delete, or reorder milestones from the admin project page;
+ * this is just the day-zero starting point so the customer sees a populated
+ * timeline immediately after payment rather than an empty page.
+ */
+const MILESTONE_SCAFFOLD = [
+  { title: "Discovery & Planning", description: "Requirements gathering, scope confirmation, and kickoff alignment." },
+  { title: "Design",                description: "Wireframes, visual design, and stakeholder review." },
+  { title: "Development",           description: "Implementation, integrations, and iterative reviews." },
+  { title: "QA & Testing",          description: "Cross-device QA, accessibility checks, and final corrections." },
+  { title: "Launch",                description: "Deployment, handoff documentation, and post-launch support." },
+]
+
+/**
+ * Seed the default 5-stage milestone scaffold on a freshly created project.
+ * Caller guarantees the project has zero milestones — only invoke from the
+ * branch of autoCreateClientProjectsForOrder where `clientProject.create`
+ * just succeeded (not P2002'd). Idempotency is enforced by that branch,
+ * not by a unique constraint on (projectId, title).
+ */
+async function seedMilestoneScaffold(projectId) {
+  if (!projectId) return 0
+  try {
+    const result = await prisma.projectMilestone.createMany({
+      data: MILESTONE_SCAFFOLD.map((m, i) => ({
+        projectId,
+        title:       m.title,
+        description: m.description,
+        status:      "pending",
+        sortOrder:   i,
+      })),
+    })
+    return result.count
+  } catch (e) {
+    console.error(`[fulfillOrder] milestone scaffold failed for project ${projectId}:`, e.message)
+    return 0
+  }
+}
 
 /**
  * fulfillOrder — central hook that runs every time an order transitions to
@@ -133,7 +175,7 @@ async function autoCreateClientProjectsForOrder(orderId, userId) {
     })
     for (const so of serviceOrders) {
       try {
-        await prisma.clientProject.create({
+        const project = await prisma.clientProject.create({
           data: {
             serviceOrderId: so.id,
             userId,
@@ -143,6 +185,15 @@ async function autoCreateClientProjectsForOrder(orderId, userId) {
           },
         })
         created++
+
+        // Freshly created project — seed the milestone scaffold and notify
+        // the client. Both are best-effort: failures here don't bounce the
+        // webhook because the project itself is already persisted. The
+        // P2002 branch below skips both side-effects on re-runs, which is
+        // the correct behaviour (we don't want duplicate scaffolds or
+        // repeat notifications on webhook retries).
+        await seedMilestoneScaffold(project.id).catch(() => 0)
+        await notifyProjectCreated(userId, project).catch(() => null)
       } catch (e) {
         if (e?.code !== "P2002") {
           console.error(`[fulfillOrder] auto-project failed for serviceOrder ${so.id}:`, e.message)

@@ -9,6 +9,7 @@ const {
   VALID_PROJECT_STATUSES, VALID_MILESTONE_STATUSES,
 } = require("../services/clientProjectService")
 const { sendTemplateEmail } = require("../services/emailService")
+const { notifyProjectMilestoneCompleted } = require("../services/notificationService")
 
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
 function badRequest(res, message)        { return res.status(400).json({ success: false, error: { code: "VALIDATION_ERROR", message } }) }
@@ -76,11 +77,12 @@ const addMilestone = asyncHandler(async (req, res) => {
 const patchMilestone = asyncHandler(async (req, res) => {
   try {
     const { milestone, project, isNewlyComplete } = await updateMilestone(req.params.milestoneId, req.body)
-    // Fire customer email when admin marks a milestone done — first transition only.
+    // Fire customer email + in-app notification when admin marks a milestone
+    // done — first transition only so a re-save with no change doesn't spam.
     if (isNewlyComplete) {
       const dashboardUrl = `${(process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")}/dashboard/projects/${project.id}`
       sendTemplateEmail({
-      locale: resolveUserLocale({ req }),
+        locale: resolveUserLocale({ req }),
         to:          (await fetchUserEmail(project.userId)),
         templateKey: "project.milestone-completed",
         userId:      project.userId,
@@ -90,6 +92,9 @@ const patchMilestone = asyncHandler(async (req, res) => {
           dashboardUrl,
         },
       }).catch((err) => logger.error("[milestone] customer email failed:", err.message))
+
+      notifyProjectMilestoneCompleted(project.userId, { project, milestone })
+        .catch((err) => logger.error("[milestone] in-app notification failed:", err.message))
     }
     res.status(200).json({ success: true, data: milestone })
   } catch (e) {
