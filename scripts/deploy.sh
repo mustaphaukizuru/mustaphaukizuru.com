@@ -9,7 +9,7 @@
 # Or via npm: `npm run deploy`
 #
 # What it does:
-#   1. Pull latest from main
+#   1. Pull latest from master
 #   2. Install backend deps (omit dev)
 #   3. Install + build frontend (uses build:seo if present, else build)
 #   4. Generate Prisma Client
@@ -38,7 +38,7 @@ PORT="${PORT:-3000}"
 APP_NAME="${APP_NAME:-mustaphaukizuru}"
 
 echo "▸ Pulling latest..."
-git pull origin main
+git pull origin master
 
 echo "▸ Installing backend deps..."
 npm ci --omit=dev
