@@ -82,26 +82,26 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
           />
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-            className="fixed left-1/2 top-1/2 z-[70] w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[#1A1B23]/10 bg-white p-5 shadow-[0_20px_50px_rgba(93,63,211,0.18)] sm:p-6"
+            className="fixed left-1/2 top-1/2 z-[70] w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-charcoal/10 bg-white p-5 shadow-[0_20px_50px_rgba(93,63,211,0.18)] sm:p-6"
           >
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-red-600">{t("consultations.cancelModal.eyebrow")}</div>
-                <h3 className="mt-1 text-[18px] font-bold text-[#5D3FD3]">{t("consultations.cancelModal.title")}</h3>
+                <h3 className="mt-1 text-[18px] font-bold text-violet">{t("consultations.cancelModal.title")}</h3>
               </div>
-              <button onClick={onClose} aria-label={t("consultations.cancelModal.close")} className="text-[#1A1B23]/55 hover:text-[#5D3FD3]">
+              <button onClick={onClose} aria-label={t("consultations.cancelModal.close")} className="text-charcoal/55 hover:text-violet">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {consultation && (
-              <div className="mt-3 rounded-xl bg-[#F5F2FE] p-3 text-[12.5px] text-[#1A1B23]/85">
+              <div className="mt-3 rounded-xl bg-violet-ghost p-3 text-[12.5px] text-charcoal/85">
                 {formatDateTime(consultation.scheduledAt, consultation.timezone)}
               </div>
             )}
 
-            <label htmlFor="cx-reason" className="mt-4 block text-[12px] font-semibold text-[#5D3FD3]">
-              {t("consultations.cancelModal.reasonLabel")} <span className="font-normal text-[#1A1B23]/55">{t("consultations.cancelModal.optional")}</span>
+            <label htmlFor="cx-reason" className="mt-4 block text-[12px] font-semibold text-violet">
+              {t("consultations.cancelModal.reasonLabel")} <span className="font-normal text-charcoal/55">{t("consultations.cancelModal.optional")}</span>
             </label>
             <textarea
               id="cx-reason"
@@ -110,7 +110,7 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
               rows={3}
               maxLength={500}
               placeholder={t("consultations.cancelModal.reasonPlaceholder")}
-              className="mt-1.5 w-full rounded-xl border border-[#1A1B23]/15 bg-white px-3 py-2.5 text-[13px] text-[#5D3FD3] outline-none transition focus:border-[#5D3FD3]"
+              className="mt-1.5 w-full rounded-xl border border-charcoal/15 bg-white px-3 py-2.5 text-[13px] text-violet outline-none transition focus:border-violet"
             />
 
             {error && (
@@ -123,7 +123,7 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-[#1A1B23]/15 bg-white px-4 py-2.5 text-[13px] font-semibold text-[#1A1B23] transition hover:bg-[#F5F2FE]"
+                className="rounded-xl border border-charcoal/15 bg-white px-4 py-2.5 text-[13px] font-semibold text-charcoal transition hover:bg-violet-ghost"
               >
                 {t("consultations.cancelModal.keep")}
               </button>
@@ -224,15 +224,15 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
             transition={{ type: "tween", duration: 0.3 }}
             className="fixed inset-y-0 right-0 z-[70] flex w-full max-w-xl flex-col overflow-y-auto bg-white shadow-2xl"
           >
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#1A1B23]/10 bg-white px-5 py-4">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-charcoal/10 bg-white px-5 py-4">
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5D3FD3]">{t("consultations.rescheduleDrawer.eyebrow")}</div>
-                <h3 className="mt-1 text-[16px] font-bold text-[#5D3FD3]">{t("consultations.rescheduleDrawer.title")}</h3>
-                <p className="mt-0.5 text-[11px] text-[#1A1B23]/60">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">{t("consultations.rescheduleDrawer.eyebrow")}</div>
+                <h3 className="mt-1 text-[16px] font-bold text-violet">{t("consultations.rescheduleDrawer.title")}</h3>
+                <p className="mt-0.5 text-[11px] text-charcoal/60">
                   {t("consultations.rescheduleDrawer.currently", { when: formatDateTime(consultation.scheduledAt, tz) })}
                 </p>
               </div>
-              <button onClick={onClose} aria-label={t("consultations.rescheduleDrawer.close")} className="text-[#1A1B23]/55 hover:text-[#5D3FD3]">
+              <button onClick={onClose} aria-label={t("consultations.rescheduleDrawer.close")} className="text-charcoal/55 hover:text-violet">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -248,18 +248,18 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                     if (month === 1) { setMonth(12); setYear((y) => y - 1) }
                     else { setMonth((m) => m - 1) }
                   }}
-                  className="rounded-xl px-3 py-2 text-[13px] font-semibold text-[#5D3FD3] hover:bg-violet-ghost"
+                  className="rounded-xl px-3 py-2 text-[13px] font-semibold text-violet hover:bg-violet-ghost"
                 >
                   {t("consultations.rescheduleDrawer.prev")}
                 </button>
-                <div className="text-[13px] font-bold text-[#5D3FD3]">{year} · {String(month).padStart(2, "0")}</div>
+                <div className="text-[13px] font-bold text-violet">{year} · {String(month).padStart(2, "0")}</div>
                 <button
                   type="button"
                   onClick={() => {
                     if (month === 12) { setMonth(1); setYear((y) => y + 1) }
                     else { setMonth((m) => m + 1) }
                   }}
-                  className="rounded-xl px-3 py-2 text-[13px] font-semibold text-[#5D3FD3] hover:bg-violet-ghost"
+                  className="rounded-xl px-3 py-2 text-[13px] font-semibold text-violet hover:bg-violet-ghost"
                 >
                   {t("consultations.rescheduleDrawer.next")}
                 </button>
@@ -270,7 +270,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                   {[1,2,3,4,5,6,7,8].map((i) => <div key={i} className="h-10 animate-pulse rounded-xl bg-violet-ghost" />)}
                 </div>
               ) : days.length === 0 ? (
-                <p className="text-center text-[12px] text-[#1A1B23]/60">{t("consultations.rescheduleDrawer.noDays")}</p>
+                <p className="text-center text-[12px] text-charcoal/60">{t("consultations.rescheduleDrawer.noDays")}</p>
               ) : (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                   {days.map((d) => (
@@ -281,8 +281,8 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                       className={[
                         "rounded-xl border px-3 py-2.5 text-[12px] font-semibold transition",
                         date === d
-                          ? "border-transparent bg-[#5D3FD3] text-white"
-                          : "border-[#5D3FD3]/15 bg-white text-[#5D3FD3] hover:bg-violet-ghost",
+                          ? "border-transparent bg-violet text-white"
+                          : "border-violet/15 bg-white text-violet hover:bg-violet-ghost",
                       ].join(" ")}
                     >
                       {new Date(`${d}T12:00:00Z`).toLocaleDateString(localeTag, { weekday: "short", month: "short", day: "numeric", timeZone: tz })}
@@ -293,7 +293,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
 
               {date && (
                 <div className="mt-5">
-                  <div className="mb-2 text-[12px] font-semibold text-[#5D3FD3]">
+                  <div className="mb-2 text-[12px] font-semibold text-violet">
                     {t("consultations.rescheduleDrawer.timesOn", { date: formatLongDate(`${date}T12:00:00Z`, tz) })}
                   </div>
                   {slotsLoading ? (
@@ -301,7 +301,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                       {[1,2,3,4,5,6].map((i) => <div key={i} className="h-10 animate-pulse rounded-xl bg-violet-ghost" />)}
                     </div>
                   ) : slots.length === 0 ? (
-                    <p className="text-[12px] text-[#1A1B23]/60">{t("consultations.rescheduleDrawer.noTimes")}</p>
+                    <p className="text-[12px] text-charcoal/60">{t("consultations.rescheduleDrawer.noTimes")}</p>
                   ) : (
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                       {slots.map((s) => (
@@ -310,7 +310,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                           type="button"
                           disabled={submitting}
                           onClick={() => handlePickSlot(s)}
-                          className="rounded-xl border border-[#5D3FD3]/15 bg-white px-3 py-2.5 text-[13px] font-semibold text-[#5D3FD3] transition hover:bg-[#5D3FD3] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-xl border border-violet/15 bg-white px-3 py-2.5 text-[13px] font-semibold text-violet transition hover:bg-violet hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {formatTime(s.startUtc, tz)}
                         </button>
@@ -351,27 +351,27 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
   const serviceTitle = c.service?.title || t("consultations.row.fallbackService")
 
   return (
-    <div className="rounded-xl border border-[#1A1B23]/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:shadow-[0_8px_24px_rgba(93,63,211,0.08)] sm:p-5">
+    <div className="rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:shadow-[0_8px_24px_rgba(93,63,211,0.08)] sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={c.status} />
-            <span className="text-[11px] text-[#1A1B23]/55">{serviceTitle}</span>
+            <span className="text-[11px] text-charcoal/55">{serviceTitle}</span>
           </div>
-          <div className="mt-2 text-[15px] font-bold text-[#5D3FD3]">
+          <div className="mt-2 text-[15px] font-bold text-violet">
             {formatDateTime(c.scheduledAt, tz)}
           </div>
-          <div className="mt-0.5 text-[11.5px] text-[#1A1B23]/65">
+          <div className="mt-0.5 text-[11.5px] text-charcoal/65">
             {t("consultations.row.minutesWith", { minutes, name: hostName })}
           </div>
           {c.clientNotes && (
-            <p className="mt-2 line-clamp-2 text-[12px] text-[#1A1B23]/75">
-              <span className="font-semibold text-[#5D3FD3]">{t("consultations.row.notesPrefix")} </span>{c.clientNotes}
+            <p className="mt-2 line-clamp-2 text-[12px] text-charcoal/75">
+              <span className="font-semibold text-violet">{t("consultations.row.notesPrefix")} </span>{c.clientNotes}
             </p>
           )}
           {c.cancellationReason && (
-            <p className="mt-2 text-[12px] text-[#1A1B23]/65">
-              <span className="font-semibold text-[#5D3FD3]">{t("consultations.row.reasonPrefix")} </span>{c.cancellationReason}
+            <p className="mt-2 text-[12px] text-charcoal/65">
+              <span className="font-semibold text-violet">{t("consultations.row.reasonPrefix")} </span>{c.cancellationReason}
             </p>
           )}
         </div>
@@ -381,7 +381,7 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
             <a
               href={c.meetingLink}
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#5D3FD3] px-3.5 py-2 text-[12px] font-semibold text-white shadow-[0_8px_20px_rgba(93,63,211,0.22)] transition hover:bg-[#4A2EAB]"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-violet px-3.5 py-2 text-[12px] font-semibold text-white shadow-[0_8px_20px_rgba(93,63,211,0.22)] transition hover:bg-violet-deep"
             >
               <Video className="h-3.5 w-3.5" /> {t("consultations.row.joinMeeting")}
             </a>
@@ -389,7 +389,7 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
             <a
               href={c.meetingLink}
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#5D3FD3]/15 bg-white px-3.5 py-2 text-[12px] font-semibold text-[#5D3FD3] transition hover:bg-[#F5F2FE]"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-violet/15 bg-white px-3.5 py-2 text-[12px] font-semibold text-violet transition hover:bg-violet-ghost"
             >
               <ExternalLink className="h-3.5 w-3.5" /> {t("consultations.row.viewLink")}
             </a>
@@ -400,7 +400,7 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
               <button
                 type="button"
                 onClick={() => onReschedule(c)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#5D3FD3]/15 bg-white px-3.5 py-2 text-[12px] font-semibold text-[#5D3FD3] transition hover:bg-[#F5F2FE]"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-violet/15 bg-white px-3.5 py-2 text-[12px] font-semibold text-violet transition hover:bg-violet-ghost"
               >
                 <RefreshCw className="h-3.5 w-3.5" /> {t("consultations.row.reschedule")}
               </button>
@@ -497,7 +497,7 @@ export default function DashboardConsultationsPage() {
         action={
           <Link
             to="/book"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#5D3FD3] px-3.5 py-2 text-[12px] font-semibold text-white shadow-[0_6px_16px_rgba(93,63,211,0.2)] transition hover:bg-[#4A2EAB]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-3.5 py-2 text-[12px] font-semibold text-white shadow-[0_6px_16px_rgba(93,63,211,0.2)] transition hover:bg-violet-deep"
           >
             <Calendar className="h-3.5 w-3.5" /> {t("consultations.section.bookCall")}
           </Link>
@@ -508,7 +508,7 @@ export default function DashboardConsultationsPage() {
             icon={Calendar}
             title={t("consultations.empty.title")}
             description={t("consultations.empty.body")}
-            action={<Link to="/book" className="inline-flex items-center gap-1.5 rounded-xl bg-[#5D3FD3] px-4 py-2 text-[13px] font-semibold text-white">{t("consultations.empty.bookCall")}</Link>}
+            action={<Link to="/book" className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-[13px] font-semibold text-white">{t("consultations.empty.bookCall")}</Link>}
           />
         ) : (
           <div className="space-y-3">

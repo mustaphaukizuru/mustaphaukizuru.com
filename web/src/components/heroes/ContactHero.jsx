@@ -81,11 +81,11 @@ const TRUST_PILLS = [
 /* ── Day-status visual tokens (brand-aligned) ─────────────────────── */
 const DAY_STYLE = {
   empty: { wrap: "invisible", num: "" },
-  weekend: { wrap: "bg-[#F5F2FE]/70", num: "!text-[#1A1B23]/45" },
-  available:{ wrap: "bg-white ring-1 ring-[#82d96a]/45", num: "!text-[#5D3FD3]" },
-  today: { wrap: "bg-[#E9C46A] shadow-[0_6px_18px_rgba(233,196,106,0.55)]", num: "!text-[#5D3FD3] font-extrabold" },
-  booked: { wrap: "bg-[#5D3FD3]", num: "!text-white" },
-  kickoff: { wrap: "bg-[#EDE9FB] ring-1 ring-[#5D3FD3]/55", num: "!text-[#5D3FD3]" },
+  weekend: { wrap: "bg-violet-ghost/70", num: "!text-charcoal/45" },
+  available:{ wrap: "bg-white ring-1 ring-[#82d96a]/45", num: "!text-violet" },
+  today: { wrap: "bg-terracotta shadow-[0_6px_18px_rgba(233,196,106,0.55)]", num: "!text-violet font-extrabold" },
+  booked: { wrap: "bg-violet", num: "!text-white" },
+  kickoff: { wrap: "bg-violet-pale ring-1 ring-violet/55", num: "!text-violet" },
   progress: { wrap: "bg-[#fed978]", num: "!text-[#5a4506]" },
   review: { wrap: "bg-[#dbe4ff]", num: "!text-[#1d3a8a]" },
   deployed: { wrap: "bg-[#82d96a]", num: "!text-[#1f3508] font-extrabold" },
@@ -120,7 +120,7 @@ const DAYS = [
 /* ── Bottom-of-card legend ───────────────────────────────────────── */
 const LEGEND = [
   { key: "available", labelKey: "hero.legendOpenSlot", swatch: "bg-white ring-1 ring-[#82d96a]" },
-  { key: "booked", labelKey: "hero.legendBooked", swatch: "bg-[#5D3FD3]" },
+  { key: "booked", labelKey: "hero.legendBooked", swatch: "bg-violet" },
   { key: "progress", labelKey: "hero.legendInProgress", swatch: "bg-[#fed978]" },
   { key: "review", labelKey: "hero.legendInReview", swatch: "bg-[#dbe4ff]" },
   { key: "deployed", labelKey: "hero.legendDeployed", swatch: "bg-[#82d96a]" },
@@ -153,7 +153,7 @@ function DayCell({ day, kind, idx, reduce }) {
           aria-hidden="true"
           animate={{ scale: [1, 1.18, 1], opacity: [0.7, 0, 0.7] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-          className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-[#5D3FD3]"
+          className="pointer-events-none absolute inset-0 rounded-lg ring-2 ring-violet"
         />
       )}
 
@@ -182,7 +182,7 @@ function DayCell({ day, kind, idx, reduce }) {
 
       {/* KICKOFF, rocket micro-icon */}
       {kind === "kickoff" && (
-        <Rocket aria-hidden="true" className="absolute right-1 top-1 h-2.5 w-2.5 !text-[#5D3FD3]" />
+        <Rocket aria-hidden="true" className="absolute right-1 top-1 h-2.5 w-2.5 !text-violet" />
       )}
 
       {/* IN PROGRESS, left-to-right shimmer to convey activity */}
@@ -279,24 +279,24 @@ function BookingCalendar({ reduce }) {
         </svg>
 
         {/* ── Decorative sparkles around the card ────────────────── */}
-        <Sparkles aria-hidden="true" className="pointer-events-none absolute -left-5 top-1/3 h-5 w-5 !text-[#E9C46A]" />
-        <Sparkles aria-hidden="true" className="pointer-events-none absolute -right-3 top-2/3 h-3.5 w-3.5 !text-[#E9C46A]/70" />
-        <Sparkles aria-hidden="true" className="pointer-events-none absolute -left-3 bottom-12 h-3 w-3 !text-[#E9C46A]/80" />
+        <Sparkles aria-hidden="true" className="pointer-events-none absolute -left-5 top-1/3 h-5 w-5 !text-terracotta" />
+        <Sparkles aria-hidden="true" className="pointer-events-none absolute -right-3 top-2/3 h-3.5 w-3.5 !text-terracotta/70" />
+        <Sparkles aria-hidden="true" className="pointer-events-none absolute -left-3 bottom-12 h-3 w-3 !text-terracotta/80" />
 
         {/* ════════ MAIN CARD ════════ */}
         <div className="relative z-10 overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-black/5">
 
           {/* Card header · eyebrow + title + 3-step stepper */}
-          <div className="flex items-start justify-between gap-3 border-b border-[#5D3FD3]/10 px-6 pt-3.5 pb-2.5">
+          <div className="flex items-start justify-between gap-3 border-b border-violet/10 px-6 pt-3.5 pb-2.5">
             <div className="min-w-0">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDE9FB] px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.18em] !text-[#5D3FD3]">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.18em] !text-violet">
                 Booking <span aria-hidden="true">·</span> {t("hero.discoveryCall")}
               </span>
-              <h3 className="mt-1.5 text-[17px] font-bold leading-tight !text-[#5D3FD3]">
+              <h3 className="mt-1.5 text-[17px] font-bold leading-tight !text-violet">
                 {t("hero.scheduleCall")}
               </h3>
             </div>
-            <ol className="flex shrink-0 items-center gap-1 pt-0.5 text-[10px] font-semibold !text-[#1A1B23]">
+            <ol className="flex shrink-0 items-center gap-1 pt-0.5 text-[10px] font-semibold !text-charcoal">
               {[
                 { n: 1, label: "Date", active: true },
                 { n: 2, label: "Time", active: false },
@@ -316,22 +316,22 @@ function BookingCalendar({ reduce }) {
                     transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                     className={[
                       "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold",
-                      active ? "bg-[#5D3FD3] !text-white" : "bg-[#EDE9FB] !text-[#5D3FD3]/55",
+                      active ? "bg-violet !text-white" : "bg-violet-pale !text-violet/55",
                     ].join(" ")}
                   >
                     {n}
                   </motion.span>
-                  <span className={active ? "!text-[#5D3FD3]" : "!text-[#1A1B23]/55"}>{label}</span>
-                  {i < 2 && <span aria-hidden="true" className="h-px w-3 bg-[#5D3FD3]/20" />}
+                  <span className={active ? "!text-violet" : "!text-charcoal/55"}>{label}</span>
+                  {i < 2 && <span aria-hidden="true" className="h-px w-3 bg-violet/20" />}
                 </li>
               ))}
             </ol>
           </div>
 
           {/* Timezone strip + live availability indicator */}
-          <div className="flex items-center justify-between gap-2 bg-[#F5F2FE] px-6 py-1.5">
-            <span className="inline-flex items-center gap-2 text-[11px] font-semibold !text-[#1A1B23]">
-              <Globe className="h-3.5 w-3.5 !text-[#5D3FD3]" aria-hidden="true" />
+          <div className="flex items-center justify-between gap-2 bg-violet-ghost px-6 py-1.5">
+            <span className="inline-flex items-center gap-2 text-[11px] font-semibold !text-charcoal">
+              <Globe className="h-3.5 w-3.5 !text-violet" aria-hidden="true" />
               America/Mexico_City
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold !text-[#2FA36B] ring-1 ring-[#2FA36B]/25">
@@ -355,24 +355,24 @@ function BookingCalendar({ reduce }) {
               <button
                 type="button"
                 aria-label={t("hero.prevMonthAria")}
-                className="flex h-6 w-6 items-center justify-center rounded-full !text-[#5D3FD3]/45 transition hover:bg-[#EDE9FB] hover:!text-[#5D3FD3]"
+                className="flex h-6 w-6 items-center justify-center rounded-full !text-violet/45 transition hover:bg-violet-pale hover:!text-violet"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <div className="text-[12.5px] font-bold tracking-wide !text-[#5D3FD3]">
+              <div className="text-[12.5px] font-bold tracking-wide !text-violet">
                 May 2026
               </div>
               <button
                 type="button"
                 aria-label={t("hero.nextMonthAria")}
-                className="flex h-6 w-6 items-center justify-center rounded-full !text-[#5D3FD3]/45 transition hover:bg-[#EDE9FB] hover:!text-[#5D3FD3]"
+                className="flex h-6 w-6 items-center justify-center rounded-full !text-violet/45 transition hover:bg-violet-pale hover:!text-violet"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
             {/* Day-of-week labels */}
-            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[9px] font-bold uppercase tracking-[0.12em] !text-[#1A1B23]/55">
+            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[9px] font-bold uppercase tracking-[0.12em] !text-charcoal/55">
               {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
                 <span key={d}>{d}</span>
               ))}
@@ -394,7 +394,7 @@ function BookingCalendar({ reduce }) {
             </motion.div>
 
             {/* Status legend */}
-            <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[#5D3FD3]/10 pt-2 text-[10px] font-semibold !text-[#1A1B23]">
+            <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-violet/10 pt-2 text-[10px] font-semibold !text-charcoal">
               {LEGEND.map(({ key, labelKey, swatch }) => (
                 <li key={key} className="inline-flex items-center gap-1.5">
                   <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-sm ${swatch}`} />
@@ -405,10 +405,10 @@ function BookingCalendar({ reduce }) {
           </div>
 
           {/* Card footer · primary CTA */}
-          <div className="border-t border-[#5D3FD3]/10 bg-white px-5 py-2.5">
+          <div className="border-t border-violet/10 bg-white px-5 py-2.5">
             <Link
               to="/book"
-              className="group flex w-full items-center justify-center gap-2 rounded-full bg-[#5D3FD3] px-4 py-2 text-[12px] font-extrabold uppercase tracking-[0.14em] !text-white shadow-[0_10px_22px_rgba(93,63,211,0.30)] transition hover:-translate-y-0.5 hover:bg-[#4A2EAB] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5D3FD3]/45"
+              className="group flex w-full items-center justify-center gap-2 rounded-full bg-violet px-4 py-2 text-[12px] font-extrabold uppercase tracking-[0.14em] !text-white shadow-[0_10px_22px_rgba(93,63,211,0.30)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/45"
             >
               <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
               {t("hero.pickSlot")}
@@ -451,7 +451,7 @@ function BookingCalendar({ reduce }) {
             <div className="text-[9px] font-extrabold uppercase tracking-[0.14em] !text-[#1f3508]">
               {t("hero.justShipped")}
             </div>
-            <div className="text-[11px] font-semibold !text-[#1A1B23]">
+            <div className="text-[11px] font-semibold !text-charcoal">
               {t("hero.shippedExample")}
             </div>
           </div>
@@ -484,7 +484,7 @@ function BookingCalendar({ reduce }) {
           aria-hidden="true"
           animate={reduce ? undefined : { rotate: [0, 8, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute right-6 top-20 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-1 ring-[#E9C46A]"
+          className="absolute right-6 top-20 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-1 ring-terracotta"
         >
           <CheckCircle2 className="h-3.5 w-3.5 !text-[#2FA36B]" />
         </motion.div>
@@ -642,7 +642,7 @@ export default function ContactHero() {
               >
                 <Link
                   to="/book"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-terracotta px-7 py-3.5 text-[13.5px] font-bold !text-violet shadow-[0_14px_36px_rgba(233,196,106,0.25)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1A1B23] sm:text-[14px]"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-terracotta px-7 py-3.5 text-[13.5px] font-bold !text-violet shadow-[0_14px_36px_rgba(233,196,106,0.25)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal sm:text-[14px]"
                 >
                   <Calendar className="h-4 w-4" aria-hidden="true" />
                   {t("hero.bookDiscovery")}

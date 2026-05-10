@@ -67,7 +67,7 @@ function StarRow({ rating }) {
       {[1, 2, 3, 4, 5].map((s) => (
         <Star
           key={s}
-          className={`h-3.5 w-3.5 ${s <= rating ? "fill-[#E9C46A] text-[#E9C46A]" : "text-[#1A1B23]/20"}`}
+          className={`h-3.5 w-3.5 ${s <= rating ? "fill-terracotta text-terracotta" : "text-charcoal/20"}`}
         />
       ))}
     </div>
@@ -99,16 +99,16 @@ function FilterChips({ active, onSelect, stats }) {
             type="button"
             aria-pressed={isActive}
             onClick={() => onSelect(s.key)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5D3FD3]/40 ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${
               isActive
-                ? "bg-[#5D3FD3] text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)]"
-                : "bg-[#EDE9FB] text-[#5D3FD3] hover:bg-[#DCD4F4]"
+                ? "bg-violet text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)]"
+                : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"
             }`}
           >
             <s.Icon className="h-3.5 w-3.5" />
             {s.label}
             <span className={`min-w-[20px] rounded-full px-1.5 py-0.5 text-center font-mono text-[10px] tabular-nums ${
-              isActive ? "bg-white/20 text-white" : "bg-white text-[#5D3FD3]"
+              isActive ? "bg-white/20 text-white" : "bg-white text-violet"
             }`}>
               {count}
             </span>
@@ -128,8 +128,8 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
   return (
     <motion.article
       variants={fadeUp}
-      className={`group relative flex items-start gap-3 rounded-2xl border bg-white p-4 transition hover:border-[#5D3FD3]/30 hover:shadow-[0_8px_22px_rgba(93,63,211,0.06)] ${
-        selected ? "border-[#5D3FD3] shadow-[0_8px_22px_rgba(93,63,211,0.10)]" : "border-[#1A1B23]/12"
+      className={`group relative flex items-start gap-3 rounded-2xl border bg-white p-4 transition hover:border-violet/30 hover:shadow-[0_8px_22px_rgba(93,63,211,0.06)] ${
+        selected ? "border-violet shadow-[0_8px_22px_rgba(93,63,211,0.10)]" : "border-charcoal/12"
       }`}
     >
       <input
@@ -138,7 +138,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
         onChange={(e) => onSelect(review.id, e.shiftKey)}
         onClick={(e) => e.stopPropagation()}
         aria-label={`Select review ${review.id}`}
-        className="mt-1 h-4 w-4 shrink-0 rounded border-[#1A1B23]/30 accent-[#5D3FD3]"
+        className="mt-1 h-4 w-4 shrink-0 rounded border-charcoal/30 accent-violet"
       />
 
       <button
@@ -148,7 +148,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
       >
         <div className="flex flex-wrap items-center gap-2">
           <StarRow rating={review.rating} />
-          <span className="text-[13px] font-bold text-[#5D3FD3]">{review.rating}.0</span>
+          <span className="text-[13px] font-bold text-violet">{review.rating}.0</span>
           <StatusPill status={review.status} />
           {review.isVerifiedPurchase && (
             <span className="inline-flex items-center gap-1 rounded-full bg-[#e5f4e8] px-2 py-0.5 text-[10px] font-semibold text-[#3b8f47]">
@@ -156,7 +156,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
             </span>
           )}
           {review.featured && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#5D3FD3] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+            <span className="inline-flex items-center gap-1 rounded-full bg-violet px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
               <Sparkles className="h-2.5 w-2.5" /> Featured
             </span>
           )}
@@ -167,31 +167,31 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
           )}
         </div>
 
-        <p className="mt-2 line-clamp-3 text-[13px] leading-snug text-[#1A1B23]/85">
-          {review.reviewText || <span className="italic text-[#1A1B23]/55">, no body, stars only,</span>}
+        <p className="mt-2 line-clamp-3 text-[13px] leading-snug text-charcoal/85">
+          {review.reviewText || <span className="italic text-charcoal/55">, no body, stars only,</span>}
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-[#1A1B23]/60">
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-charcoal/60">
           <span className="inline-flex items-center gap-1">
             <UserIcon className="h-3 w-3" />
-            <span className="font-semibold text-[#5D3FD3]">{review.user?.fullName || "Anonymous"}</span>
-            {review.user?.email && <span className="text-[#1A1B23]/45">· {review.user.email}</span>}
+            <span className="font-semibold text-violet">{review.user?.fullName || "Anonymous"}</span>
+            {review.user?.email && <span className="text-charcoal/45">· {review.user.email}</span>}
           </span>
-          <span className="text-[#1A1B23]/30">•</span>
+          <span className="text-charcoal/30">•</span>
           {subject && (
             <>
               <span className="inline-flex items-center gap-1">
                 <SubjectIcon className="h-3 w-3" />
                 <span>{subject.title}</span>
               </span>
-              <span className="text-[#1A1B23]/30">•</span>
+              <span className="text-charcoal/30">•</span>
             </>
           )}
           <span>{timeAgo(review.createdAt)}</span>
           {review.adminReply && (
             <>
-              <span className="text-[#1A1B23]/30">•</span>
-              <span className="inline-flex items-center gap-1 text-[#5D3FD3]">
+              <span className="text-charcoal/30">•</span>
+              <span className="inline-flex items-center gap-1 text-violet">
                 <MessageSquare className="h-3 w-3" /> Reply sent
               </span>
             </>
@@ -209,7 +209,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
         )}
         {review.status !== "hidden" && (
           <button type="button" onClick={() => onQuickAction(review, "hide")} aria-label="Hide"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-ghost text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-ghost text-violet transition hover:bg-violet-pale"
           >
             <EyeOff className="h-4 w-4" />
           </button>
@@ -302,13 +302,13 @@ function DetailPanel({ review, onClose, onUpdated }) {
         aria-modal="true"
         initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed right-0 top-0 z-[111] flex h-full w-full max-w-xl flex-col overflow-hidden border-l border-[#1A1B23]/12 bg-white shadow-[-30px_0_80px_rgba(93,63,211,0.15)]"
+        className="fixed right-0 top-0 z-[111] flex h-full w-full max-w-xl flex-col overflow-hidden border-l border-charcoal/12 bg-white shadow-[-30px_0_80px_rgba(93,63,211,0.15)]"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-[#1A1B23]/10 bg-[#faf7fb] px-6 py-5">
+        <header className="flex items-start justify-between gap-4 border-b border-charcoal/10 bg-[#faf7fb] px-6 py-5">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <StarRow rating={review.rating} />
-              <span className="text-[13px] font-bold text-[#5D3FD3]">{review.rating}.0</span>
+              <span className="text-[13px] font-bold text-violet">{review.rating}.0</span>
               <StatusPill status={review.status} />
               {review.isVerifiedPurchase && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#e5f4e8] px-2 py-0.5 text-[10px] font-semibold text-[#3b8f47]">
@@ -316,15 +316,15 @@ function DetailPanel({ review, onClose, onUpdated }) {
                 </span>
               )}
             </div>
-            <h2 className="mt-2 text-[16px] font-bold text-[#5D3FD3]">
+            <h2 className="mt-2 text-[16px] font-bold text-violet">
               Review by {review.user?.fullName || "Anonymous"}
             </h2>
-            <p className="mt-0.5 text-[12px] text-[#1A1B23]/65">
+            <p className="mt-0.5 text-[12px] text-charcoal/65">
               {timeAgo(review.createdAt)} · {new Date(review.createdAt).toLocaleString()}
             </p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close"
-            className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-[#1A1B23]/55 transition hover:bg-white hover:text-[#5D3FD3]"
+            className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-charcoal/55 transition hover:bg-white hover:text-violet"
           >
             <X className="h-5 w-5" />
           </button>
@@ -332,8 +332,8 @@ function DetailPanel({ review, onClose, onUpdated }) {
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {subject && (
-            <section className="mb-5 rounded-xl border border-[#1A1B23]/10 bg-mist p-4">
-              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#1A1B23]/55">
+            <section className="mb-5 rounded-xl border border-charcoal/10 bg-mist p-4">
+              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">
                 {review.subjectType === "service" ? "Service" : "Product"}
               </div>
               <a
@@ -341,13 +341,13 @@ function DetailPanel({ review, onClose, onUpdated }) {
                   ? `/services/${subject.slug}`
                   : `/store/${subject.slug}`}
                 target="_blank" rel="noopener noreferrer"
-                className="mt-1 inline-flex items-center gap-1.5 text-[14px] font-bold text-[#5D3FD3] hover:underline"
+                className="mt-1 inline-flex items-center gap-1.5 text-[14px] font-bold text-violet hover:underline"
               >
                 {subject.title}
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
               {review.orderItem && (
-                <div className="mt-1 font-mono text-[10.5px] text-[#1A1B23]/55">
+                <div className="mt-1 font-mono text-[10.5px] text-charcoal/55">
                   Order line: {String(review.orderItem.id).slice(0, 12)}…
                 </div>
               )}
@@ -355,24 +355,24 @@ function DetailPanel({ review, onClose, onUpdated }) {
           )}
 
           <section className="mb-5">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#1A1B23]/55">Reviewer</div>
-            <div className="flex items-center gap-3 rounded-xl border border-[#1A1B23]/10 bg-white p-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EDE9FB] text-[#5D3FD3]">
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">Reviewer</div>
+            <div className="flex items-center gap-3 rounded-xl border border-charcoal/10 bg-white p-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-pale text-violet">
                 <UserIcon className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <div className="truncate text-[13px] font-bold text-[#5D3FD3]">
+                <div className="truncate text-[13px] font-bold text-violet">
                   {review.user?.fullName || "Anonymous"}
                 </div>
-                <div className="truncate text-[11.5px] text-[#1A1B23]/65">{review.user?.email || "-"}</div>
+                <div className="truncate text-[11.5px] text-charcoal/65">{review.user?.email || "-"}</div>
               </div>
             </div>
           </section>
 
           <section className="mb-5">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#1A1B23]/55">Review body</div>
-            <div className="whitespace-pre-wrap rounded-xl border border-[#1A1B23]/10 bg-white p-4 text-[13.5px] leading-relaxed text-[#1A1B23]/85">
-              {review.reviewText || <span className="italic text-[#1A1B23]/45">No text, stars only.</span>}
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">Review body</div>
+            <div className="whitespace-pre-wrap rounded-xl border border-charcoal/10 bg-white p-4 text-[13.5px] leading-relaxed text-charcoal/85">
+              {review.reviewText || <span className="italic text-charcoal/45">No text, stars only.</span>}
             </div>
             {review.flaggedReason && (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-[11px] font-semibold text-rose-700">
@@ -382,9 +382,9 @@ function DetailPanel({ review, onClose, onUpdated }) {
           </section>
 
           <section className="mb-5">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#1A1B23]/55">
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">
               Public reply
-              <span className="ml-2 text-[#1A1B23]/40">{reply.length}/2000</span>
+              <span className="ml-2 text-charcoal/40">{reply.length}/2000</span>
             </div>
             <textarea
               rows={4}
@@ -392,18 +392,18 @@ function DetailPanel({ review, onClose, onUpdated }) {
               value={reply}
               onChange={(e) => setReply(e.target.value)}
               placeholder="Thank the reviewer, address concerns, or share next steps. Visible publicly under the review."
-              className="w-full rounded-xl border border-[#1A1B23]/15 bg-white px-3.5 py-2.5 text-[13px] text-[#5D3FD3] outline-none transition focus:border-[#5D3FD3] focus:ring-2 focus:ring-[#5D3FD3]/10"
+              className="w-full rounded-xl border border-charcoal/15 bg-white px-3.5 py-2.5 text-[13px] text-violet outline-none transition focus:border-violet focus:ring-2 focus:ring-violet/10"
             />
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <button type="button" onClick={saveReply} disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#5D3FD3] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)] transition hover:bg-[#4A2EAB] disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)] transition hover:bg-violet-deep disabled:opacity-60"
               >
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 {review.adminReply ? "Update reply" : "Post reply"}
               </button>
               {review.adminReply && (
                 <button type="button" onClick={() => setReply("")}
-                  className="rounded-xl border border-[#5D3FD3]/20 bg-white px-3 py-2 text-[12px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+                  className="rounded-xl border border-violet/20 bg-white px-3 py-2 text-[12px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   Clear draft
                 </button>
@@ -412,7 +412,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
           </section>
         </div>
 
-        <footer className="flex items-center justify-between gap-2 border-t border-[#1A1B23]/10 bg-[#faf7fb] px-6 py-4">
+        <footer className="flex items-center justify-between gap-2 border-t border-charcoal/10 bg-[#faf7fb] px-6 py-4">
           <div className="flex flex-wrap gap-1.5">
             {review.status !== "approved" && (
               <button type="button" onClick={() => setStatus("approved")} disabled={busy}
@@ -423,7 +423,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             )}
             {review.status !== "hidden" && (
               <button type="button" onClick={() => setStatus("hidden")} disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-violet-ghost px-3.5 py-2 text-[12px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB] disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-violet-ghost px-3.5 py-2 text-[12px] font-semibold text-violet transition hover:bg-violet-pale disabled:opacity-60"
               >
                 <EyeOff className="h-3.5 w-3.5" /> Hide
               </button>
@@ -437,7 +437,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             )}
             <button type="button" onClick={toggleFeatured} disabled={busy}
               className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[12px] font-semibold transition disabled:opacity-60 ${
-                featured ? "bg-[#5D3FD3] text-white hover:bg-[#4A2EAB]" : "bg-[#EDE9FB] text-[#5D3FD3] hover:bg-[#DCD4F4]"
+                featured ? "bg-violet text-white hover:bg-violet-deep" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"
               }`}
             >
               <Sparkles className="h-3.5 w-3.5" /> {featured ? "Featured" : "Feature"}
@@ -461,22 +461,22 @@ function BulkBar({ count, onAction, onClear, busy }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
-      className="sticky bottom-4 z-20 mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#5D3FD3]/15 bg-white p-3 shadow-[0_12px_36px_rgba(93,63,211,0.15)]"
+      className="sticky bottom-4 z-20 mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet/15 bg-white p-3 shadow-[0_12px_36px_rgba(93,63,211,0.15)]"
     >
-      <span className="text-[12.5px] font-semibold text-[#5D3FD3]">
+      <span className="text-[12.5px] font-semibold text-violet">
         {count} selected
       </span>
       <div className="flex flex-wrap items-center gap-1.5">
         <button onClick={() => onAction("approve")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-[#e5f4e8] px-3 py-1.5 text-[12px] font-semibold text-[#3b8f47] hover:bg-[#d4ebd9] disabled:opacity-60">
           <CheckCircle2 className="h-3.5 w-3.5" /> Approve
         </button>
-        <button onClick={() => onAction("hide")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-violet-ghost px-3 py-1.5 text-[12px] font-semibold text-[#5D3FD3] hover:bg-[#EDE9FB] disabled:opacity-60">
+        <button onClick={() => onAction("hide")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-violet-ghost px-3 py-1.5 text-[12px] font-semibold text-violet hover:bg-violet-pale disabled:opacity-60">
           <EyeOff className="h-3.5 w-3.5" /> Hide
         </button>
         <button onClick={() => onAction("reject")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-rose-50 px-3 py-1.5 text-[12px] font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60">
           <X className="h-3.5 w-3.5" /> Reject
         </button>
-        <button onClick={onClear} className="rounded-xl border border-[#5D3FD3]/20 bg-white px-3 py-1.5 text-[12px] font-semibold text-[#5D3FD3] hover:bg-[#EDE9FB]">
+        <button onClick={onClear} className="rounded-xl border border-violet/20 bg-white px-3 py-1.5 text-[12px] font-semibold text-violet hover:bg-violet-pale">
           Clear
         </button>
       </div>
@@ -610,18 +610,18 @@ export default function AdminReviewsPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDE9FB] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#5D3FD3]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-violet">
             <Star className="h-3 w-3" /> Moderation queue
           </span>
-          <h1 className="mt-2 text-[24px] font-bold text-[#5D3FD3] sm:text-[28px]">Customer reviews</h1>
-          <p className="mt-1 max-w-2xl text-[13px] text-[#1A1B23]/70">
+          <h1 className="mt-2 text-[24px] font-bold text-violet sm:text-[28px]">Customer reviews</h1>
+          <p className="mt-1 max-w-2xl text-[13px] text-charcoal/70">
             Approve, hide, reject, reply to, or feature reviews on your products and services.
             Verified-purchase clean reviews are auto-approved; everything else lands here.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button type="button" onClick={load}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#5D3FD3]/20 bg-white px-3.5 py-2.5 text-[12.5px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-violet/20 bg-white px-3.5 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
           </button>
@@ -629,22 +629,22 @@ export default function AdminReviewsPage() {
       </header>
 
       {stats && (
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#1A1B23]/10 bg-white p-3 shadow-[0_2px_10px_rgba(93,63,211,0.04)]">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_2px_10px_rgba(93,63,211,0.04)]">
           <FilterChips active={activeStatus} onSelect={(s) => { clearSelection(); setActive(s) }} stats={stats} />
-          <div className="ml-auto flex items-center gap-2 text-[12px] text-[#1A1B23]/65">
-            <Star className="h-3.5 w-3.5 fill-[#E9C46A] text-[#E9C46A]" />
-            <span><strong className="text-[#5D3FD3]">{stats.avgRating}</strong> avg of {stats.approved} approved</span>
+          <div className="ml-auto flex items-center gap-2 text-[12px] text-charcoal/65">
+            <Star className="h-3.5 w-3.5 fill-terracotta text-terracotta" />
+            <span><strong className="text-violet">{stats.avgRating}</strong> avg of {stats.approved} approved</span>
           </div>
         </div>
       )}
 
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#1A1B23]/40" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal/40" />
         <input
           type="search" value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search by review text, reviewer name, or email…"
-          className="w-full rounded-2xl border border-[#1A1B23]/12 bg-white py-3 pl-10 pr-4 text-[13px] text-[#5D3FD3] outline-none transition focus:border-[#5D3FD3] focus:ring-2 focus:ring-[#5D3FD3]/10"
+          className="w-full rounded-2xl border border-charcoal/12 bg-white py-3 pl-10 pr-4 text-[13px] text-violet outline-none transition focus:border-violet focus:ring-2 focus:ring-violet/10"
         />
       </div>
 
@@ -659,10 +659,10 @@ export default function AdminReviewsPage() {
           {[1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-violet-ghost" />)}
         </div>
       ) : visible.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#1A1B23]/20 bg-white p-10 text-center">
+        <div className="rounded-2xl border border-dashed border-charcoal/20 bg-white p-10 text-center">
           <CheckCircle2 className="mx-auto h-7 w-7 text-[#3b8f47]" />
-          <h2 className="mt-3 text-[15px] font-bold text-[#5D3FD3]">All clear</h2>
-          <p className="mt-1 text-[12.5px] text-[#1A1B23]/60">
+          <h2 className="mt-3 text-[15px] font-bold text-violet">All clear</h2>
+          <p className="mt-1 text-[12.5px] text-charcoal/60">
             Nothing in <strong>{activeStatus}</strong> right now.
           </p>
         </div>
@@ -693,7 +693,7 @@ export default function AdminReviewsPage() {
         onUpdated={handleUpdated}
       />
 
-      <p className="pt-2 text-center text-[10.5px] text-[#1A1B23]/50">
+      <p className="pt-2 text-center text-[10.5px] text-charcoal/50">
         Pro tips: shift-click checkboxes to range-select · J / K navigate · A approve · H hide
       </p>
     </div>

@@ -256,7 +256,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
           <Link
             to="/"
             onClick={onClose}
-            className="m-4 flex items-center gap-2.5 rounded-xl border border-violet/10 bg-[#F5F2FE] px-3 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+            className="m-4 flex items-center gap-2.5 rounded-xl border border-violet/10 bg-violet-ghost px-3 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
           >
             <Globe className="h-4 w-4" aria-hidden="true" />
             {t("layout.backToWebsite")}
@@ -359,7 +359,7 @@ export default function DashboardLayout() {
               {/* {t("layout.backToWebsite")} */}
               <Link
                 to="/"
-                className="mt-3 flex items-center gap-2.5 rounded-xl border border-violet/10 bg-[#F5F2FE] px-3 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                className="mt-3 flex items-center gap-2.5 rounded-xl border border-violet/10 bg-violet-ghost px-3 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
               >
                 <Globe className="h-4 w-4" aria-hidden="true" />
                 {t("layout.backToWebsite")}

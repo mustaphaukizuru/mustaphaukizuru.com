@@ -34,17 +34,17 @@ const STATUS_TRANSITIONS = [
 ]
 
 const TONE = {
-  azure: "border-[#0284C7]/30 bg-[#E0F2FE] text-[#075985] hover:bg-[#0284C7]/20",
-  mint: "border-[#10B981]/30 bg-[#D1FAE5] text-[#065F46] hover:bg-[#10B981]/20",
-  neutral: "border-[#DCDCE4] bg-white text-[#475569] hover:bg-[#F8FAFC]",
+  azure: "border-azure/30 bg-azure-pale text-[#075985] hover:bg-azure/20",
+  mint: "border-mint/30 bg-[#D1FAE5] text-[#065F46] hover:bg-mint/20",
+  neutral: "border-slate-200 bg-white text-[#475569] hover:bg-mist",
 }
 
 const STATUS_PILL = {
   pending: "bg-[#FEF3C7] text-[#92400E]",
-  in_progress: "bg-[#E0F2FE] text-[#075985]",
+  in_progress: "bg-azure-pale text-[#075985]",
   delivered: "bg-[#D1FAE5] text-[#065F46]",
   completed: "bg-[#D1FAE5] text-[#065F46]",
-  cancelled: "bg-[#EFF1F5] text-[#475569]",
+  cancelled: "bg-slate-100 text-[#475569]",
   refunded: "bg-[#FFE4E6] text-[#9F1239]",
 }
 
@@ -120,7 +120,7 @@ export default function AdminServiceOrderDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#5D3FD3]" aria-hidden="true" />
+        <Loader2 className="h-6 w-6 animate-spin text-violet" aria-hidden="true" />
       </div>
     )
   }
@@ -130,7 +130,7 @@ export default function AdminServiceOrderDetailPage() {
       <div className="space-y-4">
         <Link
           to="/admin/service-orders"
-          className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#475569] transition hover:text-[#5D3FD3]"
+          className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#475569] transition hover:text-violet"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to service orders
         </Link>
@@ -150,23 +150,23 @@ export default function AdminServiceOrderDetailPage() {
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
       <Link
         to="/admin/service-orders"
-        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#475569] transition hover:text-[#5D3FD3]"
+        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#475569] transition hover:text-violet"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to service orders
       </Link>
 
       {/* Header card */}
-      <div className="rounded-xl border border-[#EFF1F5] bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#64748B]">Service order</p>
-            <h1 className="mt-1 flex items-center gap-2 font-mono text-[20px] font-bold text-[#5D3FD3]">
+            <h1 className="mt-1 flex items-center gap-2 font-mono text-[20px] font-bold text-violet">
               <Briefcase className="h-4 w-4" aria-hidden="true" />
               {orderRef}
             </h1>
             <p className="mt-1 text-[12px] text-[#64748B]">Created {formatDate(order.createdAt)}</p>
           </div>
-          <span className={`inline-flex items-center self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] ${STATUS_PILL[status] || "bg-[#EFF1F5] text-[#475569]"}`}>
+          <span className={`inline-flex items-center self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] ${STATUS_PILL[status] || "bg-slate-100 text-[#475569]"}`}>
             {status.replace(/_/g, " ")}
           </span>
         </div>
@@ -174,14 +174,14 @@ export default function AdminServiceOrderDetailPage() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Client */}
-        <div className="rounded-xl border border-[#EFF1F5] bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
-          <h2 className="text-[14px] font-bold text-[#1A1B23]">Client</h2>
-          <div className="mt-3 space-y-1.5 text-[13px] text-[#1A1B23]">
-            <div className="font-semibold text-[#5D3FD3]">
+        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+          <h2 className="text-[14px] font-bold text-charcoal">Client</h2>
+          <div className="mt-3 space-y-1.5 text-[13px] text-charcoal">
+            <div className="font-semibold text-violet">
               {order.user?.fullName || order.user?.email || order.contactEmail || "—"}
             </div>
             {order.user?.email && (
-              <a href={`mailto:${order.user.email}`} className="inline-flex items-center gap-1 text-[12px] text-[#0284C7] hover:underline">
+              <a href={`mailto:${order.user.email}`} className="inline-flex items-center gap-1 text-[12px] text-azure hover:underline">
                 <Mail className="h-3 w-3" aria-hidden="true" /> {order.user.email}
               </a>
             )}
@@ -192,14 +192,14 @@ export default function AdminServiceOrderDetailPage() {
         </div>
 
         {/* Service */}
-        <div className="rounded-xl border border-[#EFF1F5] bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
-          <h2 className="text-[14px] font-bold text-[#1A1B23]">Service</h2>
+        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+          <h2 className="text-[14px] font-bold text-charcoal">Service</h2>
           <div className="mt-3 space-y-1.5 text-[13px]">
-            <div className="font-semibold text-[#1A1B23]">{order.service?.title || order.serviceTitle || "—"}</div>
+            <div className="font-semibold text-charcoal">{order.service?.title || order.serviceTitle || "—"}</div>
             {order.servicePackage?.name && (
               <div className="text-[12px] text-[#64748B]">{order.servicePackage.name}</div>
             )}
-            <div className="font-mono text-[14px] tabular-nums font-bold text-[#1A1B23]">
+            <div className="font-mono text-[14px] tabular-nums font-bold text-charcoal">
               {formatMoney(order.totalAmount ?? order.amount, order.currency)}
             </div>
             {order.paidAt && (
@@ -213,8 +213,8 @@ export default function AdminServiceOrderDetailPage() {
 
       {/* Status actions */}
       {!isFinal && (
-        <div className="rounded-xl border border-[#EFF1F5] bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
-          <h2 className="text-[14px] font-bold text-[#1A1B23]">Update status</h2>
+        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+          <h2 className="text-[14px] font-bold text-charcoal">Update status</h2>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {STATUS_TRANSITIONS
               .filter((t) => t.value !== status)
@@ -230,20 +230,20 @@ export default function AdminServiceOrderDetailPage() {
                   {t.label}
                 </button>
               ))}
-            {updating && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#5D3FD3]" aria-hidden="true" />}
+            {updating && <Loader2 className="h-3.5 w-3.5 animate-spin text-violet" aria-hidden="true" />}
           </div>
         </div>
       )}
 
       {/* Project link or placeholder */}
-      <div className="rounded-xl border border-[#EFF1F5] bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
-        <h2 className="text-[14px] font-bold text-[#1A1B23]">Project workspace</h2>
+      <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <h2 className="text-[14px] font-bold text-charcoal">Project workspace</h2>
         {order.projectId ? (
           <a
             href={`/dashboard/projects/${order.projectId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[#DCDCE4] bg-white px-3 py-2 text-[12px] font-semibold text-[#0284C7] transition hover:bg-[#E0F2FE]"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-azure transition hover:bg-azure-pale"
           >
             <ExternalLink className="h-3 w-3" aria-hidden="true" />
             Open project
@@ -257,14 +257,14 @@ export default function AdminServiceOrderDetailPage() {
 
       {/* Consultation summary (read-only here; scheduling lives in /admin/consultations) */}
       {order.consultations && order.consultations.length > 0 && (
-        <div className="rounded-xl border border-[#EFF1F5] bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
-          <h2 className="text-[14px] font-bold text-[#1A1B23]">Consultations</h2>
+        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+          <h2 className="text-[14px] font-bold text-charcoal">Consultations</h2>
           <ul className="mt-3 space-y-2 text-[12px] text-[#475569]">
             {order.consultations.map((c) => (
               <li key={c.id} className="flex items-center gap-2">
                 <Calendar className="h-3 w-3" aria-hidden="true" />
                 <span>{formatDate(c.scheduledAt || c.startsAt)}</span>
-                {c.status && <span className="rounded-full bg-[#EFF1F5] px-1.5 py-0.5 text-[10px] uppercase tracking-wide">{c.status}</span>}
+                {c.status && <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide">{c.status}</span>}
               </li>
             ))}
           </ul>
@@ -272,17 +272,17 @@ export default function AdminServiceOrderDetailPage() {
       )}
 
       {/* Internal notes */}
-      <div className="rounded-xl border border-[#EFF1F5] bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="inline-flex items-center gap-2 text-[14px] font-bold text-[#1A1B23]">
-            <FileText className="h-4 w-4 text-[#5D3FD3]" aria-hidden="true" />
+          <h2 className="inline-flex items-center gap-2 text-[14px] font-bold text-charcoal">
+            <FileText className="h-4 w-4 text-violet" aria-hidden="true" />
             Internal notes
           </h2>
           <button
             type="button"
             disabled={savingNotes}
             onClick={saveNotes}
-            className="inline-flex items-center gap-1 rounded-md border border-[#5D3FD3]/30 bg-[#EDE9FB] px-3 py-1.5 text-[12px] font-semibold text-[#5D3FD3] transition hover:bg-[#5D3FD3]/15 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-md border border-violet/30 bg-violet-pale px-3 py-1.5 text-[12px] font-semibold text-violet transition hover:bg-violet/15 disabled:opacity-50"
           >
             {savingNotes ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <Save className="h-3 w-3" aria-hidden="true" />}
             Save
@@ -293,7 +293,7 @@ export default function AdminServiceOrderDetailPage() {
           onChange={(e) => setNotes(e.target.value)}
           rows={5}
           placeholder="Operator-only notes — not visible to the client."
-          className="mt-3 w-full rounded-md border border-[#DCDCE4] bg-white px-3 py-2 text-[13px] text-[#1A1B23] outline-none transition focus:border-[#5D3FD3]"
+          className="mt-3 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-[13px] text-charcoal outline-none transition focus:border-violet"
         />
       </div>
     </motion.div>

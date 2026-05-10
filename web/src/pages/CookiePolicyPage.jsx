@@ -71,11 +71,11 @@ export default function CookiePolicyPage() {
   const { reset, decided, timestamp } = useCookieConsent()
 
   return (
-    <div className="bg-[#F8FAFC]">
+    <div className="bg-mist">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="bg-[#2E2F3A] py-16 text-center">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-[#E9C46A]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-terracotta">
             <Cookie className="h-7 w-7" />
           </div>
           <h1 className="mt-5 text-[2.2rem] font-bold text-white">{t("cookies.title", "Cookie Policy")}</h1>
@@ -96,21 +96,21 @@ export default function CookiePolicyPage() {
             return (
               <div
                 key={cat.key}
-                className="flex items-start gap-3 rounded-xl border border-[#1A1B23]/10 bg-white p-4 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+                className="flex items-start gap-3 rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EDE9FB] text-[#5D3FD3]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-[13.5px] font-bold text-[#5D3FD3]">{cat.title}</h3>
+                    <h3 className="text-[13.5px] font-bold text-violet">{cat.title}</h3>
                     {cat.locked && (
                       <span className="rounded-full bg-[#e5f4e8] px-2 py-0.5 text-[9.5px] font-semibold text-[#3b8f47]">
                         {t("cookies.alwaysOn")}
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-[12px] leading-5 text-[#1A1B23]/70">{cat.description}</p>
+                  <p className="mt-1 text-[12px] leading-5 text-charcoal/70">{cat.description}</p>
                 </div>
               </div>
             )
@@ -118,10 +118,10 @@ export default function CookiePolicyPage() {
         </div>
 
         {/* ── Manage preferences callout ──────────────────────────────────── */}
-        <div className="mb-8 flex flex-col items-start gap-4 rounded-xl border border-[#5D3FD3]/15 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="mb-8 flex flex-col items-start gap-4 rounded-xl border border-violet/15 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="min-w-0">
-            <h2 className="text-[15px] font-bold text-[#5D3FD3]">{t("cookies.changePrefs")}</h2>
-            <p className="mt-1 text-[12.5px] leading-5 text-[#1A1B23]/70">
+            <h2 className="text-[15px] font-bold text-violet">{t("cookies.changePrefs")}</h2>
+            <p className="mt-1 text-[12.5px] leading-5 text-charcoal/70">
               {decided
                 ? `Your current consent was recorded${timestamp ? ` on ${new Date(timestamp).toLocaleDateString()}` : ""}.`
                 : "You have not made a choice yet; the consent banner will be shown shortly."}
@@ -131,7 +131,7 @@ export default function CookiePolicyPage() {
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#5D3FD3] px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB]"
+            className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
           >
             <Settings2 className="h-4 w-4" /> {t("cookies.managePrefs")}
           </button>
@@ -146,10 +146,10 @@ export default function CookiePolicyPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.04 }}
-              className="rounded-xl border border-[#1A1B23]/10 bg-white p-6 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+              className="rounded-xl border border-charcoal/10 bg-white p-6 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
             >
-              <h2 className="mb-3 text-[15px] font-bold text-[#5D3FD3]">{title}</h2>
-              <p className="text-[14px] leading-7 text-[#1A1B23]/75">{content}</p>
+              <h2 className="mb-3 text-[15px] font-bold text-violet">{title}</h2>
+              <p className="text-[14px] leading-7 text-charcoal/75">{content}</p>
             </motion.div>
           ))}
         </div>
@@ -173,5 +173,5 @@ export default function CookiePolicyPage() {
     </div>
   )
   // TODO: file was truncated by an OneDrive sync issue; verify the JSX above
-  // matches the pre-corruption design (top-level <div className="bg-[#F8FAFC]">).
+  // matches the pre-corruption design (top-level <div className="bg-mist">).
 }

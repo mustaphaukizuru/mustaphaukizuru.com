@@ -63,7 +63,7 @@ function AnimatedBackground({ reduce }) {
       {/* ── Deep-violet gradient base · static, GPU-cheap ─────────── */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1A1B23] via-[#4A2EAB] to-[#5D3FD3]"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-charcoal via-violet-deep to-violet"
       />
 
       {/* ── Blob 1 · top-right · large · slow drift ───────────────── */}

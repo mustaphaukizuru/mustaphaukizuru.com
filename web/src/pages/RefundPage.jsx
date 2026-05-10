@@ -73,16 +73,16 @@ export default function RefundPage() {
           {/* Headline policy statement */}
           <motion.div
             {...fadeUp}
-            className="rounded-xl border border-[#5D3FD3]/15 bg-[#EDE9FB] p-6 shadow-[0_4px_16px_rgba(93,63,211,0.08)]"
+            className="rounded-xl border border-violet/15 bg-violet-pale p-6 shadow-[0_4px_16px_rgba(93,63,211,0.08)]"
           >
             <div className="flex items-start gap-4">
-              <div className="rounded-xl bg-white/70 p-3 text-[#5D3FD3] shrink-0">
+              <div className="rounded-xl bg-white/70 p-3 text-violet shrink-0">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-body font-bold text-[#5D3FD3]">{t("refund.headline.title")}</h2>
+                <h2 className="text-body font-bold text-violet">{t("refund.headline.title")}</h2>
                 <p
-                  className="mt-2 text-meta text-[#5D3FD3]/85"
+                  className="mt-2 text-meta text-violet/85"
                   dangerouslySetInnerHTML={{ __html: t("refund.headline.body") }}
                 />
               </div>
@@ -95,7 +95,7 @@ export default function RefundPage() {
             transition={{ ...fadeUp.transition, delay: 0.05 }}
             className="rounded-xl border border-[#2FA36B]/20 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
           >
-            <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-[#5D3FD3]">
+            <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-violet">
               <CheckCircle2 className="h-5 w-5 text-[#2FA36B]" /> {t("refund.eligible.title")}
             </h2>
             <ul className="space-y-3 text-meta text-charcoal-80/75">
@@ -114,7 +114,7 @@ export default function RefundPage() {
             transition={{ ...fadeUp.transition, delay: 0.1 }}
             className="rounded-xl border border-red-200/40 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
           >
-            <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-[#5D3FD3]">
+            <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-violet">
               <XCircle className="h-5 w-5 text-red-500" /> {t("refund.ineligible.title")}
             </h2>
             <ul className="space-y-3 text-meta text-charcoal-80/75">
@@ -133,7 +133,7 @@ export default function RefundPage() {
             transition={{ ...fadeUp.transition, delay: 0.15 }}
             className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
           >
-            <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-[#5D3FD3]">
+            <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-violet">
               <Clock className="h-5 w-5 text-azure" /> {t("refund.process.title")}
             </h2>
             <div className="space-y-4">
@@ -145,20 +145,20 @@ export default function RefundPage() {
                 const isStepOne = idx === 0
                 return (
                   <div key={stepNum} className="flex items-start gap-4">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EDE9FB] text-micro font-bold text-[#5D3FD3]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-micro font-bold text-violet">
                       {stepNum}
                     </div>
                     <div>
-                      <div className="text-meta font-semibold text-[#5D3FD3]">{step.label}</div>
+                      <div className="text-meta font-semibold text-violet">{step.label}</div>
                       <div className="text-meta text-charcoal-80/70">
                         {isStepOne ? (
                           <>
                             {step.descPrefix}{" "}
-                            <Link to="/dashboard/support" className="font-semibold text-[#5D3FD3] underline-offset-2 hover:underline">
+                            <Link to="/dashboard/support" className="font-semibold text-violet underline-offset-2 hover:underline">
                               {step.descLink}
                             </Link>{" "}
                             {step.descMid} <em>{step.descEm}</em> {step.descSuffix}{" "}
-                            <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-[#5D3FD3] underline-offset-2 hover:underline">
+                            <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-violet underline-offset-2 hover:underline">
                               {SUPPORT_EMAIL}
                             </a>
                             .
@@ -190,17 +190,17 @@ export default function RefundPage() {
           <motion.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.25 }}
-            className="rounded-xl border border-[#5D3FD3]/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+            className="rounded-xl border border-violet/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
             lang="es"
           >
-            <h2 className="mb-3 flex items-center gap-2 text-body font-bold text-[#5D3FD3]">
+            <h2 className="mb-3 flex items-center gap-2 text-body font-bold text-violet">
               <Globe2 className="h-5 w-5" /> {t("refund.spanishSummary.title")}
             </h2>
             <p
               className="text-meta text-charcoal-80/80"
               dangerouslySetInnerHTML={{
                 __html: t("refund.spanishSummary.body", {
-                  email: `<a href="mailto:${SUPPORT_EMAIL}" class="font-semibold text-[#5D3FD3] underline-offset-2 hover:underline">${SUPPORT_EMAIL}</a>`,
+                  email: `<a href="mailto:${SUPPORT_EMAIL}" class="font-semibold text-violet underline-offset-2 hover:underline">${SUPPORT_EMAIL}</a>`,
                 }),
               }}
             />
@@ -209,7 +209,7 @@ export default function RefundPage() {
           <motion.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.3 }}
-            className="flex items-center gap-4 rounded-xl bg-[#5D3FD3] p-6 text-white"
+            className="flex items-center gap-4 rounded-xl bg-violet p-6 text-white"
           >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
               <Mail className="h-6 w-6" />

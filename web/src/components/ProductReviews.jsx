@@ -226,7 +226,7 @@ export default function ProductReviews({ slug, productTitle }) {
     <div className="space-y-6">
       {/* ── Stats summary ── */}
       <div className="grid gap-6 sm:grid-cols-[auto_1fr]">
-        <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-[#F5F2FE] px-8 py-6">
+        <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-violet-ghost px-8 py-6">
           <div className="text-page font-bold leading-none text-violet">
             {stats.averageRating.toFixed(1)}
           </div>
@@ -256,20 +256,20 @@ export default function ProductReviews({ slug, productTitle }) {
         <button
           type="button"
           onClick={() => { setShowForm(true); setFormSuccess("") }}
-          className="flex items-center gap-2 rounded-xl border border-violet/15 px-5 py-3 text-sm font-semibold text-violet transition hover:bg-[#F5F2FE]"
+          className="flex items-center gap-2 rounded-xl border border-violet/15 px-5 py-3 text-sm font-semibold text-violet transition hover:bg-violet-ghost"
         >
           <MessageSquare className="h-4 w-4" /> {t("reviews.writeTitle")}
         </button>
       )}
 
       {!isLoggedIn && (
-        <div className="rounded-xl border border-charcoal-80/10 bg-[#F5F2FE] px-5 py-4 text-sm text-charcoal-80/70">
+        <div className="rounded-xl border border-charcoal-80/10 bg-violet-ghost px-5 py-4 text-sm text-charcoal-80/70">
           <a href="/login" className="font-semibold text-violet underline">{t("reviews.signIn")}</a> to leave a review.
         </div>
       )}
 
       {alreadyReviewed && !formSuccess && (
-        <div className="rounded-xl border border-violet/10 bg-[#F5F2FE] px-5 py-3 text-sm text-charcoal-80/70">
+        <div className="rounded-xl border border-violet/10 bg-violet-ghost px-5 py-3 text-sm text-charcoal-80/70">
           <CheckCircle2 className="mr-1.5 inline h-4 w-4 text-[#2FA36B]" />
           {t("reviews.alreadyReviewed")} {productTitle ? <em>{productTitle}</em> : "this product"}.
         </div>

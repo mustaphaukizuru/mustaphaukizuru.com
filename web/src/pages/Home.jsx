@@ -407,7 +407,7 @@ function FeaturedPortfolio() {
 function Process() {
   const { t } = useTranslation("home")
   return (
-    <section className="bg-[#EFF1F5] py-20 lg:py-28">
+    <section className="bg-slate-100 py-20 lg:py-28">
       <Container>
         <SectionHeading
           eyebrow={t("sections.process.eyebrow")}

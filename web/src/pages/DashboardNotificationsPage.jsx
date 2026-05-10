@@ -77,7 +77,7 @@ function NotificationRow({ notification, onRead, t }) {
   return (
     <div
       className={`group flex items-start gap-3 rounded-xl border border-charcoal-80/8 px-4 py-3 transition hover:border-violet/20 hover:shadow-[0_8px_22px_rgba(93,63,211,0.06)] ${
-        !notification.isRead ? "bg-[#F5F2FE]" : "bg-white"
+        !notification.isRead ? "bg-violet-ghost" : "bg-white"
       }`}
     >
       <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${meta.color}`} aria-hidden="true">

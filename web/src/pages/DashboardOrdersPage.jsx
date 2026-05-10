@@ -480,10 +480,10 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
         </div>
 
         {/* Policy reminder · uses <Trans> for the inline <Link> + <strong> tags. */}
-        <div className="mt-5 rounded-xl border border-[#5D3FD3]/15 bg-[#EDE9FB] p-4">
+        <div className="mt-5 rounded-xl border border-violet/15 bg-violet-pale p-4">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5 text-[#5D3FD3]" />
-            <div className="text-meta text-[#5D3FD3]/85">
+            <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5 text-violet" />
+            <div className="text-meta text-violet/85">
               <p className="font-semibold">{t("orders.refundModal.policyHeading")}</p>
               <p className="mt-1">
                 <Trans
@@ -538,7 +538,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
           <button
             type="submit"
             disabled={submitDisabled}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#5D3FD3] px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-[#5a0d80] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
+            className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-[#5a0d80] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
           >
             <CheckCircle2 className="h-4 w-4" />
             {submitting ? t("orders.refundModal.submitting") : t("orders.refundModal.submit")}

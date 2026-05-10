@@ -52,7 +52,7 @@ export default function Breadcrumbs({ items, nameOverrides = {}, className = "" 
         <li className="flex items-center gap-1.5">
           <Link
             to="/"
-            className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medium text-steel transition hover:bg-[#EDE9FB] hover:text-violet focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40"
+            className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medium text-steel transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40"
           >
             <Home className="h-3.5 w-3.5" aria-hidden="true" />
             <span>Home</span>
@@ -70,7 +70,7 @@ export default function Breadcrumbs({ items, nameOverrides = {}, className = "" 
               ) : (
                 <Link
                   to={c.path || "#"}
-                  className="rounded-md px-1.5 py-0.5 font-medium text-steel transition hover:bg-[#EDE9FB] hover:text-violet focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40"
+                  className="rounded-md px-1.5 py-0.5 font-medium text-steel transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40"
                 >
                   {c.name}
                 </Link>

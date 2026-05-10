@@ -125,7 +125,7 @@ function PaymentOption({ id, active, onClick, title, subtitle, badge, logo }) {
       aria-checked={active}
       className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all sm:gap-4 sm:p-4 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
         active
-          ? "border-[3px] border-violet bg-[#F5F2FE] shadow-[0_8px_24px_rgba(93,63,211,0.10)]"
+          ? "border-[3px] border-violet bg-violet-ghost shadow-[0_8px_24px_rgba(93,63,211,0.10)]"
           : "border-2 border-charcoal-80/12 bg-white hover:border-violet/30"
       }`}
     >
@@ -199,7 +199,7 @@ function PayPalLogo({ active = false }) {
       className={`flex h-14 w-20 items-center justify-center overflow-hidden rounded-xl border transition-colors ${
         active
           ? "border-violet/30 bg-violet-pale"
-          : "border-charcoal-80/10 bg-[#F8FAFC]"
+          : "border-charcoal-80/10 bg-mist"
       }`}
     >
       <img
@@ -630,7 +630,7 @@ export default function CheckoutPage() {
                         onClick={() => setSelectedAddressId(isSelected ? "" : addr.id)}
                         className={`flex w-full items-start gap-3 rounded-xl p-3 text-left transition-all sm:gap-4 sm:p-4 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                           isSelected
-                            ? "border-2 border-violet bg-[#F5F2FE] shadow-[0_6px_18px_rgba(93,63,211,0.08)]"
+                            ? "border-2 border-violet bg-violet-ghost shadow-[0_6px_18px_rgba(93,63,211,0.08)]"
                             : "border-2 border-charcoal-80/10 hover:border-violet/30"
                         }`}
                       >

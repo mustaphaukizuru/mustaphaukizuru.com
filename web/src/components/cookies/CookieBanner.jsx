@@ -62,24 +62,24 @@ function PreferencesModal({ open, onClose }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed left-1/2 top-1/2 z-[121] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-[#1A1B23]/15 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.25)]"
+            className="fixed left-1/2 top-1/2 z-[121] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-charcoal/15 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.25)]"
           >
-            <div className="flex items-start justify-between gap-4 border-b border-[#1A1B23]/10 px-6 py-5">
+            <div className="flex items-start justify-between gap-4 border-b border-charcoal/10 px-6 py-5">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-[#EDE9FB] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5D3FD3]">
+                <div className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">
                   <Cookie className="h-3 w-3" /> {t("cookies.title")}
                 </div>
-                <h2 id="cookie-prefs-title" className="mt-2 text-[20px] font-bold text-[#5D3FD3]">
+                <h2 id="cookie-prefs-title" className="mt-2 text-[20px] font-bold text-violet">
                   {t("cookies.subtitle")}
                 </h2>
-                <p className="mt-1 text-[12.5px] leading-5 text-[#1A1B23]/75">
+                <p className="mt-1 text-[12.5px] leading-5 text-charcoal/75">
                   {t("cookies.toggleNote")}</p>
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label={t("cookies.closeAria")}
-                className="-mt-1 -mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[#1A1B23]/55 transition hover:bg-[#F5F2FE] hover:text-[#5D3FD3]"
+                className="-mt-1 -mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-charcoal/55 transition hover:bg-violet-ghost hover:text-violet"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -92,20 +92,20 @@ function PreferencesModal({ open, onClose }) {
                   return (
                     <li
                       key={cat.key}
-                      className="rounded-xl border border-[#1A1B23]/12 bg-mist p-4 transition hover:border-[#5D3FD3]/20"
+                      className="rounded-xl border border-charcoal/12 bg-mist p-4 transition hover:border-violet/20"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-[14px] font-bold text-[#5D3FD3]">{cat.title}</h3>
+                            <h3 className="text-[14px] font-bold text-violet">{cat.title}</h3>
                             {cat.locked && (
                               <span className="inline-flex items-center gap-1 rounded-full bg-[#e5f4e8] px-2 py-0.5 text-[10px] font-semibold text-[#3b8f47]">
                                 <ShieldCheck className="h-2.5 w-2.5" /> {t("cookies.alwaysOn")}
                               </span>
                             )}
                           </div>
-                          <p className="mt-1 text-[12px] leading-5 text-[#1A1B23]/75">{cat.description}</p>
-                          <p className="mt-1.5 font-mono text-[10.5px] text-[#1A1B23]/55">
+                          <p className="mt-1 text-[12px] leading-5 text-charcoal/75">{cat.description}</p>
+                          <p className="mt-1.5 font-mono text-[10.5px] text-charcoal/55">
                             Examples: {cat.examples}
                           </p>
                         </div>
@@ -119,7 +119,7 @@ function PreferencesModal({ open, onClose }) {
                           onClick={() => !cat.locked && toggle(cat.key)}
                           className={[
                             "relative h-6 w-11 shrink-0 rounded-full transition",
-                            enabled ? "bg-[#5D3FD3]" : "bg-[#1A1B23]/25",
+                            enabled ? "bg-violet" : "bg-charcoal/25",
                             cat.locked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:opacity-90",
                           ].join(" ")}
                         >
@@ -137,19 +137,19 @@ function PreferencesModal({ open, onClose }) {
               </ul>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#1A1B23]/10 bg-[#F8FAFC] px-6 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-charcoal/10 bg-mist px-6 py-4">
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => { rejectAll(); onClose() }}
-                  className="rounded-xl border border-[#5D3FD3]/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+                  className="rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   {t("cookies.rejectAll")}
                 </button>
                 <button
                   type="button"
                   onClick={() => { acceptAll(); onClose() }}
-                  className="rounded-xl border border-[#5D3FD3]/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+                  className="rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   {t("cookies.acceptAll")}
                 </button>
@@ -157,7 +157,7 @@ function PreferencesModal({ open, onClose }) {
               <button
                 type="button"
                 onClick={handleSave}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#5D3FD3] px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB]"
+                className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
               >
                 <Check className="h-4 w-4" /> {t("cookies.savePrefs2")}
               </button>
@@ -193,20 +193,20 @@ export default function CookieBanner() {
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-x-3 bottom-3 z-[110] sm:inset-x-6 sm:bottom-6"
           >
-            <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl border border-[#1A1B23]/12 bg-white/95 p-5 shadow-[0_30px_80px_rgba(93,63,211,0.18)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-6 sm:p-6">
+            <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl border border-charcoal/12 bg-white/95 p-5 shadow-[0_30px_80px_rgba(93,63,211,0.18)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-6 sm:p-6">
               <div className="flex shrink-0 items-start gap-3 sm:items-center">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EDE9FB] text-[#5D3FD3]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Cookie className="h-5 w-5" />
                 </div>
                 <div className="sm:hidden">
-                  <h2 className="text-[15px] font-bold text-[#5D3FD3]">{t("cookies.bannerTitle")}</h2>
+                  <h2 className="text-[15px] font-bold text-violet">{t("cookies.bannerTitle")}</h2>
                 </div>
               </div>
 
               <div className="flex-1 min-w-0">
-                <h2 className="hidden text-[15px] font-bold text-[#5D3FD3] sm:block">{t("cookies.yourPrivacy")}</h2>
-                <p className="mt-1 text-[12.5px] leading-5 text-[#1A1B23]/80 sm:text-[13px]">
-                  {t("cookies.shortBody")}<Link to="/cookies" className="font-semibold text-[#5D3FD3] underline-offset-2 hover:underline">
+                <h2 className="hidden text-[15px] font-bold text-violet sm:block">{t("cookies.yourPrivacy")}</h2>
+                <p className="mt-1 text-[12.5px] leading-5 text-charcoal/80 sm:text-[13px]">
+                  {t("cookies.shortBody")}<Link to="/cookies" className="font-semibold text-violet underline-offset-2 hover:underline">
                     {t("cookies.policyLink")}
                   </Link>{" "}
                   or adjust preferences any time.
@@ -217,21 +217,21 @@ export default function CookieBanner() {
                 <button
                   type="button"
                   onClick={() => setPrefsOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#5D3FD3]/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   <Settings className="h-4 w-4" /> Manage
                 </button>
                 <button
                   type="button"
                   onClick={rejectAll}
-                  className="inline-flex items-center justify-center rounded-xl border border-[#5D3FD3]/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+                  className="inline-flex items-center justify-center rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   {t("cookies.rejectAll")}
                 </button>
                 <button
                   type="button"
                   onClick={acceptAll}
-                  className="inline-flex items-center justify-center rounded-xl bg-[#5D3FD3] px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB]"
+                  className="inline-flex items-center justify-center rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
                 >
                   {t("cookies.acceptAll")}
                 </button>

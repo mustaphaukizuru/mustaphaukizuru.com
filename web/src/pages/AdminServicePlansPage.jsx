@@ -83,7 +83,7 @@ function statusTone(status) {
     case "published": return "bg-[#e5f4e8] text-[#3b8f47]"
     case "draft": return "bg-[#fff3e2] text-[#b46909]"
     case "archived": return "bg-[#f2f2f2] text-[#666]"
-    default: return "bg-[#EDE9FB] text-[#5D3FD3]"
+    default: return "bg-violet-pale text-violet"
   }
 }
 
@@ -95,17 +95,17 @@ const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
 function Field({ label, required, hint, children }) {
   return (
     <label className="block">
-      <span className="mb-1.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#5D3FD3]">
+      <span className="mb-1.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet">
         {label} {required && <span className="text-rose-500">*</span>}
       </span>
       {children}
-      {hint && <span className="mt-1 block text-[11px] text-[#1A1B23]/55">{hint}</span>}
+      {hint && <span className="mt-1 block text-[11px] text-charcoal/55">{hint}</span>}
     </label>
   )
 }
 
 const inputClass =
-  "w-full rounded-xl border border-[#1A1B23]/15 bg-white px-3.5 py-2.5 text-[13px] text-[#5D3FD3] outline-none transition focus:border-[#5D3FD3] focus:ring-2 focus:ring-[#5D3FD3]/10"
+  "w-full rounded-xl border border-charcoal/15 bg-white px-3.5 py-2.5 text-[13px] text-violet outline-none transition focus:border-violet focus:ring-2 focus:ring-violet/10"
 
 /* ════════════════════════════════════════════════════════════════════════
    Service CRUD modal
@@ -250,21 +250,21 @@ function ServiceModal({ open, onClose, initial, onSaved }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed left-1/2 top-1/2 z-[121] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-[#1A1B23]/15 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.25)]"
+            className="fixed left-1/2 top-1/2 z-[121] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-charcoal/15 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.25)]"
           >
             <form onSubmit={handleSubmit} className="flex max-h-[90vh] flex-col">
-              <header className="flex items-start justify-between border-b border-[#1A1B23]/10 px-6 py-5">
+              <header className="flex items-start justify-between border-b border-charcoal/10 px-6 py-5">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDE9FB] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#5D3FD3]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-violet">
                     <Briefcase className="h-3 w-3" /> {isEdit ? "Edit service" : "New service"}
                   </span>
-                  <h2 className="mt-2 text-[20px] font-bold text-[#5D3FD3]">
+                  <h2 className="mt-2 text-[20px] font-bold text-violet">
                     {isEdit ? form.title || "Untitled service" : "Create a new service"}
                   </h2>
                 </div>
                 <button
                   type="button" onClick={onClose} aria-label="Close"
-                  className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-[#1A1B23]/55 transition hover:bg-violet-ghost hover:text-[#5D3FD3]"
+                  className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-charcoal/55 transition hover:bg-violet-ghost hover:text-violet"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -277,8 +277,8 @@ function ServiceModal({ open, onClose, initial, onSaved }) {
                     pill. Non-translatable structure (slug, status, pricing,
                     audience, flags) stays canonical and is shared across
                     locales. */}
-                <div className="mb-5 flex items-center justify-between rounded-xl border border-[#1A1B23]/12 bg-[#faf7fb] px-3 py-2.5">
-                  <div className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-[#1A1B23]/60">
+                <div className="mb-5 flex items-center justify-between rounded-xl border border-charcoal/12 bg-[#faf7fb] px-3 py-2.5">
+                  <div className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-charcoal/60">
                     <span aria-hidden="true">Locale</span>
                   </div>
                   <div role="tablist" aria-label="Edit locale" className="inline-flex items-center gap-1 rounded-lg bg-white p-1 shadow-[inset_0_0_0_1px_rgba(26,27,35,0.08)]">
@@ -287,10 +287,10 @@ function ServiceModal({ open, onClose, initial, onSaved }) {
                       role="tab"
                       aria-selected={locale === "en"}
                       onClick={() => setLocale("en")}
-                      className={`rounded-md px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-[#5D3FD3]/35 ${
+                      className={`rounded-md px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-violet/35 ${
                         locale === "en"
-                          ? "bg-[#5D3FD3] text-white shadow-[0_2px_6px_rgba(93,63,211,0.25)]"
-                          : "text-[#1A1B23]/65 hover:text-[#5D3FD3]"
+                          ? "bg-violet text-white shadow-[0_2px_6px_rgba(93,63,211,0.25)]"
+                          : "text-charcoal/65 hover:text-violet"
                       }`}
                     >
                       EN
@@ -300,10 +300,10 @@ function ServiceModal({ open, onClose, initial, onSaved }) {
                       role="tab"
                       aria-selected={locale === "es"}
                       onClick={() => setLocale("es")}
-                      className={`rounded-md px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-[#5D3FD3]/35 ${
+                      className={`rounded-md px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-violet/35 ${
                         locale === "es"
-                          ? "bg-[#5D3FD3] text-white shadow-[0_2px_6px_rgba(93,63,211,0.25)]"
-                          : "text-[#1A1B23]/65 hover:text-[#5D3FD3]"
+                          ? "bg-violet text-white shadow-[0_2px_6px_rgba(93,63,211,0.25)]"
+                          : "text-charcoal/65 hover:text-violet"
                       }`}
                     >
                       ES
@@ -367,17 +367,17 @@ function ServiceModal({ open, onClose, initial, onSaved }) {
                   <Field label="Featured">
                     <button type="button" onClick={() => update("isFeatured", !form.isFeatured)}
                       className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12.5px] font-semibold transition ${
-                        form.isFeatured ? "border-[#5D3FD3] bg-[#EDE9FB] text-[#5D3FD3]" : "border-[#1A1B23]/15 bg-white text-[#1A1B23]/65 hover:text-[#5D3FD3]"
+                        form.isFeatured ? "border-violet bg-violet-pale text-violet" : "border-charcoal/15 bg-white text-charcoal/65 hover:text-violet"
                       }`}
                     >
-                      <Star className={`h-4 w-4 ${form.isFeatured ? "fill-[#5D3FD3]" : ""}`} />
+                      <Star className={`h-4 w-4 ${form.isFeatured ? "fill-violet" : ""}`} />
                       {form.isFeatured ? "Featured" : "Not featured"}
                     </button>
                   </Field>
                   <Field label="Bookable">
                     <button type="button" onClick={() => update("isBookable", !form.isBookable)}
                       className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12.5px] font-semibold transition ${
-                        form.isBookable ? "border-[#5D3FD3] bg-[#EDE9FB] text-[#5D3FD3]" : "border-[#1A1B23]/15 bg-white text-[#1A1B23]/65 hover:text-[#5D3FD3]"
+                        form.isBookable ? "border-violet bg-violet-pale text-violet" : "border-charcoal/15 bg-white text-charcoal/65 hover:text-violet"
                       }`}
                     >
                       {form.isBookable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -421,14 +421,14 @@ function ServiceModal({ open, onClose, initial, onSaved }) {
                 </div>
               )}
 
-              <footer className="flex items-center justify-end gap-2 border-t border-[#1A1B23]/10 bg-[#faf7fb] px-6 py-4">
+              <footer className="flex items-center justify-end gap-2 border-t border-charcoal/10 bg-[#faf7fb] px-6 py-4">
                 <button type="button" onClick={onClose}
-                  className="rounded-xl border border-[#5D3FD3]/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+                  className="rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#5D3FD3] px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {saving
                     ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -526,12 +526,12 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
 
   if (editing) {
     return (
-      <div className="rounded-xl border border-[#5D3FD3]/20 bg-white p-4 shadow-[0_4px_14px_rgba(93,63,211,0.06)]">
+      <div className="rounded-xl border border-violet/20 bg-white p-4 shadow-[0_4px_14px_rgba(93,63,211,0.06)]">
         {/* I18N06 · Compact locale toggle — only swaps Plan name + Description.
             Pricing, tier, period, popular, save-label and inclusion matrix
             stay structural and shared across locales. */}
-        <div className="mb-3 flex items-center justify-between rounded-lg border border-[#1A1B23]/10 bg-[#faf7fb] px-2.5 py-1.5">
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#1A1B23]/55">
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-charcoal/10 bg-[#faf7fb] px-2.5 py-1.5">
+          <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal/55">
             Locale
           </span>
           <div role="tablist" aria-label="Edit package locale" className="inline-flex items-center gap-1 rounded-md bg-white p-0.5 shadow-[inset_0_0_0_1px_rgba(26,27,35,0.08)]">
@@ -540,8 +540,8 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
               role="tab"
               aria-selected={pkgLocale === "en"}
               onClick={() => setPkgLocale("en")}
-              className={`rounded px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-[#5D3FD3]/35 ${
-                pkgLocale === "en" ? "bg-[#5D3FD3] text-white" : "text-[#1A1B23]/65 hover:text-[#5D3FD3]"
+              className={`rounded px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-violet/35 ${
+                pkgLocale === "en" ? "bg-violet text-white" : "text-charcoal/65 hover:text-violet"
               }`}
             >
               EN
@@ -551,8 +551,8 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
               role="tab"
               aria-selected={pkgLocale === "es"}
               onClick={() => setPkgLocale("es")}
-              className={`rounded px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-[#5D3FD3]/35 ${
-                pkgLocale === "es" ? "bg-[#5D3FD3] text-white" : "text-[#1A1B23]/65 hover:text-[#5D3FD3]"
+              className={`rounded px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-violet/35 ${
+                pkgLocale === "es" ? "bg-violet text-white" : "text-charcoal/65 hover:text-violet"
               }`}
             >
               ES
@@ -608,7 +608,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
           <Field label="Active">
             <button type="button" onClick={() => setForm({ ...form, isActive: !form.isActive })}
               className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12.5px] font-semibold transition ${
-                form.isActive ? "border-[#5D3FD3] bg-[#EDE9FB] text-[#5D3FD3]" : "border-[#1A1B23]/15 bg-white text-[#1A1B23]/65"
+                form.isActive ? "border-violet bg-violet-pale text-violet" : "border-charcoal/15 bg-white text-charcoal/65"
               }`}
             >
               {form.isActive ? <CheckCircle2 className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -618,10 +618,10 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
           <Field label='"Most Popular" badge'>
             <button type="button" onClick={() => setForm({ ...form, popular: !form.popular })}
               className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12.5px] font-semibold transition ${
-                form.popular ? "border-[#5D3FD3] bg-[#EDE9FB] text-[#5D3FD3]" : "border-[#1A1B23]/15 bg-white text-[#1A1B23]/65"
+                form.popular ? "border-violet bg-violet-pale text-violet" : "border-charcoal/15 bg-white text-charcoal/65"
               }`}
             >
-              <Star className={`h-4 w-4 ${form.popular ? "fill-[#5D3FD3]" : ""}`} />
+              <Star className={`h-4 w-4 ${form.popular ? "fill-violet" : ""}`} />
               {form.popular ? "Showing Most Popular" : "No badge"}
             </button>
           </Field>
@@ -629,21 +629,21 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
 
         {/* ── Per-feature inclusion matrix ───────────────────────────── */}
         {features.length > 0 && (
-          <div className="mt-5 rounded-xl border border-[#1A1B23]/12 bg-mist p-4">
+          <div className="mt-5 rounded-xl border border-charcoal/12 bg-mist p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h5 className="inline-flex items-center gap-1.5 text-[11.5px] font-bold uppercase tracking-[0.14em] text-[#5D3FD3]">
+              <h5 className="inline-flex items-center gap-1.5 text-[11.5px] font-bold uppercase tracking-[0.14em] text-violet">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Included features ({includedSet.size}/{features.length})
               </h5>
               <div className="flex items-center gap-1">
                 <button type="button"
                   onClick={() => setIncludedSet(new Set(features.map((f) => f.id)))}
-                  className="rounded-lg bg-white px-2 py-1 text-[11px] font-semibold text-[#5D3FD3] hover:bg-[#EDE9FB]"
+                  className="rounded-lg bg-white px-2 py-1 text-[11px] font-semibold text-violet hover:bg-violet-pale"
                 >
                   All
                 </button>
                 <button type="button"
                   onClick={() => setIncludedSet(new Set())}
-                  className="rounded-lg bg-white px-2 py-1 text-[11px] font-semibold text-[#1A1B23]/65 hover:bg-violet-ghost"
+                  className="rounded-lg bg-white px-2 py-1 text-[11px] font-semibold text-charcoal/65 hover:bg-violet-ghost"
                 >
                   None
                 </button>
@@ -654,14 +654,14 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
                 const checked = includedSet.has(f.id)
                 return (
                   <li key={f.id}>
-                    <label className="flex cursor-pointer items-start gap-2 rounded-lg bg-white px-3 py-2 text-[12px] leading-snug transition hover:bg-[#EDE9FB]/50">
+                    <label className="flex cursor-pointer items-start gap-2 rounded-lg bg-white px-3 py-2 text-[12px] leading-snug transition hover:bg-violet-pale/50">
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleFeature(f.id)}
-                        className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#5D3FD3]/40 text-[#5D3FD3] accent-[#5D3FD3]"
+                        className="mt-0.5 h-4 w-4 shrink-0 rounded border-violet/40 text-violet accent-violet"
                       />
-                      <span className={checked ? "text-[#5D3FD3]" : "text-[#1A1B23]/75"}>
+                      <span className={checked ? "text-violet" : "text-charcoal/75"}>
                         {f.featureText}
                       </span>
                     </label>
@@ -674,12 +674,12 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
 
         <div className="mt-3 flex items-center justify-end gap-2">
           <button type="button" onClick={() => setEditing(false)}
-            className="rounded-xl border border-[#5D3FD3]/20 bg-white px-3 py-2 text-[12px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+            className="rounded-xl border border-violet/20 bg-white px-3 py-2 text-[12px] font-semibold text-violet transition hover:bg-violet-pale"
           >
             Cancel
           </button>
           <button type="button" onClick={handleSave} disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#5D3FD3] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB] disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep disabled:opacity-60"
           >
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save
           </button>
@@ -691,17 +691,17 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
   const includedCount = (pkg.featureSlots || []).length
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#1A1B23]/12 bg-white p-3.5 transition hover:border-[#5D3FD3]/20">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-charcoal/12 bg-white p-3.5 transition hover:border-violet/20">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h4 className="text-[13.5px] font-bold text-[#5D3FD3]">{pkg.name}</h4>
+          <h4 className="text-[13.5px] font-bold text-violet">{pkg.name}</h4>
           {pkg.tierKey && (
-            <span className="rounded-full bg-[#EDE9FB] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#5D3FD3]">
+            <span className="rounded-full bg-violet-pale px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet">
               {pkg.tierKey}
             </span>
           )}
           {pkg.popular && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#5D3FD3] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+            <span className="inline-flex items-center gap-1 rounded-full bg-violet px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
               <Star className="h-2.5 w-2.5 fill-white" /> Popular
             </span>
           )}
@@ -709,27 +709,27 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
             <span className="rounded-full bg-[#f2f2f2] px-2 py-0.5 text-[10px] font-semibold text-[#666]">Hidden</span>
           )}
           {features.length > 0 && (
-            <span className="font-mono text-[10px] tabular-nums text-[#1A1B23]/55">
+            <span className="font-mono text-[10px] tabular-nums text-charcoal/55">
               {includedCount}/{features.length} features
             </span>
           )}
-          <span className="rounded-full bg-[#EDE9FB] px-2 py-0.5 font-mono text-[10px] font-bold tabular-nums text-[#5D3FD3]">
+          <span className="rounded-full bg-violet-pale px-2 py-0.5 font-mono text-[10px] font-bold tabular-nums text-violet">
             #{pkg.sortOrder ?? 0}
           </span>
         </div>
         {pkg.description && (
-          <p className="mt-0.5 truncate text-[12px] text-[#1A1B23]/65">{pkg.description}</p>
+          <p className="mt-0.5 truncate text-[12px] text-charcoal/65">{pkg.description}</p>
         )}
         {pkg.saveLabel && (
-          <p className="mt-0.5 text-[11px] font-semibold text-[#5D3FD3]">{pkg.saveLabel}</p>
+          <p className="mt-0.5 text-[11px] font-semibold text-violet">{pkg.saveLabel}</p>
         )}
       </div>
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[14px] font-bold tabular-nums text-[#5D3FD3]">
+        <span className="font-mono text-[14px] font-bold tabular-nums text-violet">
           {fmtMoney(pkg.price, pkg.currency)}
         </span>
         <button type="button" onClick={() => setEditing(true)} aria-label="Edit plan" disabled={busy}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-[#5D3FD3] transition hover:bg-[#EDE9FB] disabled:opacity-50"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-violet transition hover:bg-violet-pale disabled:opacity-50"
         >
           <Pencil className="h-3.5 w-3.5" />
         </button>
@@ -820,26 +820,26 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
   return (
     <motion.article
       variants={fadeUp}
-      className="overflow-hidden rounded-2xl border border-[#1A1B23]/10 bg-white shadow-[0_4px_18px_rgba(93,63,211,0.05)] transition hover:shadow-[0_8px_24px_rgba(93,63,211,0.08)]"
+      className="overflow-hidden rounded-2xl border border-charcoal/10 bg-white shadow-[0_4px_18px_rgba(93,63,211,0.05)] transition hover:shadow-[0_8px_24px_rgba(93,63,211,0.08)]"
     >
       {/* Header */}
       <header className="flex flex-wrap items-start justify-between gap-3 p-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[16px] font-bold text-[#5D3FD3]">{service.title}</h3>
+            <h3 className="text-[16px] font-bold text-violet">{service.title}</h3>
             <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold capitalize ${statusTone(service.status)}`}>
               {service.status}
             </span>
             {service.isFeatured && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#5D3FD3] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+              <span className="inline-flex items-center gap-1 rounded-full bg-violet px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                 <Star className="h-2.5 w-2.5 fill-white" /> Featured
               </span>
             )}
           </div>
-          <p className="mt-1 max-w-2xl truncate text-[12.5px] text-[#1A1B23]/70">
+          <p className="mt-1 max-w-2xl truncate text-[12.5px] text-charcoal/70">
             {service.shortDescription}
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-[#1A1B23]/60">
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-charcoal/60">
             <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" /> {service.deliveryType}</span>
             <span className="inline-flex items-center gap-1"><Layers className="h-3 w-3" /> {packageCount} plan{packageCount === 1 ? "" : "s"}</span>
             <span className="font-mono">{fmtMoney(service.basePrice, service.currency)} base</span>
@@ -848,7 +848,7 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
 
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => onEdit(service)} aria-label="Edit service"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-violet-pale"
           >
             <Pencil className="h-4 w-4" />
           </button>
@@ -858,7 +858,7 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
             <Trash2 className="h-4 w-4" />
           </button>
           <button type="button" onClick={toggleExpand} aria-expanded={expanded} aria-label={expanded ? "Collapse" : "Expand"}
-            className="inline-flex items-center gap-1 rounded-xl border border-[#5D3FD3]/20 bg-white px-3 py-2 text-[12px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+            className="inline-flex items-center gap-1 rounded-xl border border-violet/20 bg-white px-3 py-2 text-[12px] font-semibold text-violet transition hover:bg-violet-pale"
           >
             {expanded ? <>Hide <ChevronUp className="h-3.5 w-3.5" /></> : <>Manage <ChevronDown className="h-3.5 w-3.5" /></>}
           </button>
@@ -873,11 +873,11 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="border-t border-[#1A1B23]/10 bg-[#faf7fb]"
+            className="border-t border-charcoal/10 bg-[#faf7fb]"
           >
             <div className="space-y-6 p-5">
               {loadingDetail ? (
-                <div className="flex items-center justify-center gap-2 py-6 text-[13px] text-[#1A1B23]/55">
+                <div className="flex items-center justify-center gap-2 py-6 text-[13px] text-charcoal/55">
                   <Loader2 className="h-4 w-4 animate-spin" /> Loading detail…
                 </div>
               ) : (
@@ -885,14 +885,14 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
                   {/* ── Plans ────────────────────────────────────────── */}
                   <section>
                     <header className="mb-3 flex items-center justify-between">
-                      <h4 className="inline-flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-[0.14em] text-[#5D3FD3]">
+                      <h4 className="inline-flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-[0.14em] text-violet">
                         <Layers className="h-3.5 w-3.5" /> Pricing plans
                       </h4>
                     </header>
 
                     <div className="flex flex-col gap-2.5">
                       {(detail?.packages || []).length === 0 ? (
-                        <p className="rounded-xl border border-dashed border-[#1A1B23]/20 bg-white px-4 py-5 text-center text-[12.5px] text-[#1A1B23]/65">
+                        <p className="rounded-xl border border-dashed border-charcoal/20 bg-white px-4 py-5 text-center text-[12.5px] text-charcoal/65">
                           No pricing plans yet. Add the first plan below.
                         </p>
                       ) : (
@@ -909,12 +909,12 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
                     </div>
 
                     {/* Add new plan inline form */}
-                    <form onSubmit={handleAddPackage} className="mt-3 grid gap-2 rounded-xl border border-dashed border-[#5D3FD3]/25 bg-white p-3.5 sm:grid-cols-[1.4fr_0.8fr_2fr_auto]">
+                    <form onSubmit={handleAddPackage} className="mt-3 grid gap-2 rounded-xl border border-dashed border-violet/25 bg-white p-3.5 sm:grid-cols-[1.4fr_0.8fr_2fr_auto]">
                       <input className={inputClass} placeholder="Plan name" value={newPackage.name} onChange={(e) => setNewPackage({ ...newPackage, name: e.target.value })} />
                       <input className={inputClass} type="number" min="0" step="0.01" placeholder="Price" value={newPackage.price} onChange={(e) => setNewPackage({ ...newPackage, price: e.target.value })} />
                       <input className={inputClass} placeholder="Optional description" value={newPackage.description} onChange={(e) => setNewPackage({ ...newPackage, description: e.target.value })} />
                       <button type="submit" disabled={busy}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#5D3FD3] px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-[#4A2EAB] disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-violet px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-violet-deep disabled:opacity-60"
                       >
                         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />} Add plan
                       </button>
@@ -924,20 +924,20 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
                   {/* ── Features ─────────────────────────────────────── */}
                   <section>
                     <header className="mb-3 flex items-center justify-between">
-                      <h4 className="inline-flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-[0.14em] text-[#5D3FD3]">
+                      <h4 className="inline-flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-[0.14em] text-violet">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Features ({featureCount})
                       </h4>
                     </header>
 
                     <ul className="flex flex-col gap-1.5">
                       {(detail?.features || []).length === 0 ? (
-                        <li className="rounded-xl border border-dashed border-[#1A1B23]/20 bg-white px-4 py-4 text-center text-[12px] text-[#1A1B23]/60">
+                        <li className="rounded-xl border border-dashed border-charcoal/20 bg-white px-4 py-4 text-center text-[12px] text-charcoal/60">
                           No features defined.
                         </li>
                       ) : detail.features.map((f) => (
-                        <li key={f.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#1A1B23]/10 bg-white px-3.5 py-2.5">
-                          <span className="flex min-w-0 items-center gap-2 text-[12.5px] text-[#1A1B23]/85">
-                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#5D3FD3]" />
+                        <li key={f.id} className="flex items-center justify-between gap-3 rounded-xl border border-charcoal/10 bg-white px-3.5 py-2.5">
+                          <span className="flex min-w-0 items-center gap-2 text-[12.5px] text-charcoal/85">
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-violet" />
                             <span className="truncate">{f.featureText}</span>
                           </span>
                           <button type="button" onClick={() => handleRemoveFeature(f.id)} disabled={busy} aria-label="Remove feature"
@@ -952,7 +952,7 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
                     <form onSubmit={handleAddFeature} className="mt-2.5 flex items-center gap-2">
                       <input className={inputClass} placeholder="Add a feature line…" value={newFeature} onChange={(e) => setNewFeature(e.target.value)} />
                       <button type="submit" disabled={busy || !newFeature.trim()}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#5D3FD3] px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-[#4A2EAB] disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-violet px-4 py-2.5 text-[12px] font-semibold text-white transition hover:bg-violet-deep disabled:opacity-60"
                       >
                         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />} Add
                       </button>
@@ -1029,22 +1029,22 @@ export default function AdminServicePlansPage() {
       {/* ── Header ───────────────────────────────────────────────────── */}
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDE9FB] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#5D3FD3]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-violet">
             <Briefcase className="h-3 w-3" /> Catalogue
           </span>
-          <h1 className="mt-2 text-[24px] font-bold text-[#5D3FD3] sm:text-[28px]">Services & pricing plans</h1>
-          <p className="mt-1 max-w-2xl text-[13px] text-[#1A1B23]/70">
+          <h1 className="mt-2 text-[24px] font-bold text-violet sm:text-[28px]">Services & pricing plans</h1>
+          <p className="mt-1 max-w-2xl text-[13px] text-charcoal/70">
             Add, edit, or archive the services and pricing plans displayed on the public Services page. Changes are visible immediately on the website.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button type="button" onClick={load}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#5D3FD3]/20 bg-white px-3.5 py-2.5 text-[12.5px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-violet/20 bg-white px-3.5 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
           </button>
           <button type="button" onClick={handleCreate}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#5D3FD3] px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
           >
             <Plus className="h-4 w-4" /> New service
           </button>
@@ -1052,7 +1052,7 @@ export default function AdminServicePlansPage() {
       </header>
 
       {/* ── Filters ──────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#1A1B23]/10 bg-white p-3 shadow-[0_2px_10px_rgba(93,63,211,0.04)]">
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_2px_10px_rgba(93,63,211,0.04)]">
         <input
           type="search" value={q} onChange={(e) => setQ(e.target.value)}
           placeholder="Search by title, slug, or description…"
@@ -1060,13 +1060,13 @@ export default function AdminServicePlansPage() {
         />
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => setStatusFilter("")}
-            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${statusFilter === "" ? "bg-[#5D3FD3] text-white" : "bg-[#EDE9FB] text-[#5D3FD3] hover:bg-[#DCD4F4]"}`}
+            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${statusFilter === "" ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"}`}
           >
             All
           </button>
           {STATUSES.map((s) => (
             <button key={s} type="button" onClick={() => setStatusFilter(s)}
-              className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${statusFilter === s ? "bg-[#5D3FD3] text-white" : "bg-[#EDE9FB] text-[#5D3FD3] hover:bg-[#DCD4F4]"}`}
+              className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${statusFilter === s ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"}`}
             >
               {s}
             </button>
@@ -1088,15 +1088,15 @@ export default function AdminServicePlansPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#1A1B23]/20 bg-white p-10 text-center">
-          <Briefcase className="mx-auto h-7 w-7 text-[#1A1B23]/40" />
-          <h2 className="mt-3 text-[15px] font-bold text-[#5D3FD3]">No services match your filters</h2>
-          <p className="mt-1 text-[12.5px] text-[#1A1B23]/60">
+        <div className="rounded-2xl border border-dashed border-charcoal/20 bg-white p-10 text-center">
+          <Briefcase className="mx-auto h-7 w-7 text-charcoal/40" />
+          <h2 className="mt-3 text-[15px] font-bold text-violet">No services match your filters</h2>
+          <p className="mt-1 text-[12.5px] text-charcoal/60">
             {items.length === 0 ? "Create your first service to get started." : "Try clearing the search or status filter."}
           </p>
           {items.length === 0 && (
             <button type="button" onClick={handleCreate}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#5D3FD3] px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB]"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
             >
               <Plus className="h-4 w-4" /> Create first service
             </button>

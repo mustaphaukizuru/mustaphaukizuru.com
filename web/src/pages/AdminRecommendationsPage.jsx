@@ -38,14 +38,14 @@ const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transit
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
 
 const inputClass =
-  "w-full rounded-xl border border-[#1A1B23]/15 bg-white px-3.5 py-2.5 text-[13px] text-[#5D3FD3] outline-none transition focus:border-[#5D3FD3] focus:ring-2 focus:ring-[#5D3FD3]/10"
+  "w-full rounded-xl border border-charcoal/15 bg-white px-3.5 py-2.5 text-[13px] text-violet outline-none transition focus:border-violet focus:ring-2 focus:ring-violet/10"
 
 function statusTone(status) {
   switch (status) {
     case "published": return "bg-[#e5f4e8] text-[#3b8f47]"
     case "draft": return "bg-[#fff3e2] text-[#b46909]"
     case "archived": return "bg-[#f2f2f2] text-[#666]"
-    default: return "bg-[#EDE9FB] text-[#5D3FD3]"
+    default: return "bg-violet-pale text-violet"
   }
 }
 
@@ -60,11 +60,11 @@ function CategoryIcon({ category, className = "h-3.5 w-3.5" }) {
 function Field({ label, required, hint, children }) {
   return (
     <label className="block">
-      <span className="mb-1.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#5D3FD3]">
+      <span className="mb-1.5 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet">
         {label} {required && <span className="text-rose-500">*</span>}
       </span>
       {children}
-      {hint && <span className="mt-1 block text-[11px] text-[#1A1B23]/55">{hint}</span>}
+      {hint && <span className="mt-1 block text-[11px] text-charcoal/55">{hint}</span>}
     </label>
   )
 }
@@ -161,20 +161,20 @@ function RecommendationModal({ open, onClose, initial, onSaved }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed left-1/2 top-1/2 z-[121] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-[#1A1B23]/15 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.25)]"
+            className="fixed left-1/2 top-1/2 z-[121] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-charcoal/15 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.25)]"
           >
             <form onSubmit={handleSubmit} className="flex max-h-[90vh] flex-col">
-              <header className="flex items-start justify-between border-b border-[#1A1B23]/10 px-6 py-5">
+              <header className="flex items-start justify-between border-b border-charcoal/10 px-6 py-5">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDE9FB] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#5D3FD3]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-violet">
                     <Sparkles className="h-3 w-3" /> {isEdit ? "Edit recommendation" : "New recommendation"}
                   </span>
-                  <h2 className="mt-2 text-[20px] font-bold text-[#5D3FD3]">
+                  <h2 className="mt-2 text-[20px] font-bold text-violet">
                     {isEdit ? form.title || "Untitled" : "Add a new recommendation"}
                   </h2>
                 </div>
                 <button type="button" onClick={onClose} aria-label="Close"
-                  className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-[#1A1B23]/55 transition hover:bg-violet-ghost hover:text-[#5D3FD3]"
+                  className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-charcoal/55 transition hover:bg-violet-ghost hover:text-violet"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -228,10 +228,10 @@ function RecommendationModal({ open, onClose, initial, onSaved }) {
                   <Field label="Affiliate disclosure">
                     <button type="button" onClick={() => update("isAffiliate", !form.isAffiliate)}
                       className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12.5px] font-semibold transition ${
-                        form.isAffiliate ? "border-[#5D3FD3] bg-[#EDE9FB] text-[#5D3FD3]" : "border-[#1A1B23]/15 bg-white text-[#1A1B23]/65"
+                        form.isAffiliate ? "border-violet bg-violet-pale text-violet" : "border-charcoal/15 bg-white text-charcoal/65"
                       }`}
                     >
-                      <Star className={`h-4 w-4 ${form.isAffiliate ? "fill-[#5D3FD3]" : ""}`} />
+                      <Star className={`h-4 w-4 ${form.isAffiliate ? "fill-violet" : ""}`} />
                       {form.isAffiliate ? "Marked as affiliate" : "Not an affiliate link"}
                     </button>
                   </Field>
@@ -251,14 +251,14 @@ function RecommendationModal({ open, onClose, initial, onSaved }) {
                 </div>
               )}
 
-              <footer className="flex items-center justify-end gap-2 border-t border-[#1A1B23]/10 bg-[#faf7fb] px-6 py-4">
+              <footer className="flex items-center justify-end gap-2 border-t border-charcoal/10 bg-[#faf7fb] px-6 py-4">
                 <button type="button" onClick={onClose}
-                  className="rounded-xl border border-[#5D3FD3]/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+                  className="rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#5D3FD3] px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {saving
                     ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
@@ -289,14 +289,14 @@ function RecommendationCard({ rec, onEdit, onDelete }) {
   return (
     <motion.article
       variants={fadeUp}
-      className="flex flex-wrap items-start gap-4 rounded-2xl border border-[#1A1B23]/10 bg-white p-5 shadow-[0_4px_14px_rgba(93,63,211,0.04)]"
+      className="flex flex-wrap items-start gap-4 rounded-2xl border border-charcoal/10 bg-white p-5 shadow-[0_4px_14px_rgba(93,63,211,0.04)]"
     >
       {/* Image */}
-      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#EDE9FB]">
+      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-violet-pale">
         {rec.imageUrl ? (
           <img src={rec.imageUrl} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center text-[#5D3FD3]">
+          <div className="flex h-full items-center justify-center text-violet">
             <CategoryIcon category={rec.category} className="h-7 w-7" />
           </div>
         )}
@@ -305,26 +305,26 @@ function RecommendationCard({ rec, onEdit, onDelete }) {
       {/* Body */}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-[15px] font-bold text-[#5D3FD3]">{rec.title}</h3>
+          <h3 className="text-[15px] font-bold text-violet">{rec.title}</h3>
           <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold capitalize ${statusTone(rec.status)}`}>
             {rec.status}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#EDE9FB] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#5D3FD3]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-violet-pale px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet">
             <CategoryIcon category={rec.category} className="h-2.5 w-2.5" />
             {rec.category}
           </span>
           {rec.isAffiliate && (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Affiliate</span>
           )}
-          <span className="font-mono text-[10px] text-[#1A1B23]/55">priority {rec.priority}</span>
+          <span className="font-mono text-[10px] text-charcoal/55">priority {rec.priority}</span>
         </div>
-        <p className="mt-1 line-clamp-2 text-[12.5px] text-[#1A1B23]/70">{rec.summary}</p>
+        <p className="mt-1 line-clamp-2 text-[12.5px] text-charcoal/70">{rec.summary}</p>
         {link && (
           <a
             href={link.href}
             target={link.external ? "_blank" : undefined}
             rel={link.external ? "noopener noreferrer" : undefined}
-            className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#5D3FD3] hover:underline"
+            className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-semibold text-violet hover:underline"
           >
             <ExternalLink className="h-3 w-3" /> {link.label}
           </a>
@@ -334,7 +334,7 @@ function RecommendationCard({ rec, onEdit, onDelete }) {
       {/* Actions */}
       <div className="flex items-center gap-2">
         <button type="button" onClick={() => onEdit(rec)} aria-label="Edit"
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+          className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-violet-pale"
         >
           <Pencil className="h-4 w-4" />
         </button>
@@ -400,24 +400,24 @@ export default function AdminRecommendationsPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDE9FB] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#5D3FD3]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-violet">
             <Sparkles className="h-3 w-3" /> Recommendations
           </span>
-          <h1 className="mt-2 text-[24px] font-bold text-[#5D3FD3] sm:text-[28px]">Recommendations</h1>
-          <p className="mt-1 max-w-2xl text-[13px] text-[#1A1B23]/70">
+          <h1 className="mt-2 text-[24px] font-bold text-violet sm:text-[28px]">Recommendations</h1>
+          <p className="mt-1 max-w-2xl text-[13px] text-charcoal/70">
             Hand-picked tools, books, services, and partners. Published recommendations appear on the public
-            <span className="mx-1 font-mono text-[12px] text-[#5D3FD3]">/recommendations</span> page and contextually
+            <span className="mx-1 font-mono text-[12px] text-violet">/recommendations</span> page and contextually
             next to related content.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button type="button" onClick={load}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#5D3FD3]/20 bg-white px-3.5 py-2.5 text-[12.5px] font-semibold text-[#5D3FD3] transition hover:bg-[#EDE9FB]"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-violet/20 bg-white px-3.5 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
           </button>
           <button type="button" onClick={handleCreate}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#5D3FD3] px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB]"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
           >
             <Plus className="h-4 w-4" /> New recommendation
           </button>
@@ -425,9 +425,9 @@ export default function AdminRecommendationsPage() {
       </header>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#1A1B23]/10 bg-white p-3 shadow-[0_2px_10px_rgba(93,63,211,0.04)]">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_2px_10px_rgba(93,63,211,0.04)]">
         <div className="relative min-w-[220px] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#1A1B23]/40" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal/40" />
           <input
             type="search" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder="Search title, summary, slug…"
@@ -436,13 +436,13 @@ export default function AdminRecommendationsPage() {
         </div>
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => setStatusFilter("")}
-            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${statusFilter === "" ? "bg-[#5D3FD3] text-white" : "bg-[#EDE9FB] text-[#5D3FD3] hover:bg-[#DCD4F4]"}`}
+            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${statusFilter === "" ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"}`}
           >
             All
           </button>
           {STATUSES.map((s) => (
             <button key={s} type="button" onClick={() => setStatusFilter(s)}
-              className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${statusFilter === s ? "bg-[#5D3FD3] text-white" : "bg-[#EDE9FB] text-[#5D3FD3] hover:bg-[#DCD4F4]"}`}
+              className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${statusFilter === s ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"}`}
             >
               {s}
             </button>
@@ -450,13 +450,13 @@ export default function AdminRecommendationsPage() {
         </div>
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => setCategoryFilter("")}
-            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${categoryFilter === "" ? "bg-[#1A1B23] text-white" : "bg-violet-ghost text-[#1A1B23]/65 hover:bg-[#EDE9FB]"}`}
+            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${categoryFilter === "" ? "bg-charcoal text-white" : "bg-violet-ghost text-charcoal/65 hover:bg-violet-pale"}`}
           >
             All categories
           </button>
           {CATEGORIES.map((c) => (
             <button key={c.value} type="button" onClick={() => setCategoryFilter(c.value)}
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${categoryFilter === c.value ? "bg-[#1A1B23] text-white" : "bg-violet-ghost text-[#1A1B23]/65 hover:bg-[#EDE9FB]"}`}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${categoryFilter === c.value ? "bg-charcoal text-white" : "bg-violet-ghost text-charcoal/65 hover:bg-violet-pale"}`}
             >
               <c.Icon className="h-3 w-3" /> {c.label}
             </button>
@@ -475,15 +475,15 @@ export default function AdminRecommendationsPage() {
           {[1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-violet-ghost" />)}
         </div>
       ) : visible.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#1A1B23]/20 bg-white p-10 text-center">
-          <Sparkles className="mx-auto h-7 w-7 text-[#1A1B23]/40" />
-          <h2 className="mt-3 text-[15px] font-bold text-[#5D3FD3]">No recommendations yet</h2>
-          <p className="mt-1 text-[12.5px] text-[#1A1B23]/60">
+        <div className="rounded-2xl border border-dashed border-charcoal/20 bg-white p-10 text-center">
+          <Sparkles className="mx-auto h-7 w-7 text-charcoal/40" />
+          <h2 className="mt-3 text-[15px] font-bold text-violet">No recommendations yet</h2>
+          <p className="mt-1 text-[12.5px] text-charcoal/60">
             {items.length === 0 ? "Add your first recommendation to start building the public list." : "Try clearing the filters."}
           </p>
           {items.length === 0 && (
             <button type="button" onClick={handleCreate}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#5D3FD3] px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB]"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
             >
               <Plus className="h-4 w-4" /> Add recommendation
             </button>

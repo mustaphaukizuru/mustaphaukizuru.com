@@ -350,7 +350,7 @@ function SetupState({ data, code, setCode, onVerify, verifying, onCancel }) {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-xl border border-violet/10 bg-[#F5F2FE] p-4">
+          <div className="rounded-xl border border-violet/10 bg-violet-ghost p-4">
             <div className="text-micro font-semibold text-violet">{t("twoFactor.setup.step2Title")}</div>
             <p className="mt-1 text-micro text-charcoal-80/70">
               {t("twoFactor.setup.step2Body")}
