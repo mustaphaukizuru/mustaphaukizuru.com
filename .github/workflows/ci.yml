@@ -77,7 +77,7 @@ jobs:
         continue-on-error: true
         run: npm run lint --if-present || echo "::warning::Backend lint reported issues - track as code-quality backlog"
 
-      - name: Run backend tests
+      - name: Run backend tests (blocking — refund service suite must stay green)
         run: npm test --if-present
         env:
           NODE_ENV: test
