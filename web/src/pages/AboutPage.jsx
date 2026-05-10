@@ -1089,7 +1089,7 @@ function CtaPhoneMockup() {
         <div className="relative h-full w-full overflow-hidden rounded-[37px] bg-[#0a0b0e] p-[2px]">
 
           {/* ── Screen ── */}
-          <div className="relative h-full w-full overflow-hidden rounded-[35px] bg-gradient-to-b from-[#F8FAFC] via-[#F2EBF6] to-[#EDE7F6]">
+          <div className="relative h-full w-full overflow-hidden rounded-[35px] bg-gradient-to-b from-mist via-[#F2EBF6] to-[#EDE7F6]">
 
             {/* ── Dynamic Island ── */}
             <div className="absolute left-1/2 top-[8px] z-30 flex h-[22px] w-[80px] -translate-x-1/2 items-center justify-end rounded-full bg-black px-2 ring-1 ring-black/60">

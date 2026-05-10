@@ -19,9 +19,9 @@ const SUPPORT_EMAIL = "hello@mustaphaukizuru.com"
 export default function UnsubscribedPage() {
   const { t } = useTranslation("common")
   return (
-    <section className="relative min-h-[calc(100vh-240px)] overflow-hidden bg-[#F8FAFC] py-24">
+    <section className="relative min-h-[calc(100vh-240px)] overflow-hidden bg-mist py-24">
       {/* Decorative blobs */}
-      <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#5D3FD3]/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-violet/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-16 left-1/4 h-56 w-56 rounded-full bg-terracotta/10 blur-2xl" />
 
       <div className="relative mx-auto max-w-xl px-4 sm:px-6 lg:px-8">

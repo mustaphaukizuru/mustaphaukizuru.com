@@ -38,13 +38,13 @@ export default function AdminPlaceholderPage({
       </div>
 
       {/* Hero card */}
-      <div className="rounded-2xl border border-[#EFF1F5] bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:p-8">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:p-8">
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EDE9FB] text-[#5D3FD3]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
             <Icon className="h-6 w-6" aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
-            {title && <h2 className="text-[20px] font-bold text-[#1A1B23]">{title}</h2>}
+            {title && <h2 className="text-[20px] font-bold text-charcoal">{title}</h2>}
             {description && (
               <p className="mt-1.5 text-[14px] leading-[1.6] text-[#475569]">{description}</p>
             )}
@@ -58,8 +58,8 @@ export default function AdminPlaceholderPage({
             </h3>
             <ul className="mt-3 space-y-2">
               {whatItWillDo.map((item) => (
-                <li key={item} className="flex items-start gap-2 text-[13px] text-[#1A1B23]/85">
-                  <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#5D3FD3]" aria-hidden="true" />
+                <li key={item} className="flex items-start gap-2 text-[13px] text-charcoal/85">
+                  <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-violet" aria-hidden="true" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -70,7 +70,7 @@ export default function AdminPlaceholderPage({
 
       {/* Implementation plan */}
       {(backendModels.length > 0 || apiPlan.length > 0) && (
-        <div className="rounded-2xl border border-[#EFF1F5] bg-[#F8FAFC]/60 p-6 sm:p-8">
+        <div className="rounded-2xl border border-slate-100 bg-mist/60 p-6 sm:p-8">
           <div className="flex items-center gap-2">
             <FileCode2 className="h-4 w-4 text-[#64748B]" aria-hidden="true" />
             <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#64748B]">
@@ -83,7 +83,7 @@ export default function AdminPlaceholderPage({
               <p className="text-[12px] font-semibold text-[#475569]">Prisma models in use</p>
               <ul className="mt-1.5 flex flex-wrap gap-1.5">
                 {backendModels.map((m) => (
-                  <li key={m} className="rounded-md bg-[#EDE9FB] px-2 py-0.5 font-mono text-[11px] font-semibold text-[#5D3FD3]">
+                  <li key={m} className="rounded-md bg-violet-pale px-2 py-0.5 font-mono text-[11px] font-semibold text-violet">
                     {m}
                   </li>
                 ))}
@@ -96,7 +96,7 @@ export default function AdminPlaceholderPage({
               <p className="text-[12px] font-semibold text-[#475569]">Backend endpoints needed</p>
               <ul className="mt-1.5 space-y-1">
                 {apiPlan.map((line) => (
-                  <li key={line} className="font-mono text-[11px] text-[#1A1B23]/85">{line}</li>
+                  <li key={line} className="font-mono text-[11px] text-charcoal/85">{line}</li>
                 ))}
               </ul>
             </div>

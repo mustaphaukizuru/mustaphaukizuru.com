@@ -212,7 +212,7 @@ function AddressRow({ address, onEdit, onDelete, onSetDefault, isDeleting }) {
 
   return (
     <div className={`flex flex-col gap-3 rounded-xl border p-4 transition md:flex-row md:items-start md:justify-between ${
-      address.isDefault ? "border-violet/30 bg-[#F5F2FE]" : "border-charcoal-80/10 bg-mist"
+      address.isDefault ? "border-violet/30 bg-violet-ghost" : "border-charcoal-80/10 bg-mist"
     }`}>
       <div className="flex items-start gap-3">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${

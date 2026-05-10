@@ -25,7 +25,7 @@ export default function AdminToolbar({
       {/* LEFT, count + context */}
       <div className="text-[12px] text-[#475569]">
         {typeof count === "number" && (
-          <span className="font-mono tabular-nums font-semibold text-[#1A1B23]">
+          <span className="font-mono tabular-nums font-semibold text-charcoal">
             {count.toLocaleString()}
           </span>
         )}
@@ -45,7 +45,7 @@ export default function AdminToolbar({
             type="button"
             onClick={onRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#DCDCE4] bg-white px-3 py-2 text-[13px] font-medium text-[#1A1B23] transition hover:bg-[#F8FAFC] disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-charcoal transition hover:bg-mist disabled:opacity-60"
             title="Reload from server"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} aria-hidden="true" />

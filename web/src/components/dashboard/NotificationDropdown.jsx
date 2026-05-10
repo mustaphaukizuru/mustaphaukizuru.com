@@ -76,7 +76,7 @@ function NotificationItem({ notification, onRead }) {
       type="button"
       onClick={() => onRead(notification.id)}
       className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-[#f7f4f8] ${
-        !notification.isRead ? "bg-[#F5F2FE]" : ""
+        !notification.isRead ? "bg-violet-ghost" : ""
       }`}
     >
       <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${meta.color}`}>

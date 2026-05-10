@@ -718,7 +718,7 @@ function ContactSection() {
                     ))}
                   </div>
                   {touched.audience && fieldErrors.audience && (
-                    <p className="mt-2 text-[12px] text-[#E11D48]">{fieldErrors.audience}</p>
+                    <p className="mt-2 text-[12px] text-rose">{fieldErrors.audience}</p>
                   )}
                 </motion.fieldset>
 
@@ -739,20 +739,20 @@ function ContactSection() {
                 </motion.div>
 
                 {/* Consent */}
-                <motion.label variants={fadeUp} className="flex items-start gap-3 text-[13px] text-[#1A1B23]/75">
+                <motion.label variants={fadeUp} className="flex items-start gap-3 text-[13px] text-charcoal/75">
                   <input
                     type="checkbox"
                     checked={form.consent}
                     onChange={updateBool("consent")}
                     onBlur={markTouched("consent")}
-                    className="mt-1 h-4 w-4 rounded border-[#1A1B23]/25 text-[#5D3FD3] focus:ring-2 focus:ring-[#5D3FD3]/30"
+                    className="mt-1 h-4 w-4 rounded border-charcoal/25 text-violet focus:ring-2 focus:ring-violet/30"
                   />
                   <span>
                     {t("form.consent")}
                   </span>
                 </motion.label>
                 {touched.consent && fieldErrors.consent && (
-                  <p className="-mt-3 ml-7 text-[12px] text-[#E11D48]">{fieldErrors.consent}</p>
+                  <p className="-mt-3 ml-7 text-[12px] text-rose">{fieldErrors.consent}</p>
                 )}
 
                 {error && (
@@ -769,7 +769,7 @@ function ContactSection() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#5D3FD3] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(93,63,211,0.28)] transition hover:-translate-y-0.5 hover:bg-[#4A2EAB] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(93,63,211,0.28)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   >
                     {loading ? (
                       <>
@@ -804,20 +804,20 @@ function ContactChannelsSection() {
     <section className="py-16 sm:py-20" style={{ backgroundColor: "rgba(248, 250, 252, 0.5)" }}>
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
-          <h2 className="text-[24px] font-bold text-[#5D3FD3] sm:text-[32px]">{t("channels.title")}</h2>
+          <h2 className="text-[24px] font-bold text-violet sm:text-[32px]">{t("channels.title")}</h2>
           <p className="mt-3 text-[14px] leading-[1.65] text-[#475569]">
             {t("channels.subtitle")}
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <a
               href={`mailto:${EMAIL}`}
-              className="group flex items-start gap-3 rounded-xl border border-[#EFF1F5] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#5D3FD3]/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
+              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EDE9FB] text-[#5D3FD3]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                 <Mail className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-[13px] font-bold text-[#5D3FD3]">{t("channels.email")}</div>
+                <div className="text-[13px] font-bold text-violet">{t("channels.email")}</div>
                 <div className="mt-0.5 text-[12px] text-[#475569]">{EMAIL}</div>
               </div>
             </a>
@@ -825,22 +825,22 @@ function ContactChannelsSection() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-start gap-3 rounded-xl border border-[#EFF1F5] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#5D3FD3]/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
+              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D1FAE5] text-[#10B981]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D1FAE5] text-mint">
                 <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-[13px] font-bold text-[#5D3FD3]">{t("channels.whatsapp")}</div>
+                <div className="text-[13px] font-bold text-violet">{t("channels.whatsapp")}</div>
                 <div className="mt-0.5 text-[12px] text-[#475569]">{t("channels.whatsappBody")}</div>
               </div>
             </a>
-            <div className="flex items-start gap-3 rounded-xl border border-[#EFF1F5] bg-white p-5">
+            <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FEF3C7] text-[#92400E]">
                 <MapPin className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
-                <div className="text-[13px] font-bold text-[#5D3FD3]">{t("channels.basedIn")}</div>
+                <div className="text-[13px] font-bold text-violet">{t("channels.basedIn")}</div>
                 <div className="mt-0.5 text-[12px] leading-5 text-[#475569]">
                   {ADDRESS_LINES.map((line) => <div key={line}>{line}</div>)}
                 </div>

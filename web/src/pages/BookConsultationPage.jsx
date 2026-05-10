@@ -27,7 +27,7 @@ const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
 function HeroBadge() {
   const { t } = useTranslation("contact")
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDE9FB] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#5D3FD3]">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-violet">
       <Sparkles className="h-3 w-3" />
       {t("book.badge")}
     </span>
@@ -36,13 +36,13 @@ function HeroBadge() {
 
 function TrustItem({ icon: Icon, title, body }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-[#1A1B23]/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EDE9FB] text-[#5D3FD3]">
+    <div className="flex items-start gap-3 rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
         <Icon className="h-[18px] w-[18px]" />
       </div>
       <div className="min-w-0">
-        <div className="text-[13px] font-bold text-[#5D3FD3]">{title}</div>
-        <div className="mt-0.5 text-[12px] text-[#1A1B23]/70">{body}</div>
+        <div className="text-[13px] font-bold text-violet">{title}</div>
+        <div className="mt-0.5 text-[12px] text-charcoal/70">{body}</div>
       </div>
     </div>
   )
@@ -94,7 +94,7 @@ export default function BookConsultationPage() {
   ]
 
   return (
-    <section className="bg-[#F8FAFC]">
+    <section className="bg-mist">
       <Seo
         title={service ? t("book.seoBookFmt", { title: service.title }) : t("book.seoDefault")}
         description={subtitle}
@@ -107,17 +107,17 @@ export default function BookConsultationPage() {
           <motion.div variants={fadeUp}>
             <HeroBadge />
           </motion.div>
-          <motion.h1 variants={fadeUp} className="mt-3 text-[28px] font-bold tracking-tight text-[#5D3FD3] sm:text-[36px] lg:text-[42px]">
+          <motion.h1 variants={fadeUp} className="mt-3 text-[28px] font-bold tracking-tight text-violet sm:text-[36px] lg:text-[42px]">
             {title}
           </motion.h1>
-          <motion.p variants={fadeUp} className="mt-3 max-w-2xl text-[14px] text-[#1A1B23]/75 sm:text-[15px]">
+          <motion.p variants={fadeUp} className="mt-3 max-w-2xl text-[14px] text-charcoal/75 sm:text-[15px]">
             {subtitle}
           </motion.p>
           {!service && (
             <motion.div variants={fadeUp} className="mt-4">
               <Link
                 to="/services"
-                className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#5D3FD3] transition hover:underline"
+                className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition hover:underline"
               >
                 {t("book.browseAll")}
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -137,7 +137,7 @@ export default function BookConsultationPage() {
           {/* Calendar */}
           <div className="min-w-0">
             {loading ? (
-              <div className="h-[520px] animate-pulse rounded-xl border border-[#1A1B23]/10 bg-white shadow-[0_12px_35px_rgba(93,63,211,0.06)]" />
+              <div className="h-[520px] animate-pulse rounded-xl border border-charcoal/10 bg-white shadow-[0_12px_35px_rgba(93,63,211,0.06)]" />
             ) : (
               <BookingCalendar
                 serviceId={service?.id || null}
@@ -161,9 +161,9 @@ export default function BookConsultationPage() {
               </motion.div>
             ))}
 
-            <motion.div variants={fadeUp} className="rounded-xl border border-[#5D3FD3]/15 bg-gradient-to-br from-[#F5F2FE] to-white p-5">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#5D3FD3]">{t("book.expect.title")}</div>
-              <ul className="mt-3 space-y-2.5 text-[12.5px] text-[#1A1B23]/85">
+            <motion.div variants={fadeUp} className="rounded-xl border border-violet/15 bg-gradient-to-br from-violet-ghost to-white p-5">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet">{t("book.expect.title")}</div>
+              <ul className="mt-3 space-y-2.5 text-[12.5px] text-charcoal/85">
                 <li>• {t("book.expect.item1")}</li>
                 <li>• {t("book.expect.item2")}</li>
                 <li>• {t("book.expect.item3")}</li>

@@ -211,7 +211,7 @@ export default function CheckoutSuccessPage() {
               <AlertCircle className="h-12 w-12 text-white" aria-hidden="true" />
             </div>
           ) : polling ? (
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#F59E0B] shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-amber shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
               <Loader2 className="h-12 w-12 animate-spin text-white" aria-hidden="true" />
             </div>
           ) : (
@@ -265,8 +265,8 @@ export default function CheckoutSuccessPage() {
           </motion.div>
         ) : polling ? (
           <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
-            <motion.div variants={fadeUp} className="rounded-xl border border-[#F59E0B]/20 bg-[#fffbeb] p-6 text-meta text-[#92400e] max-w-sm">
-              <Clock3 className="mx-auto mb-3 h-8 w-8 text-[#F59E0B]" aria-hidden="true" />
+            <motion.div variants={fadeUp} className="rounded-xl border border-amber/20 bg-[#fffbeb] p-6 text-meta text-[#92400e] max-w-sm">
+              <Clock3 className="mx-auto mb-3 h-8 w-8 text-amber" aria-hidden="true" />
               {t("success.processingMP")}
             </motion.div>
           </motion.div>

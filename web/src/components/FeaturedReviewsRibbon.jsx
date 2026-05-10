@@ -131,7 +131,7 @@ export default function FeaturedReviewsRibbon({
 
   const isDark = tone === "dark"
   const surface = isDark
-    ? "bg-[#1A1B23] text-white"
+    ? "bg-charcoal text-white"
     : "bg-violet-pale/30 text-charcoal-80"
   const eyebrowCls = isDark
     ? "bg-white/10 text-white/85"

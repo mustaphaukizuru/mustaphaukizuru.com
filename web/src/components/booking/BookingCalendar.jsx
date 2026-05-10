@@ -147,7 +147,7 @@ function MonthYearPicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={`Change month and year (currently ${MONTHS[month - 1]} ${year})`}
-        className="group inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-bold text-[#5D3FD3] transition hover:bg-violet-ghost focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[#5D3FD3]/20"
+        className="group inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-bold text-violet transition hover:bg-violet-ghost focus:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/20"
       >
         <span>{MONTHS[month - 1]} {year}</span>
         <ChevronDown
@@ -165,20 +165,20 @@ function MonthYearPicker({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute left-1/2 z-30 mt-2 w-[280px] -translate-x-1/2 overflow-hidden rounded-2xl border border-[#1A1B23]/10 bg-white p-3 shadow-[0_18px_50px_-12px_rgba(93,63,211,0.22),0_2px_8px_rgba(0,0,0,0.04)]"
+            className="absolute left-1/2 z-30 mt-2 w-[280px] -translate-x-1/2 overflow-hidden rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_18px_50px_-12px_rgba(93,63,211,0.22),0_2px_8px_rgba(0,0,0,0.04)]"
           >
             {/* Year row */}
-            <div className="flex items-center justify-between gap-2 border-b border-[#1A1B23]/8 pb-2.5">
+            <div className="flex items-center justify-between gap-2 border-b border-charcoal/8 pb-2.5">
               <button
                 type="button"
                 onClick={() => canPrevYear && setDraft((y) => y - 1)}
                 disabled={!canPrevYear}
                 aria-label={t("bookingCalendar.prevYearAria")}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#5D3FD3] transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-violet transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               </button>
-              <div className="font-mono text-[14px] font-bold tabular-nums text-[#5D3FD3]">
+              <div className="font-mono text-[14px] font-bold tabular-nums text-violet">
                 {draftYear}
               </div>
               <button
@@ -186,7 +186,7 @@ function MonthYearPicker({
                 onClick={() => canNextYear && setDraft((y) => y + 1)}
                 disabled={!canNextYear}
                 aria-label={t("bookingCalendar.nextYearAria")}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#5D3FD3] transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-violet transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -207,12 +207,12 @@ function MonthYearPicker({
                     aria-pressed={isCurrent}
                     aria-label={`${MONTHS[idx]} ${draftYear}${inRange ? "" : " (unavailable)"}`}
                     className={[
-                      "relative h-9 rounded-lg text-[12.5px] font-semibold transition focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[#5D3FD3]/20",
+                      "relative h-9 rounded-lg text-[12.5px] font-semibold transition focus:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/20",
                       !inRange
-                        ? "cursor-not-allowed text-[#1A1B23]/25"
+                        ? "cursor-not-allowed text-charcoal/25"
                         : isCurrent
-                          ? "bg-[#5D3FD3] text-white shadow-[0_4px_12px_rgba(93,63,211,0.25)]"
-                          : "bg-violet-ghost text-[#5D3FD3] hover:bg-[#5D3FD3] hover:text-white",
+                          ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.25)]"
+                          : "bg-violet-ghost text-violet hover:bg-violet hover:text-white",
                     ].join(" ")}
                   >
                     {short}
@@ -222,7 +222,7 @@ function MonthYearPicker({
             </div>
 
             {/* Helper line */}
-            <div className="mt-2.5 border-t border-[#1A1B23]/8 pt-2 text-center text-[10.5px] text-[#1A1B23]/55">
+            <div className="mt-2.5 border-t border-charcoal/8 pt-2 text-center text-[10.5px] text-charcoal/55">
               {t("bookingCalendar.bookableHighlight")}
             </div>
           </motion.div>
@@ -242,14 +242,14 @@ function StepBadge({ active, complete, n, label }) {
       <div
         className={[
           "flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold transition",
-          complete ? "bg-[#5D3FD3] text-white"
-            : active ? "bg-[#5D3FD3] text-white shadow-[0_4px_12px_rgba(93,63,211,0.25)]"
-            : "bg-[#EDE9FB] text-[#5D3FD3]",
+          complete ? "bg-violet text-white"
+            : active ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.25)]"
+            : "bg-violet-pale text-violet",
         ].join(" ")}
       >
         {complete ? <Check className="h-3.5 w-3.5" /> : n}
       </div>
-      <span className={`text-[13px] font-semibold ${active || complete ? "text-[#5D3FD3]" : "text-[#1A1B23]/60"}`}>
+      <span className={`text-[13px] font-semibold ${active || complete ? "text-violet" : "text-charcoal/60"}`}>
         {label}
       </span>
     </div>
@@ -261,9 +261,9 @@ function StepperHeader({ step }) {
   return (
     <div className="flex flex-wrap items-center gap-3 text-[12px] sm:gap-5">
       <StepBadge n={1} active={step === 1} complete={step > 1} label={t("bookingCalendar.stepDate")} />
-      <div className="hidden h-px w-8 bg-[#1A1B23]/15 sm:block" />
+      <div className="hidden h-px w-8 bg-charcoal/15 sm:block" />
       <StepBadge n={2} active={step === 2} complete={step > 2} label={t("bookingCalendar.stepTime")} />
-      <div className="hidden h-px w-8 bg-[#1A1B23]/15 sm:block" />
+      <div className="hidden h-px w-8 bg-charcoal/15 sm:block" />
       <StepBadge n={3} active={step === 3} complete={false} label={t("bookingCalendar.stepConfirm")} />
     </div>
   )
@@ -272,7 +272,7 @@ function StepperHeader({ step }) {
 function PolicyHint({ minNoticeHours, maxAdvanceDays }) {
   const { t } = useTranslation("common")
   return (
-    <p className="mt-2 text-[11px] text-[#1A1B23]/55">
+    <p className="mt-2 text-[11px] text-charcoal/55">
       {t("bookingCalendar.bookingNeeds")} {minNoticeHours ?? 24}{t("bookingCalendar.hNotice")} {maxAdvanceDays ?? 60} {t("bookingCalendar.daysAhead")}
     </p>
   )
@@ -439,18 +439,18 @@ export default function BookingCalendar({
     return (
       <motion.div
         variants={fadeUp} initial="hidden" animate="show"
-        className="rounded-xl border border-[#1A1B23]/10 bg-white p-6 text-center shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-10"
+        className="rounded-xl border border-charcoal/10 bg-white p-6 text-center shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-10"
       >
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f4ea] text-[#3b8f47] sm:h-16 sm:w-16">
           <CheckCircle2 className="h-7 w-7 sm:h-8 sm:w-8" />
         </div>
-        <h2 className="mt-5 text-[22px] font-bold tracking-tight text-[#5D3FD3] sm:text-[26px]">
+        <h2 className="mt-5 text-[22px] font-bold tracking-tight text-violet sm:text-[26px]">
           {t("bookingCalendar.consultationBooked")}
         </h2>
-        <p className="mt-2 text-[13px] text-[#1A1B23]/70 sm:text-[14px]">
+        <p className="mt-2 text-[13px] text-charcoal/70 sm:text-[14px]">
           {formatLongDate(bookedRecord.scheduledAt, timezone)} · {formatTime(bookedRecord.scheduledAt, timezone)}
         </p>
-        <p className="mt-1 text-[12px] text-[#1A1B23]/55">
+        <p className="mt-1 text-[12px] text-charcoal/55">
           {t("bookingCalendar.confirmationOnWay")} {bookedRecord?.user?.email || "your inbox"}.
         </p>
 
@@ -458,7 +458,7 @@ export default function BookingCalendar({
           <button
             type="button"
             onClick={() => navigate("/dashboard/consultations")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5D3FD3] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB]"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
           >
             {t("bookingCalendar.viewDashboard")}
           </button>
@@ -467,7 +467,7 @@ export default function BookingCalendar({
             onClick={() => {
               setBookedRecord(null); setSelectedSlot(null); setSelectedDate(null); setStep(1); setClientNotes("")
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#5D3FD3]/15 bg-white px-5 py-3 text-[13px] font-semibold text-[#5D3FD3] transition hover:bg-[#F5F2FE]"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/15 bg-white px-5 py-3 text-[13px] font-semibold text-violet transition hover:bg-violet-ghost"
           >
             {t("bookingCalendar.bookAnother")}
           </button>
@@ -480,16 +480,16 @@ export default function BookingCalendar({
   return (
     <motion.div
       variants={stagger} initial="hidden" animate="show"
-      className="rounded-xl border border-[#1A1B23]/10 bg-white p-4 shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-6"
+      className="rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-6"
     >
       {/* Header, title + stepper + timezone */}
-      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-3 border-b border-[#1A1B23]/10 pb-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-3 border-b border-charcoal/10 pb-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5D3FD3]">
-            <span className="rounded-full bg-[#EDE9FB] px-2 py-0.5">{t("bookingCalendar.bookingShort")}</span>
-            {serviceTitle ? <span className="text-[#1A1B23]/60">· {serviceTitle}</span> : null}
+          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">
+            <span className="rounded-full bg-violet-pale px-2 py-0.5">{t("bookingCalendar.bookingShort")}</span>
+            {serviceTitle ? <span className="text-charcoal/60">· {serviceTitle}</span> : null}
           </div>
-          <h2 className="mt-1.5 text-[18px] font-bold tracking-tight text-[#5D3FD3] sm:text-[20px]">
+          <h2 className="mt-1.5 text-[18px] font-bold tracking-tight text-violet sm:text-[20px]">
             {t("bookingCalendar.scheduleCall")}
           </h2>
         </div>
@@ -497,16 +497,16 @@ export default function BookingCalendar({
       </motion.div>
 
       {/* Timezone selector, always visible */}
-      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-2 rounded-xl bg-[#F5F2FE] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-        <div className="flex items-center gap-2 text-[12px] text-[#1A1B23]/75">
-          <Globe2 className="h-4 w-4 text-[#5D3FD3]" />
+      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-2 rounded-xl bg-violet-ghost p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+        <div className="flex items-center gap-2 text-[12px] text-charcoal/75">
+          <Globe2 className="h-4 w-4 text-violet" />
           <span>{t("bookingCalendar.timesShown")}</span>
         </div>
         <select
           aria-label={t("bookingCalendar.timezoneAria")}
           value={timezone}
           onChange={(e) => { setTimezone(e.target.value); setSelectedSlot(null); setStep(1) }}
-          className="w-full rounded-xl border border-[#1A1B23]/15 bg-white px-3 py-2 text-[13px] font-semibold text-[#5D3FD3] outline-none focus:border-[#5D3FD3] sm:w-auto"
+          className="w-full rounded-xl border border-charcoal/15 bg-white px-3 py-2 text-[13px] font-semibold text-violet outline-none focus:border-violet sm:w-auto"
         >
           {[timezone, ...TZ_PRESETS.filter((t) => t !== timezone)].map((tz) => (
             <option key={tz} value={tz}>{tz}</option>
@@ -539,7 +539,7 @@ export default function BookingCalendar({
               onClick={goPrevMonth}
               disabled={isPrevDisabled}
               aria-label={t("bookingCalendar.prevMonthAria")}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-[#5D3FD3] transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -559,21 +559,21 @@ export default function BookingCalendar({
                 maxYear={bounds.maxYear}
                 maxMonth={bounds.maxMonth}
               />
-              <div className="mt-0.5 text-[10px] text-[#1A1B23]/55">{t("bookingCalendar.tapHighlighted")}</div>
+              <div className="mt-0.5 text-[10px] text-charcoal/55">{t("bookingCalendar.tapHighlighted")}</div>
             </div>
             <button
               type="button"
               onClick={goNextMonth}
               disabled={isNextDisabled}
               aria-label={t("bookingCalendar.nextMonthAria")}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-[#5D3FD3] transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
 
           {/* Weekday header */}
-          <div className="grid grid-cols-7 gap-1.5 px-1 pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1A1B23]/50 sm:gap-2">
+          <div className="grid grid-cols-7 gap-1.5 px-1 pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal/50 sm:gap-2">
             {WEEKDAYS.map((w) => <div key={w}>{w}</div>)}
           </div>
 
@@ -597,16 +597,16 @@ export default function BookingCalendar({
                   className={[
                     "relative flex aspect-square items-center justify-center rounded-xl text-[14px] font-semibold transition",
                     isPast
-                      ? "cursor-not-allowed text-[#1A1B23]/25"
+                      ? "cursor-not-allowed text-charcoal/25"
                       : isAvailable
-                        ? "bg-violet-ghost text-[#5D3FD3] hover:bg-[#5D3FD3] hover:text-white hover:shadow-[0_8px_22px_rgba(93,63,211,0.18)]"
-                        : "cursor-not-allowed text-[#1A1B23]/30",
-                    isToday && !isPast ? "ring-1 ring-[#5D3FD3]/30" : "",
+                        ? "bg-violet-ghost text-violet hover:bg-violet hover:text-white hover:shadow-[0_8px_22px_rgba(93,63,211,0.18)]"
+                        : "cursor-not-allowed text-charcoal/30",
+                    isToday && !isPast ? "ring-1 ring-violet/30" : "",
                   ].join(" ")}
                 >
                   {cell.day}
                   {isAvailable && !isPast && (
-                    <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#5D3FD3]" />
+                    <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-violet" />
                   )}
                 </button>
               )
@@ -615,7 +615,7 @@ export default function BookingCalendar({
 
           {/* Loading shimmer */}
           {daysLoading && (
-            <div className="mt-3 flex items-center justify-center gap-2 text-[12px] text-[#1A1B23]/50">
+            <div className="mt-3 flex items-center justify-center gap-2 text-[12px] text-charcoal/50">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               {t("bookingCalendar.checkingAvailability")}
             </div>
@@ -631,15 +631,15 @@ export default function BookingCalendar({
           <button
             type="button"
             onClick={() => setStep(1)}
-            className="mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#5D3FD3] transition hover:underline"
+            className="mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             {t("bookingCalendar.backToDate")}
           </button>
 
           <div className="mb-4 flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-[#5D3FD3]" />
-            <span className="text-[13px] font-semibold text-[#5D3FD3]">
+            <Calendar className="h-4 w-4 text-violet" />
+            <span className="text-[13px] font-semibold text-violet">
               {formatLongDate(`${selectedDate}T12:00:00Z`, timezone)}
             </span>
           </div>
@@ -651,10 +651,10 @@ export default function BookingCalendar({
               ))}
             </div>
           ) : slots.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[#1A1B23]/20 bg-[#F5F2FE] p-6 text-center">
-              <Clock className="mx-auto h-5 w-5 text-[#1A1B23]/40" />
-              <p className="mt-2 text-[13px] font-semibold text-[#1A1B23]">{t("bookingCalendar.noTimes")}</p>
-              <p className="mt-1 text-[12px] text-[#1A1B23]/60">{t("bookingCalendar.tryDifferentDay")}</p>
+            <div className="rounded-xl border border-dashed border-charcoal/20 bg-violet-ghost p-6 text-center">
+              <Clock className="mx-auto h-5 w-5 text-charcoal/40" />
+              <p className="mt-2 text-[13px] font-semibold text-charcoal">{t("bookingCalendar.noTimes")}</p>
+              <p className="mt-1 text-[12px] text-charcoal/60">{t("bookingCalendar.tryDifferentDay")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
@@ -663,7 +663,7 @@ export default function BookingCalendar({
                   key={s.startUtc}
                   type="button"
                   onClick={() => handleSlotClick(s)}
-                  className="rounded-xl border border-[#5D3FD3]/15 bg-white px-3 py-3 text-[13px] font-semibold text-[#5D3FD3] transition hover:border-transparent hover:bg-[#5D3FD3] hover:text-white hover:shadow-[0_8px_20px_rgba(93,63,211,0.18)]"
+                  className="rounded-xl border border-violet/15 bg-white px-3 py-3 text-[13px] font-semibold text-violet transition hover:border-transparent hover:bg-violet hover:text-white hover:shadow-[0_8px_20px_rgba(93,63,211,0.18)]"
                 >
                   {formatTime(s.startUtc, timezone)}
                 </button>
@@ -671,7 +671,7 @@ export default function BookingCalendar({
             </div>
           )}
 
-          <p className="mt-4 text-[11px] text-[#1A1B23]/55">
+          <p className="mt-4 text-[11px] text-charcoal/55">
             {t("bookingCalendar.eachSlotIs")} {durationMin} {t("bookingCalendar.minutesLong")}
           </p>
         </motion.div>
@@ -683,35 +683,35 @@ export default function BookingCalendar({
           <button
             type="button"
             onClick={() => setStep(2)}
-            className="mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#5D3FD3] transition hover:underline"
+            className="mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             {t("bookingCalendar.chooseAnother")}
           </button>
 
           {/* Summary card */}
-          <div className="rounded-xl border border-[#1A1B23]/10 bg-[#F5F2FE] p-4 sm:p-5">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5D3FD3]">{t("bookingCalendar.yourBooking")}</div>
+          <div className="rounded-xl border border-charcoal/10 bg-violet-ghost p-4 sm:p-5">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">{t("bookingCalendar.yourBooking")}</div>
             <div className="mt-2 flex items-start justify-between gap-3">
               <div>
-                <div className="text-[16px] font-bold text-[#5D3FD3]">{serviceTitle}</div>
-                <div className="mt-0.5 text-[13px] text-[#1A1B23]/75">{durationMin} {t("bookingCalendar.minutes")}</div>
+                <div className="text-[16px] font-bold text-violet">{serviceTitle}</div>
+                <div className="mt-0.5 text-[13px] text-charcoal/75">{durationMin} {t("bookingCalendar.minutes")}</div>
               </div>
               <div className="text-right">
-                <div className="text-[14px] font-bold text-[#5D3FD3]">
+                <div className="text-[14px] font-bold text-violet">
                   {formatTime(selectedSlot.startUtc, timezone)}
                 </div>
-                <div className="mt-0.5 text-[11px] text-[#1A1B23]/65">
+                <div className="mt-0.5 text-[11px] text-charcoal/65">
                   {formatLongDate(selectedSlot.startUtc, timezone)}
                 </div>
-                <div className="mt-0.5 text-[10px] text-[#1A1B23]/50">{timezone}</div>
+                <div className="mt-0.5 text-[10px] text-charcoal/50">{timezone}</div>
               </div>
             </div>
           </div>
 
           {/* Notes */}
-          <label htmlFor="bk-notes" className="mt-5 block text-[12px] font-semibold text-[#5D3FD3]">
-            {t("bookingCalendar.discussLabel")} <span className="font-normal text-[#1A1B23]/55">{t("bookingCalendar.optionalTag")}</span>
+          <label htmlFor="bk-notes" className="mt-5 block text-[12px] font-semibold text-violet">
+            {t("bookingCalendar.discussLabel")} <span className="font-normal text-charcoal/55">{t("bookingCalendar.optionalTag")}</span>
           </label>
           <textarea
             id="bk-notes"
@@ -720,7 +720,7 @@ export default function BookingCalendar({
             rows={4}
             maxLength={1000}
             placeholder={t("bookingCalendar.discussPlaceholder")}
-            className="mt-1.5 w-full rounded-xl border border-[#1A1B23]/15 bg-white px-3 py-2.5 text-[13px] text-[#5D3FD3] outline-none transition focus:border-[#5D3FD3]"
+            className="mt-1.5 w-full rounded-xl border border-charcoal/15 bg-white px-3 py-2.5 text-[13px] text-violet outline-none transition focus:border-violet"
           />
 
           {/* Auth notice */}
@@ -736,7 +736,7 @@ export default function BookingCalendar({
             type="button"
             onClick={handleConfirm}
             disabled={submitting}
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#5D3FD3] px-5 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.25)] transition hover:bg-[#4A2EAB] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
           >
             {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> {t("bookingCalendar.bookingEllipsis")}</>) : (<>{t("bookingCalendar.confirmBooking")} <Check className="h-4 w-4" /></>)}
           </button>
