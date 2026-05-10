@@ -205,6 +205,11 @@ model User {
   status                 UserStatus       @default(active)
   emailVerifiedAt        DateTime?
   lastLoginAt            DateTime?
+  /// Token-revocation watermark. Any JWT with iat < tokensValidFrom is
+  /// rejected by authMiddleware. Set whenever a credential changes (password
+  /// reset, 2FA enable) or when the user manually signs out everywhere.
+  /// NULL means "no revocations yet" — all valid JWTs pass.
+  tokensValidFrom        DateTime?
   resetPasswordToken     String?
   resetPasswordExpires   DateTime?
   createdAt              DateTime         @default(now())

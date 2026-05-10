@@ -28,8 +28,15 @@
  */
 
 const rateLimit = require("express-rate-limit")
+const crypto    = require("crypto")
+// Was previously referenced by `logger.warn(...)` in the 429 handler without
+// being imported — first rate-limit hit in prod threw ReferenceError, masking
+// the limit event in logs. Fixed inline here so we don't ship Phase 9 with a
+// known latent crash on the very hot path we're trying to harden.
+const logger    = require("../utils/logger")
 
 const FIFTEEN_MIN = 15 * 60 * 1000
+const FIVE_MIN    = 5  * 60 * 1000
 const ONE_HOUR    = 60 * 60 * 1000
 const ONE_MIN     = 60 * 1000
 
@@ -92,6 +99,20 @@ function userKey(req) {
 
 function ipKey(req) {
   return `ip::${clientIp(req)}`
+}
+
+/**
+ * 2FA verify key — composite of IP + a hash of the two-factor token. Each
+ * issued twoFactorToken (which lives for 5 minutes) gets its own per-IP
+ * bucket, so a brute-force burst against ONE token can't drain another
+ * user's budget on the same IP/NAT. We hash the token so it never lands in
+ * the limiter's in-memory key store as a plaintext credential.
+ */
+function ipPlusTwoFactorTokenKey(req) {
+  const raw = String(req.body?.twoFactorToken || "")
+  if (!raw) return `${clientIp(req)}::no-token`
+  const hash = crypto.createHash("sha256").update(raw).digest("hex").slice(0, 16)
+  return `${clientIp(req)}::tf::${hash}`
 }
 
 /**
@@ -276,6 +297,31 @@ const downloadRateLimiter = makeLimiter({
   message:      "Download limit reached. Please try again later.",
 })
 
+/**
+ * 2FA login-verify — 5 attempts per 5 minutes per (IP + twoFactorToken).
+ *
+ * The 5-minute window mirrors the twoFactorToken's own lifetime, so the
+ * budget resets only when the user gets a fresh token by re-entering their
+ * password. The key includes a hash of the twoFactorToken, so:
+ *   • Two users behind the same NAT each get their own bucket (their
+ *     tokens differ), and
+ *   • An attacker holding ONE stolen twoFactorToken can't grind through
+ *     ~1,000,000 six-digit codes on it — they get 5 tries, then have to
+ *     wait or steal a new token, which requires the password.
+ *
+ * Stacks ON TOP of the broader loginRateLimiter (5/15min/IP+email) already
+ * applied to this route — that gives credential-stuffing protection; this
+ * adds per-token brute-force protection that the IP+email key alone can't
+ * (since the verify endpoint has no `email` field in the body).
+ */
+const twoFactorVerifyRateLimiter = makeLimiter({
+  name:         "2fa-verify",
+  windowMs:     FIVE_MIN,
+  max:          5,
+  keyGenerator: ipPlusTwoFactorTokenKey,
+  message:      "Too many 2FA attempts. Sign in again to get a fresh code prompt.",
+})
+
 /* ── Backward-compat alias ────────────────────────────────────────────── */
 
 /**
@@ -294,6 +340,7 @@ module.exports = {
   signupRateLimiter,
   forgotPasswordRateLimiter,
   verifyEmailRateLimiter,
+  twoFactorVerifyRateLimiter,
   authRateLimiter,            // alias of loginRateLimiter
   // Contact / newsletter
   contactRateLimiter,
