@@ -99,6 +99,19 @@ enum MeetingProvider {
   manual
 }
 
+/// Refund lifecycle states. Mirror the gateway-agnostic values the
+/// refundService writes/reads (src/services/refundService.js).
+/// Pre-Phase-9 this column was a free-form String — any typo could
+/// silently land in the row. The enum is value-compatible: every
+/// string the service ever wrote falls inside this set.
+enum RefundStatus {
+  pending
+  approved
+  processing
+  succeeded
+  failed
+}
+
 enum ProjectStatus {
   planning
   in_progress
@@ -179,60 +192,60 @@ enum PortfolioStatus {
 /// =============================================================
 
 model User {
-  id                    String           @id @default(cuid())
-  fullName              String
-  email                 String           @unique
-  passwordHash          String?
-  role                  String           @default("member")
-  googleId              String?          @unique
-  avatarUrl             String?
-  authProvider          String           @default("local")
-  phone                 String?
-  company               String?
-  status                UserStatus       @default(active)
-  emailVerifiedAt       DateTime?
-  lastLoginAt           DateTime?
-  resetPasswordToken    String?
-  resetPasswordExpires  DateTime?
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
-  profile               UserProfile?
-  userRoles             UserRole[]
-  sessions              Session[]
-  authOtps              AuthOtp[]
-  passwordResets        PasswordReset[]
-  orders                Order[]
-  carts                 Cart[]
-  payments              Payment[]
-  couponsUsed           CouponUsage[]
-  reviews               Review[]      @relation("AuthoredReviews")
-  adminReplies          Review[]      @relation("AdminReviewReplies")
-  reviewVotes           ReviewVote[]
+  id                     String           @id @default(cuid())
+  fullName               String
+  email                  String           @unique
+  passwordHash           String?
+  role                   String           @default("member")
+  googleId               String?          @unique
+  avatarUrl              String?
+  authProvider           String           @default("local")
+  phone                  String?
+  company                String?
+  status                 UserStatus       @default(active)
+  emailVerifiedAt        DateTime?
+  lastLoginAt            DateTime?
+  resetPasswordToken     String?
+  resetPasswordExpires   DateTime?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  profile                UserProfile?
+  userRoles              UserRole[]
+  sessions               Session[]
+  authOtps               AuthOtp[]
+  passwordResets         PasswordReset[]
+  orders                 Order[]
+  carts                  Cart[]
+  payments               Payment[]
+  couponsUsed            CouponUsage[]
+  reviews                Review[]         @relation("AuthoredReviews")
+  adminReplies           Review[]         @relation("AdminReviewReplies")
+  reviewVotes            ReviewVote[]
   createdRecommendations Recommendation[] @relation("CreatedRecommendations")
-  downloadLogs          DownloadLog[]
-  userDownloads         UserDownload[]
-  createdProducts       Product[]        @relation("CreatedProducts")
-  createdServices       Service[]        @relation("CreatedServices")
-  createdPortfolios     Portfolio[]      @relation("CreatedPortfolios")
-  serviceOrders         ServiceOrder[]
-  consultations         Consultation[]   @relation("UserConsultations")
-  assignedConsultations Consultation[]   @relation("AssignedConsultations")
-  clientProjects        ClientProject[]  @relation("UserClientProjects")
-  assignedProjects      ClientProject[]  @relation("AssignedClientProjects")
-  projectFiles          ProjectFile[]
-  supportTickets        SupportTicket[]  @relation("UserSupportTickets")
-  assignedTickets       SupportTicket[]  @relation("AssignedSupportTickets")
-  supportMessages       SupportMessage[]
-  notifications         Notification[]
-  emailLogs             EmailLog[]
-  uploadedMedia         MediaLibrary[]
-  createdPages          Page[]           @relation("CreatedPages")
-  updatedPages          Page[]           @relation("UpdatedPages")
-  activityLogs          ActivityLog[]
-  adminAuditLogs        AdminAuditLog[]
-  wishlist              Wishlist?
-  addresses             Address[]
-  twoFactorAuth         TwoFactorAuth?
+  downloadLogs           DownloadLog[]
+  userDownloads          UserDownload[]
+  createdProducts        Product[]        @relation("CreatedProducts")
+  createdServices        Service[]        @relation("CreatedServices")
+  createdPortfolios      Portfolio[]      @relation("CreatedPortfolios")
+  serviceOrders          ServiceOrder[]
+  consultations          Consultation[]   @relation("UserConsultations")
+  assignedConsultations  Consultation[]   @relation("AssignedConsultations")
+  clientProjects         ClientProject[]  @relation("UserClientProjects")
+  assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
+  projectFiles           ProjectFile[]
+  supportTickets         SupportTicket[]  @relation("UserSupportTickets")
+  assignedTickets        SupportTicket[]  @relation("AssignedSupportTickets")
+  supportMessages        SupportMessage[]
+  notifications          Notification[]
+  emailLogs              EmailLog[]
+  uploadedMedia          MediaLibrary[]
+  createdPages           Page[]           @relation("CreatedPages")
+  updatedPages           Page[]           @relation("UpdatedPages")
+  activityLogs           ActivityLog[]
+  adminAuditLogs         AdminAuditLog[]
+  wishlist               Wishlist?
+  addresses              Address[]
+  twoFactorAuth          TwoFactorAuth?
 
   // Booking — host-side relations (used when this user is the consultation host)
   hostAvailabilityRules      AvailabilityRule[]      @relation("HostAvailabilityRules")
@@ -369,60 +382,60 @@ model ProductCategory {
 }
 
 model Product {
-  id               String        @id @default(cuid())
-  categoryId       String?
-  title            String
-  slug             String        @unique
-  shortDescription String?       @db.Text
-  description      String?       @db.Text
-  fullDescription  String?       @db.Text
-  price            Decimal       @db.Decimal(12, 2)
-  currency         String        @default("MXN")
-  productType      String        @default("downloadable")
-  status           ProductStatus @default(draft)
-  sku              String?       @unique
-  category         String?
-  isActive         Boolean       @default(true)
-  isFeatured       Boolean       @default(false)
-  isNew            Boolean       @default(false)
-  downloadUrl      String?
-  fileName         String?
+  id                 String        @id @default(cuid())
+  categoryId         String?
+  title              String
+  slug               String        @unique
+  shortDescription   String?       @db.Text
+  description        String?       @db.Text
+  fullDescription    String?       @db.Text
+  price              Decimal       @db.Decimal(12, 2)
+  currency           String        @default("MXN")
+  productType        String        @default("downloadable")
+  status             ProductStatus @default(draft)
+  sku                String?       @unique
+  category           String?
+  isActive           Boolean       @default(true)
+  isFeatured         Boolean       @default(false)
+  isNew              Boolean       @default(false)
+  downloadUrl        String?
+  fileName           String?
   /// fileSize stored as Int (supports files up to 2GB)
-  fileSize         Int?
-  fileType         String?
-  version          String?
+  fileSize           Int?
+  fileType           String?
+  version            String?
   /// Etsy-style key/value highlights, e.g. [{"key":"Page size","value":"8.5x11"}]
   titleEs            String?
-  shortDescriptionEs String?  @db.Text
-  descriptionEs      String?  @db.Text
-  fullDescriptionEs  String?  @db.Text
+  shortDescriptionEs String?       @db.Text
+  descriptionEs      String?       @db.Text
+  fullDescriptionEs  String?       @db.Text
   metaTitleEs        String?
-  metaDescriptionEs  String?  @db.Text
-  specifications   Json?
+  metaDescriptionEs  String?       @db.Text
+  specifications     Json?
   /// Product FAQs as JSON: [{"question":"...","answer":"..."}, ...]
-  productFaqs      Json?
-  metaTitle        String?
-  metaDescription  String?       @db.Text
-  publishedAt      DateTime?
-  createdById      String?
-  rating           Float         @default(0)
-  reviewCount      Int           @default(0)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  productFaqs        Json?
+  metaTitle          String?
+  metaDescription    String?       @db.Text
+  publishedAt        DateTime?
+  createdById        String?
+  rating             Float         @default(0)
+  reviewCount        Int           @default(0)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
-  categoryRef   ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  createdBy     User?            @relation("CreatedProducts", fields: [createdById], references: [id], onDelete: SetNull)
-  images        ProductImage[]
-  files         ProductFile[]
-  features      ProductFeature[]
-  orderItems    OrderItem[]
-  downloadLogs  DownloadLog[]
-  userDownloads UserDownload[]
-  tags          ProductTagMap[]
-  reviews       Review[]
+  categoryRef     ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdBy       User?            @relation("CreatedProducts", fields: [createdById], references: [id], onDelete: SetNull)
+  images          ProductImage[]
+  files           ProductFile[]
+  features        ProductFeature[]
+  orderItems      OrderItem[]
+  downloadLogs    DownloadLog[]
+  userDownloads   UserDownload[]
+  tags            ProductTagMap[]
+  reviews         Review[]
   recommendations Recommendation[]
-  cartItems     CartItem[]
-  wishlistItems WishlistItem[]
+  cartItems       CartItem[]
+  wishlistItems   WishlistItem[]
 
   @@index([categoryId])
   @@index([createdById])
@@ -503,11 +516,11 @@ model ProductTagMap {
 /// adminReply, etc.) are populated lazily as reviews are interacted with.
 /// =============================================================
 enum ReviewStatus {
-  pending      // awaiting moderation
-  approved     // visible publicly
-  hidden       // admin took it down (still in DB for audit)
-  flagged      // auto-mod or community flagged for human review
-  rejected     // admin explicitly rejected; soft-deleted
+  pending // awaiting moderation
+  approved // visible publicly
+  hidden // admin took it down (still in DB for audit)
+  flagged // auto-mod or community flagged for human review
+  rejected // admin explicitly rejected; soft-deleted
 }
 
 model Review {
@@ -528,35 +541,39 @@ model Review {
   flaggedReason      String?      @db.VarChar(120)
 
   /// Admin reply — public, displayed under the review on the product/service page.
-  adminReply         String?      @db.Text
-  adminReplyAt       DateTime?
-  adminReplyById     String?
+  adminReply     String?   @db.Text
+  adminReplyAt   DateTime?
+  adminReplyById String?
 
   /// Engagement signals (Sprint 1 wires storage; UI lands in Sprint 2)
-  helpfulCount       Int          @default(0)
+  helpfulCount Int @default(0)
 
   /// Curation (Sprint 3 surfaces these on Home/Services)
-  featured           Boolean      @default(false)
-  featuredOrder      Int?
+  featured      Boolean @default(false)
+  featuredOrder Int?
 
   /// Trust transparency
-  editedAt           DateTime?
+  editedAt DateTime?
 
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  product     Product?    @relation(fields: [productId],      references: [id], onDelete: Cascade)
-  service     Service?    @relation(fields: [serviceId],      references: [id], onDelete: Cascade)
-  user        User        @relation("AuthoredReviews",        fields: [userId],         references: [id], onDelete: Cascade)
-  adminReplyBy User?      @relation("AdminReviewReplies",     fields: [adminReplyById], references: [id], onDelete: SetNull)
-  orderItem   OrderItem?  @relation(fields: [orderItemId],    references: [id], onDelete: SetNull)
-  votes       ReviewVote[]
+  product      Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  service      Service?     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user         User         @relation("AuthoredReviews", fields: [userId], references: [id], onDelete: Cascade)
+  adminReplyBy User?        @relation("AdminReviewReplies", fields: [adminReplyById], references: [id], onDelete: SetNull)
+  orderItem    OrderItem?   @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+  votes        ReviewVote[]
 
   @@index([productId])
   @@index([serviceId])
   @@index([userId])
   @@index([status])
   @@index([featured])
+  // Hot path · public product page renders approved reviews newest-first.
+  // The single-column [status] + [productId] indexes can't service the
+  // ORDER BY createdAt DESC efficiently — this compound covers it.
+  @@index([productId, status, createdAt])
   @@map("product_reviews")
 }
 
@@ -571,7 +588,7 @@ model ReviewVote {
   createdAt DateTime @default(now())
 
   review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId],   references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([reviewId, userId])
   @@index([reviewId])
@@ -590,36 +607,36 @@ enum RecommendationStatus {
 }
 
 model Recommendation {
-  id              String               @id @default(cuid())
-  title           String
-  slug            String               @unique
-  summary         String               @db.Text
-  body            String?              @db.Text          // markdown
-  imageUrl        String?              @db.VarChar(512)
-  category        String               @default("tool") @db.VarChar(48)
+  id       String  @id @default(cuid())
+  title    String
+  slug     String  @unique
+  summary  String  @db.Text
+  body     String? @db.Text // markdown
+  imageUrl String? @db.VarChar(512)
+  category String  @default("tool") @db.VarChar(48)
   /// tool | book | course | template | service | partner
 
-  priority        Int                  @default(0)       // sort, higher = earlier
-  status          RecommendationStatus @default(draft)
+  priority Int                  @default(0) // sort, higher = earlier
+  status   RecommendationStatus @default(draft)
 
   /// Optional internal links — at most one of these should be set.
-  productId       String?
-  serviceId       String?
-  externalUrl     String?              @db.VarChar(512)
+  productId   String?
+  serviceId   String?
+  externalUrl String? @db.VarChar(512)
 
   /// Disclosure flag — surfaces "(affiliate)" on the public card.
-  isAffiliate     Boolean              @default(false)
+  isAffiliate Boolean @default(false)
 
   /// SEO
-  metaTitle       String?              @db.VarChar(180)
-  metaDescription String?              @db.Text
+  metaTitle       String? @db.VarChar(180)
+  metaDescription String? @db.Text
 
-  createdById     String?
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  product   Product? @relation(fields: [productId],   references: [id], onDelete: SetNull)
-  service   Service? @relation(fields: [serviceId],   references: [id], onDelete: SetNull)
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   createdBy User?    @relation("CreatedRecommendations", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([status])
@@ -652,7 +669,7 @@ model Service {
 
   /// Audience grouping for the public Choose-Your-Plan matrix.
   /// "professional" | "business" | "schools" — null for non-audience services.
-  audienceCode     String?       @db.VarChar(32)
+  audienceCode String? @db.VarChar(32)
 
   /// =========================================================
   /// BOOKING POLICY — controls public consultation booking
@@ -666,25 +683,25 @@ model Service {
   bookingMaxAdvanceDays  Int     @default(60)
   bookingRequiresPayment Boolean @default(false)
 
-  createdBy         User?              @relation("CreatedServices", fields: [createdById], references: [id], onDelete: SetNull)
-  features          ServiceFeature[]
-  packages          ServicePackage[]
-  cartItems         CartItem[]
-  orderItems        OrderItem[]
-  serviceOrders     ServiceOrder[]
-  availabilityRules AvailabilityRule[]
-  consultations     Consultation[]
-  reviews           Review[]
-  recommendations   Recommendation[]
+  createdBy          User?              @relation("CreatedServices", fields: [createdById], references: [id], onDelete: SetNull)
+  features           ServiceFeature[]
+  packages           ServicePackage[]
+  cartItems          CartItem[]
+  orderItems         OrderItem[]
+  serviceOrders      ServiceOrder[]
+  availabilityRules  AvailabilityRule[]
+  consultations      Consultation[]
+  reviews            Review[]
+  recommendations    Recommendation[]
+  titleEs            String?
+  shortDescriptionEs String?            @db.Text
+  descriptionEs      String?            @db.Text
+  metaTitleEs        String?
+  metaDescriptionEs  String?            @db.Text
 
   @@index([createdById])
   @@index([status])
   @@index([isBookable])
-  titleEs            String?
-  shortDescriptionEs String?  @db.Text
-  descriptionEs      String?  @db.Text
-  metaTitleEs        String?
-  metaDescriptionEs  String?  @db.Text
   @@index([audienceCode])
 }
 
@@ -716,18 +733,18 @@ model ServicePackage {
   /// period:  "month" | "one-time" — display label only
   /// popular: shows the "Most Popular" badge
   /// saveLabel: small chip e.g. "Save 20%" / "All-inclusive"
-  tierKey     String?  @db.VarChar(32)
-  period      String?  @db.VarChar(32)
-  popular     Boolean  @default(false)
-  saveLabel   String?  @db.VarChar(64)
+  tierKey   String? @db.VarChar(32)
+  period    String? @db.VarChar(32)
+  popular   Boolean @default(false)
+  saveLabel String? @db.VarChar(64)
 
-  service        Service              @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  serviceOrders  ServiceOrder[]
-  featureSlots   PackageFeatureSlot[]
+  service       Service              @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceOrders ServiceOrder[]
+  featureSlots  PackageFeatureSlot[]
+  nameEs        String?
+  descriptionEs String?              @db.Text
 
   @@index([serviceId])
-  nameEs        String?
-  descriptionEs String?  @db.Text
   @@index([tierKey])
 }
 
@@ -953,7 +970,7 @@ model Payment {
 model PaymentWebhook {
   id             String         @id @default(cuid())
   paymentGateway PaymentGateway
-  gatewayEventId String?        // x-request-id (MP) or event.id (PayPal); null = couldn't extract
+  gatewayEventId String? // x-request-id (MP) or event.id (PayPal); null = couldn't extract
   eventType      String
   payloadJson    Json
   processed      Boolean        @default(false)
@@ -968,14 +985,14 @@ model PaymentWebhook {
 }
 
 model Refund {
-  id           String    @id @default(cuid())
+  id           String       @id @default(cuid())
   paymentId    String
   orderId      String
-  amount       Decimal   @db.Decimal(12, 2)
-  reason       String?   @db.Text
-  refundStatus String
+  amount       Decimal      @db.Decimal(12, 2)
+  reason       String?      @db.Text
+  refundStatus RefundStatus
   processedAt  DateTime?
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime     @default(now())
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -1068,37 +1085,37 @@ model ServiceOrder {
 }
 
 model Consultation {
-  id              String             @id @default(cuid())
-  serviceOrderId  String?            // null for free discovery calls (no prior payment)
-  serviceId       String?            // direct link when no serviceOrder; informs duration / category
-  userId          String
-  assignedAdminId String?            // host of the meeting; nullable until assigned
-  scheduledAt     DateTime           // UTC start time
-  endsAt          DateTime?          // UTC end time — derived on create from durationMin
-  durationMin     Int                @default(30)
-  timezone        String             @default("UTC")  // client's IANA tz captured at booking
-  meetingProvider MeetingProvider    @default(manual)
-  meetingLink     String?            // join URL (Google Meet / Zoom / manual)
-  status          ConsultationStatus @default(pending)
-  summaryNotes    String?            @db.Text       // host's post-meeting notes
-  clientNotes     String?            @db.Text       // client's pre-meeting notes / agenda
-  cancellationReason String?         @db.Text
-  cancelledAt     DateTime?
-  confirmedAt     DateTime?
-  completedAt     DateTime?
+  id                 String             @id @default(cuid())
+  serviceOrderId     String? // null for free discovery calls (no prior payment)
+  serviceId          String? // direct link when no serviceOrder; informs duration / category
+  userId             String
+  assignedAdminId    String? // host of the meeting; nullable until assigned
+  scheduledAt        DateTime // UTC start time
+  endsAt             DateTime? // UTC end time — derived on create from durationMin
+  durationMin        Int                @default(30)
+  timezone           String             @default("UTC") // client's IANA tz captured at booking
+  meetingProvider    MeetingProvider    @default(manual)
+  meetingLink        String? // join URL (Google Meet / Zoom / manual)
+  status             ConsultationStatus @default(pending)
+  summaryNotes       String?            @db.Text // host's post-meeting notes
+  clientNotes        String?            @db.Text // client's pre-meeting notes / agenda
+  cancellationReason String?            @db.Text
+  cancelledAt        DateTime?
+  confirmedAt        DateTime?
+  completedAt        DateTime?
   /// Signed token for guest-style cancel/reschedule via email link without login.
-  confirmationToken String?          @unique
+  confirmationToken  String?            @unique
   /// Self-relation: when this row is a reschedule of a prior consultation.
-  rescheduledFromId String?
+  rescheduledFromId  String?
   /// Reminder bookkeeping — set when 24h or 1h reminder dispatched.
-  reminderSentAt  DateTime?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  reminderSentAt     DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   serviceOrder    ServiceOrder?  @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
-  service         Service?       @relation(fields: [serviceId],      references: [id], onDelete: SetNull)
-  user            User           @relation("UserConsultations",      fields: [userId],          references: [id], onDelete: Cascade)
-  assignedAdmin   User?          @relation("AssignedConsultations",  fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  service         Service?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  user            User           @relation("UserConsultations", fields: [userId], references: [id], onDelete: Cascade)
+  assignedAdmin   User?          @relation("AssignedConsultations", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   rescheduledFrom Consultation?  @relation("ConsultationReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
   rescheduledTo   Consultation[] @relation("ConsultationReschedule")
 
@@ -1112,6 +1129,10 @@ model Consultation {
   @@index([scheduledAt])
   @@index([status])
   @@index([rescheduledFromId])
+  // Hot path · booking calendar queries upcoming slots per service in a
+  // date range. The single-column [serviceId] + [scheduledAt] indexes
+  // can't service both predicates together; this compound covers it.
+  @@index([serviceId, scheduledAt])
 }
 
 /// =============================================================
@@ -1120,14 +1141,14 @@ model Consultation {
 
 model AvailabilityRule {
   id              String   @id @default(cuid())
-  hostUserId      String                            // admin who owns this availability window
-  serviceId       String?                           // null = applies to any bookable service
-  dayOfWeek       Int                               // 0=Sunday … 6=Saturday (per JS Date.getDay)
-  startTime       String                            // "HH:mm" 24-hour, interpreted in `timezone`
-  endTime         String                            // "HH:mm" 24-hour, interpreted in `timezone`
-  timezone        String                            // IANA tz, e.g. "America/Mexico_City"
+  hostUserId      String // admin who owns this availability window
+  serviceId       String? // null = applies to any bookable service
+  dayOfWeek       Int // 0=Sunday … 6=Saturday (per JS Date.getDay)
+  startTime       String // "HH:mm" 24-hour, interpreted in `timezone`
+  endTime         String // "HH:mm" 24-hour, interpreted in `timezone`
+  timezone        String // IANA tz, e.g. "America/Mexico_City"
   slotDurationMin Int      @default(30)
-  bufferMin       Int      @default(0)              // gap inserted after each generated slot
+  bufferMin       Int      @default(0) // gap inserted after each generated slot
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -1139,6 +1160,10 @@ model AvailabilityRule {
   @@index([serviceId])
   @@index([dayOfWeek])
   @@index([isActive])
+  // Hot path · slot generation filters all three predicates together
+  // (active rules for this host on this weekday). Compound avoids a
+  // table scan when the host has many historical/inactive rules.
+  @@index([hostUserId, isActive, dayOfWeek])
 }
 
 model AvailabilityException {
@@ -1319,13 +1344,13 @@ model Notification {
 
 model EmailTemplate {
   id        String   @id @default(cuid())
-  key       String   
+  key       String
   subject   String
   htmlBody  String   @db.LongText
   textBody  String?  @db.LongText
   isActive  Boolean  @default(true)
   updatedAt DateTime @updatedAt
-  locale            String   @default("en")
+  locale    String   @default("en")
 
   @@unique([key, locale])
   @@index([locale])
@@ -1369,15 +1394,15 @@ model Page {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
-  createdBy User? @relation("CreatedPages", fields: [createdById], references: [id], onDelete: SetNull)
-  updatedBy User? @relation("UpdatedPages", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdBy         User?   @relation("CreatedPages", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy         User?   @relation("UpdatedPages", fields: [updatedById], references: [id], onDelete: SetNull)
+  titleEs           String?
+  contentEs         String? @db.Text
+  metaTitleEs       String?
+  metaDescriptionEs String? @db.Text
 
   @@index([createdById])
   @@index([updatedById])
-  titleEs            String?
-  contentEs          String?  @db.Text
-  metaTitleEs        String?
-  metaDescriptionEs  String?  @db.Text
   @@index([status])
 }
 
@@ -1465,16 +1490,16 @@ model Portfolio {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
-  createdBy User? @relation("CreatedPortfolios", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy          User?   @relation("CreatedPortfolios", fields: [createdById], references: [id], onDelete: SetNull)
+  titleEs            String?
+  shortDescriptionEs String? @db.Text
+  descriptionEs      String? @db.Text
+  metaTitleEs        String?
+  metaDescriptionEs  String? @db.Text
 
   @@index([status])
   @@index([isFeatured])
   @@index([displayOrder])
-  titleEs            String?
-  shortDescriptionEs String?  @db.Text
-  descriptionEs      String?  @db.Text
-  metaTitleEs        String?
-  metaDescriptionEs  String?  @db.Text
   @@index([category])
 }
 
@@ -1555,20 +1580,20 @@ model TwoFactorAuth {
 /// =============================================================
 
 model Experience {
-  id            String    @id @default(cuid())
-  role          String
-  company       String
-  companyLogo   String?
-  location      String?
-  startDate     DateTime
-  endDate       DateTime?
-  description   String    @db.Text
-  highlights    Json?
-  tools         Json?
-  displayOrder  Int       @default(0)
-  isVisible     Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  role         String
+  company      String
+  companyLogo  String?
+  location     String?
+  startDate    DateTime
+  endDate      DateTime?
+  description  String    @db.Text
+  highlights   Json?
+  tools        Json?
+  displayOrder Int       @default(0)
+  isVisible    Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([isVisible])
   @@index([displayOrder])
@@ -1585,7 +1610,7 @@ model Education {
   institutionLogo String?
   location        String?
   startDate       DateTime
-  endDate         DateTime?       // null = currently studying
+  endDate         DateTime? // null = currently studying
   description     String    @db.Text
   highlights      Json?
   fieldOfStudy    String?
@@ -1633,7 +1658,7 @@ model Skill {
   id           String        @id @default(cuid())
   name         String
   category     SkillCategory
-  proficiency  Int                                   // 1-5
+  proficiency  Int // 1-5
   iconKey      String?
   yearsUsing   Int?
   displayOrder Int           @default(0)
@@ -1651,47 +1676,51 @@ model Skill {
 /// =============================================================
 
 model PageView {
-  id           String   @id @default(cuid())
-  path         String   @db.VarChar(512)
-  referrer     String?  @db.VarChar(512)
-  country      String?  @db.VarChar(8)
-  device       String?  @db.VarChar(16)
-  uaHash       String?  @db.VarChar(64)
-  sessionHash  String?  @db.VarChar(64)
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  path        String   @db.VarChar(512)
+  referrer    String?  @db.VarChar(512)
+  country     String?  @db.VarChar(8)
+  device      String?  @db.VarChar(16)
+  uaHash      String?  @db.VarChar(64)
+  sessionHash String?  @db.VarChar(64)
+  createdAt   DateTime @default(now())
 
   @@index([path, createdAt])
   @@index([createdAt])
 }
 
 model AnalyticsEvent {
-  id           String   @id @default(cuid())
-  name         String   @db.VarChar(64)
-  path         String?  @db.VarChar(512)
-  productId    String?
-  serviceId    String?
-  orderId      String?
-  amount       Decimal? @db.Decimal(10, 2)
-  meta         Json?
-  sessionHash  String?  @db.VarChar(64)
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String   @db.VarChar(64)
+  path        String?  @db.VarChar(512)
+  productId   String?
+  serviceId   String?
+  orderId     String?
+  // Bumped from Decimal(10,2) → Decimal(14,2): the previous precision
+  // truncated at 99,999.99, which a six-figure MXN order would silently
+  // round. Aligns with the platform-standard money precision used by
+  // Order.totalAmount, Refund.amount, and the Coupon thresholds.
+  amount      Decimal? @db.Decimal(14, 2)
+  meta        Json?
+  sessionHash String?  @db.VarChar(64)
+  createdAt   DateTime @default(now())
 
   @@index([name, createdAt])
   @@index([createdAt])
 }
 
 model DailyMetric {
-  id              String   @id @default(cuid())
-  date            DateTime @db.Date
-  pageviews       Int      @default(0)
-  sessions        Int      @default(0)
-  addToCart       Int      @default(0)
-  beginCheckout   Int      @default(0)
-  purchases       Int      @default(0)
-  revenue         Decimal  @default(0) @db.Decimal(12, 2)
-  topPath         String?  @db.VarChar(512)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id @default(cuid())
+  date          DateTime @db.Date
+  pageviews     Int      @default(0)
+  sessions      Int      @default(0)
+  addToCart     Int      @default(0)
+  beginCheckout Int      @default(0)
+  purchases     Int      @default(0)
+  revenue       Decimal  @default(0) @db.Decimal(12, 2)
+  topPath       String?  @db.VarChar(512)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([date])
   @@index([date])
@@ -1712,7 +1741,7 @@ model BlogCategory {
   id           String     @id @default(cuid())
   slug         String     @unique
   label        String
-  accent       String     @default("#5D3FD3")           // Brand accent color
+  accent       String     @default("#5D3FD3") // Brand accent color
   description  String?    @db.Text
   displayOrder Int        @default(0)
   isVisible    Boolean    @default(true)
@@ -1725,11 +1754,11 @@ model BlogCategory {
 }
 
 model BlogTag {
-  id         String        @id @default(cuid())
-  slug       String        @unique
-  label      String
-  posts      BlogTagMap[]
-  createdAt  DateTime      @default(now())
+  id        String       @id @default(cuid())
+  slug      String       @unique
+  label     String
+  posts     BlogTagMap[]
+  createdAt DateTime     @default(now())
 
   @@index([slug])
 }
@@ -1738,44 +1767,44 @@ model BlogTagMap {
   postId String
   tagId  String
   post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag    BlogTag  @relation(fields: [tagId],  references: [id], onDelete: Cascade)
+  tag    BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([postId, tagId])
   @@index([tagId])
 }
 
 model BlogPost {
-  id              String         @id @default(cuid())
-  slug            String         @unique
-  title           String
-  excerpt         String         @db.Text
-  body            Json           // structured content blocks (see BlogContentRenderer)
-  cover           String?        @db.VarChar(512)
-  readMinutes     Int            @default(5)
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  title       String
+  excerpt     String  @db.Text
+  body        Json // structured content blocks (see BlogContentRenderer)
+  cover       String? @db.VarChar(512)
+  readMinutes Int     @default(5)
 
-  status          BlogPostStatus @default(draft)
-  isFeatured      Boolean        @default(false)
-  publishedAt     DateTime?
+  status      BlogPostStatus @default(draft)
+  isFeatured  Boolean        @default(false)
+  publishedAt DateTime?
 
   // SEO
   metaTitle       String?
-  metaDescription String?        @db.Text
+  metaDescription String? @db.Text
 
   // Author — denormalised so historical posts keep their byline if the
   // user is later anonymised. The optional userId fk preserves the link.
-  authorUserId    String?
-  authorName      String         @default("Mustapha Ukizuru")
-  authorRole      String         @default("IT Manager · Full-Stack Developer · CS Educator")
-  authorAvatar    String?
+  authorUserId String?
+  authorName   String  @default("Mustapha Ukizuru")
+  authorRole   String  @default("IT Manager · Full-Stack Developer · CS Educator")
+  authorAvatar String?
 
   // Category — required, fkeyed
-  categoryId      String
-  category        BlogCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categoryId String
+  category   BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
-  tags            BlogTagMap[]
+  tags BlogTagMap[]
 
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status, publishedAt])
   @@index([isFeatured, publishedAt])
@@ -1799,59 +1828,59 @@ enum EmailCampaignStatus {
 }
 
 enum EmailCampaignAudience {
-  newsletter      // every NewsletterSubscriber whose status = "subscribed"
-  members         // every User row
-  custom          // explicit list of email addresses (recipientEmails JSON)
+  newsletter // every NewsletterSubscriber whose status = "subscribed"
+  members // every User row
+  custom // explicit list of email addresses (recipientEmails JSON)
 }
 
 model EmailCampaign {
-  id              String                @id @default(cuid())
-  name            String                // internal label, never shown to recipients
-  subject         String
-  preheader       String?               @db.VarChar(255)
-  fromName        String                @default("Mustapha Ukizuru")
-  fromEmail       String                @default("hello@mustaphaukizuru.com")
-  replyTo         String?
-  body            Json                  // structured content blocks (BlogContentRenderer schema)
+  id        String  @id @default(cuid())
+  name      String // internal label, never shown to recipients
+  subject   String
+  preheader String? @db.VarChar(255)
+  fromName  String  @default("Mustapha Ukizuru")
+  fromEmail String  @default("hello@mustaphaukizuru.com")
+  replyTo   String?
+  body      Json // structured content blocks (BlogContentRenderer schema)
 
   status          EmailCampaignStatus   @default(draft)
   audience        EmailCampaignAudience @default(newsletter)
-  recipientEmails Json?                 // used when audience = "custom"
+  recipientEmails Json? // used when audience = "custom"
 
-  scheduledAt     DateTime?
-  startedAt       DateTime?
-  completedAt     DateTime?
+  scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
 
   // Aggregate counters — kept on the parent for fast dashboard reads
-  totalRecipients Int                   @default(0)
-  sentCount       Int                   @default(0)
-  failedCount     Int                   @default(0)
-  openCount       Int                   @default(0)
-  clickCount      Int                   @default(0)
+  totalRecipients Int @default(0)
+  sentCount       Int @default(0)
+  failedCount     Int @default(0)
+  openCount       Int @default(0)
+  clickCount      Int @default(0)
 
-  createdById     String?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  recipients      EmailCampaignRecipient[]
+  recipients EmailCampaignRecipient[]
 
   @@index([status, scheduledAt])
   @@index([createdAt])
 }
 
 model EmailCampaignRecipient {
-  id           String   @id @default(cuid())
+  id           String        @id @default(cuid())
   campaignId   String
   campaign     EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   email        String
   userId       String?
-  status       String   @default("queued") // queued | sent | failed | bounced
+  status       String        @default("queued") // queued | sent | failed | bounced
   providerId   String?
-  errorMessage String?  @db.Text
+  errorMessage String?       @db.Text
   sentAt       DateTime?
   openedAt     DateTime?
   clickedAt    DateTime?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime      @default(now())
 
   @@unique([campaignId, email])
   @@index([campaignId, status])
