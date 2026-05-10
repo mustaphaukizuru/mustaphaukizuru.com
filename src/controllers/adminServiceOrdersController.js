@@ -1,5 +1,6 @@
 const prisma       = require("../lib/prisma")
 const asyncHandler = require("../utils/asyncHandler")
+const { adminUpdateServiceOrder: adminUpdateServiceOrderSvc } = require("../services/serviceOrderService")
 
 // Phase 9.2c · refactored to asyncHandler so unhandled errors flow into the
 // central errorHandler middleware. The pre-Phase-9.2 code did
@@ -51,14 +52,13 @@ const getServiceOrder = asyncHandler(async (req, res) => {
 })
 
 const updateServiceOrder = asyncHandler(async (req, res) => {
-  const { status, notes, startDate, endDate } = req.body
-  const data = {}
-  if (status)    data.status    = status
-  if (notes)     data.notes     = notes
-  if (startDate) data.startDate = new Date(startDate)
-  if (endDate)   data.endDate   = new Date(endDate)
-
-  const so = await prisma.serviceOrder.update({ where: { id: req.params.id }, data })
+  // Delegate to serviceOrderService so the AdminAuditLog row + the row
+  // update land atomically. The service applies its own allowlist; the
+  // ctx carries req.user.id + req.ip for the audit snapshot.
+  const so = await adminUpdateServiceOrderSvc(req.params.id, req.body || {}, {
+    adminUserId: req.user?.id || null,
+    ipAddress:   req.ip || null,
+  })
   return res.status(200).json({ success: true, data: so })
 })
 

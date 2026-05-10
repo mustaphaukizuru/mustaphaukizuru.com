@@ -369,10 +369,83 @@ async function orderByTier({
   })
 }
 
+/* ────────────────────────────────────────────────────────────────────────
+ *  Admin · status / notes mutations with audit logging
+ *
+ *  Mirrors consultationService.adminUpdateConsultation:
+ *    • Reads the existing row pre-update so beforeJson is accurate
+ *    • Wraps the update + AdminAuditLog create in a single $transaction so
+ *      we never have a state change without an audit trail (or vice versa)
+ *    • Returns the updated row with the same shape the controller used to
+ *      hand back from its inline Prisma.update call
+ *
+ *  ctx shape: { adminUserId, ipAddress } — when adminUserId is omitted
+ *  (e.g. an internal/system caller) the audit row is skipped.
+ *  ──────────────────────────────────────────────────────────────────── */
+
+function pickServiceOrderAuditFields(row) {
+  if (!row) return null
+  return {
+    id:        row.id,
+    status:    row.status,
+    startDate: row.startDate,
+    endDate:   row.endDate,
+    notes:     row.notes,
+    projectId: row.projectId ?? null,
+  }
+}
+
+async function adminUpdateServiceOrder(id, patch = {}, ctx = {}) {
+  // Allowlist — admin-mutable fields only. Anything else in `patch` is
+  // dropped silently rather than persisted (defence-in-depth even though
+  // the controller already restricts what it forwards).
+  const allowed = {}
+  if (patch.status    !== undefined) allowed.status    = patch.status
+  if (patch.notes     !== undefined) allowed.notes     = patch.notes
+  if (patch.startDate !== undefined) allowed.startDate = patch.startDate ? new Date(patch.startDate) : null
+  if (patch.endDate   !== undefined) allowed.endDate   = patch.endDate   ? new Date(patch.endDate)   : null
+
+  // Pre-flight read for the audit snapshot.
+  const before = await prisma.serviceOrder.findUnique({ where: { id } })
+  if (!before) {
+    throw Object.assign(new Error("Service order not found"), { code: "NOT_FOUND", statusCode: 404 })
+  }
+
+  // Atomic update + audit. If the audit insert throws we still roll back
+  // the row update, so an external observer can never see the new state
+  // without the corresponding audit entry.
+  const updated = await prisma.$transaction(async (tx) => {
+    const row = await tx.serviceOrder.update({
+      where: { id },
+      data:  allowed,
+    })
+
+    if (ctx.adminUserId) {
+      const action = patch.status ? `service-order.${patch.status}` : "service-order.updated"
+      await tx.adminAuditLog.create({
+        data: {
+          adminUserId: ctx.adminUserId,
+          action,
+          targetType:  "ServiceOrder",
+          targetId:    id,
+          beforeJson:  pickServiceOrderAuditFields(before),
+          afterJson:   pickServiceOrderAuditFields(row),
+          ipAddress:   ctx.ipAddress || null,
+        },
+      }).catch(() => null)
+    }
+
+    return row
+  })
+
+  return updated
+}
+
 module.exports = {
   createServiceOrder,
   orderByTier,
   listUserServiceOrders,
   getUserServiceOrderById,
   serializeServiceOrder,
+  adminUpdateServiceOrder,
 }
