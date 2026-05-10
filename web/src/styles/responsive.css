@@ -55,7 +55,7 @@ dd,
 code,
 kbd,
 samp,
-[class*="font-mono"]:not(pre):not(pre *),
+[class*="font-mono"]:not(pre),
 [class*="tabular-nums"] {
   white-space: nowrap;
   word-break: keep-all;
@@ -82,7 +82,7 @@ pre code {
 /* 6. SCROLLABLE TABLES ON PHONES */
 @media (max-width: 1023.98px) {
   .responsive-table,
-  table:not([class*="border-collapse"]):not([class*="block"]) {
+  table.responsive-table-default {
     display: block;
     width: 100%;
     overflow-x: auto;
