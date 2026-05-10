@@ -116,6 +116,15 @@ async function verifyAndEnable({ userId, code }) {
     },
   })
 
+  // P9.4 · Revoke any JWT issued before 2FA was enabled. The user is in the
+  // middle of strengthening their auth posture — any session opened before
+  // this point should be re-authenticated through the new 2FA flow before
+  // being trusted again.
+  await prisma.user.update({
+    where: { id: userId },
+    data:  { tokensValidFrom: new Date() },
+  }).catch(() => null)
+
   return { backupCodes: plain }
 }
 
@@ -127,6 +136,13 @@ async function disableTwoFactor({ userId }) {
   const row = await prisma.twoFactorAuth.findUnique({ where: { userId } })
   if (!row) return { disabled: false, reason: "Not enabled" }
   await prisma.twoFactorAuth.delete({ where: { userId } })
+  // P9.4 · Disabling 2FA weakens the user's auth posture — revoke any JWT
+  // issued under the previous (stronger) configuration so a stolen
+  // pre-disable token can't ride the new, looser policy.
+  await prisma.user.update({
+    where: { id: userId },
+    data:  { tokensValidFrom: new Date() },
+  }).catch(() => null)
   return { disabled: true }
 }
 

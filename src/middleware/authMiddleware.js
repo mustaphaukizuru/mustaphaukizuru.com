@@ -26,11 +26,29 @@ async function protect(req, res, next) {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id:true, fullName:true, email:true, role:true, status:true, avatarUrl:true },
+      select: { id:true, fullName:true, email:true, role:true, status:true, avatarUrl:true, tokensValidFrom:true },
     })
 
     if (!user) {
       return res.status(401).json({ success: false, code: "AUTH_USER_NOT_FOUND", message: "Account not found" })
+    }
+
+    // Token-revocation watermark. If the user changed their password, enabled
+    // 2FA, or manually signed out everywhere AFTER this JWT was issued, we
+    // refuse it as expired — even though the JWT signature is still valid.
+    // `iat` is seconds-since-epoch; `tokensValidFrom` is a Date. The 1-second
+    // grace (`+ 1000`) prevents a same-second issue/revoke race from
+    // immediately invalidating the freshly issued replacement token.
+    if (user.tokensValidFrom && decoded.iat) {
+      const iatMs = Number(decoded.iat) * 1000
+      const revokedAtMs = new Date(user.tokensValidFrom).getTime()
+      if (iatMs + 1000 < revokedAtMs) {
+        return res.status(401).json({
+          success: false,
+          code: "AUTH_EXPIRED",
+          message: "Session expired, please sign in again",
+        })
+      }
     }
 
     // Block suspended/pending accounts
@@ -41,7 +59,10 @@ async function protect(req, res, next) {
       return res.status(403).json({ success: false, code: "AUTH_PENDING", message: "Account is pending verification." })
     }
 
-    req.user = user
+    // Strip the watermark before exposing user on req — downstream handlers
+    // don't need it and it's not a public field.
+    const { tokensValidFrom: _watermark, ...publicUser } = user
+    req.user = publicUser
     next()
   } catch (err) {
     // DB down or unexpected error
@@ -102,14 +123,20 @@ async function attachUserIfPresent(req, _res, next) {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id:true, fullName:true, email:true, role:true, status:true, avatarUrl:true },
+      select: { id:true, fullName:true, email:true, role:true, status:true, avatarUrl:true, tokensValidFrom:true },
     })
 
-    // Only attach if active. Suspended/pending users are treated as guests on
+    // Only attach if active AND the token is post-revocation-watermark.
+    // Suspended/pending users + revoked-token users are treated as guests on
     // soft-auth routes — the explicit `protect` middleware still blocks them
     // from reaching their dashboard.
     if (user && user.status === "active") {
-      req.user = user
+      const isRevoked = user.tokensValidFrom && decoded.iat &&
+        (Number(decoded.iat) * 1000 + 1000 < new Date(user.tokensValidFrom).getTime())
+      if (!isRevoked) {
+        const { tokensValidFrom: _w, ...publicUser } = user
+        req.user = publicUser
+      }
     }
     next()
   } catch {

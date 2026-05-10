@@ -334,6 +334,10 @@ const resetPassword = asyncHandler(async (req, res) => {
       resetPasswordToken: null,
       resetPasswordExpires: null,
       lastLoginAt: new Date(),
+      // P9.4 · Revoke any JWT issued before the password change. A new token
+      // will be minted by the next sign-in; pre-existing 30-day rememberMe
+      // tokens stop being honoured the moment the password rotates.
+      tokensValidFrom: new Date(),
     },
   });
 

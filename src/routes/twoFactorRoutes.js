@@ -1,8 +1,14 @@
 const express = require("express")
 const { protect } = require("../middleware/authMiddleware")
 
-// B10 · login-verify is a login attempt → use loginRateLimiter (5 / 15 min / IP)
-const { loginRateLimiter } = require("../middleware/rateLimiter")
+// B10 · login-verify is a login attempt → use loginRateLimiter (5/15min/IP+email).
+// P9.4 · stacks the twoFactorVerifyRateLimiter (5/5min/IP+token-hash) on top so
+// brute-force on a single 2FA token is bounded INDEPENDENTLY of the broader
+// credential-stuffing limit. See rateLimiter.js for the keying rationale.
+const {
+  loginRateLimiter,
+  twoFactorVerifyRateLimiter,
+} = require("../middleware/rateLimiter")
 
 const c = require("../controllers/twoFactorController")
 
@@ -24,9 +30,10 @@ const router = express.Router()
  * the user is already past primary auth — no extra per-route limiter needed.
  */
 
-// Public — uses two-factor token from /api/auth/login. Same login-class
-// rate limit as the password endpoint.
-router.post("/login-verify", loginRateLimiter, c.loginVerify)
+// Public — uses two-factor token from /api/auth/login. Login-class limit
+// (5/15min/IP+email) stops broad credential stuffing; the 2FA-verify limit
+// (5/5min/IP+token-hash) stops 6-digit-code brute-force on a single token.
+router.post("/login-verify", loginRateLimiter, twoFactorVerifyRateLimiter, c.loginVerify)
 
 // Authenticated
 router.use(protect)
