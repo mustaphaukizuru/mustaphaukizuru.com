@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { useCart } from "../store/CartContext"
 import { authFetch, API_BASE_URL } from "../lib/api"
+import { formatPrice } from "../lib/format"
 import { fetchMyOrderById } from "../services/orderService"
 import { getFileTypeStyles } from "../lib/fileTypeIcons"
 
@@ -333,7 +334,7 @@ export default function CheckoutSuccessPage() {
                               </div>
                             </div>
                             <div className="shrink-0 font-mono text-meta font-bold tabular-nums text-violet">
-                              ${(price * qty).toFixed(2)}
+                              {formatPrice(price * qty, order?.currency || "MXN")}
                             </div>
                           </div>
 
@@ -387,19 +388,19 @@ export default function CheckoutSuccessPage() {
                         <div className="flex justify-between text-charcoal-80/65">
                           <span>{t("success.subtotalLabel")}</span>
                           <span className="font-mono font-semibold tabular-nums text-violet">
-                            ${subtotal.toFixed(2)}
+                            {formatPrice(subtotal, order?.currency || "MXN")}
                           </span>
                         </div>
                         {discount > 0 && (
                           <div className="flex justify-between text-mint">
                             <span>{t("success.discountLabel")}</span>
-                            <span className="font-mono font-semibold tabular-nums">−${discount.toFixed(2)}</span>
+                            <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount, order?.currency || "MXN")}</span>
                           </div>
                         )}
                         <div className="flex items-baseline justify-between border-t border-charcoal-80/10 pt-2">
                           <span className="text-body font-bold text-violet">{t("success.totalLabel")}</span>
                           <span className="font-mono text-card font-extrabold tabular-nums text-violet">
-                            ${orderTotal.toFixed(2)}
+                            {formatPrice(orderTotal, order?.currency || "MXN")}
                           </span>
                         </div>
                       </div>

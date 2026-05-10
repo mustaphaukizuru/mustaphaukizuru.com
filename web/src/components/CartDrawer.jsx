@@ -27,15 +27,11 @@ import { useTranslation } from "react-i18next"
  * Mounted once at the App root via App.jsx — singleton driven by context.
  */
 
+import { formatPrice } from "../lib/format"
+
 function fmt(price, currency = "MXN") {
   if (price == null) return ""
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency", currency, maximumFractionDigits: 2,
-    }).format(Number(price))
-  } catch {
-    return `$${Number(price).toFixed(2)}`
-  }
+  return formatPrice(price, currency)
 }
 
 export default function CartDrawer() {
@@ -143,10 +139,10 @@ export default function CartDrawer() {
                       onClick={closeDrawer}
                       className="block h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
                     >
-                      {item.image ? (
+                      {item.imageUrl ? (
                         <img
-                          src={item.image}
-                          alt=""
+                          src={item.imageUrl}
+                          alt={item.title || ""}
                           loading="lazy"
                           className="h-full w-full object-cover"
                         />

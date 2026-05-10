@@ -117,6 +117,7 @@ const AdminAvailabilityPage = lazy(() => import("./pages/AdminAvailabilityPage")
 // Phase A · Booking + service-order management (full backend)
 const AdminConsultationsPage = lazy(() => import("./pages/AdminConsultationsPage"));
 const AdminServiceOrdersPage = lazy(() => import("./pages/AdminServiceOrdersPage"));
+const AdminServiceOrderDetailPage = lazy(() => import("./pages/AdminServiceOrderDetailPage"));
 const AdminClientProjectsPage = lazy(() => import("./pages/AdminClientProjectsPage")); // #8
 const AdminClientProjectDetailPage = lazy(() => import("./pages/AdminClientProjectDetailPage")); // #8
 
@@ -292,6 +293,7 @@ export default function App() {
               {/* Phase A, full backend */}
               <Route path="consultations" element={<AdminConsultationsPage />} />
               <Route path="service-orders" element={<AdminServiceOrdersPage />} />
+              <Route path="service-orders/:id" element={<AdminServiceOrderDetailPage />} />
               <Route path="client-projects" element={<AdminClientProjectsPage />} />
               <Route path="client-projects/new" element={<AdminClientProjectDetailPage />} />
               <Route path="client-projects/:id" element={<AdminClientProjectDetailPage />} />

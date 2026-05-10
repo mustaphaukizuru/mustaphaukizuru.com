@@ -3,8 +3,9 @@ import { useTranslation } from "react-i18next"
 import { Link, useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Package, Loader2, AlertCircle, FileDown } from "lucide-react"
 import { fetchMyOrderById } from "../services/orderService"
-import { API_BASE_URL } from "../lib/api"
-import { getStoredToken } from "../services/authService"
+import { authFetch, API_BASE_URL } from "../lib/api"
+import { formatPrice } from "../lib/format"
+import { triggerBrowserDownload } from "../services/downloadService"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  DashboardOrderDetailPage · member-side single-order view.
@@ -65,22 +66,16 @@ export default function DashboardOrderDetailPage() {
   async function handleInvoice() {
     if (!orderId) return
     try {
-      const token = getStoredToken()
-      const res = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/invoice.pdf`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error(t("orderDetail.invoiceUnavailable", "Invoice not available."))
-      const blob = await res.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `invoice-${orderId}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      window.URL.revokeObjectURL(url)
+      const res = await authFetch(`/api/v1/orders/${orderId}/invoice.pdf`, { method: "GET" })
+      const blob = res?.data instanceof Blob ? res.data : null
+      if (!blob) throw new Error(t("orderDetail.invoiceUnavailable", "Invoice not available."))
+      triggerBrowserDownload(blob, `invoice-${orderId}.pdf`)
     } catch (err) {
-      setError(err?.message || t("orderDetail.invoiceUnavailable", "Invoice not available."))
+      setError(
+        err?.toUserMessage?.() ||
+        err?.message ||
+        t("orderDetail.invoiceUnavailable", "Invoice not available."),
+      )
     }
   }
 
@@ -184,7 +179,7 @@ export default function DashboardOrderDetailPage() {
                   </div>
                 </div>
                 <div className="shrink-0 font-mono text-meta font-bold tabular-nums text-violet">
-                  ${(price * qty).toFixed(2)}
+                  {formatPrice(price * qty, order.currency || "MXN")}
                 </div>
               </li>
             )
@@ -195,17 +190,17 @@ export default function DashboardOrderDetailPage() {
         <div className="mt-5 space-y-2 border-t border-charcoal-80/10 pt-4">
           <div className="flex justify-between text-meta text-charcoal-80/65">
             <span>{t("orderDetail.subtotal", "Subtotal")}</span>
-            <span className="font-mono font-semibold tabular-nums text-violet">${subtotal.toFixed(2)}</span>
+            <span className="font-mono font-semibold tabular-nums text-violet">{formatPrice(subtotal, order.currency || "MXN")}</span>
           </div>
           {discount > 0 && (
             <div className="flex justify-between text-meta text-mint">
               <span>{t("orderDetail.discount", "Discount")}</span>
-              <span className="font-mono font-semibold tabular-nums">−${discount.toFixed(2)}</span>
+              <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount, order.currency || "MXN")}</span>
             </div>
           )}
           <div className="flex items-baseline justify-between border-t border-charcoal-80/10 pt-3">
             <span className="text-body font-bold text-violet">{t("orderDetail.total", "Total")}</span>
-            <span className="font-mono text-section font-extrabold tabular-nums text-violet">${total.toFixed(2)}</span>
+            <span className="font-mono text-section font-extrabold tabular-nums text-violet">{formatPrice(total, order.currency || "MXN")}</span>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Download, Package, Sparkles, FileArchive, Clock3 } from "lucide-react"
 import { fetchMyOrders } from "../services/orderService"
-import { getStoredToken } from "../services/authService"
+import { streamFileDownload, triggerBrowserDownload } from "../services/downloadService"
 import { API_BASE_URL } from "../lib/api"
 import { MetricCard, EmptyState, StatusBadge, SectionCard, SkeletonCard } from "../components/ui/index"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
@@ -121,53 +121,20 @@ export default function DashboardProductsPage() {
     try {
       setErrorMessage("")
       setSuccessMessage("")
-
-      const token = getStoredToken()
-
-      if (!token) {
-        throw new Error(t("products.errors.loginRequired"))
-      }
-
-      // Use centralized API_BASE_URL (already trailing-slash-stripped by
-      // lib/api) — matches DashboardDownloadsPage's working request.
-      const downloadUrl = `${API_BASE_URL}/api/downloads/${productId}/file/${file.id}`
       setDownloadingKey((prev) => new Set(prev).add(key))
 
-      const response = await fetch(downloadUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        throw new Error(data.message || t("products.errors.downloadFailed"))
-      }
-
-      const blob = await response.blob()
-      const objectUrl = window.URL.createObjectURL(blob)
-
-      let filename = file.fileName || "download"
-      const disposition = response.headers.get("Content-Disposition")
-
-      if (disposition) {
-        const match = disposition.match(/filename="?([^"]+)"?/)
-        if (match && match[1]) {
-          filename = match[1]
-        }
-      }
-
-      const link = document.createElement("a")
-      link.href = objectUrl
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-
-      window.URL.revokeObjectURL(objectUrl)
-      setSuccessMessage(t("products.toast.downloadStarted", { filename }))
+      // Centralised download path — adds Authorization, /api/v1 prefix,
+      // session-expired auto-handling, and AppError-with-friendly-message
+      // mapping (matches the DashboardDownloadsPage flow that worked).
+      const { blob, filename } = await streamFileDownload(productId, file.id)
+      triggerBrowserDownload(blob, filename || file.fileName || "download")
+      setSuccessMessage(t("products.toast.downloadStarted", { filename: filename || file.fileName }))
     } catch (error) {
-      setErrorMessage(error.message || t("products.errors.downloadUnavailable"))
+      setErrorMessage(
+        error?.toUserMessage?.() ||
+        error?.message ||
+        t("products.errors.downloadUnavailable"),
+      )
     } finally {
       setDownloadingKey((prev) => {
         const next = new Set(prev)

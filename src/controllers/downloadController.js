@@ -90,10 +90,17 @@ const downloadProductLegacy = asyncHandler(async (req, res) => {
     })
   }
 
-  const cleanPath = fileRecord.filePath.replace(/^[/\\]+/, "").replace(/\\/g, "/")
+  // Normalise to collapse `..`, strip leading separators, and force forward
+  // slashes — `startsWith(DOWNLOAD_DIR)` alone is bypassable via sibling-dir
+  // attacks (`productfile-evil/...`) or absolute paths on a different drive.
+  const cleanPath = path.normalize(
+    String(fileRecord.filePath || "").replace(/^[/\\]+/, "").replace(/\\/g, "/"),
+  )
   const resolvedPath = path.resolve(DOWNLOAD_DIR, cleanPath)
+  const rel = path.relative(DOWNLOAD_DIR, resolvedPath)
 
-  if (!resolvedPath.startsWith(DOWNLOAD_DIR)) {
+  if (rel === "" || rel.startsWith("..") || path.isAbsolute(rel)) {
+    logger.warn("[download] path traversal blocked", { filePath: fileRecord.filePath, rel })
     return res.status(400).json({ success: false, code: "INVALID_PATH", message: "Access denied." })
   }
 
@@ -170,11 +177,16 @@ const downloadByFileId = asyncHandler(async (req, res) => {
 
   const { file, entitlement } = check
 
-  // Resolve path safely
-  const cleanPath = file.filePath.replace(/^[/\\]+/, "").replace(/\\/g, "/")
+  // Resolve path safely — see legacy handler for the rationale behind
+  // path.normalize + path.relative containment instead of startsWith.
+  const cleanPath = path.normalize(
+    String(file.filePath || "").replace(/^[/\\]+/, "").replace(/\\/g, "/"),
+  )
   const resolvedPath = path.resolve(DOWNLOAD_DIR, cleanPath)
+  const rel = path.relative(DOWNLOAD_DIR, resolvedPath)
 
-  if (!resolvedPath.startsWith(DOWNLOAD_DIR)) {
+  if (rel === "" || rel.startsWith("..") || path.isAbsolute(rel)) {
+    logger.warn("[download] path traversal blocked", { filePath: file.filePath, rel })
     return res.status(400).json({ success: false, code: "INVALID_PATH", message: "Access denied." })
   }
 

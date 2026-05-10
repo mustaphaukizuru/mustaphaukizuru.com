@@ -11,6 +11,7 @@ import { useCart } from "../store/CartContext"
 import { fetchProducts, fetchFeaturedProducts } from "../services/productService"
 import StoreHero from "../components/heroes/StoreHero"
 import { API_BASE_URL } from "../lib/api"
+import { formatPrice } from "../lib/format"
 import { getFileTypeStyles } from "../lib/fileTypeIcons"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -337,7 +338,7 @@ function StoreProductCard({ product }) {
         <div className="mt-3 flex items-center justify-between border-t border-charcoal-80/8 pt-3">
           {/* F05.A · price in JetBrains Mono · tabular-nums */}
           <span className="font-mono text-card font-bold tabular-nums text-violet">
-            ${price.toFixed(2)}
+            {formatPrice(price, product?.currency || "MXN")}
           </span>
           <div className="flex items-center gap-2">
             <Link
@@ -398,7 +399,7 @@ function StoreListItem({ product }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="font-mono text-subsection font-bold tabular-nums text-violet">${price.toFixed(2)}</span>
+          <span className="font-mono text-subsection font-bold tabular-nums text-violet">{formatPrice(price, product?.currency || "MXN")}</span>
           <div className="flex items-center gap-2">
             <Link
               to={`/store/${product.slug}`}

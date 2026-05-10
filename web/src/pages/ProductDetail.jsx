@@ -36,6 +36,7 @@ import { useCart } from "../store/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { fetchWishlist, addToWishlist, removeFromWishlist } from "../services/wishlistService";
 import { API_BASE_URL } from "../lib/api";
+import { formatPrice } from "../lib/format";
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons";
 import RecentlyViewed, { useTrackProductView } from "../components/RecentlyViewed" // #4
 
@@ -90,8 +91,9 @@ function normalizeImages(product) {
  * the TrustBadges row, not to product-specific feature claims).
  */
 function normalizeHighlights(product) {
+  // Primary source — ProductFeature relation. Most products fill this out.
   if (Array.isArray(product?.features) && product.features.length > 0) {
-    return product.features
+    const fromFeatures = product.features
       .map((f) =>
         typeof f === "string"
           ? f
@@ -99,6 +101,23 @@ function normalizeHighlights(product) {
       )
       .filter(Boolean)
       .slice(0, 8);
+    if (fromFeatures.length > 0) return fromFeatures;
+  }
+
+  // Fallback — specifications JSON ({"key": "value"} pairs). Without this
+  // the "What's Included" tab rendered blank for products whose features
+  // live only in the specifications field (PDF #1 / Brand Identity Kit
+  // tab badge counted 6 but content was empty).
+  const specs = product?.specifications;
+  if (specs && typeof specs === "object") {
+    const entries = Array.isArray(specs)
+      ? specs
+          .map((row) => (row?.key && row?.value ? `${row.key}: ${row.value}` : ""))
+          .filter(Boolean)
+      : Object.entries(specs)
+          .map(([k, v]) => (k && v != null ? `${k}: ${v}` : ""))
+          .filter(Boolean);
+    if (entries.length > 0) return entries.slice(0, 8);
   }
 
   return [];
@@ -859,9 +878,8 @@ function MobileBuyBar({ price, currency, onAddToCart, added, productTitle }) {
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-meta font-bold text-violet">
-              ${Number(price).toFixed(2)}
+              {formatPrice(Number(price), currency)}
             </span>
-            <span className="text-micro text-charcoal-80/55">{currency}</span>
           </div>
         </div>
         <button
@@ -974,10 +992,7 @@ function RelatedProductCard({ product }) {
         )}
         <div className="mt-auto flex items-baseline gap-1.5 pt-2">
           <span className="text-meta font-bold text-violet">
-            ${price.toFixed(2)}
-          </span>
-          <span className="text-micro text-charcoal-80/55">
-            {product.currency || "MXN"}
+            {formatPrice(price, product.currency || "MXN")}
           </span>
         </div>
       </div>
@@ -1511,7 +1526,7 @@ export default function ProductDetail() {
                       )}
 
                       {/* Bottom half, file manifest */}
-                      {product.files?.length > 0 ? (
+                      {product.files?.length > 0 && (
                         <div>
                           <div className="mb-3 flex items-baseline justify-between">
                             <h3 className="text-meta font-bold text-charcoal">
@@ -1524,15 +1539,20 @@ export default function ProductDetail() {
                           </div>
                           <FileManifest files={product.files || []} />
                         </div>
-                      ) : (
-                        highlights.length === 0 && (
-                          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-charcoal-80/15 bg-mist/40 px-6 py-10 text-center">
-                            <Package className="h-8 w-8 text-charcoal-80/30" aria-hidden="true" />
-                            <p className="text-meta font-semibold text-charcoal-80/60">
-                              {t("detail.contentsComing")}
-                            </p>
-                          </div>
-                        )
+                      )}
+
+                      {/* Empty state — only when truly nothing to show. Previous
+                          version hid this when highlights existed but files
+                          didn't, which collapsed to an empty tab body if the
+                          top "what you get" block had been suppressed for any
+                          reason (PDF #1). */}
+                      {highlights.length === 0 && (!product.files || product.files.length === 0) && (
+                        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-charcoal-80/15 bg-mist/40 px-6 py-10 text-center">
+                          <Package className="h-8 w-8 text-charcoal-80/30" aria-hidden="true" />
+                          <p className="text-meta font-semibold text-charcoal-80/60">
+                            {t("detail.contentsComing")}
+                          </p>
+                        </div>
                       )}
                     </div>
                   )}
@@ -1587,10 +1607,7 @@ export default function ProductDetail() {
 
                   <div className="mt-4 flex items-end gap-3">
                     <span className="text-page font-bold leading-none text-violet">
-                      ${price.toFixed(2)}
-                    </span>
-                    <span className="mb-1 rounded-full bg-[#e8f4ea] px-2.5 py-0.5 text-micro font-bold text-[#2FA36B]">
-                      {product.currency || "MXN"}
+                      {formatPrice(price, product.currency || "MXN")}
                     </span>
                   </div>
 
@@ -1623,7 +1640,7 @@ export default function ProductDetail() {
                       </div>
 
                       <div className="text-meta font-bold text-violet">
-                        = ${(price * qty).toFixed(2)}
+                        = {formatPrice(price * qty, product.currency || "MXN")}
                       </div>
                     </div>
 
