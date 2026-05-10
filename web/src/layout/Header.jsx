@@ -292,22 +292,55 @@ function MobileMenu({ open, onClose }) {
   const auth = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const closeButtonRef = useRef(null)
 
   const user = auth && auth.user
   const isAuthenticated = auth && auth.isAuthenticated
 
+  // Close on route change. The parent Header also resets mobileOpen on
+  // pathname change — both run, but the parent's setState wins so we don't
+  // call onClose unconditionally on first mount (which would race the open
+  // animation when the user has just tapped the hamburger).
   useEffect(() => {
-    onClose()
+    if (open) onClose()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname])
+
+  // Body-scroll lock + Esc-to-close + focus management while open.
+  // Without the lock the page can scroll behind the open drawer on iOS
+  // which makes the close button feel "stuck" (it's actually scrolled
+  // off-screen). Without explicit focus the keyboard user lands inside
+  // the page content underneath the overlay.
+  useEffect(() => {
+    if (!open) return undefined
+    const orig = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    function onKey(e) { if (e.key === "Escape") onClose() }
+    document.addEventListener("keydown", onKey)
+    // Defer focus by one frame so Framer's transform isn't fighting the
+    // browser's scroll-into-view when the target enters from off-screen.
+    const focusTimer = window.setTimeout(() => {
+      if (closeButtonRef.current) closeButtonRef.current.focus()
+    }, 80)
+    return () => {
+      document.body.style.overflow = orig
+      document.removeEventListener("keydown", onKey)
+      window.clearTimeout(focusTimer)
+    }
+  }, [open, onClose])
 
   async function handleSignOut() {
     onClose()
     await performSignOut(auth, navigate)
   }
 
+  // pointer-events-none on the CLOSED panel is critical — the panel uses
+  // translate-x-full to slide off-screen but its bounding box can still
+  // sit underneath the hamburger button at certain viewport sizes,
+  // intercepting the click. That's the root cause of the "hamburger
+  // sometimes does nothing" symptom users reported.
   const backdropClass = open ? "opacity-100" : "pointer-events-none opacity-0"
-  const panelClass = open ? "translate-x-0" : "translate-x-full"
+  const panelClass = open ? "translate-x-0" : "pointer-events-none translate-x-full"
 
   return (
     <>
@@ -320,6 +353,7 @@ function MobileMenu({ open, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label={t("header.siteNav")}
+        aria-hidden={!open}
         className={`fixed inset-0 z-[70] flex h-full w-full flex-col gap-6 overflow-y-auto overflow-x-hidden bg-white p-6 shadow-2xl transition-transform duration-300 sm:right-0 sm:top-0 sm:left-auto sm:w-[88vw] sm:max-w-md lg:hidden ${panelClass}`}
       >
         <div className="flex items-center justify-between">
@@ -335,10 +369,11 @@ function MobileMenu({ open, onClose }) {
             </span>
           </Link>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             aria-label={t("header.closeMenu")}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/70 transition hover:bg-charcoal-80/5"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/70 transition hover:bg-charcoal-80/5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
           >
             <X className="h-5 w-5" />
           </button>

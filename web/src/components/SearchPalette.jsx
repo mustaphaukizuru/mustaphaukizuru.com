@@ -7,6 +7,7 @@ import {
   CornerDownLeft,
   ArrowUp,
   ArrowDown,
+  X,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -271,6 +272,11 @@ export default function SearchPalette() {
                 aria-label={t("search.searchAria")}
               />
 
+              {/* Close affordance — always rendered. On sm+ we show the
+                  "ESC" keyboard hint chip (so power users learn the binding).
+                  On mobile we render a real X icon button instead, since
+                  there's no keyboard. Both target the same setOpen(false)
+                  so the close path is uniform. */}
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -278,6 +284,14 @@ export default function SearchPalette() {
                 className="hidden h-7 items-center gap-1 rounded-md bg-white/[0.08] px-2 font-mono text-[11px] font-semibold text-white/65 ring-1 ring-white/10 transition hover:bg-white/[0.14] hover:text-white sm:inline-flex"
               >
                 ESC
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label={t("search.closeAria")}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/75 ring-1 ring-white/10 transition hover:bg-white/[0.14] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:hidden"
+              >
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -313,9 +327,13 @@ export default function SearchPalette() {
               ) : null}
             </div>
 
-            {/* ─── Footer · keyboard hints + brand mark ──────────────── */}
+            {/* ─── Footer · keyboard hints + brand mark ────────────────
+                The hint row is keyboard-only ergonomics — hidden on mobile
+                where there's no keyboard. Without this the footer stacked
+                four KbCombos onto the same row as the brand sig, blowing
+                out the modal on 360-wide viewports (PDF #24.5). */}
             <div className="relative flex items-center justify-between gap-3 border-t border-white/10 bg-black/15 px-5 py-3">
-              <div className="flex flex-wrap items-center gap-3 text-[11.5px] font-medium text-white/55">
+              <div className="hidden flex-wrap items-center gap-3 text-[11.5px] font-medium text-white/55 sm:flex">
                 <KbCombo>
                   <Kbd>
                     <ArrowUp className="h-3 w-3" aria-hidden="true" />
