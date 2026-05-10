@@ -8,7 +8,8 @@ import {
 import { Link } from "react-router-dom"
 import { fetchMyOrders, requestOrderRefund } from "../services/orderService"
 import { authFetch, API_BASE_URL } from "../lib/api"
-import { getStoredToken } from "../services/authService"
+import { formatPrice } from "../lib/format"
+import { triggerBrowserDownload } from "../services/downloadService"
 import { MetricCard } from "../components/ui/index"
 import { useToast } from "../context/ToastContext"
 
@@ -80,28 +81,19 @@ function SortableHeader({ labelKey, field, sortKey, sortDir, onSort, className =
   )
 }
 
-/* Download invoice — graceful fallback when endpoint isn't available.
- * We accept a t() function so error messages localize correctly. */
+/* Download invoice — routed through authFetch so 401s trigger session-expired
+ * handling and the URL is upgraded to /api/v1 automatically. */
 async function downloadInvoice(orderId, t) {
-  const token = getStoredToken()
-  if (!token) throw new Error(t("orders.errors.loginRequired"))
-
-  const res = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/invoice.pdf`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) {
-    if (res.status === 404) throw new Error(t("orders.errors.invoiceMissing"))
-    throw new Error(t("orders.errors.invoiceFailed", { status: res.status }))
+  let res
+  try {
+    res = await authFetch(`/api/v1/orders/${orderId}/invoice.pdf`, { method: "GET" })
+  } catch (err) {
+    if (err?.status === 404) throw new Error(t("orders.errors.invoiceMissing"))
+    throw new Error(err?.toUserMessage?.() || t("orders.errors.invoiceFailed", { status: err?.status || 0 }))
   }
-  const blob = await res.blob()
-  const url = window.URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.href = url
-  link.download = `invoice-${orderId}.pdf`
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.URL.revokeObjectURL(url)
+  const blob = res?.data instanceof Blob ? res.data : null
+  if (!blob) throw new Error(t("orders.errors.invoiceMissing"))
+  triggerBrowserDownload(blob, `invoice-${orderId}.pdf`)
 }
 
 export default function DashboardOrdersPage() {
@@ -230,7 +222,7 @@ export default function DashboardOrdersPage() {
         <MetricCard title={t("orders.metrics.total")}   value={orders.length}              subtitle={t("orders.metrics.totalSubtitle")}   icon={Receipt}      tone="purple" />
         <MetricCard title={t("orders.metrics.paid")}    value={paidOrders.length}          subtitle={t("orders.metrics.paidSubtitle")}    icon={CheckCircle2} tone="green" />
         <MetricCard title={t("orders.metrics.pending")} value={pendingOrders.length}       subtitle={t("orders.metrics.pendingSubtitle")} icon={Clock3}       tone="amber" />
-        <MetricCard title={t("orders.metrics.spent")}   value={`$${totalSpent.toFixed(2)}`} subtitle={t("orders.metrics.spentSubtitle")}   icon={CreditCard}   tone="blue" />
+        <MetricCard title={t("orders.metrics.spent")}   value={formatPrice(totalSpent)}     subtitle={t("orders.metrics.spentSubtitle")}   icon={CreditCard}   tone="blue" />
       </div>
 
       {/* Orders table */}
@@ -340,7 +332,7 @@ export default function DashboardOrdersPage() {
                       </div>
 
                       <div className="font-mono font-bold tabular-nums text-violet">
-                        ${Number(order.totalAmount || 0).toFixed(2)}
+                        {formatPrice(Number(order.totalAmount || 0), order.currency || "MXN")}
                       </div>
 
                       <div>
@@ -482,7 +474,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
           <div>
             <h2 className="text-card font-bold text-violet">{t("orders.refundModal.title")}</h2>
             <p className="text-micro text-charcoal-80/70">
-              {t("orders.refundModal.subtitle", { number: order.orderNumber || order.id, amount: Number(order.totalAmount || 0).toFixed(2) })}
+              {t("orders.refundModal.subtitle", { number: order.orderNumber || order.id, amount: formatPrice(Number(order.totalAmount || 0), order.currency || "MXN") })}
             </p>
           </div>
         </div>

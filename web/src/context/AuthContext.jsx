@@ -111,7 +111,16 @@ export function AuthProvider({ children }) {
 
     // ── Standard path ──────────────────────────────────────────────────────
     const enriched = { ...data, user: normalizeUser(data.user) }
-    storeAuth(enriched)
+    try {
+      storeAuth(enriched)
+    } catch (err) {
+      // localStorage unavailable (Safari private browsing, quota, etc.) —
+      // surface a clean error instead of leaving the user in a half-
+      // authenticated state where the redirect fires but the session is gone.
+      // eslint-disable-next-line no-console
+      console.error("[auth] storeAuth failed:", err)
+      throw new Error("Could not save your session. Disable private browsing and try again.")
+    }
     setUser(enriched.user)
     setToken(enriched.token)
     return enriched

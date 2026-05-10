@@ -224,17 +224,32 @@ async function markOrderPaidByMP({ orderId, paymentId, status, payload, gatewayA
     })
     if (!current) throw Object.assign(new Error("Order not found"), { code: "ORDER_NOT_FOUND" })
 
-    // Hardening · amount validation. MP returns `transaction_amount` on the
-    // payment payload — compare it to our local total within ±0.01 tolerance.
-    // A mismatch returns early without changing state so the caller (controller)
-    // can log + alert without producing a paid order for the wrong amount.
-    if (gatewayAmount != null && status === "approved") {
+    // Hardening · amount validation. Every approved MP webhook MUST carry a
+    // finite `transaction_amount`. A missing/non-finite amount is a fail-
+    // closed reject — silently trusting the gateway here is what allowed
+    // malformed webhooks to flip orders to paid without amount validation.
+    if (status === "approved") {
       const reported = Number(gatewayAmount)
       const expected = Number(current.totalAmount)
-      const drift    = Math.abs(reported - expected)
+      if (gatewayAmount == null || !Number.isFinite(reported)) {
+        return {
+          order: current,
+          isFirstTransition: false,
+          payload: payload || null,
+          amountMismatch: {
+            reported: gatewayAmount ?? null,
+            expected,
+            drift: null,
+            reportedCcy: String(gatewayCurrency || "").toUpperCase() || null,
+            expectedCcy: String(current.currency || "MXN").toUpperCase(),
+            reason: "missing_or_invalid_amount",
+          },
+        }
+      }
+      const drift       = Math.abs(reported - expected)
       const reportedCcy = String(gatewayCurrency || current.currency || "MXN").toUpperCase()
       const expectedCcy = String(current.currency || "MXN").toUpperCase()
-      if (Number.isFinite(reported) && (drift > 0.01 || reportedCcy !== expectedCcy)) {
+      if (drift > 0.01 || reportedCcy !== expectedCcy) {
         return {
           order: current,
           isFirstTransition: false,

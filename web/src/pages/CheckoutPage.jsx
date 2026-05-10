@@ -14,6 +14,7 @@ import { createOrder } from "../services/orderService"
 import { createMercadoPagoPreference } from "../services/mercadoPagoService"
 import { createPaypalSession, capturePaypalSession } from "../services/paypalService"
 import { API_BASE_URL } from "../lib/api"
+import { formatPrice } from "../lib/format"
 import { fetchAddresses, formatAddressLine, COUNTRY_OPTIONS } from "../services/addressService"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -106,7 +107,7 @@ function OrderItem({ item }) {
         </div>
       </div>
       <div className="shrink-0 font-mono text-meta font-bold tabular-nums text-violet">
-        ${(Number(item.price) * item.quantity).toFixed(2)}
+        {formatPrice(Number(item.price) * item.quantity)}
       </div>
     </div>
   )
@@ -832,7 +833,7 @@ export default function CheckoutPage() {
                         {appliedCoupon.code}
                       </code>
                       <span className="font-mono text-micro tabular-nums text-mint/85">
-                        −${discount.toFixed(2)}
+                        −{formatPrice(discount)}
                       </span>
                     </div>
                     <button
@@ -877,12 +878,12 @@ export default function CheckoutPage() {
               <div className="mt-5 space-y-3 border-t border-charcoal-80/10 pt-5">
                 <div className="flex justify-between text-meta text-charcoal-80/70">
                   <span>{tCart("summary.subtotal")}</span>
-                  <span className="font-mono font-semibold tabular-nums text-violet">${subtotal.toFixed(2)}</span>
+                  <span className="font-mono font-semibold tabular-nums text-violet">{formatPrice(subtotal)}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-meta text-mint">
                     <span>{tCart("summary.discount")}</span>
-                    <span className="font-mono font-semibold tabular-nums">−${discount.toFixed(2)}</span>
+                    <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-meta text-charcoal-80/70">
@@ -892,7 +893,7 @@ export default function CheckoutPage() {
                 <div className="flex items-baseline justify-between border-t border-charcoal-80/10 pt-3">
                   <span className="text-body font-bold text-violet">{tCart("summary.total")}</span>
                   <span className="font-mono text-section font-extrabold tabular-nums text-violet">
-                    ${orderTotal.toFixed(2)}
+                    {formatPrice(orderTotal)}
                   </span>
                 </div>
               </div>

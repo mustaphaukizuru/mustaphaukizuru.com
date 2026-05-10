@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { motion, useReducedMotion } from "framer-motion"
@@ -15,6 +15,8 @@ import {
 
 import mMarkViolet from "../../assets/logo-mark/m-mark-violet.svg"
 import { products as STORE_PRODUCTS } from "../../data/storeData"
+import { fetchFeaturedProducts } from "../../services/productService"
+import { formatPrice } from "../../lib/format"
 
 /**
  * HomeHero · V10 — "Floating cluster" composition
@@ -78,13 +80,31 @@ const TECH_STACK = ["Django", "React", "GCP"]
 
 /* Defensive featured-product picker. Falls back to a static placeholder
    if the data shape changes or the store is empty — the hero must never
-   render a blank card. */
+   render a blank card.
+   Normalises both shapes (live API + static storeData) so downstream
+   rendering can treat them identically. */
 function pickFeaturedProduct(products) {
   if (!Array.isArray(products) || products.length === 0) return null
   const fiveStarFeatured = products.find(
-    (p) => p?.featured === true && (p?.rating ?? 0) >= 5,
+    (p) => (p?.featured === true || p?.isFeatured === true) && (p?.rating ?? 0) >= 5,
   )
-  return fiveStarFeatured || products.find((p) => p?.featured === true) || products[0]
+  return (
+    fiveStarFeatured ||
+    products.find((p) => p?.featured === true || p?.isFeatured === true) ||
+    products[0]
+  )
+}
+
+/* Normalise a product (either shape) into the minimal contract the
+   FeaturedProductCard needs: { id (slug for routing), title, price, currency }. */
+function normaliseFeaturedProduct(p) {
+  if (!p) return null
+  return {
+    id: p.slug || p.id,  // route param — prefer slug since that's what /store/:slug expects
+    title: p.title,
+    price: Number(p.price ?? 0),
+    currency: p.currency || "MXN",
+  }
 }
 
 /* ────────────────────────── component ────────────────────────────────── */
@@ -93,9 +113,27 @@ export default function HomeHero() {
   const { t } = useTranslation("home")
   const reduced = useReducedMotion()
 
-  /* Pick the featured product once; useMemo to avoid re-running on every
-     re-render. Safe against empty/undefined imports. */
-  const featuredProduct = useMemo(() => pickFeaturedProduct(STORE_PRODUCTS), [])
+  /* Featured product — live from the API, with a defensive fall-back to
+     static data so the hero never renders blank. The API call is non-
+     blocking; first paint shows the static pick, then swaps to the live
+     "latest featured" once the request resolves (PDF #9). */
+  const [liveFeatured, setLiveFeatured] = useState(null)
+  useEffect(() => {
+    let cancelled = false
+    fetchFeaturedProducts(1)
+      .then((rows) => {
+        if (cancelled) return
+        const first = Array.isArray(rows) && rows.length > 0 ? rows[0] : null
+        if (first) setLiveFeatured(first)
+      })
+      .catch(() => { /* keep static fallback */ })
+    return () => { cancelled = true }
+  }, [])
+
+  const featuredProduct = useMemo(
+    () => normaliseFeaturedProduct(liveFeatured || pickFeaturedProduct(STORE_PRODUCTS)),
+    [liveFeatured],
+  )
 
   /* Framer Motion variants — match existing fadeUp/stagger conventions
      used across the codebase (see Audiences, Solutions, FeaturedProducts). */
@@ -572,8 +610,9 @@ function FeaturedProductCard({ product }) {
     id: null,
     title: "STEM Curriculum Pack",
     price: 48,
-    rating: 5,
+    currency: "MXN",
   }
+  const priceLabel = formatPrice(safe.price, safe.currency || "MXN")
   const inner = (
     <div className="flex w-[224px] items-center gap-3 rounded-2xl border border-charcoal/5 bg-white p-3 shadow-[0_12px_28px_-10px_rgba(93,63,211,0.15)] transition-transform hover:-translate-y-0.5">
       <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-grad-innovation">
@@ -587,8 +626,8 @@ function FeaturedProductCard({ product }) {
         <p className="mt-0.5 truncate text-[13px] font-semibold text-charcoal">
           {safe.title}
         </p>
-        <p className="mt-1 text-[12px] font-semibold text-violet">
-          ${safe.price}
+        <p className="mt-1 font-mono text-[12px] font-semibold tabular-nums text-violet">
+          {priceLabel}
         </p>
       </div>
     </div>
@@ -597,7 +636,7 @@ function FeaturedProductCard({ product }) {
     <Link
       to={`/store/${safe.id}`}
       className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-mist rounded-2xl"
-      aria-label={`Featured product — ${safe.title}, $${safe.price}`}
+      aria-label={`Featured product — ${safe.title}, ${priceLabel}`}
     >
       {inner}
     </Link>

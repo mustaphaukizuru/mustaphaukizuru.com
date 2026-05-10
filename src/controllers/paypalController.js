@@ -338,21 +338,35 @@ async function transitionOrderToPaid({ orderId, gatewayTransactionId, paymentGat
     })
     if (!current) throw Object.assign(new Error("Order not found"), { code: "ORDER_NOT_FOUND" })
 
-    // Amount validation · 1-cent tolerance to absorb floating-point drift
-    // between Decimal(12,2) on our side and the gateway's string formatting.
-    if (gatewayAmount != null) {
-      const reported = Number(gatewayAmount)
-      const expected = Number(current.totalAmount)
-      const drift    = Math.abs(reported - expected)
-      const reportedCcy = String(gatewayCurrency || current.currency || "MXN").toUpperCase()
-      const expectedCcy = String(current.currency || "MXN").toUpperCase()
-      if (Number.isFinite(reported) && (drift > 0.01 || reportedCcy !== expectedCcy)) {
-        return {
-          order: current,
-          isFirstTransition: false,
-          payload,
-          amountMismatch: { reported, expected, drift, reportedCcy, expectedCcy },
-        }
+    // Amount validation · REQUIRE a finite numeric amount on every paid
+    // transition. A missing/non-finite value is a fail-closed reject so a
+    // malformed webhook can never silently flip an order to paid.
+    const reported = Number(gatewayAmount)
+    const expected = Number(current.totalAmount)
+    if (gatewayAmount == null || !Number.isFinite(reported)) {
+      return {
+        order: current,
+        isFirstTransition: false,
+        payload,
+        amountMismatch: {
+          reported: gatewayAmount ?? null,
+          expected,
+          drift: null,
+          reportedCcy: String(gatewayCurrency || "").toUpperCase() || null,
+          expectedCcy: String(current.currency || "MXN").toUpperCase(),
+          reason: "missing_or_invalid_amount",
+        },
+      }
+    }
+    const drift       = Math.abs(reported - expected)
+    const reportedCcy = String(gatewayCurrency || current.currency || "MXN").toUpperCase()
+    const expectedCcy = String(current.currency || "MXN").toUpperCase()
+    if (drift > 0.01 || reportedCcy !== expectedCcy) {
+      return {
+        order: current,
+        isFirstTransition: false,
+        payload,
+        amountMismatch: { reported, expected, drift, reportedCcy, expectedCcy },
       }
     }
 

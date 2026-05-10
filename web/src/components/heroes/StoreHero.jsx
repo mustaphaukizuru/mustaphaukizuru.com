@@ -33,6 +33,7 @@ import {
   ChevronLeft, ChevronRight, ImageIcon, Package,
 } from "lucide-react"
 import { API_BASE_URL } from "../../lib/api"
+import { formatPrice as formatCanonicalPrice } from "../../lib/format"
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
 
@@ -47,8 +48,7 @@ function resolveImg(product) {
 // Format price · uses any pre-formatted string if the API provides one
 function formatPrice(p) {
   if (typeof p?.priceFormatted === "string") return p.priceFormatted
-  const v = Number(p?.price ?? 0)
-  return `$${v.toFixed(2)}`
+  return formatCanonicalPrice(Number(p?.price ?? 0), p?.currency || "MXN")
 }
 
 // Resolve a friendly category label across the various shapes

@@ -40,18 +40,10 @@ import { getFileTypeStyles } from "../lib/fileTypeIcons"
  *    - All callable props and behavior
  *  ──────────────────────────────────────────────────────────────────────── */
 
-function formatPrice(value, currency = "MXN") {
-  const amount = Number(value || 0)
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 2,
-    }).format(amount)
-  } catch {
-    return `$${amount.toFixed(2)}`
-  }
-}
+// Single source of truth — see web/src/lib/format.js. Re-exported locally
+// only because some legacy call sites pass a string price; the imported
+// formatPrice handles non-number input correctly.
+import { formatPrice } from "../lib/format"
 
 function resolveImageUrl(url = "") {
   if (!url) return null

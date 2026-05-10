@@ -11,10 +11,13 @@
 
 const LOCALE_MAP = { en: "en-US", es: "es-MX" }
 
-export function formatCurrency(amount, currency = "MXN", lang = "en") {
-  const locale = LOCALE_MAP[lang] || "en-US"
+export function formatCurrency(amount, currency = "MXN", _lang = "en") {
+  // Phase 2 · MXN unification — currency formatting is locale-pinned to
+  // en-US so the "MX$" disambiguator always shows, even on Spanish pages.
+  // The `lang` arg is preserved for backwards compatibility but ignored;
+  // i18n locale still drives dates/numbers/percent in this same module.
   try {
-    return new Intl.NumberFormat(locale, {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency,
       minimumFractionDigits: 2,
@@ -22,8 +25,7 @@ export function formatCurrency(amount, currency = "MXN", lang = "en") {
     }).format(Number(amount) || 0)
   } catch {
     // Some Node test envs lack ICU data — fall back to a sane string.
-    const sym = currency === "USD" ? "$" : currency === "MXN" ? "$" : currency + " "
-    return `${sym}${Number(amount || 0).toFixed(2)} ${currency}`
+    return `${currency} ${(Number(amount) || 0).toFixed(2)}`
   }
 }
 

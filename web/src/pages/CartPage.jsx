@@ -10,6 +10,7 @@ import {
 import { useCart } from "../store/CartContext"
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
+import { formatPrice } from "../lib/format"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  CartPage · F08.A · Batch 5
@@ -211,11 +212,11 @@ function CartItem({ item, onUpdateQty, onRemove }) {
             {/* Price · F08.A · JetBrains Mono · tabular-nums */}
             <div className="text-right">
               <div className="font-mono text-body font-bold tabular-nums text-violet sm:text-card">
-                ${(item.price * item.quantity).toFixed(2)}
+                {formatPrice(item.price * item.quantity)}
               </div>
               {item.quantity > 1 && (
                 <div className="font-mono text-micro tabular-nums text-charcoal-80/45">
-                  ${item.price.toFixed(2)} {t("item.each")}
+                  {formatPrice(item.price)} {t("item.each")}
                 </div>
               )}
             </div>
@@ -257,7 +258,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
                 )}
               </span>
               <span className="shrink-0 font-mono font-semibold tabular-nums text-violet">
-                ${(item.price * item.quantity).toFixed(2)}
+                {formatPrice(item.price * item.quantity)}
               </span>
             </div>
           ))}
@@ -269,7 +270,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
         <div className="space-y-3 text-meta">
           <div className="flex justify-between text-charcoal-80/65">
             <span>{t("summary.subtotal", "Subtotal")}</span>
-            <span className="font-mono font-semibold tabular-nums text-violet">${subtotal.toFixed(2)}</span>
+            <span className="font-mono font-semibold tabular-nums text-violet">{formatPrice(subtotal)}</span>
           </div>
 
           {discount > 0 && (
@@ -280,20 +281,20 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
                   <span className="ml-1 text-micro text-mint/80">({appliedCoupon.code})</span>
                 )}
               </span>
-              <span className="font-mono font-semibold tabular-nums">−${discount.toFixed(2)}</span>
+              <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount)}</span>
             </div>
           )}
 
           <div className="flex justify-between text-charcoal-80/65">
             <span>{t("summary.taxLabel")}</span>
-            <span className="font-semibold text-mint">$0.00</span>
+            <span className="font-semibold text-mint">{formatPrice(0)}</span>
           </div>
 
           {/* Total, F08.A · large JetBrains Mono bold */}
           <div className="flex items-baseline justify-between border-t border-charcoal-80/10 pt-3">
             <span className="text-body font-bold text-violet">{t("summary.total")}</span>
             <span className="font-mono text-section font-extrabold tabular-nums text-violet">
-              ${(total ?? subtotal).toFixed(2)}
+              {formatPrice(total ?? subtotal)}
             </span>
           </div>
         </div>
@@ -448,7 +449,7 @@ export default function CartPage() {
                       </span>
                       <span className="text-meta font-semibold text-mint">
                         {t("summary.discountApplied")}{" "}
-                        <span className="font-mono tabular-nums">−${discount.toFixed(2)}</span>
+                        <span className="font-mono tabular-nums">−{formatPrice(discount)}</span>
                       </span>
                       {appliedCoupon.code && (
                         <code className="ml-1 rounded-md bg-white/60 px-2 py-0.5 font-mono text-micro font-semibold text-mint">

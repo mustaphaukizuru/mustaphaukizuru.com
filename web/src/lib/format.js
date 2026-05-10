@@ -6,22 +6,44 @@
 // Brand v3.1 § 14 — KPIs and prices use JetBrains Mono with tabular-nums.
 // This module returns formatted strings; the consumer applies the font
 // class (`font-mono tabular-nums`) where appropriate.
+//
+// Currency convention (Phase 2 · MXN unification):
+//   The canonical price string is "MX$129.00" — produced natively by
+//   Intl.NumberFormat with locale "en-US" + currency "MXN". This is the
+//   same shape the backend has always emitted (paypal/mp/invoice/receipt),
+//   so the platform now reads identically on every surface: cart line
+//   item, checkout summary, product detail, dashboard, admin, paid email,
+//   PDF invoice. We deliberately ignore the user's UI language for prices
+//   so the disambiguator "MX$" always shows — Spanish-locale Intl drops it.
 
 const DEFAULT_CURRENCY = "MXN";
+// Locked at "en-US" so MXN renders as "MX$" on every page, regardless of
+// the active i18n language. Date/number formatting still respects locale
+// elsewhere — only currency is locale-pinned.
+const PRICE_LOCALE = "en-US";
 
-// Locale used by the formatters. en-US gives a comma thousand separator
-// and dot decimal, which matches the English-default platform tone. The
-// MXN currency code makes the unit explicit and avoids the legacy
-// "MX$17.00" / "$17.00 MXN" mismatch the cart and product detail showed.
-const FORMAT_LOCALE = "en-US";
+function intlPrice(amount, currency) {
+  try {
+    return new Intl.NumberFormat(PRICE_LOCALE, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    // ICU-less envs (some Node test runs) — fall back to a sane string.
+    return `${currency} ${Number(amount).toFixed(2)}`;
+  }
+}
 
 /**
- * Format a numeric amount as a price with explicit currency code.
+ * Format a numeric amount as a price with the currency baked into the
+ * symbol via Intl.NumberFormat.
  *
- *   formatPrice(129)            → "$129.00 MXN"
- *   formatPrice(17, "MXN")      → "$17.00 MXN"
- *   formatPrice(95.5, "USD")    → "$95.50 USD"
- *   formatPrice(null)           → "$0.00 MXN"
+ *   formatPrice(129)            → "MX$129.00"
+ *   formatPrice(17, "MXN")      → "MX$17.00"
+ *   formatPrice(95.5, "USD")    → "$95.50"
+ *   formatPrice(null)           → "MX$0.00"
  *
  * @param {number|string|null|undefined} amount
  * @param {string} [currency] ISO 4217. Defaults to "MXN".
@@ -29,32 +51,26 @@ const FORMAT_LOCALE = "en-US";
  */
 export function formatPrice(amount, currency = DEFAULT_CURRENCY) {
   const value = Number(amount);
-  if (!Number.isFinite(value)) return `$0.00 ${currency}`;
-  const formatted = value.toLocaleString(FORMAT_LOCALE, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-  return `$${formatted} ${currency}`;
+  if (!Number.isFinite(value)) return intlPrice(0, currency);
+  return intlPrice(value, currency);
 }
 
 /**
- * Compact variant — symbol + number only, no currency code.
- * Useful in tight spaces (cart line items, header cart total, KPI cards).
- * Pair with a separate currency badge or label for clarity.
+ * Compact variant — alias of formatPrice. The historical "compact" form
+ * stripped the currency code, but post-Phase-2 the canonical price string
+ * already includes the disambiguator ("MX$"), so there is nothing to drop.
+ * Kept as a separate export so existing call sites don't need migration.
  *
- *   formatPriceCompact(129)     → "$129.00"
- *   formatPriceCompact(0)       → "$0.00"
+ *   formatPriceCompact(129)             → "MX$129.00"
+ *   formatPriceCompact(0)               → "MX$0.00"
+ *   formatPriceCompact(95.5, "USD")     → "$95.50"
  *
  * @param {number|string|null|undefined} amount
+ * @param {string} [currency]
  * @returns {string}
  */
-export function formatPriceCompact(amount) {
-  const value = Number(amount);
-  if (!Number.isFinite(value)) return "$0.00";
-  return `$${value.toLocaleString(FORMAT_LOCALE, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+export function formatPriceCompact(amount, currency = DEFAULT_CURRENCY) {
+  return formatPrice(amount, currency);
 }
 
 /**

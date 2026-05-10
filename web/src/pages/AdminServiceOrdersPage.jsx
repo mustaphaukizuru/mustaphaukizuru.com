@@ -13,9 +13,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
-  Briefcase, Filter, RefreshCw, AlertCircle, Loader2, Mail, ExternalLink, Package,
+  Briefcase, Filter, RefreshCw, AlertCircle, Loader2, Mail, ExternalLink, Package, Eye,
 } from "lucide-react"
 import {
   adminListServiceOrders,
@@ -70,7 +71,7 @@ function formatMoney(value, currency = "MXN") {
 }
 
 export default function AdminServiceOrdersPage() {
-  const toast = useToast()
+  const { showSuccess, showError } = useToast()
   const [statusFilter, setStatusFilter] = useState("")
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -97,9 +98,9 @@ export default function AdminServiceOrdersPage() {
       setUpdating(id)
       const updated = await adminUpdateServiceOrder(id, { status: nextStatus })
       setItems((prev) => prev.map((o) => (o.id === id ? { ...o, ...updated } : o)))
-      toast?.show?.({ type: "success", title: "Order updated", message: `Status: ${nextStatus.replace(/_/g, " ")}` })
+      showSuccess?.(`Status: ${nextStatus.replace(/_/g, " ")}`, "Order updated")
     } catch (e) {
-      toast?.show?.({ type: "error", title: "Update failed", message: e?.message || "Try again" })
+      showError?.(e?.toUserMessage?.() || e?.message || "Try again", "Update failed")
     } finally {
       setUpdating(null)
     }
@@ -249,6 +250,12 @@ function RowActions({ order, updating, onPatch }) {
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-1.5">
+      <Link
+        to={`/admin/service-orders/${order.id}`}
+        className="inline-flex items-center gap-1 rounded-md border border-[#5D3FD3]/30 bg-[#EDE9FB] px-2 py-1 text-[11px] font-semibold text-[#5D3FD3] transition hover:bg-[#5D3FD3]/15"
+      >
+        <Eye className="h-3 w-3" aria-hidden="true" /> View
+      </Link>
       {order.projectId && (
         <a
           href={`/dashboard/projects/${order.projectId}`}

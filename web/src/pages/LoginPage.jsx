@@ -164,11 +164,20 @@ export default function LoginPage() {
       }
       navigate(location.state?.from || "/dashboard", { replace: true })
     } catch (err) {
+      // Surface in devtools — without this the user reports "nothing happened"
+      // because some hosts compress error text to one greyed-out line and the
+      // network failure mode (CORS preflight, DNS) leaves no visible feedback.
+      // eslint-disable-next-line no-console
+      console.error("[login] failed:", err)
+
       const code = err?.code || ""
       const status = err?.status || 0
       const msg = err?.toUserMessage?.() || err?.message || ""
 
-      if (code === "NETWORK_ERROR") {
+      if (code === "NETWORK_ERROR" || status === 0) {
+        // status===0 covers the case where fetch threw before getting a
+        // response (typically CORS preflight failure or DNS error). Without
+        // this branch the user sees nothing because msg is empty.
         setError("Cannot reach the server. Check your connection and try again.")
       } else if (code === "AUTH_SUSPENDED") {
         setError("Your account has been suspended. Please contact support.")
