@@ -23,7 +23,7 @@ export default function AdminToolbar({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       {/* LEFT, count + context */}
-      <div className="text-[12px] text-[#475569]">
+      <div className="text-[12px] text-steel-700">
         {typeof count === "number" && (
           <span className="font-mono tabular-nums font-semibold text-charcoal">
             {count.toLocaleString()}
@@ -33,7 +33,7 @@ export default function AdminToolbar({
           <span className="ml-1">{count === 1 ? countLabel.replace(/s$/, "") : countLabel}</span>
         )}
         {contextLabel && (
-          <span className="ml-2 text-[#64748B]">· {contextLabel}</span>
+          <span className="ml-2 text-steel">· {contextLabel}</span>
         )}
       </div>
 

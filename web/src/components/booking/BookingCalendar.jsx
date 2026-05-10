@@ -441,7 +441,7 @@ export default function BookingCalendar({
         variants={fadeUp} initial="hidden" animate="show"
         className="rounded-xl border border-charcoal/10 bg-white p-6 text-center shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-10"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f4ea] text-[#3b8f47] sm:h-16 sm:w-16">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f4ea] text-mint-800 sm:h-16 sm:w-16">
           <CheckCircle2 className="h-7 w-7 sm:h-8 sm:w-8" />
         </div>
         <h2 className="mt-5 text-[22px] font-bold tracking-tight text-violet sm:text-[26px]">

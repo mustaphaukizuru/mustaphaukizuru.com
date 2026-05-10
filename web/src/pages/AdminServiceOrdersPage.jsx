@@ -37,16 +37,16 @@ const STATUS_FILTERS = [
 ]
 
 const STATUS_STYLE = {
-  pending: { bg: "bg-[#FEF3C7]", text: "text-[#92400E]", label: "Pending" },
-  in_progress: { bg: "bg-azure-pale", text: "text-[#075985]", label: "In progress" },
-  delivered: { bg: "bg-[#D1FAE5]", text: "text-[#065F46]", label: "Delivered" },
-  completed: { bg: "bg-[#D1FAE5]", text: "text-[#065F46]", label: "Completed" },
-  cancelled: { bg: "bg-slate-100", text: "text-[#475569]", label: "Cancelled" },
-  refunded: { bg: "bg-[#FFE4E6]", text: "text-[#9F1239]", label: "Refunded" },
+  pending: { bg: "bg-amber-50", text: "text-amber-700", label: "Pending" },
+  in_progress: { bg: "bg-azure-pale", text: "text-azure-800", label: "In progress" },
+  delivered: { bg: "bg-mint-50", text: "text-mint-700", label: "Delivered" },
+  completed: { bg: "bg-mint-50", text: "text-mint-700", label: "Completed" },
+  cancelled: { bg: "bg-slate-100", text: "text-steel-700", label: "Cancelled" },
+  refunded: { bg: "bg-rose-50", text: "text-rose-700", label: "Refunded" },
 }
 
 function StatusPill({ status }) {
-  const s = STATUS_STYLE[status] || { bg: "bg-slate-100", text: "text-[#475569]", label: status || "-" }
+  const s = STATUS_STYLE[status] || { bg: "bg-slate-100", text: "text-steel-700", label: status || "-" }
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] ${s.bg} ${s.text}`}>
       {s.label}
@@ -115,7 +115,7 @@ export default function AdminServiceOrdersPage() {
         animate="show"
         className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div className="flex items-center gap-2 text-[12px] text-[#475569]">
+        <div className="flex items-center gap-2 text-[12px] text-steel-700">
           <Briefcase className="h-3.5 w-3.5" /> {items.length} order{items.length === 1 ? "" : "s"} {statusFilter ? `· filter: ${statusFilter}` : ""}
         </div>
         <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ export default function AdminServiceOrdersPage() {
 
       {/* Error banner */}
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-[#FFE4E6] bg-[#FFE4E6]/30 px-4 py-3 text-[13px] text-[#9F1239]">
+        <div className="flex items-start gap-2 rounded-xl border border-rose-50 bg-rose-50/30 px-4 py-3 text-[13px] text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -159,7 +159,7 @@ export default function AdminServiceOrdersPage() {
               <Package className="h-6 w-6" aria-hidden="true" />
             </div>
             <p className="text-[14px] font-semibold text-charcoal">No service orders yet</p>
-            <p className="max-w-xs text-[12px] text-[#64748B]">
+            <p className="max-w-xs text-[12px] text-steel">
               When a client purchases a packaged service from the Services page, the order shows up here.
             </p>
           </div>
@@ -168,7 +168,7 @@ export default function AdminServiceOrdersPage() {
             {/* Desktop table */}
             <table className="hidden w-full text-left lg:table">
               <thead className="border-b border-slate-100 bg-mist/60">
-                <tr className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#64748B]">
+                <tr className="text-[10px] font-bold uppercase tracking-[0.12em] text-steel">
                   <th className="px-5 py-3">Order date</th>
                   <th className="px-5 py-3">Client</th>
                   <th className="px-5 py-3">Service</th>
@@ -182,7 +182,7 @@ export default function AdminServiceOrdersPage() {
                   <tr key={o.id} className="hover:bg-[#FAFBFC]">
                     <td className="px-5 py-3 align-top">
                       <div className="text-charcoal">{formatDate(o.createdAt)}</div>
-                      {o.id && <div className="mt-0.5 font-mono text-[10px] text-[#64748B]">#{String(o.id).slice(-8)}</div>}
+                      {o.id && <div className="mt-0.5 font-mono text-[10px] text-steel">#{String(o.id).slice(-8)}</div>}
                     </td>
                     <td className="px-5 py-3 align-top">
                       <div className="font-semibold text-violet">{o.user?.fullName || o.user?.email || o.contactEmail || "-"}</div>
@@ -195,7 +195,7 @@ export default function AdminServiceOrdersPage() {
                     <td className="px-5 py-3 align-top text-charcoal/85">
                       <div className="font-medium">{o.service?.title || o.serviceTitle || "-"}</div>
                       {o.servicePackage?.name && (
-                        <div className="mt-0.5 text-[11px] text-[#64748B]">{o.servicePackage.name}</div>
+                        <div className="mt-0.5 text-[11px] text-steel">{o.servicePackage.name}</div>
                       )}
                     </td>
                     <td className="px-5 py-3 align-top">
@@ -224,7 +224,7 @@ export default function AdminServiceOrdersPage() {
                 <li key={o.id} className="flex flex-col gap-3 px-5 py-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="text-[12px] text-[#64748B]">{formatDate(o.createdAt)}</div>
+                      <div className="text-[12px] text-steel">{formatDate(o.createdAt)}</div>
                       <div className="mt-0.5 truncate text-[13px] font-semibold text-violet">{o.user?.fullName || o.user?.email || "-"}</div>
                       <div className="mt-0.5 truncate text-[12px] text-charcoal/85">{o.service?.title || o.serviceTitle || "-"}</div>
                       <div className="mt-1 font-mono text-[12px] tabular-nums font-semibold text-charcoal">
@@ -273,7 +273,7 @@ function RowActions({ order, updating, onPatch }) {
               type="button"
               disabled={updating}
               onClick={() => onPatch("in_progress")}
-              className="inline-flex items-center gap-1 rounded-md border border-azure/30 bg-azure-pale px-2 py-1 text-[11px] font-semibold text-[#075985] transition hover:bg-azure/20 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-md border border-azure/30 bg-azure-pale px-2 py-1 text-[11px] font-semibold text-azure-800 transition hover:bg-azure/20 disabled:opacity-50"
             >
               Start
             </button>
@@ -283,7 +283,7 @@ function RowActions({ order, updating, onPatch }) {
               type="button"
               disabled={updating}
               onClick={() => onPatch("delivered")}
-              className="inline-flex items-center gap-1 rounded-md border border-mint/30 bg-[#D1FAE5] px-2 py-1 text-[11px] font-semibold text-[#065F46] transition hover:bg-mint/20 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-md border border-mint/30 bg-mint-50 px-2 py-1 text-[11px] font-semibold text-mint-700 transition hover:bg-mint/20 disabled:opacity-50"
             >
               Deliver
             </button>
@@ -292,7 +292,7 @@ function RowActions({ order, updating, onPatch }) {
             type="button"
             disabled={updating}
             onClick={() => onPatch("completed")}
-            className="inline-flex items-center gap-1 rounded-md border border-mint/30 bg-[#D1FAE5] px-2 py-1 text-[11px] font-semibold text-[#065F46] transition hover:bg-mint/20 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-md border border-mint/30 bg-mint-50 px-2 py-1 text-[11px] font-semibold text-mint-700 transition hover:bg-mint/20 disabled:opacity-50"
           >
             Complete
           </button>
@@ -300,7 +300,7 @@ function RowActions({ order, updating, onPatch }) {
             type="button"
             disabled={updating}
             onClick={() => onPatch("cancelled")}
-            className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-[#475569] transition hover:bg-mist disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-steel-700 transition hover:bg-mist disabled:opacity-50"
           >
             Cancel
           </button>

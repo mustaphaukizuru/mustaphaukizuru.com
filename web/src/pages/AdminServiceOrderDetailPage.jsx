@@ -34,18 +34,18 @@ const STATUS_TRANSITIONS = [
 ]
 
 const TONE = {
-  azure: "border-azure/30 bg-azure-pale text-[#075985] hover:bg-azure/20",
-  mint: "border-mint/30 bg-[#D1FAE5] text-[#065F46] hover:bg-mint/20",
-  neutral: "border-slate-200 bg-white text-[#475569] hover:bg-mist",
+  azure: "border-azure/30 bg-azure-pale text-azure-800 hover:bg-azure/20",
+  mint: "border-mint/30 bg-mint-50 text-mint-700 hover:bg-mint/20",
+  neutral: "border-slate-200 bg-white text-steel-700 hover:bg-mist",
 }
 
 const STATUS_PILL = {
-  pending: "bg-[#FEF3C7] text-[#92400E]",
-  in_progress: "bg-azure-pale text-[#075985]",
-  delivered: "bg-[#D1FAE5] text-[#065F46]",
-  completed: "bg-[#D1FAE5] text-[#065F46]",
-  cancelled: "bg-slate-100 text-[#475569]",
-  refunded: "bg-[#FFE4E6] text-[#9F1239]",
+  pending: "bg-amber-50 text-amber-700",
+  in_progress: "bg-azure-pale text-azure-800",
+  delivered: "bg-mint-50 text-mint-700",
+  completed: "bg-mint-50 text-mint-700",
+  cancelled: "bg-slate-100 text-steel-700",
+  refunded: "bg-rose-50 text-rose-700",
 }
 
 function formatDate(iso) {
@@ -130,11 +130,11 @@ export default function AdminServiceOrderDetailPage() {
       <div className="space-y-4">
         <Link
           to="/admin/service-orders"
-          className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#475569] transition hover:text-violet"
+          className="inline-flex items-center gap-1.5 text-[12px] font-medium text-steel-700 transition hover:text-violet"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to service orders
         </Link>
-        <div className="flex items-start gap-2 rounded-xl border border-[#FFE4E6] bg-[#FFE4E6]/30 px-4 py-3 text-[13px] text-[#9F1239]">
+        <div className="flex items-start gap-2 rounded-xl border border-rose-50 bg-rose-50/30 px-4 py-3 text-[13px] text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>{error || "Service order not found."}</span>
         </div>
@@ -150,7 +150,7 @@ export default function AdminServiceOrderDetailPage() {
     <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
       <Link
         to="/admin/service-orders"
-        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#475569] transition hover:text-violet"
+        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-steel-700 transition hover:text-violet"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to service orders
       </Link>
@@ -159,14 +159,14 @@ export default function AdminServiceOrderDetailPage() {
       <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#64748B]">Service order</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-steel">Service order</p>
             <h1 className="mt-1 flex items-center gap-2 font-mono text-[20px] font-bold text-violet">
               <Briefcase className="h-4 w-4" aria-hidden="true" />
               {orderRef}
             </h1>
-            <p className="mt-1 text-[12px] text-[#64748B]">Created {formatDate(order.createdAt)}</p>
+            <p className="mt-1 text-[12px] text-steel">Created {formatDate(order.createdAt)}</p>
           </div>
-          <span className={`inline-flex items-center self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] ${STATUS_PILL[status] || "bg-slate-100 text-[#475569]"}`}>
+          <span className={`inline-flex items-center self-start rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] ${STATUS_PILL[status] || "bg-slate-100 text-steel-700"}`}>
             {status.replace(/_/g, " ")}
           </span>
         </div>
@@ -186,7 +186,7 @@ export default function AdminServiceOrderDetailPage() {
               </a>
             )}
             {order.contactPhone && (
-              <div className="text-[12px] text-[#475569]">{order.contactPhone}</div>
+              <div className="text-[12px] text-steel-700">{order.contactPhone}</div>
             )}
           </div>
         </div>
@@ -197,13 +197,13 @@ export default function AdminServiceOrderDetailPage() {
           <div className="mt-3 space-y-1.5 text-[13px]">
             <div className="font-semibold text-charcoal">{order.service?.title || order.serviceTitle || "—"}</div>
             {order.servicePackage?.name && (
-              <div className="text-[12px] text-[#64748B]">{order.servicePackage.name}</div>
+              <div className="text-[12px] text-steel">{order.servicePackage.name}</div>
             )}
             <div className="font-mono text-[14px] tabular-nums font-bold text-charcoal">
               {formatMoney(order.totalAmount ?? order.amount, order.currency)}
             </div>
             {order.paidAt && (
-              <div className="inline-flex items-center gap-1 text-[12px] text-[#065F46]">
+              <div className="inline-flex items-center gap-1 text-[12px] text-mint-700">
                 <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> Paid {formatDate(order.paidAt)}
               </div>
             )}
@@ -249,7 +249,7 @@ export default function AdminServiceOrderDetailPage() {
             Open project
           </a>
         ) : (
-          <p className="mt-3 text-[12px] text-[#64748B]">
+          <p className="mt-3 text-[12px] text-steel">
             No project workspace yet. Phase 6 will spin one up automatically when an order is confirmed.
           </p>
         )}
@@ -259,7 +259,7 @@ export default function AdminServiceOrderDetailPage() {
       {order.consultations && order.consultations.length > 0 && (
         <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
           <h2 className="text-[14px] font-bold text-charcoal">Consultations</h2>
-          <ul className="mt-3 space-y-2 text-[12px] text-[#475569]">
+          <ul className="mt-3 space-y-2 text-[12px] text-steel-700">
             {order.consultations.map((c) => (
               <li key={c.id} className="flex items-center gap-2">
                 <Calendar className="h-3 w-3" aria-hidden="true" />

@@ -212,7 +212,7 @@ export default function ServiceDetailPage() {
                 <ul className="space-y-3">
                   {service.features.map((f) => (
                     <li key={f.id} className="flex items-start gap-3 text-meta">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2FA36B]" />
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint-600" />
                       <span className="text-charcoal-80/80">{f.featureText}</span>
                     </li>
                   ))}

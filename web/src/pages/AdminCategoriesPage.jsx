@@ -18,7 +18,7 @@ import { MetricCard, SkeletonCard } from "../components/ui/index"
 
 const VISUAL_STYLES = {
   "Templates": { icon: BookOpen, tint: "bg-[#eef3fb] text-[#2f5ea8]", border: "border-[#2f5ea8]/15" },
-  "Digital & IT Toolkits": { icon: Cpu, tint: "bg-[#f6efe3] text-[#9c5c00]", border: "border-[#9c5c00]/15" },
+  "Digital & IT Toolkits": { icon: Cpu, tint: "bg-[#f6efe3] text-amber-800", border: "border-amber-800/15" },
   "Computer Science Resources": { icon: FlaskConical, tint: "bg-mint/15 text-mint", border: "border-mint/20" },
   "STEM & Robotics Kits": { icon: Wrench, tint: "bg-amber-50 text-amber-700", border: "border-amber-300/30" },
   "Digital Business Resources": { icon: Briefcase, tint: "bg-azure/10 text-azure", border: "border-azure/20" },

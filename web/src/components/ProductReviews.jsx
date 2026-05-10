@@ -270,7 +270,7 @@ export default function ProductReviews({ slug, productTitle }) {
 
       {alreadyReviewed && !formSuccess && (
         <div className="rounded-xl border border-violet/10 bg-violet-ghost px-5 py-3 text-sm text-charcoal-80/70">
-          <CheckCircle2 className="mr-1.5 inline h-4 w-4 text-[#2FA36B]" />
+          <CheckCircle2 className="mr-1.5 inline h-4 w-4 text-mint-600" />
           {t("reviews.alreadyReviewed")} {productTitle ? <em>{productTitle}</em> : "this product"}.
         </div>
       )}
@@ -357,7 +357,7 @@ export default function ProductReviews({ slug, productTitle }) {
                           {review.user?.fullName || "Anonymous"}
                         </span>
                         {review.isVerifiedPurchase && (
-                          <span className="flex items-center gap-1 rounded-full bg-[#2FA36B]/10 px-2 py-0.5 text-micro font-bold text-[#2FA36B]">
+                          <span className="flex items-center gap-1 rounded-full bg-mint-600/10 px-2 py-0.5 text-micro font-bold text-mint-600">
                             <CheckCircle2 className="h-3 w-3" /> {t("reviews.verifiedPurchase")}
                           </span>
                         )}

@@ -587,7 +587,7 @@ function ContactSection() {
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 14 }}
-                  className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8f4ea] text-[#2FA36B]"
+                  className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8f4ea] text-mint-600"
                 >
                   <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
                 </motion.div>
@@ -758,7 +758,7 @@ function ContactSection() {
                 {error && (
                   <motion.div
                     variants={fadeUp}
-                    className="rounded-xl border border-[#FFE4E6] bg-[#FFE4E6] px-4 py-3 text-[13px] text-[#9F1239]"
+                    className="rounded-xl border border-rose-50 bg-rose-50 px-4 py-3 text-[13px] text-rose-700"
                   >
                     {error}
                   </motion.div>
@@ -805,7 +805,7 @@ function ContactChannelsSection() {
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <h2 className="text-[24px] font-bold text-violet sm:text-[32px]">{t("channels.title")}</h2>
-          <p className="mt-3 text-[14px] leading-[1.65] text-[#475569]">
+          <p className="mt-3 text-[14px] leading-[1.65] text-steel-700">
             {t("channels.subtitle")}
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -818,7 +818,7 @@ function ContactChannelsSection() {
               </div>
               <div>
                 <div className="text-[13px] font-bold text-violet">{t("channels.email")}</div>
-                <div className="mt-0.5 text-[12px] text-[#475569]">{EMAIL}</div>
+                <div className="mt-0.5 text-[12px] text-steel-700">{EMAIL}</div>
               </div>
             </a>
             <a
@@ -827,21 +827,21 @@ function ContactChannelsSection() {
               rel="noopener noreferrer"
               className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D1FAE5] text-mint">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint-50 text-mint">
                 <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-[13px] font-bold text-violet">{t("channels.whatsapp")}</div>
-                <div className="mt-0.5 text-[12px] text-[#475569]">{t("channels.whatsappBody")}</div>
+                <div className="mt-0.5 text-[12px] text-steel-700">{t("channels.whatsappBody")}</div>
               </div>
             </a>
             <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FEF3C7] text-[#92400E]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
                 <MapPin className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <div className="text-[13px] font-bold text-violet">{t("channels.basedIn")}</div>
-                <div className="mt-0.5 text-[12px] leading-5 text-[#475569]">
+                <div className="mt-0.5 text-[12px] leading-5 text-steel-700">
                   {ADDRESS_LINES.map((line) => <div key={line}>{line}</div>)}
                 </div>
               </div>
@@ -866,7 +866,7 @@ function ContactSocialsSection() {
     <section className="py-12 sm:py-16">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 text-center">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-steel">
             {t("socials.findMe")}
           </span>
           <SocialLinks

@@ -40,14 +40,14 @@ import { useNotifications, NOTIFICATION_TYPES } from "../context/NotificationCon
 // Lucide icon + colour map per notification type — matches NotificationDropdown.
 const TYPE_META = {
   [NOTIFICATION_TYPES.ORDER_PLACED]:     { icon: ShoppingCart, color: "bg-violet-pale text-violet" },
-  [NOTIFICATION_TYPES.PAYMENT_SUCCESS]:  { icon: CreditCard,   color: "bg-[#e8f4ea] text-[#3b8f47]" },
+  [NOTIFICATION_TYPES.PAYMENT_SUCCESS]:  { icon: CreditCard,   color: "bg-[#e8f4ea] text-mint-800" },
   [NOTIFICATION_TYPES.PAYMENT_FAILED]:   { icon: CreditCard,   color: "bg-red-50 text-red-600" },
   [NOTIFICATION_TYPES.REFUND_ISSUED]:    { icon: RefreshCcw,   color: "bg-[#eef2ff] text-[#4f46e5]" },
-  [NOTIFICATION_TYPES.DOWNLOAD_READY]:   { icon: Download,     color: "bg-[#e8f4ea] text-[#3b8f47]" },
-  [NOTIFICATION_TYPES.DOWNLOAD_REVOKED]: { icon: Package,      color: "bg-[#f6efe3] text-[#9c5c00]" },
-  [NOTIFICATION_TYPES.SERVICE_UPDATE]:   { icon: Package,      color: "bg-[#f6efe3] text-[#9c5c00]" },
+  [NOTIFICATION_TYPES.DOWNLOAD_READY]:   { icon: Download,     color: "bg-[#e8f4ea] text-mint-800" },
+  [NOTIFICATION_TYPES.DOWNLOAD_REVOKED]: { icon: Package,      color: "bg-[#f6efe3] text-amber-800" },
+  [NOTIFICATION_TYPES.SERVICE_UPDATE]:   { icon: Package,      color: "bg-[#f6efe3] text-amber-800" },
   [NOTIFICATION_TYPES.SUPPORT_REPLY]:    { icon: MessageSquare, color: "bg-[#eef3fb] text-[#2f5ea8]" },
-  [NOTIFICATION_TYPES.SYSTEM]:           { icon: Info,         color: "bg-[#f2f2f2] text-[#666]" },
+  [NOTIFICATION_TYPES.SYSTEM]:           { icon: Info,         color: "bg-slate-50 text-[#666]" },
 }
 
 function localeTagFor(lang) {

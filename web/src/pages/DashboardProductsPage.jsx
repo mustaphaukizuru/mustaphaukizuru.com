@@ -280,7 +280,7 @@ function ProductRow({ product, localeTag, t, downloadingKey, onDownload }) {
               </p>
             </div>
 
-            <div className="rounded-full bg-[#e5f4e8] px-4 py-2 text-micro font-semibold text-[#3b8f47]">
+            <div className="rounded-full bg-mint-100 px-4 py-2 text-micro font-semibold text-mint-800">
               {t("products.list.paid")}
             </div>
           </div>

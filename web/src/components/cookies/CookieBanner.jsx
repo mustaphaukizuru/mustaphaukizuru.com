@@ -99,7 +99,7 @@ function PreferencesModal({ open, onClose }) {
                           <div className="flex flex-wrap items-center gap-2">
                             <h3 className="text-[14px] font-bold text-violet">{cat.title}</h3>
                             {cat.locked && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-[#e5f4e8] px-2 py-0.5 text-[10px] font-semibold text-[#3b8f47]">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-mint-100 px-2 py-0.5 text-[10px] font-semibold text-mint-800">
                                 <ShieldCheck className="h-2.5 w-2.5" /> {t("cookies.alwaysOn")}
                               </span>
                             )}

@@ -370,7 +370,7 @@ export default function AdminAvailabilityPage() {
             {exceptions.map((ex) => (
               <div key={ex.id} className="flex items-center justify-between gap-3 rounded-xl border border-charcoal/10 bg-white px-4 py-3 sm:px-5">
                 <div className="flex items-center gap-3">
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${ex.type === "block" ? "bg-red-50 text-red-600" : "bg-[#e8f4ea] text-[#3b8f47]"}`}>
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${ex.type === "block" ? "bg-red-50 text-red-600" : "bg-[#e8f4ea] text-mint-800"}`}>
                     {ex.type === "block" ? <ShieldOff className="h-4 w-4" /> : <CalendarPlus className="h-4 w-4" />}
                   </div>
                   <div>

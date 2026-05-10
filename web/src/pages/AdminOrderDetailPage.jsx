@@ -375,7 +375,7 @@ export default function AdminOrderDetailPage() {
 
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-[#e8f4ea] p-3 text-[#3b8f47]">
+              <div className="rounded-xl bg-[#e8f4ea] p-3 text-mint-800">
                 <Package className="h-4 w-4" />
               </div>
               <h3 className="text-card font-semibold text-violet">Metadata</h3>

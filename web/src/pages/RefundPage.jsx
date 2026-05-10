@@ -93,15 +93,15 @@ export default function RefundPage() {
           <motion.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.05 }}
-            className="rounded-xl border border-[#2FA36B]/20 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+            className="rounded-xl border border-mint-600/20 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
           >
             <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-violet">
-              <CheckCircle2 className="h-5 w-5 text-[#2FA36B]" /> {t("refund.eligible.title")}
+              <CheckCircle2 className="h-5 w-5 text-mint-600" /> {t("refund.eligible.title")}
             </h2>
             <ul className="space-y-3 text-meta text-charcoal-80/75">
               {eligibleItems.map((item, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2FA36B]" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint-600" />
                   <span>{item}</span>
                 </li>
               ))}
