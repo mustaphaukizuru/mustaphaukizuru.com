@@ -459,9 +459,12 @@
   "downloads": {
     "errors": {
       "load": "No pudimos cargar las descargas.",
-      "loginRequired": "Debes iniciar sesión para descargar.",
-      "downloadFailed": "La descarga falló.",
-      "downloadUnavailable": "Descarga no disponible."
+      "loginRequired": "Tu sesión expiró. Inicia sesión nuevamente para descargar.",
+      "downloadFailed": "La descarga falló. Inténtalo de nuevo.",
+      "downloadUnavailable": "La descarga no está disponible ahora. Inténtalo en unos momentos.",
+      "notEntitled": "No tienes acceso a este archivo. Si crees que es un error, contacta a soporte.",
+      "fileMissing": "Este archivo no está disponible temporalmente. Nuestro equipo ya fue notificado.",
+      "limitExceeded": "Alcanzaste el límite de descargas para este archivo."
     },
     "toast": {
       "downloadStarted": "Descarga iniciada: {{filename}}"
@@ -834,12 +837,12 @@
       "backToWebsite": "Volver al sitio",
       "backWebsiteAria": "Volver al sitio",
       "skipMain": "Saltar al contenido principal",
-      "memberArea": "\u00c1rea de miembros",
-      "memberAreaSubtitle": "Tu hub de productos digitales",
+      "memberArea": "Área de miembro",
+      "memberAreaSubtitle": "Tu central de productos digitales",
       "memberDashboard": "Panel de miembro",
-      "openMenu": "Abrir men\u00fa",
+      "openMenu": "Abrir menú",
       "searchDashboard": "Buscar en el panel",
       "openSupport": "Abrir soporte",
-      "quickNav": "Navegaci\u00f3n r\u00e1pida"
+      "quickNav": "Navegación rápida"
     }
 }
