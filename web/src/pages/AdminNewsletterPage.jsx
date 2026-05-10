@@ -4,7 +4,7 @@ import {
   Download, Users, UserCheck, UserX, RefreshCw, Copy,
 } from "lucide-react"
 
-import { authFetch, getStoredToken, API_BASE_URL } from "../lib/api"
+import { authFetch, API_BASE_URL } from "../lib/api"
 import { useToast } from "../context/ToastContext"
 import { MetricCard } from "../components/ui/index"
 import DataTable from "../components/admin/DataTable"
@@ -89,27 +89,25 @@ export default function AdminNewsletterPage() {
   }
 
   /**
-   * CSV export uses raw fetch (not authFetch) because the backend returns
-   * a binary file with content-disposition, not JSON.
+   * CSV export — authFetch normalises binary responses into a
+   * { ok, status, data: Blob, headers } envelope (text/csv falls through
+   * the JSON branch in parseResponseBody to text(), then we materialise
+   * the Blob client-side from the response text). For text/csv we get a
+   * plain string back, which we wrap in a Blob with the right MIME type.
    */
   async function handleExport() {
     setExporting(true); setError("")
     try {
-      const token = getStoredToken()
       const body = { status: statusFilter !== "all" ? statusFilter : undefined }
-      const resp = await fetch(`${API_BASE_URL}/api/v1/admin/newsletter/subscribers/export`, {
+      const resp = await authFetch("/api/v1/admin/newsletter/subscribers/export", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
+        body:   JSON.stringify(body),
       })
-      if (!resp.ok) {
-        const text = await resp.text()
-        throw new Error(text || `Export failed (HTTP ${resp.status})`)
-      }
-      const blob = await resp.blob()
+      // authFetch returns a Blob for application/octet-stream, but text/csv
+      // falls through its JSON/text branch — handle both shapes.
+      const blob = resp?.data instanceof Blob
+        ? resp.data
+        : new Blob([typeof resp === "string" ? resp : (resp?.message ?? "")], { type: "text/csv" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
@@ -119,7 +117,7 @@ export default function AdminNewsletterPage() {
       a.remove()
       URL.revokeObjectURL(url)
     } catch (e) {
-      setError(e?.message || "Export failed.")
+      setError(e?.toUserMessage?.() || e?.message || "Export failed.")
     } finally {
       setExporting(false)
     }

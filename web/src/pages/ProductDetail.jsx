@@ -35,7 +35,7 @@ import { fetchProductBySlug } from "../services/productService";
 import { useCart } from "../store/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { fetchWishlist, addToWishlist, removeFromWishlist } from "../services/wishlistService";
-import { API_BASE_URL } from "../lib/api";
+import { API_BASE_URL, apiRequest } from "../lib/api";
 import { formatPrice } from "../lib/format";
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons";
 import RecentlyViewed, { useTrackProductView } from "../components/RecentlyViewed" // #4
@@ -1097,10 +1097,10 @@ export default function ProductDetail() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/products/${slug}/related`);
-        if (!res.ok) return;
-        const json = await res.json();
-        if (!cancelled) setRelatedProducts(Array.isArray(json?.data) ? json.data : []);
+        // Public endpoint — apiRequest (no auth) handles /api/v1 upgrade,
+        // AppError mapping, and friendly error messages uniformly.
+        const json = await apiRequest(`/api/products/${encodeURIComponent(slug)}/related`)
+        if (!cancelled) setRelatedProducts(Array.isArray(json?.data) ? json.data : [])
       } catch {
         /* silent — related is non-critical */
       }
