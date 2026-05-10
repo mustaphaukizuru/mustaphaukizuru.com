@@ -22,7 +22,7 @@ import { motion, useReducedMotion } from "framer-motion"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
-  ArrowRight, Sparkles, Calendar, Download, Star,
+  ArrowRight, Sparkles, Calendar, ClipboardCheck, Star,
   Briefcase, PieChart, TrendingUp, Package, Check,
 } from "lucide-react"
 
@@ -392,13 +392,19 @@ export default function ServicesHero() {
                 <span className="relative">{t("hero.bookCallCta")}</span>
                 <ArrowRight className="relative h-4 w-4 !text-white transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
+              {/* Secondary CTA · Self-audit tool — replaces the old
+                  "Download diagnosis checklist" PDF with an interactive
+                  15-minute capability assessment served at /diagnostic
+                  (public/diagnostic/index.html). Opens in a new tab so the
+                  user's place on the services page is preserved. */}
               <a
-                href="/documents/Mustapha-Ukizuru-Service-Catalog-v1.0.pdf"
-                download
+                href="/diagnostic"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-charcoal-80/15 bg-white px-6 py-3.5 text-[14px] font-bold !text-charcoal-80 transition hover:-translate-y-0.5 hover:border-violet/30 hover:!text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/30"
               >
-                <Download className="h-4 w-4" aria-hidden="true" />
-                {t("hero.downloadCatalog")}
+                <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+                {t("hero.selfAuditCta", "Take the free self-audit")}
               </a>
             </motion.div>
 

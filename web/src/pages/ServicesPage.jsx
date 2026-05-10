@@ -23,7 +23,7 @@ import {
   ArrowRight, ArrowDown, Sparkles, Calendar, Plus, Minus, Check, X, Star, Zap,
   Search as SearchIcon, SearchX, Lightbulb, Settings2, LineChart, Headphones,
   Trophy, Layers, Globe, Globe2, Languages, UserCheck, BookMarked,
-  Award, ShieldCheck, MessageCircle, Mail, Phone, Download, FileText,
+  Award, ShieldCheck, MessageCircle, Mail, Phone, Download, FileText, ClipboardCheck,
   CheckCircle2, XCircle,
   User, Briefcase, GraduationCap,
 } from "lucide-react"
@@ -945,34 +945,42 @@ export default function ServicesPage() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Catalog download band, preserved */}
+          {/* Decision-support band — primary CTA is now the interactive
+              self-audit at /diagnostic (15-minute capability assessment).
+              The PDF catalog stays as a secondary reference download. The
+              old Markdown export was redundant and has been removed. */}
           <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-violet/15 bg-white p-6 text-center shadow-[0_8px_24px_rgba(93,63,211,0.05)] sm:flex-row sm:justify-between sm:gap-6 sm:p-7 sm:text-left">
             <div className="flex items-start gap-3">
               <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-violet/10 text-violet sm:h-14 sm:w-14">
-                <FileText className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
+                <ClipboardCheck className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
               </div>
               <div>
-                <h3 className="text-[15px] font-bold !text-violet sm:text-[17px]">{t("pricing.catalog.title")}</h3>
+                <h3 className="text-[15px] font-bold !text-violet sm:text-[17px]">
+                  {t("pricing.selfAudit.title", "Not sure which plan fits?")}
+                </h3>
                 <p className="mt-1 text-[12.5px] leading-5 text-charcoal-80/70 sm:text-[13px]">
-                  {t("pricing.catalog.subtitleLeft")} <span className="font-mono tabular-nums !text-violet">{CATALOG_STATS.totalServices}</span> {t("pricing.catalog.subtitleRight")}
+                  {t("pricing.selfAudit.subtitle", "Take the 15-minute self-audit and walk away with a prioritized shortlist drawn from our")} <span className="font-mono tabular-nums !text-violet">{CATALOG_STATS.totalServices}</span> {t("pricing.selfAudit.subtitleSuffix", "atomic services.")}
                 </p>
               </div>
             </div>
             <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:gap-2">
               <a
-                href="/documents/Mustapha-Ukizuru-Service-Catalog-v1.0.pdf"
-                download
+                href="/diagnostic"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t("pricing.selfAudit.ctaAria", "Open the digital and technology self-audit (15 minutes)")}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3 text-[12.5px] font-semibold !text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 sm:text-[13px]"
               >
-                <Download className="h-4 w-4" aria-hidden="true" />
-                {t("pricing.catalog.pdfLabel")}
+                <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+                {t("pricing.selfAudit.cta", "Take the self-audit")}
               </a>
               <a
-                href="/documents/Mustapha-Ukizuru-Service-Catalog-v1.0.md"
+                href="/documents/Mustapha-Ukizuru-Service-Catalog-v1.0.pdf"
                 download
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/30 bg-white px-5 py-3 text-[12.5px] font-semibold !text-violet transition hover:bg-violet-pale/40 sm:text-[13px]"
               >
-                {t("pricing.catalog.mdLabel")}
+                <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                {t("pricing.catalog.pdfLabel")}
               </a>
             </div>
           </div>

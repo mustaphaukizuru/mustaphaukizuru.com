@@ -1,9 +1,12 @@
-import { motion, useReducedMotion } from "framer-motion"
+import { useEffect, useRef, useState } from "react"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import {
   ArrowRight,
-  Download,
+  ChevronDown,
+  FileText,
+  ExternalLink,
   Star,
   BadgeCheck,
   Settings2,
@@ -12,13 +15,38 @@ import {
 
 import SocialLinks, { FOLLOW_SOCIALS } from "../SocialLinks"
 
-/* CV — Spanish (full-stack engineer + cover letter).
- * If you'd rather keep the original filename with spaces, replace the
- * import path with the literal string (Vite handles spaces but the
- * bundled URL is ugly):
- *   import resumePdf from "../../assets/cv/Es_ Ingeniero de Software Full-Stack CV y Carta de Motivacion Mustapha Ukizuru.pdf?url"
- */
-import resumePdf from "../../assets/cv/Es_ Ingeniero de Software Full-Stack CV y Carta de Motivacion Mustapha Ukizuru.pdf?url"
+/* CVs — three professional profiles, served from /public/cv/.
+ *
+ * The dropdown picker below lists all three with a short subtitle so the
+ * recruiter can pick the variant that matches their role. Files live in
+ * /public/cv/ so they're cached aggressively by the static layer and
+ * survive bundle rebuilds (no Vite import needed). */
+const CV_OPTIONS = [
+  {
+    id: "fullstack",
+    href: "/cv/cv-fullstack-software-engineer.pdf",
+    titleKey: "hero.cvs.fullstackTitle",
+    titleFallback: "Full-Stack Software Engineer",
+    subtitleKey: "hero.cvs.fullstackSubtitle",
+    subtitleFallback: "Node · Django · React · Cloud",
+  },
+  {
+    id: "ict-stem",
+    href: "/cv/cv-ict-stem-instructor.pdf",
+    titleKey: "hero.cvs.ictStemTitle",
+    titleFallback: "ICT Coordinator & STEM Instructor",
+    subtitleKey: "hero.cvs.ictStemSubtitle",
+    subtitleFallback: "Education · Curriculum · Infrastructure",
+  },
+  {
+    id: "support",
+    href: "/cv/cv-technical-support-engineer.pdf",
+    titleKey: "hero.cvs.supportTitle",
+    titleFallback: "Technical Support Engineer",
+    subtitleKey: "hero.cvs.supportSubtitle",
+    subtitleFallback: "IT operations · Networks · End-user support",
+  },
+]
 
 /**
  * AboutHero · V3.2 — 3-column composition with full social row + CV download
@@ -171,19 +199,7 @@ export default function AboutHero() {
                 />
               </Link>
 
-              <a
-              href={resumePdf}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={t("hero.openCvAria")}
-                className="group inline-flex items-center gap-2 rounded-xl border border-violet/25 bg-white/60 px-6 py-3.5 text-[14px] font-semibold text-violet transition hover:-translate-y-0.5 hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 focus-visible:ring-offset-2"
-              >
-                <Download
-                  className="h-4 w-4 transition-transform group-hover:-translate-y-0.5"
-                  aria-hidden="true"
-                />
-                {t("hero.viewCv")}
-              </a>
+              <CvPicker t={t} />
             </motion.div>
 
             {/* Socials — filled brand chips, no surrounding panel.
@@ -337,6 +353,111 @@ function Container({ children, className = "" }) {
   return (
     <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>
       {children}
+    </div>
+  )
+}
+
+/* CvPicker — "View My CVs" dropdown listing three professional profiles.
+ *
+ * Behaviour:
+ *   • Opens on click, closes on outside-click / Escape / option click.
+ *   • Each option opens its PDF in a new tab (target=_blank) so the
+ *     visitor's place on AboutPage is preserved.
+ *   • Keyboard-friendly: button has aria-expanded + aria-haspopup;
+ *     menu items are real anchors so Tab navigation works out of the box.
+ *   • Brand v3.1: violet ghost trigger, white menu with charcoal-80/8 ring,
+ *     popover shadow, Innovation-gradient-free (this is a secondary CTA).
+ */
+function CvPicker({ t }) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  // Click outside + Escape closes the menu.
+  useEffect(() => {
+    if (!open) return undefined
+    function onPointer(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false)
+    }
+    function onKey(e) {
+      if (e.key === "Escape") setOpen(false)
+    }
+    document.addEventListener("mousedown", onPointer)
+    document.addEventListener("touchstart", onPointer)
+    document.addEventListener("keydown", onKey)
+    return () => {
+      document.removeEventListener("mousedown", onPointer)
+      document.removeEventListener("touchstart", onPointer)
+      document.removeEventListener("keydown", onKey)
+    }
+  }, [open])
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={t("hero.openCvAria", "Open my professional profiles")}
+        className="group inline-flex items-center gap-2 rounded-xl border border-violet/25 bg-white/60 px-6 py-3.5 text-[14px] font-semibold text-violet transition hover:-translate-y-0.5 hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 focus-visible:ring-offset-2"
+      >
+        <FileText className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" aria-hidden="true" />
+        {t("hero.viewCvs", "View My CVs")}
+        <ChevronDown
+          className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            role="menu"
+            aria-label={t("hero.cvs.menuLabel", "Professional profiles")}
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-0 top-full z-30 mt-2 w-[min(20rem,90vw)] overflow-hidden rounded-xl border border-charcoal-80/8 bg-white shadow-[0_18px_44px_-12px_rgba(93,63,211,0.28)]"
+          >
+            <div className="border-b border-charcoal-80/8 px-4 py-2.5">
+              <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+                {t("hero.cvs.menuLabel", "Professional profiles")}
+              </p>
+            </div>
+            <ul className="divide-y divide-charcoal-80/6">
+              {CV_OPTIONS.map((cv, idx) => (
+                <li key={cv.id}>
+                  <a
+                    role="menuitem"
+                    href={cv.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setOpen(false)}
+                    className="group flex items-start gap-3 px-4 py-3 transition hover:bg-violet-pale focus-visible:outline-none focus-visible:bg-violet-pale"
+                  >
+                    <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet/8 font-mono text-[11px] font-bold tabular-nums text-violet">
+                      {idx + 1}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13.5px] font-semibold text-charcoal">
+                        {t(cv.titleKey, cv.titleFallback)}
+                      </span>
+                      <span className="block truncate text-[11.5px] text-charcoal-80/60">
+                        {t(cv.subtitleKey, cv.subtitleFallback)}
+                      </span>
+                    </span>
+                    <ExternalLink
+                      className="mt-1 h-3.5 w-3.5 shrink-0 text-charcoal-80/40 transition group-hover:text-violet"
+                      aria-hidden="true"
+                    />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
