@@ -320,7 +320,7 @@ function MobileMenu({ open, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-label={t("header.siteNav")}
-        className={`fixed right-0 top-0 z-[70] flex h-full w-[88vw] max-w-sm flex-col gap-6 overflow-y-auto bg-white p-6 shadow-2xl transition-transform duration-300 lg:hidden ${panelClass}`}
+        className={`fixed inset-0 z-[70] flex h-full w-full flex-col gap-6 overflow-y-auto overflow-x-hidden bg-white p-6 shadow-2xl transition-transform duration-300 sm:right-0 sm:top-0 sm:left-auto sm:w-[88vw] sm:max-w-md lg:hidden ${panelClass}`}
       >
         <div className="flex items-center justify-between">
           {/* Mark + name — the wordmark squashes at this size, so we render

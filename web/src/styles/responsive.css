@@ -1,0 +1,139 @@
+/* responsive.css - Defensive responsive guards (v4 - bug-fix release)
+ *
+ * v4 changelog:
+ *   - REMOVED img[class*="object-contain"] { height: 100% } - this was
+ *     overriding explicit h-6 / h-10 sizing on payment logos and avatars
+ *     and causing the MP logo to render full-width.
+ *   - Now only img.h-full gets height:100% (the explicit opt-in pattern).
+ */
+
+/* 1. UNIVERSAL OVERFLOW GUARD */
+html,
+body,
+#root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* 2. FLUID MEDIA - max-width only, never override explicit height */
+img,
+svg,
+video,
+canvas,
+iframe,
+embed,
+object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Only force full-height when the consumer EXPLICITLY opts in via h-full.
+ * The previous version targeted [class*="object-contain"] which broke
+ * payment logos, avatars, and any image with explicit h-6 / h-10 / h-12. */
+img.h-full {
+  height: 100%;
+}
+
+/* 3. LONG-TEXT WRAPPING IN PROSE */
+p,
+li,
+dt,
+dd,
+.prose,
+[class*="prose"] {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+@media (max-width: 639.98px) {
+  h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: break-word;
+  }
+}
+
+/* 4. INLINE MONO / PRICES / KPIS NEVER BREAK PER CHARACTER */
+code,
+kbd,
+samp,
+[class*="font-mono"]:not(pre):not(pre *),
+[class*="tabular-nums"] {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+pre,
+pre code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* 5. TARGETED GRID SHRINK FOR lg:grid-cols PATTERNS */
+@media (max-width: 1023.98px) {
+  [class*="lg:grid-cols-"] > * {
+    min-width: 0;
+  }
+  [class*="lg:flex-row"] > * {
+    min-width: 0;
+  }
+}
+
+/* 6. SCROLLABLE TABLES ON PHONES */
+@media (max-width: 1023.98px) {
+  .responsive-table,
+  table:not([class*="border-collapse"]):not([class*="block"]) {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 7. STICKY ELEMENTS RESPECT VIEWPORT */
+[class*="sticky"] {
+  max-width: 100%;
+}
+
+/* 8. iOS NO-ZOOM-ON-FOCUS */
+@media (max-width: 767.98px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* 9. HORIZONTAL TAB / CHIP ROW POLISH */
+[role="tablist"],
+[class*="overflow-x-auto"] {
+  -webkit-overflow-scrolling: touch;
+}
+
+[class*="no-scrollbar"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* 10. PRINT - STRIP FIXED / STICKY CHROME */
+@media print {
+  [class*="sticky"],
+  [class*="fixed"],
+  header,
+  nav,
+  footer,
+  aside {
+    position: static !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
