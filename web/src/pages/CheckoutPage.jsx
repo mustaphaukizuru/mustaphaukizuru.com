@@ -158,29 +158,55 @@ function PaymentOption({ id, active, onClick, title, subtitle, badge, logo }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Payment logos
+// Payment logos · v2 · 2026-05-10
+//
+// Design rules:
+//   • Equal pill dimensions (h-14 w-20) so MP and PayPal carry the same
+//     visual weight in the radio group regardless of brand artwork.
+//   • Brand mark sized at ~50% of pill height — gives generous breathing
+//     room and prevents the "logo over the card" overflow seen pre-fix.
+//   • MercadoPago keeps its sacred yellow #FFE600 brand chip (LATAM
+//     recognition); PayPal sits on a neutral surface that tints to
+//     violet-pale on selection so the active card reads decisively.
+//   • Border softens on selection to ring the pill in violet, mirroring
+//     the parent card's selected state.
 // ─────────────────────────────────────────────────────────────────────────────
-function MPLogo() {
+
+function MPLogo({ active = false }) {
   const { t } = useTranslation("checkout")
   return (
-    <div className="flex h-12 w-28 items-center justify-center overflow-hidden rounded-lg bg-[#ffe600]">
+    <div
+      className={`flex h-14 w-20 items-center justify-center overflow-hidden rounded-xl border transition-colors ${
+        active ? "border-violet/30" : "border-[#FFE600]"
+      } bg-[#FFE600]`}
+    >
       <img
         src="/images/brand/MP_CMYK_HANDSHAKE_color_horizontal.png"
         alt={t("misc.mercadoPagoAlt")}
-        className="h-10 w-auto object-contain"
+        className="h-7 w-auto object-contain"
+        loading="lazy"
+        decoding="async"
       />
     </div>
   )
 }
 
-function PayPalLogo() {
+function PayPalLogo({ active = false }) {
   const { t } = useTranslation("checkout")
   return (
-    <div className="flex h-12 w-28 items-center justify-center overflow-hidden rounded-lg border border-[#003087]/15 bg-white">
+    <div
+      className={`flex h-14 w-20 items-center justify-center overflow-hidden rounded-xl border transition-colors ${
+        active
+          ? "border-violet/30 bg-violet-pale"
+          : "border-charcoal-80/10 bg-[#F8FAFC]"
+      }`}
+    >
       <img
         src="/images/brand/pp-logo-150px.png"
         alt={t("misc.paypalAlt")}
-        className="h-10 py-2.5 w-auto object-contain"
+        className="h-6 w-auto object-contain"
+        loading="lazy"
+        decoding="async"
       />
     </div>
   )
@@ -652,7 +678,7 @@ export default function CheckoutPage() {
                   title={t("misc.mercadoPagoTitle")}
                   subtitle="LATAM payment methods · Cards · OXXO · bank transfer"
                   badge="Recommended"
-                  logo={<MPLogo />}
+                  logo={<MPLogo active={paymentMethod === "mercadopago"} />}
                 />
                 <PaymentOption
                   id="paypal"
@@ -660,7 +686,7 @@ export default function CheckoutPage() {
                   onClick={() => setMethod("paypal")}
                   title="PayPal"
                   subtitle="Global · Cards · PayPal balance"
-                  logo={<PayPalLogo />}
+                  logo={<PayPalLogo active={paymentMethod === "paypal"} />}
                 />
               </div>
 
@@ -756,13 +782,25 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Payment provider badges */}
-            <div className="flex items-center justify-center gap-4">
-              <div className="flex h-10 items-center rounded-lg border border-[#ffe600] bg-[#ffe600] px-3 shadow-sm">
-                <img src="/images/brand/MP_CMYK_HANDSHAKE_color_horizontal.png" alt={t("misc.mercadoPagoAlt")} className="h-10 object-contain" />
+            {/* Payment provider badges · v2 · equal-weight, contained logos */}
+            <div className="flex items-center justify-center gap-3">
+              <div className="flex h-10 w-24 items-center justify-center overflow-hidden rounded-lg border border-[#FFE600] bg-[#FFE600] shadow-sm">
+                <img
+                  src="/images/brand/MP_CMYK_HANDSHAKE_color_horizontal.png"
+                  alt={t("misc.mercadoPagoAlt")}
+                  className="h-5 w-auto object-contain"
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
-              <div className="flex h-10 items-center rounded-lg border border-charcoal-80/10 bg-white px-3 shadow-sm">
-                <img src="/images/brand/pp-logo-150px.png" alt="PayPal" className="h-5 object-contain" />
+              <div className="flex h-10 w-24 items-center justify-center overflow-hidden rounded-lg border border-charcoal-80/10 bg-white shadow-sm">
+                <img
+                  src="/images/brand/pp-logo-150px.png"
+                  alt="PayPal"
+                  className="h-5 w-auto object-contain"
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
             </div>
           </div>
