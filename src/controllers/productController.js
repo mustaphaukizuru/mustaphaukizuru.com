@@ -1,5 +1,11 @@
-const productService = require("../services/productService")
+const productService        = require("../services/productService")
+const asyncHandler          = require("../utils/asyncHandler")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
+
+// Phase 9.2d · refactored to asyncHandler. The pre-refactor code wrapped
+// every handler in a try { ... } catch (error) { next(error) } boilerplate
+// — correct but verbose. asyncHandler does the same thing implicitly via
+// Promise.resolve(fn).catch(next), so the catch blocks all came off.
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Query-parsing helpers — return { value, error }
@@ -39,58 +45,46 @@ function notFound(res, message = "Not found") {
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
- * Handlers — preserved
+ * Handlers
  * ──────────────────────────────────────────────────────────────────────────── */
 
 /**
  * GET /api/products — public catalog list.
  * Accepts legacy query params: category · featured · new · search · limit
  */
-async function listProducts(req, res, next) {
-  try {
-    const products = await productService.getAllProducts({
-      locale: resolveUserLocale({ req }),
-      category: req.query.category || "",
-      featured: req.query.featured || "",
-      new:      req.query.new || "",
-      search:   req.query.search || "",
-      limit:    req.query.limit,
-    })
+const listProducts = asyncHandler(async (req, res) => {
+  const products = await productService.getAllProducts({
+    locale:   resolveUserLocale({ req }),
+    category: req.query.category || "",
+    featured: req.query.featured || "",
+    new:      req.query.new || "",
+    search:   req.query.search || "",
+    limit:    req.query.limit,
+  })
 
-    // Cache public listings for 30s + stale-while-revalidate on non-search.
-    if (!req.query.search) {
-      res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60")
-    }
-    res.json({ data: products })
-  } catch (error) {
-    next(error)
+  // Cache public listings for 30s + stale-while-revalidate on non-search.
+  if (!req.query.search) {
+    res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60")
   }
-}
+  res.json({ data: products })
+})
 
 /**
  * GET /api/products/:slug — enriched single product (F04).
  */
-async function getProduct(req, res, next) {
-  try {
-    const product = await productService.getProductBySlug(req.params.slug, resolveUserLocale({ req }))
-    if (!product) return notFound(res, "Product not found")
-    res.json({ data: product })
-  } catch (error) {
-    next(error)
-  }
-}
+const getProduct = asyncHandler(async (req, res) => {
+  const product = await productService.getProductBySlug(req.params.slug, resolveUserLocale({ req }))
+  if (!product) return notFound(res, "Product not found")
+  res.json({ data: product })
+})
 
 /**
  * GET /api/products/categories — distinct category string labels.
  */
-async function listCategories(req, res, next) {
-  try {
-    const categories = await productService.getCategories()
-    res.json({ data: categories })
-  } catch (error) {
-    next(error)
-  }
-}
+const listCategories = asyncHandler(async (_req, res) => {
+  const categories = await productService.getCategories()
+  res.json({ data: categories })
+})
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Handlers — B02 additions
@@ -99,96 +93,80 @@ async function listCategories(req, res, next) {
 /**
  * GET /api/products/featured — up to 8 featured products for the Home row.
  */
-async function getFeatured(req, res, next) {
-  try {
-    const items = await productService.getFeaturedProducts()
-    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120")
-    res.json({ data: items })
-  } catch (error) {
-    next(error)
-  }
-}
+const getFeatured = asyncHandler(async (_req, res) => {
+  const items = await productService.getFeaturedProducts()
+  res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120")
+  res.json({ data: items })
+})
 
 /**
  * GET /api/products/search?q=…&page=&limit= — relevance-scored search.
  */
-async function searchProducts(req, res, next) {
-  try {
-    const qParsed = parseQueryString(req.query.q, { min: 1, max: 100, name: "q" })
-    if (qParsed.error) return badRequest(res, qParsed.error)
+const searchProducts = asyncHandler(async (req, res) => {
+  const qParsed = parseQueryString(req.query.q, { min: 1, max: 100, name: "q" })
+  if (qParsed.error) return badRequest(res, qParsed.error)
 
-    const pageParsed = parseInteger(req.query.page, { min: 1, defaultValue: 1, name: "page" })
-    if (pageParsed.error) return badRequest(res, pageParsed.error)
+  const pageParsed = parseInteger(req.query.page, { min: 1, defaultValue: 1, name: "page" })
+  if (pageParsed.error) return badRequest(res, pageParsed.error)
 
-    const limitParsed = parseInteger(req.query.limit, { min: 1, max: 48, defaultValue: 24, name: "limit" })
-    if (limitParsed.error) return badRequest(res, limitParsed.error)
+  const limitParsed = parseInteger(req.query.limit, { min: 1, max: 48, defaultValue: 24, name: "limit" })
+  if (limitParsed.error) return badRequest(res, limitParsed.error)
 
-    const result = await productService.searchProducts(qParsed.value, {
-      page:  pageParsed.value,
-      limit: limitParsed.value,
-    })
+  const result = await productService.searchProducts(qParsed.value, {
+    page:  pageParsed.value,
+    limit: limitParsed.value,
+  })
 
-    res.json({
-      data:       result.items,
-      pagination: result.pagination,
-      query:      result.query,
-    })
-  } catch (error) {
-    next(error)
-  }
-}
+  res.json({
+    data:       result.items,
+    pagination: result.pagination,
+    query:      result.query,
+  })
+})
 
 /**
  * GET /api/products/categories/:categorySlug?sort=&page=&limit=&tag=
  * Category-filtered catalog with sort + pagination.
  */
-async function getByCategory(req, res, next) {
-  try {
-    const pageParsed = parseInteger(req.query.page, { min: 1, defaultValue: 1, name: "page" })
-    if (pageParsed.error) return badRequest(res, pageParsed.error)
+const getByCategory = asyncHandler(async (req, res) => {
+  const pageParsed = parseInteger(req.query.page, { min: 1, defaultValue: 1, name: "page" })
+  if (pageParsed.error) return badRequest(res, pageParsed.error)
 
-    const limitParsed = parseInteger(req.query.limit, { min: 1, max: 48, defaultValue: 12, name: "limit" })
-    if (limitParsed.error) return badRequest(res, limitParsed.error)
+  const limitParsed = parseInteger(req.query.limit, { min: 1, max: 48, defaultValue: 12, name: "limit" })
+  if (limitParsed.error) return badRequest(res, limitParsed.error)
 
-    const sortParsed = parseEnum(req.query.sort, {
-      allowed:      productService.SORT_OPTIONS,
-      defaultValue: "newest",
-      name:         "sort",
-    })
-    if (sortParsed.error) return badRequest(res, sortParsed.error)
+  const sortParsed = parseEnum(req.query.sort, {
+    allowed:      productService.SORT_OPTIONS,
+    defaultValue: "newest",
+    name:         "sort",
+  })
+  if (sortParsed.error) return badRequest(res, sortParsed.error)
 
-    const result = await productService.getProductsByCategory(req.params.categorySlug, {
-      page:  pageParsed.value,
-      limit: limitParsed.value,
-      sort:  sortParsed.value,
-      tag:   req.query.tag || undefined,
-    })
+  const result = await productService.getProductsByCategory(req.params.categorySlug, {
+    page:  pageParsed.value,
+    limit: limitParsed.value,
+    sort:  sortParsed.value,
+    tag:   req.query.tag || undefined,
+  })
 
-    if (!result) return notFound(res, "Category not found")
+  if (!result) return notFound(res, "Category not found")
 
-    res.json({
-      data:       result.items,
-      category:   result.category,
-      pagination: result.pagination,
-      sort:       result.sort,
-      tag:        result.tag,
-    })
-  } catch (error) {
-    next(error)
-  }
-}
+  res.json({
+    data:       result.items,
+    category:   result.category,
+    pagination: result.pagination,
+    sort:       result.sort,
+    tag:        result.tag,
+  })
+})
 
 /**
  * GET /api/products/:slug/related — 4 products from same category.
  */
-async function getRelated(req, res, next) {
-  try {
-    const items = await productService.getRelatedProducts(req.params.slug)
-    res.json({ data: items })
-  } catch (error) {
-    next(error)
-  }
-}
+const getRelated = asyncHandler(async (req, res) => {
+  const items = await productService.getRelatedProducts(req.params.slug)
+  res.json({ data: items })
+})
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Exports

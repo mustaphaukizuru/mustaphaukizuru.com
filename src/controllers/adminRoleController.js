@@ -1,43 +1,37 @@
 // @ts-check
 /**
  * adminRoleController.js · /api/v1/admin/roles
+ *
+ * Phase 9.2d · refactored to asyncHandler. Verbose try/catch+next removed;
+ * errors flow to the central errorHandler middleware unchanged.
  */
 
-const roles = require("../services/adminRoleService")
+const roles        = require("../services/adminRoleService")
+const asyncHandler = require("../utils/asyncHandler")
 
-async function list(req, res, next) {
-  try {
-    res.json({ roles: await roles.listRoles() })
-  } catch (err) { next(err) }
-}
+const list = asyncHandler(async (_req, res) => {
+  res.json({ roles: await roles.listRoles() })
+})
 
-async function permissions(req, res, next) {
-  try {
-    res.json({ permissions: await roles.listPermissions() })
-  } catch (err) { next(err) }
-}
+const permissions = asyncHandler(async (_req, res) => {
+  res.json({ permissions: await roles.listPermissions() })
+})
 
-async function create(req, res, next) {
-  try {
-    const { name, description, permissionIds } = req.body || {}
-    if (!name) return res.status(400).json({ error: "name is required" })
-    const role = await roles.createRole({ name, description, permissionIds })
-    res.status(201).json({ role })
-  } catch (err) { next(err) }
-}
+const create = asyncHandler(async (req, res) => {
+  const { name, description, permissionIds } = req.body || {}
+  if (!name) return res.status(400).json({ error: "name is required" })
+  const role = await roles.createRole({ name, description, permissionIds })
+  res.status(201).json({ role })
+})
 
-async function update(req, res, next) {
-  try {
-    const role = await roles.updateRole(req.params.id, req.body || {})
-    res.json({ role })
-  } catch (err) { next(err) }
-}
+const update = asyncHandler(async (req, res) => {
+  const role = await roles.updateRole(req.params.id, req.body || {})
+  res.json({ role })
+})
 
-async function remove(req, res, next) {
-  try {
-    await roles.deleteRole(req.params.id)
-    res.status(204).end()
-  } catch (err) { next(err) }
-}
+const remove = asyncHandler(async (req, res) => {
+  await roles.deleteRole(req.params.id)
+  res.status(204).end()
+})
 
 module.exports = { list, permissions, create, update, remove }
