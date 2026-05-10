@@ -84,3 +84,9 @@ coverage/
 # Workspace document folders (Cowork sessions)
 mustaphaukizuru.com*Full-Stack SaaS Platform/
 
+# Claude Code workspace — agent worktrees, session state, local settings.
+# Previously committed by accident as a submodule gitlink, which broke
+# `git submodule update --recursive` (used by GitHub Pages checkout).
+# Never commit this directory.
+.claude/
+
