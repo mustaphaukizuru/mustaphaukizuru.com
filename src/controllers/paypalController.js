@@ -470,4 +470,14 @@ function formatMoney(amount, currency = "MXN") {
   }
 }
 
-module.exports = { createOrder, captureOrder, webhook, issueRefund }
+module.exports = {
+  createOrder,
+  captureOrder,
+  webhook,
+  issueRefund,
+  // Exported for Jest — the amount-validation + idempotency + state-regression
+  // guarantees of this function are money-critical, and unit-testing them at
+  // the controller level via supertest would require mocking the whole HTTP
+  // boundary. The contract is documented above the function definition.
+  transitionOrderToPaid,
+}
