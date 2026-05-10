@@ -6,7 +6,6 @@ import {
 } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { authFetch, API_BASE_URL } from "../lib/api"
-import { getStoredToken } from "../services/authService"
 import { useToast } from "../context/ToastContext"
 
 /* I18N · Phase 119B — strings keyed under `dashboard.profile.*`. The
@@ -90,21 +89,20 @@ export default function DashboardProfilePage() {
     try {
       const fd = new FormData()
       fd.append("avatar", file)
-      const token = getStoredToken()
-      const res = await fetch(`${API_BASE_URL}/api/member/profile/avatar`, {
+      // authFetch detects FormData and lets the browser set the multipart
+      // boundary itself — no manual Content-Type needed.
+      const data = await authFetch("/api/v1/member/profile/avatar", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: fd,
+        body:   fd,
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message)
       // Sync avatar to auth context so all layouts update
-      if (data.data?.avatarUrl) {
-        updateUser({ avatarUrl: data.data.avatarUrl.startsWith("http") ? data.data.avatarUrl : `${API_BASE_URL}${data.data.avatarUrl}` })
+      const url = data?.data?.avatarUrl
+      if (url) {
+        updateUser({ avatarUrl: url.startsWith("http") ? url : `${API_BASE_URL}${url}` })
       }
       showSuccess(t("profile.toast.avatarUpdated"))
     } catch (err) {
-      showError(err.message || t("profile.toast.avatarUploadFail"))
+      showError(err?.toUserMessage?.() || err?.message || t("profile.toast.avatarUploadFail"))
       setAvatarPreview(null)
     } finally {
       setUplAvatar(false)

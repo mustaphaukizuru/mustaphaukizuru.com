@@ -5,7 +5,6 @@ import {
   FileImage, Files, X,
 } from "lucide-react"
 import { authFetch, API_BASE_URL } from "../lib/api"
-import { getStoredToken } from "../services/authService"
 import { useToast } from "../context/ToastContext"
 import { MetricCard, SkeletonCard } from "../components/ui/index"
 
@@ -222,7 +221,6 @@ export default function AdminMediaPage() {
 
     // Backend uses multer.single("file") — one file per request, field name "file"
     // (was previously sending "files" which triggered multer's "Unexpected field" error).
-    const token = getStoredToken()
     const uploaded = []
     const failed = []
 
@@ -230,19 +228,17 @@ export default function AdminMediaPage() {
       const formData = new FormData()
       formData.append("file", f) // field name MUST be "file"
       try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/media`, {
+        // authFetch handles auth header + FormData boundary + AppError wrap.
+        const data = await authFetch("/api/v1/admin/media", {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
+          body:   formData,
         })
-        const data = await response.json().catch(() => ({}))
-        if (!response.ok) throw new Error(data.message || data.error || `Upload failed (${response.status})`)
-        const row = data.data ?? data
+        const row = data?.data ?? data
         if (row) uploaded.push(row)
         if (import.meta.env.DEV) console.info("[Media] uploaded", f.name, row)
       } catch (err) {
         console.error("[Media] upload failed for", f.name, err)
-        failed.push({ name: f.name, message: err.message })
+        failed.push({ name: f.name, message: err?.toUserMessage?.() || err?.message || "Upload failed" })
       }
     }
 

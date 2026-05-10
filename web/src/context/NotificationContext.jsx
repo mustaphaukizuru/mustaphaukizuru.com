@@ -1,10 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
+import { authFetch } from "../lib/api"
 import { getStoredToken } from "../services/authService"
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000"
 
 const NotificationContext = createContext(null)
 
@@ -41,24 +37,22 @@ export function NotificationProvider({ children }) {
 
     setLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/api/member/notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setNotifications(Array.isArray(data?.data) ? data.data : [])
-      } else if (response.status === 404) {
-        // Route not registered yet — fail silently
-        setNotifications([])
+      const response = await authFetch("/api/v1/member/notifications", { method: "GET" })
+      setNotifications(Array.isArray(response?.data) ? response.data : [])
+    } catch (err) {
+      // 404 (route not yet registered) and network blips both land here.
+      // We swallow them so a missing endpoint never breaks the dashboard
+      // shell — the badge just stays at zero until the endpoint comes back.
+      if (err?.status !== 404) {
+        // eslint-disable-next-line no-console
+        console.warn("[notifications] fetch failed:", err?.message)
       }
-    } catch {
-      // Backend may not be available — silently fall back to local state
+      setNotifications([])
     } finally {
       setLoading(false)
       setLastFetched(Date.now())
     }
-  }, [])
+  }, [lastFetched])
 
   // ── Mark one as read ───────────────────────────────────────────────────────
   const markAsRead = useCallback(async (id) => {
@@ -71,9 +65,8 @@ export function NotificationProvider({ children }) {
 
     if (!token) return
     try {
-      await fetch(`${API_BASE_URL}/api/member/notifications/${id}/read`, {
+      await authFetch(`/api/v1/member/notifications/${encodeURIComponent(id)}/read`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
       })
     } catch {
       // No-op — optimistic update stays
@@ -88,10 +81,7 @@ export function NotificationProvider({ children }) {
 
     if (!token) return
     try {
-      await fetch(`${API_BASE_URL}/api/member/notifications/read-all`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await authFetch("/api/v1/member/notifications/read-all", { method: "PATCH" })
     } catch {
       // No-op
     }

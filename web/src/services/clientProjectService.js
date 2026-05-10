@@ -1,4 +1,4 @@
-import { authFetch, API_BASE_URL } from "../lib/api"
+import { authFetch } from "../lib/api"
 
 // ─────────────────────────────────────────────────────────────
 // Client Project Service · member + admin
@@ -75,19 +75,14 @@ export async function uploadProjectFile(projectId, file) {
   if (!file) throw new Error("file is required")
   const fd = new FormData()
   fd.append("file", file)
-  // authFetch wraps fetch with auth header — for FormData we bypass JSON content-type
-  const token = localStorage.getItem("auth-token")
-  const res = await fetch(`${API_BASE_URL || ""}/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/files`, {
-    method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    body: fd,
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error?.message || err?.message || "Upload failed")
-  }
-  const json = await res.json()
-  return stripData(json)
+  // authFetch detects FormData via isFormData() and leaves the
+  // Content-Type unset so the browser injects the multipart boundary.
+  // Auth header is added automatically — no manual localStorage read.
+  const r = await authFetch(
+    `/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/files`,
+    { method: "POST", body: fd },
+  )
+  return stripData(r)
 }
 export async function deleteProjectFile(projectId, fileId) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}`, { method: "DELETE" })
