@@ -16,7 +16,7 @@ import { authFetch } from "../lib/api"
 
 const PRIORITY_COLORS = {
   low: "bg-[#eef3fb] text-[#2f5ea8]",
-  medium: "bg-[#fff3e2] text-[#b46909]",
+  medium: "bg-amber-100 text-amber-600",
   high: "bg-red-50 text-red-600",
 }
 
@@ -357,12 +357,12 @@ export default function DashboardSupportPage() {
           </div>
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
             <div className="text-micro font-medium text-charcoal-80/70">{t("support.metrics.openTitle")}</div>
-            <div className="mt-2 text-page font-bold text-[#b46909]">{open}</div>
+            <div className="mt-2 text-page font-bold text-amber-600">{open}</div>
             <div className="mt-2 text-micro text-charcoal-80/60">{t("support.metrics.openSubtitle")}</div>
           </div>
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
             <div className="text-micro font-medium text-charcoal-80/70">{t("support.metrics.resolvedTitle")}</div>
-            <div className="mt-2 text-page font-bold text-[#3b8f47]">{resolved}</div>
+            <div className="mt-2 text-page font-bold text-mint-800">{resolved}</div>
             <div className="mt-2 text-micro text-charcoal-80/60">{t("support.metrics.resolvedSubtitle")}</div>
           </div>
         </div>

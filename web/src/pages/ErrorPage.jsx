@@ -27,7 +27,7 @@ const stagger = { hidden:{}, show:{transition:{staggerChildren:0.08}} }
 const CONFIGS = {
   NETWORK_ERROR: {
     icon: WifiOff,
-    iconBg: "bg-[#fff3e2] text-[#b46909]",
+    iconBg: "bg-amber-100 text-amber-600",
     code: "",
     actions: ["retry", "home"],
   },

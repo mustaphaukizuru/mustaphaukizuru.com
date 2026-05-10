@@ -32,18 +32,18 @@ import { useToast } from "../context/ToastContext"
 const fadeUp = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } }
 
 const STATUS_CLS = {
-  pending:     "bg-[#fff3e2] text-[#b46909]",
-  confirmed:   "bg-[#e5f4e8] text-[#2d7a3e]",
-  scheduled:   "bg-[#e5f4e8] text-[#2d7a3e]",
+  pending:     "bg-amber-100 text-amber-600",
+  confirmed:   "bg-mint-100 text-[#2d7a3e]",
+  scheduled:   "bg-mint-100 text-[#2d7a3e]",
   completed:   "bg-[#eef2ff] text-[#4f46e5]",
-  cancelled:   "bg-[#f2f2f2] text-[#666]",
-  rescheduled: "bg-[#f2f2f2] text-[#666]",
+  cancelled:   "bg-slate-50 text-[#666]",
+  rescheduled: "bg-slate-50 text-[#666]",
   no_show:     "bg-red-50 text-red-600",
 }
 
 function StatusBadge({ status }) {
   const { t } = useTranslation("dashboard")
-  const cls = STATUS_CLS[status] || "bg-[#f2f2f2] text-[#666]"
+  const cls = STATUS_CLS[status] || "bg-slate-50 text-[#666]"
   const label = t(`consultations.status.${status}`, { defaultValue: status })
   return <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${cls}`}>{label}</span>
 }

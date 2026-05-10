@@ -24,7 +24,7 @@ const TYPE_META = {
   },
   [NOTIFICATION_TYPES.PAYMENT_SUCCESS]: {
     icon: CreditCard,
-    color: "bg-[#e8f4ea] text-[#3b8f47]",
+    color: "bg-[#e8f4ea] text-mint-800",
   },
   [NOTIFICATION_TYPES.PAYMENT_FAILED]: {
     icon: CreditCard,
@@ -36,15 +36,15 @@ const TYPE_META = {
   },
   [NOTIFICATION_TYPES.DOWNLOAD_READY]: {
     icon: Download,
-    color: "bg-[#e8f4ea] text-[#3b8f47]",
+    color: "bg-[#e8f4ea] text-mint-800",
   },
   [NOTIFICATION_TYPES.DOWNLOAD_REVOKED]: {
     icon: Package,
-    color: "bg-[#f6efe3] text-[#9c5c00]",
+    color: "bg-[#f6efe3] text-amber-800",
   },
   [NOTIFICATION_TYPES.SERVICE_UPDATE]: {
     icon: Package,
-    color: "bg-[#f6efe3] text-[#9c5c00]",
+    color: "bg-[#f6efe3] text-amber-800",
   },
   [NOTIFICATION_TYPES.SUPPORT_REPLY]: {
     icon: MessageSquare,
@@ -52,7 +52,7 @@ const TYPE_META = {
   },
   [NOTIFICATION_TYPES.SYSTEM]: {
     icon: Info,
-    color: "bg-[#f2f2f2] text-[#666]",
+    color: "bg-slate-50 text-[#666]",
   },
 }
 

@@ -669,7 +669,7 @@ function HighlightsBlock({ specifications }) {
             className="flex items-start gap-2.5 text-meta leading-6 text-charcoal-80/85"
           >
             <CheckCircle2
-              className="mt-1 h-4 w-4 shrink-0 text-[#2FA36B]"
+              className="mt-1 h-4 w-4 shrink-0 text-mint-600"
               aria-hidden="true"
             />
             <span>
@@ -887,7 +887,7 @@ function MobileBuyBar({ price, currency, onAddToCart, added, productTitle }) {
           onClick={onAddToCart}
           className={`flex shrink-0 items-center gap-2 rounded-xl px-5 py-3 text-meta font-semibold text-white shadow-[0_6px_16px_rgba(93,63,211,0.18)] transition active:scale-95 ${
             added
-              ? "bg-[#2FA36B]"
+              ? "bg-mint-600"
               : "bg-violet hover:bg-violet-deep"
           }`}
         >
@@ -1442,7 +1442,7 @@ export default function ProductDetail() {
                   )}
 
                   {product.isNew && (
-                    <span className="rounded-lg bg-[#2FA36B] px-2.5 py-1 text-micro font-bold text-white">
+                    <span className="rounded-lg bg-mint-600 px-2.5 py-1 text-micro font-bold text-white">
                       {t("misc.newBadge")}
                     </span>
                   )}
@@ -1510,7 +1510,7 @@ export default function ProductDetail() {
                                 className="flex items-start gap-3 text-meta leading-6 text-charcoal-80/85"
                               >
                                 <CheckCircle2
-                                  className="mt-1 h-4 w-4 shrink-0 text-[#2FA36B]"
+                                  className="mt-1 h-4 w-4 shrink-0 text-mint-600"
                                   aria-hidden="true"
                                 />
                                 {feature}
@@ -1649,7 +1649,7 @@ export default function ProductDetail() {
                       onClick={handleAdd}
                       className={`flex w-full items-center justify-center gap-2 rounded-xl py-4 text-body font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.22)] transition-all hover:-translate-y-0.5 ${
                         added
-                          ? "bg-[#2FA36B] shadow-[0_10px_28px_rgba(47,163,107,0.25)]"
+                          ? "bg-mint-600 shadow-[0_10px_28px_rgba(47,163,107,0.25)]"
                           : "bg-violet hover:bg-violet-deep"
                       }`}
                     >

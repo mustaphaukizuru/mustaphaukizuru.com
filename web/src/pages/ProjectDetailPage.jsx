@@ -289,7 +289,7 @@ export default function ProjectDetailPage() {
                   <ul className="mt-4 space-y-3">
                     {project.results.map((r, i) => (
                       <li key={i} className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2FA36B]" />
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint-600" />
                         <span className="text-meta leading-6 text-charcoal-80/80">{r}</span>
                       </li>
                     ))}

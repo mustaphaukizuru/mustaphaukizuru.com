@@ -105,7 +105,7 @@ export default function CookiePolicyPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-[13.5px] font-bold text-violet">{cat.title}</h3>
                     {cat.locked && (
-                      <span className="rounded-full bg-[#e5f4e8] px-2 py-0.5 text-[9.5px] font-semibold text-[#3b8f47]">
+                      <span className="rounded-full bg-mint-100 px-2 py-0.5 text-[9.5px] font-semibold text-mint-800">
                         {t("cookies.alwaysOn")}
                       </span>
                     )}

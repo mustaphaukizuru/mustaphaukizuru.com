@@ -26,9 +26,9 @@ export default function AdminPlaceholderPage({
       className="space-y-6"
     >
       {/* Status banner */}
-      <div className="flex items-start gap-3 rounded-xl border border-[#FEF3C7] bg-[#FEF3C7]/40 px-4 py-3">
-        <Construction className="mt-0.5 h-5 w-5 shrink-0 text-[#92400E]" aria-hidden="true" />
-        <div className="text-[13px] text-[#92400E]">
+      <div className="flex items-start gap-3 rounded-xl border border-amber-50 bg-amber-50/40 px-4 py-3">
+        <Construction className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+        <div className="text-[13px] text-amber-700">
           <p className="font-semibold">Backend integration pending</p>
           <p className="mt-0.5 text-[12px] leading-[1.55]">
             This page is wired into the admin sidebar and routing, but the API endpoints behind it
@@ -46,14 +46,14 @@ export default function AdminPlaceholderPage({
           <div className="min-w-0 flex-1">
             {title && <h2 className="text-[20px] font-bold text-charcoal">{title}</h2>}
             {description && (
-              <p className="mt-1.5 text-[14px] leading-[1.6] text-[#475569]">{description}</p>
+              <p className="mt-1.5 text-[14px] leading-[1.6] text-steel-700">{description}</p>
             )}
           </div>
         </div>
 
         {whatItWillDo.length > 0 && (
           <div className="mt-6">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#64748B]">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-steel">
               What this page will do
             </h3>
             <ul className="mt-3 space-y-2">
@@ -72,15 +72,15 @@ export default function AdminPlaceholderPage({
       {(backendModels.length > 0 || apiPlan.length > 0) && (
         <div className="rounded-2xl border border-slate-100 bg-mist/60 p-6 sm:p-8">
           <div className="flex items-center gap-2">
-            <FileCode2 className="h-4 w-4 text-[#64748B]" aria-hidden="true" />
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#64748B]">
+            <FileCode2 className="h-4 w-4 text-steel" aria-hidden="true" />
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-steel">
               Implementation notes
             </h3>
           </div>
 
           {backendModels.length > 0 && (
             <div className="mt-4">
-              <p className="text-[12px] font-semibold text-[#475569]">Prisma models in use</p>
+              <p className="text-[12px] font-semibold text-steel-700">Prisma models in use</p>
               <ul className="mt-1.5 flex flex-wrap gap-1.5">
                 {backendModels.map((m) => (
                   <li key={m} className="rounded-md bg-violet-pale px-2 py-0.5 font-mono text-[11px] font-semibold text-violet">
@@ -93,7 +93,7 @@ export default function AdminPlaceholderPage({
 
           {apiPlan.length > 0 && (
             <div className="mt-4">
-              <p className="text-[12px] font-semibold text-[#475569]">Backend endpoints needed</p>
+              <p className="text-[12px] font-semibold text-steel-700">Backend endpoints needed</p>
               <ul className="mt-1.5 space-y-1">
                 {apiPlan.map((line) => (
                   <li key={line} className="font-mono text-[11px] text-charcoal/85">{line}</li>

@@ -82,13 +82,13 @@ const TRUST_PILLS = [
 const DAY_STYLE = {
   empty: { wrap: "invisible", num: "" },
   weekend: { wrap: "bg-violet-ghost/70", num: "!text-charcoal/45" },
-  available:{ wrap: "bg-white ring-1 ring-[#82d96a]/45", num: "!text-violet" },
+  available:{ wrap: "bg-white ring-1 ring-mint-400/45", num: "!text-violet" },
   today: { wrap: "bg-terracotta shadow-[0_6px_18px_rgba(233,196,106,0.55)]", num: "!text-violet font-extrabold" },
   booked: { wrap: "bg-violet", num: "!text-white" },
   kickoff: { wrap: "bg-violet-pale ring-1 ring-violet/55", num: "!text-violet" },
   progress: { wrap: "bg-[#fed978]", num: "!text-[#5a4506]" },
   review: { wrap: "bg-[#dbe4ff]", num: "!text-[#1d3a8a]" },
-  deployed: { wrap: "bg-[#82d96a]", num: "!text-[#1f3508] font-extrabold" },
+  deployed: { wrap: "bg-mint-400", num: "!text-[#1f3508] font-extrabold" },
 }
 
 /* ── May 2026 layout · 6 weeks, Sun-first · maps directly to the grid */
@@ -119,11 +119,11 @@ const DAYS = [
 
 /* ── Bottom-of-card legend ───────────────────────────────────────── */
 const LEGEND = [
-  { key: "available", labelKey: "hero.legendOpenSlot", swatch: "bg-white ring-1 ring-[#82d96a]" },
+  { key: "available", labelKey: "hero.legendOpenSlot", swatch: "bg-white ring-1 ring-mint-400" },
   { key: "booked", labelKey: "hero.legendBooked", swatch: "bg-violet" },
   { key: "progress", labelKey: "hero.legendInProgress", swatch: "bg-[#fed978]" },
   { key: "review", labelKey: "hero.legendInReview", swatch: "bg-[#dbe4ff]" },
-  { key: "deployed", labelKey: "hero.legendDeployed", swatch: "bg-[#82d96a]" },
+  { key: "deployed", labelKey: "hero.legendDeployed", swatch: "bg-mint-400" },
 ]
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -160,14 +160,14 @@ function DayCell({ day, kind, idx, reduce }) {
       {/* AVAILABLE, soft mint corner dot + occasional ping */}
       {kind === "available" && (
         <>
-          <span aria-hidden="true" className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#82d96a]" />
+          <span aria-hidden="true" className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-mint-400" />
           {/* Light up day 4 (first available cell) as a "click me" hint */}
           {!reduce && day === 4 && (
             <motion.span
               aria-hidden="true"
               animate={{ scale: [1, 2.4, 1], opacity: [0.6, 0, 0.6] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1.4 }}
-              className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#82d96a]"
+              className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-mint-400"
             />
           )}
         </>
@@ -334,15 +334,15 @@ function BookingCalendar({ reduce }) {
               <Globe className="h-3.5 w-3.5 !text-violet" aria-hidden="true" />
               America/Mexico_City
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold !text-[#2FA36B] ring-1 ring-[#2FA36B]/25">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold !text-mint-600 ring-1 ring-mint-600/25">
               <span className="relative flex h-1.5 w-1.5">
                 <motion.span
                   aria-hidden="true"
                   animate={reduce ? undefined : { scale: [1, 2.4, 1], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 rounded-full bg-[#2FA36B]"
+                  className="absolute inset-0 rounded-full bg-mint-600"
                 />
-                <span className="relative h-1.5 w-1.5 rounded-full bg-[#2FA36B]" />
+                <span className="relative h-1.5 w-1.5 rounded-full bg-mint-600" />
               </span>
               {t("hero.liveAvailability")}
             </span>
@@ -444,7 +444,7 @@ function BookingCalendar({ reduce }) {
           }
           className="absolute -bottom-4 -left-5 z-30 flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-[0_18px_38px_rgba(0,0,0,0.30)] ring-1 ring-black/5"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#82d96a]/25">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-mint-400/25">
             <Rocket className="h-3.5 w-3.5 !text-[#1f3508]" />
           </span>
           <div className="leading-tight">
@@ -486,7 +486,7 @@ function BookingCalendar({ reduce }) {
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           className="absolute right-6 top-20 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-1 ring-terracotta"
         >
-          <CheckCircle2 className="h-3.5 w-3.5 !text-[#2FA36B]" />
+          <CheckCircle2 className="h-3.5 w-3.5 !text-mint-600" />
         </motion.div>
       </motion.div>
     </motion.div>

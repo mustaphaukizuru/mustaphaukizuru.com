@@ -265,7 +265,7 @@ export default function CheckoutSuccessPage() {
           </motion.div>
         ) : polling ? (
           <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
-            <motion.div variants={fadeUp} className="rounded-xl border border-amber/20 bg-[#fffbeb] p-6 text-meta text-[#92400e] max-w-sm">
+            <motion.div variants={fadeUp} className="rounded-xl border border-amber/20 bg-[#fffbeb] p-6 text-meta text-amber-700 max-w-sm">
               <Clock3 className="mx-auto mb-3 h-8 w-8 text-amber" aria-hidden="true" />
               {t("success.processingMP")}
             </motion.div>

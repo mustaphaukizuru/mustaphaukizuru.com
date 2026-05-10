@@ -50,9 +50,9 @@ import { getFileTypeStyles } from "../lib/fileTypeIcons"
 const CATEGORIES = [
   { labelKey: "categories.all",          value: "",                              icon: Sparkles,     color: "bg-violet-pale text-violet" },
   { labelKey: "categories.templates",    value: "Templates",                     icon: BookOpen,     color: "bg-[#eef3fb] text-[#2f5ea8]" },
-  { labelKey: "categories.itToolkits",   value: "Digital & IT Toolkits",         icon: Cpu,          color: "bg-[#f6efe3] text-[#9c5c00]" },
-  { labelKey: "categories.csResources",  value: "Computer Science Resources",    icon: FlaskConical, color: "bg-[#e8f4ea] text-[#3b8f47]" },
-  { labelKey: "categories.stemRobotics", value: "STEM & Robotics Kits",          icon: Wrench,       color: "bg-[#fff3e2] text-[#b46909]" },
+  { labelKey: "categories.itToolkits",   value: "Digital & IT Toolkits",         icon: Cpu,          color: "bg-[#f6efe3] text-amber-800" },
+  { labelKey: "categories.csResources",  value: "Computer Science Resources",    icon: FlaskConical, color: "bg-[#e8f4ea] text-mint-800" },
+  { labelKey: "categories.stemRobotics", value: "STEM & Robotics Kits",          icon: Wrench,       color: "bg-amber-100 text-amber-600" },
   { labelKey: "categories.businessRes",  value: "Digital Business Resources",    icon: Briefcase,    color: "bg-[#eef2ff] text-[#4f46e5]" },
 ]
 

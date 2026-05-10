@@ -80,9 +80,9 @@ function fmtMoney(amount, currency = "MXN") {
 
 function statusTone(status) {
   switch (status) {
-    case "published": return "bg-[#e5f4e8] text-[#3b8f47]"
-    case "draft": return "bg-[#fff3e2] text-[#b46909]"
-    case "archived": return "bg-[#f2f2f2] text-[#666]"
+    case "published": return "bg-mint-100 text-mint-800"
+    case "draft": return "bg-amber-100 text-amber-600"
+    case "archived": return "bg-slate-50 text-[#666]"
     default: return "bg-violet-pale text-violet"
   }
 }
@@ -706,7 +706,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
             </span>
           )}
           {!pkg.isActive && (
-            <span className="rounded-full bg-[#f2f2f2] px-2 py-0.5 text-[10px] font-semibold text-[#666]">Hidden</span>
+            <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-[#666]">Hidden</span>
           )}
           {features.length > 0 && (
             <span className="font-mono text-[10px] tabular-nums text-charcoal/55">

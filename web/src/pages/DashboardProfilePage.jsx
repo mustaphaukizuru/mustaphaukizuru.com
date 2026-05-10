@@ -186,7 +186,7 @@ export default function DashboardProfilePage() {
             <div>
               <div className="text-subsection font-bold text-violet">{user?.fullName || t("profile.fallback.memberName")}</div>
               <div className="mt-1 text-meta text-charcoal-80/60">{user?.email || "—"}</div>
-              <span className="mt-3 inline-flex rounded-full bg-[#e5f4e8] px-4 py-1.5 text-micro font-semibold capitalize text-[#3b8f47]">
+              <span className="mt-3 inline-flex rounded-full bg-mint-100 px-4 py-1.5 text-micro font-semibold capitalize text-mint-800">
                 {user?.role || t("profile.fallback.role")}
               </span>
             </div>
@@ -198,7 +198,7 @@ export default function DashboardProfilePage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-charcoal-80/55">{t("profile.card.status")}</span>
-                <span className="font-semibold text-[#2FA36B]">{t("profile.card.active")}</span>
+                <span className="font-semibold text-mint-600">{t("profile.card.active")}</span>
               </div>
             </div>
           </div>
@@ -264,7 +264,7 @@ export default function DashboardProfilePage() {
                   <label className="mb-1.5 block text-micro font-semibold text-violet">{t("profile.account.fields.emailReadOnly")}</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/25" />
-                    <input readOnly value={user?.email||""} className="w-full cursor-not-allowed rounded-xl border border-charcoal-80/10 bg-[#f2f2f2] py-3 pl-10 pr-4 text-meta text-charcoal-80/50 outline-none" />
+                    <input readOnly value={user?.email||""} className="w-full cursor-not-allowed rounded-xl border border-charcoal-80/10 bg-slate-50 py-3 pl-10 pr-4 text-meta text-charcoal-80/50 outline-none" />
                   </div>
                 </div>
               </div>

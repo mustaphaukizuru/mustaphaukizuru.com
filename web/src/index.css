@@ -64,6 +64,7 @@
   --color-azure:           #0284C7;
   --color-azure-pale:      #E0F2FE;
   --color-azure-deep:      #0369A1;
+  --color-azure-800:       #075985;  /* Phase 9.6b — azure-pale's text companion in status pills */
   --color-cyan:            #7DD3FC;
 
   /* ── Tier 3 · Warm Accent ───────────────────────────────────────────── */
@@ -72,14 +73,37 @@
 
   /* ── Tier 4 · Neutrals ──────────────────────────────────────────────── */
   --color-steel:           #64748B;
+  --color-steel-700:       #475569;  /* Phase 9.6b — darker steel used for muted labels */
+  --color-slate-50:        #F2F2F2;  /* Phase 9.6b — softer neutral fill (lighter than mist) */
   --color-slate-100:       #EFF1F5;
   --color-slate-200:       #DCDCE4;
   --color-slate-300:       #A0A8B8;
 
   /* ── Tier 5 · Semantic Feedback ─────────────────────────────────────── */
-  --color-mint:            #10B981;
-  --color-amber:           #F59E0B;
-  --color-rose:            #E11D48;
+  --color-mint:            #10B981;  /* canonical mint (success) */
+  --color-amber:           #F59E0B;  /* canonical amber (pending) */
+  --color-rose:            #E11D48;  /* canonical rose (error / destructive) */
+
+  /*  Phase 9.6b — semantic tint scales.
+   *  Naming follows Tailwind's bg/fg pair convention so `bg-amber-50` +
+   *  `text-amber-700` reads as the canonical "pending pill" without any
+   *  per-component palette decisions. These cover the 200+ status pills
+   *  scattered across admin/dashboard pages that were previously hard-
+   *  coded as `bg-[#FEF3C7] text-[#92400E]` etc.
+   */
+  --color-mint-50:         #D1FAE5;
+  --color-mint-100:        #E5F4E8;
+  --color-mint-400:        #82D96A;
+  --color-mint-600:        #2FA36B;
+  --color-mint-700:        #065F46;
+  --color-mint-800:        #3B8F47;
+  --color-amber-50:        #FEF3C7;
+  --color-amber-100:       #FFF3E2;
+  --color-amber-600:       #B46909;
+  --color-amber-700:       #92400E;
+  --color-amber-800:       #9C5C00;
+  --color-rose-50:         #FFE4E6;
+  --color-rose-700:        #9F1239;
 
   /* ── Typography (Tailwind v4 reads --font-* and exposes font-display etc.) */
   --font-display:  "Sora", "system-ui", "sans-serif";
