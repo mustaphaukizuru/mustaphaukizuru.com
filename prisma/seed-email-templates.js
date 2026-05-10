@@ -564,6 +564,39 @@ const TEMPLATES = [
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),
   },
+
+  // 10 · Consultation confirmed — fires when admin confirms a booking
+  // Variables: customerName · scheduledAt · durationMin · timezone ·
+  //            serviceTitle · hostName · meetingLink · consultationUrl
+  {
+    key: "consultation.confirmed",
+    subject: "Your consultation is confirmed — {{scheduledAt}}",
+    html: chrome({
+      preheader: "Your call is on the calendar. Join link inside.",
+      eyebrow:   "Consultation confirmed",
+      bodyHtml:
+        heading(`See you on {{scheduledAt}}, {{customerName}}.`) +
+        paragraph(`Your <strong>{{serviceTitle}}</strong> ({{durationMin}} min) with {{hostName}} is confirmed. The join link below opens the meeting room — no account or download required.`) +
+        calloutCard(`<strong>Join link:</strong><br><a href="{{meetingLink}}" style="color:${BRAND_VIOLET};">{{meetingLink}}</a>`) +
+        button("{{meetingLink}}", "Join the meeting") +
+        paragraph(`Save this email — the link works on phone, tablet, or laptop. If something comes up, you can reschedule or cancel from your dashboard:`) +
+        button("{{consultationUrl}}", "Manage consultation"),
+    }),
+    text: [
+      "Your consultation is confirmed — {{scheduledAt}}",
+      "",
+      "Hi {{customerName}}, your {{serviceTitle}} ({{durationMin}} min) with {{hostName}}",
+      "is confirmed on {{scheduledAt}} ({{timezone}}).",
+      "",
+      "Join link:",
+      "  {{meetingLink}}",
+      "",
+      "Manage your booking:",
+      "  {{consultationUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
 ]
 
 
@@ -969,6 +1002,37 @@ const TEMPLATES_ES = [
       "Por lo general es por datos de contacto, enlaces o normas de la comunidad.",
       "",
       "Si quieres que tu opinión nos llegue, responde a este correo.",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // consultation.confirmed
+  {
+    key: "consultation.confirmed",
+    subject: "Tu consulta está confirmada — {{scheduledAt}}",
+    html: chrome({
+      preheader: "Tu llamada está agendada. Link de la reunión adentro.",
+      eyebrow:   "Consulta confirmada",
+      bodyHtml:
+        heading(`Nos vemos el {{scheduledAt}}, {{customerName}}.`) +
+        paragraph(`Tu <strong>{{serviceTitle}}</strong> ({{durationMin}} min) con {{hostName}} ya está confirmada. El link de abajo abre la sala de reunión — no necesitas cuenta ni descargar nada.`) +
+        calloutCard(`<strong>Link para unirte:</strong><br><a href="{{meetingLink}}" style="color:${BRAND_VIOLET};">{{meetingLink}}</a>`) +
+        button("{{meetingLink}}", "Unirme a la reunión") +
+        paragraph(`Guarda este correo — el link funciona en celular, tablet o laptop. Si necesitas mover la cita, puedes reagendar o cancelar desde tu panel:`) +
+        button("{{consultationUrl}}", "Administrar consulta"),
+    }),
+    text: [
+      "Tu consulta está confirmada — {{scheduledAt}}",
+      "",
+      "Hola {{customerName}}, tu {{serviceTitle}} ({{durationMin}} min) con {{hostName}}",
+      "está confirmada el {{scheduledAt}} ({{timezone}}).",
+      "",
+      "Link para unirte:",
+      "  {{meetingLink}}",
+      "",
+      "Administrar tu reserva:",
+      "  {{consultationUrl}}",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),

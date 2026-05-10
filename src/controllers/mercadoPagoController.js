@@ -16,6 +16,7 @@ const { sendTemplateEmail } = require("../services/emailService")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const { notifyOrderPaid }   = require("../services/notificationService")
 const { fulfillOrder, recordOrderEvent } = require("../services/orderFulfillmentService")
+const { generateReceiptPdf } = require("../services/receiptPdfService")
 // M19 — refund orchestrator with Option A enforcement.
 const { processOrderRefund } = require("../services/refundService")
 
@@ -144,12 +145,28 @@ const webhook = async (req, res) => {
 
     // 5. Fire side-effects ONLY on the first paid transition.
     if (mpPayment.status === "approved" && isFirstTransition) {
+      // PDF receipt — attached to the email. Generated in-memory; if it
+      // fails we still send the email without an attachment rather than
+      // block the customer-facing confirmation.
+      let attachments
+      try {
+        const receiptBuffer = await generateReceiptPdf(order.id, { inMemory: true })
+        attachments = [{
+          filename:    `receipt-${order.orderNumber || order.id}.pdf`,
+          content:     receiptBuffer,
+          contentType: "application/pdf",
+        }]
+      } catch (e) {
+        logger.warn(`[MP webhook] receipt PDF skipped: ${e.message}`)
+      }
+
       // Email — template lives in DB, admin can edit without a redeploy.
       sendTemplateEmail({
-      locale: resolveUserLocale({ req }),
+        locale: resolveUserLocale({ req }),
         to:          order.customerEmail || order.billingEmail,
         templateKey: "order.confirmed",
         userId:      order.userId,
+        attachments,
         variables: {
           customerName: order.customerName?.split(" ")[0] || "there",
           orderNumber:  order.orderNumber,
