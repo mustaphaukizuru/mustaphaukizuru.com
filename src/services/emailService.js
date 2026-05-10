@@ -183,9 +183,13 @@ async function writeLog({ userId, to, templateKey, subject, status, providerMess
  * @param {string}          [opts.locale]      Accepted but ignored until i18n lands
  * @param {string}          [opts.userId]      Associates the log row with a user
  * @param {object}          [opts.headers]     Extra mail headers (List-Unsubscribe, etc.)
+ * @param {Array}           [opts.attachments] Nodemailer attachments — e.g.
+ *   [{ filename: "receipt-XYZ.pdf", content: <Buffer>, contentType: "application/pdf" }]
+ *   Forwarded verbatim to transport.sendMail; left undefined when empty so
+ *   transports that don't support attachments still send the body cleanly.
  * @returns {Promise<{ ok: boolean, messageId?: string, error?: string, logId?: string }>}
  */
-async function sendTemplateEmail({ to, templateKey, variables = {}, locale, userId, headers } = {}) {
+async function sendTemplateEmail({ to, templateKey, variables = {}, locale, userId, headers, attachments } = {}) {
   if (!to || !templateKey) {
     return { ok: false, error: "Missing `to` or `templateKey`" }
   }
@@ -249,6 +253,7 @@ async function sendTemplateEmail({ to, templateKey, variables = {}, locale, user
       html:    htmlBody,
       text:    textBody,
       headers: headers || undefined,
+      attachments: (Array.isArray(attachments) && attachments.length > 0) ? attachments : undefined,
     })
     const log = await writeLog({
       userId, to, templateKey,

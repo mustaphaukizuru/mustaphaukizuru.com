@@ -93,7 +93,10 @@ const listConsultations = asyncHandler(async (req, res) => {
 })
 
 const updateConsultation = asyncHandler(async (req, res) => {
-  const updated = await adminUpdateConsultation(req.params.id, req.body)
+  const updated = await adminUpdateConsultation(req.params.id, req.body, {
+    adminUserId: req.user?.id || null,
+    ipAddress:   req.ip || null,
+  })
   return res.status(200).json({ success: true, message: "Consultation updated", data: updated })
 })
 

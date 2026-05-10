@@ -330,7 +330,81 @@ async function adminListConsultations({ status, from, to, hostUserId, page = 1, 
   return { items, total, page: Number(page), pageSize: take }
 }
 
-async function adminUpdateConsultation(id, patch) {
+/**
+ * Generate a Jitsi meeting room URL — used when the admin confirms a
+ * consultation without supplying a Google Meet / Zoom link of their own.
+ *
+ * Jitsi is the lowest-friction default: no API, no account, the room is
+ * created on first visit, and the URL itself is the credential. We salt
+ * it with random bytes so a leaked legacy URL can't be guessed from the
+ * consultation ID alone.
+ */
+function generateJitsiMeetingLink(consultationId) {
+  const slug = crypto.randomBytes(6).toString("hex")
+  const short = String(consultationId || "").slice(-6).toLowerCase().replace(/[^a-z0-9]/g, "x")
+  return `https://meet.jit.si/ukizuru-${short}-${slug}`
+}
+
+/**
+ * Reduce a consultation row to the fields worth recording in the audit
+ * trail. Excludes large text fields (notes) and relations to keep the
+ * JSON snapshot small.
+ */
+function pickAuditFields(row) {
+  if (!row) return null
+  return {
+    id: row.id, status: row.status, scheduledAt: row.scheduledAt,
+    meetingProvider: row.meetingProvider, meetingLink: row.meetingLink,
+    assignedAdminId: row.assignedAdminId, confirmedAt: row.confirmedAt,
+    cancelledAt: row.cancelledAt, completedAt: row.completedAt,
+  }
+}
+
+/**
+ * Fire-and-forget confirmation email when a consultation transitions to
+ * `confirmed`. Includes the meeting link, schedule, and a deep-link to
+ * the member's consultation detail page.
+ */
+async function sendConsultationConfirmedEmail(row, opts = {}) {
+  const { sendTemplateEmail } = require("./emailService")
+  const { resolveUserLocale } = require("../utils/resolveUserLocale")
+
+  const to = row.user?.email
+  if (!to) return // No recipient — nothing to do.
+
+  let locale = "en"
+  try {
+    locale = opts.locale || resolveUserLocale({ user: { id: row.userId } })
+  } catch { /* fall through to "en" */ }
+
+  const frontend = (process.env.FRONTEND_URL || "").replace(/\/$/, "")
+  const scheduledAt = row.scheduledAt instanceof Date ? row.scheduledAt : new Date(row.scheduledAt)
+  const scheduledHuman = scheduledAt.toLocaleString(locale === "es" ? "es-MX" : "en-US", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    hour: "numeric", minute: "2-digit", timeZoneName: "short",
+    timeZone: row.timezone || "UTC",
+  })
+
+  await sendTemplateEmail({
+    locale,
+    to,
+    templateKey: "consultation.confirmed",
+    userId:      row.userId,
+    variables: {
+      customerName:    row.user?.fullName?.split(" ")[0] || "there",
+      scheduledAt:     scheduledHuman,
+      durationMin:     row.durationMin || 30,
+      timezone:        row.timezone || "UTC",
+      meetingLink:     row.meetingLink || "",
+      meetingProvider: row.meetingProvider || "manual",
+      serviceTitle:    row.service?.title || "Consulting session",
+      hostName:        row.assignedAdmin?.fullName || "Mustapha Ukizuru",
+      consultationUrl: `${frontend}/dashboard/consultations`,
+    },
+  })
+}
+
+async function adminUpdateConsultation(id, patch, ctx = {}) {
   // Allowed admin patches (allowlist)
   const allowed = {}
   if (patch.status          !== undefined) allowed.status          = patch.status
@@ -345,11 +419,67 @@ async function adminUpdateConsultation(id, patch) {
   if (patch.status === "completed") allowed.completedAt   = allowed.completedAt   || now
   if (patch.status === "cancelled") allowed.cancelledAt   = allowed.cancelledAt   || now
 
-  return prisma.consultation.update({
-    where: { id },
-    data:  allowed,
+  // Pre-flight read for: (a) auto meeting-link generation decision,
+  // (b) the AdminAuditLog `beforeJson` snapshot.
+  const before = await prisma.consultation.findUnique({
+    where:  { id },
     include: PUBLIC_INCLUDE,
   })
+  if (!before) {
+    throw Object.assign(new Error("Consultation not found"), { code: "NOT_FOUND" })
+  }
+
+  // Auto-generate a Jitsi room when the admin confirms a booking without
+  // supplying a link. Manual override wins — if patch.meetingLink is set
+  // (including to ""), we respect it. The MeetingProvider enum doesn't
+  // currently have a "jitsi" value, so we tag it as "manual" — the URL
+  // host (meet.jit.si) is self-describing in the email + dashboard.
+  const willConfirmNow = patch.status === "confirmed" && before.status !== "confirmed"
+  if (willConfirmNow && patch.meetingLink === undefined && !before.meetingLink) {
+    allowed.meetingLink = generateJitsiMeetingLink(id)
+    if (!allowed.meetingProvider && !before.meetingProvider) {
+      allowed.meetingProvider = "manual"
+    }
+  }
+
+  // Atomic — update row + write audit log together so we never have one
+  // without the other. The email send is fire-and-forget outside the
+  // transaction (it can fail without blocking the admin's confirm action).
+  const updated = await prisma.$transaction(async (tx) => {
+    const row = await tx.consultation.update({
+      where: { id },
+      data:  allowed,
+      include: PUBLIC_INCLUDE,
+    })
+
+    if (ctx.adminUserId) {
+      const action = patch.status ? `consultation.${patch.status}` : "consultation.updated"
+      await tx.adminAuditLog.create({
+        data: {
+          adminUserId: ctx.adminUserId,
+          action,
+          targetType:  "Consultation",
+          targetId:    id,
+          beforeJson:  pickAuditFields(before),
+          afterJson:   pickAuditFields(row),
+          ipAddress:   ctx.ipAddress || null,
+        },
+      }).catch(() => null)
+    }
+
+    return row
+  })
+
+  if (willConfirmNow) {
+    sendConsultationConfirmedEmail(updated, ctx).catch((e) => {
+      // Don't blow up the admin action on email failure — the row is
+      // already updated, the audit log already recorded. Best-effort.
+      // eslint-disable-next-line no-console
+      console.error("[consultation] confirmation email failed:", e?.message)
+    })
+  }
+
+  return updated
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

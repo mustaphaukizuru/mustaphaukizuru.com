@@ -16,6 +16,7 @@ const { sendTemplateEmail } = require("../services/emailService")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const { notifyOrderPaid }   = require("../services/notificationService")
 const { fulfillOrder, recordOrderEvent } = require("../services/orderFulfillmentService")
+const { generateReceiptPdf } = require("../services/receiptPdfService")
 // M15+M19 — refund orchestrator (Option A enforcement, audit logging,
 // download revocation, email/notification side effects).
 const { processOrderRefund } = require("../services/refundService")
@@ -413,12 +414,28 @@ async function fireSideEffects(order, gatewayTxId, gatewayLabel, opts = {}) {
     locale = resolveUserLocale(opts.req ? { req: opts.req } : { user: { id: order.userId } })
   } catch { /* fall through to "en" */ }
 
+  // PDF receipt — attached to the order.confirmed email. Generated in-memory
+  // so we never touch disk. If generation fails the email still sends; we
+  // log and continue rather than block the confirmation.
+  let attachments
+  try {
+    const receiptBuffer = await generateReceiptPdf(order.id, { inMemory: true })
+    attachments = [{
+      filename:    `receipt-${order.orderNumber || order.id}.pdf`,
+      content:     receiptBuffer,
+      contentType: "application/pdf",
+    }]
+  } catch (e) {
+    logger.warn(`[fireSideEffects] receipt PDF skipped: ${e.message}`)
+  }
+
   try {
     await sendTemplateEmail({
       locale,
       to:          order.customerEmail || order.billingEmail,
       templateKey: "order.confirmed",
       userId:      order.userId,
+      attachments,
       variables: {
         customerName: order.customerName?.split(" ")[0] || "there",
         orderNumber:  order.orderNumber,
