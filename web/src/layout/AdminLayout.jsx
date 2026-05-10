@@ -170,7 +170,7 @@ function AdminMobileMenu({ open, onClose, user, initials, onLogout }) {
           <Link
             to="/"
             onClick={onClose}
-            className="m-3 flex items-center gap-2 rounded-lg border border-charcoal-80/10 bg-[#fafafa] px-3 py-2 text-meta font-medium text-charcoal-80/75 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
+            className="m-3 flex items-center gap-2 rounded-lg border border-charcoal-80/10 bg-mist px-3 py-2 text-meta font-medium text-charcoal-80/75 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
           >
             <Globe className="h-4 w-4" aria-hidden="true" />
             View live site
@@ -197,7 +197,7 @@ function AdminMobileMenu({ open, onClose, user, initials, onLogout }) {
                             "flex items-center gap-2.5 rounded-lg py-2 transition-all",
                             isActive
                               ? "bg-violet-pale border-l-[4px] border-l-violet pl-[calc(0.625rem-4px)] pr-2.5 text-violet"
-                              : "border-l-[4px] border-l-transparent pl-[calc(0.625rem-4px)] pr-2.5 text-charcoal-80 hover:bg-[#f5eff6] hover:text-violet",
+                              : "border-l-[4px] border-l-transparent pl-[calc(0.625rem-4px)] pr-2.5 text-charcoal-80 hover:bg-violet-ghost hover:text-violet",
                             "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
                           ].join(" ")
                         }

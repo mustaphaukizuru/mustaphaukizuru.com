@@ -174,7 +174,7 @@ function SidebarItem({ item }) {
           // 4px Royal Violet left border on active per F10.G
           isActive
             ? "bg-violet-pale border-l-[4px] border-l-violet pl-[calc(0.625rem-4px)] pr-2.5 text-violet shadow-[inset_0_0_0_1px_rgba(93,63,211,0.06)]"
-            : "border-l-[4px] border-l-transparent pl-[calc(0.625rem-4px)] pr-2.5 text-charcoal-80 hover:bg-[#f5eff6] hover:text-violet",
+            : "border-l-[4px] border-l-transparent pl-[calc(0.625rem-4px)] pr-2.5 text-charcoal-80 hover:bg-violet-ghost hover:text-violet",
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
         ].join(" ")
       }
@@ -327,7 +327,7 @@ export default function AdminSidebar() {
 
         <Link
           to="/"
-          className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-charcoal-80/10 bg-[#fafafa] px-3 py-2 text-meta font-medium text-charcoal-80/75 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-charcoal-80/10 bg-mist px-3 py-2 text-meta font-medium text-charcoal-80/75 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
         >
           <Globe className="h-3.5 w-3.5" aria-hidden="true" />
           View live site
@@ -349,7 +349,7 @@ export default function AdminSidebar() {
 
       {/* Admin card + logout · sticky bottom */}
       <div className="border-t border-charcoal-80/10 p-3">
-        <div className="rounded-lg border border-charcoal-80/8 bg-[#fafafa] p-3">
+        <div className="rounded-lg border border-charcoal-80/8 bg-mist p-3">
           <div className="flex items-center gap-2.5">
             {avatarSrc ? (
               <img src={avatarSrc} alt="" className="h-9 w-9 rounded-lg object-cover" />

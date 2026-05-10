@@ -130,7 +130,7 @@ export default function AdminHeader() {
         <div className="flex shrink-0 items-center gap-2">
           {/* Search with ⌘K hint */}
           <label htmlFor="admin-search" className="sr-only">Search admin</label>
-          <div className="hidden items-center gap-2 rounded-lg border border-charcoal-80/10 bg-[#fafafa] px-3 py-2 transition focus-within:border-violet/40 focus-within:ring-[3px] focus-within:ring-azure/20 lg:flex">
+          <div className="hidden items-center gap-2 rounded-lg border border-charcoal-80/10 bg-mist px-3 py-2 transition focus-within:border-violet/40 focus-within:ring-[3px] focus-within:ring-azure/20 lg:flex">
             <Search className="h-3.5 w-3.5 shrink-0 text-charcoal-80/40" aria-hidden="true" />
             <input
               id="admin-search"

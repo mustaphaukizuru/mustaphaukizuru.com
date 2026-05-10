@@ -212,7 +212,7 @@ function AddressRow({ address, onEdit, onDelete, onSetDefault, isDeleting }) {
 
   return (
     <div className={`flex flex-col gap-3 rounded-xl border p-4 transition md:flex-row md:items-start md:justify-between ${
-      address.isDefault ? "border-violet/30 bg-[#F5F2FE]" : "border-charcoal-80/10 bg-[#fafafa]"
+      address.isDefault ? "border-violet/30 bg-[#F5F2FE]" : "border-charcoal-80/10 bg-mist"
     }`}>
       <div className="flex items-start gap-3">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
@@ -347,7 +347,7 @@ function AddressFormModal({ address, onClose, onSaved }) {
               <select
                 value={form.country}
                 onChange={(e) => update("country", e.target.value)}
-                className="w-full rounded-xl border border-charcoal-80/20 bg-[#fafafa] px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
+                className="w-full rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
               >
                 {COUNTRY_OPTIONS.map((c) => (
                   <option key={c.code} value={c.code}>{c.name} ({c.code})</option>
@@ -423,7 +423,7 @@ function Field({ label, value, onChange, placeholder, hint, className = "" }) {
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-charcoal-80/20 bg-[#fafafa] px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
+        className="w-full rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
       />
       {hint && <p className="mt-1 text-micro text-charcoal-80/55">{hint}</p>}
     </div>

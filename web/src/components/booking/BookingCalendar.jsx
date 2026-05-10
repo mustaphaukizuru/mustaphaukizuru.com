@@ -147,7 +147,7 @@ function MonthYearPicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={`Change month and year (currently ${MONTHS[month - 1]} ${year})`}
-        className="group inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-bold text-[#5D3FD3] transition hover:bg-[#f5eff6] focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[#5D3FD3]/20"
+        className="group inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-bold text-[#5D3FD3] transition hover:bg-violet-ghost focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[#5D3FD3]/20"
       >
         <span>{MONTHS[month - 1]} {year}</span>
         <ChevronDown
@@ -174,7 +174,7 @@ function MonthYearPicker({
                 onClick={() => canPrevYear && setDraft((y) => y - 1)}
                 disabled={!canPrevYear}
                 aria-label={t("bookingCalendar.prevYearAria")}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#5D3FD3] transition hover:bg-[#f5eff6] disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#5D3FD3] transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -186,7 +186,7 @@ function MonthYearPicker({
                 onClick={() => canNextYear && setDraft((y) => y + 1)}
                 disabled={!canNextYear}
                 aria-label={t("bookingCalendar.nextYearAria")}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#5D3FD3] transition hover:bg-[#f5eff6] disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[#5D3FD3] transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -212,7 +212,7 @@ function MonthYearPicker({
                         ? "cursor-not-allowed text-[#1A1B23]/25"
                         : isCurrent
                           ? "bg-[#5D3FD3] text-white shadow-[0_4px_12px_rgba(93,63,211,0.25)]"
-                          : "bg-[#f5eff6] text-[#5D3FD3] hover:bg-[#5D3FD3] hover:text-white",
+                          : "bg-violet-ghost text-[#5D3FD3] hover:bg-[#5D3FD3] hover:text-white",
                     ].join(" ")}
                   >
                     {short}
@@ -539,7 +539,7 @@ export default function BookingCalendar({
               onClick={goPrevMonth}
               disabled={isPrevDisabled}
               aria-label={t("bookingCalendar.prevMonthAria")}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-[#5D3FD3] transition hover:bg-[#f5eff6] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-[#5D3FD3] transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -566,7 +566,7 @@ export default function BookingCalendar({
               onClick={goNextMonth}
               disabled={isNextDisabled}
               aria-label={t("bookingCalendar.nextMonthAria")}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-[#5D3FD3] transition hover:bg-[#f5eff6] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-[#5D3FD3] transition hover:bg-violet-ghost disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -599,7 +599,7 @@ export default function BookingCalendar({
                     isPast
                       ? "cursor-not-allowed text-[#1A1B23]/25"
                       : isAvailable
-                        ? "bg-[#f5eff6] text-[#5D3FD3] hover:bg-[#5D3FD3] hover:text-white hover:shadow-[0_8px_22px_rgba(93,63,211,0.18)]"
+                        ? "bg-violet-ghost text-[#5D3FD3] hover:bg-[#5D3FD3] hover:text-white hover:shadow-[0_8px_22px_rgba(93,63,211,0.18)]"
                         : "cursor-not-allowed text-[#1A1B23]/30",
                     isToday && !isPast ? "ring-1 ring-[#5D3FD3]/30" : "",
                   ].join(" ")}
@@ -647,7 +647,7 @@ export default function BookingCalendar({
           {slotsLoading ? (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
               {[1,2,3,4,5,6,7,8].map((i) => (
-                <div key={i} className="h-11 animate-pulse rounded-xl bg-[#f5eff6]" />
+                <div key={i} className="h-11 animate-pulse rounded-xl bg-violet-ghost" />
               ))}
             </div>
           ) : slots.length === 0 ? (

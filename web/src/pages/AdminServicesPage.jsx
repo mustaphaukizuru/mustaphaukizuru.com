@@ -181,7 +181,7 @@ function ServiceOrderCard({ order, onUpdate }) {
             </div>
 
             {showSched && (
-              <form onSubmit={handleSchedule} className="mb-3 grid gap-3 rounded-lg border border-charcoal-80/12 bg-[#fafafa] p-4 sm:grid-cols-2">
+              <form onSubmit={handleSchedule} className="mb-3 grid gap-3 rounded-lg border border-charcoal-80/12 bg-mist p-4 sm:grid-cols-2">
                 <FormInput
                   label="Date & Time"
                   required
@@ -210,7 +210,7 @@ function ServiceOrderCard({ order, onUpdate }) {
             {order.consultations && order.consultations.length > 0 ? (
               <ul className="space-y-2">
                 {order.consultations.map((c) => (
-                  <li key={c.id} className="flex items-center gap-3 rounded-lg border border-charcoal-80/8 bg-[#fafafa] px-4 py-2.5">
+                  <li key={c.id} className="flex items-center gap-3 rounded-lg border border-charcoal-80/8 bg-mist px-4 py-2.5">
                     <Calendar className="h-3.5 w-3.5 shrink-0 text-violet" aria-hidden="true" />
                     <span className="font-mono text-micro tabular-nums text-violet">
                       {new Date(c.scheduledAt).toLocaleString(undefined, {
@@ -235,7 +235,7 @@ function ServiceOrderCard({ order, onUpdate }) {
                 ))}
               </ul>
             ) : !showSched ? (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-[#fafafa] px-4 py-3 text-center text-micro text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/55">
                 No consultations scheduled.
               </div>
             ) : null}
@@ -262,7 +262,7 @@ function ServiceOrderCard({ order, onUpdate }) {
             </div>
 
             {showProject && (
-              <form onSubmit={handleCreateProject} className="mb-3 grid gap-3 rounded-lg border border-charcoal-80/12 bg-[#fafafa] p-4 sm:grid-cols-2">
+              <form onSubmit={handleCreateProject} className="mb-3 grid gap-3 rounded-lg border border-charcoal-80/12 bg-mist p-4 sm:grid-cols-2">
                 <FormInput
                   label="Project Name"
                   required
@@ -301,7 +301,7 @@ function ServiceOrderCard({ order, onUpdate }) {
             )}
 
             {order.clientProject ? (
-              <div className="rounded-lg border border-charcoal-80/8 bg-[#fafafa] p-4">
+              <div className="rounded-lg border border-charcoal-80/8 bg-mist p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="font-bold text-meta text-violet">{order.clientProject.projectName}</div>
                   <StatusPill
@@ -326,7 +326,7 @@ function ServiceOrderCard({ order, onUpdate }) {
                 )}
               </div>
             ) : !showProject ? (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-[#fafafa] px-4 py-3 text-center text-micro text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/55">
                 No project created yet.
               </div>
             ) : null}

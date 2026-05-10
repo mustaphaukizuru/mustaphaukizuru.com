@@ -349,7 +349,7 @@ function EditModal({ template, onClose, onSaved }) {
             </Field>
 
             <Field label="Active">
-              <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-[#fafafa] px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">
+              <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-mist px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">
                 <input
                   type="checkbox"
                   checked={form.isActive}

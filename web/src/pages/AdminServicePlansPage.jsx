@@ -264,7 +264,7 @@ function ServiceModal({ open, onClose, initial, onSaved }) {
                 </div>
                 <button
                   type="button" onClick={onClose} aria-label="Close"
-                  className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-[#1A1B23]/55 transition hover:bg-[#f5eff6] hover:text-[#5D3FD3]"
+                  className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-[#1A1B23]/55 transition hover:bg-violet-ghost hover:text-[#5D3FD3]"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -629,7 +629,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
 
         {/* ── Per-feature inclusion matrix ───────────────────────────── */}
         {features.length > 0 && (
-          <div className="mt-5 rounded-xl border border-[#1A1B23]/12 bg-[#fafafa] p-4">
+          <div className="mt-5 rounded-xl border border-[#1A1B23]/12 bg-mist p-4">
             <div className="mb-3 flex items-center justify-between">
               <h5 className="inline-flex items-center gap-1.5 text-[11.5px] font-bold uppercase tracking-[0.14em] text-[#5D3FD3]">
                 <CheckCircle2 className="h-3.5 w-3.5" /> Included features ({includedSet.size}/{features.length})
@@ -643,7 +643,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
                 </button>
                 <button type="button"
                   onClick={() => setIncludedSet(new Set())}
-                  className="rounded-lg bg-white px-2 py-1 text-[11px] font-semibold text-[#1A1B23]/65 hover:bg-[#f5eff6]"
+                  className="rounded-lg bg-white px-2 py-1 text-[11px] font-semibold text-[#1A1B23]/65 hover:bg-violet-ghost"
                 >
                   None
                 </button>
@@ -1084,7 +1084,7 @@ export default function AdminServicePlansPage() {
       {loading ? (
         <div className="grid gap-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl bg-[#f5eff6]" />
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-violet-ghost" />
           ))}
         </div>
       ) : filtered.length === 0 ? (

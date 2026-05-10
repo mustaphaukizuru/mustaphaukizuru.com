@@ -289,7 +289,7 @@ export default function DashboardNotificationsPage() {
               </Link>
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-[#fafafa] p-6 text-center text-meta text-charcoal-80/60">
+            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
               {t("notificationsPage.empty.title")}
             </div>
           )

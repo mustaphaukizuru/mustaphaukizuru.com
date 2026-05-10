@@ -1617,7 +1617,7 @@ export default function ProductDetail() {
                         {t("misc.qty")}
                       </label>
 
-                      <div className="flex items-center overflow-hidden rounded-xl border border-charcoal-80/15 bg-[#fafafa]">
+                      <div className="flex items-center overflow-hidden rounded-xl border border-charcoal-80/15 bg-mist">
                         <button
                           type="button"
                           onClick={() => setQty((q) => Math.max(1, q - 1))}

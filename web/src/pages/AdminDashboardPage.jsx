@@ -190,7 +190,7 @@ function RevenueAreaChart({ data, height = 220 }) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded-lg border border-dashed border-charcoal-80/15 bg-[#fafafa] p-8 text-center" role="status">
+      <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded-lg border border-dashed border-charcoal-80/15 bg-mist p-8 text-center" role="status">
         <Activity className="h-8 w-8 text-charcoal-80/30" aria-hidden="true" />
         <p className="mt-3 text-meta font-semibold text-charcoal-80/65">No revenue data yet</p>
         <p className="mt-1 max-w-xs text-micro text-charcoal-80/45">
@@ -364,7 +364,7 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
         {segments.map((seg) => {
           const percentage = sum > 0 ? ((seg.value / sum) * 100).toFixed(1) : "0.0"
           return (
-            <div key={seg.label} className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 transition hover:bg-[#fafafa]">
+            <div key={seg.label} className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 transition hover:bg-mist">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: seg.color }} aria-hidden="true" />
                 <span className="text-meta font-medium text-charcoal-80/85">{seg.label}</span>
@@ -744,7 +744,7 @@ export default function AdminDashboardPage() {
                   const qty = safeNum(p._sum?.quantity || p.quantity)
                   const ratio = max > 0 ? (rev / max) * 100 : 0
                   return (
-                    <div key={p.productId || idx} className="rounded-lg p-3 transition hover:bg-[#fafafa]">
+                    <div key={p.productId || idx} className="rounded-lg p-3 transition hover:bg-mist">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-3">
                           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-violet-pale font-mono text-[11px] font-bold text-violet">
@@ -801,7 +801,7 @@ export default function AdminDashboardPage() {
                   <Link
                     key={o.id}
                     to={`/admin/orders/${o.id}`}
-                    className="flex items-center justify-between gap-3 rounded-lg p-3 transition hover:bg-[#fafafa] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-inset"
+                    className="flex items-center justify-between gap-3 rounded-lg p-3 transition hover:bg-mist focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-inset"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -858,7 +858,7 @@ export default function AdminDashboardPage() {
                   <Link
                     key={t.id}
                     to="/admin/support"
-                    className="flex items-start gap-3 rounded-lg p-3 transition hover:bg-[#fafafa] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-inset"
+                    className="flex items-start gap-3 rounded-lg p-3 transition hover:bg-mist focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-inset"
                   >
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-azure/10 text-azure">
                       <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
@@ -973,7 +973,7 @@ export default function AdminDashboardPage() {
                     <Link
                       key={sp.id}
                       to="/admin/services"
-                      className="block rounded-lg p-3 transition hover:bg-[#fafafa] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-inset"
+                      className="block rounded-lg p-3 transition hover:bg-mist focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-inset"
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-violet-pale text-violet">

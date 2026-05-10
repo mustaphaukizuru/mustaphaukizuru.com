@@ -278,7 +278,7 @@ function DisabledState({ onStart, starting }) {
       <div className="space-y-5">
         <div className="grid gap-3 sm:grid-cols-3">
           {apps.map((app) => (
-            <div key={app.key} className="rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4">
+            <div key={app.key} className="rounded-xl border border-charcoal-80/10 bg-mist p-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Smartphone className="h-4 w-4" />
@@ -341,7 +341,7 @@ function SetupState({ data, code, setCode, onVerify, verifying, onCancel }) {
             <button
               type="button"
               onClick={copyManual}
-              className="mt-1 inline-flex items-center gap-2 rounded-lg border border-charcoal-80/15 bg-[#fafafa] px-3 py-1.5 font-mono text-micro text-violet transition hover:bg-violet-pale"
+              className="mt-1 inline-flex items-center gap-2 rounded-lg border border-charcoal-80/15 bg-mist px-3 py-1.5 font-mono text-micro text-violet transition hover:bg-violet-pale"
             >
               {data.manualEntryCode}
               {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 opacity-60" />}
@@ -368,7 +368,7 @@ function SetupState({ data, code, setCode, onVerify, verifying, onCancel }) {
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
               placeholder="000000"
               maxLength={6}
-              className="w-full rounded-xl border-2 border-charcoal-80/20 bg-[#fafafa] px-4 py-4 text-center text-section font-bold tracking-[0.4em] text-violet outline-none focus:border-violet focus:ring-2 focus:ring-violet/15"
+              className="w-full rounded-xl border-2 border-charcoal-80/20 bg-mist px-4 py-4 text-center text-section font-bold tracking-[0.4em] text-violet outline-none focus:border-violet focus:ring-2 focus:ring-violet/15"
             />
           </div>
 
@@ -414,7 +414,7 @@ function EnabledState({ status, onRegenerate, onDisable }) {
         <div className={`flex items-start gap-3 rounded-xl border p-4 ${
           lowOnCodes
             ? "border-amber-200 bg-amber-50"
-            : "border-charcoal-80/10 bg-[#fafafa]"
+            : "border-charcoal-80/10 bg-mist"
         }`}>
           <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
             lowOnCodes ? "bg-amber-500 text-white" : "bg-violet-pale text-violet"
@@ -442,7 +442,7 @@ function EnabledState({ status, onRegenerate, onDisable }) {
         </div>
 
         {/* Disable */}
-        <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4">
+        <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4">
           <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
             <Trash2 className="h-4 w-4" />
           </div>
@@ -523,7 +523,7 @@ function BackupCodesModal({ codes, onClose }) {
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-2 gap-2 rounded-xl border border-charcoal-80/15 bg-[#fafafa] p-4 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2 rounded-xl border border-charcoal-80/15 bg-mist p-4 sm:grid-cols-2">
             {codes.map((code) => (
               <code key={code} className="rounded-lg bg-white px-3 py-2 text-center font-mono text-meta font-bold tracking-wider text-violet shadow-sm">
                 {code}
@@ -621,7 +621,7 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
               onKeyDown={(e) => { if (e.key === "Enter") handleConfirm() }}
               placeholder={t("twoFactor.passwordModal.passwordPlaceholder")}
               autoFocus
-              className="w-full rounded-xl border border-charcoal-80/20 bg-[#fafafa] px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
+              className="w-full rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
             />
           </div>
         </div>

@@ -269,7 +269,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
               value={formText}
               onChange={(e) => setFormText(e.target.value)}
               placeholder={t("reviews.placeholder")}
-              className="w-full rounded-xl border border-charcoal-80/12 bg-[#fafafa] px-4 py-3 text-sm outline-none focus:border-violet/30"
+              className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 text-sm outline-none focus:border-violet/30"
               maxLength={5000}
             />
           </div>
@@ -291,7 +291,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
             <button
               type="button"
               onClick={() => { setShowForm(false); setFormError("") }}
-              className="rounded-xl border border-charcoal-80/15 px-5 py-3 text-sm font-medium text-charcoal-80 transition hover:bg-[#fafafa]"
+              className="rounded-xl border border-charcoal-80/15 px-5 py-3 text-sm font-medium text-charcoal-80 transition hover:bg-mist"
             >
               Cancel
             </button>
@@ -306,7 +306,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
           ))}
         </div>
       ) : reviews.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-[#fafafa] px-6 py-8 text-center text-sm text-charcoal-80/50">
+        <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist px-6 py-8 text-center text-sm text-charcoal-80/50">
           {t("reviews.noneYet")}
         </div>
       ) : (

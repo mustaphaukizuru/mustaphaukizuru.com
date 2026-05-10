@@ -87,7 +87,7 @@ export default function AuthInput({
       )}
 
       <div
-        className={`relative flex items-center rounded-xl border bg-[#fafafa] transition-all ${borderClass} ${focusRingClass} focus-within:bg-white focus-within:ring-[3px] focus-within:ring-offset-2 focus-within:ring-offset-white`}
+        className={`relative flex items-center rounded-xl border bg-mist transition-all ${borderClass} ${focusRingClass} focus-within:bg-white focus-within:ring-[3px] focus-within:ring-offset-2 focus-within:ring-offset-white`}
       >
         {Icon && (
           <Icon

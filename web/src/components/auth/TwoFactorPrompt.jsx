@@ -143,7 +143,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
                 onKeyDown={(e) => handleDigitKeyDown(i, e)}
                 disabled={loading}
                 aria-label={`Digit ${i + 1} of 6`}
-                className="h-14 w-full rounded-xl border-2 border-charcoal-80/15 bg-[#fafafa] text-center text-section font-bold text-violet outline-none transition focus:border-violet focus:bg-white focus:ring-2 focus:ring-violet/15 disabled:opacity-50 sm:h-16 sm:text-section"
+                className="h-14 w-full rounded-xl border-2 border-charcoal-80/15 bg-mist text-center text-section font-bold text-violet outline-none transition focus:border-violet focus:bg-white focus:ring-2 focus:ring-violet/15 disabled:opacity-50 sm:h-16 sm:text-section"
               />
             ))}
           </div>
@@ -163,7 +163,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
             autoComplete="off"
             disabled={loading}
             autoFocus
-            className="w-full rounded-xl border-2 border-charcoal-80/15 bg-[#fafafa] px-4 py-3.5 text-center text-body font-mono font-bold tracking-[0.2em] text-violet outline-none transition focus:border-violet focus:bg-white focus:ring-2 focus:ring-violet/15 disabled:opacity-50"
+            className="w-full rounded-xl border-2 border-charcoal-80/15 bg-mist px-4 py-3.5 text-center text-body font-mono font-bold tracking-[0.2em] text-violet outline-none transition focus:border-violet focus:bg-white focus:ring-2 focus:ring-violet/15 disabled:opacity-50"
           />
           <p className="mt-2 text-micro text-charcoal-80/55">
             {t("auth.twofa.backupOnce")}

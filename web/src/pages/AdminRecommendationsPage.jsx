@@ -174,7 +174,7 @@ function RecommendationModal({ open, onClose, initial, onSaved }) {
                   </h2>
                 </div>
                 <button type="button" onClick={onClose} aria-label="Close"
-                  className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-[#1A1B23]/55 transition hover:bg-[#f5eff6] hover:text-[#5D3FD3]"
+                  className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-[#1A1B23]/55 transition hover:bg-violet-ghost hover:text-[#5D3FD3]"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -450,13 +450,13 @@ export default function AdminRecommendationsPage() {
         </div>
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => setCategoryFilter("")}
-            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${categoryFilter === "" ? "bg-[#1A1B23] text-white" : "bg-[#f5eff6] text-[#1A1B23]/65 hover:bg-[#EDE9FB]"}`}
+            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${categoryFilter === "" ? "bg-[#1A1B23] text-white" : "bg-violet-ghost text-[#1A1B23]/65 hover:bg-[#EDE9FB]"}`}
           >
             All categories
           </button>
           {CATEGORIES.map((c) => (
             <button key={c.value} type="button" onClick={() => setCategoryFilter(c.value)}
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${categoryFilter === c.value ? "bg-[#1A1B23] text-white" : "bg-[#f5eff6] text-[#1A1B23]/65 hover:bg-[#EDE9FB]"}`}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${categoryFilter === c.value ? "bg-[#1A1B23] text-white" : "bg-violet-ghost text-[#1A1B23]/65 hover:bg-[#EDE9FB]"}`}
             >
               <c.Icon className="h-3 w-3" /> {c.label}
             </button>
@@ -472,7 +472,7 @@ export default function AdminRecommendationsPage() {
 
       {loading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-[#f5eff6]" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-violet-ghost" />)}
         </div>
       ) : visible.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#1A1B23]/20 bg-white p-10 text-center">

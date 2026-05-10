@@ -249,7 +249,7 @@ function RowActions({ user, isMe, busy, onStatus, onRole }) {
           type="button"
           disabled={busy}
           onClick={() => onRole(user, "member")}
-          className="inline-flex items-center gap-1 rounded-md border border-[#DCDCE4] bg-white px-2 py-1 text-[11px] font-semibold text-charcoal-80 transition hover:bg-[#fafafa] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+          className="inline-flex items-center gap-1 rounded-md border border-[#DCDCE4] bg-white px-2 py-1 text-[11px] font-semibold text-charcoal-80 transition hover:bg-mist disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
           aria-label={`Demote ${user.fullName || user.email} to member`}
         >
           <RotateCcw className="h-3 w-3" aria-hidden="true" /> Demote

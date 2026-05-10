@@ -162,7 +162,7 @@ export default function DashboardOrderDetailPage() {
             const price = Number(item.priceSnapshot ?? item.price ?? 0)
             const title = item.titleSnapshot || item.product?.title || item.title || "—"
             return (
-              <li key={item.id} className="flex items-center gap-3 rounded-xl border border-charcoal-80/8 bg-[#fafafa] p-3">
+              <li key={item.id} className="flex items-center gap-3 rounded-xl border border-charcoal-80/8 bg-mist p-3">
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-violet-pale">
                   {img ? (
                     <img src={img} alt={title} className="h-full w-full object-cover" loading="lazy" />

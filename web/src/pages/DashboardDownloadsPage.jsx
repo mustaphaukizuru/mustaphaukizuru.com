@@ -59,7 +59,7 @@ function ProductDownloadCard({ product, onDownload, downloadingKey }) {
         </div>
       </div>
 
-      <div className="border-t border-charcoal-80/8 bg-[#fafafa] p-4">
+      <div className="border-t border-charcoal-80/8 bg-mist p-4">
         <div className="space-y-2">
           {product.files.map((file) => {
             const styles = getFileTypeStyles(file.fileType || file.fileName || "")
@@ -479,7 +479,7 @@ export default function DashboardDownloadsPage() {
           </div>
         ) : viewMode === "grid" ? (
           filteredProducts.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-[#fafafa] p-6 text-center text-meta text-charcoal-80/60">
+            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
               {t("downloads.empty.noProducts")}
             </div>
           ) : (
@@ -496,7 +496,7 @@ export default function DashboardDownloadsPage() {
           )
         ) : (
           filteredFlat.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-[#fafafa] p-6 text-center text-meta text-charcoal-80/60">
+            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
               {t("downloads.empty.noFiles")}
             </div>
           ) : (

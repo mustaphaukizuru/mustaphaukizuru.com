@@ -92,7 +92,7 @@ function PreferencesModal({ open, onClose }) {
                   return (
                     <li
                       key={cat.key}
-                      className="rounded-xl border border-[#1A1B23]/12 bg-[#fafafa] p-4 transition hover:border-[#5D3FD3]/20"
+                      className="rounded-xl border border-[#1A1B23]/12 bg-mist p-4 transition hover:border-[#5D3FD3]/20"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">

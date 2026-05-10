@@ -28,7 +28,7 @@ function TicketCard({ ticket, onSelect }) {
     <button
       type="button"
       onClick={() => onSelect(ticket)}
-      className="flex w-full items-start gap-4 rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4 text-left transition hover:border-violet/20 hover:bg-[#F5F2FE]"
+      className="flex w-full items-start gap-4 rounded-xl border border-charcoal-80/10 bg-mist p-4 text-left transition hover:border-violet/20 hover:bg-[#F5F2FE]"
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
         <MessageSquare className="h-5 w-5" />
@@ -118,7 +118,7 @@ function CreateTicketModal({ onClose, onCreated }) {
               value={form.subject}
               onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
               placeholder={t("support.create.subjectPlaceholder")}
-              className="w-full rounded-xl border border-charcoal-80/20 bg-[#fafafa] px-4 py-3 text-meta text-violet outline-none focus:border-violet/40 focus:ring-2 focus:ring-violet/10 placeholder:text-charcoal-80/40"
+              className="w-full rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40 focus:ring-2 focus:ring-violet/10 placeholder:text-charcoal-80/40"
             />
           </div>
 
@@ -129,7 +129,7 @@ function CreateTicketModal({ onClose, onCreated }) {
             <select
               value={form.priority}
               onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}
-              className="w-full rounded-xl border border-charcoal-80/20 bg-[#fafafa] px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
+              className="w-full rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
             >
               <option value="low">{t("support.create.priorityLow")}</option>
               <option value="medium">{t("support.create.priorityMedium")}</option>
@@ -146,7 +146,7 @@ function CreateTicketModal({ onClose, onCreated }) {
               value={form.message}
               onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
               placeholder={t("support.create.messagePlaceholder")}
-              className="w-full resize-none rounded-xl border border-charcoal-80/20 bg-[#fafafa] px-4 py-3 text-meta text-violet outline-none focus:border-violet/40 focus:ring-2 focus:ring-violet/10 placeholder:text-charcoal-80/40"
+              className="w-full resize-none rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40 focus:ring-2 focus:ring-violet/10 placeholder:text-charcoal-80/40"
             />
           </div>
         </div>
@@ -249,7 +249,7 @@ function TicketThread({ ticket, onClose }) {
             className={`rounded-xl p-4 text-meta ${
               msg.isAdmin
                 ? "border border-violet/15 bg-[#F5F2FE] text-violet"
-                : "border border-charcoal-80/10 bg-[#fafafa] text-charcoal-80"
+                : "border border-charcoal-80/10 bg-mist text-charcoal-80"
             }`}
           >
             <div className="mb-1.5 flex items-center gap-2">
@@ -273,7 +273,7 @@ function TicketThread({ ticket, onClose }) {
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             placeholder={t("support.thread.replyPlaceholder")}
-            className="w-full resize-none rounded-xl border border-charcoal-80/20 bg-[#fafafa] px-4 py-3 text-meta text-violet outline-none focus:border-violet/40 focus:ring-2 focus:ring-violet/10 placeholder:text-charcoal-80/40"
+            className="w-full resize-none rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40 focus:ring-2 focus:ring-violet/10 placeholder:text-charcoal-80/40"
           />
           <button
             type="button"

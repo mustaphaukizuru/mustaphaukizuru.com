@@ -276,7 +276,7 @@ export default function AdminOrderDetailPage() {
               {(order.items || []).map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4"
+                  className="rounded-xl border border-charcoal-80/10 bg-mist p-4"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
@@ -351,7 +351,7 @@ export default function AdminOrderDetailPage() {
                 order.payments.map((payment) => (
                   <div
                     key={payment.id}
-                    className="rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4"
+                    className="rounded-xl border border-charcoal-80/10 bg-mist p-4"
                   >
                     <div className="text-meta font-semibold capitalize text-violet">
                       {payment.paymentGateway}
@@ -448,7 +448,7 @@ function RefundHistoryCard({ refunds, currency }) {
         {refunds.map((r) => (
           <li
             key={r.id}
-            className="rounded-xl border border-charcoal-80/10 bg-[#fafafa] p-4"
+            className="rounded-xl border border-charcoal-80/10 bg-mist p-4"
           >
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div className="text-meta font-semibold text-violet">
@@ -716,7 +716,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
                   return (
                     <li key={item.orderItemId} className={`rounded-xl border p-3 ${
                       disabled
-                        ? "border-charcoal-80/10 bg-[#fafafa] opacity-60"
+                        ? "border-charcoal-80/10 bg-mist opacity-60"
                         : "border-charcoal-80/15 bg-white"
                     }`}>
                       <label className="flex items-start gap-3 cursor-pointer">
