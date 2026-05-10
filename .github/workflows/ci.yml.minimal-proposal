@@ -1,0 +1,79 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# mustaphaukizuru.com — Minimal CI (green-by-construction)
+#
+# Philosophy: only block on what would break production.
+#   - Frontend build must succeed (this is what Hostinger serves)
+#   - Backend deps must install (this is what Hostinger runs)
+#   - Everything else is advisory until the codebase is ready for it
+#
+# Activate by replacing ci.yml with this file. Heavier gates can be re-added
+# one at a time once the relevant backlog item lands.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: CI
+
+on:
+  pull_request:
+    branches: [master, develop]
+  push:
+    branches: [master, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ────────────────────────────────────────────────────────────────────────────
+  # Backend — install only (no tests yet, no lint blocking)
+  # ────────────────────────────────────────────────────────────────────────────
+  backend:
+    name: Backend install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Frontend — must build (this is the real production gate)
+  # ────────────────────────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build (production parity gate — MUST PASS)
+        working-directory: web
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+          retention-days: 7

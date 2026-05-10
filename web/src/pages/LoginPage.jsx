@@ -122,11 +122,12 @@ export default function LoginPage() {
     // rather than silently blocking. Real bots fill consistently — log
     // for diagnostics but don't kill the flow on first occurrence.
     if (honeypot) {
+      // Most likely browser autofill on a real user, not a bot. Clear
+      // silently and continue with the real submission below — no
+      // second click required. Logged for diagnostics only.
       // eslint-disable-next-line no-console
-      console.warn("[login] honeypot was filled — clearing and retrying")
+      console.warn("[login] honeypot was filled — assuming autofill, proceeding")
       setHoneypot("")
-      setError("Please click Sign In again.")
-      return
     }
 
     const cleanEmail = email.trim().toLowerCase()

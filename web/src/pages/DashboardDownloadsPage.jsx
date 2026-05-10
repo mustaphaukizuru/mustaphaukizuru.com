@@ -9,6 +9,7 @@ import { MetricCard, EmptyState, SkeletonCard, SectionCard } from "../components
 import { fetchMyOrders } from "../services/orderService"
 import { API_BASE_URL } from "../lib/api"
 import { getStoredToken } from "../services/authService"
+import { streamFileDownload, triggerBrowserDownload } from "../services/downloadService"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -325,38 +326,35 @@ export default function DashboardDownloadsPage() {
     setDownloadingKey(key)
 
     try {
-      const token = getStoredToken()
-      if (!token) throw new Error(t("downloads.errors.loginRequired"))
-
-      const url = `${API_BASE_URL}/api/downloads/${item.productId}/file/${item.fileId}`
-      const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        throw new Error(data.message || t("downloads.errors.downloadFailed"))
+      // Cheap pre-flight — avoids a needless network round-trip if the user
+      // was logged out between page load and click.
+      if (!getStoredToken()) {
+        throw new Error(t("downloads.errors.loginRequired"))
       }
 
-      const blob = await response.blob()
-      const objectUrl = window.URL.createObjectURL(blob)
+      const { blob, filename } = await streamFileDownload(item.productId, item.fileId)
+      triggerBrowserDownload(blob, filename || item.fileName)
 
-      let filename = item.fileName
-      const disposition = response.headers.get("Content-Disposition")
-      if (disposition) {
-        const match = disposition.match(/filename="?([^"]+)"?/)
-        if (match?.[1]) filename = match[1]
-      }
-
-      const link = document.createElement("a")
-      link.href = objectUrl
-      link.download = filename
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.URL.revokeObjectURL(objectUrl)
-
-      setSuccess(t("downloads.toast.downloadStarted", { filename }))
+      setSuccess(t("downloads.toast.downloadStarted", { filename: filename || item.fileName }))
     } catch (err) {
-      setError(err.message || t("downloads.errors.downloadUnavailable"))
+      // Map structured backend codes to specific i18n messages so the user
+      // gets actionable feedback instead of a generic toast.
+      const code = err?.code || ""
+      const messageKey = (
+        code === "FORBIDDEN"        ? "downloads.errors.notEntitled" :
+        code === "NOT_FOUND"        ? "downloads.errors.fileMissing" :
+        code === "FILE_MISSING"     ? "downloads.errors.fileMissing" :
+        code === "LIMIT_EXCEEDED"   ? "downloads.errors.limitExceeded" :
+        code === "AUTH_MISSING"     ? "downloads.errors.loginRequired" :
+        code === "VALIDATION_ERROR" ? "downloads.errors.downloadFailed" :
+        ""
+      )
+
+      const fallback = (typeof err?.toUserMessage === "function" ? err.toUserMessage() : null)
+                    || err?.message
+                    || t("downloads.errors.downloadUnavailable")
+
+      setError(messageKey ? t(messageKey, fallback) : fallback)
     } finally {
       setDownloadingKey("")
     }

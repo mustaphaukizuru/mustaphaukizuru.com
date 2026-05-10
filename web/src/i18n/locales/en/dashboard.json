@@ -459,9 +459,12 @@
   "downloads": {
     "errors": {
       "load": "Failed to load downloads.",
-      "loginRequired": "You must be logged in to download.",
-      "downloadFailed": "Download failed.",
-      "downloadUnavailable": "Download not available."
+      "loginRequired": "Your session has expired. Please sign in again to download.",
+      "downloadFailed": "Download failed. Please try again.",
+      "downloadUnavailable": "Download not available right now. Please try again shortly.",
+      "notEntitled": "You don't have access to this file. If this is unexpected, contact support.",
+      "fileMissing": "This file is temporarily unavailable. Our team has been notified.",
+      "limitExceeded": "You've reached the download limit for this file."
     },
     "toast": {
       "downloadStarted": "Download started: {{filename}}"

@@ -430,19 +430,19 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
                 for the filter rail). The `scroll-mt-*` utility on those targets
                 offsets the sticky header so the section title isn't hidden. */}
             <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <a
-                href="#products"
+              <Link
+                to="/store#products"
                 className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet shadow-[0_14px_36px_rgba(233, 196, 106,0.30)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
               >
                 {t("hero.shopNow")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-              </a>
-              <a
-                href="#categories"
+              </Link>
+              <Link
+                to="/store#categories"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/25 bg-white/5 px-7 py-4 text-[14px] font-semibold !text-white backdrop-blur-sm transition hover:-translate-y-0.5 hover:border-white/45 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               >
                 {t("hero.browseCategories")}
-              </a>
+              </Link>
             </div>
 
             {/* Trust strip · 4 badges (Instant Download · Secure Checkout · Money-Back · 24/7 Support) */}

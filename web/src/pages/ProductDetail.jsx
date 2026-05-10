@@ -477,7 +477,7 @@ function formatUpdatedDate(value) {
 const TRUST_BADGES = [
   { icon: Lock,       key: "secureCheckout" },
   { icon: CreditCard, key: "paymentMethods" },
-  { icon: RotateCcw,  key: "refundPolicy" },
+  { icon: RefreshCw,  key: "lifetimeUpdates" },
   { icon: Zap,        key: "instantDownload" },
 ];
 
@@ -1341,7 +1341,7 @@ export default function ProductDetail() {
         jsonLd={allJsonLd}
       />
 
-      <div className="bg-mist">
+      <div className="bg-mist overflow-x-hidden w-full max-w-[100vw]">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <nav className="mb-6 flex flex-wrap items-center gap-2 text-meta text-charcoal-80/60">
             <Link
@@ -1446,7 +1446,7 @@ export default function ProductDetail() {
                       key={tab.id}
                       type="button"
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap px-3 py-3.5 text-meta font-semibold transition-all ${
+                      className={`inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap px-4 py-3.5 text-meta font-semibold transition-all sm:flex-1 ${
                         activeTab === tab.id
                           ? "border-b-2 border-violet text-violet"
                           : "text-charcoal-80/60 hover:text-violet"

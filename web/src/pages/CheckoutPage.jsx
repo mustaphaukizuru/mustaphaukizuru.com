@@ -30,7 +30,7 @@ import { fetchAddresses, formatAddressLine, COUNTRY_OPTIONS } from "../services/
  *      context's applyCoupon/removeCoupon (was previously a non-functional
  *      placeholder).
  *    - "Place order" button promoted to Innovation Gradient (the ONE CTA).
- *    - Trust row below CTA: SSL · 30-day refund · PayPal · MercadoPago.
+ *    - Trust row below CTA: SSL · Lifetime updates · PayPal · MercadoPago.
  *    - All numerics (subtotal, total) render in JetBrains Mono · tabular-nums.
  *
  *  PRESERVED VERBATIM (DO NOT TOUCH per F08 spec):

@@ -59,7 +59,7 @@ function adaptGuestItem(raw) {
     price: Number(raw.price || 0),
     currency: raw.currency || "MXN",
     category: raw.category || "General",
-    imageUrl: raw.imageUrl || "",
+    imageUrl: raw.imageUrl || getPrimaryImage(raw),
     quantity: Math.max(1, Math.floor(Number(raw.quantity) || 1)),
   }
 }

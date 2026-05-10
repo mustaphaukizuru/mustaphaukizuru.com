@@ -46,7 +46,7 @@
   "trust": {
     "secureCheckout": "Secure checkout",
     "paymentMethods": "PayPal + MercadoPago",
-    "refundPolicy": "30-day refund",
+    "lifetimeUpdates": "Lifetime updates",
     "instantDownload": "Instant download",
     "ariaLabel": "Purchase guarantees"
   },

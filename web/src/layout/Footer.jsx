@@ -235,14 +235,14 @@ export default function Footer() {
                 <img
                   src={mercadoPagoLogo}
                   alt={t("footer.mercadoPagoAcceptedAlt")}
-                  className="h-10 w-auto object-contain"
+                  className="h-6 w-28 object-contain"
                 />
               </div>
               <div className="flex items-center overflow-hidden rounded-md border border-white/10 bg-white px-3 py-2">
                 <img
                   src={paypalLogo}
                   alt={t("footer.paypalAcceptedAlt")}
-                  className="h-6 w-auto object-contain"
+                  className="h-6 w-28 object-contain"
                 />
               </div>
             </div>
