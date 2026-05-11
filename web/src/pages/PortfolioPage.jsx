@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import {
   ArrowRight, Sparkles, Search, Grid3x3, AlertCircle, ChevronRight,
   ExternalLink, Tag,
@@ -10,6 +10,7 @@ import Seo from "../components/seo/Seo"
 import Breadcrumbs from "../components/Breadcrumbs"
 import { itemListSchema } from "../seo/schemas"
 import { listPortfolio } from "../services/portfolioService"
+import StaggerGrid from "../components/motion/StaggerGrid"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  PortfolioPage · /portfolio
@@ -200,20 +201,23 @@ export default function PortfolioPage() {
             </div>
           ) : (
             <>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`${activeCategory || "all"}-${page}`}
-                  variants={stagger}
-                  initial="hidden"
-                  animate="show"
-                  exit={{ opacity: 0 }}
-                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-                >
-                  {visibleItems.map((item) => (
-                    <PortfolioCard key={item.id} item={item} />
-                  ))}
-                </motion.div>
-              </AnimatePresence>
+              {/* Phase 10b · StaggerGrid replaces the manual motion.div.
+                  The previous wrapper paired AnimatePresence with a key
+                  that included activeCategory + page so the grid would
+                  remount on filter change — but the inner motion.div
+                  didn't actually stagger because PortfolioCard children
+                  have no variants of their own. StaggerGrid wraps each
+                  child in its own variant-bearing motion node, so the
+                  intended wave-entrance now actually fires. */}
+              <StaggerGrid
+                key={`${activeCategory || "all"}-${page}`}
+                className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                stagger={0.06}
+              >
+                {visibleItems.map((item) => (
+                  <PortfolioCard key={item.id} item={item} />
+                ))}
+              </StaggerGrid>
 
               {/* Pagination */}
               {pagination && pagination.totalPages > 1 && (

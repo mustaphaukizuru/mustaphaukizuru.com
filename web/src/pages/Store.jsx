@@ -13,6 +13,7 @@ import StoreHero from "../components/heroes/StoreHero"
 import { API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"
 import { getFileTypeStyles } from "../lib/fileTypeIcons"
+import StaggerGrid from "../components/motion/StaggerGrid"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  Store · F05 · Batch 4
@@ -678,9 +679,12 @@ export default function Store() {
                 {paginated.map((p) => <StoreListItem key={p.id} product={p} />)}
               </div>
             ) : (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3">
+              <StaggerGrid
+                className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3"
+                stagger={0.06}
+              >
                 {paginated.map((p) => <StoreProductCard key={p.id} product={p} />)}
-              </div>
+              </StaggerGrid>
             )}
 
             {/* F05.F · paginate */}

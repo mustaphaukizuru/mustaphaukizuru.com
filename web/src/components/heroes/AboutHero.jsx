@@ -12,6 +12,7 @@ import {
   Settings2,
   Sparkles,
 } from "lucide-react"
+import KineticHeadline from "../motion/KineticHeadline"
 
 import SocialLinks, { FOLLOW_SOCIALS } from "../SocialLinks"
 
@@ -143,19 +144,22 @@ export default function AboutHero() {
               <p className="text-[clamp(16px,1.4vw,20px)] font-semibold text-charcoal-80/65">
                 {t("hero.helloIAm")}
               </p>
-              <h1
+              {/* Phase 10b · kinetic word-by-word reveal. The legacy
+                  decorative underline is dropped — the highlight tone
+                  (terracotta) carries the same emphasis function and the
+                  reveal motion supplies the visual interest the underline
+                  was filling in for. */}
+              <KineticHeadline
+                as="h1"
                 id="about-hero-title"
-                className="text-display text-violet"
-              >
-                Mustapha{" "}
-                <span className="relative inline-block text-terracotta">
-                  Ukizuru.
-                  <span
-                    aria-hidden="true"
-                    className="absolute -bottom-1 left-0 h-[3px] w-full rounded-full bg-violet/20"
-                  />
-                </span>
-              </h1>
+                className="text-display text-violet text-balance"
+                stagger={0.08}
+                parts={[
+                  { text: "Mustapha" },
+                  { text: "Ukizuru.", highlight: true },
+                ]}
+                highlightClassName="text-terracotta"
+              />
             </motion.div>
 
             {/* Stats */}

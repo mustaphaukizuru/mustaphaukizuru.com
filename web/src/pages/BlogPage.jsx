@@ -38,6 +38,7 @@ import Container from "../components/system/Container"
 import Seo from "../components/seo/Seo"
 import { pageSeo } from "../seo/pageSeo"
 import { apiRequest } from "../lib/api"
+import StaggerGrid from "../components/motion/StaggerGrid"
 import {
   BLOG_CATEGORIES,
   getAllPosts,
@@ -335,20 +336,24 @@ export default function BlogPage() {
               {/* Grid · 1-col on mobile · 2-col from sm · 3-col from xl
                   for editorial density on wide displays without ever
                   feeling cramped against the 280px sidebar. */}
+              {/* Phase 10b · StaggerGrid handles the semantic <ul>/<li>
+                  pair AND the staggered entrance. PostCard becomes a
+                  plain <article> wrapped by StaggerGrid's <li> — valid
+                  HTML and one less motion node per card to track. */}
               {pagePosts.length === 0 ? (
                 <EmptyState onClear={clearFilters} />
               ) : (
-                <motion.ul
+                <StaggerGrid
+                  as="ul"
+                  itemAs="li"
                   role="list"
-                  variants={reduce ? undefined : stagger}
-                  initial={reduce ? false : "hidden"}
-                  animate="show"
                   className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3"
+                  stagger={0.06}
                 >
                   {pagePosts.map((post) => (
-                    <PostCard key={post.slug} post={post} reduce={reduce} />
+                    <PostCard key={post.slug} post={post} />
                   ))}
-                </motion.ul>
+                </StaggerGrid>
               )}
 
               {/* Pagination */}
@@ -749,11 +754,12 @@ function FeaturedCard({ post, reduce }) {
    POST CARD · grid item
    ════════════════════════════════════════════════════════════════════════ */
 
-function PostCard({ post, reduce }) {
+function PostCard({ post }) {
   const cat = categoryByValue(post.category)
   return (
-    <motion.li
-      variants={reduce ? undefined : fadeUp}
+    // Phase 10b · entrance motion now lives one level up in StaggerGrid's
+    // <li> wrapper; this article is the static content layer underneath.
+    <article
       className="group relative flex min-h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_18px_46px_-16px_rgba(93,63,211,0.20)]"
     >
       <Link to={`/blog/${post.slug}`} className="flex h-full flex-col">
@@ -771,7 +777,7 @@ function PostCard({ post, reduce }) {
           </div>
         </div>
       </Link>
-    </motion.li>
+    </article>
   )
 }
 
