@@ -325,7 +325,18 @@ async function getEnrichedOrderById(id) {
           },
         },
       },
-      invoice: true,
+      // NOTE · the Order ↔ Invoice relation is `invoices Invoice[]` (plural
+      // array) per prisma/schema.prisma. The pre-fix code asked for a
+      // singular `invoice: true`, which made Prisma throw
+      // `PrismaClientValidationError: Unknown field 'invoice'`, which the
+      // global errorHandler translates to a generic 400 "Bad request".
+      // That's what was breaking the dashboard order-detail view.
+      // We pull the most recent invoice (there's typically only one
+      // per order) so the downstream invoicePdfUrl logic still works.
+      invoices: {
+        orderBy: { issuedAt: "desc" },
+        take: 1,
+      },
       payments: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -480,17 +491,20 @@ async function getEnrichedOrderById(id) {
     })
   }
 
-  // Invoice URL — only expose when a paid order has an invoice row
+  // Invoice URL — only expose when a paid order has at least one invoice
+  // row. The relation is plural (`invoices`) per the Order schema; we
+  // pull `take: 1` above so we either get an array with one entry or
+  // an empty array.
   const invoicePdfUrl =
-    order.status === "paid" && order.invoice
+    order.status === "paid" && order.invoices?.[0]
       ? `/api/orders/${order.id}/invoice.pdf`
       : null
 
   const base = serializeOrder(order)
 
-  // Strip payments/invoice raw from the base so clients consume our named fields
+  // Strip payments/invoices raw from the base so clients consume our named fields
   delete base.payments
-  delete base.invoice
+  delete base.invoices
 
   return {
     ...base,
