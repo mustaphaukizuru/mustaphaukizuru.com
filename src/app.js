@@ -96,7 +96,8 @@ app.use(helmet({
                     "https://www.paypalobjects.com",
                     "https://sdk.mercadopago.com",
                     "https://http2.mlstatic.com"],
-      frameSrc:    ["https://accounts.google.com",
+      frameSrc:    ["'self'",                       // CSP · same-origin iframes (e.g. inline PDF certificates)
+                    "https://accounts.google.com",
                     "https://www.paypal.com",
                     "https://www.mercadopago.com",
                     "https://www.mercadopago.com.br"],
@@ -108,6 +109,12 @@ app.use(helmet({
       imgSrc:      ["'self'", "data:", "https:"],
       styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc:     ["'self'", "https://fonts.gstatic.com", "data:"],
+      // PDF.js spawns its worker from a hashed same-origin URL emitted by
+      // Vite at build time (e.g. /assets/pdf.worker-XXX.mjs). The explicit
+      // worker-src directive prevents the fallback to script-src from being
+      // ambiguous and adds `blob:` for libraries that bootstrap workers via
+      // Blob URLs.
+      workerSrc:   ["'self'", "blob:"],
       objectSrc:   ["'none'"],
       baseUri:     ["'self'"],
       formAction:  ["'self'"],
