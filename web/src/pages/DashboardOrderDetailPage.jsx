@@ -55,7 +55,18 @@ export default function DashboardOrderDetailPage() {
         const data = await fetchMyOrderById(orderId)
         if (!cancelled) setOrder(data || null)
       } catch (err) {
-        if (!cancelled) setError(err?.message || t("orderDetail.errorLoading", "Could not load order details."))
+        // Prefer `toUserMessage()` on AppError instances — it returns
+        // either the API's message (when present) or a clean status
+        // label fallback ("Not found", "Sign-in required", …). Falling
+        // back to bare `err.message` first leaks "Request failed (404)"
+        // strings to users; toUserMessage rewrites those.
+        if (!cancelled) {
+          setError(
+            err?.toUserMessage?.() ||
+            err?.message ||
+            t("orderDetail.errorLoading", "Could not load order details."),
+          )
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
