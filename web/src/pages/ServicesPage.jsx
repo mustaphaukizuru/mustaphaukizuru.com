@@ -945,10 +945,12 @@ export default function ServicesPage() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Decision-support band — primary CTA is now the interactive
-              self-audit at /diagnostic (15-minute capability assessment).
-              The PDF catalog stays as a secondary reference download. The
-              old Markdown export was redundant and has been removed. */}
+          {/* Decision-support band — primary CTA is the interactive
+              self-audit at /self-audit (a React shell that iframes the
+              static /diagnostic document and forwards every audit event
+              to analytics so the business can see which gaps visitors
+              are surfacing and which services they're matched to).
+              The PDF catalog stays as a secondary reference download. */}
           <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl border border-violet/15 bg-white p-6 text-center shadow-[0_8px_24px_rgba(93,63,211,0.05)] sm:flex-row sm:justify-between sm:gap-6 sm:p-7 sm:text-left">
             <div className="flex items-start gap-3">
               <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-violet/10 text-violet sm:h-14 sm:w-14">
@@ -964,16 +966,14 @@ export default function ServicesPage() {
               </div>
             </div>
             <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:gap-2">
-              <a
-                href="/diagnostic"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/self-audit"
                 aria-label={t("pricing.selfAudit.ctaAria", "Open the digital and technology self-audit (15 minutes)")}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3 text-[12.5px] font-semibold !text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 sm:text-[13px]"
               >
                 <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
                 {t("pricing.selfAudit.cta", "Take the self-audit")}
-              </a>
+              </Link>
               <a
                 href="/documents/Mustapha-Ukizuru-Service-Catalog-v1.0.pdf"
                 download

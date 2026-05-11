@@ -402,15 +402,21 @@ export default function ServicesHero() {
                   15-minute capability assessment served at /diagnostic
                   (public/diagnostic/index.html). Opens in a new tab so the
                   user's place on the services page is preserved. */}
-              <a
-                href="/diagnostic"
-                target="_blank"
-                rel="noopener noreferrer"
+              {/* Self-audit CTA · same-window navigation to the new React
+                  shell at /self-audit (the shell iframes /diagnostic and
+                  forwards every audit event to trackEvent for analytics).
+                  Pre-fix this targeted /diagnostic directly with
+                  target="_blank", which (a) lost the SPA chrome, (b)
+                  bypassed page-view tracking, and (c) made the iframe-based
+                  analytics dead-on-arrival because the new tab had no GA
+                  bootstrap. */}
+              <Link
+                to="/self-audit"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-charcoal-80/15 bg-white px-6 py-3.5 text-[14px] font-bold !text-charcoal-80 transition hover:-translate-y-0.5 hover:border-violet/30 hover:!text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/30"
               >
                 <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
                 {t("hero.selfAuditCta", "Take the free self-audit")}
-              </a>
+              </Link>
             </motion.div>
 
             {/* Stats row */}

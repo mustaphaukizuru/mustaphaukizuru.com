@@ -1208,7 +1208,21 @@ function showToast(msg) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   § Analytics tracking (GA4 / dataLayer / fallback)
+   § Analytics tracking (GA4 / dataLayer / parent postMessage fallback)
+
+   Three sinks, all best-effort:
+     1. window.dataLayer       → for Tag Manager pickups
+     2. window.gtag            → for direct GA4 calls when this page is
+                                 loaded standalone with the GA bootstrap
+     3. window.parent.postMessage → when this page is embedded in an
+                                 iframe inside the React SPA shell at
+                                 /self-audit. The shell forwards every
+                                 event to trackEvent() (GA + Sentry +
+                                 future backend analytics endpoint)
+                                 so the business can see, per visitor,
+                                 which audit answers they gave and
+                                 which services they ended up matched
+                                 to. The source tag scopes the listener.
    ═══════════════════════════════════════════════════════════════════ */
 function track(event, props) {
   try {
@@ -1216,6 +1230,14 @@ function track(event, props) {
     window.dataLayer.push({ event: "diagnostic_" + event, ...props });
     if (typeof window.gtag === "function") {
       window.gtag("event", "diagnostic_" + event, props || {});
+    }
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        source: "ukz-self-audit",
+        event:  event,
+        props:  props || {},
+        ts:     Date.now(),
+      }, window.location.origin);
     }
   } catch (e) {/* no-op */}
 }

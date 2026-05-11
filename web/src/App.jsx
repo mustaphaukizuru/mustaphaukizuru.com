@@ -37,6 +37,7 @@ const AboutPage = lazy(() => import("./pages/AboutPage"));
 const SolutionsPage = lazy(() => import("./pages/SolutionsPage"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
+const SelfAuditPage = lazy(() => import("./pages/SelfAuditPage"));
 
 const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
 const AdminPortfolioPage = lazy(() => import("./pages/AdminPortfolioPage"));
@@ -167,6 +168,7 @@ export default function App() {
             <Route path="/solutions" element={<PublicShell><SolutionsPage /></PublicShell>} />
             <Route path="/services" element={<PublicShell><ServicesPage /></PublicShell>} />
             <Route path="/services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
+            <Route path="/self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
             <Route path="/contact" element={<PublicShell><ContactPage /></PublicShell>} />
             <Route path="/portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />
             <Route path="/projects/:slug" element={<PublicShell><ProjectDetailPage /></PublicShell>} />
