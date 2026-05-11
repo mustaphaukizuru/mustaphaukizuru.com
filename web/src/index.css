@@ -115,6 +115,48 @@
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-xl: 28px;
+
+  /* ─── Phase 10 · Spacing rhythm ────────────────────────────────────────
+   * Fluid spacing tokens for consistent vertical breath. Section padding
+   * scales with viewport width so the same component breathes correctly
+   * from 360px (mobile) to 1920px (large desktop) without media-query
+   * gymnastics. Use as `py-[var(--space-section)]` on every page section.
+   */
+  --space-section:   clamp(64px, 8vw, 128px);  /* top/bottom on major sections */
+  --space-section-y: clamp(48px, 6vw, 96px);   /* tighter rhythm for sub-sections */
+  --space-card:      clamp(20px, 2vw, 28px);   /* default card interior padding */
+  --space-stack:     clamp(12px, 1.5vw, 24px); /* between paragraphs / form rows */
+
+  /* ─── Phase 10 · Reading width caps ────────────────────────────────────
+   * 65ch is the typographic sweet spot for long-form reading; 45ch suits
+   * marketing copy where lines should feel quotable. Use as
+   * `max-w-[var(--measure)]` on prose blocks.
+   */
+  --measure:       65ch;
+  --measure-tight: 45ch;
+  --measure-wide:  80ch;
+
+  /* ─── Phase 10 · Fluid type ────────────────────────────────────────────
+   * Display / heading sizes scale linearly between two viewport breakpoints
+   * via clamp(min, fluid, max). Avoids the abrupt jumps of stepped sizes
+   * (`text-2xl sm:text-3xl lg:text-5xl`) and lets headlines breathe across
+   * intermediate widths. Pair with `text-balance` (Tailwind v4 supports it
+   * out of the box) for orphan-free multi-line titles.
+   */
+  --text-hero:      clamp(40px, 5.5vw, 72px);   /* H1 above the fold */
+  --text-display:   clamp(32px, 4.5vw, 56px);   /* big section headers */
+  --text-section:   clamp(24px, 3vw,   36px);   /* standard section H2 */
+  --text-subhead:   clamp(18px, 2vw,   22px);   /* card titles, sub-section H3 */
+
+  /* ─── Phase 10 · Motion timing ─────────────────────────────────────────
+   * Shared duration + easing tokens so every Framer Motion `transition`
+   * across the app speaks the same rhythm. Easing curve is the "soft
+   * spring" that feels brand-correct (not bouncy, not flat).
+   */
+  --motion-fast:   180ms;
+  --motion-base:   320ms;
+  --motion-slow:   560ms;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 
