@@ -1,152 +1,382 @@
-import { useNavigate } from "react-router-dom"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { Helmet } from "react-helmet-async"
 import { motion } from "framer-motion"
-import { ArrowLeft, RefreshCw, Home, WifiOff, ServerCrash, Lock, SearchX } from "lucide-react"
+import {
+  ArrowLeft,
+  Clock,
+  Construction,
+  Home,
+  LifeBuoy,
+  Lock,
+  LogIn,
+  RefreshCw,
+  SearchX,
+  ServerCrash,
+  ShieldAlert,
+  WifiOff,
+} from "lucide-react"
+
+import { trackEvent } from "../lib/analytics"
 
 /**
- * ErrorPage — universal error/404 display used by:
- *   • The `*` catch-all route (e.g. <ErrorPage type="404" />)
- *   • Any page that wants to render a themed error inline
+ * ErrorPage — universal error/404 surface.
  *
- * NOTE: This component deliberately does NOT use `useRouteError()` from
- * react-router-dom. That hook only works inside a data router created via
- * `createBrowserRouter`, and this app uses the component-based `<Routes>`
- * pattern. Calling it here would throw during render.
+ * Used by:
+ *   • The catch-all "*" route as a 404 (App.jsx).
+ *   • Any caller that wants to render a themed error inline. Pass an explicit
+ *     `type` to pick the visual + copy; `title`/`message` override the
+ *     i18n strings when callers need a context-specific message.
  *
- * If you need to display route-specific errors, pass them explicitly via
- * `type`, `title`, and `message` props.
+ * The component deliberately does NOT use `useRouteError()` — this app uses
+ * the component-based <Routes> pattern, not a data router. Callers that want
+ * to surface a real error pass it via the `error` prop.
  *
- * I18N · Phase 118 — copy keyed under the `errors` namespace; the icon
- * + colour-class CONFIGS stay static (presentation only) and the user-
- * visible labels resolve via t() at render time.
+ * Telemetry:
+ *   • Every mount fires `error_page_viewed` to GA via trackEvent().
+ *   • If `window.Sentry` is loaded, a captureMessage is also sent.
+ *   • A short reference id is generated client-side and shown in the UI so
+ *     a user can quote it when contacting support.
+ *
+ * Online state:
+ *   • If `navigator.onLine` flips to false while the page is mounted the
+ *     visible type swaps to "OFFLINE" without unmounting; flipping back
+ *     restores the original.
+ *
+ * Indexing:
+ *   • Helmet injects `robots="noindex,nofollow,noarchive"` so error states
+ *     never make it into the Google index. Title is overridden too.
  */
 
-const fadeUp = { hidden:{opacity:0,y:20}, show:{opacity:1,y:0,transition:{duration:0.45,ease:"easeOut"}} }
-const stagger = { hidden:{}, show:{transition:{staggerChildren:0.08}} }
+const fadeUp  = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } } }
+const stagger = { hidden: {},                    show: { transition: { staggerChildren: 0.08 } } }
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * Status-tint CONFIGS — Brand v3.1 status-state tokens.
+ *
+ * `tone` drives icon-tile background + foreground:
+ *   amber → caution, recoverable (network, timeout, rate-limit, maintenance)
+ *   rose  → genuine failure (forbidden, server error)
+ *   azure → action-required (sign-in)
+ *   slate → benign / informational (not-found)
+ *
+ * `actions` is an allowlist of action buttons to render, in display order.
+ *   "retry"   → reload the page
+ *   "signIn"  → navigate to /login?next=<current>
+ *   "back"    → router.history back
+ *   "home"    → navigate to /
+ *   "contact" → navigate to /contact
+ * ────────────────────────────────────────────────────────────────────────── */
+const TONES = {
+  amber: { tile: "bg-amber-50 text-amber-700",  ring: "ring-amber-100" },
+  rose:  { tile: "bg-rose-50 text-rose-700",    ring: "ring-rose-50"   },
+  azure: { tile: "bg-azure-pale text-azure-800",ring: "ring-azure-pale" },
+  slate: { tile: "bg-slate-100 text-steel-700", ring: "ring-slate-200" },
+}
 
 const CONFIGS = {
-  NETWORK_ERROR: {
-    icon: WifiOff,
-    iconBg: "bg-amber-100 text-amber-600",
-    code: "",
-    actions: ["retry", "home"],
-  },
-  DB_UNAVAILABLE: {
-    icon: ServerCrash,
-    iconBg: "bg-violet-pale text-violet",
-    code: "503",
-    actions: ["retry", "home"],
-  },
-  FORBIDDEN: {
-    icon: Lock,
-    iconBg: "bg-red-50 text-red-600",
-    code: "403",
-    actions: ["back", "home"],
-  },
-  404: {
-    icon: SearchX,
-    iconBg: "bg-violet-pale text-violet",
-    code: "404",
-    actions: ["back", "home"],
-  },
-  500: {
-    icon: ServerCrash,
-    iconBg: "bg-red-50 text-red-600",
-    code: "500",
-    actions: ["retry", "home"],
-  },
+  NETWORK_ERROR: { icon: WifiOff,      tone: "amber", code: "",    actions: ["retry", "home"] },
+  OFFLINE:       { icon: WifiOff,      tone: "amber", code: "",    actions: ["retry", "home"] },
+  DB_UNAVAILABLE:{ icon: ServerCrash,  tone: "amber", code: "503", actions: ["retry", "home", "contact"] },
+  401:           { icon: LogIn,        tone: "azure", code: "401", actions: ["signIn", "home"] },
+  FORBIDDEN:     { icon: Lock,         tone: "rose",  code: "403", actions: ["back", "home", "contact"] },
+  403:           { icon: Lock,         tone: "rose",  code: "403", actions: ["back", "home", "contact"] },
+  404:           { icon: SearchX,      tone: "slate", code: "404", actions: ["back", "home"] },
+  408:           { icon: Clock,        tone: "amber", code: "408", actions: ["retry", "home"] },
+  429:           { icon: ShieldAlert,  tone: "amber", code: "429", actions: ["retry", "home", "contact"] },
+  500:           { icon: ServerCrash,  tone: "rose",  code: "500", actions: ["retry", "home", "contact"] },
+  502:           { icon: ServerCrash,  tone: "amber", code: "502", actions: ["retry", "home"] },
+  503:           { icon: Construction, tone: "amber", code: "503", actions: ["retry", "home"] },
+  504:           { icon: Clock,        tone: "amber", code: "504", actions: ["retry", "home"] },
+  GENERIC:       { icon: ServerCrash,  tone: "rose",  code: "",    actions: ["retry", "home", "contact"] },
 }
 
 function getConfig(type) {
-  return CONFIGS[type] || CONFIGS[500]
+  return CONFIGS[type] || CONFIGS[String(type)] || CONFIGS.GENERIC
 }
 
-export default function ErrorPage({ type, title, message, showRetry = true }) {
-  const navigate = useNavigate()
-  const { t } = useTranslation("errors")
+/**
+ * Short, low-collision reference id: `ERR-<base36 ms>-<6 chars>`.
+ * Not a UUID — we just need something a user can read out over the phone
+ * and a support agent can grep for in logs.
+ */
+function makeReferenceId() {
+  const ts   = Date.now().toString(36).toUpperCase()
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase()
+  return `ERR-${ts}-${rand}`
+}
 
-  const resolvedType = type || "500"
-  const cfg = getConfig(resolvedType)
-  const Icon = cfg.icon
-  // Configs map onto i18n keys: errors.configs.<type>.{title,message}.
-  // `title`/`message` props still win when explicitly passed by callers
-  // (callers may already be passing pre-translated strings from a parent).
-  const label = title || t(`configs.${resolvedType}.title`)
-  const desc  = message || t(`configs.${resolvedType}.message`)
+export default function ErrorPage({
+  type,
+  title,
+  message,
+  showRetry = true,
+  error,
+  referenceId,
+}) {
+  const navigate    = useNavigate()
+  const location    = useLocation()
+  const { t }       = useTranslation("errors")
+  const headingRef  = useRef(null)
+
+  // Stable reference id for the lifetime of this mount unless the caller
+  // pinned one explicitly (e.g. ErrorBoundary forwarding its own id).
+  const [refId] = useState(() => referenceId || makeReferenceId())
+
+  // Mirror navigator.onLine so the surface can re-tone if the user drops
+  // their connection while the error page is visible.
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator !== "undefined" ? navigator.onLine !== false : true
+  )
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const goOnline  = () => setIsOnline(true)
+    const goOffline = () => setIsOnline(false)
+    window.addEventListener("online",  goOnline)
+    window.addEventListener("offline", goOffline)
+    return () => {
+      window.removeEventListener("online",  goOnline)
+      window.removeEventListener("offline", goOffline)
+    }
+  }, [])
+
+  // Resolve the active error type. Going offline mid-view overrides whatever
+  // type the caller passed — the network problem is more actionable than
+  // whatever the original error was.
+  const resolvedType = !isOnline ? "OFFLINE" : (type || "GENERIC")
+  const cfg          = getConfig(resolvedType)
+  const tone         = TONES[cfg.tone] || TONES.slate
+  const Icon         = cfg.icon
+
+  const label = title   || t(`configs.${resolvedType}.title`,   { defaultValue: t("configs.GENERIC.title") })
+  const desc  = message || t(`configs.${resolvedType}.message`, { defaultValue: t("configs.GENERIC.message") })
   const code  = cfg.code
 
+  /* ────────────────────────── Telemetry ───────────────────────────── */
+  useEffect(() => {
+    try {
+      trackEvent("error_page_viewed", {
+        type:         resolvedType,
+        code:         code || null,
+        reference_id: refId,
+        path:         location.pathname + (location.search || ""),
+      })
+    } catch { /* analytics is best-effort */ }
+
+    if (typeof window !== "undefined" && window.Sentry?.captureMessage) {
+      try {
+        window.Sentry.captureMessage(`ErrorPage[${resolvedType}] ${refId}`, {
+          level: resolvedType === "404" ? "warning" : "error",
+          tags:  { error_type: resolvedType, error_code: code || "n/a" },
+          extra: {
+            reference_id: refId,
+            path:         location.pathname,
+            error_message: error?.message,
+            error_name:   error?.name,
+          },
+        })
+      } catch { /* swallow telemetry failures */ }
+    }
+
+    // Focus the heading so screen readers announce the new state.
+    headingRef.current?.focus?.()
+  }, [resolvedType, code, refId, location.pathname, location.search, error])
+
+  /* ────────────────────────── Action handlers ──────────────────────── */
+  const handleRetry = useCallback(() => {
+    if (typeof window !== "undefined") window.location.reload()
+  }, [])
+
+  const handleBack = useCallback(() => {
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      navigate("/")
+    }
+  }, [navigate])
+
+  const handleSignIn = useCallback(() => {
+    const next = encodeURIComponent(location.pathname + (location.search || ""))
+    navigate(`/login?next=${next}`)
+  }, [navigate, location.pathname, location.search])
+
+  /* ────────────────────────── Action button factory ────────────────── */
+  const ActionButtons = useMemo(() => {
+    const buttons = []
+
+    if (cfg.actions.includes("retry") && showRetry) {
+      buttons.push(
+        <button
+          key="retry"
+          type="button"
+          onClick={handleRetry}
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+        >
+          <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("actions.tryAgain")}
+        </button>
+      )
+    }
+
+    if (cfg.actions.includes("signIn")) {
+      buttons.push(
+        <button
+          key="signIn"
+          type="button"
+          onClick={handleSignIn}
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+        >
+          <LogIn className="h-4 w-4" aria-hidden="true" /> {t("actions.signIn")}
+        </button>
+      )
+    }
+
+    if (cfg.actions.includes("back")) {
+      buttons.push(
+        <button
+          key="back"
+          type="button"
+          onClick={handleBack}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/20"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t("actions.goBack")}
+        </button>
+      )
+    }
+
+    if (cfg.actions.includes("home")) {
+      buttons.push(
+        <Link
+          key="home"
+          to="/"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/20"
+        >
+          <Home className="h-4 w-4" aria-hidden="true" /> {t("actions.home")}
+        </Link>
+      )
+    }
+
+    if (cfg.actions.includes("contact")) {
+      buttons.push(
+        <Link
+          key="contact"
+          to={`/contact?ref=${encodeURIComponent(refId)}`}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/20"
+        >
+          <LifeBuoy className="h-4 w-4" aria-hidden="true" /> {t("actions.contactSupport")}
+        </Link>
+      )
+    }
+
+    return buttons
+  }, [cfg.actions, showRetry, handleRetry, handleSignIn, handleBack, refId, t])
+
+  const isDev          = !!import.meta?.env?.DEV
+  const technicalDump  = error && (error.stack || error.message)
+
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
-      <motion.div
-        variants={stagger} initial="hidden" animate="show"
-        className="flex flex-col items-center text-center max-w-md"
+    <>
+      <Helmet>
+        <title>{`${label} · Mustapha Ukizuru`}</title>
+        <meta name="robots" content="noindex,nofollow,noarchive" />
+      </Helmet>
+
+      <div
+        role="alert"
+        aria-live="polite"
+        aria-atomic="true"
+        className="relative flex min-h-[70vh] items-center justify-center px-4 py-16"
       >
-        {/* Icon */}
-        <motion.div variants={fadeUp}
-          className={`flex h-24 w-24 items-center justify-center rounded-xl ${cfg.iconBg} shadow-[0_12px_32px_rgba(93,63,211,0.08)]`}
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          className="flex w-full max-w-xl flex-col items-center text-center"
         >
-          <Icon className="h-12 w-12" />
-        </motion.div>
-
-        {/* Code */}
-        {code && (
-          <motion.div variants={fadeUp}
-            className="mt-4 text-display font-bold leading-none text-violet/8 select-none"
+          {/* Icon tile — tone-aware */}
+          <motion.div
+            variants={fadeUp}
+            className={`flex h-24 w-24 items-center justify-center rounded-2xl ring-1 ${tone.tile} ${tone.ring} shadow-[0_12px_32px_rgba(15,23,42,0.06)]`}
+            aria-hidden="true"
           >
-            {code}
+            <Icon className="h-12 w-12" strokeWidth={1.6} />
           </motion.div>
-        )}
 
-        {/* Title */}
-        <motion.h1 variants={fadeUp}
-          className="text-section font-bold tracking-tight text-violet"
-          style={{ marginTop: code ? "-1rem" : "1.5rem" }}
-        >
-          {label}
-        </motion.h1>
-
-        {/* Message */}
-        <motion.p variants={fadeUp}
-          className="mt-3 text-body leading-7 text-charcoal-80/65 max-w-sm"
-        >
-          {desc}
-        </motion.p>
-
-        {/* Actions */}
-        <motion.div variants={fadeUp} className="mt-8 flex flex-wrap justify-center gap-3">
-          {(cfg.actions.includes("retry") && showRetry) && (
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+          {/* HTTP code — large, soft, decorative */}
+          {code && (
+            <motion.div
+              variants={fadeUp}
+              aria-hidden="true"
+              className="mt-4 text-display font-bold leading-none text-violet/10 select-none"
             >
-              <RefreshCw className="h-4 w-4" /> {t("actions.tryAgain")}
-            </button>
+              {code}
+            </motion.div>
           )}
-          {cfg.actions.includes("back") && (
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/15 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale"
-            >
-              <ArrowLeft className="h-4 w-4" /> {t("actions.goBack")}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/15 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale"
+
+          {/* Title */}
+          <motion.h1
+            ref={headingRef}
+            tabIndex={-1}
+            variants={fadeUp}
+            className="text-section font-bold tracking-tight text-violet outline-none"
+            style={{ marginTop: code ? "-1rem" : "1.5rem" }}
           >
-            <Home className="h-4 w-4" /> {t("actions.home")}
-          </button>
-        </motion.div>
+            {label}
+          </motion.h1>
 
-        {/* Help link */}
-        <motion.p variants={fadeUp} className="mt-6 text-micro text-charcoal-80/40">
-          {t("support.prefix")}{" "}
-          <a href="/contact" className="text-violet hover:underline">{t("support.linkText")}</a>{t("support.suffix")}
-        </motion.p>
-      </motion.div>
-    </div>
+          {/* Message */}
+          <motion.p
+            variants={fadeUp}
+            className="mt-3 max-w-md text-body leading-7 text-charcoal-80/65"
+          >
+            {desc}
+          </motion.p>
+
+          {/* Actions */}
+          <motion.div
+            variants={fadeUp}
+            className="mt-8 flex flex-wrap items-center justify-center gap-3"
+          >
+            {ActionButtons}
+          </motion.div>
+
+          {/* Reference id + support hint — single, calm line */}
+          <motion.div variants={fadeUp} className="mt-8 max-w-md space-y-2">
+            <p className="text-micro text-charcoal-80/55">
+              {t("reference.label")}{" "}
+              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-steel-700">
+                {refId}
+              </code>
+            </p>
+            <p className="text-micro text-charcoal-80/45">
+              {t("support.prefix")}{" "}
+              <Link
+                to={`/contact?ref=${encodeURIComponent(refId)}`}
+                className="text-violet hover:underline"
+              >
+                {t("support.linkText")}
+              </Link>
+              {t("support.suffix")}
+            </p>
+          </motion.div>
+
+          {/* Dev-only technical detail. Production users never see this. */}
+          {isDev && technicalDump && (
+            <motion.details
+              variants={fadeUp}
+              className="mt-8 w-full max-w-md rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-xs text-steel-700"
+            >
+              <summary className="cursor-pointer font-semibold uppercase tracking-[0.14em] text-steel-700">
+                {t("technicalDetail.label")}
+              </summary>
+              <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-steel-700">
+                {String(technicalDump)}
+              </pre>
+            </motion.details>
+          )}
+        </motion.div>
+      </div>
+    </>
   )
 }
