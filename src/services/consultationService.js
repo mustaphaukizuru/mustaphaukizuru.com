@@ -275,6 +275,16 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
     })
   }
 
+  // Branded reschedule email — fires regardless of whether Google sent
+  // its own native reschedule notice. The email shows the previous AND
+  // new times so the client doesn't have to guess what changed; for
+  // Google-Meet bookings the same Meet link survives, for Jitsi-
+  // fallback bookings the existing link is repeated. Fire-and-forget.
+  sendConsultationRescheduledEmail(newRow, existing).catch((e) => {
+    // eslint-disable-next-line no-console
+    console.error("[consultation] reschedule email failed:", e?.message)
+  })
+
   return newRow
 }
 
@@ -494,6 +504,27 @@ function pickAuditFields(row) {
 }
 
 /**
+ * Format a Date as a human-readable string in the row's timezone, with
+ * locale-appropriate weekday + month names. Shared by both the
+ * confirmation and reschedule email helpers so the same "Wednesday,
+ * October 8, 2025 at 3:00 PM CST" format reaches users in both flows.
+ */
+function formatScheduledHuman(date, locale, timezone) {
+  if (!date) return ""
+  const d = date instanceof Date ? date : new Date(date)
+  if (Number.isNaN(d.getTime())) return ""
+  try {
+    return d.toLocaleString(locale === "es" ? "es-MX" : "en-US", {
+      weekday: "long", year: "numeric", month: "long", day: "numeric",
+      hour: "numeric", minute: "2-digit", timeZoneName: "short",
+      timeZone: timezone || "UTC",
+    })
+  } catch {
+    return d.toISOString()
+  }
+}
+
+/**
  * Fire-and-forget confirmation email when a consultation transitions to
  * `confirmed`. Includes the meeting link, schedule, and a deep-link to
  * the member's consultation detail page.
@@ -511,12 +542,6 @@ async function sendConsultationConfirmedEmail(row, opts = {}) {
   } catch { /* fall through to "en" */ }
 
   const frontend = (process.env.FRONTEND_URL || "").replace(/\/$/, "")
-  const scheduledAt = row.scheduledAt instanceof Date ? row.scheduledAt : new Date(row.scheduledAt)
-  const scheduledHuman = scheduledAt.toLocaleString(locale === "es" ? "es-MX" : "en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-    hour: "numeric", minute: "2-digit", timeZoneName: "short",
-    timeZone: row.timezone || "UTC",
-  })
 
   await sendTemplateEmail({
     locale,
@@ -525,7 +550,7 @@ async function sendConsultationConfirmedEmail(row, opts = {}) {
     userId:      row.userId,
     variables: {
       customerName:    row.user?.fullName?.split(" ")[0] || "there",
-      scheduledAt:     scheduledHuman,
+      scheduledAt:     formatScheduledHuman(row.scheduledAt, locale, row.timezone),
       durationMin:     row.durationMin || 30,
       timezone:        row.timezone || "UTC",
       meetingLink:     row.meetingLink || "",
@@ -533,6 +558,62 @@ async function sendConsultationConfirmedEmail(row, opts = {}) {
       serviceTitle:    row.service?.title || "Consulting session",
       hostName:        row.assignedAdmin?.fullName || "Mustapha Ukizuru",
       consultationUrl: `${frontend}/dashboard/consultations`,
+    },
+  })
+}
+
+/**
+ * Fire-and-forget reschedule email — fires when an existing booking is
+ * moved to a new time (admin or client initiated). Shows both the old
+ * and new times so the client sees the change at a glance, and re-sends
+ * the meeting link (unchanged for Google Meet bookings since the
+ * Calendar event ID survives the reschedule; regenerated for Jitsi-
+ * fallback bookings).
+ *
+ * For Google-Meet-backed bookings Google ALSO sends its own native
+ * "this event has been rescheduled" email automatically via the
+ * Calendar API's sendUpdates: "all". This branded email is on top of
+ * that — same information, your visual language. For Jitsi-fallback
+ * bookings this is the only reschedule notification the client gets.
+ */
+async function sendConsultationRescheduledEmail(newRow, previousRow, opts = {}) {
+  const { sendTemplateEmail } = require("./emailService")
+  const { resolveUserLocale } = require("../utils/resolveUserLocale")
+
+  const to = newRow.user?.email
+  if (!to) return
+
+  let locale = "en"
+  try {
+    locale = opts.locale || resolveUserLocale({ user: { id: newRow.userId } })
+  } catch { /* fall through to "en" */ }
+
+  const frontend = (process.env.FRONTEND_URL || "").replace(/\/$/, "")
+
+  await sendTemplateEmail({
+    locale,
+    to,
+    templateKey: "consultation.rescheduled",
+    userId:      newRow.userId,
+    variables: {
+      customerName:        newRow.user?.fullName?.split(" ")[0] || "there",
+      scheduledAt:         formatScheduledHuman(newRow.scheduledAt, locale, newRow.timezone),
+      // The previous row was created against the OLD timezone, so format
+      // its scheduledAt against that. (In practice timezone rarely
+      // changes on reschedule, but we pass through the right one for
+      // correctness if it ever does.)
+      previousScheduledAt: formatScheduledHuman(
+        previousRow?.scheduledAt,
+        locale,
+        previousRow?.timezone || newRow.timezone,
+      ),
+      durationMin:         newRow.durationMin || 30,
+      timezone:            newRow.timezone || "UTC",
+      meetingLink:         newRow.meetingLink || "",
+      meetingProvider:     newRow.meetingProvider || "manual",
+      serviceTitle:        newRow.service?.title || "Consulting session",
+      hostName:            newRow.assignedAdmin?.fullName || "Mustapha Ukizuru",
+      consultationUrl:     `${frontend}/dashboard/consultations`,
     },
   })
 }
