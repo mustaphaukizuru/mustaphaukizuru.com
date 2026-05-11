@@ -1,34 +1,50 @@
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  X, ZoomIn, ZoomOut, Download, ExternalLink, ChevronLeft, ChevronRight,
-  Loader2, ShieldCheck, FileText, Award,
+  Award,
+  Download,
+  ExternalLink,
+  FileText,
+  Loader2,
+  ShieldCheck,
+  X,
+  ZoomIn,
 } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
+
 /**
  * CertificatePreview · adaptive credential tile
  *
  * Two render modes, decided per-tile:
  *
- *   1. PDF mode — when `src` is a same-origin path or .pdf URL we render
- *      page 1 as a canvas thumbnail. Click opens the in-app modal viewer
- *      with zoom, paging, download, and external-open.
+ *   1. PDF mode — `src` is a same-origin path or .pdf URL. The tile renders a
+ *      PDF.js page-1 canvas thumbnail (best-effort; gracefully degrades to a
+ *      branded placeholder if PDF.js can't load). Clicking opens the modal
+ *      viewer, which renders the PDF in an <iframe> via the browser's native
+ *      PDF viewer — no worker, no MIME-type gotchas, no CSP surprises.
  *
- *   2. Credential mode — when `src` is missing/"#"/external (e.g. a
- *      Coursera/Credly verify URL), we fall back to a proper credential
- *      card: large issuer logo or initial, title, issuer, year, and a
- *      "{t("certificate.verify")}" button that opens the URL in a new tab.
+ *   2. Credential mode — `src` is missing, "#", or external (Coursera /
+ *      Credly verify URL). The tile becomes a credential card; clicking
+ *      opens the issuer page in a new tab.
  *
- *  Why both? Some certificates are issued only as PDFs we host. Others
- *  live behind issuer verification pages (Coursera, Credly, Google).
- *  Rendering a Coursera URL as a PDF blows up pdfjs and shows a broken
- *  placeholder — the credential mode handles that case gracefully.
+ *  Why iframe (not PDF.js) for the modal? PDF.js needs a same-origin module
+ *  worker with the correct MIME type AND a permissive CSP. When any one of
+ *  those isn't right (cached old worker, Hostinger MIME quirk, CSP missing
+ *  worker-src), the renderer throws and we'd show a useless error state.
+ *  An <iframe> to a same-origin PDF is rendered by the browser's built-in
+ *  viewer (Chrome PDFium, Edge PDFium, Firefox PDF.js, Safari Preview) —
+ *  zero JS dependency, works offline, supports zoom/print/download natively.
+ *
+ *  Tile thumbnail still uses PDF.js because no native browser API gives us
+ *  a page-1 image. If PDF.js fails there, the tile downgrades to a refined
+ *  branded placeholder (NOT a broken-image state).
  *
  * Props:
  *   src           — public path to PDF OR external credential URL
  *   credentialUrl — optional explicit credential page; if present, takes
- *                   precedence over `src` for the "Verify" CTA
+ *                   precedence over `src` for the "Verify" CTA in
+ *                   credential mode
  *   issuerLogo    — optional URL of an issuer logo (Coursera, Google, IBM)
  *   title         — required display title
  *   issuer        — optional secondary line ("Google for Education")
@@ -48,7 +64,6 @@ function isRenderablePdf(src) {
   if (s.startsWith("/")) return true // same-origin static
   if (s.startsWith(".")) return true // relative
   if (/\.pdf($|\?)/i.test(s)) {
-    // Same-origin absolute? Check origin if we can.
     try {
       if (typeof window !== "undefined") {
         const u = new URL(s, window.location.origin)
@@ -78,13 +93,22 @@ let pdfjsPromise = null
 async function loadPdfjs() {
   if (pdfjsPromise) return pdfjsPromise
   pdfjsPromise = (async () => {
-    // ESM build, with the matching worker via Vite's `?url` import.
     const pdfjs = await import("pdfjs-dist/build/pdf.mjs")
     const workerUrl = (await import("pdfjs-dist/build/pdf.worker.mjs?url")).default
     pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
     return pdfjs
   })()
   return pdfjsPromise
+}
+
+// Dev-only logger. Production users never see this; engineers diagnosing
+// a broken preview can paste the URL into the console and see exactly why
+// pdfjs.getDocument rejected (worker MIME mismatch, fetch 404, etc).
+function logDev(...args) {
+  if (import.meta?.env?.DEV) {
+    // eslint-disable-next-line no-console
+    console.warn("[CertificatePreview]", ...args)
+  }
 }
 
 export default function CertificatePreview({
@@ -106,8 +130,6 @@ export default function CertificatePreview({
   const issuedLine = deriveIssuedLine(date)
 
   // ── Credential mode ──────────────────────────────────────────────────
-  // External URL or no PDF: render as a credential card. No modal — clicks
-  // open the credential page in a new tab.
   if (!canPreview) {
     const initial = (issuer || title || "?").trim().charAt(0).toUpperCase()
     return (
@@ -116,7 +138,7 @@ export default function CertificatePreview({
         target={verifyHref ? "_blank" : undefined}
         rel={verifyHref ? "noopener noreferrer" : undefined}
         onClick={(e) => { if (!verifyHref) e.preventDefault() }}
-        aria-label={verifyHref ? `Verify credential: ${title}` : title}
+        aria-label={verifyHref ? `${t("certificate.verifyLabel", { defaultValue: "Verify credential" })}: ${title}` : title}
         className={cn(
           "group relative flex w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-card-soft ring-1 ring-charcoal-80/8",
           "transition hover:-translate-y-1 hover:shadow-popover hover:ring-violet/25",
@@ -124,7 +146,6 @@ export default function CertificatePreview({
           className,
         )}
       >
-        {/* Hero panel, gradient with issuer logo or initial */}
         <div className="relative aspect-[1.414/1] w-full overflow-hidden">
           <div
             aria-hidden="true"
@@ -136,42 +157,31 @@ export default function CertificatePreview({
                 "linear-gradient(180deg, #3B2487 0%, #1A1B23 100%)",
             }}
           />
-          {/* Subtle dot grid for depth */}
           <div
             aria-hidden="true"
             className="absolute inset-0 opacity-[0.10] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:18px_18px]"
           />
-          {/* Center mark, issuer logo or initial */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.10] ring-1 ring-white/15 backdrop-blur-sm">
               {issuerLogo ? (
-                <img
-                  src={issuerLogo}
-                  alt=""
-                  className="h-12 w-12 object-contain"
-                  loading="lazy"
-                />
+                <img src={issuerLogo} alt="" className="h-12 w-12 object-contain" loading="lazy" />
               ) : (
-                <span className="font-mono text-[28px] font-bold tracking-tight text-white">
-                  {initial}
-                </span>
+                <span className="font-mono text-[28px] font-bold tracking-tight text-white">{initial}</span>
               )}
             </div>
           </div>
 
-          {/* Corner ribbon */}
           {verified && (
             <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-mint/95 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white shadow">
               <ShieldCheck className="h-3 w-3" strokeWidth={2.4} aria-hidden="true" />
-              Verified
+              {t("certificate.verifiedBadge", { defaultValue: "Verified" })}
             </span>
           )}
           <span className="pointer-events-none absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-white/[0.10] px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white ring-1 ring-white/15">
             <Award className="h-3 w-3" aria-hidden="true" />
-            Credential
+            {t("certificate.credentialBadge", { defaultValue: "Credential" })}
           </span>
 
-          {/* Verify hint on hover */}
           {verifyHref && (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/55 to-transparent p-3 opacity-0 transition group-hover:opacity-100">
               <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-white/90">
@@ -182,7 +192,6 @@ export default function CertificatePreview({
           )}
         </div>
 
-        {/* Body */}
         <div className="flex flex-1 flex-col gap-1.5 p-4">
           <h3 className="line-clamp-2 min-h-[2.6rem] text-[14px] font-bold leading-snug text-charcoal">
             {title}
@@ -194,7 +203,7 @@ export default function CertificatePreview({
           )}
           {issuedLine && (
             <p className="text-[11px] tabular-nums text-charcoal-50">
-              Issued · {issuedLine}
+              {t("certificate.issuedPrefix", { defaultValue: "Issued · " })}{issuedLine}
             </p>
           )}
         </div>
@@ -202,13 +211,13 @@ export default function CertificatePreview({
     )
   }
 
-  // ── PDF mode (original behaviour) ────────────────────────────────────
+  // ── PDF mode ─────────────────────────────────────────────────────────
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={`Open certificate: ${title}`}
+        aria-label={`${t("certificate.openLabel", { defaultValue: "Open certificate" })}: ${title}`}
         className={cn(
           "group relative flex w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-card-soft ring-1 ring-charcoal-80/8",
           "transition hover:-translate-y-1 hover:shadow-popover hover:ring-violet/25",
@@ -216,15 +225,14 @@ export default function CertificatePreview({
           className,
         )}
       >
-        <div className="relative aspect-[1.414/1] w-full overflow-hidden bg-[var(--color-mist)]">
-          <PdfPageImage src={src} />
+        <div className="relative aspect-[1.414/1] w-full overflow-hidden bg-slate-50">
+          <PdfPageImage src={src} title={title} />
           <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-charcoal/5" aria-hidden="true" />
 
-          {/* Corner ribbon */}
           {verified && (
             <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-mint/95 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white shadow">
               <ShieldCheck className="h-3 w-3" strokeWidth={2.4} aria-hidden="true" />
-              Verified
+              {t("certificate.verifiedBadge", { defaultValue: "Verified" })}
             </span>
           )}
           <span className="pointer-events-none absolute right-3 top-3 inline-flex items-center gap-1 rounded-md bg-charcoal/85 px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white">
@@ -232,7 +240,6 @@ export default function CertificatePreview({
             PDF
           </span>
 
-          {/* Hover overlay */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-charcoal/60 to-transparent p-3 opacity-0 transition group-hover:opacity-100">
             <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-white/85">
               {t("certificate.clickToOpen")}
@@ -252,7 +259,7 @@ export default function CertificatePreview({
           )}
           {issuedLine && (
             <p className="text-[11px] tabular-nums text-charcoal-50">
-              Issued · {issuedLine}
+              {t("certificate.issuedPrefix", { defaultValue: "Issued · " })}{issuedLine}
             </p>
           )}
         </div>
@@ -274,7 +281,7 @@ export default function CertificatePreview({
 
 /* ───────────────────────── PDF page image (thumbnail) ──────────────────── */
 
-function PdfPageImage({ src, scale = 1.4 }) {
+function PdfPageImage({ src, title, scale = 1.4 }) {
   const ref = useRef(null)
   const [state, setState] = useState("loading") // loading · ok · error
 
@@ -298,7 +305,8 @@ function PdfPageImage({ src, scale = 1.4 }) {
         canvas.height = viewport.height
         await page.render({ canvasContext: ctx, viewport }).promise
         if (!cancelled) setState("ok")
-      } catch {
+      } catch (err) {
+        logDev("Thumbnail render failed for", src, err)
         if (!cancelled) setState("error")
       }
     })()
@@ -322,16 +330,24 @@ function PdfPageImage({ src, scale = 1.4 }) {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex flex-col items-center gap-2 text-violet/70">
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-            <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em]">Rendering</span>
+            <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em]">
+              Rendering
+            </span>
           </div>
         </div>
       )}
+      {/* Error state — refined branded placeholder.
+          Visual is intentionally calm (slate-50 + steel icon) rather than
+          alarming; the click still opens the modal where the iframe takes
+          over and almost always renders fine. */}
       {state === "error" && (
-        <div className="absolute inset-0 flex items-center justify-center bg-violet">
-          <div className="flex flex-col items-center gap-1.5 text-white/85">
-            <FileText className="h-7 w-7" aria-hidden="true" />
-            <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em]">PDF</span>
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-50 px-6 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-card-soft ring-1 ring-slate-200">
+            <Award className="h-6 w-6 text-violet" strokeWidth={1.6} aria-hidden="true" />
           </div>
+          <span className="line-clamp-2 max-w-[200px] text-[11.5px] font-semibold leading-tight text-steel-700">
+            {title || "Certificate"}
+          </span>
         </div>
       )}
     </>
@@ -339,18 +355,22 @@ function PdfPageImage({ src, scale = 1.4 }) {
 }
 
 /* ─────────────────────────────── modal ─────────────────────────────────── */
-
+/**
+ * Modal viewer — renders the PDF via <iframe> using the browser's native
+ * viewer. This is dramatically more reliable than PDF.js in production:
+ * Chrome's PDFium, Edge's PDFium, Firefox's built-in PDF.js, and Safari's
+ * Preview engine all handle same-origin PDFs in iframes with zero
+ * configuration, regardless of MIME-type quirks or worker CSP rules.
+ *
+ * The viewer has a 5s onLoad watchdog — if the iframe never fires `load`
+ * (e.g. CSP blocks framing, or the PDF is corrupt) we flip to an error
+ * state with prominent Download + Open-in-new-tab CTAs. The user always
+ * has a clear path forward.
+ */
 function CertificateModal({ src, title, issuer, onClose }) {
-  // Certificate strings live under the `about` namespace alongside the
-  // tile copy. Using `common` here returned raw keys (e.g.
-  // "certificate.renderError") because no matching subtree existed there.
-  const { t } = useTranslation("about")
-  const [pageIndex, setPageIndex] = useState(1)
-  const [pageCount, setPageCount] = useState(1)
-  const [zoom, setZoom] = useState(1)
-  const [state, setState] = useState("loading")
-  const docRef = useRef(null)
-  const canvasRef = useRef(null)
+  const { t }                = useTranslation("about")
+  const [state, setState]    = useState("loading") // loading · ok · error
+  const watchdogRef          = useRef(null)
 
   // Lock body scroll
   useEffect(() => {
@@ -359,57 +379,40 @@ function CertificateModal({ src, title, issuer, onClose }) {
     return () => { document.body.style.overflow = orig }
   }, [])
 
-  // Open document
+  // Esc to close
   useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const pdfjs = await loadPdfjs()
-        const doc = await pdfjs.getDocument({ url: src, isEvalSupported: false }).promise
-        if (cancelled) return
-        docRef.current = doc
-        setPageCount(doc.numPages)
-        setState("ok")
-      } catch {
-        if (!cancelled) setState("error")
-      }
-    })()
-    return () => { cancelled = true; try { docRef.current?.destroy?.() } catch { /* noop */ } }
-  }, [src])
-
-  // Render the current page whenever pageIndex or zoom changes
-  const renderPage = useCallback(async () => {
-    const doc = docRef.current
-    const canvas = canvasRef.current
-    if (!doc || !canvas) return
-    const page = await doc.getPage(pageIndex)
-    const viewport = page.getViewport({ scale: zoom * 1.6 })
-    const ctx = canvas.getContext("2d", { alpha: false })
-    canvas.width = viewport.width
-    canvas.height = viewport.height
-    await page.render({ canvasContext: ctx, viewport }).promise
-  }, [pageIndex, zoom])
-
-  useEffect(() => { if (state === "ok") renderPage() }, [state, renderPage])
-
-  // Esc + arrow keys
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose()
-      if (e.key === "ArrowRight") setPageIndex((i) => Math.min(pageCount, i + 1))
-      if (e.key === "ArrowLeft") setPageIndex((i) => Math.max(1, i - 1))
-      if (e.key === "+" || e.key === "=") setZoom((z) => Math.min(2, +(z + 0.2).toFixed(2)))
-      if (e.key === "-") setZoom((z) => Math.max(0.5, +(z - 0.2).toFixed(2)))
-    }
+    const onKey = (e) => { if (e.key === "Escape") onClose() }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [pageCount, onClose])
+  }, [onClose])
+
+  // Watchdog — if the iframe doesn't fire `load` within 5s, assume failure.
+  useEffect(() => {
+    watchdogRef.current = setTimeout(() => {
+      setState((s) => (s === "loading" ? "error" : s))
+      logDev("Iframe load watchdog tripped — falling back to download CTA for", src)
+    }, 5000)
+    return () => { if (watchdogRef.current) clearTimeout(watchdogRef.current) }
+  }, [src])
+
+  const handleIframeLoad = () => {
+    if (watchdogRef.current) {
+      clearTimeout(watchdogRef.current)
+      watchdogRef.current = null
+    }
+    setState("ok")
+  }
+
+  const filename = (() => {
+    try { return decodeURIComponent(src.split("/").pop() || "certificate.pdf") }
+    catch { return "certificate.pdf" }
+  })()
 
   return (
     <motion.div
       role="dialog"
       aria-modal="true"
-      aria-label={`Certificate: ${title}`}
+      aria-label={`${t("certificate.modalLabel", { defaultValue: "Certificate" })}: ${title}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -435,26 +438,14 @@ function CertificateModal({ src, title, issuer, onClose }) {
             )}
           </div>
 
-          <div className="hidden items-center gap-1 sm:flex">
-            <ToolbarButton onClick={() => setZoom((z) => Math.max(0.5, +(z - 0.2).toFixed(2)))} label={t("certificate.zoomOut")}>
-              <ZoomOut className="h-4 w-4" />
-            </ToolbarButton>
-            <span className="px-2 font-mono text-[11px] font-semibold tabular-nums text-charcoal-80/70">
-              {Math.round(zoom * 100)}%
-            </span>
-            <ToolbarButton onClick={() => setZoom((z) => Math.min(2, +(z + 0.2).toFixed(2)))} label={t("certificate.zoomIn")}>
-              <ZoomIn className="h-4 w-4" />
-            </ToolbarButton>
-          </div>
-
           <a
             href={src}
-            download
+            download={filename}
             className="inline-flex h-9 items-center gap-1.5 rounded-full border border-charcoal-80/12 bg-white px-3 text-[12.5px] font-semibold text-charcoal-80/85 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
-            aria-label="Download PDF"
+            aria-label={t("certificate.downloadLabel", { defaultValue: "Download PDF" })}
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
-            Download
+            {t("certificate.downloadShort", { defaultValue: "Download" })}
           </a>
           <a
             href={src}
@@ -468,7 +459,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("certificate.closeLabel", { defaultValue: "Close" })}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5"
           >
             <X className="h-4 w-4" />
@@ -476,76 +467,62 @@ function CertificateModal({ src, title, issuer, onClose }) {
         </div>
 
         {/* Body */}
-        <div className="relative flex-1 overflow-auto bg-[var(--color-mist)] p-4 sm:p-8">
+        <div className="relative flex-1 overflow-hidden bg-slate-50">
+          {/* Always-mounted iframe so onLoad can fire. Hidden until ready. */}
+          <iframe
+            src={src}
+            title={title}
+            onLoad={handleIframeLoad}
+            className={`absolute inset-0 h-full w-full border-0 transition-opacity duration-200 ${
+              state === "ok" ? "opacity-100" : "opacity-0"
+            }`}
+          />
+
           {state === "loading" && (
-            <div className="flex h-full min-h-[60vh] items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-violet" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-violet" aria-hidden="true" />
             </div>
           )}
+
           {state === "error" && (
-            <div className="flex h-full min-h-[60vh] flex-col items-center justify-center gap-2 text-charcoal-80/70">
-              <FileText className="h-8 w-8" aria-hidden="true" />
-              <p className="text-[13.5px]">{t("certificate.renderError")}</p>
-              <a
-                href={src}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white"
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                {t("certificate.openNewTab")}
-              </a>
-            </div>
-          )}
-          {state === "ok" && (
-            <div className="flex justify-center">
-              <canvas
-                ref={canvasRef}
-                aria-label={`${title} · page ${pageIndex} of ${pageCount}`}
-                className="max-w-full rounded-lg shadow-popover"
-              />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-card-soft ring-1 ring-slate-200">
+                <FileText className="h-7 w-7 text-violet" strokeWidth={1.6} aria-hidden="true" />
+              </div>
+              <div className="max-w-md space-y-1">
+                <p className="text-section-sm font-bold text-charcoal">
+                  {t("certificate.renderError")}
+                </p>
+                <p className="text-[13.5px] leading-relaxed text-charcoal-80/65">
+                  {t("certificate.renderErrorHelp", {
+                    defaultValue: "Your browser couldn't preview this certificate inline. You can still download it or open it in a new tab.",
+                  })}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <a
+                  href={src}
+                  download={filename}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {t("certificate.downloadShort", { defaultValue: "Download" })}
+                </a>
+                <a
+                  href={src}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-charcoal-80/15 px-4 py-2 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  {t("certificate.openNewTab")}
+                </a>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Footer pagination */}
-        {state === "ok" && pageCount > 1 && (
-          <div className="flex items-center justify-center gap-2 border-t border-charcoal-80/8 bg-white px-4 py-3">
-            <ToolbarButton
-              onClick={() => setPageIndex((i) => Math.max(1, i - 1))}
-              label={t("certificate.prevPage")}
-              disabled={pageIndex <= 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </ToolbarButton>
-            <span className="px-3 font-mono text-[11px] font-semibold tabular-nums text-charcoal-80/70">
-              Page {pageIndex} / {pageCount}
-            </span>
-            <ToolbarButton
-              onClick={() => setPageIndex((i) => Math.min(pageCount, i + 1))}
-              label={t("certificate.nextPage")}
-              disabled={pageIndex >= pageCount}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </ToolbarButton>
-          </div>
-        )}
       </motion.div>
     </motion.div>
-  )
-}
-
-function ToolbarButton({ onClick, label, disabled = false, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-violet disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
-    >
-      {children}
-    </button>
   )
 }
 
