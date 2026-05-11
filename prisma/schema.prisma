@@ -1101,6 +1101,10 @@ model Consultation {
   timezone           String             @default("UTC") // client's IANA tz captured at booking
   meetingProvider    MeetingProvider    @default(manual)
   meetingLink        String? // join URL (Google Meet / Zoom / manual)
+  /// Google Calendar event id — populated when meetingProvider = google_meet.
+  /// Lets the reschedule / cancel paths update the same Calendar event
+  /// instead of orphaning it. Nullable for non-Google bookings.
+  googleEventId      String?
   status             ConsultationStatus @default(pending)
   summaryNotes       String?            @db.Text // host's post-meeting notes
   clientNotes        String?            @db.Text // client's pre-meeting notes / agenda

@@ -23,6 +23,7 @@ const {
   getAvailableSlots,
   ACTIVE_BOOKING_STATUSES,
 } = require("./availabilityService")
+const googleCalendar = require("../lib/googleCalendar")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -131,7 +132,7 @@ async function bookConsultation({
   }
 
   try {
-    const consultation = await prisma.consultation.create({
+    let consultation = await prisma.consultation.create({
       data: {
         userId,
         assignedAdminId:   hostId,
@@ -148,6 +149,20 @@ async function bookConsultation({
       },
       include: PUBLIC_INCLUDE,
     })
+
+    // When the booking is auto-confirmed (client picked from published
+    // availability → no admin review needed), wire the same side-effects
+    // the manual admin-confirm path runs:
+    //   1. Create a Google Calendar event with a Meet link (or fall back
+    //      to a Jitsi room if Google isn't configured).
+    //   2. Persist the meeting link + provider + event id back onto the row.
+    //   3. Fire the confirmation email so the client gets the join link
+    //      immediately, plus the Calendar invite Google itself sends.
+    // All of this is best-effort — if it fails the consultation still
+    // exists in the DB and the admin can recover from /admin/consultations.
+    if (autoConfirm) {
+      consultation = await provisionMeetingAndNotify(consultation)
+    }
 
     return consultation
   } catch (err) {
@@ -201,7 +216,11 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
 
   // Atomic: cancel old, create new in one transaction. The new row inherits the
   // host, service, user — only the time changes. Uniqueness ensures no overlap.
-  return prisma.$transaction(async (tx) => {
+  // The Google Calendar event (if any) is updated in-place AFTER the
+  // transaction commits — we don't want a Calendar API timeout to roll
+  // back the DB write. The new row inherits the SAME googleEventId so the
+  // single Calendar event tracks the booking across reschedules.
+  const newRow = await prisma.$transaction(async (tx) => {
     await tx.consultation.update({
       where: { id: existing.id },
       data: {
@@ -228,6 +247,7 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
           rescheduledFromId: existing.id,
           meetingProvider:   existing.meetingProvider,
           meetingLink:       existing.meetingLink,
+          googleEventId:     existing.googleEventId,
         },
         include: PUBLIC_INCLUDE,
       })
@@ -240,6 +260,22 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
       throw err
     }
   })
+
+  // Calendar event update is best-effort and outside the transaction.
+  // Failure here is logged but doesn't roll back the DB reschedule —
+  // the admin can re-sync later via the admin dashboard if needed.
+  if (existing.googleEventId && googleCalendar.isConfigured()) {
+    googleCalendar.updateCalendarEvent(existing.googleEventId, {
+      start: newStart,
+      end:   newEnd,
+      timezone: tz,
+    }).catch((e) => {
+      // eslint-disable-next-line no-console
+      console.error("[consultation] Google Calendar reschedule failed:", e?.message)
+    })
+  }
+
+  return newRow
 }
 
 /**
@@ -257,7 +293,7 @@ async function cancelConsultation({ id, userId, isAdmin = false, reason }) {
   }
   if (!isAdmin) assertWithinPolicyWindow(existing, { hoursBefore: 12 })
 
-  return prisma.consultation.update({
+  const cancelled = await prisma.consultation.update({
     where: { id },
     data: {
       status:             "cancelled",
@@ -266,6 +302,19 @@ async function cancelConsultation({ id, userId, isAdmin = false, reason }) {
     },
     include: PUBLIC_INCLUDE,
   })
+
+  // Best-effort Calendar event delete. Google emails the attendee a
+  // cancellation automatically when `sendUpdates: "all"` is set inside
+  // googleCalendar.cancelCalendarEvent. Failure here is logged but
+  // doesn't roll back the DB cancel — the row is already cancelled.
+  if (existing.googleEventId && googleCalendar.isConfigured()) {
+    googleCalendar.cancelCalendarEvent(existing.googleEventId).catch((e) => {
+      // eslint-disable-next-line no-console
+      console.error("[consultation] Google Calendar cancel failed:", e?.message)
+    })
+  }
+
+  return cancelled
 }
 
 /**
@@ -331,18 +380,102 @@ async function adminListConsultations({ status, from, to, hostUserId, page = 1, 
 }
 
 /**
- * Generate a Jitsi meeting room URL — used when the admin confirms a
- * consultation without supplying a Google Meet / Zoom link of their own.
- *
- * Jitsi is the lowest-friction default: no API, no account, the room is
- * created on first visit, and the URL itself is the credential. We salt
- * it with random bytes so a leaked legacy URL can't be guessed from the
- * consultation ID alone.
+ * Generate a Jitsi meeting room URL — FALLBACK when Google Calendar is not
+ * configured. Jitsi is the lowest-friction default: no API, no account,
+ * the room is created on first visit, and the URL itself is the credential.
+ * We salt it with random bytes so a leaked legacy URL can't be guessed
+ * from the consultation ID alone.
  */
 function generateJitsiMeetingLink(consultationId) {
   const slug = crypto.randomBytes(6).toString("hex")
   const short = String(consultationId || "").slice(-6).toLowerCase().replace(/[^a-z0-9]/g, "x")
   return `https://meet.jit.si/ukizuru-${short}-${slug}`
+}
+
+/**
+ * Provision a meeting link for a freshly-confirmed consultation and send
+ * the confirmation email. The two-step shape is on purpose: a Calendar
+ * API failure must NOT block the email, and a transient API outage must
+ * NOT prevent the booking from being recorded.
+ *
+ * Order of operations:
+ *   1. If Google Calendar is configured, try to create an event + Meet
+ *      link via the Calendar API. On success, persist meetingProvider =
+ *      google_meet, meetingLink = <Meet URL>, googleEventId = <event id>.
+ *   2. If Google fails (or isn't configured), fall back to a Jitsi room
+ *      with meetingProvider = manual.
+ *   3. Regardless of which provider was used, fire the existing
+ *      consultation.confirmed email — the template substitutes the link
+ *      so the client always gets something they can click on.
+ *
+ * Returns the (refetched) consultation row with the link populated.
+ */
+async function provisionMeetingAndNotify(consultation) {
+  // The DB row passed in has the user/service relations expanded via
+  // PUBLIC_INCLUDE — read those for the Calendar event metadata.
+  const id    = consultation.id
+  const start = consultation.scheduledAt instanceof Date
+    ? consultation.scheduledAt
+    : new Date(consultation.scheduledAt)
+  const end   = consultation.endsAt instanceof Date
+    ? consultation.endsAt
+    : new Date(consultation.endsAt || (start.getTime() + (consultation.durationMin || 30) * 60_000))
+
+  let meetingLink     = null
+  let meetingProvider = "manual"
+  let googleEventId   = null
+
+  if (googleCalendar.isConfigured()) {
+    try {
+      const serviceTitle = consultation.service?.title || "Consulting session"
+      const attendeeEmail = consultation.user?.email
+      const attendeeName  = consultation.user?.fullName
+
+      const event = await googleCalendar.createCalendarEvent({
+        summary:        `${serviceTitle} · ${attendeeName || "Client"}`,
+        description:
+          `Consultation booked via mustaphaukizuru.com\n\n` +
+          (consultation.clientNotes ? `Client notes:\n${consultation.clientNotes}\n\n` : "") +
+          `Booking ID: ${id}`,
+        start,
+        end,
+        timezone:       consultation.timezone || "UTC",
+        attendeeEmail:  attendeeEmail || undefined,
+        attendeeName:   attendeeName  || undefined,
+        consultationId: id,
+      })
+
+      meetingLink     = event.meetLink
+      meetingProvider = "google_meet"
+      googleEventId   = event.eventId
+    } catch (err) {
+      // Google failed — log and fall through to Jitsi. Best-effort.
+      // eslint-disable-next-line no-console
+      console.error("[consultation] Google Calendar event failed; falling back to Jitsi:", err?.message)
+    }
+  }
+
+  if (!meetingLink) {
+    meetingLink     = generateJitsiMeetingLink(id)
+    meetingProvider = "manual"
+    googleEventId   = null
+  }
+
+  const updated = await prisma.consultation.update({
+    where: { id },
+    data:  { meetingLink, meetingProvider, googleEventId },
+    include: PUBLIC_INCLUDE,
+  })
+
+  // Email is fire-and-forget — caller already returned successfully if it
+  // throws. The template fills {{meetingLink}} so the client clicks
+  // through whether it's a Meet or Jitsi URL.
+  sendConsultationConfirmedEmail(updated).catch((e) => {
+    // eslint-disable-next-line no-console
+    console.error("[consultation] confirmation email failed:", e?.message)
+  })
+
+  return updated
 }
 
 /**
