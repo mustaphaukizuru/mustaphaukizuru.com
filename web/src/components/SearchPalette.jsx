@@ -227,7 +227,11 @@ export default function SearchPalette() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.16 }}
-          className="fixed inset-0 z-[80] flex items-start justify-center bg-charcoal/55 p-4 pt-[12vh] backdrop-blur-md"
+          // Mobile · tighter outer padding and a higher palette position so
+          // when the on-screen keyboard pops up the input still sits above
+          // the fold. Desktop keeps the original 12vh drop so the palette
+          // lands at the visual centre of attention.
+          className="fixed inset-0 z-[80] flex items-start justify-center bg-charcoal/55 p-3 pt-[6vh] backdrop-blur-md sm:p-4 sm:pt-[12vh]"
           onClick={(e) => {
             if (e.target === e.currentTarget) setOpen(false)
           }}
@@ -238,7 +242,9 @@ export default function SearchPalette() {
             exit={{ y: -8, scale: 0.98, opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             style={{ background: PALETTE_BG }}
-            className="relative w-full max-w-2xl overflow-hidden rounded-3xl text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10"
+            // rounded-2xl on mobile (less bulky on narrow viewports);
+            // rounded-3xl on sm+ keeps the desktop softness.
+            className="relative w-full max-w-2xl overflow-hidden rounded-2xl text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10 sm:rounded-3xl"
           >
             {/* Subtle dot grid for depth */}
             <div
@@ -246,15 +252,22 @@ export default function SearchPalette() {
               className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:24px_24px]"
             />
 
-            {/* ─── Top bar · search input row ─────────────────────────── */}
-            <div className="relative flex items-center gap-3 border-b border-white/10 px-5 py-4">
+            {/* ─── Top bar · search input row ───────────────────────────
+                Mobile (<sm): tighter gaps + padding, scope chip is hidden
+                (it's purely informational and was eating ~80px of the row
+                before, truncating the input on 360-wide viewports). The
+                close button becomes a WCAG-AA 44x44 touch target.
+                Desktop (sm+): scope chip visible, ESC kbd hint chip,
+                original padding rhythm preserved. */}
+            <div className="relative flex items-center gap-2 border-b border-white/10 px-3 py-3 sm:gap-3 sm:px-5 sm:py-4">
               <Search
                 className="h-5 w-5 shrink-0 text-white/55"
                 aria-hidden="true"
               />
 
-              {/* Scope chip, purely informational for now (single scope) */}
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-white/[0.08] px-2 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70 ring-1 ring-white/10">
+              {/* Scope chip — desktop only. Purely informational (single
+                  scope today); on mobile every pixel of input width matters. */}
+              <span className="hidden shrink-0 items-center gap-1.5 rounded-md bg-white/[0.08] px-2 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70 ring-1 ring-white/10 sm:inline-flex">
                 <Package className="h-3 w-3" aria-hidden="true" />
                 Products
               </span>
@@ -266,17 +279,21 @@ export default function SearchPalette() {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onInputKeyDown}
                 placeholder={t("search.placeholder2")}
-                className="flex-1 bg-transparent text-[15.5px] text-white placeholder-white/35 outline-none"
+                // `min-w-0` is critical inside a flex row: without it the
+                // input's intrinsic placeholder width can force the row
+                // wider than the parent on narrow viewports, pushing the
+                // close button off-screen (the pre-fix bug in the report).
+                className="min-w-0 flex-1 bg-transparent text-[15.5px] text-white placeholder-white/35 outline-none"
                 autoComplete="off"
                 spellCheck="false"
                 aria-label={t("search.searchAria")}
               />
 
-              {/* Close affordance — always rendered. On sm+ we show the
-                  "ESC" keyboard hint chip (so power users learn the binding).
-                  On mobile we render a real X icon button instead, since
-                  there's no keyboard. Both target the same setOpen(false)
-                  so the close path is uniform. */}
+              {/* Close affordance — uniform action, dual presentation:
+                  · sm+ : "ESC" keyboard chip teaches the binding.
+                  · <sm : 44x44 X icon button — meets WCAG AA touch target,
+                          replaces the meaningless "ESC" hint on phones
+                          that don't have an Esc key. */}
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -289,7 +306,7 @@ export default function SearchPalette() {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label={t("search.closeAria")}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/75 ring-1 ring-white/10 transition hover:bg-white/[0.14] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:hidden"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/85 ring-1 ring-white/10 transition active:scale-95 active:bg-white/[0.18] hover:bg-white/[0.14] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:hidden"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -329,10 +346,10 @@ export default function SearchPalette() {
 
             {/* ─── Footer · keyboard hints + brand mark ────────────────
                 The hint row is keyboard-only ergonomics — hidden on mobile
-                where there's no keyboard. Without this the footer stacked
-                four KbCombos onto the same row as the brand sig, blowing
-                out the modal on 360-wide viewports (PDF #24.5). */}
-            <div className="relative flex items-center justify-between gap-3 border-t border-white/10 bg-black/15 px-5 py-3">
+                where there's no keyboard. The outer container also goes
+                `hidden sm:flex` so it doesn't render as an empty striped
+                bar when both children are display:none on small viewports. */}
+            <div className="relative hidden items-center justify-between gap-3 border-t border-white/10 bg-black/15 px-5 py-3 sm:flex">
               <div className="hidden flex-wrap items-center gap-3 text-[11.5px] font-medium text-white/55 sm:flex">
                 <KbCombo>
                   <Kbd>
@@ -379,14 +396,17 @@ export default function SearchPalette() {
 function IdleState() {
   const { t } = useTranslation("common")
   return (
-    <div className="px-5 py-14 text-center">
+    <div className="px-5 py-10 text-center sm:py-14">
       <ConcentricRings>
         <Search className="h-5 w-5 text-white/80" aria-hidden="true" />
       </ConcentricRings>
       <p className="text-[14.5px] font-semibold text-white/90">
         {t("search.startTyping")}
       </p>
-      <p className="mt-1.5 text-[12.5px] text-white/45">
+      {/* Keyboard-binding hint is desktop-only — these glyphs (↑ ↓ ↵) are
+          meaningless on touch devices and add visual noise to the empty
+          state on narrow viewports. */}
+      <p className="mt-1.5 hidden text-[12.5px] text-white/45 sm:block">
         Press <Kbd inline>↑</Kbd> <Kbd inline>↓</Kbd> {t("search.navigate")}{" "}
         <Kbd inline>↵</Kbd> {t("search.openHint")}
       </p>
@@ -509,8 +529,10 @@ function ResultRow({ idx, item, active, onClick, onMouseEnter }) {
 /* ─────────────────────────── primitives ────────────────────────────────── */
 
 function ConcentricRings({ children }) {
+  // Slightly smaller on mobile so the empty state doesn't push the body
+  // height below the keyboard fold on 360-wide viewports.
   return (
-    <div className="relative mx-auto mb-4 flex h-24 w-24 items-center justify-center">
+    <div className="relative mx-auto mb-4 flex h-20 w-20 items-center justify-center sm:h-24 sm:w-24">
       <span
         aria-hidden="true"
         className="absolute inset-0 rounded-full border border-white/10"
@@ -523,7 +545,7 @@ function ConcentricRings({ children }) {
         aria-hidden="true"
         className="absolute inset-4 rounded-full border border-white/15"
       />
-      <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.08] ring-1 ring-white/15">
+      <span className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.08] ring-1 ring-white/15 sm:h-12 sm:w-12">
         {children}
       </span>
     </div>
