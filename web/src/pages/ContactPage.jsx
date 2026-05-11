@@ -31,6 +31,8 @@ import {
 import { apiRequest } from "../lib/api"
 import ContactHero from "../components/heroes/ContactHero"
 import SocialLinks, { CONTACT_SOCIALS } from "../components/SocialLinks"
+import FloatingLabelInput    from "../components/forms/FloatingLabelInput"
+import FloatingLabelTextarea from "../components/forms/FloatingLabelTextarea"
 
 /* Social icons + animations are owned by the shared SocialLinks component
  * imported above — no per-page glyph copies are required. */
@@ -657,26 +659,31 @@ function ContactSection() {
                   </motion.div>
                 ) : null}
 
+                {/* Phase 10 · Floating-label inputs replace the previous
+                    UnderlineField. Same API surface (name/value/onChange
+                    /onBlur/error/required); the visual treatment shifts
+                    from an animated underline to a full bordered box
+                    with a label that scales/lifts into the border on
+                    focus or when filled. */}
+
                 {/* Row · First Name + Last Name */}
-                <motion.div variants={fadeUp} className="grid gap-6 sm:grid-cols-2 sm:gap-7">
-                  <UnderlineField
+                <motion.div variants={fadeUp} className="grid gap-5 sm:grid-cols-2 sm:gap-6">
+                  <FloatingLabelInput
                     name="firstName"
                     label={t("form.firstName")}
                     value={form.firstName}
                     onChange={update("firstName")}
                     onBlur={markTouched("firstName")}
-                    placeholder={t("form.firstNamePlaceholder")}
                     autoComplete="given-name"
                     error={touched.firstName ? fieldErrors.firstName : ""}
                     required
                   />
-                  <UnderlineField
+                  <FloatingLabelInput
                     name="lastName"
                     label={t("form.lastName")}
                     value={form.lastName}
                     onChange={update("lastName")}
                     onBlur={markTouched("lastName")}
-                    placeholder={t("form.lastNamePlaceholder")}
                     autoComplete="family-name"
                     error={touched.lastName ? fieldErrors.lastName : ""}
                     required
@@ -685,14 +692,13 @@ function ContactSection() {
 
                 {/* Row · Mail */}
                 <motion.div variants={fadeUp}>
-                  <UnderlineField
+                  <FloatingLabelInput
                     name="email"
                     label={t("form.email")}
                     type="email"
                     value={form.email}
                     onChange={update("email")}
                     onBlur={markTouched("email")}
-                    placeholder={t("form.emailPlaceholder")}
                     autoComplete="email"
                     error={touched.email ? fieldErrors.email : ""}
                     required
@@ -724,13 +730,12 @@ function ContactSection() {
 
                 {/* Message */}
                 <motion.div variants={fadeUp}>
-                  <UnderlineTextarea
+                  <FloatingLabelTextarea
                     label={t("form.messageLabel")}
                     name="message"
                     value={form.message}
                     onChange={update("message")}
                     onBlur={markTouched("message")}
-                    placeholder={t("form.messagePlaceholder")}
                     rows={5}
                     maxLength={MESSAGE_MAX}
                     error={touched.message ? fieldErrors.message : ""}

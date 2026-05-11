@@ -15,6 +15,7 @@ import ErrorBoundary from "./components/ErrorBoundary"; // V2, top-level safety 
 import Toaster from "./components/ui/Toaster"; // V2, sonner-based toasts
 import CookieBanner from "./components/cookies/CookieBanner";
 import LanguageWrapper from "./components/LanguageWrapper"; // I18N02 · URL→i18n sync + layout for /es routes
+import PageTransition from "./components/motion/PageTransition"; // Phase 10 · cross-fade between routes
 import { CookieConsentProvider } from "./context/CookieConsentContext";
 
 import PublicShell from "./layout/PublicShell";
@@ -157,6 +158,7 @@ export default function App() {
       <CompareBar />
           <ScrollToTop />
 
+          <PageTransition>
           <Routes>
             {/* Public */}
             <Route path="/" element={<PublicShell><Home /></PublicShell>} />
@@ -388,6 +390,7 @@ export default function App() {
             {/* Catch-all */}
             <Route path="*" element={<PublicShell><ErrorPage type="404" /></PublicShell>} />
           </Routes>
+          </PageTransition>
           </LanguageWrapper>
         </Suspense>
       </div>

@@ -33,6 +33,8 @@ import {
   RECENTLY_SHIPPED,
 } from "../data/solutionsCatalogue"
 import { AUDIENCE_LABELS } from "../data/servicesCatalogue"
+import BentoCell from "../components/motion/BentoCell"
+import Reveal    from "../components/motion/Reveal"
 
 /* ── Local helpers ──────────────────────────────────────────────────────── */
 const formatUsd = (n) => `$${Number(n).toLocaleString("en-US")}`
@@ -238,6 +240,135 @@ function BeforeAfterIllustration({ reduce }) {
 }
 
 /* ════════════════════════════════════════════════════════════════════════
+   PackagesBento · Phase 10 · audience-filtered hover-expand bento grid
+
+   Three audience tabs (EDU / SMB / IND) switch the visible packages with
+   a layout transition. The first package in each set takes a 2-column
+   span on lg+ so the grid reads as a real bento (asymmetric) rather than
+   a uniform grid. Tones cycle through brand v3.1 status tints — violet
+   for the lead tile, then azure / mint / amber / rose / slate.
+
+   The grid uses `<AnimatePresence mode="popLayout">` so audience switches
+   feel intentional (old tiles fade + lift out, new tiles drop in).
+   ════════════════════════════════════════════════════════════════════════ */
+const AUDIENCE_TONES = ["violet", "azure", "mint", "amber", "rose", "slate"]
+
+function PackagesBento({ activeAudience, onAudienceChange, segmented }) {
+  const { t } = useTranslation("solutions")
+  const reduce = useReducedMotion()
+
+  // Resolve audience labels — fall back to internal codes if i18n keys
+  // are missing so the toggle is always functional.
+  const audiences = [
+    { code: "EDU", label: t("audiences.edu", { defaultValue: AUDIENCE_LABELS?.EDU || "Schools" }) },
+    { code: "SMB", label: t("audiences.smb", { defaultValue: AUDIENCE_LABELS?.SMB || "SMBs & Startups" }) },
+    { code: "IND", label: t("audiences.ind", { defaultValue: AUDIENCE_LABELS?.IND || "Individuals" }) },
+  ]
+
+  return (
+    <section
+      aria-labelledby="packages-bento-title"
+      className="py-14 sm:py-16 lg:py-20"
+    >
+      <Container>
+        <Reveal>
+          <div className="mx-auto mb-8 flex max-w-3xl flex-col items-center gap-3 text-center sm:mb-10">
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-violet">
+              {t("packages.eyebrow", { defaultValue: "Solution packages" })}
+            </span>
+            <h2
+              id="packages-bento-title"
+              className="text-[clamp(24px,3vw,38px)] font-bold tracking-tight text-violet text-balance"
+            >
+              {t("packages.title", { defaultValue: "Outcomes by audience — pick what fits" })}
+            </h2>
+            <p className="max-w-xl text-[15px] leading-relaxed text-charcoal-80/70">
+              {t("packages.subtitle", {
+                defaultValue: "Tap an audience to surface the engagements built for it. Every package is scoped, priced, and outcome-anchored.",
+              })}
+            </p>
+          </div>
+        </Reveal>
+
+        {/* Audience toggle */}
+        <Reveal>
+          <div
+            role="tablist"
+            aria-label={t("packages.tablistAria", { defaultValue: "Audience filter" })}
+            className="mx-auto mb-8 flex w-fit gap-1 rounded-full bg-slate-100 p-1 sm:mb-10"
+          >
+            {audiences.map((aud) => {
+              const active = activeAudience === aud.code
+              return (
+                <button
+                  key={aud.code}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => onAudienceChange(aud.code)}
+                  className={`relative rounded-full px-4 py-2 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 ${
+                    active ? "text-white" : "text-charcoal-80/70 hover:text-charcoal"
+                  }`}
+                >
+                  {active && !reduce && (
+                    <motion.span
+                      layoutId="packages-bento-tab-pill"
+                      className="absolute inset-0 rounded-full bg-violet shadow-[0_4px_14px_rgba(93,63,211,0.25)]"
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  {active && reduce && (
+                    <span className="absolute inset-0 rounded-full bg-violet" />
+                  )}
+                  <span className="relative z-10">{aud.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </Reveal>
+
+        {/* Bento grid */}
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={activeAudience}
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduce ? undefined : { opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:auto-rows-[minmax(180px,auto)]"
+          >
+            {segmented.length === 0 && (
+              <div className="col-span-full rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-[14px] text-charcoal-80/60">
+                {t("packages.empty", {
+                  defaultValue: "No packages yet for this audience — check back soon.",
+                })}
+              </div>
+            )}
+            {segmented.map((pkg, idx) => {
+              const tone = AUDIENCE_TONES[idx % AUDIENCE_TONES.length]
+              // First tile spans 2 cols on lg+ to create a proper bento
+              // asymmetry; remaining tiles are 1x1.
+              const span = idx === 0 ? "lg:col-span-2 lg:row-span-2" : ""
+              return (
+                <BentoCell
+                  key={pkg.id || pkg.slug}
+                  to={`/services/${pkg.slug}`}
+                  eyebrow={pkg.audience.split(",").join(" · ")}
+                  title={pkg.name}
+                  description={pkg.tagline}
+                  tone={tone}
+                  span={span}
+                />
+              )
+            })}
+          </motion.div>
+        </AnimatePresence>
+      </Container>
+    </section>
+  )
+}
+
+/* ════════════════════════════════════════════════════════════════════════
    PAGE
    ════════════════════════════════════════════════════════════════════════ */
 export default function SolutionsPage() {
@@ -255,6 +386,19 @@ export default function SolutionsPage() {
            § 01 · HERO · doodle illustration · audience-fanned cards
            ════════════════════════════════════════════════════════════════ */}
       <SolutionsHero />
+
+      {/* ╔════════════════════════════════════════════════════════════════
+           § 01b · PACKAGES BENTO · Phase 10 · audience-filtered hover-
+           expand grid that surfaces the SOLUTION_PACKAGES catalogue.
+           Previously declared but never rendered — moved into view so
+           visitors can see concrete offerings immediately after the hero
+           instead of three sections later.
+           ════════════════════════════════════════════════════════════════ */}
+      <PackagesBento
+        activeAudience={activeAudience}
+        onAudienceChange={setActiveAudience}
+        segmented={segmented}
+      />
 
             {/* ╔════════════════════════════════════════════════════════════════
            § 02 · PAIN POINT IDENTIFICATION · "are you struggling with..."

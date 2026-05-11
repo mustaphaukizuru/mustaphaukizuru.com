@@ -17,6 +17,7 @@ import mMarkViolet from "../../assets/logo-mark/m-mark-violet.svg"
 import { products as STORE_PRODUCTS } from "../../data/storeData"
 import { fetchFeaturedProducts } from "../../services/productService"
 import { formatPrice } from "../../lib/format"
+import KineticHeadline from "../motion/KineticHeadline"
 
 /**
  * HomeHero · V10 — "Floating cluster" composition
@@ -224,17 +225,20 @@ export default function HomeHero() {
             {t("hero.eyebrow")}
           </span>
 
-          <motion.h1
-            variants={fadeUp}
-            className="mt-5 font-display text-[2.6rem] font-extrabold leading-[1.04] tracking-[-0.02em] text-charcoal sm:text-[3.4rem] lg:text-[4.4rem]"
-          >
-            {t("hero.headlineBuilt")}{" "}
-            <span className="text-terracotta">{t("hero.headlineShipped")}</span>
-            <br />
-            <span className="bg-grad-innovation bg-clip-text text-transparent">
-              {t("hero.headlineForYou")}
-            </span>
-          </motion.h1>
+          {/* Phase 10 · kinetic headline — word-by-word reveal with
+              gradient-swept emphasis. Falls back to a static H1 when the
+              user prefers reduced motion (handled inside KineticHeadline). */}
+          <KineticHeadline
+            as="h1"
+            stagger={0.07}
+            className="mt-5 font-display text-[length:var(--text-hero)] font-extrabold leading-[1.04] tracking-[-0.02em] text-charcoal text-balance"
+            parts={[
+              { text: t("hero.headlineBuilt") },
+              { text: t("hero.headlineShipped"), highlight: true },
+              { text: t("hero.headlineForYou"),  gradient: true },
+            ]}
+            highlightClassName="text-terracotta"
+          />
 
           <motion.p
             variants={fadeUp}

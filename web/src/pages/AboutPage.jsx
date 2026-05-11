@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion"
 import { Link } from "react-router-dom"
 import Seo from "../components/seo/Seo"
 import { pageSeo } from "../seo/pageSeo"
@@ -33,6 +33,8 @@ import AboutHero from "../components/heroes/AboutHero" // V2, universal hero
 import CertificatePreview from "../components/CertificatePreview" // V2, inline PDF
 import SkillsByCapability from "../components/SkillsByCapability" // F06.v4, capability lens
 import SpokenLanguages from "../components/SpokenLanguages" // F06.v4, CEFR strip
+import Counter from "../components/motion/Counter" // Phase 10 · animated number counter
+import Reveal from "../components/motion/Reveal" // Phase 10 · scroll-reveal wrapper
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  AboutPage · F06 v2 · Batch 3 (revised)
@@ -427,9 +429,120 @@ function Timeline({ items, accent }) {
   )
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+ *  AboutStatsStrip · Phase 10 · animated counters strip
+ *
+ *  Four credibility-signal tiles in a single row (2x2 on mobile, 4-up on
+ *  lg+). Each tile uses a brand v3.1 status tint (mint/azure/amber/violet)
+ *  and an animated counter that climbs from 0 once the strip scrolls into
+ *  view. Numbers are anchored to facts from the bio:
+ *
+ *    6  → years building production software
+ *    4  → countries lived/worked in (Rwanda, Turkey, Ethiopia, Mexico)
+ *    9  → professional certifications shipped (matches the certificates
+ *          section count and is locale-stable)
+ *    100→ students taught across CS / STEM cohorts (rounded floor)
+ *
+ *  Labels resolve via i18n (`about:stats.*`) with sensible English/Spanish
+ *  defaultValues so the strip ships even if the i18n keys aren't added
+ *  yet. The tile palette pulls from brand v3.1 status tokens directly.
+ *  ───────────────────────────────────────────────────────────────────── */
+function AboutStatsStrip() {
+  const { t } = useTranslation("about")
+
+  const tiles = [
+    {
+      key: "years",
+      to:  6,
+      suffix: "+",
+      label: t("stats.yearsLabel",      { defaultValue: "Years shipping production work" }),
+      tone: "tile-mint",
+    },
+    {
+      key: "countries",
+      to:  4,
+      label: t("stats.countriesLabel",  { defaultValue: "Countries lived & worked in" }),
+      tone: "tile-azure",
+    },
+    {
+      key: "certs",
+      to:  9,
+      suffix: "+",
+      label: t("stats.certsLabel",      { defaultValue: "Professional certifications" }),
+      tone: "tile-amber",
+    },
+    {
+      key: "students",
+      to:  100,
+      suffix: "+",
+      label: t("stats.studentsLabel",   { defaultValue: "CS & STEM students taught" }),
+      tone: "tile-violet",
+    },
+  ]
+
+  const tones = {
+    "tile-mint":   "bg-mint-50 text-mint-700",
+    "tile-azure":  "bg-azure-pale text-azure-800",
+    "tile-amber":  "bg-amber-50 text-amber-700",
+    "tile-violet": "bg-violet-pale text-violet-deep",
+  }
+
+  return (
+    <section
+      aria-label={t("stats.sectionLabel", { defaultValue: "Key stats" })}
+      className="py-12 sm:py-16"
+    >
+      <Container>
+        <Reveal>
+          <div className="mb-8 flex flex-col items-center gap-2 text-center sm:mb-10">
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-violet">
+              {t("stats.eyebrow", { defaultValue: "By the numbers" })}
+            </span>
+            <h2 className="text-[clamp(22px,2.5vw,32px)] font-bold tracking-tight text-charcoal text-balance">
+              {t("stats.title", { defaultValue: "A track record you can verify" })}
+            </h2>
+          </div>
+        </Reveal>
+
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {tiles.map((tile) => (
+            <Reveal key={tile.key} as="div" amount={0.4}>
+              <div
+                className={`flex h-full flex-col justify-between rounded-2xl p-5 sm:p-6 ${tones[tile.tone]} ring-1 ring-charcoal/5`}
+              >
+                <Counter
+                  to={tile.to}
+                  suffix={tile.suffix}
+                  className="font-display text-[clamp(36px,5vw,56px)] font-extrabold leading-none tracking-tight tabular-nums"
+                />
+                <p className="mt-3 text-[12.5px] font-medium leading-snug opacity-85">
+                  {tile.label}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </Container>
+    </section>
+  )
+}
+
 export default function AboutPage() {
 
   const { t } = useTranslation("about")
+
+  /* Phase 10 · journey scrollytelling ref + progress.
+   * useScroll fires while the section is in view; scrollYProgress climbs
+   * from 0 to 1 as the section moves from "just entering bottom of
+   * viewport" to "just leaving top of viewport". Used to fill the
+   * vertical accent line on the left edge of the section. */
+  const journeyRef = useRef(null)
+  const { scrollYProgress: journeyProgress } = useScroll({
+    target: journeyRef,
+    offset: ["start end", "end start"],
+  })
+  const journeyLineScale = useTransform(journeyProgress, [0, 1], [0, 1])
+
   /* ────────────────────────────────────────────────────────────────────
    *  M12 · Bio CMS hydration
    *
@@ -623,6 +736,13 @@ export default function AboutPage() {
       {/* ══ HERO · V2 universal · replaces 180-line bespoke block ══ */}
       <AboutHero />
 
+      {/* ══════════════════════════════════════════════════════════════════
+           STATS STRIP · Phase 10 · animated counters that fire once on
+           viewport enter. Four signal-of-credibility numbers presented as
+           soft brand-tinted tiles — no dark canvas, no decoration overload.
+          ══════════════════════════════════════════════════════════════════ */}
+      <AboutStatsStrip />
+
 
       {/* ══════════════════════════════════════════════════════════════════
            MISSION · VISION · VALUES
@@ -689,10 +809,22 @@ export default function AboutPage() {
            Background: soft mist gradient. All text WCAG AA on white cards.
           ══════════════════════════════════════════════════════════════════ */}
       <section
+        ref={journeyRef}
         id="journey"
         className="scroll-mt-24 relative overflow-hidden py-20 lg:py-28"
         style={{ background: "linear-gradient(180deg, var(--color-mist) 0%, #f8f3fa 60%, var(--color-mist) 100%)" }}
       >
+        {/* Phase 10 · scrollytelling progress line — a hair-thin violet
+            ribbon on the left edge of the journey section that fills
+            from 0% to 100% height as the user scrolls through the
+            section. Pure visual rhythm marker; aria-hidden because
+            screen readers don't need a scroll-progress signal. */}
+        <motion.div
+          aria-hidden="true"
+          style={{ scaleY: journeyLineScale, transformOrigin: "0% 0%" }}
+          className="pointer-events-none absolute left-3 top-0 hidden h-full w-px origin-top bg-gradient-to-b from-violet via-violet-deep to-violet/0 sm:left-6 lg:block lg:left-8"
+        />
+
         {/* Decorative subtle blob */}
         <div className="pointer-events-none absolute -right-32 top-1/3 h-[400px] w-[400px] rounded-full bg-violet/5 blur-3xl" aria-hidden="true" />
         <div className="pointer-events-none absolute -left-32 bottom-0 h-[300px] w-[300px] rounded-full bg-terracotta/10 blur-3xl" aria-hidden="true" />
