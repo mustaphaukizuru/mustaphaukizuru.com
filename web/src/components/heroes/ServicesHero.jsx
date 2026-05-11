@@ -25,6 +25,7 @@ import {
   ArrowRight, Sparkles, Calendar, ClipboardCheck, Star,
   Briefcase, PieChart, TrendingUp, Package, Check,
 } from "lucide-react"
+import KineticHeadline from "../motion/KineticHeadline"
 
 /* ── Animation variants ─────────────────────────────────────────────────── */
 const fadeUp = {
@@ -351,18 +352,22 @@ export default function ServicesHero() {
               </EyebrowChip>
             </motion.div>
 
-            {/* Display headline · marketing voice — short, outcome-led */}
-            <motion.h1
-              variants={fadeUp}
-              className="mt-5 text-display !text-charcoal-80"
-            >
-              {t("hero.headlinePremium")}{" "}
-              <span className="relative inline-block bg-gradient-to-r from-violet via-[#7B5FE0] to-terracotta bg-clip-text !text-transparent">
-                {t("hero.honestPrice")}
-                <BrandUnderline />
-              </span>
-              .
-            </motion.h1>
+            {/* Phase 10b · kinetic word-by-word reveal. The legacy
+                gradient-clipped span (with its underline decoration) is
+                preserved as a `gradient: true` part — the gradient
+                sweep replaces the underline as the emphasis affordance.
+                The trailing period is appended to the gradient text so
+                it inherits the same tint. */}
+            <KineticHeadline
+              as="h1"
+              className="mt-5 text-display !text-charcoal-80 text-balance"
+              stagger={0.07}
+              parts={[
+                { text: t("hero.headlinePremium") },
+                { text: `${t("hero.honestPrice")}.`, gradient: true },
+              ]}
+              gradientClassName="bg-gradient-to-r from-violet via-[#7B5FE0] to-terracotta bg-clip-text !text-transparent"
+            />
 
             {/* Subhead · marketing voice — three-beat rhythm, plain words */}
             <motion.p

@@ -27,6 +27,7 @@ import {
   ArrowRight, BarChart3, TrendingUp, CheckCircle2, Clock, Star,
   Users, RefreshCw, Sparkles,
 } from "lucide-react"
+import KineticHeadline from "../motion/KineticHeadline"
 
 /* ── Animation variants ─────────────────────────────────────────────────── */
 const fadeUp = {
@@ -403,17 +404,21 @@ export default function SolutionsHero() {
               {t("hero.solutionsEyebrow")}
             </motion.div>
 
-            {/* Display headline · bicolor */}
-            <motion.h1
-              variants={fadeUp}
-              className="mt-5 text-display !text-charcoal-80"
-            >
-              {t("hero.achieveReal")}
-              <br className="hidden sm:block" />
-              <span className="!text-violet"> {t("hero.withProductized")}</span>
-              <br className="hidden sm:block" />
-              <span className="!text-violet"> {t("hero.solutionsWord")}</span>
-            </motion.h1>
+            {/* Phase 10b · kinetic word-by-word reveal. The previous
+                bicolor line-broken H1 becomes three sequenced parts;
+                the violet parts get the highlight tone so the rhythm
+                matches the legacy visual emphasis. */}
+            <KineticHeadline
+              as="h1"
+              className="mt-5 text-display !text-charcoal-80 text-balance"
+              stagger={0.07}
+              parts={[
+                { text: t("hero.achieveReal") },
+                { text: t("hero.withProductized"), highlight: true },
+                { text: t("hero.solutionsWord"),    highlight: true },
+              ]}
+              highlightClassName="!text-violet"
+            />
 
             {/* Subhead */}
             <motion.p

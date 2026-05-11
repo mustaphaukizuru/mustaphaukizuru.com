@@ -24,6 +24,9 @@ import FeaturedReviewsRibbon from "../components/FeaturedReviewsRibbon"
 // Design-system primitives (Phase B · v1.0)
 import { Card, EmptyState, Skeleton } from "../components/system"
 
+// Phase 10b · motion primitives
+import Marquee from "../components/motion/Marquee"
+
 /* ──────────────────────────────────────────────────────────────────────────
  *  Home · F12 · Batch 4
  *  ──────────────────────────────────────────────────────────────────── */
@@ -68,6 +71,57 @@ function RevealSection({ children, className = "" }) {
     >
       {children}
     </motion.div>
+  )
+}
+
+/* ─────────────────── BUILT WITH · marquee strip ───────────────────────
+ *  Phase 10b · infinite-scroll tech-stack ribbon sitting between the
+ *  hero and the Audiences section. Acts as a credibility signal — "this
+ *  isn't a typed-up CV, here's the stack actually used in production".
+ *
+ *  Items are text-only (no logo assets needed). Order is deliberate:
+ *  language → framework → infra → tooling → AI, so a reader scanning
+ *  left-to-right gets a coherent stack story rather than a random list.
+ *  Replace with logo `<img>` tags later when brand-vetted SVGs land.
+ *  ────────────────────────────────────────────────────────────────── */
+const BUILT_WITH_ITEMS = [
+  "React 19", "Vite 7", "Tailwind v4", "Framer Motion",
+  "Node.js", "Express", "Prisma 6", "MySQL",
+  "PayPal", "MercadoPago", "Stripe-ready",
+  "Google Cloud", "Hostinger", "PM2",
+  "PWA", "i18n EN · ES",
+]
+
+function BuiltWithStrip() {
+  const { t } = useTranslation("home")
+  return (
+    <section
+      aria-label={t("builtWith.sectionLabel", { defaultValue: "Stack used in production" })}
+      className="border-y border-charcoal-80/8 bg-mist py-7 sm:py-9"
+    >
+      <div className="mx-auto mb-3 flex max-w-7xl items-center justify-center px-4">
+        <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.22em] text-charcoal-80/55">
+          {t("builtWith.eyebrow", { defaultValue: "Built with · Production stack" })}
+        </span>
+      </div>
+      <Marquee
+        speed={42}
+        ariaLabel={t("builtWith.marqueeAria", { defaultValue: "Production stack ticker" })}
+      >
+        {BUILT_WITH_ITEMS.map((item) => (
+          <span
+            key={item}
+            className="inline-flex items-center gap-2 font-mono text-[13px] font-semibold uppercase tracking-[0.14em] text-charcoal-80/70"
+          >
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 rounded-full bg-violet/50"
+            />
+            {item}
+          </span>
+        ))}
+      </Marquee>
+    </section>
   )
 }
 
@@ -686,6 +740,7 @@ export default function Home() {
         jsonLd={[siteNavigationSchema()]}
       />
       <HomeHero />
+      <BuiltWithStrip />
       <RevealSection><Audiences /></RevealSection>
       <RevealSection><Solutions /></RevealSection>
       <RevealSection><FeaturedProducts /></RevealSection>

@@ -41,6 +41,7 @@ export default function KineticHeadline({
   className = "",
   gradientClassName = "bg-grad-innovation bg-clip-text text-transparent",
   highlightClassName = "text-violet",
+  ...rest
 }) {
   const reduced = useReducedMotion()
 
@@ -68,7 +69,7 @@ export default function KineticHeadline({
   // ── Reduced motion: static render ──────────────────────────────────
   if (reduced) {
     return (
-      <Tag className={className}>
+      <Tag className={className} {...rest}>
         {tokens.map((tk, i) => (
           <span key={tk.key}>
             {tk.leadingSpace ? " " : ""}
@@ -112,6 +113,7 @@ export default function KineticHeadline({
       initial="hidden"
       animate="show"
       aria-label={tokens.map((tk) => tk.word).join(" ")}
+      {...rest}
     >
       {tokens.map((tk) => (
         // The outer wrapper carries the inline-block + overflow so the
