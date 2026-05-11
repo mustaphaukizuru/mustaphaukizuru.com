@@ -183,7 +183,8 @@
     "clear": "Clear search",
     "errorTitle": "Search couldn't run",
     "errorBody": "Try again",
-    "placeholder2": "Type a command or search…"
+    "placeholder2":      "Type a command or search…",
+    "placeholderShort":  "Search products…"
   },
   "cart": {
     "drawer": {

@@ -81,6 +81,25 @@ export default function SearchPalette() {
   const listRef = useRef(null)
   const navigate = useNavigate()
 
+  /* Track narrow-viewport state so we can pick the shorter placeholder
+   * (the verbose "Type a command or search…" string overflows on iPhone
+   * SE / Pixel-class widths even with min-w-0 + the scope chip hidden).
+   * Subscribing to matchMedia is cheap and only fires on actual breakpoint
+   * crossings, not every resize tick. Initialised eagerly from window so
+   * the first paint is correct (no SSR in this app). */
+  const [isNarrow, setIsNarrow] = useState(() => {
+    if (typeof window === "undefined") return false
+    return window.matchMedia("(max-width: 639px)").matches
+  })
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const mq = window.matchMedia("(max-width: 639px)")
+    const handler = (e) => setIsNarrow(e.matches)
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
+
   /* Global key + custom-event listeners */
   useEffect(() => {
     function onKey(e) {
@@ -253,13 +272,25 @@ export default function SearchPalette() {
             />
 
             {/* ─── Top bar · search input row ───────────────────────────
-                Mobile (<sm): tighter gaps + padding, scope chip is hidden
-                (it's purely informational and was eating ~80px of the row
-                before, truncating the input on 360-wide viewports). The
-                close button becomes a WCAG-AA 44x44 touch target.
-                Desktop (sm+): scope chip visible, ESC kbd hint chip,
-                original padding rhythm preserved. */}
-            <div className="relative flex items-center gap-2 border-b border-white/10 px-3 py-3 sm:gap-3 sm:px-5 sm:py-4">
+                Layout rules:
+                  · Mobile (<sm, <640px):
+                      - tighter gaps + padding
+                      - scope chip hidden (was eating ~80px of the row)
+                      - shorter placeholder ("Search products…") so the
+                        text never visibly truncates on iPhone SE / Pixel
+                      - 44x44 X close button (WCAG AA touch target)
+                  · Desktop (sm+):
+                      - scope chip visible, ESC kbd hint chip preserved
+                      - verbose placeholder for command-palette feel
+
+                Overflow guards:
+                  · `overflow-hidden` on this row absorbs any sub-pixel
+                    rendering rounding that would otherwise push the X
+                    off the right edge.
+                  · Every fixed-width child carries `shrink-0`.
+                  · The input gets `min-w-0` so flex can shrink it below
+                    its intrinsic placeholder width without overflowing. */}
+            <div className="relative flex items-center gap-2 overflow-hidden border-b border-white/10 px-3 py-3 sm:gap-3 sm:px-5 sm:py-4">
               <Search
                 className="h-5 w-5 shrink-0 text-white/55"
                 aria-hidden="true"
@@ -278,12 +309,12 @@ export default function SearchPalette() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onInputKeyDown}
-                placeholder={t("search.placeholder2")}
-                // `min-w-0` is critical inside a flex row: without it the
-                // input's intrinsic placeholder width can force the row
-                // wider than the parent on narrow viewports, pushing the
-                // close button off-screen (the pre-fix bug in the report).
-                className="min-w-0 flex-1 bg-transparent text-[15.5px] text-white placeholder-white/35 outline-none"
+                placeholder={
+                  isNarrow
+                    ? t("search.placeholderShort", { defaultValue: "Search products…" })
+                    : t("search.placeholder2")
+                }
+                className="min-w-0 flex-1 bg-transparent text-[15px] text-white placeholder-white/40 outline-none sm:text-[15.5px]"
                 autoComplete="off"
                 spellCheck="false"
                 aria-label={t("search.searchAria")}
@@ -306,7 +337,7 @@ export default function SearchPalette() {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label={t("search.closeAria")}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/85 ring-1 ring-white/10 transition active:scale-95 active:bg-white/[0.18] hover:bg-white/[0.14] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:hidden"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.10] text-white ring-1 ring-white/15 transition active:scale-95 active:bg-white/[0.20] hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:hidden"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>

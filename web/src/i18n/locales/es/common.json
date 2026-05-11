@@ -183,7 +183,8 @@
     "clear": "Limpiar búsqueda",
     "errorTitle": "La búsqueda no pudo ejecutarse",
     "errorBody": "Inténtalo de nuevo",
-    "placeholder2": "Escribe un comando o busca…"
+    "placeholder2":      "Escribe un comando o busca…",
+    "placeholderShort":  "Buscar productos…"
   },
   "cart": {
     "drawer": {
