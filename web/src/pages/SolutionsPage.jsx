@@ -257,12 +257,17 @@ function PackagesBento({ activeAudience, onAudienceChange, segmented }) {
   const { t } = useTranslation("solutions")
   const reduce = useReducedMotion()
 
-  // Resolve audience labels — fall back to internal codes if i18n keys
-  // are missing so the toggle is always functional.
+  // Resolve audience labels — fall back to the AUDIENCE_LABELS `.label`
+  // string when the i18n key isn't set yet, then to a hardcoded string
+  // as a last resort. The pre-fix code used `AUDIENCE_LABELS?.EDU`
+  // unindexed, which is the full {code,label,tone,priority} OBJECT —
+  // i18next then handed that object back as the resolved value, and
+  // rendering `{aud.label}` blew up with "Objects are not valid as a
+  // React child (found: object with keys {code, label, tone, priority})".
   const audiences = [
-    { code: "EDU", label: t("audiences.edu", { defaultValue: AUDIENCE_LABELS?.EDU || "Schools" }) },
-    { code: "SMB", label: t("audiences.smb", { defaultValue: AUDIENCE_LABELS?.SMB || "SMBs & Startups" }) },
-    { code: "IND", label: t("audiences.ind", { defaultValue: AUDIENCE_LABELS?.IND || "Individuals" }) },
+    { code: "EDU", label: t("audiences.edu", { defaultValue: AUDIENCE_LABELS?.EDU?.label || "Schools" }) },
+    { code: "SMB", label: t("audiences.smb", { defaultValue: AUDIENCE_LABELS?.SMB?.label || "SMBs & Startups" }) },
+    { code: "IND", label: t("audiences.ind", { defaultValue: AUDIENCE_LABELS?.IND?.label || "Individuals" }) },
   ]
 
   return (
