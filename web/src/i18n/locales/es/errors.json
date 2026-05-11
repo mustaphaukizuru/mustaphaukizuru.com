@@ -31,33 +31,77 @@
   "actions": {
     "tryAgain": "Intentar de nuevo",
     "goBack": "Volver",
-    "home": "Inicio"
+    "home": "Inicio",
+    "signIn": "Iniciar sesión",
+    "contactSupport": "Contactar soporte"
   },
   "configs": {
     "NETWORK_ERROR": {
       "title": "Sin conexión",
       "message": "No pudimos conectar con el servidor. Verifica tu conexión a internet e inténtalo de nuevo."
     },
+    "OFFLINE": {
+      "title": "Estás sin conexión",
+      "message": "Tu dispositivo no está conectado a internet. Continuaremos en cuanto se restablezca la conexión."
+    },
     "DB_UNAVAILABLE": {
       "title": "Servicio temporalmente no disponible",
       "message": "Nuestros servidores están tomando un breve descanso. Volveremos en un momento. Inténtalo de nuevo en unos instantes."
     },
+    "401": {
+      "title": "Inicia sesión para continuar",
+      "message": "Esta página está disponible solo para usuarios con sesión iniciada. Inicia sesión para continuar."
+    },
     "FORBIDDEN": {
       "title": "Acceso denegado",
-      "message": "No tienes permiso para acceder a esta página. Inicia sesión o contacta a soporte si crees que es un error."
+      "message": "No tienes permiso para acceder a esta página. Si crees que es un error, contacta a soporte."
+    },
+    "403": {
+      "title": "Acceso denegado",
+      "message": "No tienes permiso para acceder a esta página. Si crees que es un error, contacta a soporte."
     },
     "404": {
       "title": "Página no encontrada",
       "message": "La página que buscas no existe o pudo haber sido movida. Verifica la URL o vuelve al inicio."
     },
+    "408": {
+      "title": "La solicitud tardó demasiado",
+      "message": "La solicitud tardó más de lo esperado. Esto suele ser temporal — inténtalo de nuevo en un momento."
+    },
+    "429": {
+      "title": "Demasiadas solicitudes",
+      "message": "Alcanzaste el límite de solicitudes. Espera unos segundos antes de volver a intentarlo. Si persiste, contacta a soporte."
+    },
     "500": {
       "title": "Algo salió mal",
       "message": "Ocurrió un error inesperado de nuestro lado. Nuestro equipo ya fue notificado. Inténtalo de nuevo en un momento."
+    },
+    "502": {
+      "title": "Interrupción de conexión",
+      "message": "No pudimos contactar uno de nuestros servicios. Suele ser momentáneo — inténtalo de nuevo."
+    },
+    "503": {
+      "title": "En mantenimiento",
+      "message": "Estamos aplicando una actualización rápida para mejorar la experiencia. Inténtalo de nuevo en unos minutos."
+    },
+    "504": {
+      "title": "El servidor tardó demasiado",
+      "message": "Un servicio de respaldo no respondió a tiempo. Estamos revisándolo — inténtalo de nuevo en breve."
+    },
+    "GENERIC": {
+      "title": "Algo salió mal",
+      "message": "Tuvimos un problema inesperado. Nuestro equipo ya fue notificado. Inténtalo de nuevo en un momento."
     }
+  },
+  "reference": {
+    "label": "Identificador de referencia:"
   },
   "support": {
     "prefix": "Si sigue ocurriendo,",
     "linkText": "contacta a soporte",
-    "suffix": "."
+    "suffix": " e incluye el identificador de referencia anterior."
+  },
+  "technicalDetail": {
+    "label": "Detalle técnico (desarrollo)"
   }
 }

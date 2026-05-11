@@ -31,33 +31,77 @@
   "actions": {
     "tryAgain": "Try Again",
     "goBack": "Go Back",
-    "home": "Home"
+    "home": "Home",
+    "signIn": "Sign In",
+    "contactSupport": "Contact Support"
   },
   "configs": {
     "NETWORK_ERROR": {
       "title": "No Connection",
       "message": "We couldn't reach the server. Please check your internet connection and try again."
     },
+    "OFFLINE": {
+      "title": "You're Offline",
+      "message": "Your device isn't connected to the internet. We'll resume as soon as the connection is back."
+    },
     "DB_UNAVAILABLE": {
       "title": "Service Temporarily Unavailable",
       "message": "Our servers are taking a short break. We'll be back up in a moment. Please try again shortly."
     },
+    "401": {
+      "title": "Sign In Required",
+      "message": "This page is only available to signed-in users. Please sign in to continue."
+    },
     "FORBIDDEN": {
       "title": "Access Denied",
-      "message": "You don't have permission to access this page. Please sign in or contact support if you believe this is an error."
+      "message": "You don't have permission to access this page. If you believe this is a mistake, please contact support."
+    },
+    "403": {
+      "title": "Access Denied",
+      "message": "You don't have permission to access this page. If you believe this is a mistake, please contact support."
     },
     "404": {
       "title": "Page Not Found",
       "message": "The page you're looking for doesn't exist or may have been moved. Check the URL or head back home."
     },
+    "408": {
+      "title": "Request Timed Out",
+      "message": "The request took longer than expected. This is usually temporary — please try again in a moment."
+    },
+    "429": {
+      "title": "Too Many Requests",
+      "message": "You've hit the rate limit. Please wait a few seconds before trying again. If this persists, contact support."
+    },
     "500": {
       "title": "Something Went Wrong",
       "message": "An unexpected error occurred on our end. Our team has been notified. Please try again in a moment."
+    },
+    "502": {
+      "title": "Connection Hiccup",
+      "message": "We couldn't reach one of our services. This is usually momentary — please try again."
+    },
+    "503": {
+      "title": "Under Maintenance",
+      "message": "We're applying a quick update to improve the experience. Please try again in a few minutes."
+    },
+    "504": {
+      "title": "Server Took Too Long",
+      "message": "A backend service didn't respond in time. We're looking into it — please try again shortly."
+    },
+    "GENERIC": {
+      "title": "Something Went Wrong",
+      "message": "We hit an unexpected issue. Our team has been notified. Please try again in a moment."
     }
+  },
+  "reference": {
+    "label": "Reference ID:"
   },
   "support": {
     "prefix": "If this keeps happening,",
     "linkText": "contact support",
-    "suffix": "."
+    "suffix": " and include the reference ID above."
+  },
+  "technicalDetail": {
+    "label": "Technical detail (development)"
   }
 }
