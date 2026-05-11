@@ -113,7 +113,7 @@ export default function SeoRouteManager() {
       return {
         title: "Project Case Overview",
         description: "Review project outcomes, system improvements, implementation goals, and delivery details.",
-        image: absoluteUrl("/og/og-solutions.jpg"),
+        image: absoluteUrl("/og/og-solutions.png"),
         type: "article",
       };
     }

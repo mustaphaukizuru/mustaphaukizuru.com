@@ -27,7 +27,7 @@ export const staticSeoByRoute = {
     description:
       "Meet Mustapha Ukizuru — Full-Stack Developer, IT Manager, CS Educator. 6+ years across Rwanda, Turkey, Ethiopia, and Mexico. Available for new projects.",
     type: "profile",
-    image: absoluteUrl("/og/og-profile.jpg"),
+    image: absoluteUrl("/og/og-profile.png"),
     schemaType: "ProfilePage",
     keywords: [
       "Mustapha Ukizuru",
@@ -43,7 +43,7 @@ export const staticSeoByRoute = {
     description:
       "Tailored digital solutions: school IT infrastructure, EdTech, custom websites, business systems, STEM programs. Mexico, LATAM, international.",
     type: "website",
-    image: absoluteUrl("/og/og-solutions.jpg"),
+    image: absoluteUrl("/og/og-solutions.png"),
     schemaType: "CollectionPage",
     keywords: [
       "digital solutions for schools Mexico",
@@ -59,7 +59,7 @@ export const staticSeoByRoute = {
     description:
       "Professional IT consulting, website systems, school IT transformation, and STEM program development for businesses and educational institutions.",
     type: "website",
-    image: absoluteUrl("/og/og-services.jpg"),
+    image: absoluteUrl("/og/og-services.png"),
     schemaType: "Service",
     keywords: [
       "IT consulting services Mexico",
@@ -75,7 +75,7 @@ export const staticSeoByRoute = {
     description:
       "Shop digital products: School AI Automation Kit, IT templates, coding resources, STEM materials. Instant download · PayPal · MercadoPago.",
     type: "website",
-    image: absoluteUrl("/og/og-store.jpg"),
+    image: absoluteUrl("/og/og-store.png"),
     schemaType: "CollectionPage",
     keywords: [
       "digital products store",
