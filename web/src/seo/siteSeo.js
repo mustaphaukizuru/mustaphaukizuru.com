@@ -41,7 +41,7 @@ export const siteConfig = {
   person: {
     name: "Mustapha Ukizuru",
     url: SITE_URL,
-    image: `${SITE_URL}/og/og-profile.jpg`,
+    image: `${SITE_URL}/og/og-profile.png`,
     jobTitle: "IT Manager, Technology Consultant, and Computer Science Educator",
     sameAs: [
       "https://www.linkedin.com/in/mustaphaukizuru/",

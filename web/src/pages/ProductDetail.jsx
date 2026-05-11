@@ -1231,7 +1231,7 @@ export default function ProductDetail() {
   const seoImage =
     images[activeImg]?.url ||
     images[0]?.url ||
-    "https://mustaphaukizuru.com/og-default.jpg";
+    "https://mustaphaukizuru.com/og/og-default.png";
   const canonicalUrl = `https://mustaphaukizuru.com/store/${product.slug || slug}`;
 
   const productJsonLd = {
