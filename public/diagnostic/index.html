@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Digital &amp; Technology Self-Audit · Mustapha Ukizuru</title>
+<meta name="description" content="A 15-minute capability assessment across six dimensions of your digital presence and technology operations. Score yourself, see your maturity tier, and walk away with a prioritized shortlist drawn from our 82-service catalog." />
+<meta name="theme-color" content="#5D3FD3" />
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Digital &amp; Technology Self-Audit" />
+<meta property="og:description" content="A 15-minute capability assessment mapped to 82 services. Score yourself, get a prioritized shortlist." />
+<meta property="og:url" content="https://mustaphaukizuru.com/diagnostic" />
+<meta property="og:image" content="https://mustaphaukizuru.com/og/og-diagnostic.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="canonical" href="https://mustaphaukizuru.com/diagnostic" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --u-charcoal:    #1A1B23;
+  --u-mist:        #F8FAFC;
+  --u-violet:      #5D3FD3;
+  --u-violet-lt:   #8B6FE8;
+  --u-violet-pale: #EDE9FB;
+  --u-azure:       #0284C7;
+  --u-azure-pale:  #E0F2FE;
+  --u-cyan:        #7DD3FC;
+  --u-terracotta:  #E9C46A;
+  --u-slate-100:   #EFF1F5;
+  --u-slate-200:   #DCDCE4;
+  --u-slate-300:   #CBD5E1;
+  --u-steel:       #64748B;
+  --u-white:       #FFFFFF;
+  --u-mint:        #10B981;
+  --u-amber:       #F59E0B;
+  --u-rose:        #E11D48;
+  --u-grad-innovation: linear-gradient(135deg, #5D3FD3, #0284C7);
+  --u-grad-electric:   linear-gradient(135deg, #0284C7, #7DD3FC);
+  --u-grad-dawn:       linear-gradient(135deg, #5D3FD3, #0284C7 50%, #7DD3FC);
+  --u-dur-fast:    120ms;
+  --u-dur-base:    220ms;
+  --u-dur-slow:    420ms;
+  --u-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --u-ease-std:    cubic-bezier(0.4, 0, 0.2, 1);
+  --u-radius-sm:   6px;
+  --u-radius-md:   10px;
+  --u-radius-lg:   16px;
+  --u-shadow-xs:   0 1px 2px rgba(26,27,35,.04);
+  --u-shadow-sm:   0 2px 8px rgba(26,27,35,.06);
+  --u-shadow-md:   0 8px 24px rgba(26,27,35,.08);
+  --u-shadow-lg:   0 24px 48px rgba(26,27,35,.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Sora', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--u-charcoal);
+  background: var(--u-mist);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'kern', 'liga';
+  letter-spacing: -0.015em;
+}
+.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-feature-settings: 'tnum'; }
+
+/* ─── Layout ─────────────────────────────── */
+.shell { max-width: 1180px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 40px); }
+.section { display: none; padding: clamp(40px, 6vw, 80px) 0; }
+.section.is-active { display: block; animation: fadeUp var(--u-dur-slow) var(--u-ease-std); }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ─── Header / brand bar ─────────────────── */
+.brand-bar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(248,250,252,0.85);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--u-slate-200);
+}
+.brand-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+.brand-mark { display: flex; align-items: center; gap: 12px; }
+.brand-monogram {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--u-violet); color: var(--u-white);
+  display: grid; place-items: center; font-weight: 700; font-size: 18px;
+  letter-spacing: -0.04em;
+}
+.brand-name { font-weight: 600; font-size: 15px; color: var(--u-charcoal); }
+.brand-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--u-steel); }
+.progress-wrap { flex: 1; max-width: 240px; margin: 0 24px; }
+.progress-bar { height: 4px; background: var(--u-slate-200); border-radius: 999px; overflow: hidden; }
+.progress-fill {
+  height: 100%; background: var(--u-grad-innovation);
+  width: 0%; transition: width var(--u-dur-base) var(--u-ease-std);
+}
+.progress-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--u-steel); margin-top: 6px; text-align: right; }
+
+/* ─── Hero ───────────────────────────────── */
+.hero { display: grid; gap: 32px; padding-block: clamp(40px, 8vw, 96px); }
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  color: var(--u-violet); letter-spacing: 0.05em; text-transform: uppercase;
+}
+.hero h1 {
+  font-size: clamp(40px, 6vw, 72px); font-weight: 700;
+  letter-spacing: -0.025em; line-height: 1.0;
+  color: var(--u-charcoal); max-width: 18ch;
+}
+.hero .lead {
+  font-size: clamp(17px, 1.6vw, 20px); line-height: 1.6;
+  color: var(--u-steel); max-width: 60ch;
+}
+.hero-meta {
+  display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  padding: 24px 0; border-top: 1px solid var(--u-slate-200); border-bottom: 1px solid var(--u-slate-200);
+  max-width: 720px;
+}
+.hero-meta dt { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--u-steel); margin-bottom: 4px; letter-spacing: 0.04em; }
+.hero-meta dd { font-weight: 600; font-size: 14px; color: var(--u-charcoal); }
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* ─── Buttons ────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 24px; border-radius: var(--u-radius-md);
+  font-family: 'Sora', sans-serif; font-weight: 600; font-size: 15px;
+  border: none; cursor: pointer; text-decoration: none;
+  transition: all var(--u-dur-base) var(--u-ease-std);
+  letter-spacing: -0.01em;
+}
+.btn-primary {
+  background: var(--u-grad-innovation); color: var(--u-white);
+  box-shadow: var(--u-shadow-sm);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: var(--u-shadow-md); }
+.btn-primary:active { transform: translateY(0); }
+.btn-secondary {
+  background: var(--u-violet); color: var(--u-white);
+}
+.btn-secondary:hover { background: #4c33b0; }
+.btn-ghost {
+  background: transparent; color: var(--u-violet);
+  border: 1.5px solid var(--u-violet);
+}
+.btn-ghost:hover { background: var(--u-violet-pale); }
+.btn-default {
+  background: var(--u-white); color: var(--u-charcoal);
+  border: 1px solid var(--u-slate-200); box-shadow: var(--u-shadow-xs);
+}
+.btn-default:hover { border-color: var(--u-slate-300); box-shadow: var(--u-shadow-sm); }
+.btn-arrow::after { content: '→'; transition: transform var(--u-dur-base) var(--u-ease-std); }
+.btn:hover .btn-arrow::after, .btn-arrow:hover::after { transform: translateX(3px); }
+button:focus-visible, a:focus-visible {
+  outline: 3px solid var(--u-azure); outline-offset: 3px; border-radius: var(--u-radius-md);
+}
+
+/* ─── Audience cards ─────────────────────── */
+.audience-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.audience-card {
+  display: block; padding: 32px; border-radius: var(--u-radius-lg);
+  background: var(--u-white); border: 1.5px solid var(--u-slate-200);
+  cursor: pointer; transition: all var(--u-dur-base) var(--u-ease-spring);
+  text-align: left; font: inherit; color: inherit; width: 100%;
+  box-shadow: var(--u-shadow-xs);
+}
+.audience-card:hover {
+  transform: translateY(-3px); border-color: var(--u-violet);
+  box-shadow: var(--u-shadow-md);
+}
+.audience-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: var(--u-violet-pale); color: var(--u-violet);
+  display: grid; place-items: center; font-size: 28px;
+  margin-bottom: 20px;
+}
+.audience-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+.audience-scope { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--u-violet); margin-bottom: 12px; }
+.audience-card p { font-size: 14px; color: var(--u-steel); line-height: 1.5; }
+
+/* ─── Audit layout ───────────────────────── */
+.audit { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr) 280px; align-items: start; }
+@media (max-width: 880px) { .audit { grid-template-columns: 1fr; } .scoreboard { position: static; } }
+
+.section-divider {
+  display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center;
+  margin-bottom: 32px;
+}
+.section-letter {
+  width: 84px; height: 84px; border-radius: 16px;
+  background: var(--u-violet); color: var(--u-white);
+  display: grid; place-items: center;
+  font-size: 50px; font-weight: 700; line-height: 1;
+}
+.section-meta h2 { font-size: 28px; font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+.section-meta .subtitle { font-size: 14px; color: var(--u-steel); margin-bottom: 10px; }
+.section-meta .tag {
+  display: inline-block; padding: 4px 10px;
+  background: var(--u-violet-pale); color: var(--u-violet);
+  border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  font-weight: 700; letter-spacing: 0.04em;
+}
+.section-intro { font-size: 15px; color: var(--u-steel); margin-bottom: 24px; line-height: 1.6; }
+
+.scale-strip {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+  background: var(--u-slate-200);
+  border: 1px solid var(--u-slate-200); border-radius: var(--u-radius-md);
+  margin-bottom: 28px; overflow: hidden;
+}
+.scale-cell {
+  text-align: center; padding: 10px 8px; background: var(--u-white);
+}
+.scale-cell .num { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--u-violet); font-size: 14px; display: block; }
+.scale-cell .lbl { font-size: 11px; color: var(--u-steel); }
+
+/* ─── Audit items ────────────────────────── */
+.audit-item {
+  padding: 22px 0; border-bottom: 1px solid var(--u-slate-200);
+}
+.audit-item:last-child { border-bottom: none; }
+.item-head { display: grid; grid-template-columns: 48px 1fr; gap: 12px; align-items: baseline; margin-bottom: 4px; }
+.item-id { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--u-violet); font-size: 13px; }
+.item-title { font-weight: 700; font-size: 15.5px; color: var(--u-charcoal); letter-spacing: -0.01em; }
+.item-stmt { padding-left: 60px; font-size: 14px; color: var(--u-charcoal); margin-bottom: 14px; line-height: 1.55; }
+.item-controls { padding-left: 60px; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+.score-row { display: inline-flex; gap: 8px; }
+.score-btn {
+  width: 44px; height: 44px; border-radius: 8px;
+  border: 1.5px solid var(--u-slate-300); background: var(--u-white);
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px;
+  color: var(--u-steel); cursor: pointer;
+  transition: all var(--u-dur-fast) var(--u-ease-std);
+}
+.score-btn:hover { border-color: var(--u-violet); color: var(--u-violet); transform: translateY(-1px); }
+.score-btn.is-selected {
+  background: var(--u-violet); color: var(--u-white); border-color: var(--u-violet);
+  box-shadow: 0 4px 12px rgba(93, 63, 211, 0.3);
+}
+.score-pointer {
+  font-size: 12px; color: var(--u-steel); display: inline-flex; align-items: center; gap: 6px;
+}
+.score-pointer .arrow { color: var(--u-azure); font-weight: 700; }
+.score-pointer .if { font-weight: 500; }
+.score-pointer .svc { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--u-violet); }
+.score-pointer .tier { font-family: 'JetBrains Mono', monospace; color: var(--u-steel); }
+
+/* ─── Scoreboard ─────────────────────────── */
+.scoreboard {
+  position: sticky; top: 90px; padding: 22px;
+  background: var(--u-white); border-radius: var(--u-radius-lg);
+  border: 1px solid var(--u-slate-200); box-shadow: var(--u-shadow-sm);
+}
+.scoreboard h4 {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  letter-spacing: 0.06em; color: var(--u-steel); text-transform: uppercase;
+  margin-bottom: 14px; font-weight: 700;
+}
+.score-bar {
+  display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; align-items: center;
+  margin-bottom: 12px;
+}
+.score-bar:last-child { margin-bottom: 0; }
+.score-bar .letter {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px;
+  color: var(--u-violet); text-align: center;
+}
+.score-bar .track { height: 6px; background: var(--u-slate-100); border-radius: 999px; overflow: hidden; }
+.score-bar .fill {
+  height: 100%; background: var(--u-grad-innovation);
+  width: 0%; transition: width var(--u-dur-base) var(--u-ease-std);
+}
+.score-bar .pct {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--u-steel);
+  font-weight: 700; min-width: 36px; text-align: right;
+}
+.score-overall {
+  margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--u-slate-200);
+  display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+}
+.score-overall .lbl { font-weight: 600; font-size: 13px; }
+.score-overall .num {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 18px; color: var(--u-violet);
+}
+
+/* ─── Section nav ────────────────────────── */
+.audit-nav {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--u-slate-200);
+}
+.audit-nav .progress-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--u-steel); }
+
+/* ─── Results ────────────────────────────── */
+.results-hero {
+  text-align: center; padding: 40px 0 60px;
+  display: grid; gap: 32px; place-items: center;
+}
+.tier-display {
+  position: relative; width: 240px; height: 240px;
+  display: grid; place-items: center;
+}
+.tier-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(var(--u-violet) 0%, var(--u-azure) var(--ring-pct, 0%), var(--u-slate-100) var(--ring-pct, 0%));
+  animation: ringFill 1.4s var(--u-ease-std) forwards;
+}
+.tier-ring::after {
+  content: ''; position: absolute; inset: 14px;
+  border-radius: 50%; background: var(--u-mist);
+}
+@keyframes ringFill {
+  from { --ring-pct: 0%; }
+}
+@property --ring-pct { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+
+.tier-content { position: relative; z-index: 1; text-align: center; }
+.tier-score {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  font-size: 56px; line-height: 1; color: var(--u-charcoal);
+  letter-spacing: -0.04em;
+}
+.tier-score-of { font-size: 16px; color: var(--u-steel); }
+.tier-name { font-size: 16px; font-weight: 700; color: var(--u-violet); margin-top: 6px; letter-spacing: 0.02em; text-transform: uppercase; }
+
+.tier-desc {
+  max-width: 50ch; font-size: 16px; color: var(--u-steel); line-height: 1.6;
+}
+
+.results-grid {
+  display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-top: 40px;
+}
+.result-card {
+  padding: 28px; background: var(--u-white); border-radius: var(--u-radius-lg);
+  border: 1px solid var(--u-slate-200); box-shadow: var(--u-shadow-sm);
+}
+.result-card h3 {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  letter-spacing: 0.06em; color: var(--u-steel); text-transform: uppercase;
+  font-weight: 700; margin-bottom: 16px;
+}
+
+.cat-bars { display: grid; gap: 14px; }
+.cat-bar { display: grid; grid-template-columns: 130px 1fr 50px; gap: 12px; align-items: center; }
+.cat-bar .name { font-weight: 600; font-size: 13.5px; }
+.cat-bar .track { height: 8px; background: var(--u-slate-100); border-radius: 999px; overflow: hidden; }
+.cat-bar .fill { height: 100%; background: var(--u-violet); border-radius: 999px; transition: width 1s var(--u-ease-std); }
+.cat-bar .fill.low    { background: var(--u-rose); }
+.cat-bar .fill.mid    { background: var(--u-amber); }
+.cat-bar .fill.good   { background: var(--u-azure); }
+.cat-bar .fill.great  { background: var(--u-mint); }
+.cat-bar .pct { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; text-align: right; }
+
+.shortlist { list-style: none; counter-reset: rank; padding: 0; }
+.shortlist li {
+  display: grid; grid-template-columns: 40px 1fr; gap: 14px; padding: 14px 0;
+  border-bottom: 1px solid var(--u-slate-200); counter-increment: rank;
+}
+.shortlist li:last-child { border-bottom: none; }
+.shortlist li::before {
+  content: counter(rank, decimal-leading-zero);
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 18px;
+  color: var(--u-violet); line-height: 1.2;
+}
+.shortlist .svc-id { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px; color: var(--u-violet); }
+.shortlist .svc-title { font-weight: 600; font-size: 14.5px; margin-top: 2px; line-height: 1.3; }
+.shortlist .svc-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--u-steel); margin-top: 4px; }
+
+.bundle-card {
+  padding: 32px; border-radius: var(--u-radius-lg);
+  background: var(--u-grad-dawn); color: var(--u-white);
+  position: relative; overflow: hidden;
+}
+.bundle-card::before {
+  content: ''; position: absolute; top: -40%; right: -10%; width: 60%; height: 180%;
+  background: radial-gradient(closest-side, rgba(255,255,255,0.15), transparent);
+}
+.bundle-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; opacity: 0.85; margin-bottom: 8px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
+.bundle-name { font-size: 24px; font-weight: 700; line-height: 1.2; margin-bottom: 8px; }
+.bundle-desc { font-size: 14px; opacity: 0.92; margin-bottom: 16px; line-height: 1.55; }
+.bundle-svcs { font-family: 'JetBrains Mono', monospace; font-size: 11px; opacity: 0.8; }
+
+/* ─── Email gate ─────────────────────────── */
+.gate {
+  margin-top: 48px; padding: 36px;
+  background: var(--u-white); border-radius: var(--u-radius-lg);
+  border: 1px solid var(--u-slate-200); box-shadow: var(--u-shadow-md);
+}
+.gate h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.gate p { color: var(--u-steel); font-size: 14.5px; margin-bottom: 22px; line-height: 1.55; }
+.form-grid { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
+@media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+.field { display: grid; gap: 6px; }
+.field.full { grid-column: 1 / -1; }
+.field label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--u-steel); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.field input {
+  font: inherit; font-size: 14px; padding: 12px 14px;
+  border: 1.5px solid var(--u-slate-200); border-radius: var(--u-radius-md);
+  background: var(--u-white); color: var(--u-charcoal);
+  transition: border-color var(--u-dur-base) var(--u-ease-std), box-shadow var(--u-dur-base) var(--u-ease-std);
+}
+.field input:hover { border-color: var(--u-slate-300); }
+.field input:focus { border-color: var(--u-azure); outline: none; box-shadow: 0 0 0 4px rgba(2,132,199,0.15); }
+.gate-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.gate-tiny { font-size: 11.5px; color: var(--u-steel); margin-top: 14px; line-height: 1.5; }
+
+/* ─── CTA strip ──────────────────────────── */
+.cta-strip { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 32px; }
+.cta-card {
+  padding: 24px; background: var(--u-mist); border-radius: var(--u-radius-lg);
+  border-top: 3px solid var(--u-violet);
+}
+.cta-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.cta-card p { font-size: 13.5px; color: var(--u-steel); margin-bottom: 14px; line-height: 1.5; }
+.cta-card a {
+  font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--u-violet);
+  font-weight: 700; text-decoration: none;
+}
+.cta-card a:hover { text-decoration: underline; }
+
+/* ─── Footer ─────────────────────────────── */
+.footer-strip {
+  margin-top: 60px; padding: 36px 0; text-align: center;
+  background: var(--u-violet); color: var(--u-white);
+}
+.footer-strip .mantra { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.footer-strip .meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0.85; }
+
+/* ─── Reveal toast ───────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 14px 18px; background: var(--u-charcoal); color: var(--u-white);
+  border-radius: var(--u-radius-md); font-size: 13.5px; font-weight: 500;
+  box-shadow: var(--u-shadow-lg); transform: translateY(100px); opacity: 0;
+  transition: all var(--u-dur-base) var(--u-ease-spring);
+  z-index: 100;
+}
+.toast.is-visible { transform: translateY(0); opacity: 1; }
+
+/* ─── Print styles ───────────────────────── */
+@media print {
+  .brand-bar, .audit-nav, .gate-actions button, .cta-strip, .toast { display: none !important; }
+  .footer-strip { background: none; color: var(--u-charcoal); border-top: 2px solid var(--u-violet); }
+  .footer-strip .mantra { color: var(--u-violet); }
+  .results-hero, .results-grid, .gate { page-break-inside: avoid; }
+  body { background: var(--u-white); }
+  .section { display: none; }
+  .section#results { display: block !important; }
+}
+
+/* ─── Reduced motion ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="brand-bar">
+  <div class="shell brand-row">
+    <div class="brand-mark">
+      <div class="brand-monogram" aria-hidden="true">M</div>
+      <div>
+        <div class="brand-name">Mustapha Ukizuru</div>
+        <div class="brand-tag">Self-Audit · v1.0</div>
+      </div>
+    </div>
+    <div class="progress-wrap" aria-hidden="true" id="progress-wrap" hidden>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-label"><span id="progress-text">0% complete</span></div>
+    </div>
+    <a href="https://mustaphaukizuru.com" class="btn btn-default" style="padding: 10px 18px; font-size: 13px;">mustaphaukizuru.com</a>
+  </div>
+</header>
+
+<main>
+
+<!-- ═══ HERO ═══════════════════════════════════════════════════════ -->
+<section class="section is-active" id="hero">
+  <div class="shell hero">
+    <div class="eyebrow">Self-Audit · 15 minutes · Mapped to 82 services</div>
+    <h1>Digital &amp; Technology Self-Audit</h1>
+    <p class="lead">A capability assessment across six dimensions of your digital presence and technology operations. Score yourself, see your maturity tier, and walk away with a prioritized shortlist drawn from our 82-service catalog.</p>
+    <dl class="hero-meta">
+      <div><dt>VERSION</dt><dd>v1.0 · May 2026</dd></div>
+      <div><dt>AUDIENCE</dt><dd>Schools · Businesses · Individuals</dd></div>
+      <div><dt>TIME</dt><dd>≈ 15 minutes</dd></div>
+      <div><dt>OUTPUT</dt><dd>Personalized shortlist + report</dd></div>
+    </dl>
+    <div class="hero-cta">
+      <button class="btn btn-primary btn-arrow" onclick="goTo('audience')">Begin self-audit </button>
+      <a class="btn btn-default" href="#what-youll-get">What you'll get</a>
+    </div>
+    <div id="what-youll-get" style="margin-top: 60px; display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+      <div>
+        <div class="eyebrow" style="margin-bottom: 8px;">01 — DIAGNOSE</div>
+        <p style="color: var(--u-steel); font-size: 14px; line-height: 1.6;">Score 82 capability statements across strategy, brand, infrastructure, web &amp; AI, EdTech, and managed services. 0–4 each. No setup required.</p>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom: 8px;">02 — MEASURE</div>
+        <p style="color: var(--u-steel); font-size: 14px; line-height: 1.6;">Get a normalized maturity score per category and an overall tier — Foundation, Stabilizing, Optimizing, or Mature.</p>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom: 8px;">03 — ACT</div>
+        <p style="color: var(--u-steel); font-size: 14px; line-height: 1.6;">Receive your top five priorities mapped to specific service IDs and a recommended Solution bundle to start with.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ AUDIENCE ═══════════════════════════════════════════════════ -->
+<section class="section" id="audience">
+  <div class="shell">
+    <div class="eyebrow">STEP 1 OF 3 · WHO ARE YOU</div>
+    <h2 style="font-size: clamp(28px, 4vw, 44px); font-weight: 700; line-height: 1.1; margin: 12px 0 16px; letter-spacing: -0.02em;">Pick the option that fits you best</h2>
+    <p style="font-size: 16px; color: var(--u-steel); margin-bottom: 36px; max-width: 56ch; line-height: 1.6;">Different audiences complete different sections. We'll skip what isn't relevant and tailor your shortlist accordingly.</p>
+    <div class="audience-grid">
+      <button class="audience-card" onclick="selectAudience('EDU')">
+        <div class="audience-icon" aria-hidden="true">▣</div>
+        <h3>School / Educational Institution</h3>
+        <div class="audience-scope mono">ALL SIX SECTIONS · 82 ITEMS</div>
+        <p>Strategy, brand, infrastructure, web &amp; AI, EdTech, and managed services. Section E (EdTech) is built for you.</p>
+      </button>
+      <button class="audience-card" onclick="selectAudience('SMB')">
+        <div class="audience-icon" aria-hidden="true">◆</div>
+        <h3>Business / SME / Startup</h3>
+        <div class="audience-scope mono">FIVE SECTIONS · 70 ITEMS</div>
+        <p>Strategy through managed services, end to end. We skip Section E (EdTech) since it doesn't apply to you.</p>
+      </button>
+      <button class="audience-card" onclick="selectAudience('IND')">
+        <div class="audience-icon" aria-hidden="true">●</div>
+        <h3>Individual / Professional</h3>
+        <div class="audience-scope mono">FOCUSED SCAN · 15 ITEMS</div>
+        <p>Personal brand, web presence, and managed hosting. Quick targeted scan in under five minutes.</p>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ AUDIT ══════════════════════════════════════════════════════ -->
+<section class="section" id="audit">
+  <div class="shell">
+    <div class="audit">
+      <div>
+        <div class="section-divider">
+          <div class="section-letter" id="sec-letter">A</div>
+          <div class="section-meta">
+            <h2 id="sec-title">Strategy &amp; Leadership Audit</h2>
+            <div class="subtitle" id="sec-subtitle">IT Consulting and Strategy</div>
+            <span class="tag" id="sec-tag">12 ITEMS · ALL AUDIENCES</span>
+          </div>
+        </div>
+        <p class="section-intro" id="sec-intro"></p>
+        <div class="scale-strip">
+          <div class="scale-cell"><span class="num">0</span><span class="lbl">None</span></div>
+          <div class="scale-cell"><span class="num">1</span><span class="lbl">Aware</span></div>
+          <div class="scale-cell"><span class="num">2</span><span class="lbl">Partial</span></div>
+          <div class="scale-cell"><span class="num">3</span><span class="lbl">In place</span></div>
+          <div class="scale-cell"><span class="num">4</span><span class="lbl">Optimized</span></div>
+        </div>
+        <div id="items"></div>
+        <div class="audit-nav">
+          <button class="btn btn-default" onclick="prevSection()" id="prev-btn">← Previous section</button>
+          <span class="progress-text mono" id="section-progress">Section 1 of 6</span>
+          <button class="btn btn-primary btn-arrow" onclick="nextSection()" id="next-btn">Next section </button>
+        </div>
+      </div>
+      <aside class="scoreboard" aria-label="Live scoring">
+        <h4>Your live scores</h4>
+        <div id="scoreboard"></div>
+        <div class="score-overall">
+          <span class="lbl">Overall</span>
+          <span class="num mono" id="overall-live">— / 100</span>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ RESULTS ════════════════════════════════════════════════════ -->
+<section class="section" id="results">
+  <div class="shell">
+    <div class="results-hero">
+      <div class="eyebrow">YOUR DIGITAL &amp; TECHNOLOGY MATURITY</div>
+      <div class="tier-display">
+        <div class="tier-ring" id="tier-ring"></div>
+        <div class="tier-content">
+          <div class="tier-score mono"><span id="overall-num">0</span><span class="tier-score-of">/100</span></div>
+          <div class="tier-name" id="tier-name">Foundation</div>
+        </div>
+      </div>
+      <p class="tier-desc" id="tier-desc"></p>
+    </div>
+
+    <div class="results-grid">
+      <div class="result-card">
+        <h3>Maturity by category</h3>
+        <div class="cat-bars" id="cat-bars"></div>
+      </div>
+      <div class="result-card">
+        <h3>Your top five priorities</h3>
+        <ol class="shortlist" id="shortlist"></ol>
+      </div>
+    </div>
+
+    <div class="bundle-card" id="bundle-card" style="margin-top: 24px;">
+      <div class="bundle-eyebrow">RECOMMENDED SOLUTION BUNDLE</div>
+      <div class="bundle-name" id="bundle-name">—</div>
+      <div class="bundle-desc" id="bundle-desc">—</div>
+      <div class="bundle-svcs mono" id="bundle-svcs">—</div>
+    </div>
+
+    <div class="gate" id="gate">
+      <h3>Send my full report</h3>
+      <p>We'll email you a personalized PDF with your scores, your top five priorities, and a clear next step. No newsletter spam — one report, then you decide what's next.</p>
+      <form id="email-form" onsubmit="submitEmail(event)">
+        <div class="form-grid">
+          <div class="field">
+            <label for="f-name">YOUR NAME</label>
+            <input type="text" id="f-name" name="name" required autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="f-email">EMAIL</label>
+            <input type="email" id="f-email" name="email" required autocomplete="email" />
+          </div>
+          <div class="field full">
+            <label for="f-org">ORGANIZATION (OPTIONAL)</label>
+            <input type="text" id="f-org" name="organization" autocomplete="organization" />
+          </div>
+        </div>
+        <div class="gate-actions">
+          <button type="submit" class="btn btn-primary btn-arrow">Email my report </button>
+          <button type="button" class="btn btn-default" onclick="window.print()">Save as PDF instead</button>
+        </div>
+        <p class="gate-tiny">By submitting, you agree to receive your audit report. We won't sell or share your details. Privacy: <a href="https://mustaphaukizuru.com/privacy" style="color: var(--u-azure);">mustaphaukizuru.com/privacy</a>.</p>
+      </form>
+    </div>
+
+    <div class="cta-strip">
+      <div class="cta-card">
+        <h4>Book a 30-min discovery call</h4>
+        <p>Free. We walk through your shortlist, validate the priorities, and confirm the right Solution bundle. No pitch.</p>
+        <a href="https://mustaphaukizuru.com/contact" onclick="trackCta('discovery_call')">→ mustaphaukizuru.com/contact</a>
+      </div>
+      <div class="cta-card">
+        <h4>Request a written proposal</h4>
+        <p>We translate your top five priorities into a scoped, fixed-price proposal. Turnaround within five business days.</p>
+        <a href="mailto:hello@mustaphaukizuru.com?subject=Self-Audit%20Proposal%20Request" onclick="trackCta('proposal_request')">→ hello@mustaphaukizuru.com</a>
+      </div>
+      <div class="cta-card">
+        <h4>Start with a single service</h4>
+        <p>If one priority is clearly urgent, start with that one service alone. We can quote and schedule it in 48 hours.</p>
+        <a href="mailto:hello@mustaphaukizuru.com?subject=Single%20Service%20Engagement" onclick="trackCta('single_service')">→ hello@mustaphaukizuru.com</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-strip">
+    <div class="mantra">Complexity, simplified.</div>
+    <div class="meta">Mustapha Ukizuru · mustaphaukizuru.com · hello@mustaphaukizuru.com · Tlalnepantla de Baz, Estado de México</div>
+  </div>
+</section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════════
+   § Audit data — 82 items mapped to UKZ service IDs
+   ═══════════════════════════════════════════════════════════════════ */
+const AUDIT = [
+  { letter:"A", code:"CS", title:"Strategy & Leadership Audit", subtitle:"IT Consulting and Strategy",
+    intro:"Senior advisory work. Score how mature your strategy, leadership, and decision-making are around technology.",
+    audiences:["EDU","SMB"], items:[
+    ["A.1","UKZ-CS-001","Technology Assessment & Audit","We have completed a comprehensive current-state assessment of our infrastructure, applications, and processes within the last 18 months, with documented gaps and a remediation plan.","Tier 2 · 2–4 weeks",["EDU","SMB","IND"]],
+    ["A.2","UKZ-CS-002","Annual Technology Roadmap","We have a documented 12-month technology roadmap aligned with business or institutional objectives, with quarterly milestones and budget.","Tier 2 · 4–6 weeks",["EDU","SMB"]],
+    ["A.3","UKZ-CS-003","Software Architecture Review","Our core software systems have been independently reviewed for scalability, maintainability, and modernization within the last 12 months.","Tier 2 · 2–3 weeks",["SMB"]],
+    ["A.4","UKZ-CS-004","Vendor Selection & Procurement","When selecting major technology vendors, we use a structured process: requirements, comparison matrix, demos, references, and contract review.","Tier 2 · 3–6 weeks",["EDU","SMB"]],
+    ["A.5","UKZ-CS-005","Technical Due Diligence","If we needed an investor-grade technical due diligence report on our codebase, architecture, and team, we could produce one within 30 days.","Tier 3 · 2–4 weeks",["SMB"]],
+    ["A.6","UKZ-CS-006","Cybersecurity Posture Review","Our cybersecurity posture has been independently audited within the last 12 months, with prioritized remediation completed or actively scheduled.","Tier 2 · 2–3 weeks",["EDU","SMB"]],
+    ["A.7","UKZ-CS-007","AI Strategy & Adoption Roadmap","We have a documented AI strategy: prioritized use cases, tooling decisions (Claude / ChatGPT / Gemini), an acceptable-use policy, and a 12-month adoption roadmap.","Tier 1 · 3–4 weeks",["EDU","SMB"]],
+    ["A.8","UKZ-CS-008","Engineering & IT Hiring Support","Our engineering and IT hiring process produces consistently qualified candidates within target timeframes, with structured screens and rubrics.","Tier 3 · 4–8 weeks",["SMB"]],
+    ["A.9","UKZ-CS-009","Project Recovery","All current technology initiatives are on schedule, on budget, and showing measurable progress toward their stated objectives.","Tier 3 · 4–8 weeks",["SMB"]],
+    ["A.10","UKZ-CS-010","Fractional CTO Retainer","We have a senior technical leader (full-time, fractional, or advisor) reviewing architecture, hiring, and roadmap on a weekly cadence.","Tier 1 · Monthly retainer",["SMB"]],
+    ["A.11","UKZ-CS-011","Virtual IT Director Retainer","We have a dedicated technology director or fractional IT leader meeting with leadership weekly with reporting to the board.","Tier 1 · Monthly retainer",["EDU"]],
+    ["A.12","UKZ-CS-012","Executive Technology Briefing","Leadership receives a structured quarterly technology briefing covering posture, risks, opportunities, and recommended actions.","Tier 2 · Per quarter",["EDU","SMB"]],
+  ]},
+  { letter:"B", code:"BD", title:"Brand & Digital Presence Audit", subtitle:"Brand and Digital Presence",
+    intro:"Visual identity, the surfaces that carry it, and the systems that distribute it. Score how coherent, professional, and discoverable your brand is online.",
+    audiences:["EDU","SMB","IND"], items:[
+    ["B.1","UKZ-BD-001","Brand Identity System","We have a complete visual identity system: logos in vector format, color palette, typography, brand guidelines, voice and messaging guide, and an asset library.","Tier 1 · 4–6 weeks",["EDU","SMB","IND"]],
+    ["B.2","UKZ-BD-002","Brand Refresh & Audit","Our brand has been audited within the last 24 months and updated to remain modern, competitive, and consistent across surfaces.","Tier 2 · 3–5 weeks",["EDU","SMB"]],
+    ["B.3","UKZ-BD-003","Brand Naming & Tagline","Our brand name and tagline have been validated for trademark and domain availability and translate well across our markets.","Tier 3 · 2–4 weeks",["SMB"]],
+    ["B.4","UKZ-BD-004","Print Collateral Suite","We have a complete, brand-aligned print collateral suite: letterhead, business cards, brochures, certificates, and event materials.","Tier 2 · 2–3 weeks",["EDU","SMB","IND"]],
+    ["B.5","UKZ-BD-005","Presentation & Document Templates","All staff use branded presentation and document templates for every internal and external deliverable.","Tier 2 · 1–2 weeks",["EDU","SMB","IND"]],
+    ["B.6","UKZ-BD-006","Digital Asset Pack","We have branded digital assets for every channel: web banners, email headers, social covers, story templates, and an iconography pack.","Tier 2 · 1–2 weeks",["EDU","SMB","IND"]],
+    ["B.7","UKZ-BD-007","Personal Website","I have a custom personal portfolio website on my own domain that establishes my professional presence.","Tier 1 · 2–4 weeks",["IND"]],
+    ["B.8","UKZ-BD-008","Business Website","Our business or institutional website is production-grade: lead generation, credibility, and ongoing content publishing on a maintained CMS.","Tier 1 · 4–8 weeks",["EDU","SMB"]],
+    ["B.9","UKZ-BD-009","Landing Page Build","When we run a campaign or product launch, we deploy a dedicated, conversion-optimized landing page within two weeks.","Tier 2 · 1–2 weeks",["SMB","IND"]],
+    ["B.10","UKZ-BD-010","Website Performance & SEO","Our website loads in under 2.5 seconds, passes Core Web Vitals, has structured data, and is verified in Search Console with a working sitemap.","Tier 2 · 2–3 weeks",["EDU","SMB","IND"]],
+    ["B.11","UKZ-BD-011","Social Media Presence","Our social profiles (LinkedIn, X, Instagram, Facebook, Google Business) are optimized, consistently branded, and discoverable.","Tier 2 · 1–2 weeks",["SMB","IND"]],
+    ["B.12","UKZ-BD-012","Content System","We have a complete content system: newsletter, blog, email marketing platform, lead magnet, content calendar, and editorial guidelines.","Tier 2 · 2–3 weeks",["SMB","IND"]],
+    ["B.13","UKZ-BD-013","Analytics & Tracking","We have privacy-compliant analytics: GA4, Search Console, Tag Manager, conversion tracking, cookie consent, and a quarterly review process.","Tier 2 · 1 week",["EDU","SMB","IND"]],
+    ["B.14","UKZ-BD-014","Bilingual Localization","Our digital content is professionally available in English and Spanish (or our key market languages) with consistent voice and SEO across both.","Tier 3 · Variable",["EDU","SMB","IND"]],
+  ]},
+  { letter:"C", code:"IC", title:"Infrastructure & Cloud Audit", subtitle:"IT Infrastructure and Cloud",
+    intro:"The systems that everything else runs on — networks, servers, devices, identity, cloud, security, backup, and observability.",
+    audiences:["EDU","SMB"], items:[
+    ["C.1","UKZ-IC-001","Network Design & Deployment","Our network is documented (TCP/IP, DNS, DHCP, VPN, Wi-Fi), supports current users with growth headroom, and includes runbooks.","Tier 1 · 4–8 weeks",["EDU","SMB"]],
+    ["C.2","UKZ-IC-002","Server Infrastructure","Our servers are properly configured, hardened, monitored, backed up, and documented with runbooks accessible to multiple admins.","Tier 2 · 2–4 weeks",["EDU","SMB"]],
+    ["C.3","UKZ-IC-003","Device Fleet & Imaging","Our devices are standardized, imaged consistently, security-hardened, and tracked in an asset inventory.","Tier 2 · 2–4 weeks",["EDU","SMB"]],
+    ["C.4","UKZ-IC-004","Google Workspace Admin","Our Google Workspace tenant has user provisioning, group structure, sharing and security policies, and admin documentation in place.","Tier 1 · 3–4 weeks",["EDU","SMB"]],
+    ["C.5","UKZ-IC-005","Microsoft 365 Admin","Our Microsoft 365 tenant has user provisioning, license management, SharePoint and Teams structure, and a security baseline.","Tier 2 · 3–4 weeks",["EDU","SMB"]],
+    ["C.6","UKZ-IC-006","Identity & Access Management","We use centralized identity and access management with SSO, MFA, role-based access control, conditional access, and audit logging.","Tier 2 · 3–6 weeks",["EDU","SMB"]],
+    ["C.7","UKZ-IC-007","Helpdesk & Ticketing","We have a production helpdesk system with ticket workflows, SLA definitions, knowledge base, and reporting dashboards.","Tier 2 · 2–3 weeks",["EDU","SMB"]],
+    ["C.8","UKZ-IC-008","Cloud Migration Assessment","We have completed a cloud readiness assessment with target architecture and cost projection — or we are operating fully cloud-native.","Tier 2 · 2–3 weeks",["SMB"]],
+    ["C.9","UKZ-IC-009","GCP Cloud Migration","Our Google Cloud workloads are properly architected, cost-optimized, security-hardened, and have runbook documentation.","Tier 1 · 6–12 weeks",["SMB"]],
+    ["C.10","UKZ-IC-010","AWS Cloud Migration","Our AWS workloads are properly architected, cost-optimized, security-hardened, and have runbook documentation.","Tier 2 · 6–12 weeks",["SMB"]],
+    ["C.11","UKZ-IC-011","Containerization & CI/CD","We containerize our applications and deploy via automated CI/CD pipelines with tests, rollback procedures, and documentation.","Tier 2 · 3–5 weeks",["SMB"]],
+    ["C.12","UKZ-IC-012","Workflow Automation","We have automated key workflows that previously consumed manual staff hours, with error handling, alerting, and documentation.","Tier 2 · 2–6 weeks",["EDU","SMB"]],
+    ["C.13","UKZ-IC-013","Cloud Cost Optimization","Our cloud spend is reviewed quarterly with right-sizing, reserved instances, and architectural optimization applied.","Tier 3 · 2–4 weeks",["SMB"]],
+    ["C.14","UKZ-IC-014","OWASP Security Audit","Our applications and infrastructure have been audited against OWASP standards within the last 12 months with remediation completed.","Tier 2 · 3–4 weeks",["SMB"]],
+    ["C.15","UKZ-IC-015","Backup & Disaster Recovery","We have automated backups, defined RTO and RPO, off-site replication, tested recovery procedures, and a continuity plan.","Tier 2 · 2–4 weeks",["EDU","SMB"]],
+    ["C.16","UKZ-IC-016","Observability & Monitoring","Our production systems have logging, metrics, distributed tracing, dashboards, alert rules, and an on-call rotation.","Tier 3 · 2–3 weeks",["SMB"]],
+  ]},
+  { letter:"D", code:"WD", title:"Web, Application & AI Audit", subtitle:"Web, Application and AI Development",
+    intro:"The full engineering tier — applications, APIs, integrations, AI, data, performance, and modernization.",
+    audiences:["EDU","SMB"], items:[
+    ["D.1","UKZ-WD-001","Custom Web Application","Our core web applications are built on a modern, supported stack with tests, accessibility (WCAG 2.1 AA), monitoring, and documentation.","Tier 1 · 6–16 weeks",["SMB"]],
+    ["D.2","UKZ-WD-002","SaaS MVP Build","If we needed to ship a working SaaS MVP within eight weeks, we have the engineering capacity and architecture pattern to do it cleanly.","Tier 1 · 4–8 weeks",["SMB"]],
+    ["D.3","UKZ-WD-003","E-commerce Platform","Our e-commerce platform supports our specific business workflow with cart, checkout, payments, inventory, and admin dashboard.","Tier 2 · 6–12 weeks",["SMB"]],
+    ["D.4","UKZ-WD-004","Custom CMS","Our content management system fits our publishing workflow with content modeling, approval workflow, and editor training.","Tier 2 · 4–8 weeks",["EDU","SMB"]],
+    ["D.5","UKZ-WD-005","Internal Tools & Dashboards","Our internal tools and admin dashboards eliminate manual workflows; staff are not maintaining critical processes in spreadsheets.","Tier 2 · 3–8 weeks",["EDU","SMB"]],
+    ["D.6","UKZ-WD-006","REST / GraphQL APIs","Our APIs have authentication, documentation, versioning strategy, rate limiting, and integration tests.","Tier 2 · 3–8 weeks",["SMB"]],
+    ["D.7","UKZ-WD-007","Authentication & Payments","Our authentication (OAuth/JWT/SSO + MFA) and payment integration are production-grade with webhook handling.","Tier 2 · 2–4 weeks",["SMB"]],
+    ["D.8","UKZ-WD-008","Third-Party Integrations","Our third-party integrations have error handling, retry logic, monitoring, and documentation.","Tier 3 · 1–3 weeks each",["SMB"]],
+    ["D.9","UKZ-WD-009","Claude / LLM API Integration","We have integrated AI / LLM capabilities into our applications or workflows with cost monitoring, rate limiting, fallback, and logging.","Tier 1 · 2–6 weeks",["EDU","SMB"]],
+    ["D.10","UKZ-WD-010","AI Chatbot / Virtual Assistant","Our customer-facing chatbot or virtual assistant handles common queries with human handoff, analytics, and quality monitoring.","Tier 2 · 4–8 weeks",["SMB"]],
+    ["D.11","UKZ-WD-011","Knowledge Base AI / RAG","We have a private knowledge base AI (RAG system) with semantic search, grounded answers, and citation tracking.","Tier 1 · 4–10 weeks",["EDU","SMB"]],
+    ["D.12","UKZ-WD-012","AI Document Processing","We have automated document processing using LLMs (extraction, classification, summarization) with human-review queue and quality dashboard.","Tier 2 · 3–6 weeks",["EDU","SMB"]],
+    ["D.13","UKZ-WD-013","AI Agents & Workflows","We use multi-step AI agents for complex tasks with safety guardrails, monitoring, and human-in-the-loop checkpoints.","Tier 3 · 4–10 weeks",["SMB"]],
+    ["D.14","UKZ-WD-014","AI Content Auditing","We have an AI-content detection and academic integrity system with submission workflow, teacher review, and reporting integrated to the LMS.","Tier 3 · 3–6 weeks",["EDU"]],
+    ["D.15","UKZ-WD-015","BI Dashboard","We have a business intelligence dashboard with KPI tracking, automated refresh, scheduled reports, and alert thresholds.","Tier 2 · 3–6 weeks",["EDU","SMB"]],
+    ["D.16","UKZ-WD-016","Data Pipeline & Warehouse","We have a production data pipeline and warehouse with ETL, dimensional modeling, and data quality monitoring.","Tier 3 · 4–8 weeks",["SMB"]],
+    ["D.17","UKZ-WD-017","Performance Optimization","Our applications meet performance benchmarks with documented before-and-after measurements when changes are made.","Tier 2 · 2–4 weeks",["SMB"]],
+    ["D.18","UKZ-WD-018","Legacy System Modernization","We have no critical systems running on aging stacks (PHP / ASP / outdated WordPress) without an active modernization plan.","Tier 2 · 8–24 weeks",["SMB"]],
+  ]},
+  { letter:"E", code:"ET", title:"EdTech & Training Audit", subtitle:"EdTech Implementation and Training",
+    intro:"How effectively your school uses the technology it has invested in — from LMS to faculty AI fluency to student data privacy.",
+    audiences:["EDU"], items:[
+    ["E.1","UKZ-ET-001","LMS Selection & Strategy","Our LMS was selected through a structured evaluation matching our pedagogical needs.","Tier 2 · 2–3 weeks",["EDU"]],
+    ["E.2","UKZ-ET-002","LMS Deployment & Migration","Our LMS is fully deployed with content migrated from prior platforms, integrated with SIS and Workspace, and faculty trained.","Tier 1 · 6–12 weeks",["EDU"]],
+    ["E.3","UKZ-ET-003","Workspace for Education","Our Google Workspace for Education domain is configured: classrooms, OU structure, sharing and security policies, and faculty training delivered.","Tier 1 · 4–6 weeks",["EDU"]],
+    ["E.4","UKZ-ET-004","SIS Integration","Our Student Information System is integrated with LMS, parent portal, and reporting systems for unified student data flow.","Tier 2 · 4–8 weeks",["EDU"]],
+    ["E.5","UKZ-ET-005","Parent Portal","We have a production parent portal with grades, attendance, and bilingual EN-ES communications, with parents trained on its use.","Tier 2 · 3–6 weeks",["EDU"]],
+    ["E.6","UKZ-ET-006","Faculty Professional Development","Our faculty completed a structured EdTech professional development program within the last 12 months with measurable improvement.","Tier 1 · 6–12 weeks",["EDU"]],
+    ["E.7","UKZ-ET-007","Google Certified Educator Cohort","A meaningful percentage of our faculty hold Google Certified Educator Level 1 or Level 2 credentials.","Tier 2 · 8–10 weeks",["EDU"]],
+    ["E.8","UKZ-ET-008","AI for Educators Training","Our faculty have been trained to use AI tools responsibly in lesson planning, content creation, and assessment.","Tier 1 · 6–8 weeks",["EDU"]],
+    ["E.9","UKZ-ET-009","Bilingual Digital Content","We produce high-quality bilingual EN-ES digital learning content (slides, video, interactives) in-house on a consistent schedule.","Tier 2 · Variable",["EDU"]],
+    ["E.10","UKZ-ET-010","Smart Classroom & STEM Lab","Our classrooms and STEM / robotics lab are technology-integrated: devices, network, software, and instructional design ready for use.","Tier 2 · 4–8 weeks",["EDU"]],
+    ["E.11","UKZ-ET-011","Digital Citizenship & AUP","We have a current Acceptable Use Policy, BYOD policy, and digital citizenship curriculum rolled out to students, parents, and faculty.","Tier 2 · 2–4 weeks",["EDU"]],
+    ["E.12","UKZ-ET-012","Student Data Privacy","Our student data privacy posture is aligned with applicable regulations (LFPDPPP / FERPA / GDPR) with policies, training, and annual review.","Tier 3 · 4–6 weeks",["EDU"]],
+  ]},
+  { letter:"F", code:"MS", title:"Managed Services Audit", subtitle:"Managed Services and Support",
+    intro:"The recurring layer that keeps everything running — IT operations, cloud, applications, hosting, helpdesk, security, and compliance.",
+    audiences:["EDU","SMB","IND"], items:[
+    ["F.1","UKZ-MS-001","Managed IT Operations","We have SLA-backed IT operations: incident response, proactive monitoring, patching, user lifecycle, vendor coordination, and quarterly business reviews.","Tier 1 · Monthly retainer",["EDU","SMB"]],
+    ["F.2","UKZ-MS-002","Managed Cloud Operations","Our cloud infrastructure has 24/7 monitoring, incident response, cost optimization, security posture management, and a monthly performance report.","Tier 2 · Monthly retainer",["SMB"]],
+    ["F.3","UKZ-MS-003","Managed Application Maintenance","Our production applications receive monthly maintenance, dependency updates, security patches, and bug fixes within SLA.","Tier 2 · Monthly retainer",["SMB"]],
+    ["F.4","UKZ-MS-004","Managed Website Hosting","Our website hosting includes daily backups, security monitoring, CMS and plugin updates, SSL renewal, and uptime guarantees.","Tier 2 · Monthly retainer",["EDU","SMB","IND"]],
+    ["F.5","UKZ-MS-005","Managed Workspace Admin","Our Workspace administration covers user lifecycle, license management, policy enforcement, and end-user support.","Tier 2 · Monthly retainer",["EDU","SMB"]],
+    ["F.6","UKZ-MS-006","Managed LMS Admin","Our LMS administration covers user provisioning each term, course setup, faculty and student support, and term-end reporting.","Tier 1 · Monthly retainer",["EDU"]],
+    ["F.7","UKZ-MS-007","Helpdesk-as-a-Service","We have a tiered helpdesk function with SLA-backed response and bilingual EN-ES support.","Tier 2 · Monthly retainer",["EDU","SMB"]],
+    ["F.8","UKZ-MS-008","Cybersecurity Monitoring","We have continuous security monitoring with SIEM, threat alerts, incident response, and quarterly security review.","Tier 3 · Monthly retainer",["SMB"]],
+    ["F.9","UKZ-MS-009","Compliance Monitoring","Our compliance posture is continuously monitored with quarterly attestation reports for relevant frameworks.","Tier 3 · Monthly retainer",["EDU","SMB"]],
+    ["F.10","UKZ-MS-010","Quarterly Health Check","We receive a structured quarterly review of infrastructure, security, performance, and cost with prioritized recommendations.","Tier 2 · Per quarter",["EDU","SMB"]],
+  ]},
+];
+
+const SOLUTIONS = [
+  { name:"School Tech Transformation Program", aud:"EDU",
+    desc:"End-to-end school technology modernization in 90 days plus a six-month leadership engagement.",
+    composed:["UKZ-CS-001","UKZ-IC-001","UKZ-IC-004","UKZ-ET-002","UKZ-ET-003","UKZ-ET-006","UKZ-CS-011"]},
+  { name:"Bilingual STEM Program Launch", aud:"EDU",
+    desc:"Full CS and STEM curriculum design plus faculty enablement, delivered in parallel English and Spanish.",
+    composed:["UKZ-ET-006","UKZ-ET-008","UKZ-ET-009","UKZ-ET-010"]},
+  { name:"School AI Adoption Program", aud:"EDU",
+    desc:"Responsible adoption of AI tools across faculty, students, and curriculum within one term.",
+    composed:["UKZ-CS-007","UKZ-ET-008","UKZ-ET-011","UKZ-WD-014"]},
+  { name:"Fractional CTO Engagement", aud:"SMB",
+    desc:"Monthly technical leadership for SMEs and startups that need a CTO without the full-time cost.",
+    composed:["UKZ-CS-010","UKZ-CS-002","UKZ-CS-008"]},
+  { name:"MVP-to-Launch Package", aud:"SMB",
+    desc:"Working SaaS MVP delivered in eight weeks at fixed scope and fixed price, ready for first paying customers.",
+    composed:["UKZ-WD-002","UKZ-WD-007","UKZ-IC-009","UKZ-MS-003"]},
+  { name:"Business IT Foundation", aud:"SMB",
+    desc:"Network, cloud, Workspace, and security baseline configured for new or growing offices.",
+    composed:["UKZ-IC-001","UKZ-IC-004","UKZ-IC-006","UKZ-IC-014","UKZ-IC-015"]},
+  { name:"AI-Powered Knowledge Base", aud:"EDU,SMB",
+    desc:"Custom RAG system on private knowledge base with semantic search and grounded answers.",
+    composed:["UKZ-CS-007","UKZ-WD-009","UKZ-WD-011","UKZ-MS-003"]},
+  { name:"Personal Brand & Web Foundation", aud:"IND",
+    desc:"Complete personal brand identity plus production-ready portfolio website on a custom domain.",
+    composed:["UKZ-BD-001","UKZ-BD-007","UKZ-BD-011","UKZ-BD-013"]},
+];
+
+const TIERS = [
+  { min:0,  max:30,  name:"Foundation",  color:"var(--u-rose)",
+    desc:"You're starting from near-zero on key dimensions. The next engagement is a foundational build, not an optimization. Strong upside from your first investment." },
+  { min:31, max:60,  name:"Stabilizing", color:"var(--u-amber)",
+    desc:"Pieces exist but are inconsistent or unmonitored. The next engagement consolidates what's there and brings discipline. Quick wins are realistic within 90 days." },
+  { min:61, max:85,  name:"Optimizing",  color:"var(--u-azure)",
+    desc:"The system works. The next engagement sharpens performance, reduces cost, or extends to new use cases. You're ready for advanced retainer-based partnerships." },
+  { min:86, max:100, name:"Mature",      color:"var(--u-mint)",
+    desc:"Best-in-class. The next engagement is strategic — advisory, retainer, or scaling to new lines of business. You operate from technology strength, not catch-up." },
+];
+
+/* ═══════════════════════════════════════════════════════════════════
+   § State machine
+   ═══════════════════════════════════════════════════════════════════ */
+const state = {
+  step: "hero",
+  audience: null,        // EDU | SMB | IND
+  scores: {},            // { "A.1": 3, ... }
+  sectionIdx: 0,         // current visible section
+};
+
+/* Restore from localStorage if present (lets users resume) */
+try {
+  const saved = JSON.parse(localStorage.getItem("mu_audit_state") || "null");
+  if (saved && saved.audience) Object.assign(state, saved);
+} catch (e) {}
+
+function persist() {
+  try { localStorage.setItem("mu_audit_state", JSON.stringify(state)); } catch (e) {}
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   § Section filtering
+   ═══════════════════════════════════════════════════════════════════ */
+function applicableSections() {
+  if (!state.audience) return [];
+  return AUDIT.filter(s => s.audiences.includes(state.audience));
+}
+function applicableItems(section) {
+  return section.items.filter(it => it[5].includes(state.audience));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   § Navigation
+   ═══════════════════════════════════════════════════════════════════ */
+function goTo(step) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("is-active"));
+  document.getElementById(step).classList.add("is-active");
+  state.step = step;
+  persist();
+  window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  // Show/hide progress bar
+  document.getElementById("progress-wrap").hidden = (step === "hero");
+  track("step_changed", { step });
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function selectAudience(aud) {
+  state.audience = aud;
+  state.sectionIdx = 0;
+  state.scores = {};
+  persist();
+  track("audit_started", { audience: aud });
+  renderSection();
+  goTo("audit");
+}
+
+function nextSection() {
+  const sections = applicableSections();
+  if (state.sectionIdx < sections.length - 1) {
+    state.sectionIdx++;
+    persist();
+    renderSection();
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  } else {
+    showResults();
+  }
+}
+
+function prevSection() {
+  if (state.sectionIdx > 0) {
+    state.sectionIdx--;
+    persist();
+    renderSection();
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  } else {
+    goTo("audience");
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   § Rendering: audit section
+   ═══════════════════════════════════════════════════════════════════ */
+function renderSection() {
+  const sections = applicableSections();
+  const sec = sections[state.sectionIdx];
+  if (!sec) return;
+
+  const items = applicableItems(sec);
+
+  document.getElementById("sec-letter").textContent = sec.letter;
+  document.getElementById("sec-title").textContent = sec.title;
+  document.getElementById("sec-subtitle").textContent = sec.subtitle;
+  document.getElementById("sec-tag").textContent = `${items.length} ITEMS · ${audienceLabel(state.audience)}`;
+  document.getElementById("sec-intro").textContent = sec.intro;
+  document.getElementById("section-progress").textContent =
+    `Section ${state.sectionIdx + 1} of ${sections.length}`;
+
+  const next = document.getElementById("next-btn");
+  next.innerHTML = state.sectionIdx === sections.length - 1
+    ? "See my results <span class='btn-arrow'></span>"
+    : "Next section <span class='btn-arrow'></span>";
+
+  const prev = document.getElementById("prev-btn");
+  prev.disabled = false;
+
+  const wrap = document.getElementById("items");
+  wrap.innerHTML = items.map(it => itemHtml(it)).join("");
+
+  renderScoreboard();
+  updateProgress();
+}
+
+function audienceLabel(aud) {
+  return ({ EDU: "SCHOOLS", SMB: "BUSINESSES", IND: "INDIVIDUALS" })[aud] || "ALL";
+}
+
+function itemHtml(it) {
+  const [id, svc, title, stmt, tier] = it;
+  const sel = state.scores[id];
+  const buttons = [0,1,2,3,4].map(n => {
+    const cls = sel === n ? "score-btn is-selected" : "score-btn";
+    return `<button class="${cls}" type="button" onclick="scoreItem('${id}',${n})" aria-label="Score ${n} for ${title}">${n}</button>`;
+  }).join("");
+
+  return `
+    <div class="audit-item" data-item="${id}">
+      <div class="item-head">
+        <span class="item-id mono">${id}</span>
+        <span class="item-title">${escapeHtml(title)}</span>
+      </div>
+      <p class="item-stmt">${escapeHtml(stmt)}</p>
+      <div class="item-controls">
+        <div class="score-row" role="group" aria-label="Score selector">${buttons}</div>
+        <span class="score-pointer">
+          <span class="arrow">→</span>
+          <span class="if">If 0–2:</span>
+          <span class="svc">${svc}</span>
+          <span class="tier">· ${tier}</span>
+        </span>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+function scoreItem(id, n) {
+  state.scores[id] = n;
+  persist();
+
+  // Update only the affected item buttons (avoid full re-render)
+  const buttons = document.querySelectorAll(`[data-item="${id}"] .score-btn`);
+  buttons.forEach((b, i) => {
+    b.classList.toggle("is-selected", i === n);
+  });
+
+  renderScoreboard();
+  updateProgress();
+  track("item_scored", { id, score: n });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   § Scoreboard + progress
+   ═══════════════════════════════════════════════════════════════════ */
+function computeSectionScores() {
+  const sections = applicableSections();
+  const out = {};
+  sections.forEach(sec => {
+    const items = applicableItems(sec);
+    const max = items.length * 4;
+    let raw = 0;
+    items.forEach(it => { if (state.scores[it[0]] !== undefined) raw += state.scores[it[0]]; });
+    out[sec.letter] = { raw, max, pct: max ? Math.round(raw / max * 100) : 0, name: sec.title };
+  });
+  return out;
+}
+
+function computeOverall() {
+  const sections = applicableSections();
+  if (!sections.length) return { pct: 0, raw: 0, max: 0 };
+  let raw = 0, max = 0;
+  sections.forEach(sec => {
+    applicableItems(sec).forEach(it => {
+      max += 4;
+      if (state.scores[it[0]] !== undefined) raw += state.scores[it[0]];
+    });
+  });
+  return { pct: max ? Math.round(raw / max * 100) : 0, raw, max };
+}
+
+function renderScoreboard() {
+  const scores = computeSectionScores();
+  const wrap = document.getElementById("scoreboard");
+  wrap.innerHTML = Object.entries(scores).map(([letter, d]) => `
+    <div class="score-bar">
+      <span class="letter">${letter}</span>
+      <span class="track"><span class="fill" style="width: ${d.pct}%"></span></span>
+      <span class="pct">${d.pct}</span>
+    </div>
+  `).join("");
+
+  const overall = computeOverall();
+  document.getElementById("overall-live").textContent =
+    overall.max ? `${overall.pct} / 100` : "— / 100";
+}
+
+function updateProgress() {
+  const sections = applicableSections();
+  const totalItems = sections.reduce((sum, s) => sum + applicableItems(s).length, 0);
+  const answered = Object.keys(state.scores).filter(k => {
+    return sections.some(s => applicableItems(s).some(it => it[0] === k));
+  }).length;
+  const pct = totalItems ? Math.round(answered / totalItems * 100) : 0;
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("progress-text").textContent = `${pct}% complete · ${answered} / ${totalItems}`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   § Results
+   ═══════════════════════════════════════════════════════════════════ */
+function showResults() {
+  const overall = computeOverall();
+  const tier = TIERS.find(t => overall.pct >= t.min && overall.pct <= t.max) || TIERS[0];
+
+  // Animated number count-up
+  const numEl = document.getElementById("overall-num");
+  animateCount(numEl, 0, overall.pct, 1200);
+
+  // Ring fill via CSS variable
+  const ring = document.getElementById("tier-ring");
+  ring.style.setProperty("--ring-pct", overall.pct + "%");
+
+  document.getElementById("tier-name").textContent = tier.name;
+  document.getElementById("tier-name").style.color = tier.color;
+  document.getElementById("tier-desc").textContent = tier.desc;
+
+  // Per-category bars
+  const sectionScores = computeSectionScores();
+  const catWrap = document.getElementById("cat-bars");
+  catWrap.innerHTML = Object.entries(sectionScores).map(([letter, d]) => {
+    const cls = d.pct < 31 ? "low" : d.pct < 61 ? "mid" : d.pct < 86 ? "good" : "great";
+    return `
+      <div class="cat-bar">
+        <span class="name">${letter} · ${d.name.replace(/Audit$/, '').trim()}</span>
+        <span class="track"><span class="fill ${cls}" style="width: 0%" data-target="${d.pct}"></span></span>
+        <span class="pct mono">${d.pct}</span>
+      </div>`;
+  }).join("");
+
+  // Animate bar widths
+  setTimeout(() => {
+    document.querySelectorAll(".cat-bar .fill").forEach(el => {
+      el.style.width = el.dataset.target + "%";
+    });
+  }, 100);
+
+  // Top-five priorities
+  const top = computeTopPriorities();
+  document.getElementById("shortlist").innerHTML = top.map(t => `
+    <li>
+      <div>
+        <div class="svc-id">${t.svc}</div>
+        <div class="svc-title">${escapeHtml(t.title)}</div>
+        <div class="svc-meta">Audit ${t.id} · scored ${t.score} · ${escapeHtml(t.tier)}</div>
+      </div>
+    </li>
+  `).join("");
+
+  // Solution bundle match
+  const bundle = matchBundle(top);
+  if (bundle) {
+    document.getElementById("bundle-name").textContent = bundle.name;
+    document.getElementById("bundle-desc").textContent = bundle.desc;
+    document.getElementById("bundle-svcs").textContent = "Includes: " + bundle.composed.join(" · ");
+  } else {
+    document.getElementById("bundle-card").style.display = "none";
+  }
+
+  goTo("results");
+  track("audit_completed", { score: overall.pct, tier: tier.name, audience: state.audience });
+}
+
+function animateCount(el, from, to, ms) {
+  if (prefersReducedMotion()) { el.textContent = to; return; }
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / ms);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(from + (to - from) * eased);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function computeTopPriorities() {
+  const candidates = [];
+  applicableSections().forEach(sec => {
+    applicableItems(sec).forEach(it => {
+      const score = state.scores[it[0]];
+      if (score !== undefined && score <= 2) {
+        candidates.push({
+          id: it[0], svc: it[1], title: it[2], stmt: it[3], tier: it[4], score,
+        });
+      }
+    });
+  });
+  // Sort by lowest score first, then by tier weight (Tier 1 > Tier 2 > Tier 3)
+  candidates.sort((a, b) => {
+    if (a.score !== b.score) return a.score - b.score;
+    const ta = parseInt(a.tier.match(/Tier (\d)/)?.[1] || "3");
+    const tb = parseInt(b.tier.match(/Tier (\d)/)?.[1] || "3");
+    return ta - tb;
+  });
+  return candidates.slice(0, 5);
+}
+
+function matchBundle(top) {
+  if (!top.length) return null;
+  const topSvcs = top.map(t => t.svc);
+  let best = null;
+  let bestScore = 0;
+  SOLUTIONS.forEach(sol => {
+    if (!sol.aud.split(",").includes(state.audience)) return;
+    const overlap = sol.composed.filter(s => topSvcs.includes(s)).length;
+    if (overlap > bestScore) {
+      bestScore = overlap;
+      best = sol;
+    }
+  });
+  // Fallback: pick any audience-relevant bundle
+  if (!best) {
+    best = SOLUTIONS.find(s => s.aud.split(",").includes(state.audience)) || null;
+  }
+  return best;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   § Email submission
+   ═══════════════════════════════════════════════════════════════════ */
+function submitEmail(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const payload = {
+    name: fd.get("name"),
+    email: fd.get("email"),
+    organization: fd.get("organization") || null,
+    audience: state.audience,
+    scores: state.scores,
+    sectionScores: computeSectionScores(),
+    overall: computeOverall(),
+    topPriorities: computeTopPriorities(),
+    matchedBundle: matchBundle(computeTopPriorities()),
+    submittedAt: new Date().toISOString(),
+  };
+
+  // POST to your backend. Replace this with the production endpoint.
+  // Default uses /api/v1/diagnostic-submission per project § 05 versioned API pattern.
+  fetch("/api/v1/diagnostic-submission", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).catch(() => {/* fail silently — email capture is best-effort */});
+
+  track("email_captured", { audience: state.audience, score: payload.overall.pct });
+
+  showToast("Got it. Your report is on its way to " + payload.email + " ✓");
+  e.target.querySelector("button[type=submit]").disabled = true;
+  e.target.querySelector("button[type=submit]").textContent = "Sent ✓";
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("is-visible");
+  setTimeout(() => t.classList.remove("is-visible"), 4000);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   § Analytics tracking (GA4 / dataLayer / parent postMessage fallback)
+
+   Three sinks, all best-effort:
+     1. window.dataLayer       → for Tag Manager pickups
+     2. window.gtag            → for direct GA4 calls when this page is
+                                 loaded standalone with the GA bootstrap
+     3. window.parent.postMessage → when this page is embedded in an
+                                 iframe inside the React SPA shell at
+                                 /self-audit. The shell forwards every
+                                 event to trackEvent() (GA + Sentry +
+                                 future backend analytics endpoint)
+                                 so the business can see, per visitor,
+                                 which audit answers they gave and
+                                 which services they ended up matched
+                                 to. The source tag scopes the listener.
+   ═══════════════════════════════════════════════════════════════════ */
+function track(event, props) {
+  try {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: "diagnostic_" + event, ...props });
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "diagnostic_" + event, props || {});
+    }
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        source: "ukz-self-audit",
+        event:  event,
+        props:  props || {},
+        ts:     Date.now(),
+      }, window.location.origin);
+    }
+  } catch (e) {/* no-op */}
+}
+function trackCta(name) { track("cta_clicked", { cta: name }); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   § Bootstrap
+   ═══════════════════════════════════════════════════════════════════ */
+document.addEventListener("DOMContentLoaded", () => {
+  if (state.audience && state.step !== "hero" && Object.keys(state.scores).length > 0) {
+    // Resume in-progress audit
+    renderSection();
+    goTo("audit");
+  }
+});
+</script>
+</body>
+</html>
