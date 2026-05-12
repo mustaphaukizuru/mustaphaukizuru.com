@@ -20,6 +20,7 @@ import {
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
 import NotificationDropdown from "../components/dashboard/NotificationDropdown"
+import UpcomingMeetingBanner from "../components/dashboard/UpcomingMeetingBanner"
 
 import { useTranslation } from "react-i18next"
 /* ──────────────────────────────────────────────────────────────────────────
@@ -489,6 +490,11 @@ export default function DashboardLayout() {
 
             {/* Page content */}
             <main id="dashboard-main" className="mt-3 min-w-0 lg:mt-4">
+              {/* Pinned banner that auto-appears 15 min before any
+                  confirmed meeting and stays until 60 min past start.
+                  Renders nothing when there's no imminent meeting —
+                  no layout shift on most page loads. */}
+              <UpcomingMeetingBanner />
               <Outlet />
             </main>
           </div>
