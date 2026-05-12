@@ -136,13 +136,27 @@ const captureOrder = asyncHandler(async (req, res) => {
 
 const webhook = async (req, res) => {
   try {
-    // The route mounts express.raw — req.body is a Buffer here.
+    // The app-level mount in src/app.js applies express.raw before the global
+    // JSON parser, so req.body is a Buffer in production. The defensive
+    // branches below cover (a) any test harness that posts a parsed object,
+    // (b) a misconfigured Content-Type that bypasses express.raw — in which
+    // case body-parser may have left req.body as a parsed object.
     const verified = await verifyPaypalWebhookSignature({ headers: req.headers, body: req.body })
 
-    // Audit row goes in regardless of verification result so we can debug.
+    // Parse the event once, robustly. JSON.parse on a parsed object would
+    // coerce it to "[object Object]" and throw — the previous catch quietly
+    // returned {}, which made the webhook a no-op for every event in
+    // production. Handle each shape explicitly.
     const event = (() => {
-      try { return JSON.parse(Buffer.isBuffer(req.body) ? req.body.toString("utf8") : req.body) }
-      catch { return {} }
+      try {
+        if (Buffer.isBuffer(req.body))    return JSON.parse(req.body.toString("utf8"))
+        if (typeof req.body === "string") return JSON.parse(req.body)
+        if (req.body && typeof req.body === "object") return req.body
+        return {}
+      } catch (parseErr) {
+        logger.warn(`[PayPal webhook] body parse failed: ${parseErr.message}`)
+        return {}
+      }
     })()
 
     // Audit row goes in regardless of verification result so we can debug.
@@ -205,39 +219,74 @@ const webhook = async (req, res) => {
     }
 
     if (eventType === "PAYMENT.CAPTURE.DENIED" || eventType === "PAYMENT.CAPTURE.REFUNDED") {
-      const captureId = resource.id
+      // PAYMENT.CAPTURE.REFUNDED · `resource` is the Refund object, so
+      // resource.id is the refund id (R-XXX / 1JU…) — NOT the original
+      // capture id. The capture is reachable via the HATEOAS `up` link,
+      // e.g. `https://api.paypal.com/v2/payments/captures/<captureId>`.
+      // PAYMENT.CAPTURE.DENIED · `resource` IS the Capture, so resource.id
+      // is already the capture id and we can use it directly.
+      const captureId = eventType === "PAYMENT.CAPTURE.REFUNDED"
+        ? (() => {
+            const upHref = resource?.links?.find?.((l) => l?.rel === "up")?.href
+            if (typeof upHref === "string" && upHref.length > 0) {
+              return upHref.split("/").pop() || null
+            }
+            return null
+          })()
+        : resource.id
+
+      if (!captureId) {
+        logger.warn(`[PayPal webhook] ${eventType} missing captureId — skipping`, {
+          refundId: resource?.id,
+        })
+        if (auditRow?.id) {
+          await prisma.paymentWebhook.update({
+            where: { id: auditRow.id },
+            data:  { processed: true, processedAt: new Date(), eventType: `${eventType}.no_capture_id` },
+          }).catch(() => null)
+        }
+        return res.status(200).json({ received: true })
+      }
+
       const payment = await prisma.payment.findFirst({
         where: { gatewayTransactionId: captureId, paymentGateway: "paypal" },
         select: { id: true, orderId: true, userId: true },
       })
       if (payment) {
-        // For refund events, also persist a local Refund row so
-        // out-of-band PayPal-dashboard refunds are reflected in our
-        // order history. Idempotent on (orderId, gatewayTransactionId).
+        // For refund events, also persist a local Refund row so out-of-band
+        // PayPal-dashboard refunds are reflected in our order history.
+        //
+        // Idempotency · the Refund model has no `gatewayRefundId` column
+        // yet, so we can't unique-index against PayPal's refund id. The
+        // previous implementation overrode Refund.id with the PayPal refund
+        // id, which collided with the cuid-keyed rows the admin refund path
+        // creates — so the webhook produced duplicate rows whenever an
+        // admin had already triggered the refund.
+        // Use a (paymentId, amount, status) match to detect prior writes
+        // (covers both the admin path and our own webhook retries).
         if (eventType === "PAYMENT.CAPTURE.REFUNDED") {
           const refundAmount = Number(resource?.amount?.value || 0)
-          const refundId     = resource?.id
-          if (refundAmount > 0 && refundId) {
-            await prisma.refund.upsert({
+          if (refundAmount > 0) {
+            const existing = await prisma.refund.findFirst({
               where: {
-                // No native unique on (paymentId, gatewayRefundId), so we
-                // emulate via findFirst → create-if-missing pattern.
-                id: refundId, // safe: refund.id is cuid by default but we override on upsert
-              },
-              create: {
-                id:           refundId,
                 paymentId:    payment.id,
-                orderId:      payment.orderId,
                 amount:       refundAmount,
-                reason:       "PayPal webhook refund",
-                refundStatus: "completed",
-                processedAt:  new Date(),
+                refundStatus: { in: ["approved", "processing", "succeeded"] },
               },
-              update: {
-                refundStatus: "completed",
-                processedAt:  new Date(),
-              },
-            }).catch((e) => logger.warn("[PayPal webhook refund upsert]", e.message))
+              select: { id: true },
+            })
+            if (!existing) {
+              await prisma.refund.create({
+                data: {
+                  paymentId:    payment.id,
+                  orderId:      payment.orderId,
+                  amount:       refundAmount,
+                  reason:       "PayPal webhook refund",
+                  refundStatus: "succeeded",
+                  processedAt:  new Date(),
+                },
+              }).catch((e) => logger.warn("[PayPal webhook refund create]", e.message))
+            }
           }
         }
         await recordOrderEvent({

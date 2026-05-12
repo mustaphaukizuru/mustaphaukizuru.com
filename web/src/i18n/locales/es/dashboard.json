@@ -567,7 +567,9 @@
       "joinMeeting": "Entrar a la reunión",
       "viewLink": "Ver enlace",
       "reschedule": "Reagendar",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "linkPending": "Enlace de la reunión pendiente",
+      "linkPendingTitle": "El anfitrión compartirá un enlace de Google Meet en breve. Si tu reunión está cerca y aún ves esto, contacta a soporte."
     },
     "cancelModal": {
       "eyebrow": "Cancelar reserva",
@@ -809,40 +811,40 @@
       "today": "Hoy",
       "todaySubtitle": "Últimas 24 horas"
     },
-      "filters": {
-        "all": "Todas",
-        "unread": "Sin leer",
-        "read": "Le\u00eddas"
-      },
-      "actions": {
-        "markAllRead": "Marcar todo como le\u00eddo",
-        "refresh": "Actualizar"
-      },
-      "empty": {
-        "title": "Est\u00e1s al d\u00eda",
-        "body": "Cuando algo requiera tu atenci\u00f3n \u2014 una actualizaci\u00f3n de pedido, una nueva descarga o una respuesta de soporte \u2014 aparecer\u00e1 aqu\u00ed.",
-        "browseStore": "Explorar la tienda"
-      },
-      "errors": {
-        "load": "No pudimos cargar tus notificaciones."
-      },
-      "row": {
-        "markRead": "Marcar como le\u00edda",
-        "newBadge": "Nueva"
-      }
+    "filters": {
+      "all": "Todas",
+      "unread": "Sin leer",
+      "read": "Leídas"
     },
-    "layout": {
-      "navAria": "Navegaci\u00f3n del panel",
-      "closeMenu": "Cerrar men\u00fa",
-      "backToWebsite": "Volver al sitio",
-      "backWebsiteAria": "Volver al sitio",
-      "skipMain": "Saltar al contenido principal",
-      "memberArea": "Área de miembro",
-      "memberAreaSubtitle": "Tu central de productos digitales",
-      "memberDashboard": "Panel de miembro",
-      "openMenu": "Abrir menú",
-      "searchDashboard": "Buscar en el panel",
-      "openSupport": "Abrir soporte",
-      "quickNav": "Navegación rápida"
+    "actions": {
+      "markAllRead": "Marcar todo como leído",
+      "refresh": "Actualizar"
+    },
+    "empty": {
+      "title": "Estás al día",
+      "body": "Cuando algo requiera tu atención — una actualización de pedido, una nueva descarga o una respuesta de soporte — aparecerá aquí.",
+      "browseStore": "Explorar la tienda"
+    },
+    "errors": {
+      "load": "No pudimos cargar tus notificaciones."
+    },
+    "row": {
+      "markRead": "Marcar como leída",
+      "newBadge": "Nueva"
     }
+  },
+  "layout": {
+    "navAria": "Navegación del panel",
+    "closeMenu": "Cerrar menú",
+    "backToWebsite": "Volver al sitio",
+    "backWebsiteAria": "Volver al sitio",
+    "skipMain": "Saltar al contenido principal",
+    "memberArea": "Área de miembro",
+    "memberAreaSubtitle": "Tu central de productos digitales",
+    "memberDashboard": "Panel de miembro",
+    "openMenu": "Abrir menú",
+    "searchDashboard": "Buscar en el panel",
+    "openSupport": "Abrir soporte",
+    "quickNav": "Navegación rápida"
+  }
 }

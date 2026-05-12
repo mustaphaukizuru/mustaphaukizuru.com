@@ -17,6 +17,7 @@
 const crypto  = require("crypto")
 const { addMinutes, isBefore, differenceInHours } = require("date-fns")
 const prisma  = require("../lib/prisma")
+const logger  = require("../utils/logger")
 const {
   resolveHostUserId,
   loadServicePolicy,
@@ -438,10 +439,13 @@ async function provisionMeetingAndNotify(consultation) {
   //     a chance to manually set a link from the dashboard before the
   //     client receives the confirmation email.
   if (!googleCalendar.isConfigured()) {
-    // eslint-disable-next-line no-console
-    console.error(
+    const diag = typeof googleCalendar.diagnoseConfig === "function"
+      ? googleCalendar.diagnoseConfig()
+      : "config incomplete"
+    logger.error(
       `[consultation ${id}] Google Calendar not configured — booking left without a meeting link. ` +
-      `Admin must paste one manually via /admin/consultations.`
+      `Diagnosis: ${diag}. Admin must paste a link manually via /admin/consultations, or ` +
+      `POST /api/v1/admin/consultations/${id}/regenerate-link after fixing the config.`
     )
     // Mark the row as pending-link so the admin dashboard surfaces it
     // for manual attention. Don't throw — the booking should still
@@ -493,11 +497,16 @@ async function provisionMeetingAndNotify(consultation) {
     // revoked, 403 scope missing, 500 from Google, etc.). Same approach
     // as the "not configured" branch: don't fail the booking; leave the
     // link blank for admin attention.
-    // eslint-disable-next-line no-console
-    console.error(
-      `[consultation ${id}] Google Calendar event creation failed: ${err?.message}. ` +
-      `Booking saved without a meeting link; admin must paste one manually.`
-    )
+    logger.error(`[consultation ${id}] Google Calendar event creation failed`, {
+      message:      err?.message,
+      googleStatus: err?.googleStatus || null,
+      googleError:  err?.googleError  || null,
+      // Common cause-codes worth surfacing: invalid_grant (refresh token
+      // bad / revoked), insufficient_scope (consent screen missing
+      // calendar.events), accessNotConfigured (Calendar API disabled in
+      // the Cloud project).
+      causeCode:    err?.cause?.code || null,
+    })
     return await prisma.consultation.update({
       where: { id },
       data:  { meetingLink: null, meetingProvider: "manual", googleEventId: null },
@@ -519,121 +528,6 @@ function pickAuditFields(row) {
     assignedAdminId: row.assignedAdminId, confirmedAt: row.confirmedAt,
     cancelledAt: row.cancelledAt, completedAt: row.completedAt,
   }
-}
-
-/**
- * Format a Date as a human-readable string in the row's timezone, with
- * locale-appropriate weekday + month names. Shared by both the
- * confirmation and reschedule email helpers so the same "Wednesday,
- * October 8, 2025 at 3:00 PM CST" format reaches users in both flows.
- */
-function formatScheduledHuman(date, locale, timezone) {
-  if (!date) return ""
-  const d = date instanceof Date ? date : new Date(date)
-  if (Number.isNaN(d.getTime())) return ""
-  try {
-    return d.toLocaleString(locale === "es" ? "es-MX" : "en-US", {
-      weekday: "long", year: "numeric", month: "long", day: "numeric",
-      hour: "numeric", minute: "2-digit", timeZoneName: "short",
-      timeZone: timezone || "UTC",
-    })
-  } catch {
-    return d.toISOString()
-  }
-}
-
-/**
- * Fire-and-forget confirmation email when a consultation transitions to
- * `confirmed`. Includes the meeting link, schedule, and a deep-link to
- * the member's consultation detail page.
- */
-async function sendConsultationConfirmedEmail(row, opts = {}) {
-  const { sendTemplateEmail } = require("./emailService")
-  const { resolveUserLocale } = require("../utils/resolveUserLocale")
-
-  const to = row.user?.email
-  if (!to) return // No recipient — nothing to do.
-
-  let locale = "en"
-  try {
-    locale = opts.locale || resolveUserLocale({ user: { id: row.userId } })
-  } catch { /* fall through to "en" */ }
-
-  const frontend = (process.env.FRONTEND_URL || "").replace(/\/$/, "")
-
-  await sendTemplateEmail({
-    locale,
-    to,
-    templateKey: "consultation.confirmed",
-    userId:      row.userId,
-    variables: {
-      customerName:    row.user?.fullName?.split(" ")[0] || "there",
-      scheduledAt:     formatScheduledHuman(row.scheduledAt, locale, row.timezone),
-      durationMin:     row.durationMin || 30,
-      timezone:        row.timezone || "UTC",
-      meetingLink:     row.meetingLink || "",
-      meetingProvider: row.meetingProvider || "manual",
-      serviceTitle:    row.service?.title || "Consulting session",
-      hostName:        row.assignedAdmin?.fullName || "Mustapha Ukizuru",
-      consultationUrl: `${frontend}/dashboard/consultations`,
-    },
-  })
-}
-
-/**
- * Fire-and-forget reschedule email — fires when an existing booking is
- * moved to a new time (admin or client initiated). Shows both the old
- * and new times so the client sees the change at a glance, and re-sends
- * the meeting link (unchanged for Google Meet bookings since the
- * Calendar event ID survives the reschedule; regenerated for Jitsi-
- * fallback bookings).
- *
- * For Google-Meet-backed bookings Google ALSO sends its own native
- * "this event has been rescheduled" email automatically via the
- * Calendar API's sendUpdates: "all". This branded email is on top of
- * that — same information, your visual language. For Jitsi-fallback
- * bookings this is the only reschedule notification the client gets.
- */
-async function sendConsultationRescheduledEmail(newRow, previousRow, opts = {}) {
-  const { sendTemplateEmail } = require("./emailService")
-  const { resolveUserLocale } = require("../utils/resolveUserLocale")
-
-  const to = newRow.user?.email
-  if (!to) return
-
-  let locale = "en"
-  try {
-    locale = opts.locale || resolveUserLocale({ user: { id: newRow.userId } })
-  } catch { /* fall through to "en" */ }
-
-  const frontend = (process.env.FRONTEND_URL || "").replace(/\/$/, "")
-
-  await sendTemplateEmail({
-    locale,
-    to,
-    templateKey: "consultation.rescheduled",
-    userId:      newRow.userId,
-    variables: {
-      customerName:        newRow.user?.fullName?.split(" ")[0] || "there",
-      scheduledAt:         formatScheduledHuman(newRow.scheduledAt, locale, newRow.timezone),
-      // The previous row was created against the OLD timezone, so format
-      // its scheduledAt against that. (In practice timezone rarely
-      // changes on reschedule, but we pass through the right one for
-      // correctness if it ever does.)
-      previousScheduledAt: formatScheduledHuman(
-        previousRow?.scheduledAt,
-        locale,
-        previousRow?.timezone || newRow.timezone,
-      ),
-      durationMin:         newRow.durationMin || 30,
-      timezone:            newRow.timezone || "UTC",
-      meetingLink:         newRow.meetingLink || "",
-      meetingProvider:     newRow.meetingProvider || "manual",
-      serviceTitle:        newRow.service?.title || "Consulting session",
-      hostName:            newRow.assignedAdmin?.fullName || "Mustapha Ukizuru",
-      consultationUrl:     `${frontend}/dashboard/consultations`,
-    },
-  })
 }
 
 async function adminUpdateConsultation(id, patch, ctx = {}) {
@@ -711,7 +605,20 @@ async function adminUpdateConsultation(id, patch, ctx = {}) {
   }
 
   if (willConfirmNow) {
-    sendConsultationConfirmedEmail(finalRow, ctx).catch((e) => {
+    // Use the SAME ICS-rich mailer the public auto-confirm path fires
+    // (consultationController.create) so admin-confirmed and customer-
+    // confirmed bookings produce an identical surface: branded HTML +
+    // iCalendar attachment so Gmail / Outlook / Apple Mail all surface
+    // an inline "Add to Calendar" action. Required lazily so the test
+    // suite can mock '../utils/mailer' without dragging the nodemailer
+    // pool into module-load.
+    const { sendConsultationConfirmationEmail } = require("../utils/mailer")
+    const { resolveUserLocale } = require("../utils/resolveUserLocale")
+    let locale = "en"
+    try {
+      locale = ctx.locale || resolveUserLocale({ user: { id: finalRow.userId } })
+    } catch { /* fall through to "en" */ }
+    sendConsultationConfirmationEmail(finalRow, { locale }).catch((e) => {
       // Don't blow up the admin action on email failure — the row is
       // already updated, the audit log already recorded. Best-effort.
       // eslint-disable-next-line no-console
@@ -726,6 +633,72 @@ async function adminUpdateConsultation(id, patch, ctx = {}) {
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * adminRegenerateMeetingLink — operator-triggered re-run of the Google Meet
+ * provisioner for a single consultation. Use when the initial booking
+ * confirmation failed to attach a link (typically because Google credentials
+ * were misconfigured at the time — see /admin/consultations for rows with
+ * meetingProvider="manual" + meetingLink=null).
+ *
+ * Guards:
+ *   - NOT_FOUND if the consultation doesn't exist
+ *   - BAD_STATE if the row is in a terminal state (cancelled / completed /
+ *     no_show / rescheduled) — no point provisioning a link for a meeting
+ *     that already happened or never will
+ *   - Skips silently and returns the existing row if a meeting link is
+ *     already populated (idempotent — re-runs are safe)
+ *
+ * Audit:
+ *   When ctx.adminUserId is supplied, writes an AdminAuditLog row capturing
+ *   the provider/link transition.
+ */
+async function adminRegenerateMeetingLink({ id, adminUserId = null, ipAddress = null } = {}) {
+  if (!id) {
+    throw Object.assign(new Error("id required"), { statusCode: 400, code: "BAD_REQUEST" })
+  }
+
+  const before = await prisma.consultation.findUnique({
+    where:  { id },
+    include: PUBLIC_INCLUDE,
+  })
+  if (!before) {
+    throw Object.assign(new Error("Consultation not found"), { statusCode: 404, code: "NOT_FOUND" })
+  }
+
+  const terminalStates = ["cancelled", "completed", "no_show", "rescheduled"]
+  if (terminalStates.includes(before.status)) {
+    throw Object.assign(
+      new Error(`Cannot regenerate link for a ${before.status} consultation`),
+      { statusCode: 400, code: "BAD_STATE" },
+    )
+  }
+
+  // Idempotent: a row that already has a link is left alone. The admin can
+  // explicitly clear meetingLink first if they want a fresh one (rare —
+  // typical use is re-running provisioning after fixing Google env vars).
+  if (before.meetingLink) {
+    return before
+  }
+
+  const finalRow = await provisionMeetingAndNotify(before)
+
+  if (adminUserId) {
+    await prisma.adminAuditLog.create({
+      data: {
+        adminUserId,
+        action:     "consultation.meeting_link.regenerated",
+        targetType: "Consultation",
+        targetId:   id,
+        beforeJson: pickAuditFields(before),
+        afterJson:  pickAuditFields(finalRow),
+        ipAddress,
+      },
+    }).catch((e) => logger.warn(`[consultation ${id}] audit log failed: ${e.message}`))
+  }
+
+  return finalRow
+}
+
 module.exports = {
   bookConsultation,
   rescheduleConsultation,
@@ -735,4 +708,5 @@ module.exports = {
   getConsultationByIdForUser,
   adminListConsultations,
   adminUpdateConsultation,
+  adminRegenerateMeetingLink,
 }

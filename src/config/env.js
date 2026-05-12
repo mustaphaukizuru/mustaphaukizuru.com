@@ -91,6 +91,30 @@ if (isLive) {
 
   if (!config.sentryDsn) warnings.push("SENTRY_DSN not set (error tracking disabled)")
 
+  // Google Calendar / Meet — consultations always succeed without these, but
+  // the booking row gets meetingLink=null and meetingProvider="manual", so
+  // the customer's confirmation email has no join link until an admin pastes
+  // one from /admin/consultations. That degradation is silent in the booking
+  // flow, so surface it loudly here at boot so the operator knows.
+  const googleVars = {
+    GOOGLE_OAUTH_CLIENT_ID:     process.env.GOOGLE_OAUTH_CLIENT_ID,
+    GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+    GOOGLE_OAUTH_REFRESH_TOKEN: process.env.GOOGLE_OAUTH_REFRESH_TOKEN,
+    GOOGLE_CALENDAR_HOST_EMAIL: process.env.GOOGLE_CALENDAR_HOST_EMAIL,
+  }
+  const missingGoogle = Object.entries(googleVars).filter(([, v]) => !v).map(([k]) => k)
+  if (missingGoogle.length === Object.keys(googleVars).length) {
+    warnings.push(
+      "Google Calendar not configured — consultations will save with meetingLink=null " +
+      "and require manual admin link entry. Bootstrap with scripts/google-oauth-bootstrap.js."
+    )
+  } else if (missingGoogle.length > 0) {
+    warnings.push(
+      `Google Calendar partially configured — missing: ${missingGoogle.join(", ")}. ` +
+      "Bookings will fall through to meetingLink=null until ALL four vars are set."
+    )
+  }
+
   if (warnings.length > 0) {
     console.warn("⚠️  Optional services missing:")
     warnings.forEach((w) => console.warn("    · " + w))

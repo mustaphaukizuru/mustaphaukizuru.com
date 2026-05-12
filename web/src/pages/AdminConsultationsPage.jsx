@@ -19,6 +19,7 @@ import {
 import {
   adminListConsultations,
   adminUpdateConsultation,
+  adminRegenerateConsultationLink,
   formatDateTime,
   formatLongDate,
   formatTime,
@@ -90,6 +91,35 @@ export default function AdminConsultationsPage() {
       toast?.show?.({ type: "success", title: "Booking updated", message: `Marked ${nextStatus.replace(/_/g, " ")}` })
     } catch (e) {
       toast?.show?.({ type: "error", title: "Update failed", message: e?.message || "Try again" })
+    } finally {
+      setUpdating(null)
+    }
+  }
+
+  // Re-runs the Google Calendar + Meet provisioner on a single booking.
+  // Used when a confirmed booking lacks a meetingLink because Google was
+  // misconfigured at booking time. The backend short-circuits with 409 +
+  // diagnostic if Google is STILL misconfigured — we surface that text
+  // verbatim so the admin sees exactly what to fix.
+  async function regenerateLink(id) {
+    if (!id) return
+    try {
+      setUpdating(id)
+      const updated = await adminRegenerateConsultationLink(id)
+      setItems((prev) => prev.map((c) => (c.id === id ? { ...c, ...updated } : c)))
+      toast?.show?.({
+        type:  updated?.meetingLink ? "success" : "warning",
+        title: updated?.meetingLink ? "Meeting link generated" : "Provisioner ran",
+        message: updated?.meetingLink
+          ? "Google Meet link saved on this booking."
+          : "Google did not return a link — check server logs.",
+      })
+    } catch (e) {
+      toast?.show?.({
+        type:    "error",
+        title:   "Could not regenerate link",
+        message: e?.message || "Try again, or check that the Google refresh token is valid.",
+      })
     } finally {
       setUpdating(null)
     }
@@ -194,6 +224,7 @@ export default function AdminConsultationsPage() {
                         consultation={c}
                         updating={updating === c.id}
                         onPatch={(status, extra) => patchStatus(c.id, status, extra)}
+                        onRegenerateLink={() => regenerateLink(c.id)}
                       />
                     </td>
                   </tr>
@@ -217,6 +248,7 @@ export default function AdminConsultationsPage() {
                     consultation={c}
                     updating={updating === c.id}
                     onPatch={(status, extra) => patchStatus(c.id, status, extra)}
+                    onRegenerateLink={() => regenerateLink(c.id)}
                   />
                 </li>
               ))}
@@ -231,10 +263,14 @@ export default function AdminConsultationsPage() {
 // ─────────────────────────────────────────────────────────────────────────────
 // RowActions — status transitions allowed for the given booking
 // ─────────────────────────────────────────────────────────────────────────────
-function RowActions({ consultation, updating, onPatch }) {
+function RowActions({ consultation, updating, onPatch, onRegenerateLink }) {
   const status = consultation.status
   const meetingLink = consultation.meetingLink
   const isFinal = ["cancelled", "completed", "no_show"].includes(status)
+  // Surface the "needs a link" state on any non-final booking. Lets the
+  // admin spot stuck bookings at a glance and click to retry the Google
+  // provisioner without having to PATCH the row manually.
+  const linkPending = !meetingLink && !isFinal
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-1.5">
@@ -248,6 +284,18 @@ function RowActions({ consultation, updating, onPatch }) {
           <ExternalLink className="h-3 w-3" aria-hidden="true" />
           Meeting
         </a>
+      )}
+      {linkPending && (
+        <button
+          type="button"
+          disabled={updating}
+          onClick={onRegenerateLink}
+          title="Re-run the Google Calendar + Meet provisioner for this booking"
+          className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700 transition hover:bg-amber-100 disabled:opacity-50"
+        >
+          <RefreshCw className="h-3 w-3" aria-hidden="true" />
+          Generate link
+        </button>
       )}
       {!isFinal && (
         <>

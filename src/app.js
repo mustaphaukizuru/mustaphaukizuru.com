@@ -134,6 +134,28 @@ app.use(process.env.NODE_ENV !== "production"
   ? morgan("dev")
   : morgan(":method :url :status :response-time ms"))
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PayPal webhook · RAW body for signature verification
+//
+// MUST be mounted BEFORE the global express.json() below. body-parser sets
+// req._body = true once it consumes the stream, after which a per-route
+// express.raw() is a silent no-op — a long-standing body-parser footgun.
+// Mounting the webhook here gives PayPal's signature verifier a Buffer it
+// can hash byte-for-byte against the transmission signature, while the rest
+// of /api/* still gets the convenient parsed JSON below.
+//
+// Both /api/paypal/webhook (legacy) and /api/v1/paypal/webhook (canonical)
+// are accepted — PayPal has the legacy URL configured in many dashboards,
+// so we honor it without the deprecation noise the routes/index.js mount
+// would otherwise tack on.
+// ─────────────────────────────────────────────────────────────────────────────
+const { webhook: paypalWebhookHandler } = require("./controllers/paypalController")
+app.post(
+  ["/api/paypal/webhook", "/api/v1/paypal/webhook"],
+  express.raw({ type: "application/json", limit: "10mb" }),
+  paypalWebhookHandler,
+)
+
 // Body parsing
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))

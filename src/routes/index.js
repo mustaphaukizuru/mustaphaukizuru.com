@@ -216,9 +216,15 @@ router.use("/v1", v1)
 // rationale above). Everything else gets the deprecation header injected.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Webhooks + health — exempt from deprecation headers (no sunset noise)
+// Webhooks + health — exempt from deprecation headers (no sunset noise).
+//
+// PayPal's webhook is NOT mounted here — it lives at the app level (see
+// src/app.js) where it can intercept the request BEFORE the global JSON
+// parser. The previous narrow-exempt mount under "/paypal/webhook" stripped
+// the path prefix, leaving paypalRoutes' inner "/webhook" route unreachable
+// (the request became "" inside the sub-router). Keeping the comment so we
+// don't reintroduce the same mount.
 router.use("/health",                 healthRoutes)
-router.use("/paypal/webhook",         paypalRoutes)            // narrow exempt
 router.use("/mercadopago/webhook",    mercadoPagoRoutes)       // narrow exempt
 
 // Public (deprecated) — order matters: webhook subroutes already mounted above

@@ -114,6 +114,22 @@ export async function adminUpdateConsultation(id, patch) {
   return r?.data || r
 }
 
+/**
+ * Re-run the Google Calendar + Meet provisioner on a consultation that
+ * was confirmed without a meeting link (typically because Google was
+ * misconfigured at the time and is now fixed).
+ *
+ * Returns the updated row on success. The backend returns 409 with a
+ * diagnostic message when Google is STILL misconfigured (e.g. refresh
+ * token still wrong) — authPost surfaces that as a thrown Error whose
+ * .message is the backend's `message` field, so the caller catch block
+ * can show it directly.
+ */
+export async function adminRegenerateConsultationLink(id) {
+  const r = await authPost(`/api/v1/admin/consultations/${id}/regenerate-link`, {})
+  return r?.data || r
+}
+
 // ── Helpers (client-side tz utilities, no external deps) ────────────────────
 
 /** The browser's IANA timezone (e.g. "America/Mexico_City"). */
