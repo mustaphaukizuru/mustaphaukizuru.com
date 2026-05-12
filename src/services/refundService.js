@@ -58,8 +58,16 @@ const { notifyOrderRefunded }      = require("./notificationService")
 // 365 days. Our policy is stricter so we set our own gate.
 const REFUND_WINDOW_DAYS = 14
 
+// Mirrors the Prisma `RefundStatus` enum (prisma/schema.prisma). Keep these
+// two in sync — any divergence causes silent write failures (Prisma rejects
+// unknown enum values with P2024).
+//
+// The earlier "requested" sentinel lived in this list but was never persisted
+// to Refund.refundStatus — a member's refund request is tracked on a
+// SupportTicket row, not by a phantom Refund row. Including it here used to
+// suggest the value was writable, so it's been removed to avoid that trap.
 const VALID_REFUND_STATUSES = [
-  "requested",   // member raised a ticket — no Refund row yet, only ticket
+  "pending",     // intent recorded, gateway call not started
   "approved",    // admin clicked refund, Refund row created (legacy code path)
   "processing",  // gateway call in flight (this service)
   "succeeded",   // gateway accepted, local state flipped

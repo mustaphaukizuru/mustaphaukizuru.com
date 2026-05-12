@@ -77,12 +77,15 @@ jest.mock("../src/lib/googleCalendar", () => ({
   cancelCalendarEvent: jest.fn(),
 }))
 
-// emailService is dynamically required inside sendConsultationConfirmedEmail
-// (`require("./emailService")` at function call time). The jest.mock here
-// catches that require and lets us spy on sendTemplateEmail without booting
-// the real transport.
-jest.mock("../src/services/emailService", () => ({
-  sendTemplateEmail: jest.fn().mockResolvedValue({ ok: true }),
+// The admin-confirm path consolidated onto utils/mailer (Phase 12) so that
+// it ships the same ICS attachment the public booking flow does. Mocking
+// the mailer here keeps the test boundary at the orchestrator: we exercise
+// the audit/transaction/provisioner wiring without booting nodemailer.
+jest.mock("../src/utils/mailer", () => ({
+  sendConsultationConfirmationEmail: jest.fn().mockResolvedValue(undefined),
+  sendConsultationRescheduledEmail:  jest.fn().mockResolvedValue(undefined),
+  sendConsultationCancelledEmail:    jest.fn().mockResolvedValue(undefined),
+  sendConsultationReminderEmail:     jest.fn().mockResolvedValue(undefined),
 }))
 
 jest.mock("../src/utils/resolveUserLocale", () => ({
@@ -105,7 +108,7 @@ jest.mock("../src/utils/logger", () => ({
 /* ───────────────────────── system-under-test ───────────────────────────── */
 
 const prisma = require("../src/lib/prisma")
-const { sendTemplateEmail } = require("../src/services/emailService")
+const { sendConsultationConfirmationEmail } = require("../src/utils/mailer")
 const { adminUpdateConsultation } = require("../src/services/consultationService")
 
 /* ─────────────────────────── fixtures ──────────────────────────────────── */
@@ -322,7 +325,7 @@ describe("adminUpdateConsultation — auto Google Meet link on first confirm", (
 })
 
 describe("adminUpdateConsultation — confirmation email", () => {
-  test("fires sendTemplateEmail when transitioning to confirmed", async () => {
+  test("fires sendConsultationConfirmationEmail when transitioning to confirmed", async () => {
     // Phase 11 · simulate the Google-Meet-configured path so the
     // provisioner produces a real link before the email fires.
     const googleCalendar = require("../src/lib/googleCalendar")
@@ -345,11 +348,11 @@ describe("adminUpdateConsultation — confirmation email", () => {
     // microtask queued by Promise.catch settle before asserting.
     await new Promise((r) => setImmediate(r))
 
-    expect(sendTemplateEmail).toHaveBeenCalledTimes(1)
-    const args = sendTemplateEmail.mock.calls[0][0]
-    expect(args.templateKey).toBe("consultation.confirmed")
-    expect(args.to).toBe("client@example.com")
-    expect(args.variables.meetingLink).toBe("https://meet.google.com/abc-defg-hij")
+    expect(sendConsultationConfirmationEmail).toHaveBeenCalledTimes(1)
+    const [row, opts] = sendConsultationConfirmationEmail.mock.calls[0]
+    expect(row.user?.email).toBe("client@example.com")
+    expect(row.meetingLink).toBe("https://meet.google.com/abc-defg-hij")
+    expect(opts).toMatchObject({ locale: "en" })
   })
 
   test("does NOT fire email on a non-status patch", async () => {
@@ -361,7 +364,7 @@ describe("adminUpdateConsultation — confirmation email", () => {
     await adminUpdateConsultation("c_1", { summaryNotes: "Updated notes" }, { adminUserId: "admin_1" })
     await new Promise((r) => setImmediate(r))
 
-    expect(sendTemplateEmail).not.toHaveBeenCalled()
+    expect(sendConsultationConfirmationEmail).not.toHaveBeenCalled()
   })
 
   test("does NOT fire email when already in confirmed state (no transition)", async () => {
@@ -371,7 +374,7 @@ describe("adminUpdateConsultation — confirmation email", () => {
     await adminUpdateConsultation("c_1", { status: "confirmed" }, { adminUserId: "admin_1" })
     await new Promise((r) => setImmediate(r))
 
-    expect(sendTemplateEmail).not.toHaveBeenCalled()
+    expect(sendConsultationConfirmationEmail).not.toHaveBeenCalled()
   })
 })
 
