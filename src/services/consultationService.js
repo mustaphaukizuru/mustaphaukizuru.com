@@ -388,18 +388,11 @@ async function adminListConsultations({ status, from, to, hostUserId, page = 1, 
   return { items, total, page: Number(page), pageSize: take }
 }
 
-/**
- * Generate a Jitsi meeting room URL — FALLBACK when Google Calendar is not
- * configured. Jitsi is the lowest-friction default: no API, no account,
- * the room is created on first visit, and the URL itself is the credential.
- * We salt it with random bytes so a leaked legacy URL can't be guessed
- * from the consultation ID alone.
- */
-function generateJitsiMeetingLink(consultationId) {
-  const slug = crypto.randomBytes(6).toString("hex")
-  const short = String(consultationId || "").slice(-6).toLowerCase().replace(/[^a-z0-9]/g, "x")
-  return `https://meet.jit.si/ukizuru-${short}-${slug}`
-}
+/* generateJitsiMeetingLink — REMOVED in Phase 11 polish.
+ * Bookings now use Google Meet exclusively (see provisionMeetingAndNotify
+ * below). When Google fails or isn't configured, the booking still
+ * succeeds but with meetingLink=null; the admin completes it manually
+ * from /admin/consultations. */
 
 /**
  * Provision a meeting link for a freshly-confirmed consultation and send
@@ -430,62 +423,87 @@ async function provisionMeetingAndNotify(consultation) {
     ? consultation.endsAt
     : new Date(consultation.endsAt || (start.getTime() + (consultation.durationMin || 30) * 60_000))
 
-  let meetingLink     = null
-  let meetingProvider = "manual"
-  let googleEventId   = null
-
-  if (googleCalendar.isConfigured()) {
-    try {
-      const serviceTitle = consultation.service?.title || "Consulting session"
-      const attendeeEmail = consultation.user?.email
-      const attendeeName  = consultation.user?.fullName
-
-      const event = await googleCalendar.createCalendarEvent({
-        summary:        `${serviceTitle} · ${attendeeName || "Client"}`,
-        description:
-          `Consultation booked via mustaphaukizuru.com\n\n` +
-          (consultation.clientNotes ? `Client notes:\n${consultation.clientNotes}\n\n` : "") +
-          `Booking ID: ${id}`,
-        start,
-        end,
-        timezone:       consultation.timezone || "UTC",
-        attendeeEmail:  attendeeEmail || undefined,
-        attendeeName:   attendeeName  || undefined,
-        consultationId: id,
-      })
-
-      meetingLink     = event.meetLink
-      meetingProvider = "google_meet"
-      googleEventId   = event.eventId
-    } catch (err) {
-      // Google failed — log and fall through to Jitsi. Best-effort.
-      // eslint-disable-next-line no-console
-      console.error("[consultation] Google Calendar event failed; falling back to Jitsi:", err?.message)
-    }
+  // Google Meet is the ONLY supported provider for auto-provisioned links.
+  // The previous Jitsi fallback was removed (Phase 11 polish) — bookings
+  // now require Google Calendar to be configured AND reachable. Reasoning:
+  //   · Two parallel meeting platforms confuse the customer-facing UX
+  //     (some get meet.jit.si, some get meet.google.com, different join
+  //     experiences, different reminder emails)
+  //   · A working Google Calendar integration is a hard pre-req for
+  //     production anyway (it powers the Calendar event + native invites
+  //     + reschedule sync) — failing loudly is better than papering over
+  //     a configuration gap with a half-broken Jitsi link
+  //   · Resilience is preserved via clean error: the booking row is
+  //     created with status=pending + no meetingLink, and the admin gets
+  //     a chance to manually set a link from the dashboard before the
+  //     client receives the confirmation email.
+  if (!googleCalendar.isConfigured()) {
+    // eslint-disable-next-line no-console
+    console.error(
+      `[consultation ${id}] Google Calendar not configured — booking left without a meeting link. ` +
+      `Admin must paste one manually via /admin/consultations.`
+    )
+    // Mark the row as pending-link so the admin dashboard surfaces it
+    // for manual attention. Don't throw — the booking should still
+    // succeed; the link issue is a soft-defect, not a fatal one.
+    return await prisma.consultation.update({
+      where: { id },
+      data:  { meetingLink: null, meetingProvider: "manual", googleEventId: null },
+      include: PUBLIC_INCLUDE,
+    })
   }
 
-  if (!meetingLink) {
-    meetingLink     = generateJitsiMeetingLink(id)
-    meetingProvider = "manual"
-    googleEventId   = null
+  try {
+    const serviceTitle  = consultation.service?.title || "Consulting session"
+    const attendeeEmail = consultation.user?.email
+    const attendeeName  = consultation.user?.fullName
+
+    const event = await googleCalendar.createCalendarEvent({
+      summary:        `${serviceTitle} · ${attendeeName || "Client"}`,
+      description:
+        `Consultation booked via mustaphaukizuru.com\n\n` +
+        (consultation.clientNotes ? `Client notes:\n${consultation.clientNotes}\n\n` : "") +
+        `Booking ID: ${id}`,
+      start,
+      end,
+      timezone:       consultation.timezone || "UTC",
+      attendeeEmail:  attendeeEmail || undefined,
+      attendeeName:   attendeeName  || undefined,
+      consultationId: id,
+    })
+
+    const updated = await prisma.consultation.update({
+      where: { id },
+      data: {
+        meetingLink:     event.meetLink,
+        meetingProvider: "google_meet",
+        googleEventId:   event.eventId,
+      },
+      include: PUBLIC_INCLUDE,
+    })
+
+    // Emails intentionally NOT sent from here — the controller fires
+    // utils/mailer.sendConsultationConfirmationEmail() after we return.
+    // The Google Calendar API's `sendUpdates: "all"` (inside
+    // createCalendarEvent) also dispatches Google's native invite —
+    // separate channel, intentional.
+    return updated
+  } catch (err) {
+    // Google was configured but the API call failed (401 refresh-token
+    // revoked, 403 scope missing, 500 from Google, etc.). Same approach
+    // as the "not configured" branch: don't fail the booking; leave the
+    // link blank for admin attention.
+    // eslint-disable-next-line no-console
+    console.error(
+      `[consultation ${id}] Google Calendar event creation failed: ${err?.message}. ` +
+      `Booking saved without a meeting link; admin must paste one manually.`
+    )
+    return await prisma.consultation.update({
+      where: { id },
+      data:  { meetingLink: null, meetingProvider: "manual", googleEventId: null },
+      include: PUBLIC_INCLUDE,
+    })
   }
-
-  const updated = await prisma.consultation.update({
-    where: { id },
-    data:  { meetingLink, meetingProvider, googleEventId },
-    include: PUBLIC_INCLUDE,
-  })
-
-  // Email is intentionally NOT sent from here — the consultation controller
-  // calls utils/mailer.sendConsultationConfirmationEmail() after this
-  // function returns, which is the canonical confirmation-email path
-  // (full ICS attachment, locale-correct copy). Calling our template-
-  // based send here would produce a duplicate email; keep the
-  // controller-level send as the single source of truth.
-  // The Google Calendar API's `sendUpdates: "all"` also dispatches Google's
-  // native invite to the attendee — that's expected, separate channel.
-
-  return updated
 }
 
 /**
@@ -643,18 +661,17 @@ async function adminUpdateConsultation(id, patch, ctx = {}) {
     throw Object.assign(new Error("Consultation not found"), { code: "NOT_FOUND" })
   }
 
-  // Auto-generate a Jitsi room when the admin confirms a booking without
-  // supplying a link. Manual override wins — if patch.meetingLink is set
-  // (including to ""), we respect it. The MeetingProvider enum doesn't
-  // currently have a "jitsi" value, so we tag it as "manual" — the URL
-  // host (meet.jit.si) is self-describing in the email + dashboard.
-  const willConfirmNow = patch.status === "confirmed" && before.status !== "confirmed"
-  if (willConfirmNow && patch.meetingLink === undefined && !before.meetingLink) {
-    allowed.meetingLink = generateJitsiMeetingLink(id)
-    if (!allowed.meetingProvider && !before.meetingProvider) {
-      allowed.meetingProvider = "manual"
-    }
-  }
+  // When the admin confirms a previously-pending booking WITHOUT supplying
+  // their own meeting link, the post-transaction path below will run the
+  // Google Meet provisioner (same flow as the public auto-confirm path).
+  // The previous implementation auto-generated a Jitsi link inside the
+  // transaction; that was removed (Phase 11 polish) so the admin path now
+  // produces the same Google Meet experience as the customer path.
+  //
+  // Manual override still wins — if patch.meetingLink is explicitly set
+  // (including to ""), we respect it and skip the Google provisioner.
+  const willConfirmNow      = patch.status === "confirmed" && before.status !== "confirmed"
+  const willAutoProvision   = willConfirmNow && patch.meetingLink === undefined && !before.meetingLink
 
   // Atomic — update row + write audit log together so we never have one
   // without the other. The email send is fire-and-forget outside the
@@ -684,8 +701,17 @@ async function adminUpdateConsultation(id, patch, ctx = {}) {
     return row
   })
 
+  // Auto-provision a Google Calendar event + Meet link AFTER the DB
+  // transaction commits (the API call is async, can't sit inside Prisma
+  // tx). Same provisioner the public booking path uses, so admin-confirmed
+  // and customer-confirmed bookings end up looking identical.
+  let finalRow = updated
+  if (willAutoProvision) {
+    finalRow = await provisionMeetingAndNotify(updated)
+  }
+
   if (willConfirmNow) {
-    sendConsultationConfirmedEmail(updated, ctx).catch((e) => {
+    sendConsultationConfirmedEmail(finalRow, ctx).catch((e) => {
       // Don't blow up the admin action on email failure — the row is
       // already updated, the audit log already recorded. Best-effort.
       // eslint-disable-next-line no-console
@@ -693,7 +719,7 @@ async function adminUpdateConsultation(id, patch, ctx = {}) {
     })
   }
 
-  return updated
+  return finalRow
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
