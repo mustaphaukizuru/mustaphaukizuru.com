@@ -275,15 +275,14 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
     })
   }
 
-  // Branded reschedule email — fires regardless of whether Google sent
-  // its own native reschedule notice. The email shows the previous AND
-  // new times so the client doesn't have to guess what changed; for
-  // Google-Meet bookings the same Meet link survives, for Jitsi-
-  // fallback bookings the existing link is repeated. Fire-and-forget.
-  sendConsultationRescheduledEmail(newRow, existing).catch((e) => {
-    // eslint-disable-next-line no-console
-    console.error("[consultation] reschedule email failed:", e?.message)
-  })
+  // Reschedule email is intentionally NOT sent from here — the controller
+  // (consultationController.reschedule) calls
+  // utils/mailer.sendConsultationRescheduledEmail() after this function
+  // returns, which is the canonical path (full ICS update). Calling our
+  // template-based send here would produce a duplicate email.
+  // Google Calendar's `sendUpdates: "all"` on the patch above ALSO sends
+  // a native "this event has been rescheduled" notice — separate channel,
+  // works in parallel.
 
   return newRow
 }
@@ -477,13 +476,14 @@ async function provisionMeetingAndNotify(consultation) {
     include: PUBLIC_INCLUDE,
   })
 
-  // Email is fire-and-forget — caller already returned successfully if it
-  // throws. The template fills {{meetingLink}} so the client clicks
-  // through whether it's a Meet or Jitsi URL.
-  sendConsultationConfirmedEmail(updated).catch((e) => {
-    // eslint-disable-next-line no-console
-    console.error("[consultation] confirmation email failed:", e?.message)
-  })
+  // Email is intentionally NOT sent from here — the consultation controller
+  // calls utils/mailer.sendConsultationConfirmationEmail() after this
+  // function returns, which is the canonical confirmation-email path
+  // (full ICS attachment, locale-correct copy). Calling our template-
+  // based send here would produce a duplicate email; keep the
+  // controller-level send as the single source of truth.
+  // The Google Calendar API's `sendUpdates: "all"` also dispatches Google's
+  // native invite to the attendee — that's expected, separate channel.
 
   return updated
 }
