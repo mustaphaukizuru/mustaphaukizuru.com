@@ -597,6 +597,50 @@ const TEMPLATES = [
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),
   },
+
+  // 11 · Consultation rescheduled — fires when admin or client moves a booking
+  // Variables: customerName · scheduledAt (new) · previousScheduledAt (old) ·
+  //            durationMin · timezone · serviceTitle · hostName ·
+  //            meetingLink · consultationUrl
+  // The meetingLink is the SAME across reschedules when the booking is on
+  // Google Meet (same Calendar event → same URL). For Jitsi-fallback
+  // bookings the link is regenerated; either way the variable is filled.
+  {
+    key: "consultation.rescheduled",
+    subject: "Your consultation has moved — now {{scheduledAt}}",
+    html: chrome({
+      preheader: "Same meeting, new time. Join link inside.",
+      eyebrow:   "Consultation rescheduled",
+      bodyHtml:
+        heading(`New time: {{scheduledAt}}, {{customerName}}.`) +
+        paragraph(`Your <strong>{{serviceTitle}}</strong> ({{durationMin}} min) with {{hostName}} has been moved. The same join link works — save it now so you have it ready.`) +
+        calloutCard(
+          `<strong>Previous time:</strong> <span style="text-decoration:line-through;opacity:0.6;">{{previousScheduledAt}}</span><br>` +
+          `<strong>New time:</strong> {{scheduledAt}} ({{timezone}})<br><br>` +
+          `<strong>Join link:</strong><br><a href="{{meetingLink}}" style="color:${BRAND_VIOLET};">{{meetingLink}}</a>`
+        ) +
+        button("{{meetingLink}}", "Join the meeting") +
+        paragraph(`If the new time doesn't work, you can reschedule or cancel from your dashboard:`) +
+        button("{{consultationUrl}}", "Manage consultation"),
+    }),
+    text: [
+      "Your consultation has moved — now {{scheduledAt}}",
+      "",
+      "Hi {{customerName}}, your {{serviceTitle}} ({{durationMin}} min) with {{hostName}}",
+      "has been rescheduled.",
+      "",
+      "Previous time: {{previousScheduledAt}}",
+      "New time:      {{scheduledAt}} ({{timezone}})",
+      "",
+      "Join link (unchanged):",
+      "  {{meetingLink}}",
+      "",
+      "Manage your booking:",
+      "  {{consultationUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
 ]
 
 
@@ -1029,6 +1073,44 @@ const TEMPLATES_ES = [
       "está confirmada el {{scheduledAt}} ({{timezone}}).",
       "",
       "Link para unirte:",
+      "  {{meetingLink}}",
+      "",
+      "Administrar tu reserva:",
+      "  {{consultationUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // consultation.rescheduled
+  {
+    key: "consultation.rescheduled",
+    subject: "Tu consulta se reagendó — ahora {{scheduledAt}}",
+    html: chrome({
+      preheader: "Misma reunión, nuevo horario. Link adentro.",
+      eyebrow:   "Consulta reagendada",
+      bodyHtml:
+        heading(`Nuevo horario: {{scheduledAt}}, {{customerName}}.`) +
+        paragraph(`Tu <strong>{{serviceTitle}}</strong> ({{durationMin}} min) con {{hostName}} se movió. El mismo link sirve — guárdalo para tenerlo a la mano.`) +
+        calloutCard(
+          `<strong>Horario anterior:</strong> <span style="text-decoration:line-through;opacity:0.6;">{{previousScheduledAt}}</span><br>` +
+          `<strong>Nuevo horario:</strong> {{scheduledAt}} ({{timezone}})<br><br>` +
+          `<strong>Link para unirte:</strong><br><a href="{{meetingLink}}" style="color:${BRAND_VIOLET};">{{meetingLink}}</a>`
+        ) +
+        button("{{meetingLink}}", "Unirme a la reunión") +
+        paragraph(`Si el nuevo horario no te funciona, puedes reagendar o cancelar desde tu panel:`) +
+        button("{{consultationUrl}}", "Administrar consulta"),
+    }),
+    text: [
+      "Tu consulta se reagendó — ahora {{scheduledAt}}",
+      "",
+      "Hola {{customerName}}, tu {{serviceTitle}} ({{durationMin}} min) con {{hostName}}",
+      "se reagendó.",
+      "",
+      "Horario anterior: {{previousScheduledAt}}",
+      "Nuevo horario:    {{scheduledAt}} ({{timezone}})",
+      "",
+      "Link para unirte (no cambió):",
       "  {{meetingLink}}",
       "",
       "Administrar tu reserva:",

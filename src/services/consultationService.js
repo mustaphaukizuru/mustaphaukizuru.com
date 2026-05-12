@@ -23,6 +23,7 @@ const {
   getAvailableSlots,
   ACTIVE_BOOKING_STATUSES,
 } = require("./availabilityService")
+const googleCalendar = require("../lib/googleCalendar")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -131,7 +132,7 @@ async function bookConsultation({
   }
 
   try {
-    const consultation = await prisma.consultation.create({
+    let consultation = await prisma.consultation.create({
       data: {
         userId,
         assignedAdminId:   hostId,
@@ -148,6 +149,20 @@ async function bookConsultation({
       },
       include: PUBLIC_INCLUDE,
     })
+
+    // When the booking is auto-confirmed (client picked from published
+    // availability → no admin review needed), wire the same side-effects
+    // the manual admin-confirm path runs:
+    //   1. Create a Google Calendar event with a Meet link (or fall back
+    //      to a Jitsi room if Google isn't configured).
+    //   2. Persist the meeting link + provider + event id back onto the row.
+    //   3. Fire the confirmation email so the client gets the join link
+    //      immediately, plus the Calendar invite Google itself sends.
+    // All of this is best-effort — if it fails the consultation still
+    // exists in the DB and the admin can recover from /admin/consultations.
+    if (autoConfirm) {
+      consultation = await provisionMeetingAndNotify(consultation)
+    }
 
     return consultation
   } catch (err) {
@@ -201,7 +216,11 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
 
   // Atomic: cancel old, create new in one transaction. The new row inherits the
   // host, service, user — only the time changes. Uniqueness ensures no overlap.
-  return prisma.$transaction(async (tx) => {
+  // The Google Calendar event (if any) is updated in-place AFTER the
+  // transaction commits — we don't want a Calendar API timeout to roll
+  // back the DB write. The new row inherits the SAME googleEventId so the
+  // single Calendar event tracks the booking across reschedules.
+  const newRow = await prisma.$transaction(async (tx) => {
     await tx.consultation.update({
       where: { id: existing.id },
       data: {
@@ -228,6 +247,7 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
           rescheduledFromId: existing.id,
           meetingProvider:   existing.meetingProvider,
           meetingLink:       existing.meetingLink,
+          googleEventId:     existing.googleEventId,
         },
         include: PUBLIC_INCLUDE,
       })
@@ -240,6 +260,31 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
       throw err
     }
   })
+
+  // Calendar event update is best-effort and outside the transaction.
+  // Failure here is logged but doesn't roll back the DB reschedule —
+  // the admin can re-sync later via the admin dashboard if needed.
+  if (existing.googleEventId && googleCalendar.isConfigured()) {
+    googleCalendar.updateCalendarEvent(existing.googleEventId, {
+      start: newStart,
+      end:   newEnd,
+      timezone: tz,
+    }).catch((e) => {
+      // eslint-disable-next-line no-console
+      console.error("[consultation] Google Calendar reschedule failed:", e?.message)
+    })
+  }
+
+  // Reschedule email is intentionally NOT sent from here — the controller
+  // (consultationController.reschedule) calls
+  // utils/mailer.sendConsultationRescheduledEmail() after this function
+  // returns, which is the canonical path (full ICS update). Calling our
+  // template-based send here would produce a duplicate email.
+  // Google Calendar's `sendUpdates: "all"` on the patch above ALSO sends
+  // a native "this event has been rescheduled" notice — separate channel,
+  // works in parallel.
+
+  return newRow
 }
 
 /**
@@ -257,7 +302,7 @@ async function cancelConsultation({ id, userId, isAdmin = false, reason }) {
   }
   if (!isAdmin) assertWithinPolicyWindow(existing, { hoursBefore: 12 })
 
-  return prisma.consultation.update({
+  const cancelled = await prisma.consultation.update({
     where: { id },
     data: {
       status:             "cancelled",
@@ -266,6 +311,19 @@ async function cancelConsultation({ id, userId, isAdmin = false, reason }) {
     },
     include: PUBLIC_INCLUDE,
   })
+
+  // Best-effort Calendar event delete. Google emails the attendee a
+  // cancellation automatically when `sendUpdates: "all"` is set inside
+  // googleCalendar.cancelCalendarEvent. Failure here is logged but
+  // doesn't roll back the DB cancel — the row is already cancelled.
+  if (existing.googleEventId && googleCalendar.isConfigured()) {
+    googleCalendar.cancelCalendarEvent(existing.googleEventId).catch((e) => {
+      // eslint-disable-next-line no-console
+      console.error("[consultation] Google Calendar cancel failed:", e?.message)
+    })
+  }
+
+  return cancelled
 }
 
 /**
@@ -331,18 +389,103 @@ async function adminListConsultations({ status, from, to, hostUserId, page = 1, 
 }
 
 /**
- * Generate a Jitsi meeting room URL — used when the admin confirms a
- * consultation without supplying a Google Meet / Zoom link of their own.
- *
- * Jitsi is the lowest-friction default: no API, no account, the room is
- * created on first visit, and the URL itself is the credential. We salt
- * it with random bytes so a leaked legacy URL can't be guessed from the
- * consultation ID alone.
+ * Generate a Jitsi meeting room URL — FALLBACK when Google Calendar is not
+ * configured. Jitsi is the lowest-friction default: no API, no account,
+ * the room is created on first visit, and the URL itself is the credential.
+ * We salt it with random bytes so a leaked legacy URL can't be guessed
+ * from the consultation ID alone.
  */
 function generateJitsiMeetingLink(consultationId) {
   const slug = crypto.randomBytes(6).toString("hex")
   const short = String(consultationId || "").slice(-6).toLowerCase().replace(/[^a-z0-9]/g, "x")
   return `https://meet.jit.si/ukizuru-${short}-${slug}`
+}
+
+/**
+ * Provision a meeting link for a freshly-confirmed consultation and send
+ * the confirmation email. The two-step shape is on purpose: a Calendar
+ * API failure must NOT block the email, and a transient API outage must
+ * NOT prevent the booking from being recorded.
+ *
+ * Order of operations:
+ *   1. If Google Calendar is configured, try to create an event + Meet
+ *      link via the Calendar API. On success, persist meetingProvider =
+ *      google_meet, meetingLink = <Meet URL>, googleEventId = <event id>.
+ *   2. If Google fails (or isn't configured), fall back to a Jitsi room
+ *      with meetingProvider = manual.
+ *   3. Regardless of which provider was used, fire the existing
+ *      consultation.confirmed email — the template substitutes the link
+ *      so the client always gets something they can click on.
+ *
+ * Returns the (refetched) consultation row with the link populated.
+ */
+async function provisionMeetingAndNotify(consultation) {
+  // The DB row passed in has the user/service relations expanded via
+  // PUBLIC_INCLUDE — read those for the Calendar event metadata.
+  const id    = consultation.id
+  const start = consultation.scheduledAt instanceof Date
+    ? consultation.scheduledAt
+    : new Date(consultation.scheduledAt)
+  const end   = consultation.endsAt instanceof Date
+    ? consultation.endsAt
+    : new Date(consultation.endsAt || (start.getTime() + (consultation.durationMin || 30) * 60_000))
+
+  let meetingLink     = null
+  let meetingProvider = "manual"
+  let googleEventId   = null
+
+  if (googleCalendar.isConfigured()) {
+    try {
+      const serviceTitle = consultation.service?.title || "Consulting session"
+      const attendeeEmail = consultation.user?.email
+      const attendeeName  = consultation.user?.fullName
+
+      const event = await googleCalendar.createCalendarEvent({
+        summary:        `${serviceTitle} · ${attendeeName || "Client"}`,
+        description:
+          `Consultation booked via mustaphaukizuru.com\n\n` +
+          (consultation.clientNotes ? `Client notes:\n${consultation.clientNotes}\n\n` : "") +
+          `Booking ID: ${id}`,
+        start,
+        end,
+        timezone:       consultation.timezone || "UTC",
+        attendeeEmail:  attendeeEmail || undefined,
+        attendeeName:   attendeeName  || undefined,
+        consultationId: id,
+      })
+
+      meetingLink     = event.meetLink
+      meetingProvider = "google_meet"
+      googleEventId   = event.eventId
+    } catch (err) {
+      // Google failed — log and fall through to Jitsi. Best-effort.
+      // eslint-disable-next-line no-console
+      console.error("[consultation] Google Calendar event failed; falling back to Jitsi:", err?.message)
+    }
+  }
+
+  if (!meetingLink) {
+    meetingLink     = generateJitsiMeetingLink(id)
+    meetingProvider = "manual"
+    googleEventId   = null
+  }
+
+  const updated = await prisma.consultation.update({
+    where: { id },
+    data:  { meetingLink, meetingProvider, googleEventId },
+    include: PUBLIC_INCLUDE,
+  })
+
+  // Email is intentionally NOT sent from here — the consultation controller
+  // calls utils/mailer.sendConsultationConfirmationEmail() after this
+  // function returns, which is the canonical confirmation-email path
+  // (full ICS attachment, locale-correct copy). Calling our template-
+  // based send here would produce a duplicate email; keep the
+  // controller-level send as the single source of truth.
+  // The Google Calendar API's `sendUpdates: "all"` also dispatches Google's
+  // native invite to the attendee — that's expected, separate channel.
+
+  return updated
 }
 
 /**
@@ -357,6 +500,27 @@ function pickAuditFields(row) {
     meetingProvider: row.meetingProvider, meetingLink: row.meetingLink,
     assignedAdminId: row.assignedAdminId, confirmedAt: row.confirmedAt,
     cancelledAt: row.cancelledAt, completedAt: row.completedAt,
+  }
+}
+
+/**
+ * Format a Date as a human-readable string in the row's timezone, with
+ * locale-appropriate weekday + month names. Shared by both the
+ * confirmation and reschedule email helpers so the same "Wednesday,
+ * October 8, 2025 at 3:00 PM CST" format reaches users in both flows.
+ */
+function formatScheduledHuman(date, locale, timezone) {
+  if (!date) return ""
+  const d = date instanceof Date ? date : new Date(date)
+  if (Number.isNaN(d.getTime())) return ""
+  try {
+    return d.toLocaleString(locale === "es" ? "es-MX" : "en-US", {
+      weekday: "long", year: "numeric", month: "long", day: "numeric",
+      hour: "numeric", minute: "2-digit", timeZoneName: "short",
+      timeZone: timezone || "UTC",
+    })
+  } catch {
+    return d.toISOString()
   }
 }
 
@@ -378,12 +542,6 @@ async function sendConsultationConfirmedEmail(row, opts = {}) {
   } catch { /* fall through to "en" */ }
 
   const frontend = (process.env.FRONTEND_URL || "").replace(/\/$/, "")
-  const scheduledAt = row.scheduledAt instanceof Date ? row.scheduledAt : new Date(row.scheduledAt)
-  const scheduledHuman = scheduledAt.toLocaleString(locale === "es" ? "es-MX" : "en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-    hour: "numeric", minute: "2-digit", timeZoneName: "short",
-    timeZone: row.timezone || "UTC",
-  })
 
   await sendTemplateEmail({
     locale,
@@ -392,7 +550,7 @@ async function sendConsultationConfirmedEmail(row, opts = {}) {
     userId:      row.userId,
     variables: {
       customerName:    row.user?.fullName?.split(" ")[0] || "there",
-      scheduledAt:     scheduledHuman,
+      scheduledAt:     formatScheduledHuman(row.scheduledAt, locale, row.timezone),
       durationMin:     row.durationMin || 30,
       timezone:        row.timezone || "UTC",
       meetingLink:     row.meetingLink || "",
@@ -400,6 +558,62 @@ async function sendConsultationConfirmedEmail(row, opts = {}) {
       serviceTitle:    row.service?.title || "Consulting session",
       hostName:        row.assignedAdmin?.fullName || "Mustapha Ukizuru",
       consultationUrl: `${frontend}/dashboard/consultations`,
+    },
+  })
+}
+
+/**
+ * Fire-and-forget reschedule email — fires when an existing booking is
+ * moved to a new time (admin or client initiated). Shows both the old
+ * and new times so the client sees the change at a glance, and re-sends
+ * the meeting link (unchanged for Google Meet bookings since the
+ * Calendar event ID survives the reschedule; regenerated for Jitsi-
+ * fallback bookings).
+ *
+ * For Google-Meet-backed bookings Google ALSO sends its own native
+ * "this event has been rescheduled" email automatically via the
+ * Calendar API's sendUpdates: "all". This branded email is on top of
+ * that — same information, your visual language. For Jitsi-fallback
+ * bookings this is the only reschedule notification the client gets.
+ */
+async function sendConsultationRescheduledEmail(newRow, previousRow, opts = {}) {
+  const { sendTemplateEmail } = require("./emailService")
+  const { resolveUserLocale } = require("../utils/resolveUserLocale")
+
+  const to = newRow.user?.email
+  if (!to) return
+
+  let locale = "en"
+  try {
+    locale = opts.locale || resolveUserLocale({ user: { id: newRow.userId } })
+  } catch { /* fall through to "en" */ }
+
+  const frontend = (process.env.FRONTEND_URL || "").replace(/\/$/, "")
+
+  await sendTemplateEmail({
+    locale,
+    to,
+    templateKey: "consultation.rescheduled",
+    userId:      newRow.userId,
+    variables: {
+      customerName:        newRow.user?.fullName?.split(" ")[0] || "there",
+      scheduledAt:         formatScheduledHuman(newRow.scheduledAt, locale, newRow.timezone),
+      // The previous row was created against the OLD timezone, so format
+      // its scheduledAt against that. (In practice timezone rarely
+      // changes on reschedule, but we pass through the right one for
+      // correctness if it ever does.)
+      previousScheduledAt: formatScheduledHuman(
+        previousRow?.scheduledAt,
+        locale,
+        previousRow?.timezone || newRow.timezone,
+      ),
+      durationMin:         newRow.durationMin || 30,
+      timezone:            newRow.timezone || "UTC",
+      meetingLink:         newRow.meetingLink || "",
+      meetingProvider:     newRow.meetingProvider || "manual",
+      serviceTitle:        newRow.service?.title || "Consulting session",
+      hostName:            newRow.assignedAdmin?.fullName || "Mustapha Ukizuru",
+      consultationUrl:     `${frontend}/dashboard/consultations`,
     },
   })
 }
