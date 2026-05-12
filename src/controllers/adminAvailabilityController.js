@@ -16,7 +16,9 @@ const {
 const {
   adminListConsultations,
   adminUpdateConsultation,
+  adminRegenerateMeetingLink,
 } = require("../services/consultationService")
+const googleCalendar = require("../lib/googleCalendar")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -100,11 +102,59 @@ const updateConsultation = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, message: "Consultation updated", data: updated })
 })
 
+/**
+ * POST /api/v1/admin/consultations/:id/regenerate-link
+ *
+ * Operator escape-hatch for consultations whose meeting link failed to
+ * provision at booking time (typically because Google was misconfigured
+ * then, and is fixed now). Re-runs the Google Calendar + Meet provisioner
+ * and returns the updated row.
+ *
+ * Includes a pre-flight Google-config diagnostic so the admin gets a clear
+ * "your refresh token looks like a URL" message INSTEAD of a generic
+ * "provider unconfigured" if they haven't actually fixed the underlying
+ * problem. Returning 409 + diagnostic short-circuits the retry so we don't
+ * burn another API call to confirm what we already know.
+ */
+const regenerateMeetingLink = asyncHandler(async (req, res) => {
+  if (!googleCalendar.isConfigured()) {
+    const diag = typeof googleCalendar.diagnoseConfig === "function"
+      ? googleCalendar.diagnoseConfig()
+      : "config incomplete"
+    return res.status(409).json({
+      success: false,
+      code:    "GCAL_NOT_CONFIGURED",
+      message: `Google Calendar is not configured: ${diag}`,
+    })
+  }
+  try {
+    const updated = await adminRegenerateMeetingLink({
+      id:          req.params.id,
+      adminUserId: req.user?.id || null,
+      ipAddress:   req.ip       || null,
+    })
+    const okWithLink = Boolean(updated?.meetingLink)
+    return res.status(okWithLink ? 200 : 502).json({
+      success: okWithLink,
+      message: okWithLink
+        ? "Meeting link regenerated"
+        : "Provisioning ran but did not produce a link — check server logs",
+      data: updated,
+    })
+  } catch (err) {
+    return res.status(err.statusCode || 500).json({
+      success: false,
+      code:    err.code || "REGENERATE_FAILED",
+      message: err.message || "Failed to regenerate meeting link",
+    })
+  }
+})
+
 module.exports = {
   // rules
   getRules, postRule, patchRule, removeRule,
   // exceptions
   getExceptions, postException, removeException,
   // consultations
-  listConsultations, updateConsultation,
+  listConsultations, updateConsultation, regenerateMeetingLink,
 }

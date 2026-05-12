@@ -17,6 +17,7 @@
 const crypto  = require("crypto")
 const { addMinutes, isBefore, differenceInHours } = require("date-fns")
 const prisma  = require("../lib/prisma")
+const logger  = require("../utils/logger")
 const {
   resolveHostUserId,
   loadServicePolicy,
@@ -438,10 +439,13 @@ async function provisionMeetingAndNotify(consultation) {
   //     a chance to manually set a link from the dashboard before the
   //     client receives the confirmation email.
   if (!googleCalendar.isConfigured()) {
-    // eslint-disable-next-line no-console
-    console.error(
+    const diag = typeof googleCalendar.diagnoseConfig === "function"
+      ? googleCalendar.diagnoseConfig()
+      : "config incomplete"
+    logger.error(
       `[consultation ${id}] Google Calendar not configured — booking left without a meeting link. ` +
-      `Admin must paste one manually via /admin/consultations.`
+      `Diagnosis: ${diag}. Admin must paste a link manually via /admin/consultations, or ` +
+      `POST /api/v1/admin/consultations/${id}/regenerate-link after fixing the config.`
     )
     // Mark the row as pending-link so the admin dashboard surfaces it
     // for manual attention. Don't throw — the booking should still
@@ -493,11 +497,16 @@ async function provisionMeetingAndNotify(consultation) {
     // revoked, 403 scope missing, 500 from Google, etc.). Same approach
     // as the "not configured" branch: don't fail the booking; leave the
     // link blank for admin attention.
-    // eslint-disable-next-line no-console
-    console.error(
-      `[consultation ${id}] Google Calendar event creation failed: ${err?.message}. ` +
-      `Booking saved without a meeting link; admin must paste one manually.`
-    )
+    logger.error(`[consultation ${id}] Google Calendar event creation failed`, {
+      message:      err?.message,
+      googleStatus: err?.googleStatus || null,
+      googleError:  err?.googleError  || null,
+      // Common cause-codes worth surfacing: invalid_grant (refresh token
+      // bad / revoked), insufficient_scope (consent screen missing
+      // calendar.events), accessNotConfigured (Calendar API disabled in
+      // the Cloud project).
+      causeCode:    err?.cause?.code || null,
+    })
     return await prisma.consultation.update({
       where: { id },
       data:  { meetingLink: null, meetingProvider: "manual", googleEventId: null },
@@ -624,6 +633,72 @@ async function adminUpdateConsultation(id, patch, ctx = {}) {
 // EXPORTS
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * adminRegenerateMeetingLink — operator-triggered re-run of the Google Meet
+ * provisioner for a single consultation. Use when the initial booking
+ * confirmation failed to attach a link (typically because Google credentials
+ * were misconfigured at the time — see /admin/consultations for rows with
+ * meetingProvider="manual" + meetingLink=null).
+ *
+ * Guards:
+ *   - NOT_FOUND if the consultation doesn't exist
+ *   - BAD_STATE if the row is in a terminal state (cancelled / completed /
+ *     no_show / rescheduled) — no point provisioning a link for a meeting
+ *     that already happened or never will
+ *   - Skips silently and returns the existing row if a meeting link is
+ *     already populated (idempotent — re-runs are safe)
+ *
+ * Audit:
+ *   When ctx.adminUserId is supplied, writes an AdminAuditLog row capturing
+ *   the provider/link transition.
+ */
+async function adminRegenerateMeetingLink({ id, adminUserId = null, ipAddress = null } = {}) {
+  if (!id) {
+    throw Object.assign(new Error("id required"), { statusCode: 400, code: "BAD_REQUEST" })
+  }
+
+  const before = await prisma.consultation.findUnique({
+    where:  { id },
+    include: PUBLIC_INCLUDE,
+  })
+  if (!before) {
+    throw Object.assign(new Error("Consultation not found"), { statusCode: 404, code: "NOT_FOUND" })
+  }
+
+  const terminalStates = ["cancelled", "completed", "no_show", "rescheduled"]
+  if (terminalStates.includes(before.status)) {
+    throw Object.assign(
+      new Error(`Cannot regenerate link for a ${before.status} consultation`),
+      { statusCode: 400, code: "BAD_STATE" },
+    )
+  }
+
+  // Idempotent: a row that already has a link is left alone. The admin can
+  // explicitly clear meetingLink first if they want a fresh one (rare —
+  // typical use is re-running provisioning after fixing Google env vars).
+  if (before.meetingLink) {
+    return before
+  }
+
+  const finalRow = await provisionMeetingAndNotify(before)
+
+  if (adminUserId) {
+    await prisma.adminAuditLog.create({
+      data: {
+        adminUserId,
+        action:     "consultation.meeting_link.regenerated",
+        targetType: "Consultation",
+        targetId:   id,
+        beforeJson: pickAuditFields(before),
+        afterJson:  pickAuditFields(finalRow),
+        ipAddress,
+      },
+    }).catch((e) => logger.warn(`[consultation ${id}] audit log failed: ${e.message}`))
+  }
+
+  return finalRow
+}
+
 module.exports = {
   bookConsultation,
   rescheduleConsultation,
@@ -633,4 +708,5 @@ module.exports = {
   getConsultationByIdForUser,
   adminListConsultations,
   adminUpdateConsultation,
+  adminRegenerateMeetingLink,
 }

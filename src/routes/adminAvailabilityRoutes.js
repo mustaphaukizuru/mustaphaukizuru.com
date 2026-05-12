@@ -7,7 +7,7 @@ const { protect, adminOnly } = require("../middleware/authMiddleware")
 const {
   getRules, postRule, patchRule, removeRule,
   getExceptions, postException, removeException,
-  listConsultations, updateConsultation,
+  listConsultations, updateConsultation, regenerateMeetingLink,
 } = require("../controllers/adminAvailabilityController")
 
 const router = express.Router()
@@ -29,5 +29,6 @@ router.delete("/availability/exceptions/:id", removeException)
 // Consultation management
 router.get  ("/consultations",      listConsultations)
 router.patch("/consultations/:id",  updateConsultation)
+router.post ("/consultations/:id/regenerate-link", regenerateMeetingLink)
 
 module.exports = router

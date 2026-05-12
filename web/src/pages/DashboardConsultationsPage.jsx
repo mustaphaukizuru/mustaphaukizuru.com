@@ -393,6 +393,18 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
             >
               <ExternalLink className="h-3.5 w-3.5" /> {t("consultations.row.viewLink")}
             </a>
+          ) : isActive ? (
+            // Active booking but no meeting link yet — almost always means the
+            // Google Meet provisioner couldn't reach Google at booking time
+            // (mis-configured / revoked refresh token). Show a clear pending
+            // chip so the customer doesn't quietly assume something is broken,
+            // and the admin sees the same indicator on the admin list.
+            <span
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-terracotta/30 bg-terracotta/5 px-3.5 py-2 text-[12px] font-semibold text-terracotta"
+              title={t("consultations.row.linkPendingTitle")}
+            >
+              <Video className="h-3.5 w-3.5" /> {t("consultations.row.linkPending")}
+            </span>
           ) : null}
 
           {canCancelOrReschedule && (

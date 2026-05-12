@@ -51,13 +51,64 @@ function readConfig() {
 }
 
 /**
- * True when every required env var is present. Refresh-token bootstrap is
- * the only required one that takes the operator extra effort; we treat
- * `calendarId` as optional (defaults to "primary").
+ * Validate that the refresh-token env value LOOKS like a real Google refresh
+ * token. The bootstrap script has a classic trap: it prompts the operator
+ * to paste the OAuth callback URL into the terminal (so it can extract the
+ * `?code=…` and exchange it), then prints the refresh token for them to
+ * paste into .env. Mixing those two steps up — pasting the callback URL
+ * into .env instead of the printed token — produces a non-token value that
+ * googleapis rejects with `invalid_grant` on the FIRST API call, after
+ * every booking has already been confirmed.
+ *
+ * Real Google refresh tokens start with `1//` and are typically 75-100+
+ * chars. URLs start with `http`. A short opaque string is unlikely too.
+ * Reject anything obviously not a token and force the operator to fix the
+ * misconfiguration BEFORE the booking flow silently degrades.
+ */
+function looksLikeRefreshToken(value) {
+  if (!value || typeof value !== "string") return false
+  if (/^https?:\/\//i.test(value)) return false           // someone pasted a URL
+  if (value.length < 40)            return false           // too short to be real
+  return true
+}
+
+/**
+ * True when every required env var is present AND the refresh token at
+ * least looks like a token. Refresh-token bootstrap is the only required
+ * piece that takes the operator extra effort; we treat `calendarId` as
+ * optional (defaults to "primary").
+ *
+ * Returning false here short-circuits the booking provisioner to the
+ * "manual" branch (meetingLink=null, admin attention needed) rather than
+ * letting it fail loudly at the Calendar API call. The boot pre-flight in
+ * src/config/env.js surfaces the same gap at startup time.
  */
 function isConfigured() {
   const cfg = readConfig()
-  return Boolean(cfg.clientId && cfg.clientSecret && cfg.refreshToken && cfg.hostEmail)
+  if (!cfg.clientId || !cfg.clientSecret || !cfg.hostEmail) return false
+  if (!looksLikeRefreshToken(cfg.refreshToken)) return false
+  return true
+}
+
+/**
+ * Why isConfigured() is false. Useful in error logs so operators don't have
+ * to spelunk through individual env vars. Returns a short human string.
+ */
+function diagnoseConfig() {
+  const cfg = readConfig()
+  const missing = []
+  if (!cfg.clientId)     missing.push("GOOGLE_OAUTH_CLIENT_ID")
+  if (!cfg.clientSecret) missing.push("GOOGLE_OAUTH_CLIENT_SECRET")
+  if (!cfg.hostEmail)    missing.push("GOOGLE_CALENDAR_HOST_EMAIL")
+  if (!cfg.refreshToken) missing.push("GOOGLE_OAUTH_REFRESH_TOKEN")
+  if (missing.length > 0) return `missing env: ${missing.join(", ")}`
+  if (/^https?:\/\//i.test(cfg.refreshToken)) {
+    return "GOOGLE_OAUTH_REFRESH_TOKEN looks like a URL — did you paste the OAuth callback URL by mistake? Re-run scripts/google-oauth-bootstrap.js and paste the PRINTED token (starts with '1//'), not the redirect URL."
+  }
+  if (cfg.refreshToken.length < 40) {
+    return `GOOGLE_OAUTH_REFRESH_TOKEN is only ${cfg.refreshToken.length} chars — real Google refresh tokens are 75+ chars. Re-run scripts/google-oauth-bootstrap.js.`
+  }
+  return "ok"
 }
 
 /**
@@ -173,8 +224,28 @@ async function createCalendarEvent(input) {
     // Wrap with a stable code so consultationService can route to fallback
     // without sniffing googleapis-specific error shapes.
     if (err.code === "GCAL_NO_MEET_LINK") throw err
-    logger.error("[gcal] createCalendarEvent failed", { message: err?.message })
-    throw Object.assign(new Error("Google Calendar create failed"), { code: "GCAL_CREATE_FAILED", cause: err })
+    // Surface the underlying Google error (status code + body message) so
+    // PM2 logs are diagnostic. googleapis wraps the response on err.response;
+    // err.errors carries the structured `[{ message, reason }]` list.
+    const status   = err?.response?.status || err?.code || null
+    const data     = err?.response?.data   || err?.errors || null
+    const summary  = err?.errors?.[0]?.message || err?.message || "unknown"
+    logger.error("[gcal] createCalendarEvent failed", {
+      status,
+      message: summary,
+      // err.response.data on a googleapis error has shape:
+      //   { error: { code, message, errors: [...], status: "PERMISSION_DENIED" | ... } }
+      googleError: data?.error || data || null,
+    })
+    // Surface the same context up the stack so the consultation service can
+    // log it against the consultation id.
+    const wrap = Object.assign(new Error(`Google Calendar create failed: ${summary}`), {
+      code:        "GCAL_CREATE_FAILED",
+      cause:       err,
+      googleStatus: status,
+      googleError:  data?.error || data || null,
+    })
+    throw wrap
   }
 }
 
@@ -260,6 +331,7 @@ function pickMeetLink(event) {
 
 module.exports = {
   isConfigured,
+  diagnoseConfig,
   buildAuthClient,
   createCalendarEvent,
   updateCalendarEvent,

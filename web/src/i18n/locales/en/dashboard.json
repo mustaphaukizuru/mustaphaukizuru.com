@@ -567,7 +567,9 @@
       "joinMeeting": "Join meeting",
       "viewLink": "View link",
       "reschedule": "Reschedule",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "linkPending": "Meeting link pending",
+      "linkPendingTitle": "The host will share a Google Meet link shortly. If your meeting is soon and you still see this, contact support."
     },
     "cancelModal": {
       "eyebrow": "Cancel booking",
@@ -809,40 +811,40 @@
       "today": "Today",
       "todaySubtitle": "Last 24 hours"
     },
-      "filters": {
-        "all": "All",
-        "unread": "Unread",
-        "read": "Read"
-      },
-      "actions": {
-        "markAllRead": "Mark all as read",
-        "refresh": "Refresh"
-      },
-      "empty": {
-        "title": "You're all caught up",
-        "body": "When something needs your attention \u2014 an order update, a new download, a support reply \u2014 it'll show up here.",
-        "browseStore": "Browse the store"
-      },
-      "errors": {
-        "load": "Could not load your notifications."
-      },
-      "row": {
-        "markRead": "Mark as read",
-        "newBadge": "New"
-      }
+    "filters": {
+      "all": "All",
+      "unread": "Unread",
+      "read": "Read"
     },
-    "layout": {
-      "navAria": "Dashboard navigation",
-      "closeMenu": "Close menu",
-      "backToWebsite": "Back to Website",
-      "backWebsiteAria": "Back to website",
-      "skipMain": "Skip to main content",
-      "memberArea": "Member Area",
-      "memberAreaSubtitle": "Your digital product hub",
-      "memberDashboard": "Member Dashboard",
-      "openMenu": "Open menu",
-      "searchDashboard": "Search dashboard",
-      "openSupport": "Open support",
-      "quickNav": "Quick navigation"
+    "actions": {
+      "markAllRead": "Mark all as read",
+      "refresh": "Refresh"
+    },
+    "empty": {
+      "title": "You're all caught up",
+      "body": "When something needs your attention — an order update, a new download, a support reply — it'll show up here.",
+      "browseStore": "Browse the store"
+    },
+    "errors": {
+      "load": "Could not load your notifications."
+    },
+    "row": {
+      "markRead": "Mark as read",
+      "newBadge": "New"
     }
+  },
+  "layout": {
+    "navAria": "Dashboard navigation",
+    "closeMenu": "Close menu",
+    "backToWebsite": "Back to Website",
+    "backWebsiteAria": "Back to website",
+    "skipMain": "Skip to main content",
+    "memberArea": "Member Area",
+    "memberAreaSubtitle": "Your digital product hub",
+    "memberDashboard": "Member Dashboard",
+    "openMenu": "Open menu",
+    "searchDashboard": "Search dashboard",
+    "openSupport": "Open support",
+    "quickNav": "Quick navigation"
+  }
 }
