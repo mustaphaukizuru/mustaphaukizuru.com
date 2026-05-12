@@ -92,5 +92,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
-          path: web/dist
+          # NOTE · Vite is configured (web/vite.config.js · outDir: "../public")
+          # to emit the production bundle into the repo-root `public/` dir
+          # so Express can serve it directly. The pre-fix path `web/dist`
+          # never existed → upload-artifact failed → the entire frontend job
+          # failed → red CI on every PR. Pointing at the actual emit dir.
+          path: public
           retention-days: 7
