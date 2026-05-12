@@ -29,7 +29,7 @@
 
 const { google } = require("googleapis")
 const crypto     = require("crypto")
-const logger     = require("./logger")
+const logger     = require("../utils/logger")
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
 

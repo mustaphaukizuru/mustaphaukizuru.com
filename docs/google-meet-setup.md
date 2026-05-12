@@ -6,6 +6,11 @@ Meet links when clients book a consultation. Total time: **~15 minutes**.
 Host account used by the integration: **hello@mustaphaukizuru.com**
 Calendar: **primary** (the main calendar on the host account)
 
+> **The env-var block lives in `config/google-meet.env.template`** — open
+> it side-by-side with this guide and you'll know exactly which line to
+> paste each value into. It's the single dedicated file for the Google
+> Meet / Calendar configuration; the main `.env.example` just references it.
+
 ---
 
 ## Step 1 · Google Cloud project (5 min)
