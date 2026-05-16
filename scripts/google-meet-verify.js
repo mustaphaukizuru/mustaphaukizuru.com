@@ -78,7 +78,17 @@ async function main() {
     console.log(`${TICK} Module reports as configured`)
   } else {
     console.log(`${CROSS} Module reports as NOT configured`)
-    console.log(c.dim("    → check the env-var values above; one is empty even though required."))
+    // Delegate the "why" to the same diagnoser the runtime uses — keeps
+    // verify, env.js, and the healer in lockstep on the failure reason.
+    // The previous generic message ("one is empty even though required")
+    // was actively misleading when the env vars were ALL present but one
+    // was malformed (e.g. the `4/…` auth code pasted in place of the
+    // `1//…` refresh token).
+    const diag = (typeof googleCalendar.diagnoseConfig === "function")
+      ? googleCalendar.diagnoseConfig()
+      : "diagnoseConfig unavailable"
+    console.log(c.red(`    ${diag}`))
+    console.log(c.dim("    → Fix with:  npm run google:bootstrap"))
     process.exit(1)
   }
 

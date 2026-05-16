@@ -52,23 +52,25 @@ function readConfig() {
 
 /**
  * Validate that the refresh-token env value LOOKS like a real Google refresh
- * token. The bootstrap script has a classic trap: it prompts the operator
- * to paste the OAuth callback URL into the terminal (so it can extract the
- * `?code=…` and exchange it), then prints the refresh token for them to
- * paste into .env. Mixing those two steps up — pasting the callback URL
- * into .env instead of the printed token — produces a non-token value that
- * googleapis rejects with `invalid_grant` on the FIRST API call, after
- * every booking has already been confirmed.
+ * token. The bootstrap script has classic traps:
+ *
+ *   - Pasting the OAuth callback URL into .env instead of the printed token
+ *     (URL starts with `http`).
+ *   - Pasting the one-time authorization code (starts with `4/`) — the value
+ *     visible inside `?code=4%2F0Ae…` on the redirect URL — instead of the
+ *     refresh token. The auth code is single-use; the FIRST API call dies
+ *     with `invalid_grant` once googleapis tries to exchange it.
  *
  * Real Google refresh tokens start with `1//` and are typically 75-100+
- * chars. URLs start with `http`. A short opaque string is unlikely too.
- * Reject anything obviously not a token and force the operator to fix the
- * misconfiguration BEFORE the booking flow silently degrades.
+ * chars. Reject anything obviously not a token and force the operator to
+ * fix the misconfiguration BEFORE the booking flow silently degrades.
  */
 function looksLikeRefreshToken(value) {
   if (!value || typeof value !== "string") return false
   if (/^https?:\/\//i.test(value)) return false           // someone pasted a URL
-  if (value.length < 40)            return false           // too short to be real
+  if (/^4\//.test(value))          return false           // pasted the auth code, not the refresh token
+  if (!value.startsWith("1//"))    return false           // real refresh tokens start with 1//
+  if (value.length < 40)           return false           // too short to be real
   return true
 }
 
@@ -104,6 +106,12 @@ function diagnoseConfig() {
   if (missing.length > 0) return `missing env: ${missing.join(", ")}`
   if (/^https?:\/\//i.test(cfg.refreshToken)) {
     return "GOOGLE_OAUTH_REFRESH_TOKEN looks like a URL — did you paste the OAuth callback URL by mistake? Re-run scripts/google-oauth-bootstrap.js and paste the PRINTED token (starts with '1//'), not the redirect URL."
+  }
+  if (/^4\//.test(cfg.refreshToken)) {
+    return "GOOGLE_OAUTH_REFRESH_TOKEN starts with '4/' — that's the one-time authorization code, not the refresh token. Re-run scripts/google-oauth-bootstrap.js and paste the LAST line the script prints (starts with '1//'), not the '?code=' value from the redirect URL."
+  }
+  if (!cfg.refreshToken.startsWith("1//")) {
+    return `GOOGLE_OAUTH_REFRESH_TOKEN doesn't start with '1//' (got '${cfg.refreshToken.slice(0, 6)}…') — real Google refresh tokens start with '1//'. Re-run scripts/google-oauth-bootstrap.js and paste the LAST line the script prints.`
   }
   if (cfg.refreshToken.length < 40) {
     return `GOOGLE_OAUTH_REFRESH_TOKEN is only ${cfg.refreshToken.length} chars — real Google refresh tokens are 75+ chars. Re-run scripts/google-oauth-bootstrap.js.`

@@ -19,7 +19,10 @@
     "janitor:orders": "node scripts/cancel-stale-orders.js",
     "optimize:images": "bash scripts/optimize-images.sh",
     "seed:permissions": "node prisma/seed-permissions.js",
-    "seed:products": "node prisma/seed/products-seed.js"
+    "seed:products": "node prisma/seed/products-seed.js",
+    "google:bootstrap": "node scripts/google-oauth-bootstrap.js",
+    "google:verify": "node scripts/google-meet-verify.js",
+    "consultations:heal-links": "node scripts/heal-consultation-links.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
