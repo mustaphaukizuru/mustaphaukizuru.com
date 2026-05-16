@@ -40,36 +40,60 @@ function buildUaHash(req) {
 }
 
 // ---- Write paths ----------------------------------------------
+//
+// Both write paths swallow their own errors. Analytics is best-effort by
+// design — the controller already promises a 204 regardless of write
+// success ("Never block the page render on analytics"). The previous
+// implementation broke that promise: a Prisma engine PANIC (e.g. the
+// "timer has gone away" tokio bug seen on multi-worker startup on
+// Hostinger Passenger) propagated up through asyncHandler and bubbled
+// out as a 500, taking the page render down with it.
+//
+// We deliberately do NOT rethrow — a one-off analytics miss is a strictly
+// better failure mode than a request crash. Errors are logged (with rate-
+// limited noise via the tag) so they're still observable.
 
 exports.trackPageView = async (req, { path, referrer, country }) => {
   if (!path || typeof path !== "string") return null
-  return prisma.pageView.create({
-    data: {
-      path:         String(path).slice(0, 512),
-      referrer:     referrer ? String(referrer).slice(0, 512) : null,
-      country:      country  ? String(country).slice(0, 8)    : null,
-      device:       detectDevice(req.headers["user-agent"]),
-      uaHash:       buildUaHash(req),
-      sessionHash:  buildSessionHash(req),
-    },
-  })
+  try {
+    return await prisma.pageView.create({
+      data: {
+        path:         String(path).slice(0, 512),
+        referrer:     referrer ? String(referrer).slice(0, 512) : null,
+        country:      country  ? String(country).slice(0, 8)    : null,
+        device:       detectDevice(req.headers["user-agent"]),
+        uaHash:       buildUaHash(req),
+        sessionHash:  buildSessionHash(req),
+      },
+    })
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[analytics] trackPageView failed:", err?.message || err)
+    return null
+  }
 }
 
 exports.trackEvent = async (req, payload = {}) => {
   const { name } = payload
   if (!name || typeof name !== "string") return null
-  return prisma.analyticsEvent.create({
-    data: {
-      name:         String(name).slice(0, 64),
-      path:         payload.path      ? String(payload.path).slice(0, 512) : null,
-      productId:    payload.productId || null,
-      serviceId:    payload.serviceId || null,
-      orderId:      payload.orderId   || null,
-      amount:       payload.amount != null ? Number(payload.amount) : null,
-      meta:         payload.meta && typeof payload.meta === "object" ? payload.meta : null,
-      sessionHash:  buildSessionHash(req),
-    },
-  })
+  try {
+    return await prisma.analyticsEvent.create({
+      data: {
+        name:         String(name).slice(0, 64),
+        path:         payload.path      ? String(payload.path).slice(0, 512) : null,
+        productId:    payload.productId || null,
+        serviceId:    payload.serviceId || null,
+        orderId:      payload.orderId   || null,
+        amount:       payload.amount != null ? Number(payload.amount) : null,
+        meta:         payload.meta && typeof payload.meta === "object" ? payload.meta : null,
+        sessionHash:  buildSessionHash(req),
+      },
+    })
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[analytics] trackEvent failed:", err?.message || err)
+    return null
+  }
 }
 
 // ---- Admin read paths ----------------------------------------
