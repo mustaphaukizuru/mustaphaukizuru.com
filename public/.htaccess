@@ -1,0 +1,42 @@
+# =============================================================================
+# Apache configuration for the static error pages
+#
+# Why this file exists:
+#   When the Node.js app is unreachable (Passenger restart, OOM kill, crash
+#   loop), Apache serves the request itself instead of proxying to Node.
+#   Without ErrorDocument directives, visitors see Hostinger's generic
+#   "503 Service Unavailable" page. With this file, they see our branded
+#   503.html living next to it in /public.
+#
+#   The 5xx family points to 503.html because the message is the same in
+#   all three cases: "we're temporarily unreachable, try again."
+#
+#   The 404 / 500 directives mostly bind for direct file requests that
+#   bypass Node (e.g. /typo.html). When Node is up, the Express middleware
+#   in src/middleware/notFound.js + errorHandler.js handles application-
+#   level 404 / 500 with the SAME branded HTML so the experience is
+#   identical regardless of which layer handled it.
+# =============================================================================
+
+ErrorDocument 404 /404.html
+ErrorDocument 500 /500.html
+ErrorDocument 502 /503.html
+ErrorDocument 503 /503.html
+ErrorDocument 504 /503.html
+
+# Make sure Apache can serve the error pages directly even when an outer
+# rewrite would normally send everything to the Node app. Without these
+# RewriteCond exclusions, the ErrorDocument would itself become 503 in a
+# loop when Node is dead.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(404|500|503)\.html$ - [L]
+</IfModule>
+
+# Standard caching headers — the error pages rarely change, but we don't
+# want them cached aggressively while we're iterating on the design.
+<IfModule mod_headers.c>
+  <FilesMatch "^(404|500|503)\.html$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+</IfModule>

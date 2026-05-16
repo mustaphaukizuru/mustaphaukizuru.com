@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>We'll be right back · Mustapha Ukizuru</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/Sora-Variable.woff2" crossorigin />
+  <style>
+    /* ─────────────────────────────────────────────────────────────
+       Self-contained error page. MUST work when the Node app is
+       dead — no API calls, no external CSS/JS, only static assets
+       Apache can serve directly from /public.
+       ───────────────────────────────────────────────────────────── */
+    @font-face {
+      font-family: "Sora";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("/fonts/Sora-Variable.woff2") format("woff2-variations");
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: "Sora", system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #1A1B23;
+      color: #F8FAFC;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+    }
+    .page {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    /* Ambient gradient backdrop — adds depth without needing an image */
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 50% at 30% 20%, rgba(93, 63, 211, 0.15), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(93, 63, 211, 0.08), transparent 70%);
+      pointer-events: none;
+    }
+    .top {
+      padding: 28px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #5D3FD3, #8B6FE8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+      color: #fff;
+      box-shadow: 0 8px 24px -8px rgba(93, 63, 211, 0.6);
+    }
+    .brand-name {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #F8FAFC;
+    }
+    .brand-name .dim { color: #64748B; font-weight: 400; }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(248, 250, 252, 0.04);
+      border: 1px solid rgba(248, 250, 252, 0.08);
+      font-size: 13px;
+      font-weight: 500;
+      color: #CBD5E1;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #F59E0B;
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6); }
+      70%  { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+    .glyph {
+      font-size: clamp(140px, 22vw, 240px);
+      font-weight: 200;
+      letter-spacing: -0.08em;
+      line-height: 1;
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.12), rgba(248, 250, 252, 0.02));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin: 0 0 16px;
+      user-select: none;
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      text-align: center;
+      line-height: 1.15;
+    }
+    .lead {
+      margin: 0 0 36px;
+      font-size: clamp(15px, 1.6vw, 17px);
+      line-height: 1.6;
+      color: #94A3B8;
+      text-align: center;
+      max-width: 460px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #5D3FD3, #8B6FE8);
+      color: #fff;
+      box-shadow: 0 8px 24px -8px rgba(93, 63, 211, 0.6);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px -8px rgba(93, 63, 211, 0.8);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-ghost {
+      background: transparent;
+      color: #CBD5E1;
+      padding: 12px 16px;
+    }
+    .btn-ghost:hover { color: #F8FAFC; }
+    .btn-icon {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+    }
+    .countdown {
+      margin-top: 28px;
+      font-size: 13px;
+      color: #64748B;
+      text-align: center;
+      min-height: 18px;
+    }
+    .countdown b { color: #94A3B8; font-weight: 600; }
+    .foot {
+      padding: 24px 40px;
+      font-size: 12px;
+      color: #475569;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .foot a {
+      color: #64748B;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(100, 116, 139, 0.3);
+      padding-bottom: 1px;
+    }
+    .foot a:hover { color: #CBD5E1; }
+
+    @media (max-width: 540px) {
+      .top { padding: 20px 20px; }
+      .foot { padding: 20px; }
+      .actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 280px; }
+      .btn-ghost { padding: 12px 22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .status-dot { animation: none; }
+      .btn { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <a class="brand" href="/" aria-label="Mustapha Ukizuru — Home">
+        <div class="brand-mark" aria-hidden="true">MU</div>
+        <div class="brand-name">Mustapha Ukizuru <span class="dim">· Studio</span></div>
+      </a>
+      <div class="status" role="status" aria-live="polite">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>Brief maintenance</span>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="glyph" aria-hidden="true">503</div>
+      <h1>We'll be right back.</h1>
+      <p class="lead">
+        The studio site is offline for a quick maintenance pass.
+        Nothing's lost — your bookings, projects, and account are safe.
+        This page will be available again in a moment.
+      </p>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="checkAgain()" aria-label="Try loading the site again">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-3-6.7" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 4v5h-5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Try again now
+        </button>
+        <a class="btn btn-ghost" href="mailto:hello@mustaphaukizuru.com?subject=Site%20down">
+          Email if urgent
+        </a>
+      </div>
+      <div class="countdown" id="cd">Retrying in <b id="t">15</b>s…</div>
+    </main>
+
+    <footer class="foot">
+      &copy; <span id="y"></span> Mustapha Ukizuru &middot;
+      <a href="mailto:hello@mustaphaukizuru.com">hello@mustaphaukizuru.com</a>
+    </footer>
+  </div>
+
+  <script>
+    /* Tiny vanilla JS — no framework, no API call. Works when Node is dead. */
+    document.getElementById("y").textContent = new Date().getFullYear();
+
+    /* Auto-retry with a sensible ceiling to prevent infinite reload loops
+       when the outage is long. We retry up to 5 times at 15s intervals,
+       then stop and let the visitor click manually. */
+    var MAX_AUTO = 5;
+    var INTERVAL = 15;
+    var attempts = parseInt(sessionStorage.getItem("ukz_503_attempts") || "0", 10);
+    var t = INTERVAL;
+    var cdEl = document.getElementById("cd");
+    var tEl  = document.getElementById("t");
+
+    function checkAgain() {
+      sessionStorage.setItem("ukz_503_attempts", String(attempts + 1));
+      location.reload();
+    }
+
+    if (attempts >= MAX_AUTO) {
+      cdEl.innerHTML = "Auto-retry paused after " + MAX_AUTO + " attempts. Click <b>Try again now</b> when you'd like to retry.";
+    } else {
+      var timer = setInterval(function () {
+        t--;
+        if (t <= 0) {
+          clearInterval(timer);
+          checkAgain();
+        } else {
+          tEl.textContent = t;
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

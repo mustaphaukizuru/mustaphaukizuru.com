@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Page not found · Mustapha Ukizuru</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/Sora-Variable.woff2" crossorigin />
+  <style>
+    @font-face {
+      font-family: "Sora";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("/fonts/Sora-Variable.woff2") format("woff2-variations");
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: "Sora", system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #1A1B23;
+      color: #F8FAFC;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .page {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 50% at 30% 20%, rgba(93, 63, 211, 0.15), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(93, 63, 211, 0.08), transparent 70%);
+      pointer-events: none;
+    }
+    .top {
+      padding: 28px 40px;
+      position: relative;
+      z-index: 1;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #5D3FD3, #8B6FE8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      color: #fff;
+      box-shadow: 0 8px 24px -8px rgba(93, 63, 211, 0.6);
+    }
+    .brand-name {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .brand-name .dim { color: #64748B; font-weight: 400; }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+    .glyph {
+      font-size: clamp(140px, 22vw, 240px);
+      font-weight: 200;
+      letter-spacing: -0.08em;
+      line-height: 1;
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.12), rgba(248, 250, 252, 0.02));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin: 0 0 16px;
+      user-select: none;
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      text-align: center;
+      line-height: 1.15;
+    }
+    .lead {
+      margin: 0 0 36px;
+      font-size: clamp(15px, 1.6vw, 17px);
+      line-height: 1.6;
+      color: #94A3B8;
+      text-align: center;
+      max-width: 480px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #5D3FD3, #8B6FE8);
+      color: #fff;
+      box-shadow: 0 8px 24px -8px rgba(93, 63, 211, 0.6);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px -8px rgba(93, 63, 211, 0.8);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: #CBD5E1;
+      padding: 12px 16px;
+    }
+    .btn-ghost:hover { color: #F8FAFC; }
+    .btn-icon { width: 16px; height: 16px; stroke-width: 2; }
+
+    .suggested {
+      margin-top: 56px;
+      width: 100%;
+      max-width: 540px;
+    }
+    .suggested-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #64748B;
+      margin: 0 0 14px;
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .card {
+      display: block;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: rgba(248, 250, 252, 0.03);
+      border: 1px solid rgba(248, 250, 252, 0.06);
+      text-decoration: none;
+      color: #F8FAFC;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+    .card:hover {
+      background: rgba(93, 63, 211, 0.08);
+      border-color: rgba(93, 63, 211, 0.3);
+      transform: translateY(-1px);
+    }
+    .card-label {
+      display: block;
+      color: #94A3B8;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .foot {
+      padding: 24px 40px;
+      font-size: 12px;
+      color: #475569;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .foot a { color: #64748B; text-decoration: none; border-bottom: 1px solid rgba(100, 116, 139, 0.3); }
+    .foot a:hover { color: #CBD5E1; }
+
+    @media (max-width: 540px) {
+      .top, .foot { padding: 20px; }
+      .actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 280px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .btn, .card { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <a class="brand" href="/" aria-label="Mustapha Ukizuru — Home">
+        <div class="brand-mark" aria-hidden="true">MU</div>
+        <div class="brand-name">Mustapha Ukizuru <span class="dim">· Studio</span></div>
+      </a>
+    </header>
+
+    <main class="main">
+      <div class="glyph" aria-hidden="true">404</div>
+      <h1>We can't find that page.</h1>
+      <p class="lead">
+        The link you followed may be broken, or the page may have been moved.
+        Try one of the destinations below, or head back to the homepage.
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary" href="/">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M3 12l9-9 9 9" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 10v10h14V10" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Back to homepage
+        </a>
+        <a class="btn btn-ghost" href="javascript:history.back()">Go back</a>
+      </div>
+
+      <section class="suggested" aria-label="Suggested pages">
+        <h2 class="suggested-title">Looking for one of these?</h2>
+        <div class="grid">
+          <a class="card" href="/services">
+            <span class="card-label">Engagements</span>
+            Services
+          </a>
+          <a class="card" href="/solutions">
+            <span class="card-label">Packages</span>
+            Solutions
+          </a>
+          <a class="card" href="/portfolio">
+            <span class="card-label">Case studies</span>
+            Portfolio
+          </a>
+          <a class="card" href="/book-consultation">
+            <span class="card-label">Talk to us</span>
+            Book a call
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      &copy; <span id="y"></span> Mustapha Ukizuru &middot;
+      <a href="mailto:hello@mustaphaukizuru.com">hello@mustaphaukizuru.com</a>
+    </footer>
+  </div>
+  <script>document.getElementById("y").textContent = new Date().getFullYear();</script>
+</body>
+</html>
