@@ -13,6 +13,7 @@ import {
   Briefcase, Mail, Phone,
   Plus, Send, FileText, MoreHorizontal,
   Compass, Languages, Users, Sparkles, Workflow,
+  Award, Globe2, ArrowUpRight,
 } from "lucide-react"
 import {
   FaHtml5, FaCss3Alt, FaJs, FaReact, FaNodeJs,
@@ -440,98 +441,255 @@ function Timeline({ items, accent }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
- *  AboutStatsStrip · Phase 10 · animated counters strip
+ *  AboutStatsStrip · Brand v3.0 "Proof Layer" — asymmetric bento
  *
- *  Four credibility-signal tiles in a single row (2x2 on mobile, 4-up on
- *  lg+). Each tile uses a brand v3.1 status tint (mint/azure/amber/violet)
- *  and an animated counter that climbs from 0 once the strip scrolls into
- *  view. Numbers are anchored to facts from the bio:
+ *  Per Brand Identity v3.0 § 09 "The Proof Layer — Data Visualization":
+ *  every metric we publish is evidence of the engineering. This block
+ *  presents four credibility tiles in a 2-1-1 / lead-bento layout:
  *
- *    6  → years building production software
- *    4  → countries lived/worked in (Rwanda, Turkey, Ethiopia, Mexico)
- *    9  → professional certifications shipped (matches the certificates
- *          section count and is locale-stable)
- *    100→ students taught across CS / STEM cohorts (rounded floor)
+ *    6  → years shipping production work (LEAD tile · 2×2 on lg+)
+ *    4  → countries lived/worked in (Rwanda · Turkey · Ethiopia · Mexico)
+ *    9  → professional certifications on file
+ *    100→ CS / STEM students taught across cohorts
  *
- *  Labels resolve via i18n (`about:stats.*`) with sensible English/Spanish
- *  defaultValues so the strip ships even if the i18n keys aren't added
- *  yet. The tile palette pulls from brand v3.1 status tokens directly.
+ *  Design language: glass-tile bento (21st.dev / Apple discipline) on a
+ *  soft mesh-aurora atmosphere, JetBrains Mono tabular-nums at hero scale,
+ *  scroll-anchored proof-spine on the left edge, live-data dot on the
+ *  lead tile, brand-token accent underline that grows on hover.
  *  ───────────────────────────────────────────────────────────────────── */
 function AboutStatsStrip() {
   const { t } = useTranslation("about")
+  const reduce = useReducedMotion()
+
+  // Proof-spine: a vertical line that scales 0→1 as the section traverses
+  // the viewport. Anchors the section visually and signals "live data."
+  const sectionRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start 85%", "end 30%"],
+  })
+  const spineScale = useTransform(scrollYProgress, [0, 1], [0, 1])
 
   const tiles = [
     {
       key: "years",
-      to:  6,
+      to: 6,
       suffix: "+",
-      label: t("stats.yearsLabel",      { defaultValue: "Years shipping production work" }),
-      tone: "tile-mint",
+      Icon: Briefcase,
+      label: t("stats.yearsLabel",     { defaultValue: "Years shipping production work" }),
+      hint:  t("stats.yearsHint",      { defaultValue: "Rwanda · Turkey · Ethiopia · Mexico" }),
+      tone: "violet",
+      lead: true,
     },
     {
       key: "countries",
-      to:  4,
-      label: t("stats.countriesLabel",  { defaultValue: "Countries lived & worked in" }),
-      tone: "tile-azure",
+      to: 4,
+      Icon: Globe2,
+      label: t("stats.countriesLabel", { defaultValue: "Countries lived & worked in" }),
+      hint:  t("stats.countriesHint",  { defaultValue: "EN · ES · TR · KIN" }),
+      tone: "azure",
     },
     {
       key: "certs",
-      to:  9,
+      to: 9,
       suffix: "+",
-      label: t("stats.certsLabel",      { defaultValue: "Professional certifications" }),
-      tone: "tile-amber",
+      Icon: Award,
+      label: t("stats.certsLabel",     { defaultValue: "Professional certifications" }),
+      hint:  t("stats.certsHint",      { defaultValue: "Google · CompTIA · CS50" }),
+      tone: "terracotta",
     },
     {
       key: "students",
-      to:  100,
+      to: 100,
       suffix: "+",
-      label: t("stats.studentsLabel",   { defaultValue: "CS & STEM students taught" }),
-      tone: "tile-violet",
+      Icon: GraduationCap,
+      label: t("stats.studentsLabel",  { defaultValue: "CS & STEM students taught" }),
+      hint:  t("stats.studentsHint",   { defaultValue: "K-12 · cohort-graded" }),
+      tone: "mint",
     },
   ]
 
-  const tones = {
-    "tile-mint":   "bg-mint-50 text-mint-700",
-    "tile-azure":  "bg-azure-pale text-azure-800",
-    "tile-amber":  "bg-amber-50 text-amber-700",
-    "tile-violet": "bg-violet-pale text-violet-deep",
+  // Token-pure palette — every value resolves through the v3.0 brand tokens.
+  const TONE = {
+    violet: {
+      surface: "bg-violet-pale/70",
+      ring:    "ring-violet/15",
+      number:  "text-violet",
+      icon:    "bg-violet/12 text-violet",
+      hint:    "text-violet/70",
+      accent:  "bg-violet",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgba(93,63,211,0.18), transparent 70%)",
+    },
+    azure: {
+      surface: "bg-azure-pale/70",
+      ring:    "ring-azure/15",
+      number:  "text-azure-deep",
+      icon:    "bg-azure/12 text-azure",
+      hint:    "text-azure-deep/75",
+      accent:  "bg-azure",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgba(2,132,199,0.18), transparent 70%)",
+    },
+    terracotta: {
+      surface: "bg-terracotta/15",
+      ring:    "ring-terracotta-deep/30",
+      number:  "text-charcoal",
+      icon:    "bg-terracotta/25 text-charcoal",
+      hint:    "text-charcoal/65",
+      accent:  "bg-terracotta",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgba(233,196,106,0.30), transparent 70%)",
+    },
+    mint: {
+      surface: "bg-mint-50/80",
+      ring:    "ring-mint/15",
+      number:  "text-mint-700",
+      icon:    "bg-mint/12 text-mint",
+      hint:    "text-mint-700/75",
+      accent:  "bg-mint",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgba(16,185,129,0.18), transparent 70%)",
+    },
   }
 
   return (
     <section
+      ref={sectionRef}
       aria-label={t("stats.sectionLabel", { defaultValue: "Key stats" })}
-      className="py-12 sm:py-16"
+      className="relative isolate py-[var(--space-section-y)]"
     >
+      {/* Mesh-aurora atmosphere — once per viewport, very low opacity */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-24 left-[12%] h-[420px] w-[420px] rounded-full bg-violet/8 blur-3xl" />
+        <div className="absolute -bottom-32 right-[8%] h-[380px] w-[380px] rounded-full bg-azure/8 blur-3xl" />
+        <div className="absolute top-1/3 right-1/3 h-[220px] w-[220px] rounded-full bg-terracotta/10 blur-3xl" />
+      </div>
+
       <Container>
-        <Reveal>
-          <div className="mb-8 flex flex-col items-center gap-2 text-center sm:mb-10">
-            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-violet">
-              {t("stats.eyebrow", { defaultValue: "By the numbers" })}
-            </span>
-            <h2 className="text-[clamp(22px,2.5vw,32px)] font-bold tracking-tight text-charcoal text-balance">
-              {t("stats.title", { defaultValue: "A track record you can verify" })}
-            </h2>
+        <div className="relative">
+          {/* Proof-spine on the left edge — scales in with scroll progress */}
+          <motion.span
+            aria-hidden="true"
+            className="absolute -left-3 top-3 hidden h-20 w-px origin-top bg-gradient-to-b from-violet via-azure to-cyan sm:block"
+            style={reduce ? { scaleY: 1 } : { scaleY: spineScale }}
+          />
+
+          <Reveal>
+            <div className="mb-10 flex flex-col gap-3 sm:mb-14">
+              <span className="eyebrow inline-flex items-center gap-2 self-start text-violet">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className={`absolute inline-flex h-full w-full rounded-full bg-mint opacity-75 ${reduce ? "" : "animate-ping"}`} />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-mint" />
+                </span>
+                {t("stats.eyebrow", { defaultValue: "By the numbers" })}
+              </span>
+
+              <h2 className="text-[var(--text-section)] font-extrabold tracking-tight text-charcoal text-balance">
+                {t("stats.title", { defaultValue: "A track record you can verify" })}
+              </h2>
+
+              <p className="max-w-[var(--measure-tight)] text-[15px] leading-relaxed text-steel">
+                {t("stats.lede", {
+                  defaultValue: "Every figure is anchored to a verifiable artifact — public bio, certifications on file, cohort rosters. No vanity metrics.",
+                })}
+              </p>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* Asymmetric bento — lead tile spans 2×2 on lg+; rest are 1×1.
+            On mobile the lead spans the full row, then 2-up below. */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:auto-rows-[minmax(180px,1fr)]">
+          {tiles.map((tile, idx) => {
+            const palette = TONE[tile.tone]
+            const span = tile.lead ? "col-span-2 lg:col-span-2 lg:row-span-2" : ""
+
+            return (
+              <Reveal key={tile.key} as="div" amount={0.3} delay={idx * 0.06}>
+                <motion.div
+                  whileHover={reduce ? undefined : { y: -3 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  className={`group relative isolate flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] ${palette.surface} ring-1 ${palette.ring} p-5 sm:p-6 lg:p-7 ${span}`}
+                >
+                  {/* Radial-glow wash — fades in on hover for premium depth */}
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-[var(--motion-base)] ease-[var(--ease-out-soft)] group-hover:opacity-100"
+                    style={{ background: palette.glow }}
+                  />
+
+                  {/* Header row — icon + live dot on the lead tile only */}
+                  <div className="flex items-center justify-between">
+                    <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${palette.icon}`}>
+                      <tile.Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+                    </span>
+                    {tile.lead && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-charcoal/5 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal/65">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className={`absolute inline-flex h-full w-full rounded-full bg-mint opacity-75 ${reduce ? "" : "animate-ping"}`} />
+                          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-mint" />
+                        </span>
+                        {t("stats.liveBadge", { defaultValue: "Live" })}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* KPI number — JetBrains Mono · tabular-nums · hero scale on lead */}
+                  <div className="mt-auto flex items-baseline gap-1.5 pt-6">
+                    <Counter
+                      to={tile.to}
+                      className={`font-mono font-bold leading-[0.9] tracking-tight tabular-nums ${palette.number} ${
+                        tile.lead
+                          ? "text-[clamp(64px,9vw,112px)]"
+                          : "text-[clamp(40px,5.5vw,64px)]"
+                      }`}
+                    />
+                    {tile.suffix && (
+                      <span
+                        className={`font-mono font-semibold ${palette.number} opacity-70 ${
+                          tile.lead ? "text-[clamp(28px,4vw,52px)]" : "text-[clamp(22px,3vw,32px)]"
+                        }`}
+                      >
+                        {tile.suffix}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Label + supporting hint */}
+                  <div className="mt-3 flex flex-col gap-1.5">
+                    <p className={`font-semibold leading-snug text-charcoal ${tile.lead ? "text-[15px] sm:text-[16px]" : "text-[13px] sm:text-[14px]"}`}>
+                      {tile.label}
+                    </p>
+                    <p className={`font-mono uppercase tracking-[0.16em] ${palette.hint} ${tile.lead ? "text-[11px]" : "text-[10.5px]"}`}>
+                      {tile.hint}
+                    </p>
+                  </div>
+
+                  {/* Bottom accent line — grows from 0 → full width on hover */}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute bottom-0 left-0 h-[2px] w-0 ${palette.accent} transition-[width] duration-[var(--motion-base)] ease-[var(--ease-out-soft)] group-hover:w-full`}
+                  />
+                </motion.div>
+              </Reveal>
+            )
+          })}
+        </div>
+
+        {/* Methodology caption — Proof Layer per Brand v3.0 § 09 */}
+        <Reveal delay={0.2}>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 sm:mt-8">
+            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/80">
+              {t("stats.source", {
+                defaultValue: "Source: public bio · verified certificates on file · cohort rosters · rolling figures",
+              })}
+            </p>
+            <Link
+              to="/about#certificates"
+              className="link-underline inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-azure transition-colors hover:text-violet"
+            >
+              {t("stats.verifyCta", { defaultValue: "Verify the credentials" })}
+              <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
+            </Link>
           </div>
         </Reveal>
-
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {tiles.map((tile) => (
-            <Reveal key={tile.key} as="div" amount={0.4}>
-              <div
-                className={`flex h-full flex-col justify-between rounded-2xl p-5 sm:p-6 ${tones[tile.tone]} ring-1 ring-charcoal/5`}
-              >
-                <Counter
-                  to={tile.to}
-                  suffix={tile.suffix}
-                  className="font-display text-[clamp(36px,5vw,56px)] font-extrabold leading-none tracking-tight tabular-nums"
-                />
-                <p className="mt-3 text-[12.5px] font-medium leading-snug opacity-85">
-                  {tile.label}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
       </Container>
     </section>
   )

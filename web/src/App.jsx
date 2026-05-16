@@ -35,6 +35,7 @@ function PageLoader() {
 const Home = lazy(() => import("./pages/Home"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
 const SolutionsPage = lazy(() => import("./pages/SolutionsPage"));
+const SolutionDetailPage = lazy(() => import("./pages/SolutionDetailPage"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
 const SelfAuditPage = lazy(() => import("./pages/SelfAuditPage"));
@@ -166,6 +167,7 @@ export default function App() {
             <Route path="/home" element={<Navigate to="/" replace />} />
             <Route path="/about" element={<PublicShell><AboutPage /></PublicShell>} />
             <Route path="/solutions" element={<PublicShell><SolutionsPage /></PublicShell>} />
+            <Route path="/solutions/:slug" element={<PublicShell><SolutionDetailPage /></PublicShell>} />
             <Route path="/services" element={<PublicShell><ServicesPage /></PublicShell>} />
             <Route path="/services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
             <Route path="/self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
@@ -334,6 +336,7 @@ export default function App() {
               <Route index element={<PublicShell><Home /></PublicShell>} />
               <Route path="about" element={<PublicShell><AboutPage /></PublicShell>} />
               <Route path="solutions" element={<PublicShell><SolutionsPage /></PublicShell>} />
+              <Route path="solutions/:slug" element={<PublicShell><SolutionDetailPage /></PublicShell>} />
               <Route path="services" element={<PublicShell><ServicesPage /></PublicShell>} />
               <Route path="services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
               <Route path="contact" element={<PublicShell><ContactPage /></PublicShell>} />
