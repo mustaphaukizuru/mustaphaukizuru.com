@@ -67,6 +67,16 @@ const CertTechSupport = "/documents/certificates/Certificate_Technical_Support_F
 const CertSysAdmin = "/documents/certificates/Certificate_System_Administration_and_IT_Infrastructure_UKIZURU_Mustapha.pdf"
 const CertConstancia = "/documents/certificates/Certificate_Constancia_UKIZURU_Mustapha.pdf"
 
+// Maps /documents/certificates/X.pdf → /documents/certificates/X.png
+// (sibling PNG pre-renders ship next to every PDF for reliable tile previews).
+// Returns null for anything that isn't a same-origin static PDF path, so
+// external Coursera/Credly URLs fall through to the credential-mode tile.
+function derivePngThumbnail(pdfUrl) {
+  if (!pdfUrl || typeof pdfUrl !== "string") return null
+  if (!pdfUrl.startsWith("/documents/certificates/")) return null
+  return pdfUrl.replace(/\.pdf(\?.*)?$/i, ".png$1")
+}
+
 const certifications = [
   { title: "Python 101 for Data Science", description: "IBM / Cognitive Class", pdf: CertPython },
   { title: "English for Career Development", description: "UPenn / Coursera", pdf: CertEnglish },
@@ -666,11 +676,17 @@ export default function AboutPage() {
   // that fed external URLs into pdfjs, which couldn't render them and
   // showed broken violet placeholders. The component now degrades
   // gracefully on its own.
+  //
+  // Thumbnails: every hosted PDF in /documents/certificates/ has a sibling
+  // .png pre-rendered for tile previews. PDF.js can choke on certain
+  // streams (Google's Educator cert ships JBIG2 → blank placeholder),
+  // so we hand a static image to the tile and keep the PDF for the modal.
   const apiCertsMapped = bioCertificates.map((c) => ({
     title: c.title,
     issuer: c.issuer || "",
     issueDate: c.issueDate || null,
     pdfUrl: c.pdfUrl || null,
+    thumbnail: derivePngThumbnail(c.pdfUrl),
     credentialUrl: c.credentialUrl || null,
     issuerLogo: c.issuerLogo || null,
   }))
@@ -682,6 +698,7 @@ export default function AboutPage() {
     issuer: c.description,
     issueDate: null,
     pdfUrl: c.pdf,
+    thumbnail: derivePngThumbnail(c.pdf),
     credentialUrl: null,
     issuerLogo: null,
   }))
@@ -938,6 +955,7 @@ export default function AboutPage() {
                 <motion.div key={c.title} variants={fadeUp}>
                   <CertificatePreview
                     src={c.pdfUrl}
+                    thumbnail={c.thumbnail}
                     credentialUrl={c.credentialUrl}
                     issuerLogo={c.issuerLogo}
                     title={c.title}

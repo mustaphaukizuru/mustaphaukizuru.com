@@ -9,9 +9,15 @@
 //   - complete    Host marks a meeting as completed (post-event)
 //   - markNoShow  Host marks no-show
 //
-// Concurrency: the @@unique([assignedAdminId, scheduledAt]) constraint guarantees
-// that two simultaneous booking attempts at the same start time → exactly one
-// succeeds, the other gets Prisma P2002 → mapped to 409 by errorHandler.
+// Concurrency (Booking Hardening v1):
+//   The previous @@unique([assignedAdminId, scheduledAt]) blocked only
+//   same-start collisions. It is replaced by a PostgreSQL EXCLUDE constraint
+//   on tstzrange(scheduledAt, endsAt) named `consultation_no_overlap`
+//   (see prisma/migrations/<ts>_booking_hardening_v1/migration.sql).
+//   Two simultaneous booking attempts that overlap by any amount → exactly
+//   one succeeds, the other surfaces as Postgres SQLSTATE 23P01
+//   (exclusion_violation) → mapped to 409 SLOT_OVERLAP by the
+//   classifyBookingWriteError() helper below.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const crypto  = require("crypto")
@@ -21,6 +27,7 @@ const logger  = require("../utils/logger")
 const {
   resolveHostUserId,
   loadServicePolicy,
+  loadCancellationPolicy,
   getAvailableSlots,
   ACTIVE_BOOKING_STATUSES,
 } = require("./availabilityService")
@@ -36,6 +43,54 @@ const googleCalendar = require("../lib/googleCalendar")
  */
 function generateConfirmationToken() {
   return crypto.randomBytes(32).toString("base64url")
+}
+
+/**
+ * Booking Hardening v1 · classify a Prisma write error against the two
+ * concurrency-protection mechanisms we now rely on:
+ *
+ *   · P2002                       — Prisma unique constraint failed.
+ *                                   (Still possible on confirmationToken
+ *                                   etc., even though we dropped the
+ *                                   @@unique on [assignedAdminId, scheduledAt].)
+ *   · SQLSTATE 23P01              — PostgreSQL exclusion_violation,
+ *                                   thrown by the EXCLUDE constraint
+ *                                   `consultation_no_overlap` when a new
+ *                                   booking overlaps an active one.
+ *
+ * Prisma surfaces the PG exclusion_violation as a `PrismaClientKnownRequestError`
+ * with code "P2010" (raw query failed) on some versions and "P2002" on
+ * others — the safest test is on the message body or the meta.code.
+ *
+ * Returns the throwable, OR null if the error is something else and the
+ * caller should rethrow as-is.
+ */
+function classifyBookingWriteError(err) {
+  const msg = (err && err.message) || ""
+  const meta = (err && err.meta) || {}
+  const isExclusion =
+    err?.code === "P2010" ||
+    meta.code === "23P01" ||
+    /exclusion_violation/i.test(msg) ||
+    /consultation_no_overlap/i.test(msg)
+
+  if (isExclusion) {
+    return Object.assign(
+      new Error("This time overlaps an existing booking — please choose another"),
+      { statusCode: 409, code: "SLOT_OVERLAP" },
+    )
+  }
+  if (err?.code === "P2002") {
+    // Could be the (now-gone) [assignedAdminId, scheduledAt] unique on
+    // older DBs that haven't run the migration yet, OR the confirmationToken
+    // unique (vanishingly rare — 32 random bytes). Either way, present
+    // as "slot just taken" to the customer.
+    return Object.assign(
+      new Error("This time slot was just taken — please choose another"),
+      { statusCode: 409, code: "SLOT_UNAVAILABLE" },
+    )
+  }
+  return null
 }
 
 /**
@@ -122,7 +177,24 @@ async function bookConsultation({
   const hostId = await resolveHostUserId(serviceId)
   const endsAt = addMinutes(startDate, policy.bookingDurationMin)
 
-  // If serviceOrderId is supplied, validate ownership.
+  // Booking Hardening v1 · paid-booking gate.
+  // When a service is configured with bookingRequiresPayment=true, the
+  // caller MUST supply a serviceOrderId pointing at their own paid order
+  // for THIS service. Without this gate, a member could book any paid
+  // service for free — the Service.bookingRequiresPayment column had been
+  // declared in the schema but never enforced anywhere in the flow.
+  if (policy.bookingRequiresPayment && !serviceOrderId) {
+    throw Object.assign(
+      new Error("This service requires a paid order before booking"),
+      { statusCode: 402, code: "PAYMENT_REQUIRED" },
+    )
+  }
+
+  // If serviceOrderId is supplied, validate ownership AND the linkage:
+  //   · ownership: the order belongs to the booking user
+  //   · service match: when both serviceId and the order's serviceId are
+  //     present, they must agree. Prevents a member from spending their
+  //     "Strategy Audit" order on a "Discovery Call" booking by accident.
   if (serviceOrderId) {
     const so = await prisma.serviceOrder.findUnique({
       where: { id: serviceOrderId },
@@ -130,6 +202,12 @@ async function bookConsultation({
     })
     if (!so) throw Object.assign(new Error("ServiceOrder not found"),       { statusCode: 404, code: "SERVICE_ORDER_NOT_FOUND" })
     if (so.userId !== userId) throw Object.assign(new Error("Forbidden"),   { statusCode: 403, code: "FORBIDDEN" })
+    if (serviceId && so.serviceId && so.serviceId !== serviceId) {
+      throw Object.assign(
+        new Error("ServiceOrder belongs to a different service"),
+        { statusCode: 400, code: "SERVICE_ORDER_MISMATCH" },
+      )
+    }
   }
 
   try {
@@ -167,12 +245,10 @@ async function bookConsultation({
 
     return consultation
   } catch (err) {
-    // Race: another booker won this slot in the same instant.
-    if (err.code === "P2002") {
-      throw Object.assign(new Error("This time slot was just taken — please choose another"), {
-        statusCode: 409, code: "SLOT_UNAVAILABLE",
-      })
-    }
+    // Race: another booker won this slot in the same instant (P2002) or
+    // overlapping interval rejected by the EXCLUDE constraint (23P01).
+    const mapped = classifyBookingWriteError(err)
+    if (mapped) throw mapped
     throw err
   }
 }
@@ -197,7 +273,13 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
   }
 
   // Members get window enforcement; admin can override.
-  if (!isAdmin) assertWithinPolicyWindow(existing, { hoursBefore: 12 })
+  // Booking Hardening v1 · the previous hardcoded 12h is now driven by
+  // Service.bookingRescheduleNoticeHours. loadCancellationPolicy returns
+  // sane defaults (12h) if the service has since been de-listed.
+  if (!isAdmin) {
+    const { bookingRescheduleNoticeHours } = await loadCancellationPolicy(existing.serviceId)
+    assertWithinPolicyWindow(existing, { hoursBefore: bookingRescheduleNoticeHours })
+  }
 
   const newStart = new Date(newStartUtc)
   if (Number.isNaN(newStart.getTime())) {
@@ -249,15 +331,21 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
           meetingProvider:   existing.meetingProvider,
           meetingLink:       existing.meetingLink,
           googleEventId:     existing.googleEventId,
+          // Booking Hardening v1 · monotonic revision counter for ICS
+          // SEQUENCE. Counts reschedule-chain depth so calendar clients
+          // (Gmail / Outlook / Apple Mail) recognise every reschedule
+          // as a genuine update rather than collapsing 2nd+ reschedules
+          // into a "duplicate" of the 1st.
+          revision:          (existing.revision ?? 0) + 1,
         },
         include: PUBLIC_INCLUDE,
       })
     } catch (err) {
-      if (err.code === "P2002") {
-        throw Object.assign(new Error("That time was just taken — please choose another"), {
-          statusCode: 409, code: "SLOT_UNAVAILABLE",
-        })
-      }
+      // Same classifier as bookConsultation — handles both unique (P2002)
+      // and EXCLUDE-overlap (SLOT_OVERLAP) collisions consistently across
+      // the booking and reschedule code paths.
+      const mapped = classifyBookingWriteError(err)
+      if (mapped) throw mapped
       throw err
     }
   })
@@ -301,7 +389,11 @@ async function cancelConsultation({ id, userId, isAdmin = false, reason }) {
   if (!ACTIVE_BOOKING_STATUSES.includes(existing.status)) {
     throw Object.assign(new Error(`Already ${existing.status}`), { statusCode: 400, code: "BAD_STATE" })
   }
-  if (!isAdmin) assertWithinPolicyWindow(existing, { hoursBefore: 12 })
+  // Booking Hardening v1 · cancellation notice window is now per-service.
+  if (!isAdmin) {
+    const { bookingCancellationNoticeHours } = await loadCancellationPolicy(existing.serviceId)
+    assertWithinPolicyWindow(existing, { hoursBefore: bookingCancellationNoticeHours })
+  }
 
   const cancelled = await prisma.consultation.update({
     where: { id },
@@ -553,6 +645,33 @@ async function adminUpdateConsultation(id, patch, ctx = {}) {
   })
   if (!before) {
     throw Object.assign(new Error("Consultation not found"), { code: "NOT_FOUND" })
+  }
+
+  // Booking Hardening v1 · validate the proposed assignee.
+  // Without this, an admin could accidentally reassign a consultation
+  // to a regular user or an inactive admin — both produce an unbookable
+  // host (no AvailabilityRule rows, availabilityService.resolveHostUserId
+  // would skip them) and a missing Google Calendar host.
+  //
+  // Allow `null` explicitly (un-assigning) — the schema permits it and
+  // the dashboard occasionally uses it before triage.
+  if (patch.assignedAdminId !== undefined && patch.assignedAdminId !== null) {
+    const target = await prisma.user.findUnique({
+      where: { id: patch.assignedAdminId },
+      select: { id: true, role: true, status: true },
+    })
+    if (!target) {
+      throw Object.assign(
+        new Error("Target admin not found"),
+        { statusCode: 404, code: "ADMIN_NOT_FOUND" },
+      )
+    }
+    if (target.role !== "admin" || target.status !== "active") {
+      throw Object.assign(
+        new Error("Cannot assign consultation to a non-admin or inactive user"),
+        { statusCode: 400, code: "BAD_ASSIGNEE" },
+      )
+    }
   }
 
   // When the admin confirms a previously-pending booking WITHOUT supplying
