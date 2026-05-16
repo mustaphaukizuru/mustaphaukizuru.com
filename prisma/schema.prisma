@@ -687,6 +687,12 @@ model Service {
   bookingMinNoticeHours  Int     @default(24)
   bookingMaxAdvanceDays  Int     @default(60)
   bookingRequiresPayment Boolean @default(false)
+  /// Booking Hardening v1 · per-service cancel/reschedule notice windows.
+  /// Replace the previous hardcoded 12h gate in consultationService.
+  /// Members cannot cancel within `bookingCancellationNoticeHours` of start,
+  /// nor reschedule within `bookingRescheduleNoticeHours`. Admins bypass.
+  bookingCancellationNoticeHours Int @default(12)
+  bookingRescheduleNoticeHours   Int @default(12)
 
   createdBy          User?              @relation("CreatedServices", fields: [createdById], references: [id], onDelete: SetNull)
   features           ServiceFeature[]
@@ -1118,6 +1124,12 @@ model Consultation {
   rescheduledFromId  String?
   /// Reminder bookkeeping — set when 24h or 1h reminder dispatched.
   reminderSentAt     DateTime?
+  /// Monotonic revision counter. Starts at 0; incremented on every
+  /// reschedule (the new row carries parent.revision + 1). Used as the
+  /// ICS SEQUENCE so calendar clients (Gmail / Outlook / Apple Mail)
+  /// recognise a real update across N reschedules instead of treating
+  /// the 2nd+ reschedule as a duplicate of the 1st. RFC 5545 § 3.8.7.4.
+  revision           Int                @default(0)
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
@@ -1128,9 +1140,16 @@ model Consultation {
   rescheduledFrom Consultation?  @relation("ConsultationReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
   rescheduledTo   Consultation[] @relation("ConsultationReschedule")
 
-  /// Race-safe booking: a host can never be double-booked at the same start time.
-  /// Surfaces as Prisma P2002 → errorHandler returns 409 DUPLICATE_ENTRY.
-  @@unique([assignedAdminId, scheduledAt])
+  /// Race-safe booking — superseded by Booking Hardening v1.
+  /// The previous @@unique([assignedAdminId, scheduledAt]) only prevented
+  /// SAME-START collisions. Booking Hardening v1 replaces it with a
+  /// PostgreSQL EXCLUDE constraint on tstzrange(scheduledAt, endsAt)
+  /// (see migrations/<ts>_booking_hardening_v1/migration.sql) which
+  /// rejects ALL overlapping bookings — variable durations included.
+  /// Prisma can't express EXCLUDE natively, so the constraint lives in
+  /// raw SQL only. The catch blocks in consultationService.bookConsultation
+  /// and rescheduleConsultation map Postgres exclusion_violation
+  /// (SQLSTATE 23P01) to 409 SLOT_OVERLAP.
   @@index([serviceOrderId])
   @@index([serviceId])
   @@index([userId])

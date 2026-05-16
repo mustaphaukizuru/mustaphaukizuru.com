@@ -42,6 +42,11 @@ import { useTranslation } from "react-i18next"
  *
  * Props:
  *   src           — public path to PDF OR external credential URL
+ *   thumbnail     — optional image URL (PNG/JPG) used as the tile preview.
+ *                   When provided, renders an <img> instead of the PDF.js
+ *                   canvas — faster, no worker dependency, and survives the
+ *                   PDFs PDF.js can't decode (JBIG2, JPEG2000, etc.). On
+ *                   <img> load error, falls back to the PDF.js renderer.
  *   credentialUrl — optional explicit credential page; if present, takes
  *                   precedence over `src` for the "Verify" CTA in
  *                   credential mode
@@ -113,6 +118,7 @@ function logDev(...args) {
 
 export default function CertificatePreview({
   src,
+  thumbnail,
   credentialUrl,
   issuerLogo,
   title,
@@ -226,7 +232,7 @@ export default function CertificatePreview({
         )}
       >
         <div className="relative aspect-[1.414/1] w-full overflow-hidden bg-slate-50">
-          <PdfPageImage src={src} title={title} />
+          <CertificateThumbnail src={src} thumbnail={thumbnail} title={title} />
           <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-charcoal/5" aria-hidden="true" />
 
           {verified && (
@@ -276,6 +282,31 @@ export default function CertificatePreview({
         )}
       </AnimatePresence>
     </>
+  )
+}
+
+/* ───────────────────────── Thumbnail dispatcher ─────────────────────────
+ * Prefers a static image (PNG/JPG) when supplied — it's faster, has no
+ * worker dependency, and survives PDFs that PDF.js can't decode (e.g.
+ * Google's Certified Educator cert ships JBIG2 streams that pdf.js refuses).
+ * If the image 404s or errors, we transparently fall back to PdfPageImage,
+ * which itself degrades to a branded placeholder if PDF.js also fails.
+ * ───────────────────────────────────────────────────────────────────── */
+function CertificateThumbnail({ src, thumbnail, title }) {
+  const [imgFailed, setImgFailed] = useState(false)
+  const showImage = thumbnail && !imgFailed
+  return showImage ? (
+    <img
+      src={thumbnail}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      decoding="async"
+      onError={() => setImgFailed(true)}
+      className="absolute inset-0 h-full w-full object-cover"
+    />
+  ) : (
+    <PdfPageImage src={src} title={title} />
   )
 }
 
@@ -425,7 +456,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-modal"
+        className="flex h-[92vh] min-h-[480px] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-modal"
       >
         {/* Header bar */}
         <div className="flex items-center gap-3 border-b border-charcoal-80/8 bg-white px-4 py-3">
