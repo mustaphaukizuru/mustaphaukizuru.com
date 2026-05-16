@@ -15,7 +15,7 @@
    Solutions page focuses on OUTCOMES, not capabilities (Services page does that).
    ════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { Link } from "react-router-dom"
@@ -240,16 +240,21 @@ function BeforeAfterIllustration({ reduce }) {
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   PackagesBento · Phase 10 · audience-filtered hover-expand bento grid
+   PackagesBento · Brand v3.0 · audience-filtered bento with glass tablist
 
-   Three audience tabs (EDU / SMB / IND) switch the visible packages with
-   a layout transition. The first package in each set takes a 2-column
-   span on lg+ so the grid reads as a real bento (asymmetric) rather than
-   a uniform grid. Tones cycle through brand v3.1 status tints — violet
-   for the lead tile, then azure / mint / amber / rose / slate.
+   Three-audience segmented control (EDU / SMB / IND) sits inside a glass
+   pill, each tab carrying its lucide-react persona icon and a live count
+   of available packages. A short persona description below the tablist
+   crossfades when the audience changes, so the segmentation always feels
+   purposeful instead of arbitrary.
+
+   The grid is wrapped in subtle horizontal gradient hairlines to read as
+   a discrete "shelf" of offerings. After the grid, a charcoal CTA strip
+   (NOT the sacred Innovation Gradient — that's reserved for Contact /
+   Checkout / Buy per § 06) invites custom-plan requests.
 
    The grid uses `<AnimatePresence mode="popLayout">` so audience switches
-   feel intentional (old tiles fade + lift out, new tiles drop in).
+   feel intentional (old tiles fade out, new tiles drop in).
    ════════════════════════════════════════════════════════════════════════ */
 const AUDIENCE_TONES = ["violet", "azure", "mint", "amber", "rose", "slate"]
 
@@ -257,112 +262,239 @@ function PackagesBento({ activeAudience, onAudienceChange, segmented }) {
   const { t } = useTranslation("solutions")
   const reduce = useReducedMotion()
 
-  // Resolve audience labels — fall back to internal codes if i18n keys
-  // are missing so the toggle is always functional.
+  // Package counts per audience — computed once from the module-level
+  // SOLUTION_PACKAGES catalogue, used by the segmented control badges.
+  const counts = useMemo(() => ({
+    EDU: SOLUTION_PACKAGES.filter((p) => p.audience.split(",").includes("EDU")).length,
+    SMB: SOLUTION_PACKAGES.filter((p) => p.audience.split(",").includes("SMB")).length,
+    IND: SOLUTION_PACKAGES.filter((p) => p.audience.split(",").includes("IND")).length,
+  }), [])
+
+  // Per-audience persona descriptions — short copy that reframes the
+  // segmentation in plain language for the visitor.
+  const personaDescriptions = {
+    EDU: t("packages.persona.edu", {
+      defaultValue: "Schools, faculties, and STEM leaders modernizing infrastructure, classrooms, and curricula.",
+    }),
+    SMB: t("packages.persona.smb", {
+      defaultValue: "Owner-operators and growing teams that need launch-ready web, payments, and brand systems.",
+    }),
+    IND: t("packages.persona.ind", {
+      defaultValue: "Educators, builders, and freelancers shipping their first serious product or platform.",
+    }),
+  }
+
+  // Audience tabs — labels fall back through i18n → AUDIENCE_LABELS →
+  // hard-coded English so the toggle is always functional. Icons map to
+  // the lucide-react personas already imported at file scope.
   const audiences = [
-    { code: "EDU", label: t("audiences.edu", { defaultValue: AUDIENCE_LABELS?.EDU || "Schools" }) },
-    { code: "SMB", label: t("audiences.smb", { defaultValue: AUDIENCE_LABELS?.SMB || "SMBs & Startups" }) },
-    { code: "IND", label: t("audiences.ind", { defaultValue: AUDIENCE_LABELS?.IND || "Individuals" }) },
+    { code: "EDU", label: t("audiences.edu", { defaultValue: AUDIENCE_LABELS?.EDU?.label || "Schools" }),     Icon: GraduationCap },
+    { code: "SMB", label: t("audiences.smb", { defaultValue: AUDIENCE_LABELS?.SMB?.label || "SMBs" }),         Icon: Briefcase },
+    { code: "IND", label: t("audiences.ind", { defaultValue: AUDIENCE_LABELS?.IND?.label || "Individuals" }), Icon: Users },
   ]
+
+  const activePersona = audiences.find((a) => a.code === activeAudience) || audiences[0]
+  const ActivePersonaIcon = activePersona.Icon
 
   return (
     <section
       aria-labelledby="packages-bento-title"
-      className="py-14 sm:py-16 lg:py-20"
+      className="relative isolate py-[var(--space-section-y)] sm:py-[var(--space-section)]"
     >
+      {/* Mesh-aurora atmosphere — three soft brand-token blobs, low opacity */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-40 left-[18%] h-[460px] w-[460px] rounded-full bg-violet/8 blur-3xl" />
+        <div className="absolute -bottom-32 right-[12%] h-[420px] w-[420px] rounded-full bg-azure/8 blur-3xl" />
+        <div className="absolute top-1/4 right-1/3 h-[260px] w-[260px] rounded-full bg-cyan/8 blur-3xl" />
+      </div>
+
       <Container>
         <Reveal>
-          <div className="mx-auto mb-8 flex max-w-3xl flex-col items-center gap-3 text-center sm:mb-10">
-            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-violet">
+          <div className="mx-auto mb-8 flex max-w-2xl flex-col items-center gap-3 text-center sm:mb-10">
+            <span className="eyebrow inline-flex items-center gap-2 text-violet">
+              <Sparkles className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
               {t("packages.eyebrow", { defaultValue: "Solution packages" })}
             </span>
             <h2
               id="packages-bento-title"
-              className="text-[clamp(24px,3vw,38px)] font-bold tracking-tight text-violet text-balance"
+              className="text-[var(--text-display)] font-extrabold tracking-tight text-violet text-balance"
             >
               {t("packages.title", { defaultValue: "Outcomes by audience — pick what fits" })}
             </h2>
-            <p className="max-w-xl text-[15px] leading-relaxed text-charcoal-80/70">
+            <p className="max-w-[var(--measure-tight)] text-[15px] leading-relaxed text-charcoal/70">
               {t("packages.subtitle", {
-                defaultValue: "Tap an audience to surface the engagements built for it. Every package is scoped, priced, and outcome-anchored.",
+                defaultValue: "Pick your audience to surface the engagements built for it. Every package is scoped, priced, and outcome-anchored.",
               })}
             </p>
           </div>
         </Reveal>
 
-        {/* Audience toggle */}
+        {/* Glass-pill segmented control — icon + label + live count per tab */}
         <Reveal>
           <div
             role="tablist"
             aria-label={t("packages.tablistAria", { defaultValue: "Audience filter" })}
-            className="mx-auto mb-8 flex w-fit gap-1 rounded-full bg-slate-100 p-1 sm:mb-10"
+            className="mx-auto mb-6 flex w-fit items-center gap-1 rounded-full bg-white/70 p-1.5 shadow-[0_4px_24px_-12px_rgba(15,23,42,0.18)] ring-1 ring-charcoal/8 backdrop-blur-md sm:mb-7"
           >
             {audiences.map((aud) => {
               const active = activeAudience === aud.code
+              const count  = counts[aud.code] || 0
+              const TabIcon = aud.Icon
               return (
                 <button
                   key={aud.code}
                   type="button"
                   role="tab"
                   aria-selected={active}
+                  aria-controls="packages-grid"
                   onClick={() => onAudienceChange(aud.code)}
-                  className={`relative rounded-full px-4 py-2 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 ${
-                    active ? "text-white" : "text-charcoal-80/70 hover:text-charcoal"
+                  className={`relative inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:px-4 sm:text-[14px] ${
+                    active ? "text-white" : "text-charcoal/70 hover:text-charcoal"
                   }`}
                 >
                   {active && !reduce && (
                     <motion.span
                       layoutId="packages-bento-tab-pill"
-                      className="absolute inset-0 rounded-full bg-violet shadow-[0_4px_14px_rgba(93,63,211,0.25)]"
+                      className="absolute inset-0 -z-10 rounded-full bg-violet shadow-[0_8px_24px_-6px_rgba(93,63,211,0.45)]"
                       transition={{ type: "spring", stiffness: 380, damping: 32 }}
                     />
                   )}
                   {active && reduce && (
-                    <span className="absolute inset-0 rounded-full bg-violet" />
+                    <span className="absolute inset-0 -z-10 rounded-full bg-violet" />
                   )}
-                  <span className="relative z-10">{aud.label}</span>
+                  <TabIcon className="relative h-4 w-4" strokeWidth={1.8} aria-hidden="true" />
+                  <span className="relative">{aud.label}</span>
+                  <span
+                    className={`relative inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 font-mono text-[10.5px] font-semibold tabular-nums ${
+                      active ? "bg-white/20 text-white" : "bg-charcoal/8 text-charcoal/65"
+                    }`}
+                  >
+                    {count}
+                  </span>
                 </button>
               )
             })}
           </div>
         </Reveal>
 
-        {/* Bento grid */}
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={activeAudience}
-            initial={reduce ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={reduce ? undefined : { opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:auto-rows-[minmax(180px,auto)]"
-          >
-            {segmented.length === 0 && (
-              <div className="col-span-full rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-[14px] text-charcoal-80/60">
-                {t("packages.empty", {
-                  defaultValue: "No packages yet for this audience — check back soon.",
-                })}
+        {/* Persona description — crossfades on audience switch */}
+        <Reveal>
+          <div className="mx-auto mb-10 min-h-[3rem] max-w-2xl text-center sm:mb-12">
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={activeAudience}
+                initial={reduce ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduce ? undefined : { opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="text-[14px] leading-relaxed text-charcoal/65"
+              >
+                <span className="mr-2 inline-flex items-center gap-1.5 align-middle font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-violet">
+                  <ActivePersonaIcon className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
+                  {activePersona.label}
+                </span>
+                {personaDescriptions[activeAudience]}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+        </Reveal>
+
+        {/* Bento grid — framed by violet hairlines top & bottom */}
+        <div className="relative">
+          <span
+            aria-hidden="true"
+            className="absolute -inset-x-2 -top-3 h-px bg-gradient-to-r from-transparent via-violet/25 to-transparent"
+          />
+
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={activeAudience}
+              id="packages-grid"
+              initial={reduce ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={reduce ? undefined : { opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:auto-rows-[minmax(180px,auto)]"
+            >
+              {segmented.length === 0 && (
+                <div className="col-span-full rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-[14px] text-charcoal/60">
+                  {t("packages.empty", {
+                    defaultValue: "No packages yet for this audience — check back soon.",
+                  })}
+                </div>
+              )}
+              {segmented.map((pkg, idx) => {
+                const tone = AUDIENCE_TONES[idx % AUDIENCE_TONES.length]
+                // First tile spans 2 cols on lg+ to create a proper bento
+                // asymmetry; remaining tiles are 1x1.
+                const span = idx === 0 ? "lg:col-span-2 lg:row-span-2" : ""
+                return (
+                  <BentoCell
+                    key={pkg.id || pkg.slug}
+                    to={`/solutions/${pkg.slug}`}
+                    eyebrow={pkg.audience.split(",").join(" · ")}
+                    title={pkg.name}
+                    description={pkg.tagline}
+                    tone={tone}
+                    span={span}
+                  />
+                )
+              })}
+            </motion.div>
+          </AnimatePresence>
+
+          <span
+            aria-hidden="true"
+            className="absolute -inset-x-2 -bottom-3 h-px bg-gradient-to-r from-transparent via-violet/25 to-transparent"
+          />
+        </div>
+
+        {/* Custom-plan invitation — charcoal canvas with violet/azure glow.
+            Deliberately NOT the Innovation Gradient (sacred to Contact /
+            Checkout / Buy per Brand v3 § 06). The white button reads as
+            "premium secondary" against the dark surface. */}
+        <Reveal delay={0.1}>
+          <div className="mt-10 sm:mt-12">
+            <div className="group relative isolate overflow-hidden rounded-[var(--radius-lg)] bg-charcoal text-white ring-1 ring-charcoal-light/30">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet/35 blur-3xl"
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-azure/25 blur-3xl"
+              />
+
+              <div className="relative flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-8">
+                <div className="flex flex-col gap-2">
+                  <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-mint/15 px-2.5 py-1 font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-mint">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className={`absolute inline-flex h-full w-full rounded-full bg-mint opacity-75 ${reduce ? "" : "animate-ping"}`} />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-mint" />
+                    </span>
+                    {t("packages.customBadge", { defaultValue: "24h response" })}
+                  </span>
+                  <h3 className="text-[clamp(20px,2.2vw,26px)] font-bold tracking-tight text-white text-balance">
+                    {t("packages.customTitle", { defaultValue: "Nothing here fits your scenario?" })}
+                  </h3>
+                  <p className="max-w-[var(--measure-tight)] text-[14px] leading-relaxed text-white/70">
+                    {t("packages.customSubtitle", {
+                      defaultValue: "Send a brief. I'll scope a custom plan with deliverables, timeline, and a fixed price within one business day.",
+                    })}
+                  </p>
+                </div>
+
+                <Link
+                  to="/contact?topic=custom-solution"
+                  className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-white px-5 py-3 text-[14px] font-semibold text-charcoal shadow-[0_8px_24px_-8px_rgba(0,0,0,0.35)] transition-transform duration-[var(--motion-base)] ease-[var(--ease-out-soft)] hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-cyan/50 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
+                >
+                  {t("packages.customCta", { defaultValue: "Request a custom plan" })}
+                  <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                </Link>
               </div>
-            )}
-            {segmented.map((pkg, idx) => {
-              const tone = AUDIENCE_TONES[idx % AUDIENCE_TONES.length]
-              // First tile spans 2 cols on lg+ to create a proper bento
-              // asymmetry; remaining tiles are 1x1.
-              const span = idx === 0 ? "lg:col-span-2 lg:row-span-2" : ""
-              return (
-                <BentoCell
-                  key={pkg.id || pkg.slug}
-                  to={`/services/${pkg.slug}`}
-                  eyebrow={pkg.audience.split(",").join(" · ")}
-                  title={pkg.name}
-                  description={pkg.tagline}
-                  tone={tone}
-                  span={span}
-                />
-              )
-            })}
-          </motion.div>
-        </AnimatePresence>
+            </div>
+          </div>
+        </Reveal>
       </Container>
     </section>
   )
