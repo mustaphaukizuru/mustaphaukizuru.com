@@ -25,8 +25,16 @@ const logger = require("../utils/logger")
 
 BigInt.prototype.toJSON = function () { return this.toString() }
 
-const HTML_500_PATH = path.join(__dirname, "..", "..", "public", "500.html")
-const HTML_503_PATH = path.join(__dirname, "..", "..", "public", "503.html")
+// In production the SPA build copies web/public/* → public/. In development
+// (`npm run dev` with no build) the source files live in web/public/ only.
+// Resolve at startup once so both modes work with no extra config.
+function resolveErrorHtml(name) {
+  const built = path.join(__dirname, "..", "..", "public", name)
+  const src   = path.join(__dirname, "..", "..", "web", "public", name)
+  return fs.existsSync(built) ? built : src
+}
+const HTML_500_PATH = resolveErrorHtml("500.html")
+const HTML_503_PATH = resolveErrorHtml("503.html")
 
 /**
  * Decide whether the caller wants HTML or JSON. Same heuristic as notFound.js:

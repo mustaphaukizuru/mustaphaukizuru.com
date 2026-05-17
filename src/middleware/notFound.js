@@ -19,7 +19,15 @@
 const fs   = require("fs")
 const path = require("path")
 
-const HTML_404_PATH = path.join(__dirname, "..", "..", "public", "404.html")
+// In production the SPA build copies web/public/* → public/, so public/ is the
+// canonical runtime location. In development (`npm run dev` with no build) the
+// source files live in web/public/ only. Resolve at startup once and use
+// whichever path actually exists so both modes work.
+const HTML_404_PATH = (() => {
+  const built = path.join(__dirname, "..", "..", "public", "404.html")
+  const src   = path.join(__dirname, "..", "..", "web", "public", "404.html")
+  return fs.existsSync(built) ? built : src
+})()
 
 function wantsHtml(req) {
   if (req.originalUrl.startsWith("/api/")) return false
