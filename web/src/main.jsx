@@ -15,6 +15,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./store/CartContext";
 import { CompareProvider } from "./context/CompareContext"; // #3
 import { NotificationProvider } from "./context/NotificationContext";
+import { MenuProvider } from "./context/MenuContext";
 import OfflineBanner from "./components/OfflineBanner";
 import SeoRouteManager from "./components/SeoRouteManager";
 import SmoothScrollProvider from "./components/motion/SmoothScrollProvider";
@@ -58,11 +59,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <NotificationProvider>
               <CartProvider>
                 <CompareProvider>
-                  <SmoothScrollProvider>
-                    <SeoRouteManager />
-                    <App />
-                    <OfflineBanner />
-                  </SmoothScrollProvider>
+                  <MenuProvider>
+                    <SmoothScrollProvider>
+                      <SeoRouteManager />
+                      <App />
+                      <OfflineBanner />
+                    </SmoothScrollProvider>
+                  </MenuProvider>
                 </CompareProvider>
               </CartProvider>
             </NotificationProvider>

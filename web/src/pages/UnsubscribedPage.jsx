@@ -35,7 +35,7 @@ export default function UnsubscribedPage() {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 180, damping: 14, delay: 0.1 }}
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8f4ea] text-mint-600"
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-mint/12 text-emerald-700"
           >
             <CheckCircle2 className="h-9 w-9" />
           </motion.div>

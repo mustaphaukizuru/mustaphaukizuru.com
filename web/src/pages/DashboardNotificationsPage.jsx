@@ -38,16 +38,26 @@ import { useNotifications, NOTIFICATION_TYPES } from "../context/NotificationCon
  *  ────────────────────────────────────────────────────────────────────── */
 
 // Lucide icon + colour map per notification type — matches NotificationDropdown.
+// Brand v3 §05 semantic feedback tokens drive every chip. Mapping:
+//   order placed       → brand anchor (violet)
+//   payment success    → success (mint)
+//   payment failed     → error (rose)
+//   refund issued      → info (azure — money returning is informational)
+//   download ready     → success (mint)
+//   download revoked   → warning (amber — restorable, not destructive)
+//   service update     → warning (amber — needs your attention)
+//   support reply      → info (azure — informational outbound)
+//   system             → neutral (steel on slate)
 const TYPE_META = {
-  [NOTIFICATION_TYPES.ORDER_PLACED]:     { icon: ShoppingCart, color: "bg-violet-pale text-violet" },
-  [NOTIFICATION_TYPES.PAYMENT_SUCCESS]:  { icon: CreditCard,   color: "bg-[#e8f4ea] text-mint-800" },
-  [NOTIFICATION_TYPES.PAYMENT_FAILED]:   { icon: CreditCard,   color: "bg-red-50 text-red-600" },
-  [NOTIFICATION_TYPES.REFUND_ISSUED]:    { icon: RefreshCcw,   color: "bg-[#eef2ff] text-[#4f46e5]" },
-  [NOTIFICATION_TYPES.DOWNLOAD_READY]:   { icon: Download,     color: "bg-[#e8f4ea] text-mint-800" },
-  [NOTIFICATION_TYPES.DOWNLOAD_REVOKED]: { icon: Package,      color: "bg-[#f6efe3] text-amber-800" },
-  [NOTIFICATION_TYPES.SERVICE_UPDATE]:   { icon: Package,      color: "bg-[#f6efe3] text-amber-800" },
-  [NOTIFICATION_TYPES.SUPPORT_REPLY]:    { icon: MessageSquare, color: "bg-[#eef3fb] text-[#2f5ea8]" },
-  [NOTIFICATION_TYPES.SYSTEM]:           { icon: Info,         color: "bg-slate-50 text-[#666]" },
+  [NOTIFICATION_TYPES.ORDER_PLACED]:     { icon: ShoppingCart,  color: "bg-violet-pale text-violet" },
+  [NOTIFICATION_TYPES.PAYMENT_SUCCESS]:  { icon: CreditCard,    color: "bg-mint/12 text-emerald-700" },
+  [NOTIFICATION_TYPES.PAYMENT_FAILED]:   { icon: CreditCard,    color: "bg-rose/10 text-rose-700" },
+  [NOTIFICATION_TYPES.REFUND_ISSUED]:    { icon: RefreshCcw,    color: "bg-azure-pale text-azure" },
+  [NOTIFICATION_TYPES.DOWNLOAD_READY]:   { icon: Download,      color: "bg-mint/12 text-emerald-700" },
+  [NOTIFICATION_TYPES.DOWNLOAD_REVOKED]: { icon: Package,       color: "bg-amber/12 text-amber-700" },
+  [NOTIFICATION_TYPES.SERVICE_UPDATE]:   { icon: Package,       color: "bg-amber/12 text-amber-700" },
+  [NOTIFICATION_TYPES.SUPPORT_REPLY]:    { icon: MessageSquare, color: "bg-azure-pale text-azure" },
+  [NOTIFICATION_TYPES.SYSTEM]:           { icon: Info,          color: "bg-slate-100 text-steel" },
 }
 
 function localeTagFor(lang) {
@@ -255,7 +265,7 @@ export default function DashboardNotificationsPage() {
               onClick={handleRefresh}
               disabled={refreshing || loading}
               aria-label={t("notificationsPage.actions.refresh")}
-              className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/10 bg-[#f7f4f8] px-3 py-2 text-micro font-medium text-violet transition hover:bg-violet-pale disabled:opacity-60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3 py-2 text-micro font-medium text-violet transition hover:bg-violet-pale disabled:opacity-60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${(refreshing || loading) ? "animate-spin" : ""}`} aria-hidden="true" />
               <span className="hidden sm:inline">{t("notificationsPage.actions.refresh")}</span>
@@ -266,7 +276,7 @@ export default function DashboardNotificationsPage() {
         {loading && notifications.length === 0 ? (
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-20 animate-pulse rounded-xl bg-[#f4f1f4]" />
+              <div key={i} className="h-20 animate-pulse rounded-xl bg-violet-pale/40" />
             ))}
           </div>
         ) : filtered.length === 0 ? (

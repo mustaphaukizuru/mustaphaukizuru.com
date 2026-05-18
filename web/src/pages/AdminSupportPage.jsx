@@ -188,7 +188,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
 
       {/* M16, Refund request banner with deep-link to the order's refund modal */}
       {(fullTicket.category === "refund_request") && fullTicket.order ? (
-        <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50/60 p-4">
+        <div className="mb-5 rounded-xl border border-rose/20 bg-rose/5/60 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-meta font-semibold text-rose-700">
@@ -223,7 +223,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
       ) : null}
 
       {error && (
-        <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-meta text-rose-700" role="alert">
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose/20 bg-rose/5 px-3 py-2 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -507,7 +507,7 @@ export default function AdminSupportPage() {
   return (
     <section className="space-y-5">
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>

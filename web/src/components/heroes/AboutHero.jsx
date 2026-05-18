@@ -79,8 +79,12 @@ const HERO_BG =
   "radial-gradient(at 0% 100%, rgba(233,196,106,0.18) 0px, transparent 50%), " +
   "linear-gradient(160deg, #F8FAFC 0%, #EFE7F8 40%, #EFF1F5 100%)"
 
+// Conic ring around the portrait. Middle stop uses Violet Light
+// (#8B6FE8, brand v3 --u-violet-lt) instead of Tailwind's off-palette
+// #7c3aed — keeps the brightness arc while staying in the sanctioned
+// token system per Brand v3 §04 (no hex outside the five tiers).
 const RING_GRADIENT =
-  "conic-gradient(from 0deg, #E9C46A 0%, #5D3FD3 35%, #7c3aed 50%, #5D3FD3 65%, #E9C46A 100%)"
+  "conic-gradient(from 0deg, #E9C46A 0%, #5D3FD3 35%, #8B6FE8 50%, #5D3FD3 65%, #E9C46A 100%)"
 
 /* ─────────────────────────── component ───────────────────────────────── */
 
@@ -374,7 +378,14 @@ function Container({ children, className = "" }) {
  */
 function CvPicker({ t }) {
   const [open, setOpen] = useState(false)
+  // Viewport-aware flip: if the trigger is too close to the bottom edge,
+  // open the menu UPWARD so the last item is never clipped. Estimated
+  // menu height (header row + 3 items × ~62 px ≈ 220 px) + 16 px breathing
+  // room. Cheap measurement done at open-time so we don't need a layout
+  // observer or floating-ui dependency.
+  const [placement, setPlacement] = useState("bottom")
   const rootRef = useRef(null)
+  const triggerRef = useRef(null)
 
   // Click outside + Escape closes the menu.
   useEffect(() => {
@@ -395,9 +406,24 @@ function CvPicker({ t }) {
     }
   }, [open])
 
+  // Decide bottom vs top placement the instant the menu opens. Reads the
+  // trigger's getBoundingClientRect once — synchronous, sub-millisecond.
+  // Re-evaluates on every open so the user can scroll, re-open, and get
+  // the correct placement for the new viewport position.
+  useEffect(() => {
+    if (!open) return
+    const trigger = triggerRef.current
+    if (!trigger) return
+    const rect = trigger.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom
+    const MENU_HEIGHT_ESTIMATE = 240 // header row + 3 items + padding
+    setPlacement(spaceBelow < MENU_HEIGHT_ESTIMATE + 16 ? "top" : "bottom")
+  }, [open])
+
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
@@ -418,18 +444,34 @@ function CvPicker({ t }) {
           <motion.div
             role="menu"
             aria-label={t("hero.cvs.menuLabel", "Professional profiles")}
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            // Animate from a tiny offset in the direction the menu OPENS
+            // FROM. Bottom-anchored menu slides down (y: -8 → 0); top-
+            // anchored menu slides up (y: +8 → 0). The motion direction
+            // reinforces the placement so users perceive it as a natural
+            // expansion from the trigger, not a teleport.
+            initial={{ opacity: 0, y: placement === "top" ? 8 : -8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            exit={{ opacity: 0, y: placement === "top" ? 8 : -8, scale: 0.98 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute left-0 top-full z-30 mt-2 w-[min(20rem,90vw)] overflow-hidden rounded-xl border border-charcoal-80/8 bg-white shadow-[0_18px_44px_-12px_rgba(93,63,211,0.28)]"
+            // Position relative to trigger; flip to `bottom-full + mb-2`
+            // when there isn't room below. `max-h-[min(70vh,420px)]`
+            // belt-and-suspenders cap: even if we mis-estimated height
+            // for some translation, the menu never extends beyond 70%
+            // of the viewport and the inner list scrolls. `overflow-y-auto`
+            // moved INSIDE the <ul> so the rounded corners + header stay
+            // intact while the menu body scrolls.
+            className={[
+              "absolute left-0 z-30 w-[min(20rem,90vw)] overflow-hidden rounded-xl border border-charcoal-80/8 bg-white shadow-[0_18px_44px_-12px_rgba(93,63,211,0.28)]",
+              "max-h-[min(70vh,420px)] flex flex-col",
+              placement === "top" ? "bottom-full mb-2" : "top-full mt-2",
+            ].join(" ")}
           >
-            <div className="border-b border-charcoal-80/8 px-4 py-2.5">
+            <div className="shrink-0 border-b border-charcoal-80/8 px-4 py-2.5">
               <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
                 {t("hero.cvs.menuLabel", "Professional profiles")}
               </p>
             </div>
-            <ul className="divide-y divide-charcoal-80/6">
+            <ul className="flex-1 divide-y divide-charcoal-80/6 overflow-y-auto">
               {CV_OPTIONS.map((cv, idx) => (
                 <li key={cv.id}>
                   <a

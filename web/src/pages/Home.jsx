@@ -655,18 +655,19 @@ function CtaPill({ to, label, icon: Icon = ArrowRight }) {
   return (
     <Link
       to={to}
-      className="group inline-flex items-center gap-3 rounded-full py-1.5 pl-6 pr-1.5 text-white shadow-[0_10px_28px_rgba(0,0,0,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-terracotta/40 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
-      style={{ backgroundColor: "#1A1B23" }}
+      className="group inline-flex items-center gap-3 rounded-full bg-charcoal py-1.5 pl-6 pr-1.5 text-white shadow-[0_10px_28px_rgba(0,0,0,0.30)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-terracotta/40 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
     >
       <span className="text-[14px] font-bold">{label}</span>
-      {/* Icon plate, Royal Violet → Deep Azure mini Innovation Gradient */}
+      {/* Icon orb — Dawn gradient (Brand v3 §06 permits Dawn for "hero
+          sections, premium surfaces, launch banners"). Switched from the
+          Sacred Innovation Gradient because §08 expressly forbids that
+          gradient as an icon fill — "Never use it for ... icon fills."
+          The conversion CTA itself (the dark pill surface + label) reads
+          as the actionable element; the orb is decorative reinforcement. */}
       <span
         aria-hidden="true"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-300 ease-out group-hover:scale-110"
-        style={{
-          background: "linear-gradient(135deg, #5D3FD3 0%, #0284C7 100%)",
-          boxShadow: "inset 0 -2px 3px rgba(0,0,0,0.18)",
-        }}
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-grad-dawn transition-all duration-300 ease-out group-hover:scale-110"
+        style={{ boxShadow: "inset 0 -2px 3px rgba(0,0,0,0.18)" }}
       >
         <Icon className="h-4 w-4 text-white transition-transform duration-300 group-hover:translate-x-0.5" />
       </span>

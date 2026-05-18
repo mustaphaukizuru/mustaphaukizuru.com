@@ -212,7 +212,7 @@ export default function ProductCard({
     <motion.article
       whileHover={{ y: -4 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#E9E3DD] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={resetInteraction}
     >
@@ -227,7 +227,7 @@ export default function ProductCard({
                 loading="lazy"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-[#7A7A7A]">
+              <div className="flex h-full items-center justify-center text-sm text-steel">
                 {t("system.preview")}
               </div>
             )}
@@ -384,13 +384,13 @@ export default function ProductCard({
         </p>
 
         {/* Instant access */}
-        <div className="mt-2 flex items-center gap-1.5 text-micro text-[#7A7A7A]">
+        <div className="mt-2 flex items-center gap-1.5 text-micro text-steel">
           <Download className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>{t("card.instantAccess")}</span>
         </div>
 
         {/* Price + actions */}
-        <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#F0EBF4] pt-3">
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-charcoal-80/8 pt-3">
           {/* F05.A · price in JetBrains Mono · tabular-nums */}
           <p className="font-mono text-body font-bold tabular-nums tracking-tight text-violet">
             {formatPrice(safePrice, product?.currency || "MXN")}
@@ -399,7 +399,7 @@ export default function ProductCard({
           <div className="flex items-center gap-1.5">
             <Link
               to={`/store/${product?.slug || ""}`}
-              className="inline-flex items-center justify-center gap-1 rounded-lg border border-violet/15 bg-white px-2.5 py-1.5 text-micro font-medium text-violet transition hover:border-violet/30 hover:bg-[#F4EFF7] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              className="inline-flex items-center justify-center gap-1 rounded-lg border border-violet/15 bg-white px-2.5 py-1.5 text-micro font-medium text-violet transition hover:border-violet/30 hover:bg-violet-pale/60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
               {t("card.view")}

@@ -171,7 +171,7 @@ function BulkActionsToolbar({ selectedCount, actions, onClear, totalCount }) {
                     onClick={action.onClick}
                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-micro font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2 ${
                       isDanger
-                        ? "border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 focus-visible:ring-rose-300/40"
+                        ? "border border-rose/20 bg-rose/5 text-rose-600 hover:bg-rose-100 focus-visible:ring-rose-300/40"
                         : "border border-charcoal-80/12 bg-white text-violet hover:border-violet/20 hover:bg-violet-pale focus-visible:ring-azure/30"
                     }`}
                   >
@@ -402,7 +402,7 @@ export default function DataTable({
             {/* Header, sticky */}
             <div
               role="row"
-              className="sticky top-0 z-10 grid items-center gap-3 border-b border-charcoal-80/10 bg-[#fbf8fb] px-4 py-2.5 backdrop-blur"
+              className="sticky top-0 z-10 grid items-center gap-3 border-b border-charcoal-80/10 bg-violet-pale/40 px-4 py-2.5 backdrop-blur"
               style={{ gridTemplateColumns: gridCols }}
             >
               {selectable && (

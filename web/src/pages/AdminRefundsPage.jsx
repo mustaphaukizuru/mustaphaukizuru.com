@@ -11,9 +11,9 @@ import {
 import { authFetch as apiRequest } from "../lib/api"
 
 const STATUS_PILLS = {
-  succeeded: { label: "Succeeded", bg: "bg-emerald-50", text: "text-emerald-800", ring: "ring-emerald-200" },
-  pending: { label: "Pending", bg: "bg-amber-50", text: "text-amber-800", ring: "ring-amber-200" },
-  failed: { label: "Failed", bg: "bg-red-50", text: "text-red-700", ring: "ring-red-200" },
+  succeeded: { label: "Succeeded", bg: "bg-mint/10", text: "text-emerald-800", ring: "ring-mint/20" },
+  pending: { label: "Pending", bg: "bg-amber/10", text: "text-amber-700", ring: "ring-amber/20" },
+  failed: { label: "Failed", bg: "bg-rose/10", text: "text-rose-700", ring: "ring-red-200" },
   cancelled: { label: "Cancelled", bg: "bg-charcoal-80/[0.06]", text: "text-charcoal-80/65", ring: "ring-charcoal-80/15" },
   disputed: { label: "Disputed", bg: "bg-purple-50", text: "text-purple-700", ring: "ring-purple-200" },
 }
@@ -161,7 +161,7 @@ export default function AdminRefundsPage() {
             {loading ? (
               <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/55">Loading refunds…</td></tr>
             ) : error ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-red-600">{error}</td></tr>
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-rose-700">{error}</td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/55">No refunds match.</td></tr>
             ) : filtered.map((r) => {
@@ -198,8 +198,8 @@ export default function AdminRefundsPage() {
 function Metric({ label, value, accent }) {
   const ring = {
     violet: "bg-violet-pale text-violet",
-    emerald: "bg-emerald-50 text-emerald-700",
-    amber: "bg-amber-50 text-amber-700",
+    emerald: "bg-mint/10 text-emerald-700",
+    amber: "bg-amber/10 text-amber-700",
     charcoal: "bg-charcoal-80/[0.06] text-charcoal-80/75",
   }[accent] || "bg-violet-pale text-violet"
   return (

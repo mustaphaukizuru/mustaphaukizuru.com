@@ -40,7 +40,7 @@ const STATUS_FILTERS = [
 ]
 
 const STATUS_STYLE = {
-  pending: { bg: "bg-amber-50", text: "text-amber-700", label: "Pending" },
+  pending: { bg: "bg-amber/10", text: "text-amber-700", label: "Pending" },
   confirmed: { bg: "bg-mint-50", text: "text-mint-700", label: "Confirmed" },
   scheduled: { bg: "bg-mint-50", text: "text-mint-700", label: "Scheduled" },
   completed: { bg: "bg-azure-pale", text: "text-azure-800", label: "Completed" },
@@ -197,7 +197,7 @@ export default function AdminConsultationsPage() {
               </thead>
               <tbody className="divide-y divide-slate-100 text-[13px]">
                 {items.map((c) => (
-                  <tr key={c.id} className="hover:bg-[#FAFBFC]">
+                  <tr key={c.id} className="hover:bg-slate-100">
                     <td className="px-5 py-3 align-top">
                       <div className="font-semibold text-charcoal">{formatLongDate(c.scheduledAt, c.timezone)}</div>
                       <div className="mt-0.5 inline-flex items-center gap-1 font-mono text-[11px] tabular-nums text-steel">
@@ -291,7 +291,7 @@ function RowActions({ consultation, updating, onPatch, onRegenerateLink }) {
           disabled={updating}
           onClick={onRegenerateLink}
           title="Re-run the Google Calendar + Meet provisioner for this booking"
-          className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700 transition hover:bg-amber-100 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-md border border-amber/20 bg-amber/10 px-2 py-1 text-[11px] font-semibold text-amber-700 transition hover:bg-amber/15 disabled:opacity-50"
         >
           <RefreshCw className="h-3 w-3" aria-hidden="true" />
           Generate link

@@ -128,9 +128,9 @@ const TONE_STYLES = {
 
   // Document-color conventions (Tailwind defaults)
   rose: { chip: "bg-rose-50 text-rose-700", iconColor: "text-rose-600" },
-  azure: { chip: "bg-blue-50 text-blue-700", iconColor: "text-blue-600" },
-  mint: { chip: "bg-emerald-50 text-emerald-700", iconColor: "text-emerald-600" },
-  amber: { chip: "bg-amber-50 text-amber-700", iconColor: "text-amber-600" },
+  azure: { chip: "bg-azure-pale text-azure", iconColor: "text-azure" },
+  mint: { chip: "bg-mint/10 text-emerald-700", iconColor: "text-emerald-700" },
+  amber: { chip: "bg-amber/10 text-amber-700", iconColor: "text-amber-700" },
   cyan: { chip: "bg-sky-50 text-sky-700", iconColor: "text-sky-600" },
 
   // Default fallback

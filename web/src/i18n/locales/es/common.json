@@ -149,7 +149,12 @@
     "adminPanel": "Panel admin",
     "account": "Cuenta",
     "searchPlaceholder": "Buscar productos, servicios…",
-    "primaryAria": "Principal"
+    "primaryAria": "Principal",
+    "brandTagline": "Complejidad, simplificada.",
+    "navigateEyebrow": "Navegar",
+    "signingOut": "Cerrando sesión…",
+    "signOutConfirm": "Toca para confirmar cierre de sesión",
+    "confirmSignOut": "Toca para confirmar"
   },
   "cookies": {
     "title": "Preferencias de cookies",

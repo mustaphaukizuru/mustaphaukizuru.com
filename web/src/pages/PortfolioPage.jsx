@@ -188,7 +188,7 @@ export default function PortfolioPage() {
               ))}
             </div>
           ) : error ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-red-700">
+            <div className="rounded-2xl border border-rose/20 bg-rose/10 p-8 text-center text-rose-700">
               <AlertCircle className="mx-auto mb-2 h-6 w-6" />
               <p className="text-meta">{error}</p>
             </div>

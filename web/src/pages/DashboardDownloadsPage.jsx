@@ -374,7 +374,7 @@ export default function DashboardDownloadsPage() {
   return (
     <section className="space-y-5">
       {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700" role="alert">
+        <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -450,7 +450,7 @@ export default function DashboardDownloadsPage() {
               onClick={() => load(true)}
               disabled={refreshing}
               aria-label={t("downloads.library.refreshAria")}
-              className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/10 bg-[#f7f4f8] px-3 py-2 text-micro font-medium text-violet transition hover:bg-violet-pale disabled:opacity-60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3 py-2 text-micro font-medium text-violet transition hover:bg-violet-pale disabled:opacity-60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} aria-hidden="true" />
               <span className="hidden sm:inline">{t("downloads.library.refresh")}</span>

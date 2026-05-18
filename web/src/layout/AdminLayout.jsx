@@ -235,7 +235,10 @@ export default function AdminLayout() {
   useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
 
   return (
-    <section className="min-h-screen bg-mist pb-20 lg:pb-0">
+    // `data-dashboard-shell` scopes dashboard-only dark mode to this
+    // subtree (see styles/tokens.css). The admin surface uses the same
+    // anchor as the member dashboard so they share theme styling.
+    <section data-dashboard-shell className="min-h-screen bg-mist pb-20 lg:pb-0">
       {/* Skip to content for keyboard users */}
       <a
         href="#admin-main"

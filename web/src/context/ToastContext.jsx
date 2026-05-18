@@ -11,26 +11,31 @@ const TOAST_ICONS = {
   warning: TriangleAlert,
 }
 
+// Brand v3 §05 semantic feedback tokens. Each toast type maps to its
+// canonical tier — Mint (success) · Rose (error) · Azure (info) · Amber
+// (warning) — using brand opacity utilities rather than Tailwind's default
+// green/blue/red scales. Matches the chip pattern established across
+// dashboard + admin pages so toast surfaces feel native to the system.
 const TOAST_STYLES = {
   success: {
-    container: "border-green-200 bg-green-50 text-green-800",
-    icon: "text-green-600",
-    progress: "bg-green-500",
+    container: "border-mint/20 bg-mint/10 text-emerald-800",
+    icon: "text-emerald-700",
+    progress: "bg-mint",
   },
   error: {
-    container: "border-red-200 bg-red-50 text-red-800",
-    icon: "text-red-600",
-    progress: "bg-red-500",
+    container: "border-rose/20 bg-rose/10 text-rose-800",
+    icon: "text-rose-700",
+    progress: "bg-rose",
   },
   info: {
-    container: "border-blue-200 bg-blue-50 text-blue-800",
-    icon: "text-blue-600",
-    progress: "bg-blue-500",
+    container: "border-azure/20 bg-azure-pale text-azure-800",
+    icon: "text-azure",
+    progress: "bg-azure",
   },
   warning: {
-    container: "border-amber-200 bg-amber-50 text-amber-800",
-    icon: "text-amber-600",
-    progress: "bg-amber-500",
+    container: "border-amber/20 bg-amber/10 text-amber-700",
+    icon: "text-amber-700",
+    progress: "bg-amber",
   },
 }
 

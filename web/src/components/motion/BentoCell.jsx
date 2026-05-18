@@ -53,7 +53,7 @@ const TONES = {
     overlay:   "from-mint-50/0 to-mint-50/50",
   },
   amber: {
-    bg:        "bg-amber-50",
+    bg:        "bg-amber/10",
     text:      "text-amber-700",
     eyebrow:   "text-amber-700/75",
     accent:    "bg-amber/15",

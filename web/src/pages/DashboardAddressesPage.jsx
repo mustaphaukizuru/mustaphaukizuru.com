@@ -129,7 +129,7 @@ export default function DashboardAddressesPage() {
 
       <section className="space-y-5">
         {error && (
-          <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
+          <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             {error}
           </div>
@@ -258,7 +258,7 @@ function AddressRow({ address, onEdit, onDelete, onSetDefault, isDeleting }) {
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex items-center gap-1 rounded-lg border border-charcoal-80/15 px-3 py-2 text-micro font-medium text-charcoal-80 transition hover:bg-[#f4eef6] hover:text-violet"
+          className="inline-flex items-center gap-1 rounded-lg border border-charcoal-80/15 px-3 py-2 text-micro font-medium text-charcoal-80 transition hover:bg-violet-pale/60 hover:text-violet"
         >
           <Pencil className="h-3.5 w-3.5" /> {t("addresses.row.edit")}
         </button>
@@ -266,7 +266,7 @@ function AddressRow({ address, onEdit, onDelete, onSetDefault, isDeleting }) {
           type="button"
           onClick={onDelete}
           disabled={isDeleting}
-          className="inline-flex items-center justify-center rounded-lg border border-charcoal-80/15 px-3 py-2 text-micro font-medium text-charcoal-80 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+          className="inline-flex items-center justify-center rounded-lg border border-charcoal-80/15 px-3 py-2 text-micro font-medium text-charcoal-80 transition hover:border-rose/20 hover:bg-rose/10 hover:text-rose-700 disabled:opacity-40"
           aria-label={t("addresses.row.deleteAria")}
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -319,14 +319,14 @@ function AddressFormModal({ address, onClose, onSaved }) {
               {isEdit ? t("addresses.form.subtitleEdit") : t("addresses.form.subtitleAdd")}
             </p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/50 transition hover:bg-[#f4eef6]">
+          <button type="button" onClick={onClose} className="rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/50 transition hover:bg-violet-pale/60">
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {error && (
-            <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-micro text-red-700">
+            <div className="mb-4 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2.5 text-micro text-rose-700">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               {error}
             </div>
@@ -404,7 +404,7 @@ function AddressFormModal({ address, onClose, onSaved }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-charcoal-80/15 px-5 py-3 text-meta font-medium text-charcoal-80 transition hover:bg-[#f4eef6]"
+            className="rounded-xl border border-charcoal-80/15 px-5 py-3 text-meta font-medium text-charcoal-80 transition hover:bg-violet-pale/60"
           >
             {t("addresses.form.cancel")}
           </button>

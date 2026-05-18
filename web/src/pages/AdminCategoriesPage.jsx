@@ -16,11 +16,16 @@ import { MetricCard, SkeletonCard } from "../components/ui/index"
  *  AdminCategoriesPage · v2 · full CRUD on ProductCategory
  *  ──────────────────────────────────────────────────────────────────── */
 
+// Brand v3 §05 — every category tint maps to a sanctioned semantic
+// tier: Templates = info (azure), Digital & IT = warning (amber),
+// CS = success (mint), STEM = warm accent (amber-300 retains pop),
+// Digital Business = action (azure). Replaced ad-hoc #eef3fb / #f6efe3
+// / #2f5ea8 with brand-aligned alternatives.
 const VISUAL_STYLES = {
-  "Templates": { icon: BookOpen, tint: "bg-[#eef3fb] text-[#2f5ea8]", border: "border-[#2f5ea8]/15" },
-  "Digital & IT Toolkits": { icon: Cpu, tint: "bg-[#f6efe3] text-amber-800", border: "border-amber-800/15" },
+  "Templates": { icon: BookOpen, tint: "bg-azure-pale text-azure", border: "border-azure/20" },
+  "Digital & IT Toolkits": { icon: Cpu, tint: "bg-amber/12 text-amber-700", border: "border-amber/20" },
   "Computer Science Resources": { icon: FlaskConical, tint: "bg-mint/15 text-mint", border: "border-mint/20" },
-  "STEM & Robotics Kits": { icon: Wrench, tint: "bg-amber-50 text-amber-700", border: "border-amber-300/30" },
+  "STEM & Robotics Kits": { icon: Wrench, tint: "bg-amber/10 text-amber-700", border: "border-amber-300/30" },
   "Digital Business Resources": { icon: Briefcase, tint: "bg-azure/10 text-azure", border: "border-azure/20" },
 }
 const DEFAULT_STYLE = { icon: Sparkles, tint: "bg-violet-pale text-violet", border: "border-violet/15" }
@@ -111,7 +116,7 @@ export default function AdminCategoriesPage() {
   return (
     <section className="space-y-5">
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-meta text-amber-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-amber/20 bg-amber/10 px-4 py-3 text-meta text-amber-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -171,7 +176,7 @@ export default function AdminCategoriesPage() {
                   <div className="flex items-center gap-2">
                     <h3 className="truncate text-meta font-bold text-violet">{row.name}</h3>
                     {row.isLegacy && (
-                      <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">Legacy</span>
+                      <span className="rounded-md bg-amber/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">Legacy</span>
                     )}
                     {!row.isLegacy && row.isActive === false && (
                       <span className="rounded-md bg-charcoal-80/10 px-1.5 py-0.5 text-[10px] font-bold text-charcoal-80/65">Hidden</span>
@@ -197,7 +202,7 @@ export default function AdminCategoriesPage() {
                         <Pencil className="h-3 w-3" aria-hidden="true" /> Edit
                       </button>
                       <button type="button" onClick={() => onDelete(row)}
-                        className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-300/40">
+                        className="inline-flex items-center gap-1 rounded-md border border-rose/20 bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40">
                         <Trash2 className="h-3 w-3" aria-hidden="true" /> Delete
                       </button>
                     </>
@@ -295,7 +300,7 @@ function CategoryFormModal({ initial, onSubmit, onCancel }) {
           </label>
 
           {err && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700" role="alert">
+            <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-[12px] text-rose-700" role="alert">
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {err}
             </div>
           )}

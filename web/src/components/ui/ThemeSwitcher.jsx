@@ -21,17 +21,31 @@ import { Sun, Moon, MonitorSmartphone } from "lucide-react"
 
 const STORAGE_KEY = "theme"
 const VALID = ["light", "dark", "system"]
+// Brand Identity v3.1 §00 — "Default Mode: Light".
+// First-time visitors land on the canonical light brand; users who
+// explicitly toggle to dark or system have their choice persisted in
+// localStorage and respected on every subsequent visit. "system" is
+// available as an opt-in but is NEVER the implicit default — that
+// would let OS-dark users see a brand-incongruent first impression
+// of the dashboard before they've even chosen.
+const DEFAULT_THEME = "light"
 
 function readStored() {
-  if (typeof window === "undefined") return "system"
+  if (typeof window === "undefined") return DEFAULT_THEME
   try {
     const v = window.localStorage.getItem(STORAGE_KEY)
-    return VALID.includes(v) ? v : "system"
+    return VALID.includes(v) ? v : DEFAULT_THEME
   } catch {
-    return "system"
+    return DEFAULT_THEME
   }
 }
 
+// systemPrefersDark · retained for future use but currently unread.
+// Per Brand v3.1 §00 "Default Mode: Light", the System option now
+// resolves to Light regardless of OS preference — the dashboard's
+// canonical brand floor is light, and a user who specifically wants
+// dark can pick the explicit "Dark" segment instead.
+// eslint-disable-next-line no-unused-vars
 function systemPrefersDark() {
   if (typeof window === "undefined" || !window.matchMedia) return false
   return window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -39,7 +53,11 @@ function systemPrefersDark() {
 
 function applyTheme(theme) {
   if (typeof document === "undefined") return
-  const effective = theme === "system" ? (systemPrefersDark() ? "dark" : "light") : theme
+  // Brand v3.1 §00 — System (and any non-explicit theme) resolves to
+  // Light. Users who want dark must select Dark explicitly. This is
+  // the brand-canonical-light guarantee: an OS-dark visitor never lands
+  // on a dark dashboard before they've expressed an explicit preference.
+  const effective = theme === "dark" ? "dark" : "light"
   document.documentElement.setAttribute("data-theme", effective)
   document.documentElement.style.colorScheme = effective
 }
@@ -51,7 +69,7 @@ function applyTheme(theme) {
  *   { theme, setTheme, effective, mounted }
  */
 export function useTheme() {
-  const [theme, setThemeState] = useState("system")
+  const [theme, setThemeState] = useState(DEFAULT_THEME)
   const [mounted, setMounted] = useState(false)
 
   // Hydrate once on the client
@@ -62,16 +80,12 @@ export function useTheme() {
     setMounted(true)
   }, [])
 
-  // Listen to OS changes when on "system"
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return undefined
-    const mq = window.matchMedia("(prefers-color-scheme: dark)")
-    const handler = () => {
-      if (readStored() === "system") applyTheme("system")
-    }
-    mq.addEventListener?.("change", handler)
-    return () => mq.removeEventListener?.("change", handler)
-  }, [])
+  // OS-preference listener is intentionally NOT installed. Per Brand
+  // v3.1 §00, "System" resolves to Light (the brand-canonical default)
+  // rather than following the OS. Without this listener, an OS theme
+  // change on a user sitting on the "System" segment won't repaint —
+  // they'll stay on Light. To follow OS, the user must explicitly pick
+  // Dark when they want it.
 
   const setTheme = useCallback((next) => {
     if (!VALID.includes(next)) return
@@ -84,7 +98,11 @@ export function useTheme() {
     applyTheme(next)
   }, [])
 
-  const effective = theme === "system" ? (systemPrefersDark() ? "dark" : "light") : theme
+  // Per Brand v3.1 §00, anything other than explicit "dark" resolves to
+  // "light". This `effective` value drives the switch-variant icon
+  // (Sun / Moon) — System now visibly shows the Sun, matching the
+  // light render. Stay consistent with applyTheme above.
+  const effective = theme === "dark" ? "dark" : "light"
 
   return { theme, setTheme, effective, mounted }
 }

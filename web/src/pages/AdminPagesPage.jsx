@@ -127,7 +127,7 @@ function EditModal({ page, onClose, onSaved }) {
         </div>
 
         {error && (
-          <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-meta text-rose-700" role="alert">
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose/20 bg-rose/5 px-3 py-2 text-meta text-rose-700" role="alert">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {error}
           </div>
@@ -361,7 +361,7 @@ export default function AdminPagesPage() {
             <button type="button"
               onClick={(e) => { e.stopPropagation(); handleDelete(row) }}
               aria-label={`Delete ${row.title}`} title="Delete"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-300/40 focus-visible:ring-offset-2">
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose/20 bg-rose/5 text-rose-600 transition hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-300/40 focus-visible:ring-offset-2">
               <Trash2 className="h-3 w-3" aria-hidden="true" />
             </button>
           </div>
@@ -407,7 +407,7 @@ export default function AdminPagesPage() {
 
       <section className="space-y-5">
         {error && (
-          <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+          <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {error}
           </div>

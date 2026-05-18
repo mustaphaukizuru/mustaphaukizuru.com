@@ -33,6 +33,7 @@ import {
 } from "lucide-react"
 
 import AuthShell from "../components/auth/AuthShell"
+import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 import useCapsLock from "../hooks/useCapsLock"
 import { scorePassword } from "../components/AuthInput"
 import { apiPost } from "../lib/api"
@@ -71,7 +72,8 @@ export default function ResetPasswordPage() {
 
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
+  // error: null | string | { kind, title, body, action }
+  const [error, setError] = useState(null)
   const [tokenExpired, setTokenExpired] = useState(false)
 
   const score = useMemo(() => scorePassword(password), [password])
@@ -84,24 +86,52 @@ export default function ResetPasswordPage() {
     !matches ||
     score < 3
 
+  // The "request a new link" action shared by every token-related error
+  // path. Centralized so the affordance never drifts in copy or styling.
+  const newLinkAction = (
+    <Link
+      to="/forgot-password"
+      className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+    >
+      {t("reset.newLink") || "Request a new link"} →
+    </Link>
+  )
+
   async function handleSubmit(e) {
     e.preventDefault()
-    setError("")
+    setError(null)
     if (!token) {
-      setError("Reset token is missing. Please request a new password reset link.")
+      setError({
+        kind: "error",
+        title: "Reset link is missing",
+        body: "We can't find a valid token in this URL. Request a fresh password-reset email.",
+        action: newLinkAction,
+      })
       setTokenExpired(true)
       return
     }
     if (password.length < MIN_PW_LENGTH) {
-      setError(`Password must be at least ${MIN_PW_LENGTH} characters.`)
+      setError({
+        kind: "warning",
+        title: "Password is too short",
+        body: `Use at least ${MIN_PW_LENGTH} characters — currently ${password.length}.`,
+      })
       return
     }
     if (password !== confirm) {
-      setError(t("reset.passwordsDontMatch") + ".")
+      setError({
+        kind: "warning",
+        title: "Passwords don't match",
+        body: "Re-enter the same password in both fields.",
+      })
       return
     }
     if (score < 3) {
-      setError("Please choose a stronger password (mix letters, numbers, and symbols).")
+      setError({
+        kind: "warning",
+        title: "Choose a stronger password",
+        body: "Mix uppercase, lowercase, numbers, and a symbol. The strength meter below shows your progress.",
+      })
       return
     }
 
@@ -114,10 +144,19 @@ export default function ResetPasswordPage() {
       const code = err?.code || ""
       const msg = err?.toUserMessage?.() || err?.message || ""
       if (code === "NETWORK_ERROR") {
-        setError("Cannot reach the server. Check your connection and try again.")
+        setError({
+          kind: "warning",
+          title: "Can't reach the server",
+          body: "Check your internet connection and try again. If the problem persists, our servers may be briefly unavailable.",
+        })
       } else if (/expired|invalid/i.test(msg)) {
         setTokenExpired(true)
-        setError("This reset link has expired or is invalid. Please request a new one.")
+        setError({
+          kind: "error",
+          title: "This reset link has expired",
+          body: "Reset links are good for 30 minutes. Request a new one and we'll send a fresh email.",
+          action: newLinkAction,
+        })
       } else {
         setError(msg || "Failed to reset password. Please try again.")
       }
@@ -197,22 +236,8 @@ export default function ResetPasswordPage() {
         </motion.div>
 
         {error && (
-          <motion.div
-            variants={fadeUp}
-            role="alert"
-            aria-live="assertive"
-            className="mt-6 flex items-start gap-3 rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] text-rose-700"
-          >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="flex-1 leading-relaxed">{error}</span>
-            {tokenExpired && (
-              <Link
-                to="/forgot-password"
-                className="shrink-0 font-semibold underline hover:no-underline"
-              >
-                {t("reset.newLink")}
-              </Link>
-            )}
+          <motion.div variants={fadeUp} className="mt-6">
+            <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
           </motion.div>
         )}
 

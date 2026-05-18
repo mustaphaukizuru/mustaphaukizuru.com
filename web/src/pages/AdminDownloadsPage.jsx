@@ -142,7 +142,7 @@ export default function AdminDownloadsPage() {
   return (
     <section className="space-y-5">
       {errorMessage && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           {errorMessage}
         </div>
       )}

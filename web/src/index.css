@@ -186,6 +186,23 @@
 
 html {
   scroll-behavior: smooth;
+
+  /* Scroll-padding compensates for the sticky public Header (~72px) plus
+     a comfortable visual gap. Without this, anchor links (#section,
+     /page#fragment) scroll the target *under* the sticky header where
+     it's hidden. Tab-navigation to a focused element below the fold
+     also lands cleanly with a breathing margin. Dashboard + Admin
+     layouts have their own sticky headers around the same height, so
+     a single value works platform-wide. */
+  scroll-padding-top: 96px;
+
+  /* Stable scrollbar gutter prevents layout shift when the page grows
+     past the viewport and a scrollbar appears. Without this, the page
+     re-flows to fit the new narrower viewport — text re-wraps, images
+     re-size, focus rings jump. The fix has zero cost on touch devices
+     where scrollbars are overlay-only. */
+  scrollbar-gutter: stable;
+
   -webkit-text-size-adjust: 100%;
 
   /* 21st-century OpenType stack — applies to every element by default.
@@ -287,10 +304,48 @@ img, video { max-width: 100%; display: block; }
 }
 
 /* ─── Custom scrollbar ─────────────────────────────────────────────────── */
-::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar        { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: var(--color-violet-pale); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-violet); }
+::-webkit-scrollbar-thumb  {
+  background: var(--color-violet-pale);
+  border-radius: 4px;
+  /* Inset border-like padding so the thumb visually sits in a 4px well
+     against the track. Without this, the thumb hugs the viewport edge
+     and feels too thin against denser scroll content. */
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-violet); background-clip: content-box; }
+
+/* Firefox scrollbar styling — matches WebKit visually (slim violet thumb
+   on transparent track). The two engines diverge here so both rules ship. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-violet-pale) transparent;
+}
+
+/* ─── Scroll-chaining containment ───────────────────────────────────────
+ * `overscroll-behavior: contain` stops scroll events from bubbling out of
+ * a scrollable region when it hits its top/bottom. Without this, scrolling
+ * the sidebar nav past the last item starts scrolling the page; same for
+ * scrolling inside a Modal body, a dropdown menu, or any drawer. With it,
+ * the inner region "swallows" the scroll once it's hit its end — feels
+ * native. Applied to every common inner-scroll surface. */
+[role="dialog"],
+[role="menu"],
+[role="listbox"],
+aside [class*="overflow-y-auto"],
+[data-scroll-contained] {
+  overscroll-behavior: contain;
+}
+
+/* Long lists inside drawers / modals also benefit — covers `.overflow-auto`
+ * and `.overflow-y-scroll` usage in addition to `.overflow-y-auto`. */
+.overflow-y-auto,
+.overflow-auto,
+.overflow-y-scroll {
+  overscroll-behavior: contain;
+}
 
 /* ─── Selection ────────────────────────────────────────────────────────── */
 ::selection { background: var(--color-violet); color: #fff; }

@@ -203,7 +203,7 @@ export default function AdminPortfolioPage() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -269,7 +269,7 @@ export default function AdminPortfolioPage() {
                   />
                 </div>
                 {item.isFeatured && (
-                  <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-inset ring-amber-300/40">
+                  <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-amber/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 ring-1 ring-inset ring-amber-300/40">
                     <Star className="h-2.5 w-2.5 fill-current" aria-hidden="true" />
                     Featured
                   </span>

@@ -176,7 +176,7 @@ export default function DashboardProfilePage() {
               </button>
               {avatarUrl && (
                 <button type="button" onClick={handleDeleteAvatar}
-                  className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-micro font-semibold text-red-600 hover:bg-red-100 transition"
+                  className="rounded-xl border border-rose/20 bg-rose/10 px-3 py-1.5 text-micro font-semibold text-rose-700 hover:bg-red-100 transition"
                 >
                   <Trash2 className="inline h-3.5 w-3.5 mr-1" />{t("profile.card.removePhoto")}
                 </button>
@@ -226,7 +226,7 @@ export default function DashboardProfilePage() {
                     <Save className="h-4 w-4" /> {saving ? t("profile.account.saving") : t("profile.account.save")}
                   </button>
                   <button type="button" onClick={() => setEditing(false)}
-                    className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/15 px-4 py-2 text-meta text-charcoal-80 hover:bg-[#f4eef6]"
+                    className="inline-flex items-center gap-2 rounded-xl border border-charcoal-80/15 px-4 py-2 text-meta text-charcoal-80 hover:bg-violet-pale/60"
                   >
                     <X className="h-4 w-4" /> {t("profile.account.cancel")}
                   </button>
@@ -293,7 +293,7 @@ export default function DashboardProfilePage() {
             {showPwForm && (
               <form onSubmit={handleChangePassword} className="mt-5 flex flex-col gap-4">
                 {pwError && (
-                  <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
+                  <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
                     <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {pwError}
                   </div>
                 )}

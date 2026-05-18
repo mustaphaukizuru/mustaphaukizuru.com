@@ -81,8 +81,8 @@ function fmtMoney(amount, currency = "MXN") {
 function statusTone(status) {
   switch (status) {
     case "published": return "bg-mint-100 text-mint-800"
-    case "draft": return "bg-amber-100 text-amber-600"
-    case "archived": return "bg-slate-50 text-[#666]"
+    case "draft": return "bg-amber/15 text-amber-700"
+    case "archived": return "bg-slate-100 text-steel"
     default: return "bg-violet-pale text-violet"
   }
 }
@@ -277,7 +277,7 @@ function ServiceModal({ open, onClose, initial, onSaved }) {
                     pill. Non-translatable structure (slug, status, pricing,
                     audience, flags) stays canonical and is shared across
                     locales. */}
-                <div className="mb-5 flex items-center justify-between rounded-xl border border-charcoal/12 bg-[#faf7fb] px-3 py-2.5">
+                <div className="mb-5 flex items-center justify-between rounded-xl border border-charcoal/12 bg-violet-pale/40 px-3 py-2.5">
                   <div className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-charcoal/60">
                     <span aria-hidden="true">Locale</span>
                   </div>
@@ -416,12 +416,12 @@ function ServiceModal({ open, onClose, initial, onSaved }) {
               </div>
 
               {error && (
-                <div className="mx-6 mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[12.5px] font-semibold text-rose-700">
+                <div className="mx-6 mb-4 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-3 py-2 text-[12.5px] font-semibold text-rose-700">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />{error}
                 </div>
               )}
 
-              <footer className="flex items-center justify-end gap-2 border-t border-charcoal/10 bg-[#faf7fb] px-6 py-4">
+              <footer className="flex items-center justify-end gap-2 border-t border-charcoal/10 bg-violet-pale/40 px-6 py-4">
                 <button type="button" onClick={onClose}
                   className="rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
@@ -530,7 +530,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
         {/* I18N06 · Compact locale toggle — only swaps Plan name + Description.
             Pricing, tier, period, popular, save-label and inclusion matrix
             stay structural and shared across locales. */}
-        <div className="mb-3 flex items-center justify-between rounded-lg border border-charcoal/10 bg-[#faf7fb] px-2.5 py-1.5">
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-charcoal/10 bg-violet-pale/40 px-2.5 py-1.5">
           <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal/55">
             Locale
           </span>
@@ -706,7 +706,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
             </span>
           )}
           {!pkg.isActive && (
-            <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-[#666]">Hidden</span>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-steel">Hidden</span>
           )}
           {features.length > 0 && (
             <span className="font-mono text-[10px] tabular-nums text-charcoal/55">
@@ -873,7 +873,7 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="border-t border-charcoal/10 bg-[#faf7fb]"
+            className="border-t border-charcoal/10 bg-violet-pale/40"
           >
             <div className="space-y-6 p-5">
               {loadingDetail ? (
@@ -1060,13 +1060,13 @@ export default function AdminServicePlansPage() {
         />
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => setStatusFilter("")}
-            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${statusFilter === "" ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"}`}
+            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${statusFilter === "" ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-violet-pale"}`}
           >
             All
           </button>
           {STATUSES.map((s) => (
             <button key={s} type="button" onClick={() => setStatusFilter(s)}
-              className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${statusFilter === s ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"}`}
+              className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${statusFilter === s ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-violet-pale"}`}
             >
               {s}
             </button>
@@ -1076,7 +1076,7 @@ export default function AdminServicePlansPage() {
 
       {/* ── Errors / Loading / Empty / List ─────────────────────────── */}
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[13px] text-rose-700">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-[13px] text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </div>
       )}

@@ -15,11 +15,11 @@ import { useToast } from "../context/ToastContext"
 
 const STATUS_PILLS = {
   draft: { label: "Draft", bg: "bg-charcoal-80/[0.06]", text: "text-charcoal-80/65", ring: "ring-charcoal-80/15" },
-  scheduled: { label: "Scheduled", bg: "bg-amber-50", text: "text-amber-800", ring: "ring-amber-200" },
-  sending: { label: "Sending", bg: "bg-blue-50", text: "text-blue-800", ring: "ring-blue-200" },
-  sent: { label: "Sent", bg: "bg-emerald-50", text: "text-emerald-800", ring: "ring-emerald-200" },
+  scheduled: { label: "Scheduled", bg: "bg-amber/10", text: "text-amber-700", ring: "ring-amber/20" },
+  sending: { label: "Sending", bg: "bg-azure-pale", text: "text-azure-800", ring: "ring-azure/20" },
+  sent: { label: "Sent", bg: "bg-mint/10", text: "text-emerald-800", ring: "ring-mint/20" },
   cancelled: { label: "Cancelled", bg: "bg-charcoal-80/[0.06]", text: "text-charcoal-80/65", ring: "ring-charcoal-80/15" },
-  failed: { label: "Failed", bg: "bg-red-50", text: "text-red-700", ring: "ring-red-200" },
+  failed: { label: "Failed", bg: "bg-rose/10", text: "text-rose-700", ring: "ring-red-200" },
 }
 
 const AUDIENCE_LABELS = {
@@ -152,7 +152,7 @@ export default function AdminCampaignsPage() {
             {loading ? (
               <tr><td colSpan={7} className="px-4 py-10 text-center text-charcoal-80/55">Loading campaigns…</td></tr>
             ) : error ? (
-              <tr><td colSpan={7} className="px-4 py-10 text-center text-red-600">{error}</td></tr>
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-rose-700">{error}</td></tr>
             ) : campaigns.length === 0 ? (
               <tr><td colSpan={7} className="px-4 py-10 text-center text-charcoal-80/55">
                 No campaigns yet. <Link to="/admin/campaigns/new" className="font-semibold text-violet hover:underline">Compose your first one</Link>.
@@ -173,7 +173,7 @@ export default function AdminCampaignsPage() {
                 <td className="hidden px-4 py-3 lg:table-cell">
                   <div className="font-mono tabular-nums text-charcoal-80/80">
                     {c.sentCount ?? 0}<span className="text-charcoal-80/35"> / </span>
-                    <span className={c.failedCount > 0 ? "text-red-600" : "text-charcoal-80/55"}>{c.failedCount ?? 0}</span>
+                    <span className={c.failedCount > 0 ? "text-rose-700" : "text-charcoal-80/55"}>{c.failedCount ?? 0}</span>
                   </div>
                   {c.totalRecipients ? (
                     <div className="text-[10.5px] text-charcoal-80/45">{pct(c.sentCount, c.totalRecipients)} delivered</div>
@@ -195,7 +195,7 @@ export default function AdminCampaignsPage() {
                     <Link to={`/admin/campaigns/${c.id}/edit`} aria-label="Edit campaign" className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet">
                       <Edit2 className="h-4 w-4" />
                     </Link>
-                    <button type="button" onClick={() => setPendingDelete(c)} aria-label="Delete campaign" className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-red-50 hover:text-red-600">
+                    <button type="button" onClick={() => setPendingDelete(c)} aria-label="Delete campaign" className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-rose/10 hover:text-rose-700">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -210,7 +210,7 @@ export default function AdminCampaignsPage() {
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600"><AlertCircle className="h-5 w-5" /></div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose-700"><AlertCircle className="h-5 w-5" /></div>
               <div className="flex-1">
                 <h2 className="text-[16px] font-bold text-charcoal-80">Delete campaign?</h2>
                 <p className="mt-1 text-[13px] text-charcoal-80/65">
@@ -233,8 +233,8 @@ export default function AdminCampaignsPage() {
 function Metric({ icon: Icon, label, value, accent }) {
   const ringMap = {
     violet: "bg-violet-pale text-violet",
-    emerald: "bg-emerald-50 text-emerald-600",
-    amber: "bg-amber-50 text-amber-600",
+    emerald: "bg-mint/10 text-emerald-700",
+    amber: "bg-amber/10 text-amber-700",
     charcoal: "bg-charcoal-80/[0.06] text-charcoal-80/70",
   }
   return (

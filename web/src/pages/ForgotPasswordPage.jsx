@@ -22,13 +22,13 @@ import { motion, useReducedMotion } from "framer-motion"
 import {
   Mail,
   ArrowLeft,
-  AlertCircle,
   Loader2,
   Inbox,
   ExternalLink,
 } from "lucide-react"
 
 import AuthShell from "../components/auth/AuthShell"
+import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 import useCountdown from "../hooks/useCountdown"
 import { apiPost } from "../lib/api"
 
@@ -73,7 +73,8 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [honeypot, setHoneypot] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  // error: null | string | { kind, title, body, action }
+  const [error, setError] = useState(null)
   const [sent, setSent] = useState(false)
   // devResetUrl is only ever populated outside production AND only when the
   // server's email pipeline failed — see authController.forgotPassword.
@@ -85,11 +86,15 @@ export default function ForgotPasswordPage() {
 
   async function submitRequest(e) {
     e?.preventDefault?.()
-    setError("")
+    setError(null)
     if (honeypot) return
     const cleanEmail = email.trim().toLowerCase()
     if (!EMAIL_RE.test(cleanEmail)) {
-      setError(t("forgot.invalidEmail"))
+      setError({
+        kind: "warning",
+        title: "Email format looks off",
+        body: t("forgot.invalidEmail") || "Make sure it follows name@example.com.",
+      })
       return
     }
     if (cooldown.isRunning) return
@@ -105,9 +110,17 @@ export default function ForgotPasswordPage() {
       const code = err?.code || ""
       const msg = err?.toUserMessage?.() || err?.message || ""
       if (code === "NETWORK_ERROR") {
-        setError("Cannot reach the server. Check your connection and try again.")
+        setError({
+          kind: "warning",
+          title: "Can't reach the server",
+          body: "Check your internet connection and try again. If the problem persists, our servers may be briefly unavailable.",
+        })
       } else if (code === "DB_UNAVAILABLE") {
-        setError("Service temporarily unavailable. Please try again shortly.")
+        setError({
+          kind: "warning",
+          title: "Service temporarily unavailable",
+          body: "We're briefly offline for maintenance. Please try again in a minute.",
+        })
       } else {
         setError(msg || "Failed to send reset link. Please try again.")
       }
@@ -182,9 +195,9 @@ export default function ForgotPasswordPage() {
             <motion.div
               variants={fadeUp}
               role="status"
-              className="mt-5 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-left text-[12px] text-amber-900"
+              className="mt-5 rounded-xl border border-amber-300 bg-amber/10 px-4 py-3 text-left text-[12px] text-amber-700"
             >
-              <strong className="block text-[11px] uppercase tracking-wider text-amber-800">
+              <strong className="block text-[11px] uppercase tracking-wider text-amber-700">
                 {t("forgot.devMode")}
               </strong>
               <p className="mt-1 leading-5">
@@ -251,14 +264,8 @@ export default function ForgotPasswordPage() {
         </motion.div>
 
         {error && (
-          <motion.div
-            variants={fadeUp}
-            role="alert"
-            aria-live="assertive"
-            className="mt-6 flex items-start gap-3 rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] text-rose-700"
-          >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="leading-relaxed">{error}</span>
+          <motion.div variants={fadeUp} className="mt-6">
+            <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
           </motion.div>
         )}
 

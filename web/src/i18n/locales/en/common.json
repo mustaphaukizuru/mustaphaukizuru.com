@@ -149,7 +149,12 @@
     "adminPanel": "Admin Panel",
     "account": "Account",
     "searchPlaceholder": "Search products, services…",
-    "primaryAria": "Primary"
+    "primaryAria": "Primary",
+    "brandTagline": "Complexity, simplified.",
+    "navigateEyebrow": "Navigate",
+    "signingOut": "Signing out…",
+    "signOutConfirm": "Tap to confirm sign out",
+    "confirmSignOut": "Tap to confirm"
   },
   "cookies": {
     "title": "Cookie preferences",

@@ -30,11 +30,11 @@ import {
   Mail,
   Lock,
   Loader2,
-  AlertCircle,
   ShieldAlert,
 } from "lucide-react"
 
 import AuthShell from "../components/auth/AuthShell"
+import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 import BrandMark from "../components/auth/BrandMark"
 import GoogleLoginButton from "../components/GoogleLoginButton"
 import TwoFactorPrompt from "../components/auth/TwoFactorPrompt"
@@ -73,7 +73,11 @@ export default function LoginPage() {
   const [honeypot, setHoneypot] = useState("") // bot trap
 
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  // error: null | string | { kind, title, body, action }
+  // AuthErrorBanner accepts every shape — strings stay as legacy single-line
+  // surfaces, objects unlock the title+body+action treatment for specific
+  // failure modes (401, 429, suspended, network).
+  const [error, setError] = useState(null)
 
   // ── 2FA branch state ───────────────────────────────────────────────
   const [twoFactorToken, setTwoFactorToken] = useState(null)
@@ -115,7 +119,7 @@ export default function LoginPage() {
   // ── Submit ─────────────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault()
-    setError("")
+    setError(null)
 
     // Bot trap — honeypot must remain empty. If it's filled, treat as
     // browser autofill (not a bot) and clear it before the next submit
@@ -132,11 +136,19 @@ export default function LoginPage() {
 
     const cleanEmail = email.trim().toLowerCase()
     if (!cleanEmail || !password) {
-      setError("Please enter your email and password.")
+      setError({
+        kind: "warning",
+        title: "Email and password are required",
+        body: "Fill both fields to sign in.",
+      })
       return
     }
     if (!EMAIL_RE.test(cleanEmail)) {
-      setError("Please enter a valid email address.")
+      setError({
+        kind: "warning",
+        title: "Email format looks off",
+        body: "Make sure it follows name@example.com.",
+      })
       return
     }
     if (lockout.isRunning) return
@@ -178,19 +190,61 @@ export default function LoginPage() {
         // status===0 covers the case where fetch threw before getting a
         // response (typically CORS preflight failure or DNS error). Without
         // this branch the user sees nothing because msg is empty.
-        setError("Cannot reach the server. Check your connection and try again.")
+        setError({
+          kind: "warning",
+          title: "Can't reach the server",
+          body: "Check your internet connection and try again. If the problem persists, our servers may be briefly unavailable.",
+        })
       } else if (code === "AUTH_SUSPENDED") {
-        setError("Your account has been suspended. Please contact support.")
+        setError({
+          kind: "error",
+          title: "Account suspended",
+          body: "Your account is currently suspended. Please contact support to restore access.",
+          action: (
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+            >
+              Contact support →
+            </Link>
+          ),
+        })
       } else if (code === "DB_UNAVAILABLE") {
-        setError("Service is temporarily unavailable. Please try again shortly.")
+        setError({
+          kind: "warning",
+          title: "Service temporarily unavailable",
+          body: "We're briefly offline for maintenance. Please try again in a minute.",
+        })
       } else if (status === 429 || code === "RATE_LIMIT") {
         const seconds = Number(err?.details?.retryAfter) || 60
         lockout.start(seconds)
-        setError(
-          `Too many sign-in attempts. Please wait ${seconds} seconds before trying again.`,
-        )
+        setError({
+          kind: "warning",
+          title: "Too many sign-in attempts",
+          body: `For security, sign-in is paused for ${seconds} seconds. If you've forgotten your password, reset it now.`,
+          action: (
+            <Link
+              to="/forgot-password"
+              className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+            >
+              Reset password →
+            </Link>
+          ),
+        })
       } else if (status === 401) {
-        setError("Incorrect email or password.")
+        setError({
+          kind: "error",
+          title: "Incorrect email or password",
+          body: "Double-check the spelling and try again. If you've forgotten your password, you can reset it.",
+          action: (
+            <Link
+              to="/forgot-password"
+              className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+            >
+              Forgot password →
+            </Link>
+          ),
+        })
       } else {
         setError(msg || "Sign-in failed. Please try again.")
       }
@@ -259,16 +313,12 @@ export default function LoginPage() {
           </p>
         </motion.div>
 
-        {/* Error banner */}
+        {/* Error banner · shared brand v3 surface (AuthErrorBanner).
+            Accepts both legacy strings and the richer { title, body, action }
+            shape produced by the catch-block branches above. */}
         {error && (
-          <motion.div
-            variants={fadeUp}
-            role="alert"
-            aria-live="assertive"
-            className="mt-6 flex items-start gap-3 rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] text-rose-700"
-          >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="leading-relaxed">{error}</span>
+          <motion.div variants={fadeUp} className="mt-6">
+            <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
           </motion.div>
         )}
 

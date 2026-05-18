@@ -17,8 +17,8 @@ import { authFetch as apiRequest } from "../lib/api"
 import { useToast } from "../context/ToastContext"
 
 const STATUS_PILLS = {
-  draft: { label: "Draft", bg: "bg-amber-50", text: "text-amber-800", ring: "ring-amber-200" },
-  published: { label: "Published", bg: "bg-emerald-50", text: "text-emerald-800", ring: "ring-emerald-200" },
+  draft: { label: "Draft", bg: "bg-amber/10", text: "text-amber-700", ring: "ring-amber/20" },
+  published: { label: "Published", bg: "bg-mint/10", text: "text-emerald-800", ring: "ring-mint/20" },
   archived: { label: "Archived", bg: "bg-charcoal-80/[0.06]", text: "text-charcoal-80/65", ring: "ring-charcoal-80/15" },
 }
 
@@ -165,7 +165,7 @@ export default function AdminBlogPage() {
             {loading ? (
               <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/55">Loading posts…</td></tr>
             ) : error ? (
-              <tr><td colSpan={5} className="px-4 py-10 text-center text-red-600">{error}</td></tr>
+              <tr><td colSpan={5} className="px-4 py-10 text-center text-rose-700">{error}</td></tr>
             ) : posts.length === 0 ? (
               <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/55">
                 No posts match. <Link to="/admin/blog/new" className="font-semibold text-violet hover:underline">Create one</Link>.
@@ -210,7 +210,7 @@ export default function AdminBlogPage() {
                       type="button"
                       onClick={() => setPendingDelete(p)}
                       aria-label="Delete post"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-red-50 hover:text-red-600"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-rose/10 hover:text-rose-700"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -227,7 +227,7 @@ export default function AdminBlogPage() {
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose-700">
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div className="flex-1">
@@ -264,8 +264,8 @@ export default function AdminBlogPage() {
 function Metric({ icon: Icon, label, value, accent }) {
   const ringMap = {
     violet: "bg-violet-pale text-violet",
-    emerald: "bg-emerald-50 text-emerald-600",
-    amber: "bg-amber-50 text-amber-600",
+    emerald: "bg-mint/10 text-emerald-700",
+    amber: "bg-amber/10 text-amber-700",
     charcoal: "bg-charcoal-80/[0.06] text-charcoal-80/70",
   }
   return (

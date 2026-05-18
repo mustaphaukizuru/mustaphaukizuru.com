@@ -322,7 +322,7 @@ export default function AdminPortfolioFormPage() {
             {/* I18N06 · Locale toggle — only translatable fields swap; slug,
                 category, role, client, year, duration, tags, tools, results,
                 URLs, status, featured, display order all stay shared. */}
-            <div className="-mt-1 mb-3 flex items-center justify-between rounded-lg border border-charcoal-80/10 bg-[#faf7fb] px-3 py-2">
+            <div className="-mt-1 mb-3 flex items-center justify-between rounded-lg border border-charcoal-80/10 bg-violet-pale/40 px-3 py-2">
               <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">
                 Edit locale
               </span>
@@ -593,7 +593,7 @@ export default function AdminPortfolioFormPage() {
 
           <FormCard title="Cover image">
             {!isEdit && (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-micro text-amber-700" role="status">
+              <p className="rounded-lg border border-amber/20 bg-amber/10 p-2 text-micro text-amber-700" role="status">
                 Save the project first, then come back to upload a cover.
               </p>
             )}
@@ -642,7 +642,7 @@ export default function AdminPortfolioFormPage() {
 
           <FormCard title="Gallery">
             {!isEdit && (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-micro text-amber-700" role="status">
+              <p className="rounded-lg border border-amber/20 bg-amber/10 p-2 text-micro text-amber-700" role="status">
                 Save the project first, then upload gallery images.
               </p>
             )}

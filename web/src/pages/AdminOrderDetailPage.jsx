@@ -193,7 +193,7 @@ export default function AdminOrderDetailPage() {
               type="button"
               onClick={openRefundModal}
               disabled={eligibilityLoading}
-              className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-meta font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-400/30"
+              className="inline-flex items-center gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-2.5 text-meta font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-400/30"
             >
               <RotateCcw className="h-4 w-4" />
               {eligibilityLoading ? "Checking…" : "Issue refund"}
@@ -215,13 +215,13 @@ export default function AdminOrderDetailPage() {
       </div>
 
       {errorMessage ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
+        <div className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
           {errorMessage}
         </div>
       ) : null}
 
       {successMessage ? (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-meta text-green-700">
+        <div className="rounded-xl border border-mint/20 bg-mint/10 px-4 py-3 text-meta text-emerald-700">
           {successMessage}
         </div>
       ) : null}
@@ -247,21 +247,21 @@ export default function AdminOrderDetailPage() {
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl bg-[#fbf8fb] p-4">
+            <div className="rounded-xl bg-violet-pale/40 p-4">
               <div className="text-micro text-charcoal-80/65">Total</div>
               <div className="mt-2 text-section font-bold text-violet">
                 ${Number(order.totalAmount || 0).toFixed(2)}
               </div>
             </div>
 
-            <div className="rounded-xl bg-[#fbf8fb] p-4">
+            <div className="rounded-xl bg-violet-pale/40 p-4">
               <div className="text-micro text-charcoal-80/65">Items</div>
               <div className="mt-2 text-section font-bold text-violet">
                 {order.items?.length || 0}
               </div>
             </div>
 
-            <div className="rounded-xl bg-[#fbf8fb] p-4">
+            <div className="rounded-xl bg-violet-pale/40 p-4">
               <div className="text-micro text-charcoal-80/65">Customer Email</div>
               <div className="mt-2 text-meta font-semibold text-violet break-all">
                 {order.customerEmail || "-"}
@@ -336,7 +336,7 @@ export default function AdminOrderDetailPage() {
 
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-[#eef3fb] p-3 text-[#2f5ea8]">
+              <div className="rounded-xl bg-azure-pale p-3 text-azure">
                 <CreditCard className="h-4 w-4" />
               </div>
               <h3 className="text-card font-semibold text-violet">Payments</h3>
@@ -344,7 +344,7 @@ export default function AdminOrderDetailPage() {
 
             <div className="mt-4 space-y-3">
               {(order.payments || []).length === 0 ? (
-                <div className="rounded-xl bg-[#fbf8fb] px-4 py-4 text-meta text-charcoal-80/70">
+                <div className="rounded-xl bg-violet-pale/40 px-4 py-4 text-meta text-charcoal-80/70">
                   No payment records found.
                 </div>
               ) : (
@@ -375,7 +375,7 @@ export default function AdminOrderDetailPage() {
 
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-[#e8f4ea] p-3 text-mint-800">
+              <div className="rounded-xl bg-mint/12 p-3 text-emerald-700">
                 <Package className="h-4 w-4" />
               </div>
               <h3 className="text-card font-semibold text-violet">Metadata</h3>
@@ -457,7 +457,7 @@ function RefundHistoryCard({ refunds, currency }) {
               <span className={`rounded-full px-3 py-1 text-micro font-semibold capitalize ${
                 r.refundStatus === "succeeded" ? "bg-mint/15 text-mint" :
                 r.refundStatus === "failed" ? "bg-rose-50 text-rose-600" :
-                                                  "bg-amber-50 text-amber-700"
+                                                  "bg-amber/10 text-amber-700"
               }`}>
                 {r.refundStatus}
               </span>
@@ -600,7 +600,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
 
         {/* Eligibility summary */}
         {eligibility.reason ? (
-          <div className="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-4 text-meta text-rose-700 flex items-start gap-3">
+          <div className="mt-5 rounded-xl border border-rose/20 bg-rose/5 p-4 text-meta text-rose-700 flex items-start gap-3">
             <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5" />
             <div>
               <div className="font-semibold">Refund blocked</div>
@@ -610,7 +610,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
         ) : null}
 
         {!eligibility.withinWindow ? (
-          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-meta text-amber-800 flex items-start gap-3">
+          <div className="mt-5 rounded-xl border border-amber/20 bg-amber/10 p-4 text-meta text-amber-700 flex items-start gap-3">
             <Clock className="h-5 w-5 shrink-0 mt-0.5" />
             <div>
               <div className="font-semibold">Outside the {eligibility.refundWindowDays}-day refund window</div>
@@ -623,7 +623,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
         ) : null}
 
         {hasBlocked ? (
-          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-meta text-amber-800">
+          <div className="mt-5 rounded-xl border border-amber/20 bg-amber/10 p-4 text-meta text-amber-700">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
               <div className="min-w-0">
@@ -648,11 +648,11 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
 
         {/* Refundable balance summary */}
         <dl className="mt-5 grid grid-cols-3 gap-3 text-meta">
-          <div className="rounded-xl bg-[#fbf8fb] p-4">
+          <div className="rounded-xl bg-violet-pale/40 p-4">
             <dt className="text-micro text-charcoal-80/65">Order total</dt>
             <dd className="mt-1 font-bold text-violet">{formatMoney(eligibility.totalAmount, currency)}</dd>
           </div>
-          <div className="rounded-xl bg-[#fbf8fb] p-4">
+          <div className="rounded-xl bg-violet-pale/40 p-4">
             <dt className="text-micro text-charcoal-80/65">Already refunded</dt>
             <dd className="mt-1 font-bold text-violet">{formatMoney(eligibility.alreadyRefunded, currency)}</dd>
           </div>
@@ -669,7 +669,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
             <label className={`rounded-xl border p-4 cursor-pointer transition ${
               scope === "full"
                 ? "border-violet bg-violet-pale"
-                : "border-charcoal-80/15 bg-white hover:bg-[#fbf8fb]"
+                : "border-charcoal-80/15 bg-white hover:bg-violet-pale/40"
             }`}>
               <input
                 type="radio"
@@ -687,7 +687,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
             <label className={`rounded-xl border p-4 cursor-pointer transition ${
               scope === "partial"
                 ? "border-violet bg-violet-pale"
-                : "border-charcoal-80/15 bg-white hover:bg-[#fbf8fb]"
+                : "border-charcoal-80/15 bg-white hover:bg-violet-pale/40"
             }`}>
               <input
                 type="radio"
@@ -786,14 +786,14 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
 
         {/* Override toggle */}
         {hasBlocked ? (
-          <label className="mt-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <label className="mt-5 flex items-start gap-3 rounded-xl border border-amber/20 bg-amber/10 p-4">
             <input
               type="checkbox"
               checked={force}
               onChange={(e) => setForce(e.target.checked)}
               className="mt-1 h-4 w-4 rounded border-amber-400 text-amber-700 focus:ring-amber-500"
             />
-            <span className="text-meta text-amber-800">
+            <span className="text-meta text-amber-700">
               <span className="font-semibold">Override Option A, refund downloaded items anyway.</span>
               <br />
               I confirm this is a customer-service exception. The override and bypassed items will be recorded in the audit log.
@@ -802,7 +802,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
         ) : null}
 
         {errorMsg ? (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700">
+          <div className="mt-4 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700">
             {errorMsg}
           </div>
         ) : null}
@@ -811,7 +811,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-charcoal-80/15 bg-white px-5 py-2.5 text-meta font-semibold text-charcoal-80 transition hover:bg-[#fbf8fb]"
+            className="rounded-xl border border-charcoal-80/15 bg-white px-5 py-2.5 text-meta font-semibold text-charcoal-80 transition hover:bg-violet-pale/40"
           >
             Cancel
           </button>

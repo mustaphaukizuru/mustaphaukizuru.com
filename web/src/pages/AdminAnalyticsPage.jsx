@@ -220,7 +220,11 @@ function Sparkline({ points }) {
   const areaPath = `${linePath} L ${coords[coords.length - 1].x.toFixed(1)} ${H - PAD_Y} L ${coords[0].x.toFixed(1)} ${H - PAD_Y} Z`
 
   return (
-    <div className="-mx-1 overflow-x-auto">
+    // text-charcoal sets the SVG's currentColor — in dashboard dark
+    // mode the global utility flip (batch 15) swaps text-charcoal to
+    // Cloud Mist, so grid lines that use stroke="currentColor" stay
+    // visible against the dark canvas without per-element overrides.
+    <div className="-mx-1 overflow-x-auto text-charcoal">
       <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label="Daily pageviews trend">
         <defs>
           <linearGradient id="sparklineFill" x1="0" x2="0" y1="0" y2="1">
@@ -228,10 +232,12 @@ function Sparkline({ points }) {
             <stop offset="100%" stopColor="#5D3FD3" stopOpacity="0.00" />
           </linearGradient>
         </defs>
-        {/* horizontal grid */}
+        {/* horizontal grid — currentColor inherits from the parent's
+            text color, which auto-flips with the theme. opacity stays
+            low so the grid never competes with the data line. */}
         {[0.25, 0.5, 0.75].map((t, i) => {
           const y = PAD_Y + t * (H - 2 * PAD_Y)
-          return <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="#1A1B23" strokeOpacity="0.06" strokeDasharray="2 4" />
+          return <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="currentColor" strokeOpacity="0.10" strokeDasharray="2 4" />
         })}
         <path d={areaPath} fill="url(#sparklineFill)" />
         <path d={linePath} fill="none" stroke="#5D3FD3" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />

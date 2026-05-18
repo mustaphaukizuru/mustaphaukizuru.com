@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext"
 import { orderServiceTier } from "../services/serviceCheckoutService"
 import { createMercadoPagoPreference } from "../services/mercadoPagoService"
 import { createPaypalSession, capturePaypalSession } from "../services/paypalService"
+import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  ServicesCheckoutPage · /checkout/service?audience=X&tier=Y
@@ -87,7 +88,10 @@ export default function ServicesCheckoutPage() {
   })
   const [agreedTerms, setAgreedTerms] = useState(false)
   const [paymentMethod, setMethod] = useState("mercadopago")
-  const [error, setError] = useState("")
+  // error: null | string | { kind, title, body, action }
+  // Strings still flow through (existing i18n keys); the richer object lets
+  // payment failures suggest the alternate gateway in one tap.
+  const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
   // PayPal SDK
@@ -121,15 +125,38 @@ export default function ServicesCheckoutPage() {
 
   function validate() {
     if (!plan) {
-      setError(t("checkout.errors.planInvalid"))
+      setError({
+        kind: "error",
+        title: t("checkout.errors.planInvalidTitle", { defaultValue: "Plan not found" }),
+        body: t("checkout.errors.planInvalid"),
+      })
       return false
     }
-    if (!form.customerName.trim()) { setError(t("checkout.errors.nameRequired")); return false }
-    if (!form.customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customerEmail.trim())) {
-      setError(t("checkout.errors.emailInvalid")); return false
+    if (!form.customerName.trim()) {
+      setError({
+        kind: "warning",
+        title: t("checkout.errors.nameRequiredTitle", { defaultValue: "Name is required" }),
+        body: t("checkout.errors.nameRequired"),
+      })
+      return false
     }
-    if (!agreedTerms) { setError(t("checkout.errors.termsRequired")); return false }
-    setError("")
+    if (!form.customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customerEmail.trim())) {
+      setError({
+        kind: "warning",
+        title: t("checkout.errors.emailInvalidTitle", { defaultValue: "Email format looks off" }),
+        body: t("checkout.errors.emailInvalid"),
+      })
+      return false
+    }
+    if (!agreedTerms) {
+      setError({
+        kind: "warning",
+        title: t("checkout.errors.termsRequiredTitle", { defaultValue: "Please accept the Terms" }),
+        body: t("checkout.errors.termsRequired"),
+      })
+      return false
+    }
+    setError(null)
     return true
   }
 
@@ -155,7 +182,7 @@ export default function ServicesCheckoutPage() {
 
   async function handleMercadoPago() {
     if (!validate()) return
-    setBusy(true); setError("")
+    setBusy(true); setError(null)
     try {
       const orderId = await ensureOrder()
       // BUGFIX: createMercadoPagoPreference expects a string orderId, not
@@ -167,7 +194,22 @@ export default function ServicesCheckoutPage() {
       window.location.href = url
     } catch (err) {
       console.error("[ServiceCheckout] MP failed:", err)
-      setError(err.message || t("checkout.errors.mpFailed"))
+      setError({
+        kind: "error",
+        title: t("checkout.errors.mpFailedTitle", { defaultValue: "MercadoPago checkout failed" }),
+        body: err.message || t("checkout.errors.mpFailed"),
+        // The page supports both gateways — when one fails, the cheapest
+        // recovery path is the other. Inline action saves a re-scroll.
+        action: (
+          <button
+            type="button"
+            onClick={() => { setMethod("paypal"); setError(null) }}
+            className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          >
+            Try PayPal instead →
+          </button>
+        ),
+      })
       setBusy(false)
     }
   }
@@ -198,11 +240,28 @@ export default function ServicesCheckoutPage() {
             await capturePaypalSession(data.orderID, internalOrderId)
             navigate(`/checkout/success/${internalOrderId}?gateway=paypal`, { replace: true })
           },
-          onCancel: () => setError(t("checkout.errors.paypalCancel")),
+          onCancel: () => setError({
+            kind: "info",
+            title: t("checkout.errors.paypalCancelTitle", { defaultValue: "PayPal payment was cancelled" }),
+            body: t("checkout.errors.paypalCancel"),
+          }),
           onError: (err) => {
             // Surface the real error so future failures aren't masked.
             console.error("[ServiceCheckout] PayPal error:", err)
-            setError(err?.message || t("checkout.errors.paypalFailed"))
+            setError({
+              kind: "error",
+              title: t("checkout.errors.paypalFailedTitle", { defaultValue: "PayPal checkout failed" }),
+              body: err?.message || t("checkout.errors.paypalFailed"),
+              action: (
+                <button
+                  type="button"
+                  onClick={() => { setMethod("mercadopago"); setError(null) }}
+                  className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                >
+                  Try MercadoPago instead →
+                </button>
+              ),
+            })
           },
         }).render(paypalRef.current)
         paypalRendered.current = true
@@ -218,7 +277,7 @@ export default function ServicesCheckoutPage() {
     return (
       <div className="bg-mist py-16">
         <div className="mx-auto max-w-xl px-4">
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center">
+          <div className="rounded-2xl border border-rose/20 bg-rose/5 p-8 text-center">
             <AlertCircle className="mx-auto mb-3 h-10 w-10 text-rose-600" />
             <h1 className="text-card font-bold text-rose-700">{t("checkout.errors.notFound")}</h1>
             <p className="mt-2 text-meta text-rose-700/85">
@@ -391,8 +450,8 @@ export default function ServicesCheckoutPage() {
               </label>
 
               {error && (
-                <div className="mt-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-meta text-rose-700" role="alert">
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
+                <div className="mt-4">
+                  <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
                 </div>
               )}
 

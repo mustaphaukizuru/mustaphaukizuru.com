@@ -626,7 +626,7 @@ export default function AdminProductFormPage() {
                       <button
                         type="button"
                         onClick={() => removeFeature(index)}
-                        className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50"
+                        className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-rose/10"
                         title="Remove"
                       >
                         Remove
@@ -636,7 +636,7 @@ export default function AdminProductFormPage() {
                 ))}
 
                 {form.features.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/50">
+                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/50">
                     No features added yet. Add features like "Instant digital download", "Ready-to-use template", etc.
                   </div>
                 )}
@@ -719,7 +719,7 @@ export default function AdminProductFormPage() {
                       <button
                         type="button"
                         onClick={() => removeSpec(index)}
-                        className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50"
+                        className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-rose/10"
                         title="Remove"
                       >
                         Remove
@@ -729,7 +729,7 @@ export default function AdminProductFormPage() {
                 ))}
 
                 {form.specifications.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/50">
+                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/50">
                     No highlights yet. Add metadata like "Delivery / Digital download", "Page size / 8.5x11", etc.
                   </div>
                 )}
@@ -787,7 +787,7 @@ export default function AdminProductFormPage() {
                         <button
                           type="button"
                           onClick={() => removeFaq(index)}
-                          className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-red-50"
+                          className="rounded-lg px-2 py-1 text-xs text-red-500 hover:bg-rose/10"
                           title="Remove"
                         >
                           Remove
@@ -815,7 +815,7 @@ export default function AdminProductFormPage() {
                 ))}
 
                 {form.productFaqs.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/50">
+                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/50">
                     No FAQs yet. Add common buyer questions and answers.
                   </div>
                 )}
@@ -874,7 +874,7 @@ export default function AdminProductFormPage() {
               </p>
 
               {!isEdit ? (
-                <div className="mt-4 rounded-xl border border-[#e7dce8] bg-mist px-4 py-3 text-sm text-charcoal-80/70">
+                <div className="mt-4 rounded-xl border border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/70">
                   Save the product first, then upload files.
                 </div>
               ) : (
@@ -923,7 +923,7 @@ export default function AdminProductFormPage() {
 
                   <div className="space-y-3">
                     {(form.files || []).length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/70">
+                      <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/70">
                         No product files uploaded yet.
                       </div>
                     ) : (
@@ -976,7 +976,7 @@ export default function AdminProductFormPage() {
                                   Make Primary
                                 </button>
                               ) : (
-                                <span className="rounded-xl bg-green-100 px-4 py-2 text-sm font-medium text-green-700">
+                                <span className="rounded-xl bg-mint/15 px-4 py-2 text-sm font-medium text-emerald-700">
                                   ✓ Primary
                                 </span>
                               )}
@@ -984,7 +984,7 @@ export default function AdminProductFormPage() {
                               <button
                                 type="button"
                                 onClick={() => handleDeleteFile(file.id)}
-                                className="rounded-xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                                className="rounded-xl border border-rose/20 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose/10"
                               >
                                 Delete
                               </button>
@@ -1006,7 +1006,7 @@ export default function AdminProductFormPage() {
               </p>
 
               {!isEdit ? (
-                <div className="mt-4 rounded-xl border border-[#e7dce8] bg-mist px-4 py-3 text-sm text-charcoal-80/70">
+                <div className="mt-4 rounded-xl border border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/70">
                   Save the product first, then upload images.
                 </div>
               ) : (
@@ -1045,7 +1045,7 @@ export default function AdminProductFormPage() {
 
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {(form.images || []).length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-mist px-4 py-3 text-sm text-charcoal-80/70">
+                      <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/70">
                         No product images uploaded yet.
                       </div>
                     ) : (
@@ -1080,7 +1080,7 @@ export default function AdminProductFormPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteImage(image.id)}
-                                  className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50"
+                                  className="rounded-lg border border-rose/20 px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose/10"
                                 >
                                   Delete Image
                                 </button>

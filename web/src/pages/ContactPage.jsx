@@ -33,6 +33,7 @@ import ContactHero from "../components/heroes/ContactHero"
 import SocialLinks, { CONTACT_SOCIALS } from "../components/SocialLinks"
 import FloatingLabelInput    from "../components/forms/FloatingLabelInput"
 import FloatingLabelTextarea from "../components/forms/FloatingLabelTextarea"
+import AuthErrorBanner       from "../components/auth/AuthErrorBanner"
 
 /* Social icons + animations are owned by the shared SocialLinks component
  * imported above — no per-page glyph copies are required. */
@@ -218,7 +219,9 @@ function ContactSection() {
   const [touched, setTouched] = useState({})
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
+  // error: null | string | { kind, title, body, action }
+  // Strings are kept for backward compatibility with i18n-driven fallbacks.
+  const [error, setError] = useState(null)
   const [paramContext, setParamContext] = useState(null)
 
   /* ──────────────────────────────────────────────────────────────────
@@ -319,10 +322,14 @@ function ContactSection() {
       audience: true, message: true, consent: true,
     })
     if (!isValid) {
-      setError(t("form.errors.fixFields"))
+      setError({
+        kind: "warning",
+        title: t("form.errors.fixTitle", { defaultValue: "A few fields need your attention" }),
+        body: t("form.errors.fixFields"),
+      })
       return
     }
-    setError("")
+    setError(null)
     setLoading(true)
     try {
       // Resolve labels for the email subject. We send English labels to
@@ -368,7 +375,22 @@ function ContactSection() {
       setForm(INITIAL_FORM)
       setTouched({})
     } catch (err) {
-      setError(err?.message || t("form.errors.sendFailed"))
+      // Server-side failure — surface a brand-aligned card with a
+      // brief recovery hint pointing to the WhatsApp / email fallback so
+      // the visitor never hits a dead end.
+      setError({
+        kind: "error",
+        title: t("form.errors.sendFailedTitle", { defaultValue: "Couldn't send your message" }),
+        body: err?.message || t("form.errors.sendFailed"),
+        action: (
+          <a
+            href={`mailto:${EMAIL}`}
+            className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          >
+            Email instead →
+          </a>
+        ),
+      })
     } finally {
       setLoading(false)
     }
@@ -465,7 +487,7 @@ function ContactSection() {
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 14 }}
-                  className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8f4ea] text-mint-600"
+                  className="flex h-16 w-16 items-center justify-center rounded-2xl bg-mint/12 text-emerald-700"
                 >
                   <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
                 </motion.div>
@@ -503,7 +525,7 @@ function ContactSection() {
                   <motion.div
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-medium text-red-700"
+                    className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] font-medium text-rose-700"
                     role="alert"
                   >
                     {error}
@@ -637,11 +659,8 @@ function ContactSection() {
                 )}
 
                 {error && (
-                  <motion.div
-                    variants={fadeUp}
-                    className="rounded-xl border border-rose-50 bg-rose-50 px-4 py-3 text-[13px] text-rose-700"
-                  >
-                    {error}
+                  <motion.div variants={fadeUp}>
+                    <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
                   </motion.div>
                 )}
 
@@ -717,7 +736,7 @@ function ContactChannelsSection() {
               </div>
             </a>
             <div className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber/10 text-amber-700">
                 <MapPin className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>

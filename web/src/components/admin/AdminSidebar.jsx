@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react"
 import { NavLink, useNavigate, Link } from "react-router-dom"
+import ThemeSwitcher from "../ui/ThemeSwitcher"
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -363,10 +364,18 @@ export default function AdminSidebar() {
               <div className="truncate text-micro text-charcoal-80/65">{user?.email || ""}</div>
             </div>
           </div>
+          {/* Theme switcher — scoped to the admin shell via the
+              data-dashboard-shell attribute on AdminLayout. Toggling dark
+              here flips ONLY the admin subtree; the public website stays
+              on the canonical light brand per Brand v3.1 §00. */}
+          <div className="mt-2.5">
+            <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
+          </div>
+
           <button
             type="button"
             onClick={handleLogout}
-            className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-charcoal-80/10 bg-white px-3 py-2 text-micro font-semibold text-charcoal-80/75 transition hover:border-rose/30 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-300/40 focus-visible:ring-offset-2"
+            className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-charcoal-80/10 bg-white px-3 py-2 text-micro font-semibold text-charcoal-80/75 transition hover:border-rose/30 hover:bg-rose/10 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
           >
             <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
             Sign out

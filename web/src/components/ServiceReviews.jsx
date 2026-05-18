@@ -224,7 +224,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
       </div>
 
       {formSuccess && (
-        <div className="flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="flex items-start gap-2 rounded-xl border border-mint/20 bg-mint/10 px-4 py-3 text-sm text-emerald-700">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{formSuccess}</span>
         </div>
@@ -274,7 +274,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
             />
           </div>
           {formError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+            <div className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-2.5 text-sm text-rose-700">
               {formError}
             </div>
           )}
@@ -353,7 +353,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
                     <button
                       type="button"
                       onClick={() => handleDelete(review.id)}
-                      className="rounded-lg p-1.5 text-charcoal-80/30 transition hover:bg-red-50 hover:text-red-500"
+                      className="rounded-lg p-1.5 text-charcoal-80/30 transition hover:bg-rose/10 hover:text-red-500"
                       title={t("reviews.deleteTitle")}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -366,7 +366,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
                 )}
 
                 {isOwner && review.status && review.status !== "approved" && (
-                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-micro font-semibold text-amber-700">
+                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber/10 px-3 py-1 text-micro font-semibold text-amber-700">
                     <Clock3 className="h-3 w-3" /> {t("reviews.awaitingModeration")}
                   </div>
                 )}

@@ -127,7 +127,7 @@ export default function UserMenu({ variant = "header" }) {
       {open && (
         <div className="absolute right-0 top-[calc(100%+8px)] z-[200] w-64 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgba(93,63,211,0.14)]">
           {/* User info header */}
-          <div className="flex items-center gap-3 border-b border-charcoal-80/8 bg-[#faf8fb] px-4 py-4">
+          <div className="flex items-center gap-3 border-b border-charcoal-80/8 bg-violet-pale/40 px-4 py-4">
             <Avatar user={user} size="md" />
             <div className="min-w-0 flex-1">
               <div className="truncate text-meta font-semibold text-violet">
@@ -182,9 +182,9 @@ export default function UserMenu({ variant = "header" }) {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-meta font-medium text-red-600 transition hover:bg-red-50"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-meta font-medium text-rose-700 transition hover:bg-rose/10"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-red-50">
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-rose/10">
                 <LogOut className="h-3.5 w-3.5" />
               </div>
               Logout
@@ -201,12 +201,12 @@ function DropItem({ to, icon: Icon, label, desc, accent, onClick }) {
     <Link
       to={to}
       onClick={onClick}
-      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:bg-[#f7f4f8] ${accent ? "mb-1" : ""}`}
+      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:bg-violet-pale/40 ${accent ? "mb-1" : ""}`}
     >
       <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition ${
         accent
           ? "bg-violet text-white"
-          : "bg-[#f0eaf2] text-violet group-hover:bg-violet-pale"
+          : "bg-violet-pale/70 text-violet group-hover:bg-violet-pale"
       }`}>
         <Icon className="h-3.5 w-3.5" />
       </div>

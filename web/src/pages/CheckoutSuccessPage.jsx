@@ -265,7 +265,7 @@ export default function CheckoutSuccessPage() {
           </motion.div>
         ) : polling ? (
           <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
-            <motion.div variants={fadeUp} className="rounded-xl border border-amber/20 bg-[#fffbeb] p-6 text-meta text-amber-700 max-w-sm">
+            <motion.div variants={fadeUp} className="rounded-xl border border-amber/20 bg-amber/8 p-6 text-meta text-amber-700 max-w-sm">
               <Clock3 className="mx-auto mb-3 h-8 w-8 text-amber" aria-hidden="true" />
               {t("success.processingMP")}
             </motion.div>
@@ -308,7 +308,7 @@ export default function CheckoutSuccessPage() {
                     ))}
                   </div>
                 ) : orderError ? (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
+                  <div className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
                     {orderError}
                   </div>
                 ) : items.length === 0 ? (

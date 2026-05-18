@@ -161,11 +161,16 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
 
       {delta != null && (
         <div className="mt-3 flex items-center gap-1.5">
+          {/* Brand v3 §14 delta chip — semantic feedback tier on each
+              state. Aligned with the dashboard token pattern established
+              for status pills (mint = success, rose = error, slate =
+              neutral). Previously used Tailwind's rose-50/600 default
+              which read warmer than the brand's Rose Signal tone. */}
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[11px] font-bold tabular-nums ${
-              isUp ? "bg-mint/15 text-mint" :
-              isDown ? "bg-rose-50 text-rose-600" :
-                       "bg-charcoal-80/10 text-charcoal-80/70"
+              isUp ? "bg-mint/15 text-emerald-700" :
+              isDown ? "bg-rose/10 text-rose-700" :
+                       "bg-slate-100 text-steel"
             }`}
           >
             {TrendIcon && <TrendIcon className="h-2.5 w-2.5" aria-hidden="true" />}
@@ -214,7 +219,10 @@ function RevenueAreaChart({ data, height = 220 }) {
   const gridY = [0.25, 0.5, 0.75, 1].map((r) => PAD_Y + r * (H - PAD_Y * 2))
 
   return (
-    <div className="relative">
+    // text-charcoal sets the SVG's currentColor — dashboard dark-mode
+    // utility flip (batch 15) swaps text-charcoal → Cloud Mist, so the
+    // grid + axis labels using `currentColor` auto-track the theme.
+    <div className="relative text-charcoal">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" role="img" aria-label="Revenue trend chart">
         <defs>
           <linearGradient id="rev-area-grad-v2" x1="0" y1="0" x2="0" y2="1">
@@ -223,7 +231,7 @@ function RevenueAreaChart({ data, height = 220 }) {
           </linearGradient>
         </defs>
         {gridY.map((y, i) => (
-          <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="#1A1B23" strokeOpacity="0.08" strokeDasharray="2 4" />
+          <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="currentColor" strokeOpacity="0.10" strokeDasharray="2 4" />
         ))}
         <motion.path d={fillD} fill="url(#rev-area-grad-v2)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.15 }} />
         <motion.path
@@ -279,7 +287,7 @@ function RevenueAreaChart({ data, height = 220 }) {
               textAnchor="middle"
               fontSize="10"
               fontFamily="JetBrains Mono, monospace"
-              fill="#1A1B23"
+              fill="currentColor"
               fillOpacity="0.55"
             >
               {p.label}
@@ -327,10 +335,12 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
   let offset = 0
 
   return (
-    <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+    // text-charcoal sets currentColor for the donut track ring so it
+    // flips with the dashboard theme (mist-on-dark hairline in dark mode).
+    <div className="flex flex-col items-center gap-5 text-charcoal sm:flex-row sm:items-center">
       <div className="relative">
         <svg width="160" height="160" viewBox="0 0 160 160" role="img" aria-label="Order status breakdown">
-          <circle cx="80" cy="80" r={R} fill="none" stroke="#1A1B23" strokeOpacity="0.08" strokeWidth="14" />
+          <circle cx="80" cy="80" r={R} fill="none" stroke="currentColor" strokeOpacity="0.10" strokeWidth="14" />
           {segments.map((seg, i) => {
             const portion = seg.value / sum
             const dash = portion * C
@@ -387,7 +397,7 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
 function StatusPill({ status }) {
   const config = {
     paid: { bg: "bg-mint/15", text: "text-mint", label: "Paid" },
-    pending: { bg: "bg-amber-50", text: "text-amber-700", label: "Pending" },
+    pending: { bg: "bg-amber/10", text: "text-amber-700", label: "Pending" },
     failed: { bg: "bg-rose-50", text: "text-rose-600", label: "Failed" },
     cancelled: { bg: "bg-charcoal-80/10", text: "text-charcoal-80", label: "Cancelled" },
     refunded: { bg: "bg-rose-50", text: "text-rose-600", label: "Refunded" },
@@ -397,7 +407,7 @@ function StatusPill({ status }) {
     active: { bg: "bg-mint/15", text: "text-mint", label: "Active" },
     completed: { bg: "bg-mint/15", text: "text-mint", label: "Completed" },
     new: { bg: "bg-azure/10", text: "text-azure", label: "New" },
-    on_hold: { bg: "bg-amber-50", text: "text-amber-700", label: "On Hold" },
+    on_hold: { bg: "bg-amber/10", text: "text-amber-700", label: "On Hold" },
   }
   const cfg = config[status] || config.cancelled
   return (
@@ -620,7 +630,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -1048,7 +1058,7 @@ export default function AdminDashboardPage() {
                     mint: "bg-mint/15 text-mint",
                     rose: "bg-rose-50 text-rose-600",
                     azure: "bg-azure/10 text-azure",
-                    amber: "bg-amber-50 text-amber-700",
+                    amber: "bg-amber/10 text-amber-700",
                     violet: "bg-violet-pale text-violet",
                   }[actionTone]
                   return (

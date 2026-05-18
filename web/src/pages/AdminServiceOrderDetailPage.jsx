@@ -40,7 +40,7 @@ const TONE = {
 }
 
 const STATUS_PILL = {
-  pending: "bg-amber-50 text-amber-700",
+  pending: "bg-amber/10 text-amber-700",
   in_progress: "bg-azure-pale text-azure-800",
   delivered: "bg-mint-50 text-mint-700",
   completed: "bg-mint-50 text-mint-700",

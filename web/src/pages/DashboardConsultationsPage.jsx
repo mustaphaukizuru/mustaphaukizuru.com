@@ -31,19 +31,25 @@ import { useToast } from "../context/ToastContext"
 
 const fadeUp = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } }
 
+// Brand v3 §05 semantic tokens. Each status maps to the canonical
+// feedback tier: pending = warning (amber), confirmed/scheduled =
+// success (mint), completed = brand anchor (violet), cancelled/
+// rescheduled = neutral (steel on slate), no_show = error (rose).
+// Replaced ad-hoc Tailwind hex colors (#2d7a3e, #4f46e5, #666) with
+// brand tokens that match the rest of the platform.
 const STATUS_CLS = {
-  pending:     "bg-amber-100 text-amber-600",
-  confirmed:   "bg-mint-100 text-[#2d7a3e]",
-  scheduled:   "bg-mint-100 text-[#2d7a3e]",
-  completed:   "bg-[#eef2ff] text-[#4f46e5]",
-  cancelled:   "bg-slate-50 text-[#666]",
-  rescheduled: "bg-slate-50 text-[#666]",
-  no_show:     "bg-red-50 text-red-600",
+  pending:     "bg-amber/12 text-amber-700",
+  confirmed:   "bg-mint/12 text-emerald-700",
+  scheduled:   "bg-mint/12 text-emerald-700",
+  completed:   "bg-violet-pale text-violet-deep",
+  cancelled:   "bg-slate-100 text-steel",
+  rescheduled: "bg-slate-100 text-steel",
+  no_show:     "bg-rose/10 text-rose-700",
 }
 
 function StatusBadge({ status }) {
   const { t } = useTranslation("dashboard")
-  const cls = STATUS_CLS[status] || "bg-slate-50 text-[#666]"
+  const cls = STATUS_CLS[status] || "bg-slate-100 text-steel"
   const label = t(`consultations.status.${status}`, { defaultValue: status })
   return <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${cls}`}>{label}</span>
 }
@@ -86,7 +92,7 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
           >
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-red-600">{t("consultations.cancelModal.eyebrow")}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-rose-700">{t("consultations.cancelModal.eyebrow")}</div>
                 <h3 className="mt-1 text-[18px] font-bold text-violet">{t("consultations.cancelModal.title")}</h3>
               </div>
               <button onClick={onClose} aria-label={t("consultations.cancelModal.close")} className="text-charcoal/55 hover:text-violet">
@@ -114,7 +120,7 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
             />
 
             {error && (
-              <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+              <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-[12px] text-rose-700">
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {error}
               </div>
             )}
@@ -321,7 +327,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
               )}
 
               {error && (
-                <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+                <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-[12px] text-rose-700">
                   <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {error}
                 </div>
               )}
@@ -419,7 +425,7 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
               <button
                 type="button"
                 onClick={() => onCancel(c)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-white px-3.5 py-2 text-[12px] font-semibold text-red-600 transition hover:bg-red-50"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose/20 bg-white px-3.5 py-2 text-[12px] font-semibold text-rose-700 transition hover:bg-rose/10"
               >
                 <Trash2 className="h-3.5 w-3.5" /> {t("consultations.row.cancel")}
               </button>
@@ -489,7 +495,7 @@ export default function DashboardConsultationsPage() {
   return (
     <motion.section variants={fadeUp} initial="hidden" animate="show" className="space-y-5">
       {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+        <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>

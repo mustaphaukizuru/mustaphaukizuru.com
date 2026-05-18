@@ -94,7 +94,7 @@ function KpiCard({ label, value, subValue, icon: Icon, spark, tone = "purple", d
   const tones = {
     purple: "bg-violet-pale text-violet",
     green: "bg-mint/15 text-mint",
-    amber: "bg-amber-50 text-amber-700",
+    amber: "bg-amber/10 text-amber-700",
     blue: "bg-azure/10 text-azure",
   }
   return (
@@ -137,7 +137,7 @@ function ActivityItem({ kind, title, meta, when, href, color = "violet" }) {
     violet: { bg: "bg-violet-pale", fg: "text-violet" },
     mint: { bg: "bg-mint/15", fg: "text-mint" },
     azure: { bg: "bg-azure/10", fg: "text-azure" },
-    amber: { bg: "bg-amber-50", fg: "text-amber-700" },
+    amber: { bg: "bg-amber/10", fg: "text-amber-700" },
   }
   const cfg = colors[color] || colors.violet
   const icons = {
@@ -401,7 +401,7 @@ export default function DashboardPage() {
                 <Bell className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="font-mono tabular-nums">{notifications.unread}</span>
                 <span>{t("overview.welcome.unread")}</span>
-                <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden="true" />
+                <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-rose" aria-hidden="true" />
               </Link>
             )}
             <Link
@@ -416,7 +416,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {errorMessage && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           {errorMessage}
         </div>
       )}
@@ -653,7 +653,7 @@ export default function DashboardPage() {
           <div className="divide-y divide-charcoal-80/6">
             {notifications.items.map((n) => (
               <div key={n.id} className="flex items-start gap-3 px-5 py-3">
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" aria-hidden="true" />
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-rose" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
                   <div className="text-meta font-medium text-violet">{n.title || t("overview.notifications.fallback")}</div>
                   {n.message && <div className="mt-0.5 line-clamp-2 text-micro text-charcoal-80/65">{n.message}</div>}
@@ -829,7 +829,10 @@ function SpendChart({ data }) {
   const gridY = [0.25, 0.5, 0.75, 1].map((r) => PAD_Y + r * (H - PAD_Y * 2))
 
   return (
-    <div className="relative">
+    // text-charcoal drives the SVG currentColor — dashboard dark mode
+    // (batch 15) auto-swaps text-charcoal → Cloud Mist so grid + axis
+    // labels using `currentColor` stay readable in both themes.
+    <div className="relative text-charcoal">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" role="img" aria-label={t("overview.spend.chartAria")}>
         <defs>
           <linearGradient id="spend-grad" x1="0" y1="0" x2="0" y2="1">
@@ -838,7 +841,7 @@ function SpendChart({ data }) {
           </linearGradient>
         </defs>
         {gridY.map((y, i) => (
-          <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="#1A1B23" strokeOpacity="0.08" strokeDasharray="2 4" />
+          <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="currentColor" strokeOpacity="0.10" strokeDasharray="2 4" />
         ))}
         <motion.path d={fillD} fill="url(#spend-grad)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.15 }} />
         <motion.path
@@ -891,7 +894,7 @@ function SpendChart({ data }) {
             textAnchor="middle"
             fontSize="10"
             fontFamily="JetBrains Mono, monospace"
-            fill="#1A1B23"
+            fill="currentColor"
             fillOpacity="0.55"
           >
             {p.label}

@@ -80,7 +80,7 @@ function FlagsCell({ featured, isNew }) {
   return (
     <div className="flex items-center gap-1">
       {featured && (
-        <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+        <span className="inline-flex items-center gap-1 rounded-md bg-amber/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
           <Star className="h-2.5 w-2.5" aria-hidden="true" />
           Featured
         </span>
@@ -262,7 +262,7 @@ export default function AdminProductsPage() {
       </div>
 
       {errorMessage && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {errorMessage}
         </div>

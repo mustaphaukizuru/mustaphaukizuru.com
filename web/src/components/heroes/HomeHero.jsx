@@ -475,8 +475,10 @@ function PhoneMockup({ project, reduced, compact = false }) {
             </div>
           </div>
 
-          {/* Project card (deep violet gradient surface) */}
-          <div className="relative mx-4 overflow-hidden rounded-2xl bg-grad-innovation p-4 text-white">
+          {/* Project card — Dawn gradient (Brand v3 §06: hero/premium
+              surfaces). Sacred Innovation Gradient is reserved for the
+              single conversion CTA above (line ~256, "Explore services"). */}
+          <div className="relative mx-4 overflow-hidden rounded-2xl bg-grad-dawn p-4 text-white">
             <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-terracotta/30 blur-2xl" />
             <p className="text-[9px] font-semibold uppercase tracking-[0.08em] opacity-70">
               {t("hero.activeProject")}
@@ -568,9 +570,10 @@ function ProgressRing({ value, size = 52, fill = "#E9C46A", track = "rgba(255,25
       aria-valuemin={0}
       aria-valuemax={100}
     >
-      {/* Inner mask */}
+      {/* Inner mask — matches the project card surface (bg-grad-dawn) so
+          the conic-gradient ring above reads as a ring, not a filled disc. */}
       <div
-        className="absolute rounded-full bg-grad-innovation"
+        className="absolute rounded-full bg-grad-dawn"
         style={{ inset: 5 }}
       />
       <span
@@ -619,7 +622,9 @@ function FeaturedProductCard({ product }) {
   const priceLabel = formatPrice(safe.price, safe.currency || "MXN")
   const inner = (
     <div className="flex w-[224px] items-center gap-3 rounded-2xl border border-charcoal/5 bg-white p-3 shadow-[0_12px_28px_-10px_rgba(93,63,211,0.15)] transition-transform hover:-translate-y-0.5">
-      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-grad-innovation">
+      {/* Icon plate — solid Royal Violet (Brand v3 §08: icon fills must
+          never be the Innovation Gradient, which is sacred to conversion). */}
+      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-violet">
         <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
         <div className="absolute -right-2 -top-2 h-8 w-8 rounded-full bg-terracotta/40" />
       </div>

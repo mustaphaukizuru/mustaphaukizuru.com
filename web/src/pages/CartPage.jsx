@@ -176,7 +176,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
               onClick={handleRemove}
               animate={shaking ? { x: [0, -3, 3, -3, 3, -2, 2, 0], rotate: [0, -4, 4, -4, 4, 0] } : { x: 0, rotate: 0 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-transparent text-charcoal-80/35 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-300/40 focus-visible:ring-offset-2"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-transparent text-charcoal-80/35 transition hover:border-rose/20 hover:bg-rose/10 hover:text-red-500 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
               aria-label={t("actions.removeItem")}
               title={t("actions.removeFromCart")}
             >
@@ -309,8 +309,12 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
               navigate("/checkout")
             }
           }}
-          className="group mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgba(93,63,211,0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(93,63,211,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
-          style={{ background: "linear-gradient(135deg, var(--color-violet) 0%, #7c3aed 60%, var(--color-azure) 100%)" }}
+          // Brand v3 §06 Sacred Rule — the Innovation Gradient (bg-grad-innovation)
+          // owns conversion CTAs. Replaced the previous hand-rolled 3-stop
+          // gradient (which included off-palette #7c3aed) with the canonical
+          // 2-stop utility class so the cart's primary action matches the
+          // checkout button visually and stays in the sanctioned palette.
+          className="group mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-grad-innovation py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgba(93,63,211,0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(93,63,211,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
         >
           {isAuthenticated ? (
             <>{t("actions.checkout")} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" /></>
@@ -413,7 +417,7 @@ export default function CartPage() {
             <button
               type="button"
               onClick={clearCart}
-              className="inline-flex w-fit items-center gap-1.5 self-start rounded-md text-meta font-medium text-charcoal-80/60 transition hover:text-red-500 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-300/40 focus-visible:ring-offset-2 sm:self-auto"
+              className="inline-flex w-fit items-center gap-1.5 self-start rounded-md text-meta font-medium text-charcoal-80/60 transition hover:text-red-500 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2 sm:self-auto"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
               {t("header.clearCart")}
@@ -496,7 +500,7 @@ export default function CartPage() {
                 )}
 
                 {couponError && (
-                  <p className="px-1 text-micro text-red-600" role="alert">{couponError}</p>
+                  <p className="px-1 text-micro text-rose-700" role="alert">{couponError}</p>
                 )}
               </div>
             </div>

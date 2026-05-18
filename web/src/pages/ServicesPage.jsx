@@ -433,7 +433,7 @@ export default function ServicesPage() {
                   const isWith = benefitView === "with"
                   const Icon = isWith ? CheckCircle2 : XCircle
                   const tileClass = isWith
-                    ? "bg-emerald-50 text-emerald-600"
+                    ? "bg-mint/10 text-emerald-700"
                     : "bg-rose-50 text-rose-500"
                   const text = isWith ? b.with : b.without
 

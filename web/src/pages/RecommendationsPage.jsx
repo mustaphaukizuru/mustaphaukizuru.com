@@ -87,7 +87,7 @@ function RecommendationCard({ rec }) {
         <div className="flex flex-wrap items-center gap-2">
           <CategoryBadge category={rec.category} />
           {rec.isAffiliate && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700">
               <Star className="h-2.5 w-2.5" /> {t("card.affiliate")}
             </span>
           )}

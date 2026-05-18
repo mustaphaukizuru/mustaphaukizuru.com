@@ -135,7 +135,7 @@ export default function DashboardWishlistPage() {
   return (
     <section className="space-y-5">
       {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
+        <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
@@ -186,14 +186,14 @@ export default function DashboardWishlistPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.92 }}
                   transition={{ duration: 0.26, ease: "easeOut" }}
-                  className="flex flex-col overflow-hidden rounded-xl border border-[#E9E3DD] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition hover:shadow-[0_16px_36px_rgba(93,63,211,0.08)]"
+                  className="flex flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition hover:shadow-[0_16px_36px_rgba(93,63,211,0.08)]"
                 >
                   <Link to={`/store/${p.slug || ""}`} className="block">
                     <div className="relative aspect-[4/3] w-full overflow-hidden bg-mist">
                       {image ? (
                         <img src={image} alt={p.title || t("wishlist.card.untitled")} className="h-full w-full object-cover transition duration-500 hover:scale-[1.02]" loading="lazy" />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-[#7A7A7A]">
+                        <div className="flex h-full items-center justify-center text-steel">
                           <Package className="h-10 w-10 opacity-30" />
                         </div>
                       )}
@@ -217,7 +217,7 @@ export default function DashboardWishlistPage() {
                       {p.shortDescription || t("wishlist.card.noDescription")}
                     </p>
 
-                    <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#F0EBF4] pt-3">
+                    <div className="mt-3 flex items-center justify-between gap-2 border-t border-charcoal-80/8 pt-3">
                       <p className="text-body font-bold tracking-tight text-violet">
                         {formatPrice(p.price, p.currency || "MXN")}
                       </p>
@@ -240,7 +240,7 @@ export default function DashboardWishlistPage() {
                         type="button"
                         onClick={() => handleRemove(item)}
                         disabled={isBusy}
-                        className="inline-flex items-center justify-center rounded-lg border border-charcoal-80/15 px-3 py-2.5 text-micro font-medium text-charcoal-80 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                        className="inline-flex items-center justify-center rounded-lg border border-charcoal-80/15 px-3 py-2.5 text-micro font-medium text-charcoal-80 transition hover:border-rose/20 hover:bg-rose/10 hover:text-rose-700 disabled:opacity-40"
                         aria-label={t("wishlist.card.remove")}
                         title={t("wishlist.card.remove")}
                       >

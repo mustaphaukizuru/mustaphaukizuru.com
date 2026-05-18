@@ -21,6 +21,7 @@ import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
 import NotificationDropdown from "../components/dashboard/NotificationDropdown"
 import UpcomingMeetingBanner from "../components/dashboard/UpcomingMeetingBanner"
+import ThemeSwitcher from "../components/ui/ThemeSwitcher"
 
 import { useTranslation } from "react-i18next"
 /* ──────────────────────────────────────────────────────────────────────────
@@ -168,7 +169,7 @@ function SidebarItem({ item }) {
           <div
             className={[
               "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
-              isActive ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.18)]" : "bg-[#f7f1f8] text-violet group-hover:bg-white",
+              isActive ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.18)]" : "bg-violet-pale/60 text-violet group-hover:bg-white",
             ].join(" ")}
           >
             <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -279,12 +280,18 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
             ))}
           </div>
 
+          {/* Theme switcher (mobile drawer) — same scoping rules as the
+              desktop sidebar control above. */}
+          <div className="border-t border-charcoal-80/10 px-4 pt-4">
+            <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
+          </div>
+
           {/* Logout */}
-          <div className="border-t border-charcoal-80/10 p-4">
+          <div className="p-4">
             <button
               type="button"
               onClick={onLogout}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-meta font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-300/40 focus-visible:ring-offset-2"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose/20 bg-white px-4 py-3 text-meta font-semibold text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
               Logout
@@ -326,7 +333,13 @@ export default function DashboardLayout() {
   }, [location.pathname])
 
   return (
-    <section className="min-h-screen bg-mist pb-20 lg:pb-0">
+    // `data-dashboard-shell` is the scoping anchor for dashboard-only
+    // dark mode (see styles/tokens.css). The public website never has
+    // this attribute, so the canonical light brand identity stays
+    // intact regardless of the user's stored theme preference. Toggling
+    // dark mode (via ThemeSwitcher in the sidebar) flips only the
+    // dashboard subtree per Brand v3.1 §00 "Default Mode: Light".
+    <section data-dashboard-shell className="min-h-screen bg-mist pb-20 lg:pb-0">
       {/* Skip-to-content for keyboard users */}
       <a
         href="#dashboard-main"
@@ -383,7 +396,7 @@ export default function DashboardLayout() {
               </div>
 
               {/* User card */}
-              <div className="mt-3 rounded-xl border border-charcoal-80/10 bg-[#fbf8fb] p-4">
+              <div className="mt-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 p-4">
                 <div className="flex items-center gap-3">
                   <UserAvatar src={user?.avatarUrl} initials={initials} size={11} />
                   <div className="min-w-0 flex-1">
@@ -393,11 +406,19 @@ export default function DashboardLayout() {
                 </div>
               </div>
 
+              {/* Theme switcher — 3-way Light / Dark / System control.
+                  Scoped to the dashboard subtree via data-dashboard-shell
+                  on this section's root, so toggling here does NOT alter
+                  the public website's canonical light brand. */}
+              <div className="mt-3">
+                <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
+              </div>
+
               {/* Logout */}
               <button
                 type="button"
                 onClick={handleLogout}
-                className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-meta font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-300/40 focus-visible:ring-offset-2"
+                className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-rose/20 bg-white px-4 py-3 text-meta font-semibold text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
                 Logout
@@ -468,12 +489,12 @@ export default function DashboardLayout() {
                     onClick={() => navigate("/dashboard/support")}
                     aria-label={t("layout.openSupport")}
                     title="Support"
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-[#f4eef6] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-violet-pale/60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
                   >
                     <HelpCircle className="h-[18px] w-[18px]" aria-hidden="true" />
                   </button>
                   <NotificationDropdown />
-                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-[#faf8fb] px-3.5 py-2">
+                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3.5 py-2">
                     <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_10px_rgba(93,63,211,0.22)]" />
                     <div className="min-w-0">
                       <div className="truncate text-meta font-semibold leading-none text-violet">

@@ -100,7 +100,7 @@ function AddRuleForm({ defaultTimezone, onCreated }) {
       </div>
 
       {error && (
-        <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-[12px] text-rose-700">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {error}
         </div>
@@ -153,7 +153,7 @@ function RulesByDay({ rules, onDelete }) {
                     type="button"
                     onClick={() => onDelete(r)}
                     aria-label="Delete rule"
-                    className="opacity-0 transition group-hover:opacity-100 hover:text-red-600"
+                    className="opacity-0 transition group-hover:opacity-100 hover:text-rose-700"
                   >
                     <Trash2 className="h-3.5 w-3.5 text-charcoal/60" />
                   </button>
@@ -234,7 +234,7 @@ function AddExceptionForm({ defaultTimezone, onCreated }) {
       </div>
 
       {error && (
-        <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-[12px] text-rose-700">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {error}
         </div>
@@ -325,7 +325,7 @@ export default function AdminAvailabilityPage() {
   return (
     <motion.section variants={fadeUp} initial="hidden" animate="show" className="space-y-5">
       {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+        <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
@@ -370,7 +370,7 @@ export default function AdminAvailabilityPage() {
             {exceptions.map((ex) => (
               <div key={ex.id} className="flex items-center justify-between gap-3 rounded-xl border border-charcoal/10 bg-white px-4 py-3 sm:px-5">
                 <div className="flex items-center gap-3">
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${ex.type === "block" ? "bg-red-50 text-red-600" : "bg-[#e8f4ea] text-mint-800"}`}>
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${ex.type === "block" ? "bg-rose/10 text-rose-700" : "bg-mint/12 text-emerald-700"}`}>
                     {ex.type === "block" ? <ShieldOff className="h-4 w-4" /> : <CalendarPlus className="h-4 w-4" />}
                   </div>
                   <div>
@@ -388,7 +388,7 @@ export default function AdminAvailabilityPage() {
                   type="button"
                   onClick={() => handleDeleteException(ex)}
                   aria-label="Delete exception"
-                  className="text-charcoal/55 transition hover:text-red-600"
+                  className="text-charcoal/55 transition hover:text-rose-700"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

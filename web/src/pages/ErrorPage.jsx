@@ -69,7 +69,7 @@ const stagger = { hidden: {},                    show: { transition: { staggerCh
  *   "contact" → navigate to /contact
  * ────────────────────────────────────────────────────────────────────────── */
 const TONES = {
-  amber: { tile: "bg-amber-50 text-amber-700",  ring: "ring-amber-100" },
+  amber: { tile: "bg-amber/10 text-amber-700",  ring: "ring-amber-100" },
   rose:  { tile: "bg-rose-50 text-rose-700",    ring: "ring-rose-50"   },
   azure: { tile: "bg-azure-pale text-azure-800",ring: "ring-azure-pale" },
   slate: { tile: "bg-slate-100 text-steel-700", ring: "ring-slate-200" },

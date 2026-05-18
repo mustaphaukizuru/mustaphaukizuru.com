@@ -998,7 +998,7 @@ function CertificatesTab() {
                       {isPdf ? "PDF" : c.credentialUrl ? "URL" : "-"}
                     </span>
                     {!c.isVisible && (
-                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
+                      <span className="inline-flex items-center rounded-full bg-amber/15 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
                         Hidden
                       </span>
                     )}

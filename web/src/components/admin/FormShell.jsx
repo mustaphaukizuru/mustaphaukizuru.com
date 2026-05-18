@@ -129,7 +129,7 @@ export default function FormShell({
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
             role="alert"
-            className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700"
+            className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="flex-1">{error}</span>

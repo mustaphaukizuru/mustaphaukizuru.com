@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Something broke on our end · Mustapha Ukizuru</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/Sora-Variable.woff2" crossorigin />
+  <style>
+    @font-face {
+      font-family: "Sora";
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+      src: url("/fonts/Sora-Variable.woff2") format("woff2-variations");
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: "Sora", system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #1A1B23;
+      color: #F8FAFC;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .page {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 50% 50% at 30% 20%, rgba(220, 38, 38, 0.10), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(93, 63, 211, 0.08), transparent 70%);
+      pointer-events: none;
+    }
+    .top { padding: 28px 40px; position: relative; z-index: 1; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, #5D3FD3, #8B6FE8);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 15px; color: #fff;
+      box-shadow: 0 8px 24px -8px rgba(93, 63, 211, 0.6);
+    }
+    .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+    .brand-name .dim { color: #64748B; font-weight: 400; }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+    .glyph {
+      font-size: clamp(140px, 22vw, 240px);
+      font-weight: 200;
+      letter-spacing: -0.08em;
+      line-height: 1;
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.12), rgba(248, 250, 252, 0.02));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin: 0 0 16px;
+      user-select: none;
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      text-align: center;
+      line-height: 1.15;
+    }
+    .lead {
+      margin: 0 0 36px;
+      font-size: clamp(15px, 1.6vw, 17px);
+      line-height: 1.6;
+      color: #94A3B8;
+      text-align: center;
+      max-width: 480px;
+    }
+    .ref {
+      margin: 0 0 36px;
+      font-size: 12px;
+      color: #475569;
+      text-align: center;
+      font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    }
+    .ref b { color: #64748B; font-weight: 500; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 22px; border-radius: 10px;
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      text-decoration: none; cursor: pointer; border: none;
+      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #5D3FD3, #8B6FE8);
+      color: #fff;
+      box-shadow: 0 8px 24px -8px rgba(93, 63, 211, 0.6);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 28px -8px rgba(93, 63, 211, 0.8); }
+    .btn-ghost { background: transparent; color: #CBD5E1; padding: 12px 16px; }
+    .btn-ghost:hover { color: #F8FAFC; }
+    .btn-icon { width: 16px; height: 16px; stroke-width: 2; }
+
+    .foot { padding: 24px 40px; font-size: 12px; color: #475569; text-align: center; position: relative; z-index: 1; }
+    .foot a { color: #64748B; text-decoration: none; border-bottom: 1px solid rgba(100, 116, 139, 0.3); }
+    .foot a:hover { color: #CBD5E1; }
+
+    @media (max-width: 540px) {
+      .top, .foot { padding: 20px; }
+      .actions { flex-direction: column; align-items: stretch; width: 100%; max-width: 280px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .btn { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <a class="brand" href="/" aria-label="Mustapha Ukizuru — Home">
+        <div class="brand-mark" aria-hidden="true">MU</div>
+        <div class="brand-name">Mustapha Ukizuru <span class="dim">· Studio</span></div>
+      </a>
+    </header>
+
+    <main class="main">
+      <div class="glyph" aria-hidden="true">500</div>
+      <h1>Something broke on our end.</h1>
+      <p class="lead">
+        We hit an unexpected error processing your request. The team has been
+        notified and is on it. You can try again, or head home — most things
+        on the site still work.
+      </p>
+      <p class="ref">Reference: <b id="ref"></b></p>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="location.reload()">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-3-6.7" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 4v5h-5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Try again
+        </button>
+        <a class="btn btn-ghost" href="/">Back to homepage</a>
+      </div>
+    </main>
+
+    <footer class="foot">
+      &copy; <span id="y"></span> Mustapha Ukizuru &middot;
+      <a href="mailto:hello@mustaphaukizuru.com">hello@mustaphaukizuru.com</a>
+    </footer>
+  </div>
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+    /* Generate a short reference id from time + random — gives the operator
+       something a visitor can quote when emailing in. Stays client-side so
+       this page works when Node is unreachable. */
+    var ref = (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)).toUpperCase();
+    document.getElementById("ref").textContent = ref;
+  </script>
+</body>
+</html>

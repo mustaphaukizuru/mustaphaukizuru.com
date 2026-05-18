@@ -345,7 +345,7 @@ export default function ServiceDetailPage() {
             </div>
 
             {orderError && (
-              <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-meta text-red-700">
+              <div className="mt-4 flex items-start gap-2 rounded-lg border border-rose/20 bg-rose/10 px-3 py-2 text-meta text-rose-700">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {orderError}
               </div>
             )}

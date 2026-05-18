@@ -38,7 +38,7 @@ const fadeUp = {
 
 const STATUS_VISUAL = {
   paid:      { bg: "bg-mint/15",         text: "text-mint",         ring: "ring-mint/25" },
-  pending:   { bg: "bg-amber-50",        text: "text-amber-700",    ring: "ring-amber-300/40" },
+  pending:   { bg: "bg-amber/10",        text: "text-amber-700",    ring: "ring-amber-300/40" },
   refunded:  { bg: "bg-rose-50",         text: "text-rose-600",     ring: "ring-rose-300/40" },
   cancelled: { bg: "bg-charcoal-80/10",  text: "text-charcoal-80",  ring: "ring-charcoal-80/15" },
   failed:    { bg: "bg-rose-50",         text: "text-rose-600",     ring: "ring-rose-300/40" },
@@ -212,7 +212,7 @@ export default function DashboardOrdersPage() {
   return (
     <section className="space-y-5">
       {errorMessage && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700" role="alert">
+        <div className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700" role="alert">
           {errorMessage}
         </div>
       )}
@@ -258,14 +258,14 @@ export default function DashboardOrdersPage() {
                 </button>
               )}
             </div>
-            <span className="rounded-xl bg-[#fbf8fb] px-4 py-2 font-mono text-micro tabular-nums text-charcoal-80/70">
+            <span className="rounded-xl bg-violet-pale/40 px-4 py-2 font-mono text-micro tabular-nums text-charcoal-80/70">
               {t("orders.table.countOf", { shown: filteredAndSorted.length, total: orders.length })}
             </span>
           </div>
         </div>
 
         {invoiceError && (
-          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-meta text-amber-800" role="alert">
+          <div className="mb-4 rounded-xl border border-amber/20 bg-amber/10 px-4 py-3 text-meta text-amber-700" role="alert">
             {invoiceError}
           </div>
         )}
@@ -295,7 +295,7 @@ export default function DashboardOrdersPage() {
             <div className="overflow-x-auto">
               <div className="min-w-[680px]">
                 {/* Sortable header row */}
-                <div className="grid grid-cols-[1.2fr_1.1fr_0.9fr_0.7fr_1fr] gap-3 border-b border-charcoal-80/10 bg-[#fbf8fb] px-4 py-3">
+                <div className="grid grid-cols-[1.2fr_1.1fr_0.9fr_0.7fr_1fr] gap-3 border-b border-charcoal-80/10 bg-violet-pale/40 px-4 py-3">
                   <SortableHeader labelKey="orderNumber" field="orderNumber" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
                   <SortableHeader labelKey="date"        field="createdAt"   sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
                   <SortableHeader labelKey="total"       field="total"       sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
@@ -366,7 +366,7 @@ export default function DashboardOrdersPage() {
                           <span
                             title={t("orders.row.refundedTitle")}
                             aria-label={t("orders.row.refundedAria")}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-micro font-semibold text-rose-600"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-rose/20 bg-rose/5 px-3 py-1.5 text-micro font-semibold text-rose-600"
                           >
                             <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                             {t("orders.row.refunded")}
@@ -521,7 +521,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
         </div>
 
         {errorMsg ? (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700 flex items-start gap-2">
+          <div className="mt-4 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700 flex items-start gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
             <span>{errorMsg}</span>
           </div>
@@ -531,14 +531,18 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-charcoal-80/15 bg-white px-5 py-2.5 text-meta font-semibold text-charcoal-80 transition hover:bg-[#fbf8fb]"
+            className="rounded-xl border border-charcoal-80/15 bg-white px-5 py-2.5 text-meta font-semibold text-charcoal-80 transition hover:bg-violet-pale/40"
           >
             {t("orders.refundModal.cancel")}
           </button>
           <button
             type="submit"
             disabled={submitDisabled}
-            className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-[#5a0d80] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
+            // Brand v3 §04: hover state for Royal Violet is `violet-deep`,
+            // never the retired legacy palette #5a0d80 (which was a darker
+            // version of the also-retired #420060). Aligns with all other
+            // primary-action buttons across the codebase.
+            className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-violet-deep disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
           >
             <CheckCircle2 className="h-4 w-4" />
             {submitting ? t("orders.refundModal.submitting") : t("orders.refundModal.submit")}

@@ -52,11 +52,14 @@ export default defineConfig({
       ],
       workbox: {
         globPatterns: ["**/*.{js,css,html,png,svg,webp,woff2}"],
-        // Allow precaching of files up to 3 MiB. The default 2 MiB cap
-        // rejected the 2.38 MB avatar-master.png. Long-term TODO: optimise
-        // that PNG (it has no business being 2.38 MB — target ≤ 200 KB
-        // via mozjpeg / pngquant or convert to WebP).
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        // Default 2 MiB precache cap. The previous 3 MiB override was a
+        // workaround for the 2.38 MB avatar-master.png; that source PNG
+        // (and its 5 colour siblings) have since been compressed via
+        // scripts/compress-avatars.mjs from 2000×2000 / ~2.3 MB to
+        // 400×400 / ~35 KB PNG (+ 14 KB WebP sibling), so the standard
+        // cap is now correct. If any future asset exceeds 2 MiB it
+        // should be optimised before raising this ceiling again.
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
         runtimeCaching: [
           // ── API: network-first, fall back to short-lived cache for offline reads ──
           {
@@ -170,6 +173,18 @@ export default defineConfig({
          * Group the React runtime together; route every other framework
          * library into its own well-named chunk; everything else lands in
          * `vendor`. The check order matters — more specific matches first.
+         *
+         * PERFORMANCE FIX · vendor chunk was 570kB because the catch-all
+         * `node_modules → vendor` rule was scooping up:
+         *   · pdfjs-dist (~400kB) — only used via dynamic import in
+         *     CertificatePreview; should ship as its own lazy chunk so
+         *     visitors who never open a cert preview don't pay the cost.
+         *   · i18next + react-i18next + language-detector (~150kB combined)
+         *     — used everywhere via useTranslation hooks; their own chunk
+         *     makes vendor leaner and keeps i18n updates from invalidating
+         *     the entire vendor cache.
+         *   · lenis · sonner · react-helmet-async — small enough to leave
+         *     in `vendor`, but flagged here for future tuning.
          */
         manualChunks(id) {
           if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return "react-vendor"
@@ -177,6 +192,9 @@ export default defineConfig({
           if (id.includes("node_modules/framer-motion"))              return "framer"
           if (id.includes("node_modules/lucide-react"))               return "lucide"
           if (id.includes("node_modules/react-icons"))                return "icons"
+          if (id.includes("node_modules/pdfjs-dist"))                 return "pdfjs"
+          if (id.includes("node_modules/i18next") ||
+              id.includes("node_modules/react-i18next"))              return "i18n"
           if (id.includes("node_modules"))                            return "vendor"
         },
       },

@@ -102,13 +102,13 @@ function renderBlock(block) {
                                 Info
       const styles =
         variant === "success"
-          ? "border-emerald-200/70 bg-emerald-50 text-emerald-900"
+          ? "border-mint/20/70 bg-mint/10 text-emerald-800"
           : variant === "warning"
-          ? "border-amber-200/70 bg-amber-50 text-amber-900"
+          ? "border-amber/20/70 bg-amber/10 text-amber-700"
           : "border-violet/20 bg-violet-pale/40 text-charcoal-80/85"
       const iconColor =
-        variant === "success" ? "text-emerald-600" :
-        variant === "warning" ? "text-amber-600" :
+        variant === "success" ? "text-emerald-700" :
+        variant === "warning" ? "text-amber-700" :
                                 "text-violet"
       return (
         <aside className={`mt-7 flex gap-3 rounded-2xl border p-5 ${styles}`}>

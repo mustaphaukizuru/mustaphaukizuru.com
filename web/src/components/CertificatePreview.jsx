@@ -448,7 +448,10 @@ function CertificateModal({ src, title, issuer, onClose }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-charcoal/85 p-4 backdrop-blur-md"
+      // Backdrop padding: edge-to-edge on mobile (so the modal becomes a
+      // proper fullscreen viewer), narrow inset on desktop so the page
+      // chrome behind is still acknowledged as context.
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-charcoal/85 p-0 backdrop-blur-md sm:p-4 md:p-6"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <motion.div
@@ -456,14 +459,41 @@ function CertificateModal({ src, title, issuer, onClose }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="flex h-[92vh] min-h-[480px] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-modal"
+        // Sizing strategy:
+        //   • Mobile: full-bleed (h-[100dvh] w-full, no rounding) — the
+        //     PDF needs every pixel of vertical space, and a 12px gutter
+        //     around the modal was eating ~24 px the iframe desperately
+        //     needed for portrait-oriented certificate PDFs.
+        //   • Desktop: large modal that scales WITH the viewport — the
+        //     previous `min(92vh, 880px)` cap meant a 1440 p monitor
+        //     showed 880 px of certificate plus 425 px of empty white
+        //     space below. Removing the 880-px ceiling lets tall
+        //     viewports finally render the full A4/landscape PDF.
+        //   • Width: max-w-6xl (was 5xl) so landscape certificates have
+        //     enough horizontal room before the iframe starts forcing
+        //     its own zoom-out.
+        className={[
+          "flex w-full flex-col overflow-hidden bg-white shadow-[0_24px_64px_rgba(0,0,0,0.35)]",
+          "h-[100dvh] rounded-none",
+          "sm:h-[min(94vh,calc(100dvh-2rem))] sm:max-w-5xl sm:rounded-2xl",
+          "md:max-w-6xl",
+        ].join(" ")}
       >
-        {/* Header bar */}
-        <div className="flex items-center gap-3 border-b border-charcoal-80/8 bg-white px-4 py-3">
+        {/* Header bar — title left · verified chip · actions right.
+            Layout collapses gracefully on narrow widths: the verified chip
+            hides on mobile (its meaning is conveyed by the issuer eyebrow),
+            and the download label collapses to icon-only. */}
+        <div className="flex items-center gap-2 border-b border-charcoal-80/8 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[14px] font-bold text-charcoal">{title}</p>
+            <div className="flex items-center gap-2">
+              <p className="truncate text-[14px] font-bold text-charcoal">{title}</p>
+              <span className="hidden shrink-0 items-center gap-1 rounded-full bg-mint/12 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-mint sm:inline-flex">
+                <ShieldCheck className="h-2.5 w-2.5" strokeWidth={2.4} aria-hidden="true" />
+                {t("certificate.verifiedBadge", { defaultValue: "Verified" })}
+              </span>
+            </div>
             {issuer && (
-              <p className="truncate font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-violet">
+              <p className="truncate font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-violet">
                 {issuer}
               </p>
             )}
@@ -472,17 +502,19 @@ function CertificateModal({ src, title, issuer, onClose }) {
           <a
             href={src}
             download={filename}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-charcoal-80/12 bg-white px-3 text-[12.5px] font-semibold text-charcoal-80/85 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-charcoal-80/12 bg-white px-2.5 text-[12.5px] font-semibold text-charcoal-80/85 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 sm:px-3"
             aria-label={t("certificate.downloadLabel", { defaultValue: "Download PDF" })}
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("certificate.downloadShort", { defaultValue: "Download" })}
+            <span className="hidden sm:inline">
+              {t("certificate.downloadShort", { defaultValue: "Download" })}
+            </span>
           </a>
           <a
             href={src}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-violet"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             aria-label={t("certificate.openNewTab")}
           >
             <ExternalLink className="h-4 w-4" />
@@ -491,14 +523,16 @@ function CertificateModal({ src, title, issuer, onClose }) {
             type="button"
             onClick={onClose}
             aria-label={t("certificate.closeLabel", { defaultValue: "Close" })}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="relative flex-1 overflow-hidden bg-slate-50">
+        {/* Body — slate-50 tint replaces the harsh pure-white whitespace that
+            shows below short landscape certs. The native PDF viewer's own
+            background blends with our canvas instead of clashing. */}
+        <div className="relative flex-1 overflow-hidden bg-slate-100">
           {/* Always-mounted iframe so onLoad can fire. Hidden until ready. */}
           <iframe
             src={src}

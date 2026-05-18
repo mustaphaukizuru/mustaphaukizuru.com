@@ -112,7 +112,7 @@ export default function RefundPage() {
           <motion.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.1 }}
-            className="rounded-xl border border-red-200/40 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+            className="rounded-xl border border-rose/20/40 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
           >
             <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-violet">
               <XCircle className="h-5 w-5 text-red-500" /> {t("refund.ineligible.title")}
@@ -176,12 +176,12 @@ export default function RefundPage() {
           <motion.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.2 }}
-            className="rounded-xl border border-amber-200/60 bg-amber-50 p-6"
+            className="rounded-xl border border-amber/20/60 bg-amber/10 p-6"
           >
-            <h2 className="mb-3 flex items-center gap-2 text-body font-bold text-amber-900">
+            <h2 className="mb-3 flex items-center gap-2 text-body font-bold text-amber-700">
               <FileSearch className="h-5 w-5" /> {t("refund.chargebacks.title")}
             </h2>
-            <p className="text-meta text-amber-900/85">
+            <p className="text-meta text-amber-700/85">
               {t("refund.chargebacks.body")}
             </p>
           </motion.div>

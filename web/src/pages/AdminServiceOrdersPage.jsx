@@ -37,7 +37,7 @@ const STATUS_FILTERS = [
 ]
 
 const STATUS_STYLE = {
-  pending: { bg: "bg-amber-50", text: "text-amber-700", label: "Pending" },
+  pending: { bg: "bg-amber/10", text: "text-amber-700", label: "Pending" },
   in_progress: { bg: "bg-azure-pale", text: "text-azure-800", label: "In progress" },
   delivered: { bg: "bg-mint-50", text: "text-mint-700", label: "Delivered" },
   completed: { bg: "bg-mint-50", text: "text-mint-700", label: "Completed" },
@@ -179,7 +179,7 @@ export default function AdminServiceOrdersPage() {
               </thead>
               <tbody className="divide-y divide-slate-100 text-[13px]">
                 {items.map((o) => (
-                  <tr key={o.id} className="hover:bg-[#FAFBFC]">
+                  <tr key={o.id} className="hover:bg-slate-100">
                     <td className="px-5 py-3 align-top">
                       <div className="text-charcoal">{formatDate(o.createdAt)}</div>
                       {o.id && <div className="mt-0.5 font-mono text-[10px] text-steel">#{String(o.id).slice(-8)}</div>}

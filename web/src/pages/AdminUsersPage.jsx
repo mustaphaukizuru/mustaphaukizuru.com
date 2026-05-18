@@ -281,7 +281,7 @@ function RowActions({ user, isMe, busy, onStatus, onRole }) {
           type="button"
           disabled={busy}
           onClick={() => onStatus(user, "suspended")}
-          className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-600 transition hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-300/40"
+          className="inline-flex items-center gap-1 rounded-md border border-rose/20 bg-rose/5 px-2 py-1 text-[11px] font-semibold text-rose-600 transition hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-300/40"
           aria-label={`Suspend ${user.fullName || user.email}`}
         >
           <UserX className="h-3 w-3" aria-hidden="true" /> Suspend

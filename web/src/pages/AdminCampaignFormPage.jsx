@@ -198,7 +198,7 @@ export default function AdminCampaignFormPage() {
         </div>
       </div>
 
-      {error ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">{error}</div> : null}
+      {error ? <div role="alert" className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] text-rose-700">{error}</div> : null}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         {/* MAIN */}
@@ -305,7 +305,7 @@ export default function AdminCampaignFormPage() {
               />
             </Field>
             {campaign.scheduledAt ? (
-              <button type="button" onClick={() => handleSave("scheduled")} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[12.5px] font-semibold text-amber-800 hover:bg-amber-100">
+              <button type="button" onClick={() => handleSave("scheduled")} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-amber-300 bg-amber/10 px-3 py-2 text-[12.5px] font-semibold text-amber-700 hover:bg-amber/15">
                 Save as scheduled
               </button>
             ) : null}
@@ -370,7 +370,7 @@ function BlockEditor({ block, onChange, onMove, onRemove, isFirst, isLast }) {
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => onMove(-1)} disabled={isFirst} aria-label="Move up" className="rounded p-1 text-charcoal-80/55 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30"><ArrowUp className="h-3.5 w-3.5" /></button>
           <button type="button" onClick={() => onMove(1)} disabled={isLast} aria-label="Move down" className="rounded p-1 text-charcoal-80/55 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30"><ArrowDown className="h-3.5 w-3.5" /></button>
-          <button type="button" onClick={onRemove} aria-label="Remove block" className="rounded p-1 text-charcoal-80/55 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
+          <button type="button" onClick={onRemove} aria-label="Remove block" className="rounded p-1 text-charcoal-80/55 hover:bg-rose/10 hover:text-rose-700"><Trash2 className="h-3.5 w-3.5" /></button>
         </div>
       </div>
       {renderField(block, onChange)}
@@ -397,7 +397,7 @@ function renderField(block, onChange) {
           <div key={i} className="flex items-center gap-1.5">
             <span className="font-mono text-[10.5px] text-charcoal-80/45">{block.type === "ordered" ? `${i + 1}.` : "•"}</span>
             <input value={item} onChange={(e) => { const items = [...block.items]; items[i] = e.target.value; onChange({ items }) }} placeholder="List item, supports **bold**, *italic*, `code`, [text](url)" className="flex-1 rounded border border-charcoal-80/15 bg-white px-2 py-1 text-[13px] outline-none focus:border-violet/40" />
-            <button type="button" onClick={() => onChange({ items: block.items.filter((_, x) => x !== i) })} aria-label="Remove item" className="rounded p-1 text-charcoal-80/55 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-3 w-3" /></button>
+            <button type="button" onClick={() => onChange({ items: block.items.filter((_, x) => x !== i) })} aria-label="Remove item" className="rounded p-1 text-charcoal-80/55 hover:bg-rose/10 hover:text-rose-700"><Trash2 className="h-3 w-3" /></button>
           </div>
         ))}
         <button type="button" onClick={() => onChange({ items: [...(block.items || []), ""] })} className="mt-1 inline-flex items-center gap-1 self-start text-[11.5px] font-semibold text-violet hover:underline"><Plus className="h-3 w-3" /> Add item</button>

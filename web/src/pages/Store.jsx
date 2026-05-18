@@ -48,13 +48,17 @@ import StaggerGrid from "../components/motion/StaggerGrid"
 // ─────────────────────────────────────────────────────────────────────────────
 // CANONICAL CATEGORY DEFINITIONS — exactly 6 store categories
 // ─────────────────────────────────────────────────────────────────────────────
+// Brand v3 §05 — category chip palette uses sanctioned feedback tiers
+// (info = azure, warning = amber, success = mint) plus brand anchor
+// (violet). Mirrors AdminCategoriesPage's VISUAL_STYLES exactly so admin
+// preview and public store render with identical tone language.
 const CATEGORIES = [
   { labelKey: "categories.all",          value: "",                              icon: Sparkles,     color: "bg-violet-pale text-violet" },
-  { labelKey: "categories.templates",    value: "Templates",                     icon: BookOpen,     color: "bg-[#eef3fb] text-[#2f5ea8]" },
-  { labelKey: "categories.itToolkits",   value: "Digital & IT Toolkits",         icon: Cpu,          color: "bg-[#f6efe3] text-amber-800" },
-  { labelKey: "categories.csResources",  value: "Computer Science Resources",    icon: FlaskConical, color: "bg-[#e8f4ea] text-mint-800" },
-  { labelKey: "categories.stemRobotics", value: "STEM & Robotics Kits",          icon: Wrench,       color: "bg-amber-100 text-amber-600" },
-  { labelKey: "categories.businessRes",  value: "Digital Business Resources",    icon: Briefcase,    color: "bg-[#eef2ff] text-[#4f46e5]" },
+  { labelKey: "categories.templates",    value: "Templates",                     icon: BookOpen,     color: "bg-azure-pale text-azure" },
+  { labelKey: "categories.itToolkits",   value: "Digital & IT Toolkits",         icon: Cpu,          color: "bg-amber/12 text-amber-700" },
+  { labelKey: "categories.csResources",  value: "Computer Science Resources",    icon: FlaskConical, color: "bg-mint/12 text-emerald-700" },
+  { labelKey: "categories.stemRobotics", value: "STEM & Robotics Kits",          icon: Wrench,       color: "bg-terracotta/20 text-charcoal" },
+  { labelKey: "categories.businessRes",  value: "Digital Business Resources",    icon: Briefcase,    color: "bg-azure/10 text-azure" },
 ]
 
 const SORT_OPTIONS = [
@@ -641,7 +645,7 @@ export default function Store() {
 
           <div id="products" className="scroll-mt-24">
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">{error}</div>
+          <div className="mb-6 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">{error}</div>
         )}
 
         {/* Section label + F05.E results count */}

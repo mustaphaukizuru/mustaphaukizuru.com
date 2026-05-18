@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
+import { AlertOctagon, X as CloseIcon, Mail as MailIcon } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { loginWithGoogleCredential } from "../services/authService"
 
@@ -52,7 +53,9 @@ export default function GoogleLoginButton({
   const location = useLocation()
   const { loginWithGoogle } = useAuth()
 
-  const [error, setError] = useState("")
+  // error shape: null | { title, body, kind } — `kind` lets us tailor the
+  // tone (a "still loading" notice should feel softer than a hard failure).
+  const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [sdkReady, setSdkReady] = useState(false)
 
@@ -61,7 +64,7 @@ export default function GoogleLoginButton({
   /* ── Auth callback ─────────────────────────────────────────────────── */
   const handleCredential = useCallback(
     async (credential) => {
-      setError("")
+      setError(null)
       setLoading(true)
       try {
         const data = await loginWithGoogleCredential(credential)
@@ -73,7 +76,13 @@ export default function GoogleLoginButton({
         navigate(dest, { replace: true })
         onSuccess?.(data)
       } catch (err) {
-        setError(err.message || "Google sign-in failed. Please try again.")
+        setError({
+          kind: "auth",
+          title: "Google sign-in failed",
+          body:
+            err?.message ||
+            "We could not verify your Google account. Please try again or sign in with your email.",
+        })
       } finally {
         setLoading(false)
       }
@@ -145,9 +154,13 @@ export default function GoogleLoginButton({
 
   /* ── Click handler ─────────────────────────────────────────────────── */
   const handleClick = () => {
-    setError("")
+    setError(null)
     if (!sdkReady) {
-      setError("Google sign-in is still loading. Please try again in a moment.")
+      setError({
+        kind: "loading",
+        title: "Google sign-in is still loading",
+        body: "Give it a second and try again, or use the email form above.",
+      })
       return
     }
     try {
@@ -160,13 +173,20 @@ export default function GoogleLoginButton({
           notification?.isNotDisplayed?.() ||
           notification?.isSkippedMoment?.()
         ) {
-          setError(
-            "We could not start Google sign-in. Enable third-party cookies for accounts.google.com or use the email form above."
-          )
+          setError({
+            kind: "cookies",
+            title: "We could not start Google sign-in",
+            body:
+              "Your browser is blocking the sign-in window — usually because third-party cookies are off for accounts.google.com, or a privacy mode (Safari ITP, Brave Shields) is intercepting it.",
+          })
         }
       })
     } catch (err) {
-      setError(err.message || "Could not start Google sign-in.")
+      setError({
+        kind: "init",
+        title: "Could not start Google sign-in",
+        body: err?.message || "Please try again, or sign in with your email below.",
+      })
     }
   }
 
@@ -212,14 +232,143 @@ export default function GoogleLoginButton({
         <span className="truncate">{labelText}</span>
       </button>
 
-      {error && (
-        <div
-          role="alert"
-          className="rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] leading-[1.5] text-rose"
+      {error && <GoogleSignInError error={error} onDismiss={() => setError(null)} />}
+    </div>
+  )
+}
+
+/* ── Error surface · Brand v3 §11 form-error pattern ───────────────────────
+ * Three-region card: icon · message · close. Tone shifts by `kind`:
+ *   • cookies — soft amber wash (it's an instruction, not a failure)
+ *   • loading — neutral charcoal-tinted info (transient, retry expected)
+ *   • auth / init — Rose Signal (the hard-failure tier)
+ * Container always carries role="alert" so screen readers announce it
+ * the instant it appears.
+ *
+ * Refinement notes (v2):
+ *   • The previous "fix-your-browser" hint list was rendered as upper-
+ *     case monospace. On narrow widths the lines overflowed and got
+ *     truncated mid-instruction ("ENABLE 3RD-PARTY C…"). It now renders
+ *     as proper sentence-case rows with the browser name bolded and the
+ *     setting path shown after an arrow — readable on every breakpoint,
+ *     never truncated, and matches the cookies banner copy style.
+ *   • Subtle inner "instruction" panel separates the help recipe from
+ *     the alert body so the eye doesn't read it as part of the error.
+ *   • The "sign in with email above" callout is now a real anchor that
+ *     scrolls focus to the email input — usable as a recovery path, not
+ *     just static reassurance copy. */
+
+// Browser fix-instructions for the "cookies" failure. Kept in a single
+// place so future browser additions (Arc, Opera, Vivaldi) drop in here.
+const COOKIE_FIX_STEPS = [
+  { browser: "Chrome / Edge", path: "Settings → Privacy → enable third-party cookies" },
+  { browser: "Safari",        path: "Settings → Privacy → turn off Prevent cross-site tracking" },
+  { browser: "Brave",         path: "Shields icon → turn off Cookies blocked for this site" },
+]
+
+function focusEmailField() {
+  if (typeof document === "undefined") return
+  const el = document.querySelector('input[type="email"], input[name="email"]')
+  if (el && typeof el.focus === "function") {
+    el.scrollIntoView({ behavior: "smooth", block: "center" })
+    setTimeout(() => el.focus({ preventScroll: true }), 280)
+  }
+}
+
+function GoogleSignInError({ error, onDismiss }) {
+  const isCookies = error.kind === "cookies"
+  const isLoading = error.kind === "loading"
+
+  const tone = isCookies
+    ? {
+        wrap:     "border-amber/30 bg-amber/[0.07]",
+        iconWrap: "bg-amber/15 text-amber-700",
+        title:    "text-charcoal",
+        body:     "text-charcoal-80/75",
+        stepPanel:"border-amber/15 bg-white/60",
+      }
+    : isLoading
+    ? {
+        wrap:     "border-charcoal-80/15 bg-charcoal-80/[0.04]",
+        iconWrap: "bg-charcoal-80/10 text-charcoal-80/70",
+        title:    "text-charcoal",
+        body:     "text-charcoal-80/70",
+        stepPanel:"border-charcoal-80/10 bg-white/60",
+      }
+    : {
+        wrap:     "border-rose/30 bg-rose/[0.05]",
+        iconWrap: "bg-rose/10 text-rose",
+        title:    "text-charcoal",
+        body:     "text-charcoal-80/75",
+        stepPanel:"border-rose/15 bg-white/60",
+      }
+
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      className={`relative overflow-hidden rounded-2xl border ${tone.wrap}`}
+    >
+      <div className="flex items-start gap-3 px-4 py-3.5">
+        <span
+          aria-hidden="true"
+          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${tone.iconWrap}`}
         >
-          {error}
+          <AlertOctagon className="h-4 w-4" strokeWidth={2.2} />
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <p className={`text-[14px] font-bold leading-[1.35] ${tone.title}`}>
+            {error.title}
+          </p>
+          <p className={`mt-1 text-[13px] leading-[1.55] ${tone.body}`}>
+            {error.body}
+          </p>
+
+          {/* Browser-fix recipe — readable sentence case, no truncation.
+              Each row: browser name (bold) + breadcrumb path. */}
+          {isCookies && (
+            <div className={`mt-3 space-y-1.5 rounded-xl border px-3 py-2.5 ${tone.stepPanel}`}>
+              {COOKIE_FIX_STEPS.map((step) => (
+                <div
+                  key={step.browser}
+                  className="flex flex-col gap-0.5 text-[12.5px] leading-[1.5] sm:flex-row sm:items-baseline sm:gap-2"
+                >
+                  <span className="shrink-0 font-semibold text-charcoal">
+                    {step.browser}
+                  </span>
+                  <span className="text-charcoal-80/65">{step.path}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Email-recovery callout — now an actionable button. Focuses
+              and scrolls to the email field above so users can complete
+              sign-in without leaving this card. */}
+          <button
+            type="button"
+            onClick={focusEmailField}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md text-[12.5px] font-semibold text-violet transition hover:text-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 focus-visible:ring-offset-2"
+          >
+            <MailIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="underline-offset-2 hover:underline">
+              You can sign in with your email instead.
+            </span>
+          </button>
         </div>
-      )}
+
+        {onDismiss && (
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label="Dismiss"
+            className="-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-charcoal-80/55 transition hover:bg-charcoal-80/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          >
+            <CloseIcon className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   )
 }

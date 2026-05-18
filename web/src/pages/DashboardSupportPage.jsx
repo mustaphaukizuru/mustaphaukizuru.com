@@ -14,10 +14,13 @@ import { authFetch } from "../lib/api"
 // values stay untranslated — StatusBadge renders the canonical chip.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Brand v3 §05 — semantic feedback colors are sacred. low/medium/high
+// map to the canonical info/warning/error tiers using azure-pale + amber
+// + rose tokens instead of ad-hoc Tailwind hex values.
 const PRIORITY_COLORS = {
-  low: "bg-[#eef3fb] text-[#2f5ea8]",
-  medium: "bg-amber-100 text-amber-600",
-  high: "bg-red-50 text-red-600",
+  low: "bg-azure-pale text-azure",
+  medium: "bg-amber/12 text-amber-700",
+  high: "bg-rose/10 text-rose-700",
 }
 
 function TicketCard({ ticket, onSelect }) {
@@ -95,14 +98,14 @@ function CreateTicketModal({ onClose, onCreated }) {
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-charcoal-80/10 text-charcoal-80/60 transition hover:bg-[#f4eef6] hover:text-violet"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-charcoal-80/10 text-charcoal-80/60 transition hover:bg-violet-pale/60 hover:text-violet"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-micro text-red-700">
+          <div className="mb-4 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2.5 text-micro text-rose-700">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             {error}
           </div>
@@ -164,7 +167,7 @@ function CreateTicketModal({ onClose, onCreated }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-charcoal-80/15 px-5 py-3 text-meta font-medium text-charcoal-80 transition hover:bg-[#f4eef6]"
+            className="rounded-xl border border-charcoal-80/15 px-5 py-3 text-meta font-medium text-charcoal-80 transition hover:bg-violet-pale/60"
           >
             {t("support.create.cancel")}
           </button>
@@ -224,14 +227,14 @@ function TicketThread({ ticket, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/50 transition hover:bg-[#f4eef6] hover:text-violet"
+          className="shrink-0 rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/50 transition hover:bg-violet-pale/60 hover:text-violet"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-micro text-red-700">
+        <div className="mb-4 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-micro text-rose-700">
           {error}
         </div>
       )}
@@ -239,7 +242,7 @@ function TicketThread({ ticket, onClose }) {
       {/* Messages */}
       <div className="space-y-4">
         {messages.length === 0 && (
-          <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-[#fbf9fb] p-4 text-micro text-charcoal-80/60">
+          <div className="rounded-xl border border-dashed border-violet/20 bg-violet-pale/30 p-4 text-micro text-charcoal-80/60">
             {t("support.thread.noMessages")}
           </div>
         )}
@@ -342,7 +345,7 @@ export default function DashboardSupportPage() {
       <section className="space-y-5">
 
         {error && (
-          <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
+          <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             {error}
           </div>
@@ -357,7 +360,7 @@ export default function DashboardSupportPage() {
           </div>
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
             <div className="text-micro font-medium text-charcoal-80/70">{t("support.metrics.openTitle")}</div>
-            <div className="mt-2 text-page font-bold text-amber-600">{open}</div>
+            <div className="mt-2 text-page font-bold text-amber-700">{open}</div>
             <div className="mt-2 text-micro text-charcoal-80/60">{t("support.metrics.openSubtitle")}</div>
           </div>
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">

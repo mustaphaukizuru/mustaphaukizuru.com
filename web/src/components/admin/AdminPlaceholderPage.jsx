@@ -26,7 +26,7 @@ export default function AdminPlaceholderPage({
       className="space-y-6"
     >
       {/* Status banner */}
-      <div className="flex items-start gap-3 rounded-xl border border-amber-50 bg-amber-50/40 px-4 py-3">
+      <div className="flex items-start gap-3 rounded-xl border border-amber/10 bg-amber/10/40 px-4 py-3">
         <Construction className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
         <div className="text-[13px] text-amber-700">
           <p className="font-semibold">Backend integration pending</p>

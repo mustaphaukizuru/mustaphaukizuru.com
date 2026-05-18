@@ -192,7 +192,7 @@ export default function AdminBlogFormPage() {
       </div>
 
       {error ? (
-        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">{error}</div>
+        <div role="alert" className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] text-rose-700">{error}</div>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -284,7 +284,7 @@ export default function AdminBlogFormPage() {
                 onClick={() => update({ isFeatured: !post.isFeatured })}
                 className={`inline-flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition ${
                   post.isFeatured
-                    ? "border-amber-300 bg-amber-50 text-amber-800"
+                    ? "border-amber-300 bg-amber/10 text-amber-700"
                     : "border-charcoal-80/15 bg-white text-charcoal-80/65 hover:border-violet/40 hover:text-violet"
                 }`}
               >
@@ -397,7 +397,7 @@ function BlockEditor({ index, block, onChange, onMove, onRemove, isFirst, isLast
           <button type="button" onClick={() => onMove(1)} disabled={isLast} aria-label="Move down" className="rounded p-1 text-charcoal-80/55 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30">
             <ArrowDown className="h-3.5 w-3.5" />
           </button>
-          <button type="button" onClick={onRemove} aria-label="Remove block" className="rounded p-1 text-charcoal-80/55 hover:bg-red-50 hover:text-red-600">
+          <button type="button" onClick={onRemove} aria-label="Remove block" className="rounded p-1 text-charcoal-80/55 hover:bg-rose/10 hover:text-rose-700">
             <Trash2 className="h-3.5 w-3.5" />
           </button>
         </div>
@@ -440,7 +440,7 @@ function renderBlockField(block, onChange, index) {
               type="button"
               onClick={() => onChange({ items: block.items.filter((_, idx) => idx !== i) })}
               aria-label="Remove item"
-              className="rounded p-1 text-charcoal-80/55 hover:bg-red-50 hover:text-red-600"
+              className="rounded p-1 text-charcoal-80/55 hover:bg-rose/10 hover:text-rose-700"
             >
               <Trash2 className="h-3 w-3" />
             </button>

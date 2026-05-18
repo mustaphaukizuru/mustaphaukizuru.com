@@ -161,7 +161,7 @@ export default function Dashboard2FAPage() {
 
       <section className="space-y-5">
         {error && (
-          <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
+          <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
           </div>
         )}
@@ -169,7 +169,7 @@ export default function Dashboard2FAPage() {
         {/* Hero */}
         <div className={`rounded-xl border p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:p-6 ${
           currentState === "enabled"
-            ? "border-emerald-200 bg-gradient-to-br from-emerald-50 to-white"
+            ? "border-mint/20 bg-gradient-to-br from-emerald-50 to-white"
             : "border-charcoal-80/10 bg-white"
         }`}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -344,7 +344,7 @@ function SetupState({ data, code, setCode, onVerify, verifying, onCancel }) {
               className="mt-1 inline-flex items-center gap-2 rounded-lg border border-charcoal-80/15 bg-mist px-3 py-1.5 font-mono text-micro text-violet transition hover:bg-violet-pale"
             >
               {data.manualEntryCode}
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 opacity-60" />}
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-700" /> : <Copy className="h-3.5 w-3.5 opacity-60" />}
             </button>
           </div>
         </div>
@@ -385,7 +385,7 @@ function SetupState({ data, code, setCode, onVerify, verifying, onCancel }) {
             <button
               type="button"
               onClick={onCancel}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-5 py-3 text-meta font-medium text-red-600 transition hover:bg-red-50"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose/20 bg-white px-5 py-3 text-meta font-medium text-rose-700 transition hover:bg-rose/10"
             >
               <Trash2 className="h-3.5 w-3.5" />
               {t("twoFactor.setup.cancelSetup")}
@@ -413,7 +413,7 @@ function EnabledState({ status, onRegenerate, onDisable }) {
         {/* Backup code status */}
         <div className={`flex items-start gap-3 rounded-xl border p-4 ${
           lowOnCodes
-            ? "border-amber-200 bg-amber-50"
+            ? "border-amber/20 bg-amber/10"
             : "border-charcoal-80/10 bg-mist"
         }`}>
           <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
@@ -443,7 +443,7 @@ function EnabledState({ status, onRegenerate, onDisable }) {
 
         {/* Disable */}
         <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4">
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose/10 text-rose-700">
             <Trash2 className="h-4 w-4" />
           </div>
           <div className="min-w-0 flex-1">
@@ -455,7 +455,7 @@ function EnabledState({ status, onRegenerate, onDisable }) {
           <button
             type="button"
             onClick={onDisable}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-2 text-micro font-semibold text-red-600 transition hover:bg-red-50"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-rose/20 bg-white px-3 py-2 text-micro font-semibold text-rose-700 transition hover:bg-rose/10"
           >
             <Lock className="h-3.5 w-3.5" /> {t("twoFactor.enabled.disable")}
           </button>
@@ -552,7 +552,7 @@ function BackupCodesModal({ codes, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="mt-3 w-full rounded-xl border border-charcoal-80/15 py-2.5 text-micro font-medium text-charcoal-80 hover:bg-[#f4eef6]"
+            className="mt-3 w-full rounded-xl border border-charcoal-80/15 py-2.5 text-micro font-medium text-charcoal-80 hover:bg-violet-pale/60"
           >
             {t("twoFactor.backupModal.saved")}
           </button>
@@ -598,7 +598,7 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
       >
         <div className="flex items-center justify-between border-b border-charcoal-80/10 p-5">
           <h2 className="text-body font-bold text-violet">{t(titleKey)}</h2>
-          <button onClick={onClose} type="button" aria-label={t("twoFactor.passwordModal.close")} className="rounded-xl p-1.5 text-charcoal-80/50 hover:bg-[#f4eef6]">
+          <button onClick={onClose} type="button" aria-label={t("twoFactor.passwordModal.close")} className="rounded-xl p-1.5 text-charcoal-80/50 hover:bg-violet-pale/60">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -607,7 +607,7 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
           <p className="text-micro text-charcoal-80/75">{t(descKey)}</p>
 
           {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-micro text-red-700">
+            <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-micro text-rose-700">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
             </div>
           )}
@@ -638,7 +638,7 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-charcoal-80/15 px-4 py-3 text-meta font-medium text-charcoal-80 hover:bg-[#f4eef6]"
+            className="rounded-xl border border-charcoal-80/15 px-4 py-3 text-meta font-medium text-charcoal-80 hover:bg-violet-pale/60"
           >
             {t("twoFactor.passwordModal.cancel")}
           </button>

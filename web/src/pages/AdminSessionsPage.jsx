@@ -122,7 +122,7 @@ export default function AdminSessionsPage() {
             {loading ? (
               <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/55">Loading sessions…</td></tr>
             ) : error ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-red-600">{error}</td></tr>
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-rose-700">{error}</td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/55">No active sessions.</td></tr>
             ) : filtered.map((s) => {
@@ -153,7 +153,7 @@ export default function AdminSessionsPage() {
                     <button
                       type="button"
                       onClick={() => setPendingRevoke(s)}
-                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] font-semibold text-red-600 transition hover:bg-red-50"
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] font-semibold text-rose-700 transition hover:bg-rose/10"
                     >
                       <ShieldX className="h-3.5 w-3.5" /> Revoke
                     </button>
@@ -169,7 +169,7 @@ export default function AdminSessionsPage() {
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose-700">
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div className="flex-1">

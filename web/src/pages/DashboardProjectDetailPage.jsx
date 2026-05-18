@@ -68,7 +68,7 @@ export default function DashboardProjectDetailPage() {
         <Link to="/dashboard/projects" className="inline-flex items-center gap-1 text-meta text-violet hover:underline">
           <ArrowLeft className="h-4 w-4" /> {t("projects.detail.back")}
         </Link>
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {error || t("projects.errors.notFound")}
         </div>
@@ -129,7 +129,7 @@ export default function DashboardProjectDetailPage() {
           ) : project.milestones.map((m, idx) => {
             const Icon = MILESTONE_ICON[m.status] || Hourglass
             const tone = m.status === "completed" ? "bg-mint/15 text-mint border-mint/30"
-                       : m.status === "in_progress" ? "bg-amber-50 text-amber-700 border-amber-200"
+                       : m.status === "in_progress" ? "bg-amber/10 text-amber-700 border-amber/20"
                        : "bg-charcoal-80/5 text-charcoal-80/65 border-charcoal-80/10"
             return (
               <motion.div

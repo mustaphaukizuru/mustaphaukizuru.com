@@ -125,7 +125,7 @@ export default function BookConsultationPage() {
             </motion.div>
           )}
           {errorMessage && (
-            <motion.div variants={fadeUp} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
+            <motion.div variants={fadeUp} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber/20 bg-amber/10 px-3 py-2 text-[12px] text-amber-700">
               {errorMessage}
             </motion.div>
           )}

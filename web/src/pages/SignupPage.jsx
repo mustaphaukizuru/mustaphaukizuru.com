@@ -34,6 +34,7 @@ import {
 } from "lucide-react"
 
 import AuthShell from "../components/auth/AuthShell"
+import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 import BrandMark from "../components/auth/BrandMark"
 import GoogleLoginButton from "../components/GoogleLoginButton"
 import { scorePassword } from "../components/AuthInput"
@@ -83,7 +84,10 @@ export default function SignupPage() {
   const [honeypot, setHoneypot] = useState("")
 
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  // error: null | string | { kind, title, body, action }
+  // The richer object shape unlocks contextual recovery actions —
+  // most notably the "Sign in instead" link on duplicate-email errors.
+  const [error, setError] = useState(null)
 
   const capsOn = useCapsLock()
 
@@ -109,7 +113,7 @@ export default function SignupPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError("")
+    setError(null)
 
     if (honeypot) return
 
@@ -117,27 +121,51 @@ export default function SignupPage() {
     const cleanEmail = email.trim().toLowerCase()
 
     if (cleanName.length < 2) {
-      setError("Please enter your full name (at least 2 characters).")
+      setError({
+        kind: "warning",
+        title: "Your full name is required",
+        body: "Enter at least 2 characters — first and last name help personalize your dashboard.",
+      })
       return
     }
     if (!EMAIL_RE.test(cleanEmail)) {
-      setError("Please enter a valid email address.")
+      setError({
+        kind: "warning",
+        title: "Email format looks off",
+        body: "Make sure it follows name@example.com.",
+      })
       return
     }
     if (password.length < MIN_PW_LENGTH) {
-      setError(`Password must be at least ${MIN_PW_LENGTH} characters.`)
+      setError({
+        kind: "warning",
+        title: "Password is too short",
+        body: `Use at least ${MIN_PW_LENGTH} characters — currently ${password.length}.`,
+      })
       return
     }
     if (password !== confirm) {
-      setError(t("signup.passwordsDontMatch") + ".")
+      setError({
+        kind: "warning",
+        title: "Passwords don't match",
+        body: "Re-enter the same password in both fields.",
+      })
       return
     }
     if (score < 3) {
-      setError("Please choose a stronger password (mix letters, numbers, and symbols).")
+      setError({
+        kind: "warning",
+        title: "Choose a stronger password",
+        body: "Mix uppercase, lowercase, numbers, and a symbol. The strength meter below shows your progress.",
+      })
       return
     }
     if (!acceptedTerms) {
-      setError("Please accept the Terms and Privacy Policy to continue.")
+      setError({
+        kind: "warning",
+        title: "Please accept the Terms",
+        body: "Tick the agreement below to continue. We treat your data as carefully as our own.",
+      })
       return
     }
 
@@ -153,11 +181,43 @@ export default function SignupPage() {
       const code = err?.code || ""
       const msg = err?.toUserMessage?.() || err?.message || ""
       if (code === "NETWORK_ERROR") {
-        setError("Cannot reach the server. Check your connection and try again.")
+        setError({
+          kind: "warning",
+          title: "Can't reach the server",
+          body: "Check your internet connection and try again. If the problem persists, our servers may be briefly unavailable.",
+        })
       } else if (code === "DUPLICATE_ENTRY" || /exist/i.test(msg)) {
-        setError("An account with this email already exists. Try signing in instead.")
+        // The single most actionable failure on this page: their email is
+        // already in our database, so the cheapest path forward is signing
+        // in — not creating a new account. Inline action makes that one tap.
+        setError({
+          kind: "error",
+          title: "Account already exists",
+          body: `An account with ${cleanEmail} is already registered. You can sign in instead, or reset your password if you've forgotten it.`,
+          action: (
+            <>
+              <Link
+                to="/login"
+                state={{ prefillEmail: cleanEmail }}
+                className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              >
+                Sign in instead →
+              </Link>
+              <Link
+                to="/forgot-password"
+                className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-charcoal-80/65 underline-offset-2 hover:text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              >
+                Reset password
+              </Link>
+            </>
+          ),
+        })
       } else if (code === "DB_UNAVAILABLE") {
-        setError("Service temporarily unavailable. Please try again shortly.")
+        setError({
+          kind: "warning",
+          title: "Service temporarily unavailable",
+          body: "We're briefly offline for maintenance. Please try again in a minute.",
+        })
       } else {
         setError(msg || "Account creation failed. Please try again.")
       }
@@ -185,14 +245,8 @@ export default function SignupPage() {
         </motion.div>
 
         {error && (
-          <motion.div
-            variants={fadeUp}
-            role="alert"
-            aria-live="assertive"
-            className="mt-6 flex items-start gap-3 rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] text-rose-700"
-          >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="leading-relaxed">{error}</span>
+          <motion.div variants={fadeUp} className="mt-6">
+            <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
           </motion.div>
         )}
 

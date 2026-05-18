@@ -52,6 +52,18 @@ export default function SmoothScrollProvider({ children, enabled }) {
       easing:           (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     })
 
+    // Expose the Lenis instance globally so other code can pause it
+    // when needed — specifically, useBodyScrollLock pauses smooth scroll
+    // while an overlay is open. Without this, Lenis keeps interpolating
+    // scroll targets in the background, occasionally yanking the page
+    // back to scrollY=0 when the overlay locks `html.overflow: hidden`
+    // — visible to the user as "the page jumped to top when I tapped
+    // the menu". `window.__lenis` is the de-facto convention used by
+    // the Lenis community; we keep it for parity.
+    if (typeof window !== "undefined") {
+      window.__lenis = lenis
+    }
+
     let rafId = 0
     function raf(time) {
       lenis.raf(time)
@@ -62,6 +74,9 @@ export default function SmoothScrollProvider({ children, enabled }) {
     return () => {
       cancelAnimationFrame(rafId)
       lenis.destroy()
+      if (typeof window !== "undefined" && window.__lenis === lenis) {
+        delete window.__lenis
+      }
     }
   }, [enabled])
 

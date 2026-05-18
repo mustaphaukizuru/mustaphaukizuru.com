@@ -31,9 +31,9 @@ export {
 const TONE_MAP = {
   purple: "bg-violet-pale text-violet",
   green: "bg-mint/15 text-mint",
-  amber: "bg-amber-50 text-amber-700",
+  amber: "bg-amber/10 text-amber-700",
   blue: "bg-azure/10 text-azure",
-  red: "bg-rose-50 text-rose-600",
+  red: "bg-rose/10 text-rose-700",
   peach: "bg-terracotta/20 text-terracotta",
 }
 
@@ -79,13 +79,13 @@ export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple"
  *  ──────────────────────────────────────────────────────────────────── */
 const STATUS_STYLE = {
   paid: "bg-mint/15 text-mint",
-  pending: "bg-amber-50 text-amber-700",
-  failed: "bg-rose-50 text-rose-600",
+  pending: "bg-amber/10 text-amber-700",
+  failed: "bg-rose/10 text-rose-700",
   cancelled: "bg-charcoal-80/10 text-charcoal-80",
-  refunded: "bg-rose-50 text-rose-600",
+  refunded: "bg-rose/10 text-rose-700",
   active: "bg-mint/15 text-mint",
   inactive: "bg-charcoal-80/10 text-charcoal-80",
-  suspended: "bg-rose-50 text-rose-600",
+  suspended: "bg-rose/10 text-rose-700",
   open: "bg-azure/10 text-azure",
   closed: "bg-charcoal-80/10 text-charcoal-80",
   resolved: "bg-mint/15 text-mint",
@@ -93,7 +93,7 @@ const STATUS_STYLE = {
   published: "bg-mint/15 text-mint",
   in_progress: "bg-azure/10 text-azure",
   approved: "bg-mint/15 text-mint",
-  rejected: "bg-rose-50 text-rose-600",
+  rejected: "bg-rose/10 text-rose-700",
   member: "bg-azure/10 text-azure",
   admin: "bg-violet-pale text-violet",
 }
@@ -242,10 +242,10 @@ export function PrimaryBtn({
  *  ──────────────────────────────────────────────────────────────────── */
 export function AlertBanner({ type = "error", message, onDismiss }) {
   const styles = {
-    error: "border-rose-200 bg-rose-50 text-rose-700",
+    error: "border-rose/20 bg-rose/5 text-rose-700",
     success: "border-mint/30 bg-mint/8 text-mint",
     info: "border-azure/30 bg-azure/10 text-azure",
-    warning: "border-amber-200 bg-amber-50 text-amber-700",
+    warning: "border-amber/20 bg-amber/10 text-amber-700",
   }
   if (!message) return null
   const role = type === "error" || type === "warning" ? "alert" : "status"

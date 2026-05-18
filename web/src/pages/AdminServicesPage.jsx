@@ -421,7 +421,7 @@ export default function AdminServicesPage() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-meta text-amber-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-amber/20 bg-amber/10 px-4 py-3 text-meta text-amber-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>

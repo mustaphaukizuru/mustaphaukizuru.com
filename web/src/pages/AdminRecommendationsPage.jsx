@@ -43,8 +43,8 @@ const inputClass =
 function statusTone(status) {
   switch (status) {
     case "published": return "bg-mint-100 text-mint-800"
-    case "draft": return "bg-amber-100 text-amber-600"
-    case "archived": return "bg-slate-50 text-[#666]"
+    case "draft": return "bg-amber/15 text-amber-700"
+    case "archived": return "bg-slate-100 text-steel"
     default: return "bg-violet-pale text-violet"
   }
 }
@@ -246,12 +246,12 @@ function RecommendationModal({ open, onClose, initial, onSaved }) {
               </div>
 
               {error && (
-                <div className="mx-6 mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[12.5px] font-semibold text-rose-700">
+                <div className="mx-6 mb-4 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-3 py-2 text-[12.5px] font-semibold text-rose-700">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />{error}
                 </div>
               )}
 
-              <footer className="flex items-center justify-end gap-2 border-t border-charcoal/10 bg-[#faf7fb] px-6 py-4">
+              <footer className="flex items-center justify-end gap-2 border-t border-charcoal/10 bg-violet-pale/40 px-6 py-4">
                 <button type="button" onClick={onClose}
                   className="rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
@@ -314,7 +314,7 @@ function RecommendationCard({ rec, onEdit, onDelete }) {
             {rec.category}
           </span>
           {rec.isAffiliate && (
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Affiliate</span>
+            <span className="rounded-full bg-amber/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Affiliate</span>
           )}
           <span className="font-mono text-[10px] text-charcoal/55">priority {rec.priority}</span>
         </div>
@@ -436,13 +436,13 @@ export default function AdminRecommendationsPage() {
         </div>
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => setStatusFilter("")}
-            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${statusFilter === "" ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"}`}
+            className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold transition ${statusFilter === "" ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-violet-pale"}`}
           >
             All
           </button>
           {STATUSES.map((s) => (
             <button key={s} type="button" onClick={() => setStatusFilter(s)}
-              className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${statusFilter === s ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"}`}
+              className={`rounded-full px-3 py-1.5 text-[11.5px] font-semibold capitalize transition ${statusFilter === s ? "bg-violet text-white" : "bg-violet-pale text-violet hover:bg-violet-pale"}`}
             >
               {s}
             </button>
@@ -465,7 +465,7 @@ export default function AdminRecommendationsPage() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[13px] text-rose-700">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-[13px] text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </div>
       )}

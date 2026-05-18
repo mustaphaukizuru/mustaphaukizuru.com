@@ -171,13 +171,13 @@ export default function DashboardProductsPage() {
   return (
     <section className="space-y-5">
       {errorMessage ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
+        <div className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
           {errorMessage}
         </div>
       ) : null}
 
       {successMessage ? (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-meta text-green-700">
+        <div className="rounded-xl border border-mint/20 bg-mint/10 px-4 py-3 text-meta text-emerald-700">
           {successMessage}
         </div>
       ) : null}
@@ -215,7 +215,7 @@ export default function DashboardProductsPage() {
 
       {myProducts.length === 0 ? (
         <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
-          <div className="rounded-xl border border-dashed border-[#d9ccd9] bg-[#fbf9fb] p-6 text-meta text-charcoal-80/70">
+          <div className="rounded-xl border border-dashed border-violet/20 bg-violet-pale/30 p-6 text-meta text-charcoal-80/70">
             {t("products.list.empty")}
           </div>
         </div>

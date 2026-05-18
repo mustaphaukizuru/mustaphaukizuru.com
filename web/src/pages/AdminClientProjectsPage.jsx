@@ -102,7 +102,7 @@ export default function AdminClientProjectsPage() {
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onDelete(row) }}
-            className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-red-600 transition hover:bg-red-50"
+            className="inline-flex items-center gap-1 rounded-md border border-rose/20 bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-700 transition hover:bg-rose/10"
           >
             Delete
           </button>

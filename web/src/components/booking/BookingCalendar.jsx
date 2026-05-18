@@ -441,7 +441,7 @@ export default function BookingCalendar({
         variants={fadeUp} initial="hidden" animate="show"
         className="rounded-xl border border-charcoal/10 bg-white p-6 text-center shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-10"
       >
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f4ea] text-mint-800 sm:h-16 sm:w-16">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-mint/12 text-emerald-700 sm:h-16 sm:w-16">
           <CheckCircle2 className="h-7 w-7 sm:h-8 sm:w-8" />
         </div>
         <h2 className="mt-5 text-[22px] font-bold tracking-tight text-violet sm:text-[26px]">
@@ -521,7 +521,7 @@ export default function BookingCalendar({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700"
+            className="mb-4 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] text-rose-700"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{errorMessage}</span>
@@ -725,7 +725,7 @@ export default function BookingCalendar({
 
           {/* Auth notice */}
           {!user && (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] text-amber-800">
+            <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber/20 bg-amber/10 px-4 py-3 text-[12px] text-amber-700">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               {t("bookingCalendar.signInHint")}
             </div>

@@ -1207,7 +1207,7 @@ export default function ProductDetail() {
   if (error || !product) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-red-50 text-red-500">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose/10 text-red-500">
           <Package className="h-8 w-8" />
         </div>
 
@@ -1687,8 +1687,8 @@ export default function ProductDetail() {
                       aria-pressed={wishlisted}
                       className={`flex flex-1 items-center justify-center gap-2 rounded-xl border py-2.5 text-micro font-semibold transition ${
                         wishlisted
-                          ? "border-red-200 bg-red-50 text-red-600"
-                          : "border-charcoal-80/12 text-charcoal-80/60 hover:border-red-200 hover:text-red-500"
+                          ? "border-rose/20 bg-rose/10 text-rose-700"
+                          : "border-charcoal-80/12 text-charcoal-80/60 hover:border-rose/20 hover:text-red-500"
                       } disabled:cursor-not-allowed disabled:opacity-60`}
                     >
                       <Heart

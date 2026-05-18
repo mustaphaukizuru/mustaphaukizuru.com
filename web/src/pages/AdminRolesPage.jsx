@@ -114,7 +114,7 @@ export default function AdminRolesPage() {
         </div>
       </div>
 
-      {error ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">{error}</div> : null}
+      {error ? <div role="alert" className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] text-rose-700">{error}</div> : null}
 
       {/* Roles list */}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -143,7 +143,7 @@ export default function AdminRolesPage() {
                   onClick={() => setPendingDelete(role)}
                   aria-label="Delete role"
                   disabled={role.isSystem}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-charcoal-80/55"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-rose/10 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-charcoal-80/55"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -255,7 +255,7 @@ export default function AdminRolesPage() {
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose-700">
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div className="flex-1">

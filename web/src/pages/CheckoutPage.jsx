@@ -708,12 +708,12 @@ export default function CheckoutPage() {
 
             {/* Error / info */}
             {error && (
-              <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700" role="alert">
+              <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700" role="alert">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{error}
               </div>
             )}
             {info && (
-              <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-meta text-blue-700">
+              <div className="flex items-start gap-3 rounded-xl border border-azure/20 bg-azure-pale px-4 py-3 text-meta text-azure">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" aria-hidden="true" />{info}
               </div>
             )}
@@ -742,13 +742,17 @@ export default function CheckoutPage() {
               </span>
             </label>
 
-            {/* F08.B · Place order · Innovation Gradient */}
+            {/* F08.B · Place order · Sacred Innovation Gradient.
+                Brand v3 §06 — the canonical 2-stop violet→azure gradient
+                lives in the bg-grad-innovation utility class. Previously
+                this used an inline 3-stop gradient with off-palette
+                #7c3aed; switched to the utility for token alignment and
+                visual parity with the CartPage primary action. */}
             <button
               type="button"
               onClick={handleSubmit}
               disabled={loading || paypalLoading}
-              className="group flex w-full items-center justify-center gap-2 rounded-xl py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgba(93,63,211,0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(93,63,211,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 disabled:opacity-60 disabled:hover:translate-y-0"
-              style={{ background: "linear-gradient(135deg, var(--color-violet) 0%, #7c3aed 60%, var(--color-azure) 100%)" }}
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-grad-innovation py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgba(93,63,211,0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(93,63,211,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 disabled:opacity-60 disabled:hover:translate-y-0"
             >
               {(loading || paypalLoading) ? (
                 <><Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> {t("payment.processing")}</>
@@ -870,7 +874,7 @@ export default function CheckoutPage() {
                   </form>
                 )}
                 {couponError && (
-                  <p className="mt-1.5 text-micro text-red-600" role="alert">{couponError}</p>
+                  <p className="mt-1.5 text-micro text-rose-700" role="alert">{couponError}</p>
                 )}
               </div>
 
