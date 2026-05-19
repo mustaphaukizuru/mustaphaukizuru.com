@@ -21,9 +21,19 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { setAnalyticsConsent, setMarketingConsent } from "../lib/analytics"
 
 const STORAGE_KEY = "mu_cookie_consent_v1"
 export const CONSENT_VERSION = 1
+
+// ── Annual re-prompt ───────────────────────────────────────────────────────
+// ePrivacy guidance + most national DPAs (CNIL, ICO, AEPD, Garante) say a
+// reasonable consent lifetime is 6–13 months. We pick 365 days. A stored
+// record older than this is treated as expired — the banner re-shows and
+// the user gets a fresh choice. The actual record stays in localStorage
+// until they decide again so we don't lose their granular preferences mid-
+// re-prompt; we just stop honouring it.
+const MAX_CONSENT_AGE_MS = 365 * 24 * 60 * 60 * 1000
 
 // ── Default state ──────────────────────────────────────────────────────────
 // Necessary is always granted. Everything else defaults to denied until the
@@ -43,6 +53,14 @@ function readStored() {
     if (!raw) return null
     const parsed = JSON.parse(raw)
     if (!parsed || parsed.version !== CONSENT_VERSION) return null
+
+    // Annual expiry check — see MAX_CONSENT_AGE_MS comment at top.
+    // If the record is older than the threshold, return null so the
+    // provider treats `decided` as false and the banner re-prompts.
+    if (parsed.timestamp) {
+      const ageMs = Date.now() - new Date(parsed.timestamp).getTime()
+      if (Number.isFinite(ageMs) && ageMs > MAX_CONSENT_AGE_MS) return null
+    }
     return parsed
   } catch {
     return null
@@ -71,6 +89,23 @@ export function CookieConsentProvider({ children }) {
     window.addEventListener("storage", onStorage)
     return () => window.removeEventListener("storage", onStorage)
   }, [])
+
+  // ── Sync consent → analytics module ──────────────────────────────────────
+  // Source of truth: this context. Side-effect: the analytics module needs
+  // to know whether it's allowed to inject gtag.js + fire events. We push
+  // both states on every change AND on initial mount. Until the user has
+  // decided, both stay false — gtag.js is never injected and no pageviews
+  // or events are sent. The moment they accept (either via "Accept all"
+  // or the granular toggle in the preferences modal), analytics.js
+  // lazy-loads the script and resumes tracking from that point forward.
+  // No retroactive sending of queued events; that's a feature, not a bug —
+  // any event fired before consent stayed on the floor by design.
+  useEffect(() => {
+    const allowAnalytics = Boolean(record?.categories?.analytics)
+    const allowMarketing = Boolean(record?.categories?.marketing)
+    try { setAnalyticsConsent(allowAnalytics) } catch { /* defensive */ }
+    try { setMarketingConsent(allowMarketing) } catch { /* defensive */ }
+  }, [record])
 
   const setCategories = useCallback((next) => {
     const safe = {

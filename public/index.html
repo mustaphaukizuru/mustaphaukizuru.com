@@ -105,30 +105,17 @@
     </script>
 
     <!-- ────────────────────────────────────────────────────────────────
-         SEO04 · GA4 gtag.js — bootstrap snippet
-         The measurement ID is read at *build time* from VITE_GA_MEASUREMENT_ID
-         and substituted into  via vite.config (see
-         vite-plugin define). When the env var is unset, the bootstrap is
-         a no-op: gtag is never called and there is no network request to
-         googletagmanager.com (the placeholder triggers an early-return).
-         All page_view + ecommerce events fire from web/src/lib/analytics.js.
-         ──────────────────────────────────────────────────────────────── -->
-    <script>
-      (function () {
-        var GA_ID = "";
-        if (!GA_ID || GA_ID.indexOf("__") === 0 || GA_ID === "undefined") return;
-        var s = document.createElement("script");
-        s.async = true;
-        s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_ID;
-        document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){ window.dataLayer.push(arguments); }
-        window.gtag = gtag;
-        gtag("js", new Date());
-        gtag("config", GA_ID, { send_page_view: false }); // SPA route changes fire pageviews
-      })();
-    </script>
-    <script type="module" crossorigin src="/assets/index-BMx-WYDQ.js"></script>
+         SEO04 · GA4 gtag.js — bootstrap REMOVED, now consent-gated
+         GA4 used to auto-load here from VITE_GA_MEASUREMENT_ID on every
+         page boot. That violated GDPR / ePrivacy because the script
+         ran (and gtag pings fired) BEFORE the user had a chance to
+         accept the analytics category on the cookie banner.
+         The loader now lives in web/src/lib/analytics.js and only
+         injects gtag.js after `setAnalyticsConsent(true)` is called by
+         CookieConsentContext — i.e. ONLY when the user has explicitly
+         opted in. A "Reject all" click means zero bytes to Google.
+         ──────────────────────────────────────────────────────────── -->
+    <script type="module" crossorigin src="/assets/index-Dqglq8G7.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/react-vendor-BhzkbE4T.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-BT8hOdie.js">
     <link rel="modulepreload" crossorigin href="/assets/i18n-C4rgahHV.js">

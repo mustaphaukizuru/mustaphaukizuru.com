@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import { useTranslation } from "react-i18next"
+import { Link } from "react-router-dom"
 import { Shield, Calendar, Mail, Link as LinkIcon } from "lucide-react"
 
 const LAST_UPDATED = "March 2026"
@@ -12,7 +13,30 @@ const sections = [
   { slug: "information-we-collect", title: "1. Information We Collect", content: "We collect information you provide directly, including name, email address, and payment information during account registration and checkout. We also collect usage data such as pages visited and interactions with the platform." },
   { slug: "how-we-use-your-information", title: "2. How We Use Your Information", content: "Your information is used to process orders, deliver digital products, send order confirmations, provide member dashboard access, and improve our platform. We do not sell your personal information to third parties." },
   { slug: "payment-security", title: "3. Payment Security", content: "Payment information is processed exclusively by our payment partners (Mercado Pago and PayPal). We do not store your full card details on our servers. All transactions are SSL encrypted." },
-  { slug: "cookies", title: "4. Cookies", content: "We use essential cookies for authentication and session management. Analytics cookies help us understand how visitors interact with the platform. You can manage cookie preferences in your browser settings." },
+  // The cookies section is the only one that needs an inline route link
+  // (back to the dedicated Cookie Policy + preferences UI), so its content
+  // is a JSX fragment instead of a flat string. The article renderer below
+  // handles both shapes via React's standard `{content}` interpolation.
+  {
+    slug: "cookies",
+    title: "4. Cookies",
+    content: (
+      <>
+        We use strictly necessary cookies for authentication, session integrity, and security.
+        Analytics and marketing cookies are <strong>off by default</strong> and only fire after
+        you explicitly accept them via the cookie banner. To review every category we use,
+        update your choices, or revoke consent, visit our{" "}
+        <Link
+          to="/cookies"
+          className="font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 rounded"
+        >
+          Cookie Policy
+        </Link>
+        {" "}page. Browser settings remain a backstop, but the in-app preferences are the
+        primary, granular control.
+      </>
+    ),
+  },
   { slug: "data-sharing", title: "5. Data Sharing", content: "We may share limited information with payment processors, email service providers, and analytics services strictly necessary to operate the platform. These partners are contractually bound to protect your data." },
   { slug: "data-retention", title: "6. Data Retention", content: "Account data is retained as long as your account is active. Order records are kept for legal and accounting purposes. You may request data deletion by contacting us, subject to applicable legal requirements." },
   { slug: "your-rights", title: "7. Your Rights", content: "You have the right to access, correct, or request deletion of your personal data. You may also opt out of marketing communications at any time using the unsubscribe link in emails." },
