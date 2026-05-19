@@ -120,6 +120,17 @@ export default function DashboardProfilePage() {
     }
   }
 
+  // `hasPassword` comes from /api/auth/me — true if a passwordHash row
+  // exists for this user. Google-only users (signed up via OAuth, never
+  // opted into a local credential) get false here and see the "Set a
+  // password" form instead of the standard change-password one. Default
+  // to `true` for safety: if /me hasn't surfaced the field yet (e.g.,
+  // backend not redeployed), we'd rather show the stricter change form
+  // than accidentally offer set-password to someone who already has one
+  // (the backend's 409-conflict guard would reject anyway, but UX is
+  // better if we don't even show the wrong form).
+  const hasPassword = user?.hasPassword !== false
+
   async function handleChangePassword(e) {
     e.preventDefault()
     setPwError("")
@@ -131,6 +142,35 @@ export default function DashboardProfilePage() {
     try {
       await authFetch("/api/member/profile/password", { method:"PATCH", body: JSON.stringify({ currentPassword, newPassword }) })
       showSuccess(t("profile.toast.passwordChanged"))
+      setShowPwForm(false)
+      setPwForm({ currentPassword:"", newPassword:"", confirmPassword:"" })
+    } catch (err) {
+      setPwError(err.message || t("profile.toast.passwordFailed"))
+    } finally {
+      setSavingPw(false)
+    }
+  }
+
+  // Set-initial-password handler — for Google-only users adding a
+  // fallback credential. Hits POST /api/member/profile/set-password
+  // (no currentPassword required, since they don't have one).
+  // On success: bump `hasPassword` in the auth context so the form
+  // immediately re-renders as the standard change-password form.
+  async function handleSetPassword(e) {
+    e.preventDefault()
+    setPwError("")
+    const { newPassword, confirmPassword } = pwForm
+    if (!newPassword || !confirmPassword) { setPwError(t("profile.passwordErrors.allRequired")); return }
+    if (newPassword !== confirmPassword) { setPwError(t("profile.passwordErrors.mismatch")); return }
+    if (newPassword.length < 6) { setPwError(t("profile.passwordErrors.tooShort")); return }
+    setSavingPw(true)
+    try {
+      await authFetch("/api/member/profile/set-password", {
+        method: "POST",
+        body: JSON.stringify({ newPassword, confirmPassword }),
+      })
+      showSuccess(t("profile.password.passwordSet"))
+      updateUser({ hasPassword: true })
       setShowPwForm(false)
       setPwForm({ currentPassword:"", newPassword:"", confirmPassword:"" })
     } catch (err) {
@@ -271,7 +311,13 @@ export default function DashboardProfilePage() {
             )}
           </div>
 
-          {/* Password section */}
+          {/* Password section · two variants driven by `hasPassword`:
+              · hasPassword === true  → existing "Change password" form
+                (requires current + new + confirm)
+              · hasPassword === false → "Set password" form for Google-only
+                users (just new + confirm, with an explanatory intro
+                paragraph framing why this is useful and that we never
+                see their Google password). */}
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -279,29 +325,53 @@ export default function DashboardProfilePage() {
                   <Lock className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="text-meta font-bold text-violet">{t("profile.password.title")}</div>
-                  <div className="text-micro text-charcoal-80/55">{t("profile.password.subtitle")}</div>
+                  <div className="text-meta font-bold text-violet">
+                    {hasPassword ? t("profile.password.title") : t("profile.password.setTitle")}
+                  </div>
+                  <div className="text-micro text-charcoal-80/55">
+                    {hasPassword ? t("profile.password.subtitle") : t("profile.password.setSubtitle")}
+                  </div>
                 </div>
               </div>
               <button type="button" onClick={() => setShowPwForm(!showPwForm)}
                 className="rounded-xl border border-violet/20 px-4 py-2 text-micro font-semibold text-violet hover:bg-violet-pale transition"
               >
-                {showPwForm ? t("profile.password.cancel") : t("profile.password.change")}
+                {showPwForm ? t("profile.password.cancel") : (hasPassword ? t("profile.password.change") : t("profile.password.set"))}
               </button>
             </div>
 
             {showPwForm && (
-              <form onSubmit={handleChangePassword} className="mt-5 flex flex-col gap-4">
+              <form
+                onSubmit={hasPassword ? handleChangePassword : handleSetPassword}
+                className="mt-5 flex flex-col gap-4"
+              >
+                {/* Intro callout for the set-password flow — explains the
+                    "why" without burying it in microcopy elsewhere. Shown
+                    only when the user has no current password (so it
+                    can't confuse the standard change-password flow). */}
+                {!hasPassword && (
+                  <div className="flex items-start gap-3 rounded-xl border border-azure/20 bg-azure/5 px-4 py-3 text-micro text-charcoal-80/85">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-azure" />
+                    <span>{t("profile.password.setIntro")}</span>
+                  </div>
+                )}
+
                 {pwError && (
                   <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
                     <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {pwError}
                   </div>
                 )}
+
+                {/* Field list — filter out `currentPassword` when the user
+                    is setting their initial password (they don't have
+                    one to verify against). */}
                 {[
                   { key:"currentPassword", labelKey:"profile.password.current", show:"cur" },
                   { key:"newPassword",     labelKey:"profile.password.new",     show:"new" },
                   { key:"confirmPassword", labelKey:"profile.password.confirm", show:"conf" },
-                ].map(({ key, labelKey, show }) => (
+                ]
+                  .filter(({ key }) => hasPassword || key !== "currentPassword")
+                  .map(({ key, labelKey, show }) => (
                   <div key={key}>
                     <label className="mb-1.5 block text-micro font-semibold text-violet">{t(labelKey)}</label>
                     <div className="relative">
@@ -321,7 +391,9 @@ export default function DashboardProfilePage() {
                 <button type="submit" disabled={savingPw}
                   className="w-full rounded-xl bg-violet py-3 text-meta font-semibold text-white transition hover:bg-violet-deep disabled:opacity-60"
                 >
-                  {savingPw ? t("profile.password.saving") : t("profile.password.submit")}
+                  {savingPw
+                    ? (hasPassword ? t("profile.password.saving") : t("profile.password.setSaving"))
+                    : (hasPassword ? t("profile.password.submit") : t("profile.password.setSubmit"))}
                 </button>
               </form>
             )}

@@ -197,7 +197,14 @@
       "new": "New Password",
       "confirm": "Confirm Password",
       "submit": "Change Password",
-      "saving": "Changing…"
+      "saving": "Changing…",
+      "setTitle": "Set a password",
+      "setSubtitle": "Add an email + password backup to your Google account",
+      "setIntro": "You signed in with Google. Setting a password gives you a second way in, so a Google outage or browser cookie issue can't lock you out. Your Google password isn't shared with us — this is a separate password you choose for this site.",
+      "set": "Set password",
+      "setSubmit": "Set password",
+      "setSaving": "Saving…",
+      "passwordSet": "Password set"
     }
   },
   "products": {

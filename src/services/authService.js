@@ -49,7 +49,7 @@ async function registerUser({ fullName, email, password }) {
 
   const passwordHash = await bcrypt.hash(password, 12);
 
-  const user = await prisma.user.create({
+  const createdRaw = await prisma.user.create({
     data: {
       fullName,
       email: normalizedEmail,
@@ -64,8 +64,18 @@ async function registerUser({ fullName, email, password }) {
       role: true,
       avatarUrl: true,
       createdAt: true,
+      passwordHash: true,
+      authProvider: true,
     },
   });
+
+  // Strip the hash before downstream code touches it — only `hasPassword`
+  // (the boolean derived from passwordHash) ever leaves the server.
+  const { passwordHash: _hash, ...rest } = createdRaw;
+  const user = {
+    ...rest,
+    hasPassword: Boolean(_hash),
+  };
 
   await ensureProfile(user.id);
 
@@ -172,12 +182,17 @@ async function loginUser({ email, password, rememberMe = false }) {
 
   await ensureProfile(user.id);
 
+  // Include `hasPassword` and `authProvider` in the login response so the
+  // dashboard's password section renders the correct form immediately
+  // after sign-in, without waiting for the subsequent /me fetch.
   return {
-    id:        user.id,
-    fullName:  user.fullName,
-    email:     user.email,
-    role:      user.role,
-    createdAt: user.createdAt,
+    id:           user.id,
+    fullName:     user.fullName,
+    email:        user.email,
+    role:         user.role,
+    createdAt:    user.createdAt,
+    hasPassword:  Boolean(user.passwordHash),
+    authProvider: user.authProvider || "local",
   };
 }
 
@@ -210,16 +225,23 @@ async function completeLoginAfter2FA(userId) {
   await ensureProfile(user.id);
 
   return {
-    id:        user.id,
-    fullName:  user.fullName,
-    email:     user.email,
-    role:      user.role,
-    createdAt: user.createdAt,
+    id:           user.id,
+    fullName:     user.fullName,
+    email:        user.email,
+    role:         user.role,
+    createdAt:    user.createdAt,
+    hasPassword:  Boolean(user.passwordHash),
+    authProvider: user.authProvider || "local",
   };
 }
 
 async function getUserProfile(userId) {
-  return prisma.user.findUnique({
+  // `passwordHash` is selected ONLY to compute `hasPassword`; we strip
+  // the hash itself before returning so the literal bcrypt string never
+  // leaves the server. `authProvider` is informational for the client
+  // (used by the dashboard "set password" tile to show context like
+  // "You signed up with Google. Set a password as a backup.").
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -230,8 +252,13 @@ async function getUserProfile(userId) {
       phone: true,
       company: true,
       createdAt: true,
+      passwordHash: true,
+      authProvider: true,
     },
   });
+  if (!user) return null;
+  const { passwordHash, ...safe } = user;
+  return { ...safe, hasPassword: Boolean(passwordHash) };
 }
 
 /* ────────────────────────────────────────────────────────────────────────

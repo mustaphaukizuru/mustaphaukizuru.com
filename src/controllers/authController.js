@@ -164,6 +164,12 @@ const googleLogin = asyncHandler(async (req, res) => {
         role: user.role,
         avatarUrl: user.avatarUrl || null,
         createdAt: user.createdAt || null,
+        // Surface hasPassword + authProvider on the login response so
+        // the dashboard's "Set a password" tile renders on the very
+        // first paint after Google sign-in — no need to wait for a
+        // subsequent /me roundtrip.
+        hasPassword: Boolean(user.passwordHash),
+        authProvider: user.authProvider || "google",
       },
       token,
     },

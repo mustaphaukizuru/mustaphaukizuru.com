@@ -197,7 +197,14 @@
       "new": "Nueva contraseña",
       "confirm": "Confirmar contraseña",
       "submit": "Cambiar contraseña",
-      "saving": "Cambiando…"
+      "saving": "Cambiando…",
+      "setTitle": "Establecer una contraseña",
+      "setSubtitle": "Agrega un respaldo de correo + contraseña a tu cuenta de Google",
+      "setIntro": "Iniciaste sesión con Google. Establecer una contraseña te da una segunda forma de entrar, así una caída de Google o un problema con las cookies del navegador no podrá bloquearte la cuenta. Tu contraseña de Google no se comparte con nosotros — esta es una contraseña aparte que tú eliges para este sitio.",
+      "set": "Establecer contraseña",
+      "setSubmit": "Establecer contraseña",
+      "setSaving": "Guardando…",
+      "passwordSet": "Contraseña establecida"
     }
   },
   "products": {
