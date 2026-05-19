@@ -16,13 +16,27 @@
  */
 
 const prisma = require("../lib/prisma")
+const { isAlive, recycle } = require("../lib/prisma")
 const logger = require("../utils/logger")
 
 /**
  * Aggregate a specific day (YYYY-MM-DD) into DailyMetric.
  * Defaults to "yesterday" in server time.
+ *
+ * Connection health gate (added after the May 2026 stale-socket incident):
+ * This job fires once a day at 00:15. After 23h+ of idle pool, the
+ * Hostinger MySQL socket is guaranteed dead. We probe before the heavy
+ * Promise.all() block and recycle the engine if needed; otherwise the
+ * first sub-query would panic and abort the whole rollup.
  */
 async function aggregateDailyMetrics({ date } = {}) {
+  if (!(await isAlive())) {
+    await recycle()
+    if (!(await isAlive())) {
+      logger.warn("[aggregateDailyMetrics] DB unreachable after recycle — skipping")
+      return null
+    }
+  }
   // Default to yesterday in server-local time
   const target = date ? new Date(date) : new Date(Date.now() - 86_400_000)
   // Normalize to UTC midnight bounds for the target day
