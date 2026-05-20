@@ -48,11 +48,16 @@ const LABEL_MAP = {
 
 // Sources of failure surfaced by the backend on the redirect-back to
 // /login. Each maps to a short, calm message — no browser instructions.
+// `server_misconfigured` is distinct from `exchange_failed`: the former
+// means the server doesn't have GOOGLE_CLIENT_SECRET set at all (so we
+// refuse to start the flow), the latter means we started it and Google
+// rejected the token exchange (likely a redirect_uri or clock issue).
 const SERVER_ERROR_COPY = {
-  cancelled:       "Google sign-in was cancelled. You can try again or use email below.",
-  state_mismatch:  "Sign-in session expired. Please try again.",
-  exchange_failed: "We could not complete Google sign-in. Please try again or use email below.",
-  unavailable:     "Google sign-in is temporarily unavailable. Please use email below.",
+  cancelled:           "Google sign-in was cancelled. You can try again or use email below.",
+  state_mismatch:      "Sign-in session expired. Please try again.",
+  exchange_failed:     "We could not complete Google sign-in. Please try again or use email below.",
+  server_misconfigured:"Google sign-in is not configured on this server yet. Please use email below.",
+  unavailable:         "Google sign-in is temporarily unavailable. Please use email below.",
 }
 
 export default function GoogleLoginButton({

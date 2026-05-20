@@ -104,6 +104,21 @@ function clearOAuthCookies(res) {
 }
 
 const startGoogleOAuth = asyncHandler(async (req, res) => {
+  const frontendForFail = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  // Fail-fast: if the server is missing either OAuth credential, don't
+  // even send the user to Google — we'll just hit exchange_failed when
+  // they come back. Surface a distinct error code so the SPA + log
+  // immediately make it clear this is operator config, not user error.
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    console.error(
+      "[google-oauth] /start refused — missing credentials.",
+      "client_id set:", Boolean(process.env.GOOGLE_CLIENT_ID),
+      "client_secret set:", Boolean(process.env.GOOGLE_CLIENT_SECRET),
+    )
+    return res.redirect(302, `${frontendForFail}/login?google=server_misconfigured`)
+  }
+
   try {
     const state = crypto.randomBytes(32).toString("hex")
     const nonce = crypto.randomBytes(32).toString("hex")

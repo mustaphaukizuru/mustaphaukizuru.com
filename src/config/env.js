@@ -112,6 +112,38 @@ if (isLive) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Google OAuth — pre-flight (runs in ALL environments)
+//
+// Misconfigured OAuth breaks sign-in in dev just as much as in prod, so
+// we check here regardless of NODE_ENV. The most common failure mode is
+// "operator added GOOGLE_CLIENT_ID to .env but forgot GOOGLE_CLIENT_SECRET"
+// — the legacy One-Tap flow only needed the ID, the new redirect flow
+// needs both. Without the secret, the token exchange in /api/auth/google/
+// callback throws and users hit ?google=exchange_failed with no clue why.
+// ─────────────────────────────────────────────────────────────
+{
+  const hasClientId     = Boolean(process.env.GOOGLE_CLIENT_ID)
+  const hasClientSecret = Boolean(process.env.GOOGLE_CLIENT_SECRET)
+
+  if (hasClientId && !hasClientSecret) {
+    console.warn(
+      "⚠️  Google OAuth: GOOGLE_CLIENT_ID is set but GOOGLE_CLIENT_SECRET is missing.\n" +
+      "    The redirect flow (POST /api/auth/google/start → callback) WILL fail at the\n" +
+      "    token exchange step. Get the secret from Google Cloud Console:\n" +
+      "      https://console.cloud.google.com/apis/credentials\n" +
+      "      → OAuth 2.0 Client IDs → click your client → \"Show secret\"\n" +
+      "    Then add to .env:  GOOGLE_CLIENT_SECRET=<paste here>"
+    )
+  }
+  if (hasClientSecret && !hasClientId) {
+    console.warn(
+      "⚠️  Google OAuth: GOOGLE_CLIENT_SECRET is set but GOOGLE_CLIENT_ID is missing.\n" +
+      "    Set both or unset both."
+    )
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Google Calendar / Meet — shape-aware pre-flight.
 //
 // Runs in EVERY environment (dev included): bookings depend on Google in
