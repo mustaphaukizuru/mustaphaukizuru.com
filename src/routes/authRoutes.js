@@ -4,6 +4,8 @@ const {
   login,
   me,
   googleLogin,
+  startGoogleOAuth,
+  googleOAuthCallback,
   forgotPassword,
   resetPassword,
 } = require("../controllers/authController");
@@ -26,7 +28,9 @@ const router = express.Router();
 //   forgot-password  → 3 / 1 hour / email
 router.post("/signup",                signupRateLimiter,         signup);
 router.post("/login",                 loginRateLimiter,          login);
-router.post("/google",                                            googleLogin);
+router.post("/google",                                            googleLogin);            // legacy One-Tap endpoint (kept for backwards compat)
+router.get ("/google/start",                                      startGoogleOAuth);       // OAuth redirect flow — primary path
+router.get ("/google/callback",                                   googleOAuthCallback);    // OAuth redirect flow — Google calls back here
 router.post("/forgot-password",       forgotPasswordRateLimiter, forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 router.get ("/me",                    protect, me);

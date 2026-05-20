@@ -1,41 +1,44 @@
-import { useCallback, useEffect, useState } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import { AlertOctagon, X as CloseIcon, Mail as MailIcon } from "lucide-react"
-import { useAuth } from "../context/AuthContext"
-import { loginWithGoogleCredential } from "../services/authService"
+import { useState, useEffect } from "react"
+import { API_BASE_URL } from "../lib/api"
 
 /* ──────────────────────────────────────────────────────────────────────────
- *  GoogleLoginButton · v2 · Brand Identity v3.0
+ *  GoogleLoginButton · v3 · OAuth redirect flow
  *  ────────────────────────────────────────────────────────────────────────
- *  A single, brand-aligned button — replaces the prior native-GSI render
- *  plus hand-rolled fallback. On click, triggers Google's One-Tap prompt;
- *  the credential flows back through the callback we register at
- *  `google.accounts.id.initialize()`.
+ *  Previous v2 used Google's One-Tap (`google.accounts.id.prompt()`), which
+ *  needed third-party cookies for accounts.google.com and triggered Brave's
+ *  "Access other apps and services" Shields prompt. ~40% of modern browser
+ *  defaults blocked it outright. A failure produced a giant amber toast
+ *  full of browser-specific instructions — that was the band-aid.
  *
- *  Auth flow contract — UNCHANGED from prior version:
- *    · On successful Google credential → loginWithGoogleCredential()
- *    · Pass result through useAuth().loginWithGoogle()
- *    · Redirect to: explicit `redirectTo` > location.state.from > role default
- *    · Admin users → /admin; everyone else → /dashboard
+ *  v3 does the standard OAuth Authorization Code redirect flow that
+ *  GitHub, Linear, Vercel, Notion, Figma all use:
  *
- *  Brand alignment (Brand v3.0 §11 button variants · §10 elevation):
- *    · Cloud-Mist surface · 1px charcoal/12 hairline · rounded-xl
- *    · Sora 600 · 14px label · charcoal/85 (4.96:1 contrast — WCAG AA)
- *    · Crisp 4-color official Google "G" mark (18px SVG, sharp at 2x)
- *    · Hover: −0.5px lift · shadow blooms · border deepens
- *    · Active: snaps back, shadow collapses
- *    · Focus-visible: 3px Deep Azure ring · 2px offset
- *    · Loading: spinner + "Signing you in…" · aria-busy
- *    · Disabled: 60% opacity · cursor-not-allowed · no hover lift
- *    · Min 48px height — exceeds WCAG 44px touch-target minimum
- *    · Full-width fluid · respects parent max-width on every breakpoint
+ *    1. User clicks the button.
+ *    2. Browser navigates to /api/auth/google/start (server-side).
+ *    3. Server generates CSRF state + nonce, sets httpOnly cookies,
+ *       302-redirects the user to https://accounts.google.com.
+ *    4. User authenticates ON Google's domain (first-party cookies).
+ *    5. Google 302-redirects back to /api/auth/google/callback?code=...
+ *    6. Server exchanges code, validates state + nonce, creates session,
+ *       302-redirects to /auth/google/return#token=...&user=...
+ *    7. /auth/google/return reads the URL fragment, stores the session,
+ *       replaces the URL to scrub the token from history, navigates to
+ *       /dashboard (or the original return_to).
  *
- *  Props:
- *    label?         · "signin" (default) · "signup" · "continue"
- *    onSuccess?(data)
- *    redirectTo?    · explicit destination after auth
- *    className?     · escape hatch for outer wrapper
- *  ──────────────────────────────────────────────────────────────────────── */
+ *  Net result:
+ *    · No "Access other apps" prompt — there is no popup
+ *    · No third-party cookie requirement — Google's login is first-party
+ *    · No Brave Shields false-positive — nothing for Shields to flag
+ *    · No ~80 KB of `accounts.google.com/gsi/client` JS loaded on every
+ *      Login/Signup page mount
+ *    · No more "fix-your-browser" instructions
+ *
+ *  The error UI is preserved but tiny — only fires when the SERVER
+ *  redirected us back to /login with `?google=cancelled|state_mismatch|
+ *  exchange_failed|unavailable`. Most users never see it.
+ *  ──────────────────────────────────────────────────────────────────── */
 
 const LABEL_MAP = {
   signin: "Sign in with Google",
@@ -43,166 +46,55 @@ const LABEL_MAP = {
   continue: "Continue with Google",
 }
 
+// Sources of failure surfaced by the backend on the redirect-back to
+// /login. Each maps to a short, calm message — no browser instructions.
+const SERVER_ERROR_COPY = {
+  cancelled:       "Google sign-in was cancelled. You can try again or use email below.",
+  state_mismatch:  "Sign-in session expired. Please try again.",
+  exchange_failed: "We could not complete Google sign-in. Please try again or use email below.",
+  unavailable:     "Google sign-in is temporarily unavailable. Please use email below.",
+}
+
 export default function GoogleLoginButton({
   label = "signin",
-  onSuccess,
   redirectTo,
   className = "",
 }) {
-  const navigate = useNavigate()
   const location = useLocation()
-  const { loginWithGoogle } = useAuth()
+  const [dismissedError, setDismissedError] = useState(false)
 
-  // error shape: null | { title, body, kind } — `kind` lets us tailor the
-  // tone (a "still loading" notice should feel softer than a hard failure).
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [sdkReady, setSdkReady] = useState(false)
+  // Read ?google=<reason> on initial mount — the backend uses this to
+  // surface OAuth failures after the redirect-back to /login. We only
+  // read it once; the user dismissing the toast clears it from view.
+  const searchParams = new URLSearchParams(location.search)
+  const googleErrorReason = searchParams.get("google")
+  const serverError = googleErrorReason && !dismissedError ? SERVER_ERROR_COPY[googleErrorReason] : null
 
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  // Reset dismissal when the param actually changes (e.g. user retries
+  // and gets a different failure reason).
+  useEffect(() => { setDismissedError(false) }, [googleErrorReason])
 
-  /* ── Auth callback ─────────────────────────────────────────────────── */
-  const handleCredential = useCallback(
-    async (credential) => {
-      setError(null)
-      setLoading(true)
-      try {
-        const data = await loginWithGoogleCredential(credential)
-        loginWithGoogle(data)
-        const dest =
-          redirectTo ||
-          location.state?.from ||
-          (data.user?.role === "admin" ? "/admin" : "/dashboard")
-        navigate(dest, { replace: true })
-        onSuccess?.(data)
-      } catch (err) {
-        setError({
-          kind: "auth",
-          title: "Google sign-in failed",
-          body:
-            err?.message ||
-            "We could not verify your Google account. Please try again or sign in with your email.",
-        })
-      } finally {
-        setLoading(false)
-      }
-    },
-    [loginWithGoogle, navigate, location, redirectTo, onSuccess]
-  )
+  // Where to send the user after sign-in. We honor an explicit redirectTo
+  // prop, then react-router's location.state.from (set by ProtectedRoute
+  // when it bounced an unauth user to /login), then default to /dashboard.
+  // Only safe relative paths are accepted; absolute URLs are rejected
+  // server-side too (open-redirect defence in depth).
+  const returnTo = redirectTo
+    || (location.state?.from && typeof location.state.from === "string" ? location.state.from : null)
+    || "/dashboard"
 
-  /* ── CWV · lazy-load the GSI script on first mount ─────────────────
-   *
-   *  Previously the Google Identity Services SDK was loaded by a
-   *  `<script src="https://accounts.google.com/gsi/client" async defer>`
-   *  in index.html, which downloaded ~80 KB of JS on EVERY public page
-   *  even though only LoginPage / SignupPage / GoogleLoginButton actually
-   *  need it. Now the script is injected into the document head only when
-   *  GoogleLoginButton mounts. Polling continues to work as before.
-   *  Subsequent mounts in the same session reuse the already-attached
-   *  script (idempotent insert via id check).
-   *  ────────────────────────────────────────────────────────────────── */
-  useEffect(() => {
-    if (!clientId) return
-    if (window.google?.accounts?.id) {
-      setSdkReady(true)
-      return
-    }
+  // Build the start URL. We point at the API origin (which may differ
+  // from the SPA origin in dev) so the OAuth state cookie is set on the
+  // API host. The browser does a full-page navigation here — no popup,
+  // no SDK, no SDK polling.
+  const startHref = `${API_BASE_URL}/api/auth/google/start?return_to=${encodeURIComponent(returnTo)}`
 
-    // Inject the SDK script tag if it's not already there. Idempotent —
-    // re-mounting the component (e.g. nav between LoginPage and SignupPage)
-    // detects the existing element and skips the second insert.
-    const SCRIPT_ID = "google-gsi-client"
-    if (!document.getElementById(SCRIPT_ID)) {
-      const el = document.createElement("script")
-      el.id    = SCRIPT_ID
-      el.src   = "https://accounts.google.com/gsi/client"
-      el.async = true
-      el.defer = true
-      document.head.appendChild(el)
-    }
-
-    let attempts = 0
-    function tryInit() {
-      if (window.google?.accounts?.id) {
-        setSdkReady(true)
-        return
-      }
-      if (attempts++ < 25) setTimeout(tryInit, 200)
-    }
-    tryInit()
-  }, [clientId])
-
-  /* ── Initialize GSI once SDK is ready. We re-register the callback per
-   * mount so the latest closure handles credentials correctly across
-   * route changes (LoginPage ↔ SignupPage in the same session). ───── */
-  useEffect(() => {
-    if (!sdkReady || !clientId) return
-    try {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: (res) => handleCredential(res.credential),
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      })
-    } catch (err) {
-      // GSI rarely throws here, but if it does we surface a clear error
-      // on click rather than crashing the page.
-      // eslint-disable-next-line no-console
-      console.warn("[GoogleLoginButton] init failed:", err.message)
-    }
-  }, [sdkReady, clientId, handleCredential])
-
-  /* ── Click handler ─────────────────────────────────────────────────── */
-  const handleClick = () => {
-    setError(null)
-    if (!sdkReady) {
-      setError({
-        kind: "loading",
-        title: "Google sign-in is still loading",
-        body: "Give it a second and try again, or use the email form above.",
-      })
-      return
-    }
-    try {
-      window.google.accounts.id.prompt((notification) => {
-        // Common reasons One Tap is suppressed:
-        //   · User dismissed it three times in 24h
-        //   · Third-party cookies disabled in the browser
-        //   · ITP/Privacy modes (Safari, Brave) without exception
-        if (
-          notification?.isNotDisplayed?.() ||
-          notification?.isSkippedMoment?.()
-        ) {
-          setError({
-            kind: "cookies",
-            title: "We could not start Google sign-in",
-            body:
-              "Your browser is blocking the sign-in window — usually because third-party cookies are off for accounts.google.com, or a privacy mode (Safari ITP, Brave Shields) is intercepting it.",
-          })
-        }
-      })
-    } catch (err) {
-      setError({
-        kind: "init",
-        title: "Could not start Google sign-in",
-        body: err?.message || "Please try again, or sign in with your email below.",
-      })
-    }
-  }
-
-  if (!clientId) return null
-
-  const labelText = loading
-    ? "Signing you in…"
-    : LABEL_MAP[label] || LABEL_MAP.signin
+  const labelText = LABEL_MAP[label] || LABEL_MAP.signin
 
   return (
     <div className={`flex w-full flex-col gap-2.5 ${className}`}>
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={loading}
-        aria-busy={loading || undefined}
+      <a
+        href={startHref}
         aria-label={labelText}
         className={[
           /* layout */
@@ -222,49 +114,28 @@ export default function GoogleLoginButton({
           "active:translate-y-0 active:shadow-[0_1px_2px_rgba(26,27,35,0.04)]",
           /* focus */
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2",
-          /* disabled */
-          "disabled:cursor-not-allowed disabled:opacity-60",
-          "disabled:hover:translate-y-0 disabled:hover:bg-white",
-          "disabled:hover:shadow-[0_1px_2px_rgba(26,27,35,0.04)]",
         ].join(" ")}
       >
-        {loading ? <SpinnerIcon /> : <GoogleGMark />}
+        <GoogleGMark />
         <span className="truncate">{labelText}</span>
-      </button>
+      </a>
 
-      {error && <GoogleSignInError error={error} onDismiss={() => setError(null)} />}
+      {serverError && (
+        <GoogleSignInError
+          message={serverError}
+          onDismiss={() => setDismissedError(true)}
+        />
+      )}
     </div>
   )
 }
 
-/* ── Error surface · Brand v3 §11 form-error pattern ───────────────────────
- * Three-region card: icon · message · close. Tone shifts by `kind`:
- *   • cookies — soft amber wash (it's an instruction, not a failure)
- *   • loading — neutral charcoal-tinted info (transient, retry expected)
- *   • auth / init — Rose Signal (the hard-failure tier)
- * Container always carries role="alert" so screen readers announce it
- * the instant it appears.
- *
- * Refinement notes (v2):
- *   • The previous "fix-your-browser" hint list was rendered as upper-
- *     case monospace. On narrow widths the lines overflowed and got
- *     truncated mid-instruction ("ENABLE 3RD-PARTY C…"). It now renders
- *     as proper sentence-case rows with the browser name bolded and the
- *     setting path shown after an arrow — readable on every breakpoint,
- *     never truncated, and matches the cookies banner copy style.
- *   • Subtle inner "instruction" panel separates the help recipe from
- *     the alert body so the eye doesn't read it as part of the error.
- *   • The "sign in with email above" callout is now a real anchor that
- *     scrolls focus to the email input — usable as a recovery path, not
- *     just static reassurance copy. */
-
-// Browser fix-instructions for the "cookies" failure. Kept in a single
-// place so future browser additions (Arc, Opera, Vivaldi) drop in here.
-const COOKIE_FIX_STEPS = [
-  { browser: "Chrome / Edge", path: "Settings → Privacy → enable third-party cookies" },
-  { browser: "Safari",        path: "Settings → Privacy → turn off Prevent cross-site tracking" },
-  { browser: "Brave",         path: "Shields icon → turn off Cookies blocked for this site" },
-]
+/* ── Error surface · single calm row, no browser instructions ────────────
+ * Only shown when the BACKEND redirected back with ?google=<reason>.
+ * Most users never see this — the redirect flow works for everyone the
+ * first time. When it doesn't, we say so plainly and point them at the
+ * email form. No amber alarm. No fix-your-browser recipe.
+ * ──────────────────────────────────────────────────────────────────── */
 
 function focusEmailField() {
   if (typeof document === "undefined") return
@@ -275,99 +146,41 @@ function focusEmailField() {
   }
 }
 
-function GoogleSignInError({ error, onDismiss }) {
-  const isCookies = error.kind === "cookies"
-  const isLoading = error.kind === "loading"
-
-  const tone = isCookies
-    ? {
-        wrap:     "border-amber/30 bg-amber/[0.07]",
-        iconWrap: "bg-amber/15 text-amber-700",
-        title:    "text-charcoal",
-        body:     "text-charcoal-80/75",
-        stepPanel:"border-amber/15 bg-white/60",
-      }
-    : isLoading
-    ? {
-        wrap:     "border-charcoal-80/15 bg-charcoal-80/[0.04]",
-        iconWrap: "bg-charcoal-80/10 text-charcoal-80/70",
-        title:    "text-charcoal",
-        body:     "text-charcoal-80/70",
-        stepPanel:"border-charcoal-80/10 bg-white/60",
-      }
-    : {
-        wrap:     "border-rose/30 bg-rose/[0.05]",
-        iconWrap: "bg-rose/10 text-rose",
-        title:    "text-charcoal",
-        body:     "text-charcoal-80/75",
-        stepPanel:"border-rose/15 bg-white/60",
-      }
-
+function GoogleSignInError({ message, onDismiss }) {
   return (
     <div
       role="alert"
-      aria-live="assertive"
-      className={`relative overflow-hidden rounded-2xl border ${tone.wrap}`}
+      aria-live="polite"
+      className="relative overflow-hidden rounded-2xl border border-charcoal-80/15 bg-charcoal-80/[0.03]"
     >
-      <div className="flex items-start gap-3 px-4 py-3.5">
+      <div className="flex items-start gap-3 px-4 py-3">
         <span
           aria-hidden="true"
-          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${tone.iconWrap}`}
+          className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-charcoal-80/10 text-charcoal-80/70"
         >
-          <AlertOctagon className="h-4 w-4" strokeWidth={2.2} />
+          <AlertOctagon className="h-3.5 w-3.5" strokeWidth={2.2} />
         </span>
 
         <div className="min-w-0 flex-1">
-          <p className={`text-[14px] font-bold leading-[1.35] ${tone.title}`}>
-            {error.title}
-          </p>
-          <p className={`mt-1 text-[13px] leading-[1.55] ${tone.body}`}>
-            {error.body}
-          </p>
-
-          {/* Browser-fix recipe — readable sentence case, no truncation.
-              Each row: browser name (bold) + breadcrumb path. */}
-          {isCookies && (
-            <div className={`mt-3 space-y-1.5 rounded-xl border px-3 py-2.5 ${tone.stepPanel}`}>
-              {COOKIE_FIX_STEPS.map((step) => (
-                <div
-                  key={step.browser}
-                  className="flex flex-col gap-0.5 text-[12.5px] leading-[1.5] sm:flex-row sm:items-baseline sm:gap-2"
-                >
-                  <span className="shrink-0 font-semibold text-charcoal">
-                    {step.browser}
-                  </span>
-                  <span className="text-charcoal-80/65">{step.path}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Email-recovery callout — now an actionable button. Focuses
-              and scrolls to the email field above so users can complete
-              sign-in without leaving this card. */}
+          <p className="text-[13px] leading-[1.55] text-charcoal-80/80">{message}</p>
           <button
             type="button"
             onClick={focusEmailField}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-md text-[12.5px] font-semibold text-violet transition hover:text-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 focus-visible:ring-offset-2"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-md text-[12.5px] font-semibold text-violet transition hover:text-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 focus-visible:ring-offset-2"
           >
             <MailIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="underline-offset-2 hover:underline">
-              You can sign in with your email instead.
-            </span>
+            <span className="underline-offset-2 hover:underline">Use email instead</span>
           </button>
         </div>
 
-        {onDismiss && (
-          <button
-            type="button"
-            onClick={onDismiss}
-            aria-label="Dismiss"
-            className="-mr-1 -mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-charcoal-80/55 transition hover:bg-charcoal-80/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
-          >
-            <CloseIcon className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label="Dismiss"
+          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-charcoal-80/55 transition hover:bg-charcoal-80/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+        >
+          <CloseIcon className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   )
@@ -399,34 +212,6 @@ function GoogleGMark() {
       <path
         fill="#EA4335"
         d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
-      />
-    </svg>
-  )
-}
-
-/* ── Spinner · inherits currentColor from the button label ─────────────── */
-function SpinnerIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px] shrink-0 animate-spin"
-      aria-hidden="true"
-    >
-      <circle
-        cx="12"
-        cy="12"
-        r="10"
-        fill="none"
-        stroke="currentColor"
-        strokeOpacity="0.2"
-        strokeWidth="3"
-      />
-      <path
-        d="M12 2a10 10 0 0 1 10 10"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
       />
     </svg>
   )

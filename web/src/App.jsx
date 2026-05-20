@@ -75,6 +75,9 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+// OAuth redirect-flow landing page — receives token + user in URL fragment
+// from /api/auth/google/callback and hands off to AuthContext.
+const GoogleReturnPage = lazy(() => import("./pages/GoogleReturnPage"));
 
 // Member dashboard pages
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
@@ -230,6 +233,9 @@ export default function App() {
             <Route path="/signup" element={<AuthLayout><SignupPage /></AuthLayout>} />
             <Route path="/forgot-password" element={<AuthLayout><ForgotPasswordPage /></AuthLayout>} />
             <Route path="/reset-password/:token" element={<AuthLayout><ResetPasswordPage /></AuthLayout>} />
+            {/* OAuth redirect-flow landing — no AuthLayout shell, lifecycle is
+                ~200ms then nav-replace to /dashboard. */}
+            <Route path="/auth/google/return" element={<GoogleReturnPage />} />
 
             {/* Member dashboard */}
             <Route
@@ -388,6 +394,7 @@ export default function App() {
               <Route path="signup" element={<AuthLayout><SignupPage /></AuthLayout>} />
               <Route path="forgot-password" element={<AuthLayout><ForgotPasswordPage /></AuthLayout>} />
               <Route path="reset-password/:token" element={<AuthLayout><ResetPasswordPage /></AuthLayout>} />
+              <Route path="auth/google/return" element={<GoogleReturnPage />} />
 
               {/* Admin and Dashboard intentionally NOT mirrored — operator UIs stay English. */}
             </Route>

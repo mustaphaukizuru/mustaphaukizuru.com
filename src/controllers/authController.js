@@ -20,7 +20,164 @@ const {
 const {
   verifyGoogleToken,
   findOrCreateGoogleUser,
+  buildAuthUrl: buildGoogleAuthUrl,
+  exchangeCodeForProfile: exchangeGoogleCodeForProfile,
 } = require("../services/googleAuthService");
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Google OAuth redirect flow · helpers
+ * ────────────────────────────────────────────────────────────────────────
+ * `STATE_COOKIE` lives only for the duration of the OAuth round-trip
+ * (5 minutes max). It pairs the user's session with the auth request, so
+ * a forged callback URL from an attacker can't trick us into completing
+ * the flow against the wrong session.
+ *
+ * The cookie must be sameSite=lax (NOT strict) — Google's 302 back to our
+ * /callback is a top-level cross-site navigation, and strict cookies are
+ * dropped on that hop. lax allows GET requests to carry the cookie,
+ * which is exactly what we need.
+ * ──────────────────────────────────────────────────────────────────── */
+const STATE_COOKIE = "g_oauth_state"
+const NONCE_COOKIE = "g_oauth_nonce"
+const RETURN_COOKIE = "g_oauth_return"
+const STATE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+// Tiny inline cookie parser — the codebase doesn't use cookie-parser
+// middleware and we only need to read three cookies on one route, so a
+// dedicated dep would be overkill. Format follows RFC 6265 closely
+// enough for our purposes: `name=value; name2=value2`. URL-decodes
+// values written by Express's res.cookie().
+function parseRequestCookies(req) {
+  const header = req.headers.cookie || ""
+  const out = {}
+  if (!header) return out
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=")
+    if (idx < 0) continue
+    const name = part.slice(0, idx).trim()
+    if (!name) continue
+    const raw = part.slice(idx + 1).trim()
+    try { out[name] = decodeURIComponent(raw) } catch { out[name] = raw }
+  }
+  return out
+}
+
+function getRedirectUri(req) {
+  // The redirect_uri sent to Google MUST exactly match one in the OAuth
+  // client's "Authorized redirect URIs" list. We derive it from the
+  // current request so localhost dev and production hostinger both work
+  // without code changes — operator just needs to register both URIs in
+  // Google Cloud Console once.
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "https"
+  const host  = req.headers["x-forwarded-host"]  || req.headers.host
+  return `${proto}://${host}/api/auth/google/callback`
+}
+
+function setOAuthCookie(res, name, value, isSecure) {
+  res.cookie(name, value, {
+    httpOnly: true,
+    secure:   isSecure,
+    sameSite: "lax",
+    maxAge:   STATE_TTL_MS,
+    path:     "/",
+  })
+}
+
+function clearOAuthCookies(res) {
+  res.clearCookie(STATE_COOKIE,  { path: "/" })
+  res.clearCookie(NONCE_COOKIE,  { path: "/" })
+  res.clearCookie(RETURN_COOKIE, { path: "/" })
+}
+
+const startGoogleOAuth = asyncHandler(async (req, res) => {
+  try {
+    const state = crypto.randomBytes(32).toString("hex")
+    const nonce = crypto.randomBytes(32).toString("hex")
+    const redirectUri = getRedirectUri(req)
+    // Optional return_to passed in by the SPA — bounded to safe paths only
+    // (must start with "/" and not contain "//" or ":" so we can't be
+    // turned into an open-redirect against an external host).
+    let returnTo = String(req.query.return_to || "/dashboard")
+    if (!returnTo.startsWith("/") || returnTo.includes("//") || returnTo.includes(":")) {
+      returnTo = "/dashboard"
+    }
+
+    const isSecure = (req.headers["x-forwarded-proto"] || req.protocol) === "https"
+    setOAuthCookie(res, STATE_COOKIE,  state,    isSecure)
+    setOAuthCookie(res, NONCE_COOKIE,  nonce,    isSecure)
+    setOAuthCookie(res, RETURN_COOKIE, returnTo, isSecure)
+
+    const authUrl = buildGoogleAuthUrl({
+      state,
+      nonce,
+      redirectUri,
+      loginHint: typeof req.query.login_hint === "string" ? req.query.login_hint : undefined,
+    })
+    return res.redirect(302, authUrl)
+  } catch (err) {
+    // Configuration error (missing GOOGLE_CLIENT_ID/SECRET, etc.) →
+    // route the user to the login page with a recoverable error.
+    const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+    return res.redirect(302, `${frontend}/login?google=unavailable`)
+  }
+})
+
+const googleOAuthCallback = asyncHandler(async (req, res) => {
+  const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  // User denied / closed the consent screen → redirect home softly.
+  if (req.query.error) {
+    clearOAuthCookies(res)
+    return res.redirect(302, `${frontend}/login?google=cancelled`)
+  }
+
+  const cookies     = parseRequestCookies(req)
+  const code        = String(req.query.code  || "")
+  const stateQuery  = String(req.query.state || "")
+  const stateCookie = String(cookies[STATE_COOKIE] || "")
+  const nonceCookie = String(cookies[NONCE_COOKIE] || "")
+  const returnTo    = String(cookies[RETURN_COOKIE] || "/dashboard")
+
+  // CSRF check — state from cookie must equal state from query
+  if (!code || !stateQuery || !stateCookie || stateQuery !== stateCookie) {
+    clearOAuthCookies(res)
+    return res.redirect(302, `${frontend}/login?google=state_mismatch`)
+  }
+
+  try {
+    const profile = await exchangeGoogleCodeForProfile({
+      code,
+      redirectUri: getRedirectUri(req),
+      expectedNonce: nonceCookie || undefined,
+    })
+    const user = await findOrCreateGoogleUser(profile)
+    const token = generateToken(user)
+    clearOAuthCookies(res)
+
+    // Token + user are handed to the SPA via URL FRAGMENT, not query
+    // string. Fragments aren't sent in the HTTP request line (the server
+    // never sees them) so the token doesn't leak into web-server access
+    // logs, proxy logs, or HTTP Referer headers. The SPA's
+    // /auth/google/return route reads window.location.hash, persists the
+    // session, and immediately replaces the URL so the token is gone
+    // from the browser history too.
+    const safeUser = encodeURIComponent(JSON.stringify({
+      id:           user.id,
+      fullName:     user.fullName,
+      email:        user.email,
+      role:         user.role,
+      avatarUrl:    user.avatarUrl || null,
+      createdAt:    user.createdAt || null,
+      hasPassword:  Boolean(user.passwordHash),
+      authProvider: user.authProvider || "google",
+    }))
+    const safeReturn = encodeURIComponent(returnTo)
+    return res.redirect(302, `${frontend}/auth/google/return#token=${encodeURIComponent(token)}&user=${safeUser}&return_to=${safeReturn}`)
+  } catch (err) {
+    clearOAuthCookies(res)
+    return res.redirect(302, `${frontend}/login?google=exchange_failed`)
+  }
+})
 
 const signup = asyncHandler(async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -372,6 +529,9 @@ module.exports = {
   signup,
   login,
   googleLogin,
+  // OAuth redirect flow — primary path going forward
+  startGoogleOAuth,
+  googleOAuthCallback,
   me,
   forgotPassword,
   resetPassword,
