@@ -63,11 +63,25 @@ function parseRequestCookies(req) {
 }
 
 function getRedirectUri(req) {
-  // The redirect_uri sent to Google MUST exactly match one in the OAuth
-  // client's "Authorized redirect URIs" list. We derive it from the
-  // current request so localhost dev and production hostinger both work
-  // without code changes — operator just needs to register both URIs in
-  // Google Cloud Console once.
+  // PRECEDENCE:
+  //   1. OAUTH_REDIRECT_URI env var — explicit operator override. This is
+  //      the recommended production setting because reverse-proxy header
+  //      forwarding is fragile on shared hosts (Hostinger/cPanel/Plesk
+  //      often don't pass X-Forwarded-Proto/X-Forwarded-Host reliably,
+  //      so the auto-detected URI ends up as `http://` while Google has
+  //      `https://` registered → invalid_grant on the code exchange).
+  //   2. Auto-detection from X-Forwarded-Proto / X-Forwarded-Host.
+  //   3. Bare `req.protocol` + `req.headers.host` (works for localhost
+  //      and any deployment without a reverse proxy in the way).
+  //
+  // The redirect_uri sent to Google in `/start` MUST byte-identically
+  // match the one sent on the `/callback` exchange AND the one registered
+  // in Google Cloud Console. Any difference — trailing slash, http vs
+  // https, www vs apex — produces `invalid_grant`. Setting the env var
+  // pins it to one canonical value across both legs and matches the
+  // Console exactly.
+  if (process.env.OAUTH_REDIRECT_URI) return process.env.OAUTH_REDIRECT_URI
+
   const proto = req.headers["x-forwarded-proto"] || req.protocol || "https"
   const host  = req.headers["x-forwarded-host"]  || req.headers.host
   return `${proto}://${host}/api/auth/google/callback`
@@ -144,10 +158,11 @@ const googleOAuthCallback = asyncHandler(async (req, res) => {
     return res.redirect(302, `${frontend}/login?google=state_mismatch`)
   }
 
+  const redirectUri = getRedirectUri(req)
   try {
     const profile = await exchangeGoogleCodeForProfile({
       code,
-      redirectUri: getRedirectUri(req),
+      redirectUri,
       expectedNonce: nonceCookie || undefined,
     })
     const user = await findOrCreateGoogleUser(profile)
@@ -175,6 +190,23 @@ const googleOAuthCallback = asyncHandler(async (req, res) => {
     return res.redirect(302, `${frontend}/auth/google/return#token=${encodeURIComponent(token)}&user=${safeUser}&return_to=${safeReturn}`)
   } catch (err) {
     clearOAuthCookies(res)
+    // Log the real error so operators can diagnose. Google's failures
+    // come back with a `response.data.error` like "invalid_grant",
+    // "redirect_uri_mismatch", or "invalid_client" — each points at a
+    // different config knob, so naming the exact code in the logs is
+    // far more useful than the swallowed "exchange_failed" the user
+    // sees in the toast.
+    const googleErr = err?.response?.data?.error
+                   || err?.response?.data?.error_description
+                   || err?.message
+                   || "unknown"
+    console.error(
+      "[google-oauth] exchange failed:",
+      googleErr,
+      "· redirectUri used:", redirectUri,
+      "· client_id ending:", (process.env.GOOGLE_CLIENT_ID || "").slice(-12),
+      "· client_secret set:", Boolean(process.env.GOOGLE_CLIENT_SECRET),
+    )
     return res.redirect(302, `${frontend}/login?google=exchange_failed`)
   }
 })
