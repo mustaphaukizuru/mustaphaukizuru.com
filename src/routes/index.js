@@ -64,8 +64,9 @@ const adminRefundRoutes  = require("./adminRefundRoutes")
 const memberRefundRoutes = require("./memberRefundRoutes")
 
 // M16 · Blog — public read + admin CRUD
-const blogRoutes      = require("./blogRoutes")
-const adminBlogRoutes = require("./adminBlogRoutes")
+const blogRoutes        = require("./blogRoutes")
+const adminBlogRoutes   = require("./adminBlogRoutes")
+const diagnosticRoutes  = require("./diagnosticRoutes")   // Self-audit email gate
 
 // M17 · Sessions admin
 const adminSessionRoutes = require("./adminSessionRoutes")
@@ -160,6 +161,7 @@ v1.use("/downloads",   downloadRoutes)
 v1.use("/availability",  availabilityRoutes)        // Public read — slot listings
 v1.use("/consultations", consultationRoutes)        // Member booking lifecycle
 v1.use("/blog",          blogRoutes)                // M16 — Public blog list + detail
+v1.use("/",              diagnosticRoutes)          // Self-audit submission (POST /diagnostic-submission)
 
 // Admin
 v1.use("/admin/dashboard",        adminDashboardRoutes)

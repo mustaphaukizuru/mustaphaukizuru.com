@@ -1324,6 +1324,30 @@ model SupportMessage {
   @@index([senderId])
 }
 
+/// Self-audit diagnostic submissions.
+/// Created when a visitor completes the /self-audit tool and clicks
+/// "Email my report". Persisted before the outbound email is sent so
+/// leads are never lost on SMTP failure.
+model DiagnosticSubmission {
+  id              String   @id @default(cuid())
+  name            String
+  email           String
+  organization    String?
+  audience        String   // EDU | SMB | IND
+  overallScore    Int      // 0-100 normalised
+  tier            String   // Foundation | Stabilizing | Optimizing | Mature
+  sectionScores   Json     // { A: { pct, raw, max }, ... }
+  scores          Json     // raw { "A.1": 3, ... }
+  topPriorities   Json     // [{id,svc,title,score,tier}]
+  matchedBundle   String?  // Solution bundle name or null
+  emailSent       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([email])
+  @@index([audience])
+  @@index([createdAt])
+}
+
 model ContactMessage {
   id        String    @id @default(cuid())
   name      String
