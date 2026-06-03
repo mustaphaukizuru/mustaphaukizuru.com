@@ -161,7 +161,7 @@ v1.use("/downloads",   downloadRoutes)
 v1.use("/availability",  availabilityRoutes)        // Public read — slot listings
 v1.use("/consultations", consultationRoutes)        // Member booking lifecycle
 v1.use("/blog",          blogRoutes)                // M16 — Public blog list + detail
-v1.use("/",              diagnosticRoutes)          // Self-audit submission (POST /diagnostic-submission)
+v1.use("/",              diagnosticRoutes)          // Self-audit: POST /diagnostic-submission + GET /admin/diagnostic
 
 // Admin
 v1.use("/admin/dashboard",        adminDashboardRoutes)

@@ -1,10 +1,14 @@
 const express = require("express")
-const { submitDiagnostic } = require("../controllers/diagnosticController")
+const { submitDiagnostic, listSubmissions } = require("../controllers/diagnosticController")
+const { protect } = require("../middleware/authMiddleware")
+const { requirePermission } = require("../middleware/requirePermission")
 
 const router = express.Router()
 
-// POST /api/v1/diagnostic-submission
-// Public — no auth required. Rate-limited by the global /api limiter.
+// POST /api/v1/diagnostic-submission  — public, no auth
 router.post("/diagnostic-submission", submitDiagnostic)
+
+// GET  /api/v1/admin/diagnostic        — admin only
+router.get("/admin/diagnostic", protect, requirePermission("admin.diagnostic.read"), listSubmissions)
 
 module.exports = router

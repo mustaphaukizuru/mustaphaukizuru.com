@@ -151,7 +151,8 @@ const navigation = [
       { label: "Roles", to: "/admin/roles", icon: ShieldCheck, description: "Permissions & access control" },
       { label: "Sessions", to: "/admin/sessions", icon: Activity, description: "Active sign-ins & security" },
       { label: "Analytics", to: "/admin/analytics", icon: TrendingUp, description: "Privacy-first traffic & events" },
-      { label: "Audit Log", to: "/admin/audit", icon: ClipboardList, description: "Action history" },
+      { label: "Audit Log",       to: "/admin/audit",       icon: ClipboardList, description: "Action history" },
+      { label: "Self-Audit Leads", to: "/admin/diagnostic",  icon: ClipboardList, description: "Maturity audit submissions" },
     ],
   },
 ]

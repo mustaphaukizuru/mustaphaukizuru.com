@@ -1,127 +1,71 @@
-import { useEffect, useRef, useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { useTranslation } from "react-i18next"
 import { motion, useReducedMotion } from "framer-motion"
 import {
-  ClipboardCheck,
-  ArrowRight,
-  ShieldCheck,
-  Clock,
-  Layers,
-  Sparkles,
+  ClipboardCheck, ArrowRight, ShieldCheck, Clock, Layers,
+  Sparkles, Building2, GraduationCap, User, CheckCircle2,
+  Star, TrendingUp, Lock,
 } from "lucide-react"
-
 import Seo from "../components/seo/Seo"
 import { trackEvent } from "../lib/analytics"
-
-/**
- * SelfAuditPage · /self-audit
- *
- * Hosts the digital + technology self-audit. The audit itself is a self-
- * contained static document at /diagnostic (one file, ~1200 lines of
- * vanilla HTML/CSS/JS, written separately from the React SPA so it can
- * be opened directly or printed without bundling overhead). This page
- * wraps that document in a React shell that adds:
- *
- *   · SEO meta (title, description, og:image, canonical, noindex off
- *     so it shows up in search)
- *   · A brand-consistent intro band above the iframe so the embed
- *     doesn't look like a foreign object pasted into the SPA
- *   · A postMessage listener that forwards every diagnostic_* event
- *     fired inside the iframe to trackEvent() — so the business can
- *     see, per visitor:
- *       · which audit step they reached
- *       · which audience segment they picked
- *       · how each item was scored
- *       · what their final tier + service shortlist was
- *       · which CTA they clicked (discovery call, proposal, single
- *         service, or email-my-report)
- *   · A bottom CTA strip with paths out to /services and /contact
- *
- * Why an iframe instead of a JSX port: the audit is ~1200 lines of
- * vanilla JS with persistent localStorage state, audience-conditional
- * sections, score normalisation, and a printable layout. A JSX port
- * would take 2-3 days and risk regressions; iframe embedding ships
- * the same UX today and lets us add analytics without rewriting.
- */
+import AuditModal from "../components/audit/AuditModal"
 
 const PAGE_TITLE = "Free Digital & Technology Self-Audit · 15 min"
-const PAGE_DESC  =
-  "A 15-minute capability assessment across six dimensions of your digital presence and technology operations. Score yourself, see your maturity tier, and walk away with a prioritized shortlist drawn from an 82-service catalog."
+const PAGE_DESC  = "A 15-minute capability assessment across six dimensions of your digital presence and technology operations. Score yourself, see your maturity tier, and walk away with a prioritized shortlist drawn from an 82-service catalog."
 
-// `message.data.source` filter. The static page sets exactly this
-// string when it postMessages — anything else gets ignored so we
-// don't pollute analytics with cross-origin chrome traffic.
-const MESSAGE_SOURCE = "ukz-self-audit"
+const TRUST_STATS = [
+  { value: "82", label: "Capability items" },
+  { value: "6",  label: "Dimensions assessed" },
+  { value: "~15", label: "Minutes to complete" },
+  { value: "4",  label: "Maturity tiers" },
+]
+
+const WHAT_YOU_GET = [
+  {
+    step: "01", eyebrow: "DIAGNOSE",
+    title: "Score your current state",
+    body: "Rate 82 capability statements across strategy, brand, infrastructure, web & AI, EdTech, and managed services. Sections adapt to your audience type.",
+    icon: ClipboardCheck,
+  },
+  {
+    step: "02", eyebrow: "MEASURE",
+    title: "See where you really stand",
+    body: "Get a normalized maturity score per category, a benchmark comparison against similar organisations, and a clear tier — Foundation, Stabilizing, Optimizing, or Mature.",
+    icon: TrendingUp,
+  },
+  {
+    step: "03", eyebrow: "ACT",
+    title: "Walk away with a roadmap",
+    body: "Your top 5 priorities mapped to specific services, with investment ranges, risk statements, and a recommended Solution bundle to start with.",
+    icon: ArrowRight,
+  },
+]
+
+const AUDIENCE_PREVIEWS = [
+  { icon: GraduationCap, label: "Schools", items: "82 items · All 6 sections", color: "bg-violet/8 text-violet" },
+  { icon: Building2,    label: "Businesses", items: "70 items · 5 sections", color: "bg-azure/8 text-azure" },
+  { icon: User,         label: "Individuals", items: "12 items · Focused scan", color: "bg-mint/8 text-mint" },
+]
 
 export default function SelfAuditPage() {
-  const { t } = useTranslation("services")
   const reduce = useReducedMotion()
-  const iframeRef = useRef(null)
-  const [iframeReady, setIframeReady] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
 
-  /* ────────────────────────── Telemetry on mount ────────────────────── */
   useEffect(() => {
-    try {
-      trackEvent("self_audit_page_viewed", {
-        path: typeof window !== "undefined" ? window.location.pathname : "/self-audit",
-      })
-    } catch { /* analytics is best-effort */ }
+    try { trackEvent("self_audit_page_viewed", { path: "/self-audit" }) } catch { /* best-effort */ }
   }, [])
 
-  /* ─────── postMessage listener · forwards diagnostic_* events ──────── */
-  useEffect(() => {
-    if (typeof window === "undefined") return undefined
+  const openModal = () => {
+    setModalOpen(true)
+    try { trackEvent("self_audit_modal_opened", {}) } catch { /* best-effort */ }
+  }
 
-    function onMessage(e) {
-      // Same-origin guard: the iframe is hosted on /diagnostic of this
-      // very domain, so its messages must come from window.location.origin.
-      // Anything from another origin is either chrome extension noise
-      // (MetaMask, Honey) or a malicious cross-origin frame trying to
-      // ping us — drop it.
-      if (e.origin !== window.location.origin) return
-      if (!e.data || e.data.source !== MESSAGE_SOURCE) return
-
-      const { event, props } = e.data
-      if (!event) return
-
-      // Forward to GA / Sentry / future backend telemetry. Prefix with
-      // `self_audit_` so analytics dashboards can pivot on this one
-      // class of events (separate from store / checkout / blog events).
-      try {
-        trackEvent(`self_audit_${event}`, {
-          ...(props || {}),
-          // Echo so dashboard filters by `embedded:true` if needed.
-          embedded: true,
-        })
-      } catch { /* swallow — analytics is best-effort */ }
-
-      // Sentry breadcrumb-style: helpful when correlating an error
-      // report with audit progression. Skipped when Sentry isn't loaded.
-      if (typeof window.Sentry?.addBreadcrumb === "function") {
-        try {
-          window.Sentry.addBreadcrumb({
-            category: "self-audit",
-            message:  event,
-            data:     props || {},
-            level:    "info",
-          })
-        } catch { /* noop */ }
-      }
-    }
-
-    window.addEventListener("message", onMessage)
-    return () => window.removeEventListener("message", onMessage)
-  }, [])
-
-  /* ────────────────────────── Motion variants ───────────────────────── */
-  const fadeUp = reduce
-    ? {}
-    : {
-        initial:    { opacity: 0, y: 16 },
-        animate:    { opacity: 1, y: 0 },
-        transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
-      }
+  const fade = reduce ? {} : {
+    initial: { opacity: 0, y: 18 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-60px" },
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  }
 
   return (
     <>
@@ -129,162 +73,269 @@ export default function SelfAuditPage() {
         title={PAGE_TITLE}
         description={PAGE_DESC}
         canonical="/self-audit"
-        keywords={[
-          "free digital audit",
-          "technology self-audit",
-          "IT maturity assessment",
-          "school IT audit",
-          "SMB technology assessment",
-          "digital transformation roadmap",
-        ]}
+        keywords={["free digital audit","technology self-audit","IT maturity assessment","school IT audit","SMB technology assessment","digital transformation roadmap"]}
       />
 
-      {/* ── Intro band ─────────────────────────────────────────────── */}
-      <section
-        className="relative isolate overflow-hidden bg-mist"
-        aria-label={t("selfAudit.heroLabel", { defaultValue: "Self-audit intro" })}
-      >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(at 14% 0%, rgba(93,63,211,0.10) 0px, transparent 50%), " +
-              "radial-gradient(at 90% 0%, rgba(2,132,199,0.07) 0px, transparent 55%)",
-          }}
-        />
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <section className="relative isolate overflow-hidden bg-mist">
+        {/* Mesh background */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{
+          background:
+            "radial-gradient(at 14% 0%, rgba(93,63,211,0.10) 0px, transparent 50%)," +
+            "radial-gradient(at 90% 0%, rgba(2,132,199,0.08) 0px, transparent 55%)," +
+            "radial-gradient(at 50% 100%, rgba(93,63,211,0.05) 0px, transparent 60%)",
+        }} />
 
-        <div className="relative mx-auto w-full max-w-5xl px-4 pb-10 pt-14 sm:px-6 sm:pb-12 sm:pt-20 lg:px-8">
-          <motion.div {...fadeUp} className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-deep">
+        <div className="relative mx-auto w-full max-w-5xl px-4 pb-16 pt-16 sm:px-6 sm:pb-20 sm:pt-24 lg:px-8">
+          <motion.div {...fade} className="max-w-3xl">
+            {/* Eyebrow */}
+            <span className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet">
               <Sparkles className="h-3 w-3" aria-hidden="true" />
-              {t("selfAudit.eyebrow", { defaultValue: "Free · 15 minutes · No sign-up needed" })}
+              Free · 15 minutes · No sign-up needed
             </span>
 
-            <h1 className="mt-4 font-display text-[clamp(28px,4.5vw,44px)] font-extrabold leading-tight tracking-tight text-charcoal text-balance">
-              {t("selfAudit.headline", {
-                defaultValue: "Find the technology gaps holding your organisation back.",
-              })}
+            {/* Headline */}
+            <h1 className="mt-5 text-[clamp(30px,4.8vw,52px)] font-extrabold leading-[1.08] tracking-tight text-charcoal text-balance">
+              Find the technology gaps{" "}
+              <span className="bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] bg-clip-text text-transparent">
+                holding your organisation back.
+              </span>
             </h1>
 
-            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-charcoal-80/70 sm:text-[16px]">
-              {t("selfAudit.subhead", {
-                defaultValue:
-                  "Score yourself across six dimensions of digital and technology maturity. Get a tier, a prioritised shortlist of services, and a one-page summary you can print or email — all without leaving this page.",
-              })}
+            <p className="mt-5 max-w-2xl text-[15px] leading-7 text-charcoal/65 sm:text-[16.5px]">
+              Score yourself across six dimensions of digital and technology maturity. Walk away with a maturity tier, a prioritised shortlist of services, and a benchmark against similar organisations.
             </p>
 
-            <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-charcoal-80/70">
-              <li className="inline-flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-violet" aria-hidden="true" />
-                {t("selfAudit.feat.duration", { defaultValue: "~15 minutes" })}
-              </li>
-              <li className="inline-flex items-center gap-1.5">
-                <Layers className="h-4 w-4 text-violet" aria-hidden="true" />
-                {t("selfAudit.feat.coverage", { defaultValue: "6 dimensions · 82 services" })}
-              </li>
-              <li className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-violet" aria-hidden="true" />
-                {t("selfAudit.feat.privacy", { defaultValue: "No data stored unless you email it to yourself" })}
-              </li>
+            {/* Feature pills */}
+            <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2.5 text-[13px] text-charcoal/60">
+              {[
+                { icon: Clock,       text: "~15 minutes" },
+                { icon: Layers,      text: "6 dimensions · 82 services" },
+                { icon: ShieldCheck, text: "No data stored without your consent" },
+                { icon: Lock,        text: "Results visible instantly — email optional" },
+              ].map(({ icon: Icon, text }) => (
+                <li key={text} className="inline-flex items-center gap-1.5">
+                  <Icon className="h-3.5 w-3.5 text-violet" aria-hidden="true" />
+                  {text}
+                </li>
+              ))}
             </ul>
+
+            {/* CTA */}
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <motion.button
+                onClick={openModal}
+                whileHover={reduce ? {} : { scale: 1.02, y: -1 }}
+                whileTap={reduce ? {} : { scale: 0.98 }}
+                className="inline-flex items-center gap-2.5 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.35)] transition hover:shadow-[0_12px_32px_rgba(93,63,211,0.45)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 focus-visible:ring-offset-2"
+              >
+                Begin your free audit
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </motion.button>
+              <a
+                href="#what-youll-get"
+                className="text-[14px] font-medium text-charcoal/55 underline underline-offset-2 hover:text-violet transition"
+              >
+                See what you'll get
+              </a>
+            </div>
+          </motion.div>
+
+          {/* Trust stats */}
+          <motion.div
+            {...fade}
+            transition={{ ...(fade.transition || {}), delay: 0.15 }}
+            className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6"
+          >
+            {TRUST_STATS.map(({ value, label }) => (
+              <div key={label} className="rounded-xl bg-white/70 border border-charcoal/6 px-4 py-4 text-center backdrop-blur-sm">
+                <div className="font-mono text-[28px] font-bold text-violet leading-none">{value}</div>
+                <div className="mt-1 text-[12px] text-charcoal/55">{label}</div>
+              </div>
+            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* ── Embedded audit ────────────────────────────────────────────
-          The iframe sandboxes the static document so its localStorage,
-          CSS, and JS can't interact with the SPA. `allow-same-origin`
-          is required for the static page to read its own localStorage
-          (saved progress); `allow-scripts` lets its event handlers
-          run. `allow-popups` lets the email-my-report button open a
-          mailto: link if the visitor chose that path. We deliberately
-          don't allow `allow-top-navigation` — the iframe must never
-          redirect the host page. ─────────────────────────────────── */}
-      <section
-        aria-label={t("selfAudit.iframeLabel", { defaultValue: "Self-audit interactive tool" })}
-        className="relative mx-auto w-full max-w-5xl px-4 pb-12 sm:px-6 lg:px-8"
-      >
-        {!iframeReady && (
-          <div
-            aria-hidden="true"
-            className="absolute inset-x-4 top-0 flex h-[80vh] items-center justify-center rounded-2xl bg-white text-violet sm:inset-x-6 lg:inset-x-8"
-          >
-            <div className="flex flex-col items-center gap-3 text-center">
-              <ClipboardCheck className="h-8 w-8 animate-pulse" aria-hidden="true" />
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em]">
-                {t("selfAudit.loading", { defaultValue: "Preparing your audit" })}
-              </p>
-            </div>
+      {/* ── Audience preview ────────────────────────────────────────────── */}
+      <section className="border-y border-charcoal/6 bg-white py-10">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            {AUDIENCE_PREVIEWS.map(({ icon: Icon, label, items, color }) => (
+              <div key={label} className="flex items-center gap-3">
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${color}`}>
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="text-[14px] font-semibold text-charcoal">{label}</div>
+                  <div className="font-mono text-[11px] text-charcoal/50">{items}</div>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-        <iframe
-          ref={iframeRef}
-          title={t("selfAudit.iframeTitle", { defaultValue: "Digital & Technology Self-Audit" })}
-          src="/diagnostic/"
-          // Min-height covers the audit's first paint; the page is tall
-          // (hero + audience picker + 6 sections) so we lean generous.
-          // On mobile, 100vh - 64px leaves room for the host nav.
-          className="block h-[calc(100vh-64px)] min-h-[820px] w-full overflow-hidden rounded-2xl border border-charcoal-80/8 bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.20)] sm:min-h-[900px]"
-          loading="lazy"
-          sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms"
-          onLoad={() => setIframeReady(true)}
-        />
+        </div>
       </section>
 
-      {/* ── Bottom path-out CTAs ────────────────────────────────────── */}
-      <section
-        aria-label={t("selfAudit.exitLabel", { defaultValue: "Next steps after the audit" })}
-        className="border-t border-charcoal-80/8 bg-mist py-12 sm:py-16"
-      >
+      {/* ── What you'll get ─────────────────────────────────────────────── */}
+      <section id="what-youll-get" className="py-16 sm:py-20 bg-mist">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <motion.div {...fade} className="mb-12 text-center">
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-violet mb-3">WHAT YOU GET</p>
+            <h2 className="text-[clamp(24px,3.5vw,38px)] font-extrabold tracking-tight text-charcoal">
+              From self-assessment to action plan
+            </h2>
+          </motion.div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {WHAT_YOU_GET.map(({ step, eyebrow, title, body, icon: Icon }, i) => (
+              <motion.div
+                key={step}
+                {...fade}
+                transition={{ ...(fade.transition || {}), delay: i * 0.1 }}
+                className="group rounded-2xl bg-white border border-charcoal/8 p-7 transition hover:border-violet/30 hover:shadow-[0_16px_48px_-16px_rgba(93,63,211,0.18)]"
+              >
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet mb-2">{eyebrow}</p>
+                <h3 className="text-[17px] font-bold text-charcoal mb-2">{title}</h3>
+                <p className="text-[13.5px] leading-relaxed text-charcoal/60">{body}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Sample results preview ──────────────────────────────────────── */}
+      <section className="py-16 sm:py-20 bg-white">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+            <motion.div {...fade}>
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-violet mb-3">YOUR RESULTS LOOK LIKE THIS</p>
+              <h2 className="text-[clamp(22px,3vw,34px)] font-extrabold tracking-tight text-charcoal mb-4">
+                A real picture of where you are. Not a sales deck.
+              </h2>
+              <p className="text-[15px] leading-7 text-charcoal/60 mb-6">
+                Every score maps to a specific service, a realistic investment range, and what happens if the gap goes unfixed. No vague recommendations — just a prioritised list you can act on immediately.
+              </p>
+              <ul className="space-y-3">
+                {[
+                  "Maturity score per category, benchmarked against your peer organisations",
+                  "Top 5 priorities with investment ranges and business risk if ignored",
+                  "Recommended Solution bundle tailored to your tier and audience",
+                  "Optional PDF report emailed to you — yours to share or print",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-[14px] text-charcoal/70">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint" aria-hidden="true" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Mock result card */}
+            <motion.div
+              {...fade}
+              transition={{ ...(fade.transition || {}), delay: 0.12 }}
+              className="rounded-2xl border border-charcoal/8 bg-mist p-6 shadow-[0_24px_64px_-24px_rgba(15,23,42,0.12)]"
+            >
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-4">SAMPLE RESULTS PREVIEW</p>
+              {/* Score ring mock */}
+              <div className="flex items-center gap-5 mb-6 pb-6 border-b border-charcoal/8">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[conic-gradient(#0284C7_0%,#0284C7_58%,#EFF1F5_58%)] shadow-inner">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-mist">
+                    <span className="font-mono text-[18px] font-bold text-charcoal">58</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[22px] font-bold text-charcoal leading-none">58 / 100</div>
+                  <div className="mt-1 inline-block rounded-full bg-amber/15 px-2.5 py-0.5 text-[12px] font-bold text-amber">Stabilizing</div>
+                  <div className="mt-1 text-[12px] text-charcoal/50">vs. avg 44 for businesses</div>
+                </div>
+              </div>
+              {/* Sample bars */}
+              {[
+                { label: "Strategy", pct: 42, color: "#F59E0B" },
+                { label: "Brand", pct: 71, color: "#0284C7" },
+                { label: "Infrastructure", pct: 38, color: "#F59E0B" },
+                { label: "Web & AI", pct: 62, color: "#0284C7" },
+              ].map(({ label, pct, color }) => (
+                <div key={label} className="flex items-center gap-3 mb-3">
+                  <span className="w-24 text-[12px] font-medium text-charcoal/70 shrink-0">{label}</span>
+                  <div className="flex-1 h-2 bg-charcoal/8 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                  </div>
+                  <span className="font-mono text-[11px] font-bold text-charcoal/60 w-8 text-right">{pct}%</span>
+                </div>
+              ))}
+              <p className="mt-4 text-center text-[11px] text-charcoal/35 italic">Sample only — your results will reflect your actual scores</p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA banner ──────────────────────────────────────────────────── */}
+      <section className="bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] py-14 sm:py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div {...fade}>
+            <div className="flex justify-center mb-5">
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-terracotta text-terracotta" aria-hidden="true" />)}
+              </div>
+            </div>
+            <h2 className="text-[clamp(22px,3.5vw,36px)] font-extrabold text-white tracking-tight mb-4">
+              15 minutes that could save you months of guessing.
+            </h2>
+            <p className="text-[15px] text-white/75 mb-8 max-w-xl mx-auto">
+              Free. No account. No sales call unless you want one. Results visible immediately — email is optional.
+            </p>
+            <motion.button
+              onClick={openModal}
+              whileHover={reduce ? {} : { scale: 1.03, y: -1 }}
+              whileTap={reduce ? {} : { scale: 0.97 }}
+              className="inline-flex items-center gap-2.5 rounded-xl bg-white px-7 py-3.5 text-[15px] font-bold text-violet shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:shadow-[0_12px_32px_rgba(0,0,0,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white/50"
+            >
+              Begin your free audit
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </motion.button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Bottom exit CTAs ────────────────────────────────────────────── */}
+      <section className="border-t border-charcoal/6 bg-mist py-12 sm:py-14">
         <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp} className="grid gap-4 sm:grid-cols-2 lg:gap-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:gap-6">
             <Link
               to="/services"
               onClick={() => trackEvent("self_audit_exit_clicked", { target: "services" })}
-              className="group relative flex flex-col gap-2 rounded-2xl border border-charcoal-80/10 bg-white p-6 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_18px_46px_-16px_rgba(93,63,211,0.20)]"
+              className="group flex flex-col gap-2 rounded-2xl border border-charcoal/8 bg-white p-6 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_16px_40px_-16px_rgba(93,63,211,0.18)]"
             >
-              <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-violet">
-                {t("selfAudit.exitServicesEyebrow", { defaultValue: "Browse the catalogue" })}
-              </span>
-              <h3 className="text-[18px] font-bold text-charcoal">
-                {t("selfAudit.exitServicesTitle", { defaultValue: "See the 82 services your shortlist comes from" })}
-              </h3>
-              <p className="text-[13.5px] leading-relaxed text-charcoal-80/65">
-                {t("selfAudit.exitServicesBody", {
-                  defaultValue: "Every audit item maps to an atomic service with a scope, timeline, and price band.",
-                })}
-              </p>
-              <span className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition group-hover:gap-2">
-                {t("selfAudit.exitServicesCta", { defaultValue: "Open services" })}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet">Browse the catalogue</span>
+              <h3 className="text-[17px] font-bold text-charcoal">See the 82 services your shortlist comes from</h3>
+              <p className="text-[13px] leading-relaxed text-charcoal/55">Every audit item maps to an atomic service with a scope, timeline, and price band.</p>
+              <span className="mt-auto pt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition group-hover:gap-2.5">
+                Open services <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
             </Link>
-
             <Link
               to="/contact"
               onClick={() => trackEvent("self_audit_exit_clicked", { target: "contact" })}
-              className="group relative flex flex-col gap-2 rounded-2xl border border-violet/20 bg-violet/[0.04] p-6 transition hover:-translate-y-0.5 hover:border-violet/40 hover:shadow-[0_18px_46px_-16px_rgba(93,63,211,0.22)]"
+              className="group flex flex-col gap-2 rounded-2xl border border-violet/20 bg-violet/[0.04] p-6 transition hover:-translate-y-0.5 hover:border-violet/35 hover:shadow-[0_16px_40px_-16px_rgba(93,63,211,0.20)]"
             >
-              <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-violet">
-                {t("selfAudit.exitContactEyebrow", { defaultValue: "Talk it through" })}
-              </span>
-              <h3 className="text-[18px] font-bold text-charcoal">
-                {t("selfAudit.exitContactTitle", { defaultValue: "Book a free 30-min discovery call" })}
-              </h3>
-              <p className="text-[13.5px] leading-relaxed text-charcoal-80/65">
-                {t("selfAudit.exitContactBody", {
-                  defaultValue: "Walk through your audit results with me — no sales pitch, just an honest read on what to prioritise.",
-                })}
-              </p>
-              <span className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition group-hover:gap-2">
-                {t("selfAudit.exitContactCta", { defaultValue: "Book a call" })}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet">Talk it through</span>
+              <h3 className="text-[17px] font-bold text-charcoal">Book a free 30-min discovery call</h3>
+              <p className="text-[13px] leading-relaxed text-charcoal/55">Walk through your results with me — no sales pitch, just an honest read on what to prioritise.</p>
+              <span className="mt-auto pt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition group-hover:gap-2.5">
+                Book a call <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
+
+      {/* ── Audit Modal ──────────────────────────────────────────────────── */}
+      <AuditModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   )
 }

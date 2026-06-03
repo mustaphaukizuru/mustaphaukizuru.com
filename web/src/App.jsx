@@ -139,7 +139,8 @@ const AdminPagesPage = lazy(() => import("./pages/AdminPagesPage"));
 const AdminMediaPage = lazy(() => import("./pages/AdminMediaPage"));
 const AdminEmailTemplatesPage = lazy(() => import("./pages/AdminEmailTemplatesPage"));
 const AdminEmailLogsPage = lazy(() => import("./pages/AdminEmailLogsPage"));
-const AdminAuditPage = lazy(() => import("./pages/AdminAuditPage"));
+const AdminAuditPage       = lazy(() => import("./pages/AdminAuditPage"))
+const AdminDiagnosticPage  = lazy(() => import("./pages/AdminDiagnosticPage"));
 const AdminAvailabilityPage = lazy(() => import("./pages/AdminAvailabilityPage"));
 
 // Phase A · Booking + service-order management (full backend)
@@ -321,7 +322,8 @@ export default function App() {
               <Route path="email-templates" element={<AdminEmailTemplatesPage />} />
               <Route path="email-logs" element={<AdminEmailLogsPage />} />
               <Route path="users" element={<AdminUsersPage />} />
-              <Route path="audit" element={<AdminAuditPage />} />
+              <Route path="audit"       element={<AdminAuditPage />} />
+              <Route path="diagnostic"  element={<AdminDiagnosticPage />} />
               <Route path="availability" element={<AdminAvailabilityPage />} />
 
               {/* Phase A, full backend */}
