@@ -25,17 +25,29 @@ import DashboardLayout from "./layout/DashboardLayout";
 
 function PageLoader() {
   return (
-    <div className="min-h-screen animate-pulse" aria-hidden="true">
+    <div className="min-h-screen animate-pulse bg-white" aria-hidden="true">
+      {/* Nav bar skeleton */}
+      <div className="h-16 border-b border-gray-100 px-4">
+        <div className="mx-auto flex h-full max-w-7xl items-center justify-between">
+          <div className="h-8 w-32 rounded-lg bg-gray-200" />
+          <div className="hidden gap-6 sm:flex">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-4 w-16 rounded-full bg-gray-200" />
+            ))}
+          </div>
+          <div className="h-9 w-24 rounded-full bg-gray-200" />
+        </div>
+      </div>
       {/* Hero skeleton */}
-      <div className="bg-gradient-to-br from-violet/5 via-azure/3 to-transparent px-4 py-20 sm:py-28">
+      <div className="bg-gray-50 px-4 py-20 sm:py-28">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-4">
-          <div className="h-3 w-20 rounded-full bg-violet/20" />
-          <div className="h-9 w-3/4 rounded-2xl bg-charcoal-80/10" />
-          <div className="h-9 w-1/2 rounded-2xl bg-charcoal-80/8" />
-          <div className="h-4 w-2/3 rounded-full bg-charcoal-80/7" />
+          <div className="h-3 w-20 rounded-full bg-gray-300" />
+          <div className="h-9 w-3/4 rounded-2xl bg-gray-200" />
+          <div className="h-9 w-1/2 rounded-2xl bg-gray-200" />
+          <div className="h-4 w-2/3 rounded-full bg-gray-200" />
           <div className="mt-3 flex gap-3">
-            <div className="h-11 w-36 rounded-full bg-violet/20" />
-            <div className="h-11 w-36 rounded-full bg-charcoal-80/8" />
+            <div className="h-11 w-36 rounded-full bg-gray-300" />
+            <div className="h-11 w-36 rounded-full bg-gray-200" />
           </div>
         </div>
       </div>
@@ -43,15 +55,24 @@ function PageLoader() {
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-48 rounded-2xl bg-charcoal-80/5" />
+            <div key={i} className="h-48 rounded-2xl bg-gray-100" />
           ))}
         </div>
       </div>
-      {/* Spinner overlay for keyboard users */}
       <span className="sr-only">Loading page…</span>
     </div>
   );
 }
+
+// Warm the chunk cache for the two heaviest primary-nav pages immediately.
+// Both have a double-chunk waterfall (page chunk → catalogue chunk). Firing
+// these at module-eval time means the downloads run during the ~1.6 s
+// LoadingScreen animation, so chunks are in the module cache before the
+// user can click anything — even on a cold visit with no prior hover.
+void import("./pages/ServicesPage")
+void import("./pages/SolutionsPage")
+void import("./data/servicesCatalogue")
+void import("./data/solutionsCatalogue")
 
 // Public pages
 const Home = lazy(() => import("./pages/Home"));
