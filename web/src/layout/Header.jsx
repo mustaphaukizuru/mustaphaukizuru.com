@@ -64,10 +64,14 @@ import { Loader2 } from "lucide-react"
  * additional icons add noise instead of clarity. */
 const NAV_LINKS = [
   { nameKey: "header.home",      to: "/",          icon: HomeIcon },
-  { nameKey: "header.about",     to: "/about",     icon: User },
-  { nameKey: "header.solutions", to: "/solutions", icon: Layers },
-  { nameKey: "header.services",  to: "/services",  icon: Briefcase },
-  { nameKey: "header.contact",   to: "/contact",   icon: Mail },
+  { nameKey: "header.about",     to: "/about",     icon: User,
+    prefetch: () => import("../pages/AboutPage") },
+  { nameKey: "header.solutions", to: "/solutions", icon: Layers,
+    prefetch: () => import("../pages/SolutionsPage") },
+  { nameKey: "header.services",  to: "/services",  icon: Briefcase,
+    prefetch: () => import("../pages/ServicesPage") },
+  { nameKey: "header.contact",   to: "/contact",   icon: Mail,
+    prefetch: () => import("../pages/ContactPage") },
 ]
 
 const USER_MENU_ITEMS = [
@@ -785,6 +789,8 @@ function MobileMenu({ open, onClose }) {
                     to={link.to}
                     end={link.to === "/"}
                     onClick={() => onNavClick(link.to)}
+                    onMouseEnter={link.prefetch}
+                    onFocus={link.prefetch}
                     className={({ isActive }) =>
                       `group relative flex min-h-[48px] items-center gap-3 overflow-hidden rounded-xl pl-4 pr-3 py-2.5 text-[15px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1 ${
                         isActive
@@ -1074,6 +1080,8 @@ function HeaderInner() {
                 key={link.nameKey}
                 to={link.to}
                 end={link.to === "/"}
+                onMouseEnter={link.prefetch}
+                onFocus={link.prefetch}
                 className={({ isActive }) =>
                   `group relative inline-flex items-center rounded-md px-3 py-2 text-[15px] font-medium transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                     isActive

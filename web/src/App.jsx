@@ -25,8 +25,30 @@ import DashboardLayout from "./layout/DashboardLayout";
 
 function PageLoader() {
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-xl border-4 border-violet-pale border-t-violet" />
+    <div className="min-h-screen animate-pulse" aria-hidden="true">
+      {/* Hero skeleton */}
+      <div className="bg-gradient-to-br from-violet/5 via-azure/3 to-transparent px-4 py-20 sm:py-28">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-4">
+          <div className="h-3 w-20 rounded-full bg-violet/20" />
+          <div className="h-9 w-3/4 rounded-2xl bg-charcoal-80/10" />
+          <div className="h-9 w-1/2 rounded-2xl bg-charcoal-80/8" />
+          <div className="h-4 w-2/3 rounded-full bg-charcoal-80/7" />
+          <div className="mt-3 flex gap-3">
+            <div className="h-11 w-36 rounded-full bg-violet/20" />
+            <div className="h-11 w-36 rounded-full bg-charcoal-80/8" />
+          </div>
+        </div>
+      </div>
+      {/* Cards skeleton */}
+      <div className="mx-auto max-w-7xl px-4 py-12">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-48 rounded-2xl bg-charcoal-80/5" />
+          ))}
+        </div>
+      </div>
+      {/* Spinner overlay for keyboard users */}
+      <span className="sr-only">Loading page…</span>
     </div>
   );
 }
