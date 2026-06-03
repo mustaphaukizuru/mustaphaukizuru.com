@@ -106,6 +106,11 @@ export default defineConfig({
           /^\/admin/,
           /^\/images\/products\//,
           /^\/documents\//,
+          /^\/cv\//,          // CV PDFs — must be served directly, not by SW
+          /\.pdf$/i,          // any .pdf URL anywhere on the site
+          /^\/files\//,       // download endpoints
+          /^\/fonts\//,       // static font files
+          /^\/og\//,          // open-graph images
         ],
         cleanupOutdatedCaches: true,
       },
