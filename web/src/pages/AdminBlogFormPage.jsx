@@ -18,6 +18,26 @@ import { authFetch as apiRequest } from "../lib/api"
 import { useToast } from "../context/ToastContext"
 import BlogContentRenderer from "../components/blog/BlogContentRenderer"
 
+/** Convert a YouTube/Vimeo watch URL to an embeddable src. Returns "" if not recognised. */
+function getEmbedUrl(raw) {
+  try {
+    const url = new URL(raw)
+    // YouTube
+    if (url.hostname.includes("youtube.com") && url.searchParams.get("v")) {
+      return `https://www.youtube.com/embed/${url.searchParams.get("v")}`
+    }
+    if (url.hostname === "youtu.be") {
+      return `https://www.youtube.com/embed${url.pathname}`
+    }
+    // Vimeo
+    if (url.hostname.includes("vimeo.com")) {
+      const id = url.pathname.replace(/\//g, "")
+      return `https://player.vimeo.com/video/${id}`
+    }
+  } catch { /* invalid URL */ }
+  return ""
+}
+
 const EMPTY_POST = {
   title: "",
   slug: "",
@@ -37,13 +57,17 @@ const EMPTY_POST = {
 }
 
 const BLOCK_TYPES = [
-  { value: "p", label: "Paragraph" },
-  { value: "h2", label: "Heading 2" },
-  { value: "h3", label: "Heading 3" },
-  { value: "list", label: "Bulleted list" },
-  { value: "ordered", label: "Numbered list" },
-  { value: "callout", label: "Callout" },
-  { value: "quote", label: "Pull quote" },
+  { value: "p",         label: "Paragraph" },
+  { value: "h2",        label: "Heading 2" },
+  { value: "h3",        label: "Heading 3" },
+  { value: "list",      label: "Bulleted list" },
+  { value: "ordered",   label: "Numbered list" },
+  { value: "callout",   label: "Callout" },
+  { value: "quote",     label: "Pull quote" },
+  { value: "takeaways", label: "Key takeaways" },
+  { value: "code",      label: "Code block" },
+  { value: "image",     label: "Image" },
+  { value: "video",     label: "Video embed" },
 ]
 
 export default function AdminBlogFormPage() {
@@ -125,13 +149,14 @@ export default function AdminBlogFormPage() {
   }
   function addBlock(type = "p") {
     const tpl =
-      type === "list" || type === "ordered"
-        ? { type, items: [""] }
-        : type === "callout"
-          ? { type, variant: "info", text: "" }
-          : type === "quote"
-            ? { type, text: "" }
-            : { type, text: "" }
+      type === "list" || type === "ordered"   ? { type, items: [""] }
+      : type === "callout"                    ? { type, variant: "info", text: "" }
+      : type === "quote"                      ? { type, text: "", cite: "" }
+      : type === "takeaways"                  ? { type, title: "Key takeaways", items: [""] }
+      : type === "code"                       ? { type, lang: "js", code: "" }
+      : type === "image"                      ? { type, src: "", alt: "", caption: "" }
+      : type === "video"                      ? { type, url: "", caption: "" }
+      : { type, text: "" }
     setPost((p) => ({ ...p, body: [...p.body, tpl] }))
   }
   function removeBlock(index) {
@@ -328,7 +353,7 @@ export default function AdminBlogFormPage() {
           </Section>
 
           <Section title="Cover & SEO">
-            <Field label="Cover image URL">
+            <Field label="Cover image URL" hint="Paste a URL or path from the Media library.">
               <input
                 value={post.cover || ""}
                 onChange={(e) => update({ cover: e.target.value })}
@@ -336,6 +361,21 @@ export default function AdminBlogFormPage() {
                 className="w-full rounded-lg border border-charcoal-80/15 bg-white px-3 py-2 text-[12.5px] outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-violet/15"
               />
             </Field>
+            {/* Live cover preview */}
+            {post.cover ? (
+              <div className="overflow-hidden rounded-xl border border-charcoal-80/10">
+                <img
+                  src={post.cover}
+                  alt="Cover preview"
+                  className="aspect-[16/9] w-full object-cover"
+                  onError={(e) => { e.currentTarget.parentElement.style.display = "none" }}
+                />
+              </div>
+            ) : (
+              <div className="flex aspect-[16/9] items-center justify-center rounded-xl border border-dashed border-charcoal-80/15 bg-charcoal-80/[0.02] text-[12px] text-charcoal-80/35">
+                Cover preview
+              </div>
+            )}
             <Field label="Meta title">
               <input
                 value={post.metaTitle || ""}
@@ -408,14 +448,15 @@ function BlockEditor({ index, block, onChange, onMove, onRemove, isFirst, isLast
 }
 
 function blockTypeChange(prev, nextType) {
-  // Preserve text/items where possible across type changes.
   if (nextType === "list" || nextType === "ordered") {
     if (prev.type === "list" || prev.type === "ordered") return { type: nextType, items: prev.items || [""] }
     return { type: nextType, items: [prev.text || ""] }
   }
-  if (nextType === "callout") {
-    return { type: nextType, variant: prev.variant || "info", text: prev.text || (prev.items?.[0] ?? "") }
-  }
+  if (nextType === "callout")   return { type: nextType, variant: prev.variant || "info", text: prev.text || (prev.items?.[0] ?? "") }
+  if (nextType === "takeaways") return { type: nextType, title: "Key takeaways", items: prev.items || [prev.text || ""] }
+  if (nextType === "code")      return { type: nextType, lang: "js", code: prev.text || (prev.code ?? "") }
+  if (nextType === "image")     return { type: nextType, src: "", alt: "", caption: "" }
+  if (nextType === "video")     return { type: nextType, url: "", caption: "" }
   return { type: nextType, text: prev.text || (prev.items?.[0] ?? "") }
 }
 
@@ -484,19 +525,168 @@ function renderBlockField(block, onChange, index) {
       </div>
     )
   }
-  // p / h2 / h3 / quote
+  // ── Key takeaways ──────────────────────────────────────────────────────
+  if (block.type === "takeaways") {
+    return (
+      <div className="flex flex-col gap-2">
+        <input
+          value={block.title || "Key takeaways"}
+          onChange={(e) => onChange({ title: e.target.value })}
+          placeholder="Box heading, e.g. 'What you'll learn'"
+          className="rounded border border-charcoal-80/15 bg-white px-2 py-1 text-[13px] font-semibold outline-none focus:border-violet/40"
+        />
+        {(block.items || []).map((item, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            <span className="font-mono text-[10.5px] text-violet/60">✓</span>
+            <input
+              value={item}
+              onChange={(e) => {
+                const items = [...(block.items || [])]
+                items[i] = e.target.value
+                onChange({ items })
+              }}
+              placeholder="Takeaway point"
+              className="flex-1 rounded border border-charcoal-80/15 bg-white px-2 py-1 text-[13px] outline-none focus:border-violet/40"
+            />
+            <button
+              type="button"
+              onClick={() => onChange({ items: (block.items || []).filter((_, idx) => idx !== i) })}
+              aria-label="Remove"
+              className="rounded p-1 text-charcoal-80/55 hover:bg-rose/10 hover:text-rose-700"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => onChange({ items: [...(block.items || []), ""] })}
+          className="mt-1 inline-flex items-center gap-1 self-start text-[11.5px] font-semibold text-violet hover:underline"
+        >
+          <Plus className="h-3 w-3" /> Add takeaway
+        </button>
+      </div>
+    )
+  }
+
+  // ── Code block ─────────────────────────────────────────────────────────
+  if (block.type === "code") {
+    return (
+      <div className="flex flex-col gap-2">
+        <input
+          value={block.lang || ""}
+          onChange={(e) => onChange({ lang: e.target.value })}
+          placeholder="Language: js, py, bash, sql, html…"
+          className="w-24 rounded border border-charcoal-80/15 bg-white px-2 py-1 font-mono text-[11.5px] outline-none focus:border-violet/40"
+        />
+        <textarea
+          value={block.code || ""}
+          onChange={(e) => onChange({ code: e.target.value })}
+          placeholder="Paste your code here…"
+          rows={6}
+          className="w-full resize-y rounded border border-charcoal-80/15 bg-[#1A1B23] px-3 py-2 font-mono text-[12.5px] leading-6 text-[#C8C8D0] outline-none focus:border-violet/40"
+        />
+      </div>
+    )
+  }
+
+  // ── Image block ────────────────────────────────────────────────────────
+  if (block.type === "image") {
+    return (
+      <div className="flex flex-col gap-2">
+        <input
+          value={block.src || ""}
+          onChange={(e) => onChange({ src: e.target.value })}
+          placeholder="Image URL — e.g. /images/blog/my-photo.jpg or https://…"
+          className="w-full rounded border border-charcoal-80/15 bg-white px-2 py-1.5 text-[12.5px] outline-none focus:border-violet/40"
+        />
+        {block.src ? (
+          <img
+            src={block.src}
+            alt={block.alt || ""}
+            className="mt-1 max-h-48 w-full rounded-lg object-cover"
+            onError={(e) => { e.currentTarget.style.display = "none" }}
+          />
+        ) : (
+          <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-charcoal-80/20 bg-charcoal-80/[0.02] text-[12px] text-charcoal-80/40">
+            Image preview will appear here
+          </div>
+        )}
+        <input
+          value={block.alt || ""}
+          onChange={(e) => onChange({ alt: e.target.value })}
+          placeholder="Alt text — describe the image for accessibility"
+          className="w-full rounded border border-charcoal-80/15 bg-white px-2 py-1.5 text-[12.5px] outline-none focus:border-violet/40"
+        />
+        <input
+          value={block.caption || ""}
+          onChange={(e) => onChange({ caption: e.target.value })}
+          placeholder="Caption (optional) — shown below the image"
+          className="w-full rounded border border-charcoal-80/15 bg-white px-2 py-1 text-[12px] italic outline-none focus:border-violet/40"
+        />
+      </div>
+    )
+  }
+
+  // ── Video embed block ──────────────────────────────────────────────────
+  if (block.type === "video") {
+    const embedUrl = getEmbedUrl(block.url || "")
+    return (
+      <div className="flex flex-col gap-2">
+        <input
+          value={block.url || ""}
+          onChange={(e) => onChange({ url: e.target.value })}
+          placeholder="YouTube or Vimeo URL — e.g. https://www.youtube.com/watch?v=…"
+          className="w-full rounded border border-charcoal-80/15 bg-white px-2 py-1.5 text-[12.5px] outline-none focus:border-violet/40"
+        />
+        {embedUrl ? (
+          <div className="relative mt-1 w-full overflow-hidden rounded-lg" style={{ paddingBottom: "56.25%" }}>
+            <iframe
+              src={embedUrl}
+              className="absolute inset-0 h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title="Video preview"
+            />
+          </div>
+        ) : (
+          <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-charcoal-80/20 bg-charcoal-80/[0.02] text-[12px] text-charcoal-80/40">
+            Paste a YouTube or Vimeo URL to preview
+          </div>
+        )}
+        <input
+          value={block.caption || ""}
+          onChange={(e) => onChange({ caption: e.target.value })}
+          placeholder="Caption (optional)"
+          className="w-full rounded border border-charcoal-80/15 bg-white px-2 py-1 text-[12px] italic outline-none focus:border-violet/40"
+        />
+      </div>
+    )
+  }
+
+  // ── p / h2 / h3 / quote ────────────────────────────────────────────────
   return (
-    <textarea
-      value={block.text}
-      onChange={(e) => onChange({ text: e.target.value })}
-      placeholder={
-        block.type === "h2" ? "Section heading" :
-        block.type === "h3" ? "Sub-heading" :
-        block.type === "quote" ? "“Quote text”" :
-        "Paragraph, supports **bold**, *italic*, `code`, [text](url)"
-      }
-      rows={block.type === "p" || block.type === "quote" ? 3 : 1}
-      className="w-full resize-y rounded border border-charcoal-80/15 bg-white px-2 py-1.5 text-[13.5px] leading-6 outline-none focus:border-violet/40"
-    />
+    <div className="flex flex-col gap-1.5">
+      <textarea
+        value={block.text}
+        onChange={(e) => onChange({ text: e.target.value })}
+        placeholder={
+          block.type === "h2" ? "Section heading" :
+          block.type === "h3" ? "Sub-heading" :
+          block.type === "quote" ? "Quote text (use inline formatting if needed)" :
+          "Paragraph — supports **bold**, *italic*, `code`, [text](url)"
+        }
+        rows={block.type === "p" || block.type === "quote" ? 3 : 1}
+        className="w-full resize-y rounded border border-charcoal-80/15 bg-white px-2 py-1.5 text-[13.5px] leading-6 outline-none focus:border-violet/40"
+      />
+      {block.type === "quote" && (
+        <input
+          value={block.cite || ""}
+          onChange={(e) => onChange({ cite: e.target.value })}
+          placeholder="Attribution — e.g. Mustapha Ukizuru, 2026"
+          className="rounded border border-charcoal-80/15 bg-white px-2 py-1 text-[12px] text-charcoal-80/65 outline-none focus:border-violet/40"
+        />
+      )}
+    </div>
   )
 }

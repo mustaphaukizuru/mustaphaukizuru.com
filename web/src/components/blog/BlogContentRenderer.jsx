@@ -18,7 +18,7 @@
 
 import { Fragment, useState } from "react"
 import { Link } from "react-router-dom"
-import { Info, CheckCircle2, AlertTriangle, Quote, Copy, Check } from "lucide-react"
+import { Info, CheckCircle2, AlertTriangle, Quote, Copy, Check, PlayCircle } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
 
@@ -176,6 +176,12 @@ function renderBlock(block) {
     case "code":
       return <CodeBlock block={block} />
 
+    case "image":
+      return <ImageBlock block={block} />
+
+    case "video":
+      return <VideoBlock block={block} />
+
     case "takeaways":
       return (
         <div className="mt-7 overflow-hidden rounded-2xl border border-violet/25 bg-violet-pale/40">
@@ -243,6 +249,71 @@ function CodeBlock({ block }) {
         </code>
       </pre>
     </div>
+  )
+}
+
+/* ── Image block ─────────────────────────────────────────────────────── */
+function ImageBlock({ block }) {
+  if (!block.src) return null
+  return (
+    <figure className="mt-8">
+      <div className="overflow-hidden rounded-2xl bg-charcoal-80/[0.04]">
+        <img
+          src={block.src}
+          alt={block.alt || ""}
+          loading="lazy"
+          className="w-full object-cover"
+        />
+      </div>
+      {block.caption ? (
+        <figcaption className="mt-2 text-center text-[12.5px] italic text-charcoal-80/50">
+          {block.caption}
+        </figcaption>
+      ) : null}
+    </figure>
+  )
+}
+
+/* ── Video embed block ───────────────────────────────────────────────── */
+function getPublicEmbedUrl(raw) {
+  try {
+    const url = new URL(raw)
+    if (url.hostname.includes("youtube.com") && url.searchParams.get("v")) {
+      return `https://www.youtube.com/embed/${url.searchParams.get("v")}`
+    }
+    if (url.hostname === "youtu.be") {
+      return `https://www.youtube.com/embed${url.pathname}`
+    }
+    if (url.hostname.includes("vimeo.com")) {
+      const id = url.pathname.replace(/\//g, "")
+      return `https://player.vimeo.com/video/${id}`
+    }
+  } catch { /* invalid URL */ }
+  return ""
+}
+
+function VideoBlock({ block }) {
+  const embed = getPublicEmbedUrl(block.url || "")
+  if (!embed) return null
+  return (
+    <figure className="mt-8">
+      <div className="relative w-full overflow-hidden rounded-2xl bg-charcoal-80/[0.04]" style={{ paddingBottom: "56.25%" }}>
+        <iframe
+          src={embed}
+          className="absolute inset-0 h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          loading="lazy"
+          title={block.caption || "Video"}
+        />
+      </div>
+      {block.caption ? (
+        <figcaption className="mt-2 flex items-center justify-center gap-1.5 text-[12.5px] italic text-charcoal-80/50">
+          <PlayCircle className="h-3.5 w-3.5 text-violet/60" aria-hidden="true" />
+          {block.caption}
+        </figcaption>
+      ) : null}
+    </figure>
   )
 }
 
