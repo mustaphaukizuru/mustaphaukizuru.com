@@ -13,6 +13,11 @@ export default {
   cover: null,
   featured: true,
   body: [
+    { type: "takeaways", title: "What you'll learn", items: [
+      "How a single Hostinger VPS runs a full-stack SaaS with payments, auth, and an admin CMS.",
+      "Why Prisma + MySQL beats Postgres-on-cloud for a solo-operated product at this scale.",
+      "The three architectural decisions I'd make differently starting over today.",
+    ]},
     { type: "p", text: "What started as a one-page portfolio quietly turned into a full SaaS platform. Today **mustaphaukizuru.com** runs an e-commerce store, consulting service orders, a member dashboard, an admin CMS, MercadoPago + PayPal payments, JWT auth, support tickets, and a newsletter, on a single Hostinger VPS, deployed from `git push`." },
     { type: "p", text: "This post is the honest tour: what's in production, what I'd do differently, and what's still on the runway." },
 

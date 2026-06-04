@@ -176,6 +176,31 @@ function renderBlock(block) {
     case "code":
       return <CodeBlock block={block} />
 
+    case "takeaways":
+      return (
+        <div className="mt-7 overflow-hidden rounded-2xl border border-violet/25 bg-violet-pale/40">
+          <div className="border-b border-violet/15 px-5 py-3 sm:px-6">
+            <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-violet">
+              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+              {block.title || "Key takeaways"}
+            </p>
+          </div>
+          <ul className="flex flex-col gap-3 px-5 py-4 sm:px-6 sm:py-5">
+            {(block.items || []).map((item, i) => (
+              <li key={i} className="flex items-start gap-3 text-[14.5px] leading-6 text-charcoal-80/85">
+                <span
+                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet text-white"
+                  aria-hidden="true"
+                >
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                </span>
+                {renderInline(item)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+
     default:
       return null
   }

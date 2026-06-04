@@ -285,14 +285,19 @@ export default function BlogPostPage() {
         canonical={`/blog/${post.slug}`}
         image={post.cover || undefined}
       />
-      <div className="border-b border-slate-100 bg-white">
+      {/* Print-only header: title + canonical URL */}
+      <div className="hidden print:block print:mb-6 print:border-b print:border-gray-200 print:pb-4">
+        <p className="text-[11px] font-mono text-gray-400">{url}</p>
+      </div>
+
+      <div className="border-b border-slate-100 bg-white print:hidden">
         <div className="mx-auto w-full max-w-7xl px-4 py-2.5 sm:px-6 lg:px-8">
           <Breadcrumbs />
         </div>
       </div>
 
       {/* Back-to-blog rail + copy-link */}
-      <div className="border-b border-charcoal-80/10 bg-white">
+      <div className="border-b border-charcoal-80/10 bg-white print:hidden">
         <Container>
           <div className="flex items-center justify-between py-4">
             <Link
@@ -344,7 +349,11 @@ export default function BlogPostPage() {
             </p>
 
             <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[12.5px] text-charcoal-80/55">
-              <span className="inline-flex items-center gap-1.5">
+              {/* Author — links to blog index (shows all their posts) */}
+              <Link
+                to="/blog"
+                className="inline-flex items-center gap-1.5 transition hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+              >
                 <img
                   src={post.author.avatar}
                   alt=""
@@ -353,7 +362,7 @@ export default function BlogPostPage() {
                 <span className="font-medium text-charcoal-80/80">
                   {post.author.name}
                 </span>
-              </span>
+              </Link>
               <span aria-hidden="true">·</span>
               <span className="inline-flex items-center gap-1">
                 <Calendar className="h-3 w-3" aria-hidden="true" />
@@ -374,12 +383,19 @@ export default function BlogPostPage() {
         <Container size="md">
           <div className="grid gap-10 lg:grid-cols-[1fr_220px] lg:gap-14">
             <article className="min-w-0">
-              <BlogContentRenderer blocks={post.body} midCTA={<MidArticleCTA />} />
+              <BlogContentRenderer
+                blocks={post.body}
+                midCTA={
+                  <div className="print:hidden">
+                    <MidArticleCTA />
+                  </div>
+                }
+              />
               <BlogAuthorByline author={post.author} />
             </article>
 
-            {/* Article rail — TOC + Share + Tags */}
-            <aside aria-label={t("post.rail.shareAria")} className="lg:sticky lg:top-24 lg:self-start">
+            {/* Article rail — TOC + Share + Tags (hidden when printing) */}
+            <aside aria-label={t("post.rail.shareAria")} className="print:hidden lg:sticky lg:top-24 lg:self-start">
               <div className="flex flex-col gap-6">
                 {/* Table of contents */}
                 <TableOfContents toc={toc} />
@@ -426,9 +442,9 @@ export default function BlogPostPage() {
         </Container>
       </section>
 
-      {/* Related posts */}
+      {/* Related posts (hidden when printing) */}
       {related.length > 0 ? (
-        <section className="border-t border-charcoal-80/10 bg-charcoal-80/[0.02]">
+        <section className="border-t border-charcoal-80/10 bg-charcoal-80/[0.02] print:hidden">
           <Container py="md">
             <div className="mb-8 flex items-end justify-between gap-4">
               <h2 className="text-[20px] font-bold text-violet">

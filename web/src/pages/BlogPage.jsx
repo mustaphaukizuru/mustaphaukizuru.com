@@ -267,10 +267,40 @@ export default function BlogPage() {
               {t("page.subtitle")}
             </motion.p>
 
-            {/* Result meta, shows filter context whenever it's active */}
+            {/* Hero search — primary discovery entry point */}
+            <motion.form
+              variants={fadeUp}
+              onSubmit={(e) => {
+                e.preventDefault()
+                applyFilter({ q: search || null })
+              }}
+              className="relative w-full max-w-lg"
+            >
+              <Search
+                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/40"
+                aria-hidden="true"
+              />
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={`Search ${allPosts.length} articles…`}
+                aria-label="Search articles"
+                title="Press / to search"
+                className="w-full rounded-2xl border border-charcoal-80/12 bg-white py-3.5 pl-11 pr-28 text-[14px] text-charcoal-80 shadow-[0_8px_32px_-8px_rgba(93,63,211,0.15)] placeholder-charcoal-80/40 outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-violet/20 sm:text-[15px]"
+              />
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-violet px-4 py-2 text-[12.5px] font-bold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
+              >
+                Search
+              </button>
+            </motion.form>
+
+            {/* Result meta — shows filter context when active */}
             <motion.div
               variants={fadeUp}
-              className="mt-2 flex flex-wrap items-center justify-center gap-2 text-[12.5px]"
+              className="mt-1 flex flex-wrap items-center justify-center gap-2 text-[12.5px]"
             >
               <span className="text-charcoal-80/55">
                 {filtered.length} article{filtered.length === 1 ? "" : "s"}
@@ -633,7 +663,7 @@ function BlogSidebar({
               <button
                 type="submit"
                 disabled={newsletterLoading}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-terracotta px-3 py-2 text-[12.5px] font-semibold text-white transition hover:bg-terracotta/90 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-terracotta/40 disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white/40 disabled:opacity-60"
               >
                 {newsletterLoading ? "Joining…" : "Subscribe"}
                 {!newsletterLoading && (
@@ -845,6 +875,7 @@ function FeaturedCard({ post, reduce }) {
 
 function PostCard({ post }) {
   const cat = categoryByValue(post.category)
+  const displayTags = post.tags?.slice(0, 2) || []
   return (
     <article className="group overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white transition hover:border-violet/25 hover:shadow-[0_12px_36px_-12px_rgba(93,63,211,0.18)]">
       <Link to={`/blog/${post.slug}`} className="flex h-full items-stretch">
@@ -872,6 +903,25 @@ function PostCard({ post }) {
           <p className="hidden line-clamp-2 text-[13px] leading-6 text-charcoal-80/60 sm:block">
             {post.excerpt}
           </p>
+
+          {/* Tag chips — hidden on mobile, max 2 */}
+          {displayTags.length > 0 && (
+            <div className="hidden items-center gap-1.5 sm:flex">
+              {displayTags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-charcoal-80/[0.05] px-2 py-0.5 font-mono text-[10px] tracking-wide text-charcoal-80/50"
+                >
+                  {tag}
+                </span>
+              ))}
+              {(post.tags?.length || 0) > 2 && (
+                <span className="font-mono text-[10px] text-charcoal-80/35">
+                  +{post.tags.length - 2}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Meta + read link */}
           <div className="mt-auto flex items-center justify-between gap-2 pt-1">
