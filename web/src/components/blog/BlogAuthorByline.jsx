@@ -21,13 +21,16 @@ export default function BlogAuthorByline({ author }) {
         style={{ background: "linear-gradient(90deg, #5D3FD3, #0284C7)" }}
       />
 
-      <div className="flex flex-col gap-5 p-6 sm:flex-row sm:gap-6 sm:p-7">
-        {/* Avatar */}
-        <img
-          src={author.avatar}
-          alt=""
-          className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-violet/20"
-        />
+      <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:gap-6 sm:p-7">
+        {/* Avatar — wrapper div guarantees h/w even inside a flex-row
+            (bare <img> can flex-stretch past its declared dimensions) */}
+        <div className="h-16 w-16 shrink-0 self-start overflow-hidden rounded-full ring-2 ring-violet/20">
+          <img
+            src={author.avatar}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </div>
 
         {/* Body */}
         <div className="min-w-0 flex-1">

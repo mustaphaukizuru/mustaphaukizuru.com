@@ -317,14 +317,14 @@ export default function BlogPostPage() {
         </Container>
       </div>
 
-      {/* Article header */}
+      {/* Article header — full-width container so title aligns with the nav */}
       <section className="bg-white">
-        <Container size="md" py="md">
+        <Container py="md">
           <motion.header
             variants={fadeUp}
             initial={reduce ? false : "hidden"}
             animate="show"
-            className="flex flex-col gap-5 text-center"
+            className="mx-auto flex max-w-3xl flex-col gap-5 text-center"
           >
             {category ? (
               <span
@@ -378,10 +378,12 @@ export default function BlogPostPage() {
         </Container>
       </section>
 
-      {/* Article body */}
+      {/* Article body — same Container width as the nav (xl = 1280px) so the
+          article's left edge aligns with the header. The prose column takes
+          1fr (~880px on desktop) and the sticky rail is 280px. */}
       <section className="bg-white">
-        <Container size="md">
-          <div className="grid gap-10 lg:grid-cols-[1fr_220px] lg:gap-14">
+        <Container>
+          <div className="grid gap-10 pb-14 pt-10 sm:pb-16 lg:grid-cols-[1fr_280px] lg:gap-16 lg:pb-20 lg:pt-12">
             <article className="min-w-0">
               <BlogContentRenderer
                 blocks={post.body}
@@ -395,7 +397,7 @@ export default function BlogPostPage() {
             </article>
 
             {/* Article rail — TOC + Share + Tags (hidden when printing) */}
-            <aside aria-label={t("post.rail.shareAria")} className="print:hidden lg:sticky lg:top-24 lg:self-start">
+            <aside aria-label={t("post.rail.shareAria")} className="print:hidden lg:sticky lg:top-24 lg:self-start lg:w-[280px]">
               <div className="flex flex-col gap-6">
                 {/* Table of contents */}
                 <TableOfContents toc={toc} />
