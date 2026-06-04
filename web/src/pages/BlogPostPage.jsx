@@ -5,12 +5,12 @@
    chrome (back link, share/tags labels, related posts, meta line).
    ════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useParams, Navigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { motion, useReducedMotion } from "framer-motion"
 import {
-  ArrowLeft, ArrowRight, Calendar, Clock, Tag, Share2,
+  ArrowLeft, ArrowRight, Calendar, Clock, Tag, Share2, CalendarCheck, Copy, Check,
 } from "lucide-react"
 
 import Container from "../components/system/Container"
@@ -30,6 +30,90 @@ import {
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+}
+
+/* ── Reading progress bar ────────────────────────────────────────────── */
+function ReadingProgress() {
+  const [progress, setProgress] = useState(0)
+  const reduce = useReducedMotion()
+
+  useEffect(() => {
+    if (reduce) return
+    function onScroll() {
+      const el  = document.documentElement
+      const top = el.scrollTop || document.body.scrollTop
+      const max = el.scrollHeight - el.clientHeight
+      setProgress(max > 0 ? Math.min(100, (top / max) * 100) : 0)
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [reduce])
+
+  if (reduce) return null
+  return (
+    <div
+      aria-hidden="true"
+      className="fixed left-0 top-0 z-50 h-[3px] origin-left transition-[width] duration-75"
+      style={{
+        width: `${progress}%`,
+        background: "linear-gradient(90deg, #5D3FD3, #0284C7)",
+      }}
+    />
+  )
+}
+
+/* ── Copy-link button ────────────────────────────────────────────────── */
+function CopyLinkButton({ url }) {
+  const [copied, setCopied] = useState(false)
+  function copy() {
+    navigator.clipboard?.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title="Copy link"
+      className="inline-flex items-center gap-1.5 rounded-full border border-charcoal-80/15 bg-white px-3 py-1.5 text-[12px] font-semibold text-charcoal-80/70 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+    >
+      {copied
+        ? <><Check className="h-3.5 w-3.5 text-mint" aria-hidden="true" />Copied</>
+        : <><Copy className="h-3.5 w-3.5"           aria-hidden="true" />Copy link</>}
+    </button>
+  )
+}
+
+/* ── Mid-article consultation CTA ───────────────────────────────────── */
+function MidArticleCTA() {
+  return (
+    <aside
+      aria-label="Book a consultation"
+      className="my-10 overflow-hidden rounded-2xl border border-violet/20 bg-gradient-to-r from-violet/[0.06] to-azure/[0.04] p-6"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_22px_-8px_rgba(93,63,211,0.50)]">
+          <CalendarCheck className="h-5 w-5" aria-hidden="true" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[14px] font-bold text-violet">
+            Working on something similar?
+          </p>
+          <p className="mt-0.5 text-[13px] text-charcoal-80/65">
+            Book a free 30-minute strategy call — no pitch, just answers.
+          </p>
+        </div>
+        <Link
+          to="/book"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-violet px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(93,63,211,0.50)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+        >
+          Book 30 min
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </Link>
+      </div>
+    </aside>
+  )
 }
 
 function categoryByValue(slug) {
@@ -74,6 +158,8 @@ export default function BlogPostPage() {
 
   return (
     <>
+      <ReadingProgress />
+
       <Seo
         title={`${post.title} · ${t("post.seo.titleSuffix")}`}
         description={post.excerpt}
@@ -87,7 +173,7 @@ export default function BlogPostPage() {
         </div>
       </div>
 
-      {/* Back-to-blog rail */}
+      {/* Back-to-blog rail + copy-link */}
       <div className="border-b border-charcoal-80/10 bg-white">
         <Container>
           <div className="flex items-center justify-between py-4">
@@ -98,9 +184,12 @@ export default function BlogPostPage() {
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               {t("post.rail.back")}
             </Link>
-            <span className="text-[12px] text-charcoal-80/50">
-              {category?.label || t("post.rail.fallbackKind")}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="hidden text-[12px] text-charcoal-80/50 sm:block">
+                {category?.label || t("post.rail.fallbackKind")}
+              </span>
+              <CopyLinkButton url={url} />
+            </div>
           </div>
         </Container>
       </div>
@@ -167,7 +256,7 @@ export default function BlogPostPage() {
         <Container size="md">
           <div className="grid gap-10 lg:grid-cols-[1fr_220px] lg:gap-14">
             <article className="min-w-0">
-              <BlogContentRenderer blocks={post.body} />
+              <BlogContentRenderer blocks={post.body} midCTA={<MidArticleCTA />} />
               <BlogAuthorByline author={post.author} />
             </article>
 
