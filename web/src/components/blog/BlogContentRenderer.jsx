@@ -25,6 +25,24 @@ import { useTranslation } from "react-i18next"
 // Inject the midCTA after this block index (0-based, so index 2 = after 3rd block)
 const MID_CTA_AFTER_INDEX = 2
 
+/* ── Shared utilities — also used by BlogPostPage for TOC ──────────────── */
+
+export function slugify(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim()
+}
+
+export function extractTOC(blocks) {
+  if (!Array.isArray(blocks)) return []
+  return blocks
+    .filter((b) => b.type === "h2" || b.type === "h3")
+    .map((b) => ({ id: slugify(b.text), text: b.text, level: b.type === "h2" ? 2 : 3 }))
+}
+
 export default function BlogContentRenderer({ blocks, midCTA }) {
   const { t } = useTranslation("blog")
   if (!Array.isArray(blocks) || blocks.length === 0) {
@@ -58,14 +76,20 @@ function renderBlock(block) {
 
     case "h2":
       return (
-        <h2 className="mt-12 text-[24px] font-bold leading-tight tracking-tight text-violet first:mt-0 sm:text-[26px]">
+        <h2
+          id={slugify(block.text)}
+          className="mt-12 scroll-mt-24 text-[24px] font-bold leading-tight tracking-tight text-violet first:mt-0 sm:text-[26px]"
+        >
           {renderInline(block.text)}
         </h2>
       )
 
     case "h3":
       return (
-        <h3 className="mt-9 text-[19px] font-bold leading-tight text-violet first:mt-0 sm:text-[20px]">
+        <h3
+          id={slugify(block.text)}
+          className="mt-9 scroll-mt-24 text-[19px] font-bold leading-tight text-violet first:mt-0 sm:text-[20px]"
+        >
           {renderInline(block.text)}
         </h3>
       )

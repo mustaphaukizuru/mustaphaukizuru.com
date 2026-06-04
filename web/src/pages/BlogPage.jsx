@@ -26,7 +26,7 @@
    • Source of truth: web/src/data/blogPostsData.js (swap for /api/blog later).
    ════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { motion, useReducedMotion } from "framer-motion"
 import {
@@ -426,9 +426,24 @@ function BlogSidebar({
   categories, tags, recentPosts, archive,
 }) {
   const { t } = useTranslation("blog")
+  const searchRef = useRef(null)
   const [newsletterEmail, setNewsletterEmail] = useState("")
   const [newsletterStatus, setNewsletterStatus] = useState({ kind: null, message: "" })
   const [newsletterLoading, setNewsletterLoading] = useState(false)
+
+  // Press "/" anywhere on the page to jump focus to the search box.
+  // Ignored when the user is already typing in an input/textarea.
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return
+      const tag = document.activeElement?.tagName
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return
+      e.preventDefault()
+      searchRef.current?.focus()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
 
   async function handleNewsletter(e) {
     e.preventDefault()
@@ -478,11 +493,13 @@ function BlogSidebar({
               aria-hidden="true"
             />
             <input
+              ref={searchRef}
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="React · MercadoPago · STEM…"
               aria-label={t("page.searchAria")}
+              title="Press / to search"
               className="w-full rounded-xl border border-charcoal-80/15 bg-white py-2.5 pl-9 pr-3 text-[13.5px] text-charcoal-80 placeholder-charcoal-80/40 outline-none transition focus:border-violet/45 focus:ring-[3px] focus:ring-violet/20"
             />
           </form>

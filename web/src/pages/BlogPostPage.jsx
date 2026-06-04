@@ -18,7 +18,7 @@ import Seo from "../components/seo/Seo"
 import Breadcrumbs from "../components/Breadcrumbs"
 import { SITE_URL } from "../seo/siteSeo"
 import SocialLinks from "../components/SocialLinks"
-import BlogContentRenderer from "../components/blog/BlogContentRenderer"
+import BlogContentRenderer, { extractTOC } from "../components/blog/BlogContentRenderer"
 import BlogAuthorByline from "../components/blog/BlogAuthorByline"
 import { apiRequest } from "../lib/api"
 import {
@@ -85,6 +85,91 @@ function CopyLinkButton({ url }) {
   )
 }
 
+/* ── Table of contents ───────────────────────────────────────────────── */
+function TableOfContents({ toc }) {
+  const [active, setActive] = useState(null)
+
+  useEffect(() => {
+    const ids = toc.map((h) => h.id)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find((e) => e.isIntersecting)
+        if (visible) setActive(visible.target.id)
+      },
+      { rootMargin: "-20% 0px -70% 0px" }
+    )
+    ids.forEach((id) => {
+      const el = document.getElementById(id)
+      if (el) observer.observe(el)
+    })
+    return () => observer.disconnect()
+  }, [toc])
+
+  if (toc.length < 2) return null
+  return (
+    <section>
+      <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+        <ArrowRight className="h-3 w-3 text-violet" aria-hidden="true" />
+        Contents
+      </h3>
+      <nav aria-label="Table of contents">
+        <ul className="flex flex-col gap-0.5">
+          {toc.map((item) => {
+            const isActive = active === item.id
+            return (
+              <li key={item.id}>
+                <a
+                  href={`#${item.id}`}
+                  className={[
+                    "block rounded-lg py-1.5 text-[12.5px] leading-snug transition",
+                    item.level === 3 ? "pl-4" : "pl-2",
+                    "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30",
+                    isActive
+                      ? "font-semibold text-violet"
+                      : "text-charcoal-80/55 hover:text-violet",
+                  ].join(" ")}
+                >
+                  {isActive && (
+                    <span
+                      aria-hidden="true"
+                      className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-violet align-middle"
+                    />
+                  )}
+                  {item.text}
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+    </section>
+  )
+}
+
+/* ── Back to top ─────────────────────────────────────────────────────── */
+function BackToTop() {
+  const [visible, setVisible] = useState(false)
+  const reduce = useReducedMotion()
+
+  useEffect(() => {
+    function onScroll() { setVisible(window.scrollY > 600) }
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  if (!visible) return null
+  return (
+    <button
+      type="button"
+      aria-label="Back to top"
+      onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" })}
+      className="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-violet text-white shadow-[0_8px_24px_-6px_rgba(93,63,211,0.55)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
+    >
+      <ArrowLeft className="h-4 w-4 rotate-90" aria-hidden="true" />
+    </button>
+  )
+}
+
 /* ── Mid-article consultation CTA ───────────────────────────────────── */
 function MidArticleCTA() {
   return (
@@ -147,6 +232,38 @@ export default function BlogPostPage() {
 
   const category = categoryByValue(post.category)
   const url = `${SITE_URL}/blog/${post.slug}`
+  const toc = useMemo(() => extractTOC(post.body), [post.body])
+
+  // BlogPosting JSON-LD — injected per-article for Google rich results
+  useEffect(() => {
+    const id = "blog-post-jsonld"
+    document.getElementById(id)?.remove()
+    const script = document.createElement("script")
+    script.type  = "application/ld+json"
+    script.id    = id
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline:        post.title,
+      description:     post.excerpt,
+      datePublished:   post.publishedAt,
+      image:           post.cover ? `${SITE_URL}${post.cover}` : `${SITE_URL}/og/og-default.png`,
+      mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      author: {
+        "@type":    "Person",
+        name:       post.author.name,
+        jobTitle:   post.author.role,
+        url:        SITE_URL,
+      },
+      publisher: {
+        "@type": "Organization",
+        name:    "MUSTAPHA UKIZURU",
+        url:     SITE_URL,
+      },
+    })
+    document.head.appendChild(script)
+    return () => document.getElementById(id)?.remove()
+  }, [post, url])
 
   function formatDate(iso) {
     return new Date(iso).toLocaleDateString(localeTag, {
@@ -159,6 +276,7 @@ export default function BlogPostPage() {
   return (
     <>
       <ReadingProgress />
+      <BackToTop />
 
       <Seo
         title={`${post.title} · ${t("post.seo.titleSuffix")}`}
@@ -260,9 +378,12 @@ export default function BlogPostPage() {
               <BlogAuthorByline author={post.author} />
             </article>
 
-            {/* Article rail */}
+            {/* Article rail — TOC + Share + Tags */}
             <aside aria-label={t("post.rail.shareAria")} className="lg:sticky lg:top-24 lg:self-start">
               <div className="flex flex-col gap-6">
+                {/* Table of contents */}
+                <TableOfContents toc={toc} />
+
                 <section>
                   <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
                     <Share2 className="h-3 w-3 text-violet" aria-hidden="true" />
@@ -309,29 +430,75 @@ export default function BlogPostPage() {
       {related.length > 0 ? (
         <section className="border-t border-charcoal-80/10 bg-charcoal-80/[0.02]">
           <Container py="md">
-            <h2 className="mb-6 text-[20px] font-bold text-violet">
-              {t("post.related.title", { label: category?.label || t("post.related.fallbackLabel") })}
-            </h2>
+            <div className="mb-8 flex items-end justify-between gap-4">
+              <h2 className="text-[20px] font-bold text-violet">
+                {t("post.related.title", { label: category?.label || t("post.related.fallbackLabel") })}
+              </h2>
+              <Link
+                to="/blog"
+                className="text-[13px] font-semibold text-violet/70 transition hover:text-violet"
+              >
+                All articles →
+              </Link>
+            </div>
             <ul role="list" className="grid gap-5 sm:grid-cols-3">
-              {related.map((p) => (
-                <li key={p.slug}>
-                  <Link
-                    to={`/blog/${p.slug}`}
-                    className="group block rounded-2xl border border-charcoal-80/10 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_14px_36px_-14px_rgba(93,63,211,0.20)]"
-                  >
-                    <h3 className="line-clamp-2 text-[15.5px] font-bold text-violet group-hover:text-violet-deep">
-                      {p.title}
-                    </h3>
-                    <p className="mt-2 line-clamp-2 text-[12.5px] leading-5 text-charcoal-80/65">
-                      {p.excerpt}
-                    </p>
-                    <span className="mt-3 inline-flex items-center gap-1 text-[12.5px] font-bold text-violet">
-                      {t("post.related.readArticle")}
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                    </span>
-                  </Link>
-                </li>
-              ))}
+              {related.map((p) => {
+                const pCat = BLOG_CATEGORIES.find((c) => c.slug === p.category)
+                return (
+                  <li key={p.slug}>
+                    <Link
+                      to={`/blog/${p.slug}`}
+                      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_14px_36px_-14px_rgba(93,63,211,0.20)]"
+                    >
+                      {/* Cover thumbnail */}
+                      <div className="aspect-[16/9] overflow-hidden bg-violet-pale">
+                        {p.cover ? (
+                          <img
+                            src={p.cover}
+                            alt=""
+                            loading="lazy"
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center">
+                            <span
+                              aria-hidden="true"
+                              className="h-2 w-2 rounded-full opacity-30"
+                              style={{ backgroundColor: pCat?.accent || "#5D3FD3" }}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-1 flex-col gap-2 p-4">
+                        {/* Category + read time */}
+                        <div className="flex items-center justify-between gap-2">
+                          {pCat ? (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em]"
+                              style={{ backgroundColor: `${pCat.accent}15`, color: pCat.accent }}
+                            >
+                              {pCat.label}
+                            </span>
+                          ) : null}
+                          <span className="ml-auto font-mono text-[10.5px] text-charcoal-80/40">
+                            {p.readMinutes} min
+                          </span>
+                        </div>
+
+                        <h3 className="line-clamp-2 text-[14.5px] font-bold leading-snug text-violet group-hover:text-violet-deep">
+                          {p.title}
+                        </h3>
+
+                        <span className="mt-auto inline-flex items-center gap-1 pt-2 text-[12px] font-bold text-violet">
+                          {t("post.related.readArticle")}
+                          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                )
+              })}
             </ul>
           </Container>
         </section>
