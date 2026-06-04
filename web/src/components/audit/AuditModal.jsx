@@ -508,19 +508,20 @@ function AudienceStep({ onSelect }) {
 ════════════════════════════════════════════════════════════════════════ */
 function PrequalStep({ prequal, onChange, onBack, onNext }) {
   return (
-    <div className="mx-auto max-w-xl px-4 py-10 sm:px-6 sm:py-14">
-      <div className="mb-10">
+    <div className="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-12">
+      <div className="mb-8 sm:mb-10">
         <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-violet mb-3">STEP 2 OF 3 · QUICK CONTEXT</p>
-        <h2 className="text-[clamp(20px,3vw,30px)] font-extrabold tracking-tight text-charcoal mb-2">Two quick questions</h2>
+        <h2 className="text-[clamp(22px,3vw,30px)] font-extrabold tracking-tight text-charcoal mb-2">Two quick questions</h2>
         <p className="text-[14px] text-charcoal/55">This helps us contextualise your results. Takes 20 seconds.</p>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-7 sm:space-y-8">
         <div>
           <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60 mb-3">
             What's your biggest technology challenge right now?
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          {/* 1 col on xs, 2 cols from sm — prevents cramped cards on narrow phones */}
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {PREQUAL_CHALLENGES.map((c) => (
               <button
                 key={c}
@@ -562,13 +563,14 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
         </div>
       </div>
 
-      <div className="mt-10 flex justify-between items-center">
-        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-[13px] text-charcoal/50 hover:text-charcoal transition">
+      {/* Nav — stacks on mobile (Next first, Back below), side-by-side on sm+ */}
+      <div className="mt-8 flex flex-col-reverse gap-2 sm:mt-10 sm:flex-row sm:items-center sm:justify-between">
+        <button onClick={onBack} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13px] text-charcoal/60 hover:bg-charcoal/5 transition sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:justify-start">
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
         <button
           onClick={onNext}
-          className="inline-flex items-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_4px_16px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_20px_rgba(93,63,211,0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_4px_16px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_20px_rgba(93,63,211,0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-3"
         >
           {prequal.challenge || prequal.timeline ? "Start the audit" : "Skip & start the audit"}
           <ChevronRight className="h-4 w-4" />
@@ -589,25 +591,49 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
   return (
     <div className="flex flex-col lg:flex-row min-h-full">
       {/* Main content */}
-      <div className="flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:max-w-[calc(100%-280px)]">
+      <div className="flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:max-w-[calc(100%-260px)]">
+
+        {/* ── Mobile live-scores strip (hidden on lg where sidebar shows) ── */}
+        <div className="lg:hidden mb-5 rounded-xl border border-charcoal/8 bg-mist/60 px-3 py-2.5">
+          <div className="flex items-center justify-between mb-2">
+            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-charcoal/40">Live scores</p>
+            <span className="font-mono text-[12px] font-bold text-violet">{overall.pct} / 100</span>
+          </div>
+          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+            {Object.entries(sectionScores).map(([letter, d]) => {
+              const sc = tierForScore(d.pct)
+              const c  = TIER_COLOR[sc?.name]
+              return (
+                <div key={letter} className="flex items-center gap-1.5 min-w-[80px]">
+                  <span className="font-mono text-[10px] font-bold text-violet w-3 shrink-0">{letter}</span>
+                  <div className="flex-1 h-1.5 bg-charcoal/10 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-300" style={{ width: `${d.pct}%`, background: c?.hex || "#5D3FD3" }} />
+                  </div>
+                  <span className="font-mono text-[10px] text-charcoal/50 w-6 text-right shrink-0">{d.pct}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
         {/* Section header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-16 w-16 shrink-0 rounded-2xl bg-violet flex items-center justify-center text-white text-[32px] font-bold leading-none">
+        <div className="flex items-start gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-xl sm:rounded-2xl bg-violet flex items-center justify-center text-white text-[24px] sm:text-[28px] font-bold leading-none">
             {section.letter}
           </div>
-          <div>
-            <h2 className="text-[22px] font-bold text-charcoal leading-tight">{section.title}</h2>
-            <p className="text-[13px] text-charcoal/50 mt-0.5">{section.subtitle}</p>
-            <span className="mt-1 inline-block rounded-full bg-violet-pale px-2.5 py-0.5 font-mono text-[10px] font-bold text-violet uppercase tracking-[0.08em]">
+          <div className="min-w-0">
+            <h2 className="text-[18px] sm:text-[22px] font-bold text-charcoal leading-tight">{section.title}</h2>
+            <p className="text-[12px] sm:text-[13px] text-charcoal/50 mt-0.5">{section.subtitle}</p>
+            <span className="mt-1.5 inline-block rounded-full bg-violet-pale px-2.5 py-0.5 font-mono text-[10px] font-bold text-violet uppercase tracking-[0.08em]">
               {items.length} items · Section {sectionIdx + 1} of {totalSections}
             </span>
           </div>
         </div>
 
-        <p className="text-[14px] text-charcoal/60 leading-relaxed mb-6 max-w-2xl">{section.intro}</p>
+        <p className="text-[13.5px] sm:text-[14px] text-charcoal/60 leading-relaxed mb-5 sm:mb-6">{section.intro}</p>
 
-        {/* Score key */}
-        <div className="mb-8 flex items-center gap-px rounded-xl overflow-hidden border border-charcoal/10">
+        {/* Score key — hidden on xs (cramped), shown from sm */}
+        <div className="hidden sm:flex mb-6 items-center gap-px rounded-xl overflow-hidden border border-charcoal/10">
           {SCORE_LABELS.map((label, n) => (
             <div key={n} className="flex-1 bg-white text-center py-2.5 px-1 border-r border-charcoal/8 last:border-0">
               <div className="font-mono text-[13px] font-bold text-violet">{n}</div>
@@ -615,56 +641,69 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
             </div>
           ))}
         </div>
+        {/* Compact score legend for xs */}
+        <div className="sm:hidden mb-4 flex items-center gap-2 text-[11px] text-charcoal/50">
+          <span className="font-mono font-bold text-rose">0</span><span>None</span>
+          <span className="mx-1 text-charcoal/20">·</span>
+          <span className="font-mono font-bold text-amber">1–2</span><span>Aware/Partial</span>
+          <span className="mx-1 text-charcoal/20">·</span>
+          <span className="font-mono font-bold text-mint">3–4</span><span>In place/Optimized</span>
+        </div>
 
         {/* Items */}
         <div className="divide-y divide-charcoal/6">
           {items.map((it) => {
             const [id, svc, title, stmt, tier, , risk, investRange] = it
-            const sel = scores[id]
+            const sel     = scores[id]
             const showTip = tooltip?.itemId === id
 
             return (
-              <div key={id} className="py-6">
-                <div className="flex items-baseline gap-3 mb-2">
-                  <span className="font-mono text-[12px] font-bold text-violet shrink-0">{id}</span>
-                  <span className="text-[15px] font-semibold text-charcoal leading-snug">{title}</span>
+              <div key={id} className="py-5 sm:py-6">
+                {/* ID + Title row — no large indent on mobile */}
+                <div className="flex items-start gap-2.5 mb-2">
+                  <span className="font-mono text-[11px] sm:text-[12px] font-bold text-violet shrink-0 mt-0.5 w-10">{id}</span>
+                  <span className="text-[14px] sm:text-[15px] font-semibold text-charcoal leading-snug">{title}</span>
                 </div>
-                <p className="pl-[52px] text-[13.5px] text-charcoal/65 leading-relaxed mb-4">{stmt}</p>
-                <div className="pl-[52px] flex flex-wrap items-center gap-4">
-                  {/* Score buttons */}
-                  <div className="flex gap-1.5" role="group" aria-label={`Score for ${title}`}>
-                    {[0,1,2,3,4].map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => onScore(id, n)}
-                        data-sel={sel === n}
-                        className={`h-10 w-10 rounded-lg border font-mono text-[13px] font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${SCORE_COLORS[n]}`}
-                        aria-label={`Score ${n} — ${SCORE_LABELS[n]}`}
-                        aria-pressed={sel === n}
-                      >
-                        {n}
-                      </button>
-                    ))}
+
+                {/* Statement — slight indent on sm+, none on xs */}
+                <p className="pl-[0px] sm:pl-[52px] text-[13px] sm:text-[13.5px] text-charcoal/65 leading-relaxed mb-4">{stmt}</p>
+
+                {/* Score buttons + service tag + info */}
+                <div className="sm:pl-[52px] flex flex-col gap-3">
+                  {/* Score buttons row — fill full width on mobile */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-1 gap-1 sm:gap-1.5 sm:flex-none" role="group" aria-label={`Score for ${title}`}>
+                      {[0,1,2,3,4].map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => onScore(id, n)}
+                          data-sel={sel === n}
+                          className={`flex-1 sm:flex-none h-10 sm:h-10 sm:w-10 min-w-0 rounded-lg border font-mono text-[13px] font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${SCORE_COLORS[n]}`}
+                          aria-label={`Score ${n} — ${SCORE_LABELS[n]}`}
+                          aria-pressed={sel === n}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                    {/* Info button */}
+                    <button
+                      onClick={() => setTooltip(showTip ? null : { itemId: id })}
+                      className="shrink-0 h-10 w-10 flex items-center justify-center rounded-lg border border-charcoal/10 text-charcoal/30 hover:border-violet/30 hover:text-violet transition"
+                      aria-label="Why does this matter?"
+                    >
+                      <Info className="h-4 w-4" />
+                    </button>
                   </div>
 
-                  {/* Service tag */}
-                  <div className="flex items-center gap-2 text-[12px] text-charcoal/50">
-                    {sel !== undefined && sel <= 2 && (
-                      <span className="inline-flex items-center gap-1 text-azure font-medium">
-                        <ArrowRight className="h-3 w-3" /> If 0–2: <span className="font-mono font-bold text-violet">{svc}</span>
-                        <span className="text-charcoal/40">· {tier}</span>
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Info tooltip button */}
-                  <button
-                    onClick={() => setTooltip(showTip ? null : { itemId: id })}
-                    className="text-charcoal/30 hover:text-violet transition"
-                    aria-label="Why does this matter?"
-                  >
-                    <Info className="h-4 w-4" />
-                  </button>
+                  {/* Service tag — shown when score is low */}
+                  {sel !== undefined && sel <= 2 && (
+                    <span className="inline-flex items-center gap-1 text-[12px] text-azure font-medium">
+                      <ArrowRight className="h-3 w-3 shrink-0" />
+                      If 0–2: <span className="font-mono font-bold text-violet">{svc}</span>
+                      <span className="text-charcoal/40 hidden sm:inline">· {tier}</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Tooltip: risk + invest */}
@@ -672,9 +711,9 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                   {showTip && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                      className="mt-3 ml-[52px] overflow-hidden"
+                      className="mt-3 sm:ml-[52px] overflow-hidden"
                     >
-                      <div className="rounded-xl bg-charcoal/[0.03] border border-charcoal/8 p-4 grid sm:grid-cols-2 gap-4">
+                      <div className="rounded-xl bg-charcoal/[0.03] border border-charcoal/8 p-4 grid gap-4 sm:grid-cols-2">
                         <div>
                           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-rose mb-1.5">RISK IF IGNORED</p>
                           <p className="text-[13px] text-charcoal/65 leading-relaxed">{risk}</p>
@@ -693,30 +732,30 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
           })}
         </div>
 
-        {/* Section nav */}
-        <div className="mt-8 flex justify-between items-center border-t border-charcoal/8 pt-6">
+        {/* Section nav — sticky at bottom of scroll area on mobile */}
+        <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-charcoal/8 px-0 pt-4 pb-4 mt-6 flex flex-col-reverse gap-2 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pt-6 sm:pb-0 sm:mt-8 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
           <button
             onClick={onPrev}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13.5px] font-medium text-charcoal/65 hover:bg-charcoal/5 transition"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13.5px] font-medium text-charcoal/65 hover:bg-charcoal/5 transition sm:justify-start"
           >
             <ChevronLeft className="h-4 w-4" /> {sectionIdx === 0 ? "Back to context" : "Previous section"}
           </button>
           <button
             onClick={onNext}
-            className="inline-flex items-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-2.5 text-[14px] font-semibold text-white shadow-[0_4px_12px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_18px_rgba(93,63,211,0.4)] transition"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_4px_12px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_18px_rgba(93,63,211,0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-2.5"
           >
             {isLast ? "See my results" : "Next section"} <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      {/* Sticky scoreboard sidebar (desktop) */}
-      <aside className="hidden lg:block w-[260px] shrink-0 border-l border-charcoal/8 bg-mist/50 px-5 py-8">
+      {/* Sticky scoreboard sidebar (desktop only — mobile uses the strip above) */}
+      <aside className="hidden lg:flex lg:w-[260px] shrink-0 flex-col border-l border-charcoal/8 bg-mist/50 px-5 py-8">
         <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-5">YOUR LIVE SCORES</p>
         <div className="space-y-3.5">
           {Object.entries(sectionScores).map(([letter, d]) => {
             const sc = tierForScore(d.pct)
-            const c = TIER_COLOR[sc?.name]
+            const c  = TIER_COLOR[sc?.name]
             return (
               <div key={letter} className="flex items-center gap-2.5">
                 <span className="font-mono text-[11px] font-bold text-violet w-4">{letter}</span>
@@ -751,11 +790,12 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
-      {/* Hero score */}
-      <div className="text-center mb-10">
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/40 mb-6">YOUR DIGITAL & TECHNOLOGY MATURITY</p>
-        <div className="flex justify-center mb-5">
-          <ScoreRing pct={overall.pct} tier={tier} size={220} />
+      {/* Hero score — ring shrinks on mobile */}
+      <div className="text-center mb-8 sm:mb-10">
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/40 mb-4 sm:mb-6">YOUR DIGITAL & TECHNOLOGY MATURITY</p>
+        <div className="flex justify-center mb-4 sm:mb-5">
+          <div className="hidden sm:block"><ScoreRing pct={overall.pct} tier={tier} size={200} /></div>
+          <div className="sm:hidden"><ScoreRing pct={overall.pct} tier={tier} size={160} /></div>
         </div>
         {/* Benchmark comparison */}
         <div className="inline-flex items-center gap-2 rounded-full border border-charcoal/10 bg-white px-4 py-2 text-[13px] mt-2">
@@ -867,8 +907,8 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
         </div>
       )}
 
-      {/* CTAs */}
-      <div className="grid gap-4 sm:grid-cols-3 mb-8">
+      {/* CTAs — 1 col on xs, 3 cols on sm+ */}
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-3 mb-8">
         <button
           onClick={onGetPdf}
           className="flex flex-col gap-2 rounded-xl border border-violet/25 bg-violet/[0.04] px-5 py-4 text-left hover:border-violet/45 hover:bg-violet/8 transition"
@@ -966,8 +1006,8 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
             />
           </div>
 
-          {/* Name and org — optional */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          {/* Name and org — optional: 1-col on xs, 2-col on sm+ */}
+          <div className="grid grid-cols-1 gap-3 mb-6 sm:grid-cols-2">
             <div>
               <label htmlFor="ae-name" className="block font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-charcoal/40 mb-2">
                 Full name <span className="text-charcoal/25">(optional)</span>

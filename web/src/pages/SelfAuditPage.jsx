@@ -86,7 +86,7 @@ export default function SelfAuditPage() {
             "radial-gradient(at 50% 100%, rgba(93,63,211,0.05) 0px, transparent 60%)",
         }} />
 
-        <div className="relative mx-auto w-full max-w-5xl px-4 pb-16 pt-16 sm:px-6 sm:pb-20 sm:pt-24 lg:px-8">
+        <div className="relative mx-auto w-full max-w-5xl px-4 pb-12 pt-12 sm:px-6 sm:pb-20 sm:pt-24 lg:px-8">
           <motion.div {...fade} className="max-w-3xl">
             {/* Eyebrow */}
             <span className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet">
