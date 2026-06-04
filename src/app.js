@@ -193,6 +193,31 @@ app.get("/sitemap.xml", async (_req, res) => {
   }
 })
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RSS 2.0 feed — /feed.xml
+// Cached in-process for 1 hour; rebuilt on first request after cache expires.
+// Feed readers poll on their own schedule (typically 30–60 min), so the 1h
+// TTL keeps DB load minimal while staying fresh enough for daily publishing.
+// ─────────────────────────────────────────────────────────────────────────────
+const { buildFeed } = require("./services/feedService")
+let _feedCache = { xml: null, builtAt: 0 }
+const FEED_TTL_MS = 60 * 60 * 1000 // 1 hour
+
+app.get("/feed.xml", async (_req, res) => {
+  try {
+    const now = Date.now()
+    if (!_feedCache.xml || now - _feedCache.builtAt > FEED_TTL_MS) {
+      _feedCache = { xml: await buildFeed(), builtAt: now }
+    }
+    res.setHeader("Content-Type",  "application/rss+xml; charset=utf-8")
+    res.setHeader("Cache-Control", "public, max-age=3600")
+    res.status(200).send(_feedCache.xml)
+  } catch (err) {
+    console.error("[feed.xml] build failed:", err.message)
+    res.status(503).send("Feed temporarily unavailable")
+  }
+})
+
 // SEO07 · Long-cache headers for hashed Vite assets + self-hosted fonts.
 // Vite emits content-hashed filenames into /assets, and /fonts ships
 // pinned variable-font filenames; both are safe to mark immutable for 1

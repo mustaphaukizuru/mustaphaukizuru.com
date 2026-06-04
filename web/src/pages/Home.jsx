@@ -9,17 +9,18 @@ import PortfolioCard from "../components/PortfolioCard"
 import {
   ArrowRight, ArrowLeft, Star, Inbox,
   Server, Globe, RefreshCcw, Cloud,
-  Calendar, ShoppingBag,
+  Calendar, ShoppingBag, Clock, BookOpen,
 } from "lucide-react"
 import { fetchProducts } from "../services/productService"
 import { fetchFeaturedServices } from "../services/serviceService"
 import { fetchFeaturedPortfolio } from "../services/portfolioService"
 import { useCart } from "../store/CartContext"
-import { API_BASE_URL } from "../lib/api"
+import { API_BASE_URL, apiRequest } from "../lib/api"
 import { audiences, solutions, processSteps, testimonials } from "../data/homeData"
 import ProductCard from "../components/ProductCard"
 import HomeHero from "../components/heroes/HomeHero" // V2, universal hero
 import FeaturedReviewsRibbon from "../components/FeaturedReviewsRibbon"
+import { getAllPosts, BLOG_CATEGORIES } from "../data/blogPostsData"
 
 // Design-system primitives (Phase B · v1.0)
 import { Card, EmptyState, Skeleton } from "../components/system"
@@ -553,6 +554,148 @@ function TestimonialCard({ t }) {
   )
 }
 
+/* ─────────────────── LATEST BLOG POSTS ─────────────────── */
+function LatestBlogPosts() {
+  const [posts, setPosts] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    apiRequest("/api/v1/blog?limit=3")
+      .then((data) => {
+        if (!cancelled && data?.posts?.length) setPosts(data.posts.slice(0, 3))
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  // Fall back to bundled static data while the API resolves (or if it fails)
+  const displayPosts = posts || getAllPosts().slice(0, 3)
+
+  return (
+    <section className="py-20 lg:py-28">
+      <Container>
+        {/* Section header */}
+        <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-3">
+            <span className="inline-flex w-fit items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
+              <BookOpen className="mr-1.5 h-3 w-3" aria-hidden="true" />
+              From the blog
+            </span>
+            <h2 className="text-section font-bold tracking-tight text-violet sm:text-page">
+              Thinking out loud.
+            </h2>
+            <p className="max-w-2xl text-body leading-7 text-charcoal-80/70">
+              Strategy, code, and education — written for the people building things that matter.
+            </p>
+          </div>
+          <Link
+            to="/blog"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-violet/20 px-5 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale"
+          >
+            All articles
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+
+        {/* 3-column card grid */}
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-40px" }}
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {displayPosts.map((post) => {
+            const cat = BLOG_CATEGORIES.find((c) => c.slug === post.category)
+            const date = post.publishedAt
+              ? new Date(post.publishedAt).toLocaleDateString("en-US", {
+                  year: "numeric", month: "short", day: "numeric",
+                })
+              : null
+            return (
+              <motion.div key={post.slug} variants={fadeUp}>
+                <Link
+                  to={`/blog/${post.slug}`}
+                  className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_6px_20px_rgba(93,63,211,0.06)] transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_16px_40px_-12px_rgba(93,63,211,0.18)]"
+                >
+                  {/* Cover / accent band */}
+                  <div
+                    className="h-2 w-full"
+                    style={{
+                      background: cat?.accent
+                        ? `linear-gradient(90deg, ${cat.accent}, ${cat.accent}88)`
+                        : "linear-gradient(90deg, #5D3FD3, #0284C7)",
+                    }}
+                    aria-hidden="true"
+                  />
+
+                  <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
+                    {/* Category + read time */}
+                    <div className="flex items-center justify-between gap-2">
+                      {cat ? (
+                        <span
+                          className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.16em]"
+                          style={{ backgroundColor: `${cat.accent}15`, color: cat.accent }}
+                        >
+                          {cat.label}
+                        </span>
+                      ) : <span />}
+                      <span className="inline-flex items-center gap-1 font-mono text-[10.5px] text-charcoal-80/40">
+                        <Clock className="h-3 w-3" aria-hidden="true" />
+                        {post.readMinutes} min
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="line-clamp-2 text-[16.5px] font-bold leading-snug text-violet group-hover:text-violet-deep">
+                      {post.title}
+                    </h3>
+
+                    {/* Excerpt */}
+                    <p className="line-clamp-3 flex-1 text-[13px] leading-6 text-charcoal-80/65">
+                      {post.excerpt}
+                    </p>
+
+                    {/* Date + arrow */}
+                    <div className="flex items-center justify-between border-t border-charcoal-80/8 pt-3">
+                      {date ? (
+                        <span className="flex items-center gap-1.5 text-[11.5px] text-charcoal-80/45">
+                          <Calendar className="h-3 w-3" aria-hidden="true" />
+                          {date}
+                        </span>
+                      ) : <span />}
+                      <span className="inline-flex items-center gap-1 text-[12px] font-bold text-violet">
+                        Read
+                        <ArrowRight
+                          className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            )
+          })}
+        </motion.div>
+
+        {/* RSS feed discovery link */}
+        <p className="mt-8 text-center text-[12px] text-charcoal-80/40">
+          Subscribe via{" "}
+          <a
+            href="/feed.xml"
+            className="font-mono text-violet/70 underline underline-offset-2 transition hover:text-violet"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            RSS feed
+          </a>
+        </p>
+      </Container>
+    </section>
+  )
+}
+
 /* ─────────────────── CTA — V3 · animated pill design ─────────────────── */
 function CTA() {
   const { t } = useTranslation("home")
@@ -696,6 +839,7 @@ export default function Home() {
       <RevealSection><Testimonials /></RevealSection>
       {/* Real customer reviews admin has pinned. Renders nothing if zero. */}
       <FeaturedReviewsRibbon limit={6} />
+      <RevealSection><LatestBlogPosts /></RevealSection>
       <RevealSection><CTA /></RevealSection>
     </>
   )
