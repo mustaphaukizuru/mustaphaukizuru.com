@@ -12,6 +12,7 @@ import {
   deleteAdminProductImage,
 } from "../services/adminProductService"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
+import { compressImage } from "../lib/imageCompress"
 import FormShell from "../components/admin/FormShell"
 import StatusPill from "../components/admin/StatusPill"
 
@@ -356,8 +357,9 @@ export default function AdminProductFormPage() {
       setErrorMessage("")
       setSuccessMessage("")
 
+      const optimized = await compressImage(imageUpload) // shrink large images client-side
       const formData = new FormData()
-      formData.append("image", imageUpload)
+      formData.append("image", optimized)
 
       if (imageAltText.trim()) {
         formData.append("altText", imageAltText.trim())

@@ -11,6 +11,8 @@ import Breadcrumbs from "../components/Breadcrumbs"
 import { itemListSchema } from "../seo/schemas"
 import { listPortfolio } from "../services/portfolioService"
 import StaggerGrid from "../components/motion/StaggerGrid"
+import Meteors from "../components/motion/Meteors"
+import MagneticButton from "../components/motion/MagneticButton"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  PortfolioPage · /portfolio
@@ -251,17 +253,20 @@ export default function PortfolioPage() {
       {/* CTA */}
       <section className="border-t border-charcoal-80/10 bg-white py-12">
         <Container>
-          <div className="rounded-2xl border border-charcoal-80/10 bg-violet px-6 py-10 text-center sm:px-10 sm:py-14">
-            <h2 className="text-section font-bold text-white sm:text-section">{t("cta.title")}</h2>
-            <p className="mx-auto mt-2 max-w-xl text-meta leading-6 text-white/70">
+          <div className="relative isolate overflow-hidden rounded-2xl border border-charcoal-80/10 bg-violet px-6 py-10 text-center sm:px-10 sm:py-14">
+            <Meteors number={10} />
+            <h2 className="relative text-section font-bold text-white sm:text-section">{t("cta.title")}</h2>
+            <p className="relative mx-auto mt-2 max-w-xl text-meta leading-6 text-white/70">
               {t("cta.subtitle")}
             </p>
-            <Link
-              to="/contact"
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              {t("cta.button")} <ArrowRight className="h-4 w-4" />
-            </Link>
+            <MagneticButton className="relative mt-6">
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                {t("cta.button")} <ArrowRight className="h-4 w-4" />
+              </Link>
+            </MagneticButton>
           </div>
         </Container>
       </section>

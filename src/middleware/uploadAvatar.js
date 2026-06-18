@@ -2,14 +2,26 @@ const multer = require("multer")
 const path   = require("path")
 const fs     = require("fs")
 
-const AVATAR_DIR = path.join(__dirname, "../../public/images/avatars")
-if (!fs.existsSync(AVATAR_DIR)) fs.mkdirSync(AVATAR_DIR, { recursive: true })
+// Uploads MUST live outside ../public — that directory is the Vite build
+// output and is wiped on every `npm run build` (vite.config emptyOutDir:true),
+// which previously deleted every uploaded avatar/cover. storage/ persists
+// across builds and deploys (product download files already live there).
+// app.js serves these back under the original /images/* URLs, so the URLs
+// stored in the database never change.
+const AVATAR_DIR = path.join(__dirname, "../../storage/uploads/avatars")
+const MEDIA_DIR  = path.join(__dirname, "../../storage/uploads/media")
 
-const MEDIA_DIR = path.join(__dirname, "../../public/images/media")
-if (!fs.existsSync(MEDIA_DIR)) fs.mkdirSync(MEDIA_DIR, { recursive: true })
+// Ensure a directory exists. Called at load AND inside each destination
+// callback so a missing folder (fresh deploy, post-build wipe) can never
+// ENOENT a write.
+function ensureDir(dir) {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+}
+ensureDir(AVATAR_DIR)
+ensureDir(MEDIA_DIR)
 
 const avatarStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, AVATAR_DIR),
+  destination: (req, file, cb) => { ensureDir(AVATAR_DIR); cb(null, AVATAR_DIR) },
   filename:    (req, file, cb) => {
     const ext  = path.extname(file.originalname).toLowerCase()
     const name = `avatar-${req.user?.id || Date.now()}${ext}`
@@ -18,7 +30,7 @@ const avatarStorage = multer.diskStorage({
 })
 
 const mediaStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, MEDIA_DIR),
+  destination: (req, file, cb) => { ensureDir(MEDIA_DIR); cb(null, MEDIA_DIR) },
   filename:    (req, file, cb) => {
     const ext  = path.extname(file.originalname).toLowerCase()
     const name = `media-${Date.now()}${ext}`

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Loader2, AlertOctagon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useAuth } from "../context/AuthContext"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ import { useAuth } from "../context/AuthContext"
 export default function GoogleReturnPage() {
   const navigate = useNavigate()
   const { loginWithGoogle } = useAuth()
+  const { t } = useTranslation("auth")
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -101,13 +103,13 @@ export default function GoogleReturnPage() {
             <AlertOctagon className="h-5 w-5" />
           </span>
           <p className="text-[14px] text-charcoal-80/75">
-            Sign-in didn't complete. Redirecting…
+            {t("oauthReturn.failed")}
           </p>
         </div>
       ) : (
         <div className="flex max-w-sm flex-col items-center gap-3 text-center">
           <Loader2 className="h-6 w-6 animate-spin text-violet" />
-          <p className="text-[14px] text-charcoal-80/75">Signing you in…</p>
+          <p className="text-[14px] text-charcoal-80/75">{t("oauthReturn.signingIn")}</p>
         </div>
       )}
     </div>

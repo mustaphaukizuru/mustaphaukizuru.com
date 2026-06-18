@@ -545,3 +545,47 @@ code, samp, kbd, pre, var {
   .ukz-cta-bg, .ukz-ring, .ukz-sun, .ukz-shine, .ukz-ball-pulse { animation: none; }
   .ukz-cta-bg { background: #5D3FD3; }
 }
+
+/* ─── Shimmer button · light sweep on Innovation Gradient CTAs ─────────
+ * Add `ukz-shimmer` alongside any gradient button to apply a soft white
+ * diagonal sweep animation. The sweep is a pseudo-element so it doesn't
+ * require any extra markup.                                               */
+@keyframes ukzShimmerSweep {
+  0%   { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%)  skewX(-20deg); }
+}
+.ukz-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.ukz-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 70%
+  );
+  animation: ukzShimmerSweep 2.8s ease-in-out infinite 1.2s;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ukz-shimmer::after { animation: none; }
+}
+
+/* ─── BlurFade utility · blur-clear reveal for headings ───────────────── */
+@keyframes ukzBlurFade {
+  from { opacity: 0; filter: blur(12px); transform: translateY(14px); }
+  to   { opacity: 1; filter: blur(0px);  transform: translateY(0);    }
+}
+.ukz-blur-fade {
+  animation: ukzBlurFade 0.65s cubic-bezier(0.22,1,0.36,1) both;
+}
+.ukz-blur-fade-delay-1 { animation-delay: 0.1s; }
+.ukz-blur-fade-delay-2 { animation-delay: 0.2s; }
+.ukz-blur-fade-delay-3 { animation-delay: 0.3s; }
+@media (prefers-reduced-motion: reduce) {
+  .ukz-blur-fade { animation: none; opacity: 1; }
+}

@@ -40,6 +40,9 @@ import {
   DIFFERENTIATION_PILLARS,
 } from "../data/servicesCatalogue"
 import { fetchAudiencePlans } from "../services/serviceService"
+import SpotlightCard from "../components/motion/SpotlightCard"
+import Meteors from "../components/motion/Meteors"
+import MagneticButton from "../components/motion/MagneticButton"
 
 // Audience-icon map — the API doesn't return React components, so we resolve
 // the icon locally per audience code. Falls back to User for unknown codes.
@@ -313,11 +316,8 @@ export default function ServicesPage() {
             className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3"
           >
             {CATEGORIES.map((cat, idx) => (
-              <motion.article
-                key={cat.code}
-                variants={fadeUp}
-                className="relative overflow-hidden rounded-2xl border border-charcoal-80/[0.06] bg-white p-6 shadow-[0_8px_28px_rgba(93,63,211,0.04)] sm:p-7"
-              >
+              <motion.article key={cat.code} variants={fadeUp}>
+              <SpotlightCard className="relative overflow-hidden rounded-2xl border border-charcoal-80/[0.06] bg-white p-6 shadow-[0_8px_28px_rgba(93,63,211,0.04)] sm:p-7 h-full transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(93,63,211,0.10)]">
                 {/* Faded number · top-right */}
                 <span
                   aria-hidden="true"
@@ -340,6 +340,7 @@ export default function ServicesPage() {
                 <p className="mt-2 text-[13px] leading-relaxed text-charcoal-80/65 sm:text-[14px]">
                   {cat.tagline}
                 </p>
+              </SpotlightCard>
               </motion.article>
             ))}
           </motion.div>
@@ -1158,7 +1159,8 @@ export default function ServicesPage() {
            ════════════════════════════════════════════════════════════════ */}
       <section className="pb-14 sm:pb-20 lg:pb-24">
         <Container>
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet via-violet-deep to-charcoal-80">
+          <div className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-violet via-violet-deep to-charcoal-80">
+            <Meteors number={14} />
             <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-terracotta/15 blur-3xl sm:h-[280px] sm:w-[280px]" aria-hidden="true" />
             <div className="pointer-events-none absolute -bottom-16 -left-16 h-52 w-52 rounded-full bg-azure/15 blur-3xl sm:h-[220px] sm:w-[220px]" aria-hidden="true" />
 
@@ -1176,20 +1178,24 @@ export default function ServicesPage() {
                   {t("finalCta.body")}
                 </p>
                 <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <Link
-                    to="/book"
-                    className="group inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-[13.5px] font-semibold !text-violet shadow-[0_12px_28px_rgba(255,255,255,0.15)] transition hover:-translate-y-0.5 sm:px-7 sm:py-3.5 sm:text-[14.5px]"
-                  >
-                    <Calendar className="h-4 w-4" aria-hidden="true" />
-                    {t("finalCta.ctaPrimary")}
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                  </Link>
-                  <Link
-                    to="/solutions"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/30 bg-transparent px-6 py-3 text-[13.5px] font-semibold !text-white transition hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10 sm:px-7 sm:py-3.5 sm:text-[14.5px]"
-                  >
-                    {t("finalCta.ctaSecondary")}
-                  </Link>
+                  <MagneticButton className="w-full sm:w-auto">
+                    <Link
+                      to="/book"
+                      className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-[13.5px] font-semibold !text-violet shadow-[0_12px_28px_rgba(255,255,255,0.15)] transition hover:-translate-y-0.5 sm:w-auto sm:px-7 sm:py-3.5 sm:text-[14.5px]"
+                    >
+                      <Calendar className="h-4 w-4" aria-hidden="true" />
+                      {t("finalCta.ctaPrimary")}
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                    </Link>
+                  </MagneticButton>
+                  <MagneticButton className="w-full sm:w-auto">
+                    <Link
+                      to="/solutions"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-white/30 bg-transparent px-6 py-3 text-[13.5px] font-semibold !text-white transition hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10 sm:w-auto sm:px-7 sm:py-3.5 sm:text-[14.5px]"
+                    >
+                      {t("finalCta.ctaSecondary")}
+                    </Link>
+                  </MagneticButton>
                 </div>
               </div>
 

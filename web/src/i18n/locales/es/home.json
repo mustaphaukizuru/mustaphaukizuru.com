@@ -26,7 +26,14 @@
     "welcomeBack": "Bienvenido,",
     "milestoneThree": "Hito 3",
     "cardConsulting": "Consultoría",
-    "cardStack": "Stack"
+    "cardStack": "Stack",
+    "trending": "47 proyectos entregados ↑",
+    "subtitlePre": "Ingeniería full-stack, consultoría y educación STEM para",
+    "subtitlePost": " — desde LATAM, para el mundo.",
+    "rotateSchools": "escuelas",
+    "rotateBusinesses": "empresas",
+    "rotateSmes": "PYMEs",
+    "rotateCreators": "creadores"
   },
   "sections": {
     "audiences": {
@@ -76,6 +83,13 @@
     },
     "reviews": {
       "title": "Reseñas recientes"
+    },
+    "blog": {
+      "eyebrow": "Del blog",
+      "title": "Pensando en voz alta.",
+      "subtitle": "Estrategia, código y educación — escrito para quienes construyen cosas que importan.",
+      "cta": "Todos los artículos",
+      "read": "Leer"
     }
   },
   "audiences": {
@@ -126,6 +140,34 @@
     "independentProfessional": "Profesional independiente",
     "itCoordinator": "Coordinador de TI"
   },
+  "stats": {
+    "eyebrow": "En números",
+    "yearsLabel": "Años entregando trabajo en producción",
+    "yearsHint": "Ruanda · Turquía · Etiopía · México",
+    "projectsLabel": "Proyectos entregados",
+    "projectsHint": "Web · SaaS · EdTech",
+    "countriesLabel": "Países vividos y trabajados",
+    "countriesHint": "ES · EN · TR · KIN",
+    "studentsLabel": "Estudiantes enseñados",
+    "studentsHint": "CS y STEM"
+  },
+  "newsletter": {
+    "eyebrow": "Consejos semanales",
+    "headlinePart1": "Mantente",
+    "headlinePart2": "un paso adelante.",
+    "body": "Cada semana: un consejo tecnológico accionable, una herramienta que estoy usando, y un aprendizaje del aula o del código. Sin relleno.",
+    "freeCallout": "Gratis · Sin spam · Cancela cuando quieras",
+    "placeholder": "tu@correo.com",
+    "inputAriaLabel": "Tu dirección de correo electrónico",
+    "cta": "Suscribirme gratis",
+    "submitting": "Suscribiendo…",
+    "successMessage": "¡Ya estás dentro! Revisa tu bandeja de entrada.",
+    "validationError": "Por favor ingresa un correo electrónico válido.",
+    "serverError": "Algo salió mal. Por favor inténtalo de nuevo.",
+    "trust1": "4 países",
+    "trust2": "Educador STEM",
+    "trust3": "8+ años entregando"
+  },
   "cta": {
     "eyebrow": "Empecemos",
     "titleLine1": "Pongámonos",
@@ -133,5 +175,11 @@
     "body": "Software a la medida, soluciones digitales listas para usar y consultoría senior, todo bajo un mismo techo. La primera llamada es gratis, sin presión.",
     "ctaBook": "Reserva una llamada gratis",
     "ctaStore": "Explorar la tienda"
+  },
+  "techStack": {
+    "eyebrow": "Mi stack",
+    "titleLead": "Las herramientas con las que",
+    "titleAccent": "construyo",
+    "subtitle": "Del frontend a la infraestructura — un toolkit full-stack y senior, elegido para sistemas que se entregan con fiabilidad y escalan."
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
@@ -14,13 +14,21 @@ import {
 import { fetchProducts } from "../services/productService"
 import { fetchFeaturedServices } from "../services/serviceService"
 import { fetchFeaturedPortfolio } from "../services/portfolioService"
-import { useCart } from "../store/CartContext"
 import { API_BASE_URL, apiRequest } from "../lib/api"
 import { audiences, solutions, processSteps, testimonials } from "../data/homeData"
 import ProductCard from "../components/ProductCard"
 import HomeHero from "../components/heroes/HomeHero" // V2, universal hero
 import FeaturedReviewsRibbon from "../components/FeaturedReviewsRibbon"
 import { getAllPosts, BLOG_CATEGORIES } from "../data/blogPostsData"
+import NewsletterSection from "../components/NewsletterSection"
+import TestimonialsMarquee from "../components/TestimonialsMarquee"
+import BlogCoverGradient from "../components/BlogCoverGradient"
+import HomeStatsStrip from "../components/HomeStatsStrip"
+import TechStackShowcase from "../components/TechStackShowcase"
+import SpotlightCard from "../components/motion/SpotlightCard"
+import MagneticButton from "../components/motion/MagneticButton"
+import Meteors from "../components/motion/Meteors"
+import AnimatedBeam from "../components/motion/AnimatedBeam"
 
 // Design-system primitives (Phase B · v1.0)
 import { Card, EmptyState, Skeleton } from "../components/system"
@@ -117,7 +125,8 @@ function Solutions() {
   return (
     // Inline background guarantees the dark surface even if `bg-charcoal`
     // utility isn't generated (was the cause of invisible white-on-cream text).
-    <section className="py-20 lg:py-28" style={{ backgroundColor: "#1A1B23" }}>
+    <section className="relative isolate overflow-hidden py-20 lg:py-28" style={{ backgroundColor: "#1A1B23" }}>
+      <Meteors number={20} />
       <Container>
         <div className="mb-14 flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-20">
           <div className="lg:max-w-[380px]">
@@ -321,10 +330,9 @@ function FeaturedServices() {
           {services.map((svc, i) => {
             const Icon = serviceIcons[i % serviceIcons.length]
             return (
-              <motion.div
-                key={svc.id || svc.slug}
-                variants={fadeUp}
-                className="group flex flex-col gap-5 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:border-violet/30 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
+              <motion.div key={svc.id || svc.slug} variants={fadeUp}>
+              <SpotlightCard
+                className="group flex flex-col gap-5 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:border-violet/30 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)] h-full"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet/10 text-violet transition group-hover:bg-violet group-hover:text-white">
                   <Icon className="h-5.5 w-5.5" aria-hidden="true" />
@@ -341,6 +349,7 @@ function FeaturedServices() {
                 >
                   {t("sections.featuredServices.learnMore")} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
+              </SpotlightCard>
               </motion.div>
             )
           })}
@@ -407,6 +416,13 @@ function FeaturedPortfolio() {
 /* ─────────────────── PROCESS ─────────────────── */
 function Process() {
   const { t } = useTranslation("home")
+  const containerRef = useRef(null)
+  const step1Ref = useRef(null)
+  const step2Ref = useRef(null)
+  const step3Ref = useRef(null)
+  const step4Ref = useRef(null)
+  const stepRefs = [step1Ref, step2Ref, step3Ref, step4Ref]
+
   return (
     <section className="bg-slate-100 py-20 lg:py-28">
       <Container>
@@ -415,9 +431,16 @@ function Process() {
           title={t("sections.process.title")}
           subtitle={t("sections.process.subtitle")}
         />
-        <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-60px" }} className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          ref={containerRef}
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-60px" }}
+          className="relative grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {processSteps.map(({ titleKey, descriptionKey, icon: Icon }, i) => (
-            <motion.div key={titleKey} variants={fadeUp} className="relative flex flex-col gap-4 rounded-xl bg-white p-6 shadow-[0_6px_20px_rgba(93,63,211,0.06)] transition hover:-translate-y-0.5">
+            <motion.div key={titleKey} ref={stepRefs[i]} variants={fadeUp} className="relative flex flex-col gap-4 rounded-xl bg-white p-6 shadow-[0_6px_20px_rgba(93,63,211,0.06)] transition hover:-translate-y-0.5">
               <div className="flex items-center justify-between">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   {Icon ? <Icon className="h-5.5 w-5.5" aria-hidden="true" /> : null}
@@ -432,6 +455,44 @@ function Process() {
               </div>
             </motion.div>
           ))}
+
+          {/* Animated gradient connectors flowing through the gaps between steps — lg+ only */}
+          <AnimatedBeam
+            className="hidden lg:block"
+            containerRef={containerRef}
+            fromRef={step1Ref}
+            toRef={step2Ref}
+            fromAnchor="right"
+            toAnchor="left"
+            duration={4}
+            delay={0}
+            pathWidth={3}
+            pathOpacity={0.1}
+          />
+          <AnimatedBeam
+            className="hidden lg:block"
+            containerRef={containerRef}
+            fromRef={step2Ref}
+            toRef={step3Ref}
+            fromAnchor="right"
+            toAnchor="left"
+            duration={4}
+            delay={0.3}
+            pathWidth={3}
+            pathOpacity={0.1}
+          />
+          <AnimatedBeam
+            className="hidden lg:block"
+            containerRef={containerRef}
+            fromRef={step3Ref}
+            toRef={step4Ref}
+            fromAnchor="right"
+            toAnchor="left"
+            duration={4}
+            delay={0.6}
+            pathWidth={3}
+            pathOpacity={0.1}
+          />
         </motion.div>
       </Container>
     </section>
@@ -496,9 +557,9 @@ function Testimonials() {
         {showMarquee ? (
           <div className="ukz-home-marquee-pause overflow-hidden">
             <div className="ukz-home-marquee flex w-max gap-5">
-              {[...testimonials, ...testimonials].map((t, i) => (
-                <div key={`${t.name}-${i}`} className="w-[300px] shrink-0">
-                  <TestimonialCard t={t} />
+              {[...testimonials, ...testimonials].map((item, i) => (
+                <div key={`${item.name}-${i}`} className="w-[300px] shrink-0">
+                  <TestimonialCard testimonial={item} />
                 </div>
               ))}
             </div>
@@ -506,7 +567,7 @@ function Testimonials() {
         ) : (
           <>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {visible.map((t, i) => <TestimonialCard key={`${t.name}-${i}`} t={t} />)}
+              {visible.map((item, i) => <TestimonialCard key={`${item.name}-${i}`} testimonial={item} />)}
             </div>
 
             <div className="mt-6 flex justify-center gap-3 lg:hidden">
@@ -529,25 +590,23 @@ function Testimonials() {
   )
 }
 
-function TestimonialCard({ t }) {
-  // Local i18n alias `tx` — the testimonial object uses the `t` prop name
-  // so we can't shadow it with the i18n hook. roleKey routes through tx.
-  const { t: tx } = useTranslation("home")
+function TestimonialCard({ testimonial }) {
+  const { t } = useTranslation("home")
   return (
     <div className="flex h-full flex-col gap-4 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
       <div className="flex gap-0.5 text-terracotta">
-        {Array.from({ length: t.rating }).map((_, j) => (
+        {Array.from({ length: testimonial.rating }).map((_, j) => (
           <Star key={j} className="h-4 w-4 fill-current" aria-hidden="true" />
         ))}
       </div>
-      <p className="flex-1 text-meta leading-6 text-charcoal-80/75">"{t.text}"</p>
+      <p className="flex-1 text-meta leading-6 text-charcoal-80/75">"{testimonial.text}"</p>
       <div className="flex items-center gap-3 border-t border-charcoal-80/8 pt-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet text-meta font-bold text-white">
-          {t.initials}
+          {testimonial.initials}
         </div>
         <div>
-          <div className="text-meta font-semibold text-violet">{t.name}</div>
-          <div className="text-micro text-charcoal-80/55">{tx(t.roleKey)}</div>
+          <div className="text-meta font-semibold text-violet">{testimonial.name}</div>
+          <div className="text-micro text-charcoal-80/55">{t(testimonial.roleKey)}</div>
         </div>
       </div>
     </div>
@@ -556,6 +615,7 @@ function TestimonialCard({ t }) {
 
 /* ─────────────────── LATEST BLOG POSTS ─────────────────── */
 function LatestBlogPosts() {
+  const { t } = useTranslation("home")
   const [posts, setPosts] = useState(null)
 
   useEffect(() => {
@@ -579,20 +639,20 @@ function LatestBlogPosts() {
           <div className="flex flex-col gap-3">
             <span className="inline-flex w-fit items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
               <BookOpen className="mr-1.5 h-3 w-3" aria-hidden="true" />
-              From the blog
+              {t("sections.blog.eyebrow")}
             </span>
             <h2 className="text-section font-bold tracking-tight text-violet sm:text-page">
-              Thinking out loud.
+              {t("sections.blog.title")}
             </h2>
             <p className="max-w-2xl text-body leading-7 text-charcoal-80/70">
-              Strategy, code, and education — written for the people building things that matter.
+              {t("sections.blog.subtitle")}
             </p>
           </div>
           <Link
             to="/blog"
             className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-violet/20 px-5 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale"
           >
-            All articles
+            {t("sections.blog.cta")}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
@@ -618,34 +678,16 @@ function LatestBlogPosts() {
                   to={`/blog/${post.slug}`}
                   className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_6px_20px_rgba(93,63,211,0.06)] transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_16px_40px_-12px_rgba(93,63,211,0.18)]"
                 >
-                  {/* Cover / accent band */}
-                  <div
-                    className="h-2 w-full"
-                    style={{
-                      background: cat?.accent
-                        ? `linear-gradient(90deg, ${cat.accent}, ${cat.accent}88)`
-                        : "linear-gradient(90deg, #5D3FD3, #0284C7)",
-                    }}
-                    aria-hidden="true"
+                  {/* Cover — generated gradient illustration (replaces thin accent band) */}
+                  <BlogCoverGradient
+                    title={post.title}
+                    category={cat?.label || ""}
+                    accent={cat?.accent || "#5D3FD3"}
+                    readMinutes={post.readMinutes}
+                    aspectRatio="16 / 7"
                   />
 
                   <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
-                    {/* Category + read time */}
-                    <div className="flex items-center justify-between gap-2">
-                      {cat ? (
-                        <span
-                          className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.16em]"
-                          style={{ backgroundColor: `${cat.accent}15`, color: cat.accent }}
-                        >
-                          {cat.label}
-                        </span>
-                      ) : <span />}
-                      <span className="inline-flex items-center gap-1 font-mono text-[10.5px] text-charcoal-80/40">
-                        <Clock className="h-3 w-3" aria-hidden="true" />
-                        {post.readMinutes} min
-                      </span>
-                    </div>
-
                     {/* Title */}
                     <h3 className="line-clamp-2 text-[16.5px] font-bold leading-snug text-violet group-hover:text-violet-deep">
                       {post.title}
@@ -665,7 +707,7 @@ function LatestBlogPosts() {
                         </span>
                       ) : <span />}
                       <span className="inline-flex items-center gap-1 text-[12px] font-bold text-violet">
-                        Read
+                        {t("sections.blog.read")}
                         <ArrowRight
                           className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
                           aria-hidden="true"
@@ -783,8 +825,8 @@ function CTA() {
               </motion.p>
 
               <motion.div variants={itemUp} className="mt-8 flex flex-wrap items-center gap-3">
-                <CtaPill to="/book" label={t("cta.ctaBook")} icon={Calendar} />
-                <CtaPill to="/store" label={t("cta.ctaStore")} icon={ShoppingBag} />
+                <MagneticButton><CtaPill to="/book" label={t("cta.ctaBook")} icon={Calendar} /></MagneticButton>
+                <MagneticButton><CtaPill to="/store" label={t("cta.ctaStore")} icon={ShoppingBag} /></MagneticButton>
               </motion.div>
             </div>
           </motion.div>
@@ -830,16 +872,37 @@ export default function Home() {
         jsonLd={[siteNavigationSchema()]}
       />
       <HomeHero />
+
+      {/* Tools & tech I build with — branded skill-card grid below hero */}
+      <TechStackShowcase />
+
+      {/* Key metrics — 8+ years, 47 projects, 4 countries, 100+ students */}
+      <RevealSection><HomeStatsStrip /></RevealSection>
+
       <RevealSection><Audiences /></RevealSection>
       <RevealSection><Solutions /></RevealSection>
       <RevealSection><FeaturedProducts /></RevealSection>
       <RevealSection><FeaturedServices /></RevealSection>
       <RevealSection><FeaturedPortfolio /></RevealSection>
       <RevealSection><Process /></RevealSection>
-      <RevealSection><Testimonials /></RevealSection>
+
+      {/* Testimonials — 3D dual-row animated marquee (replaces static grid) */}
+      <RevealSection>
+        <TestimonialsMarquee
+          testimonials={testimonials}
+          eyebrow={t("sections.testimonials.eyebrow")}
+          title={t("sections.testimonials.title")}
+          subtitle={t("sections.testimonials.subtitle")}
+        />
+      </RevealSection>
+
       {/* Real customer reviews admin has pinned. Renders nothing if zero. */}
       <FeaturedReviewsRibbon limit={6} />
       <RevealSection><LatestBlogPosts /></RevealSection>
+
+      {/* Newsletter capture — wired to /api/v1/newsletter/subscribe */}
+      <NewsletterSection />
+
       <RevealSection><CTA /></RevealSection>
     </>
   )

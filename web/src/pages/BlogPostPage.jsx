@@ -19,7 +19,9 @@ import Breadcrumbs from "../components/Breadcrumbs"
 import { SITE_URL } from "../seo/siteSeo"
 import SocialLinks from "../components/SocialLinks"
 import BlogContentRenderer, { extractTOC } from "../components/blog/BlogContentRenderer"
+import BlogCoverGradient from "../components/BlogCoverGradient"
 import BlogAuthorByline from "../components/blog/BlogAuthorByline"
+import NewsletterInline from "../components/NewsletterInline"
 import { apiRequest } from "../lib/api"
 import {
   BLOG_CATEGORIES,
@@ -64,6 +66,7 @@ function ReadingProgress() {
 
 /* ── Copy-link button ────────────────────────────────────────────────── */
 function CopyLinkButton({ url }) {
+  const { t } = useTranslation("blog")
   const [copied, setCopied] = useState(false)
   function copy() {
     navigator.clipboard?.writeText(url).then(() => {
@@ -75,12 +78,12 @@ function CopyLinkButton({ url }) {
     <button
       type="button"
       onClick={copy}
-      title="Copy link"
+      title={t("post.rail.copyLink")}
       className="inline-flex items-center gap-1.5 rounded-full border border-charcoal-80/15 bg-white px-3 py-1.5 text-[12px] font-semibold text-charcoal-80/70 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
     >
       {copied
-        ? <><Check className="h-3.5 w-3.5 text-mint" aria-hidden="true" />Copied</>
-        : <><Copy className="h-3.5 w-3.5"           aria-hidden="true" />Copy link</>}
+        ? <><Check className="h-3.5 w-3.5 text-mint" aria-hidden="true" />{t("post.rail.copyLinkCopied")}</>
+        : <><Copy className="h-3.5 w-3.5"            aria-hidden="true" />{t("post.rail.copyLink")}</>}
     </button>
   )
 }
@@ -378,6 +381,38 @@ export default function BlogPostPage() {
         </Container>
       </section>
 
+      {/* Article cover — full-width gradient banner when no real cover image */}
+      {!post.cover && (
+        <div className="bg-white px-4 pb-0 pt-2 sm:px-6 lg:px-8 print:hidden">
+          <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl">
+            <BlogCoverGradient
+              title={post.title}
+              category={category?.label || ""}
+              accent={category?.accent || "#5D3FD3"}
+              readMinutes={post.readMinutes}
+              aspectRatio="21 / 6"
+            />
+          </div>
+        </div>
+      )}
+      {post.cover && (
+        <div className="bg-white px-4 pb-0 pt-2 sm:px-6 lg:px-8 print:hidden">
+          {/* 16:9 frame + object-cover. A 1600×900 cover fills it edge to edge
+              with no crop and no empty bars. Non-16:9 images center-crop
+              cleanly — the standard full-bleed hero look. */}
+          <div
+            className="relative mx-auto max-w-7xl overflow-hidden rounded-2xl bg-violet-pale/40"
+            style={{ aspectRatio: "16 / 9" }}
+          >
+            <img
+              src={post.cover}
+              alt=""
+              className="h-full w-full object-cover object-center"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Article body — same Container width as the nav (xl = 1280px) so the
           article's left edge aligns with the header. The prose column takes
           1fr (~880px on desktop) and the sticky rail is 280px. */}
@@ -442,6 +477,13 @@ export default function BlogPostPage() {
             </aside>
           </div>
         </Container>
+      </section>
+
+      {/* End-of-article newsletter CTA — warmest moment to convert a reader */}
+      <section className="bg-white px-4 pb-4 sm:px-6 lg:px-8 print:hidden">
+        <div className="mx-auto max-w-3xl">
+          <NewsletterInline source={`blog:${post.slug}`} />
+        </div>
       </section>
 
       {/* Related posts (hidden when printing) */}

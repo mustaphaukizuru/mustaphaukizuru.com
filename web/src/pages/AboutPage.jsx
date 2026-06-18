@@ -30,12 +30,15 @@ import { aboutProjects } from "../data/aboutProjectsData"
 import { listPortfolio } from "../services/portfolioService"
 import { fetchExperience, fetchEducation, fetchCertificates, fetchSkills } from "../services/bioService" // M12 + M12.5 Education
 import PortfolioCard from "../components/PortfolioCard"
+import OrbitingCircles from "../components/motion/OrbitingCircles"
 import AboutHero from "../components/heroes/AboutHero" // V2, universal hero
 import CertificatePreview from "../components/CertificatePreview" // V2, inline PDF
 import SkillsByCapability from "../components/SkillsByCapability" // F06.v4, capability lens
 import SpokenLanguages from "../components/SpokenLanguages" // F06.v4, CEFR strip
 import Counter from "../components/motion/Counter" // Phase 10 · animated number counter
 import Reveal from "../components/motion/Reveal" // Phase 10 · scroll-reveal wrapper
+import AnimatedGradientText from "../components/motion/AnimatedGradientText"
+import MagneticButton from "../components/motion/MagneticButton"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  AboutPage · F06 v2 · Batch 3 (revised)
@@ -473,7 +476,7 @@ function AboutStatsStrip() {
   const tiles = [
     {
       key: "years",
-      to: 6,
+      to: 8,
       suffix: "+",
       Icon: Briefcase,
       label: t("stats.yearsLabel",     { defaultValue: "Years shipping production work" }),
@@ -581,8 +584,16 @@ function AboutStatsStrip() {
                 {t("stats.eyebrow", { defaultValue: "By the numbers" })}
               </span>
 
-              <h2 className="text-[var(--text-section)] font-extrabold tracking-tight text-charcoal text-balance">
-                {t("stats.title", { defaultValue: "A track record you can verify" })}
+              <h2 className="text-[var(--text-section)] font-extrabold tracking-tight text-balance">
+                <AnimatedGradientText
+                  className="text-[var(--text-section)] font-extrabold tracking-tight"
+                  from="#5D3FD3"
+                  via="#0284C7"
+                  to="#7DD3FC"
+                  duration={5}
+                >
+                  {t("stats.title", { defaultValue: "A track record you can verify" })}
+                </AnimatedGradientText>
               </h2>
 
               <p className="max-w-[var(--measure-tight)] text-[15px] leading-relaxed text-steel">
@@ -614,6 +625,18 @@ function AboutStatsStrip() {
                     className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-[var(--motion-base)] ease-[var(--ease-out-soft)] group-hover:opacity-100"
                     style={{ background: palette.glow }}
                   />
+
+                  {/* Countries tile — small orbiting flags around the globe icon */}
+                  {tile.key === "countries" && (
+                    <div className="absolute -right-3 -top-3 h-24 w-24 text-azure/60 sm:h-28 sm:w-28">
+                      <OrbitingCircles radius={32} duration={26} className="inset-0">
+                        <span className="text-base leading-none" title="Rwanda">🇷🇼</span>
+                        <span className="text-base leading-none" title="Turkey">🇹🇷</span>
+                        <span className="text-base leading-none" title="Ethiopia">🇪🇹</span>
+                        <span className="text-base leading-none" title="Mexico">🇲🇽</span>
+                      </OrbitingCircles>
+                    </div>
+                  )}
 
                   {/* Header row — icon + live dot on the lead tile only */}
                   <div className="flex items-center justify-between">
@@ -682,7 +705,7 @@ function AboutStatsStrip() {
               })}
             </p>
             <Link
-              to="/about#certificates"
+              to="/about#certifications"
               className="link-underline inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-azure transition-colors hover:text-violet"
             >
               {t("stats.verifyCta", { defaultValue: "Verify the credentials" })}
@@ -1278,16 +1301,18 @@ export default function AboutPage() {
                   {t("ctaBand.body")}
                 </p>
                 <div className="mt-7">
-                  <Link
-                    to="/contact"
-                    className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-meta font-semibold text-violet shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
-                  >
-                    {t("ctaBand.contactMe")}
-                    <ArrowRight
-                      className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    />
-                  </Link>
+                  <MagneticButton>
+                    <Link
+                      to="/contact"
+                      className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-meta font-semibold text-violet shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
+                    >
+                      {t("ctaBand.contactMe")}
+                      <ArrowRight
+                        className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </MagneticButton>
                 </div>
               </motion.div>
               {/* ─────────────── CENTER · Phone (absolutely positioned on lg+

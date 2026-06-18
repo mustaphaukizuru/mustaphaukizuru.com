@@ -122,6 +122,16 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     strictPort: true,
+    // Dev-only: user uploads (avatars, blog/media covers) are stored under
+    // storage/ and served by the Express API on :5000 — not by Vite. Forward
+    // those specific /images/* prefixes to the backend so the relative URLs
+    // stored in the database resolve from the Vite origin during development.
+    // In production the backend serves the SPA and these paths from one
+    // origin, so no proxy is needed. Target matches VITE_API_BASE_URL.
+    proxy: {
+      "/images/media":   { target: "http://localhost:5000", changeOrigin: true },
+      "/images/avatars": { target: "http://localhost:5000", changeOrigin: true },
+    },
     headers: {
       "Cross-Origin-Opener-Policy": "unsafe-none",
       "Cross-Origin-Embedder-Policy": "unsafe-none",

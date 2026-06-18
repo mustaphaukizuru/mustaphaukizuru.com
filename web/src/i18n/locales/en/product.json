@@ -15,7 +15,18 @@
     "license": "License",
     "compatibility": "Compatibility",
     "category": "Category",
-    "delivery": "Delivery"
+    "delivery": "Delivery",
+    "files": "Files",
+    "fileCount_one": "{{count}} file",
+    "fileCount_other": "{{count}} files"
+  },
+  "dates": {
+    "today": "today",
+    "yesterday": "yesterday",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago",
+    "weeksAgo_one": "{{count}} week ago",
+    "weeksAgo_other": "{{count}} weeks ago"
   },
   "actions": {
     "addToCart": "Add to cart",

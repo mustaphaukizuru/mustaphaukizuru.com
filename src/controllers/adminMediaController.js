@@ -9,7 +9,7 @@ const asyncHandler = require("../utils/asyncHandler")
 // which leaked Prisma engine details, file paths, and raw stack-derived
 // strings to the client. errorHandler sanitises before returning.
 
-const MEDIA_DIR = path.join(__dirname, "../../public/images/media")
+const MEDIA_DIR = path.join(__dirname, "../../storage/uploads/media")
 
 const listMedia = asyncHandler(async (req, res) => {
   const { type, page = 1, limit = 24 } = req.query

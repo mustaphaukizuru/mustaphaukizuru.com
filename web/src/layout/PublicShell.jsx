@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import Header from "./Header"
 import Footer from "./Footer"
+import ScrollProgress from "../components/motion/ScrollProgress"
 
 /* ════════════════════════════════════════════════════════════════════════
    PublicShell · the chrome wrapping every public route (see App.jsx).
@@ -25,6 +26,7 @@ export default function PublicShell({ children }) {
 
   return (
     <div className="min-h-screen bg-mist" style={{ color: "var(--color-charcoal-80)" }}>
+      <ScrollProgress />
       {/* Skip link · visually hidden until a keyboard user focuses it.
           Same visual treatment as DashboardLayout / AdminLayout for
           consistency across the platform. */}

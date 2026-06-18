@@ -5,6 +5,7 @@ import {
   FileImage, Files, X,
 } from "lucide-react"
 import { authFetch, API_BASE_URL } from "../lib/api"
+import { compressImage } from "../lib/imageCompress"
 import { useToast } from "../context/ToastContext"
 import { MetricCard, SkeletonCard } from "../components/ui/index"
 
@@ -225,8 +226,9 @@ export default function AdminMediaPage() {
     const failed = []
 
     for (const f of files) {
+      const optimized = await compressImage(f) // shrink large images client-side
       const formData = new FormData()
-      formData.append("file", f) // field name MUST be "file"
+      formData.append("file", optimized) // field name MUST be "file"
       try {
         // authFetch handles auth header + FormData boundary + AppError wrap.
         const data = await authFetch("/api/v1/admin/media", {

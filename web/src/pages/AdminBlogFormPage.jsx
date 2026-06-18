@@ -9,14 +9,16 @@
    admin can add/remove/reorder blocks, change types, and preview.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
   ArrowLeft, Save, Eye, Plus, Trash2, ArrowUp, ArrowDown, Star, StarOff,
+  Upload, Loader2,
 } from "lucide-react"
 import { authFetch as apiRequest } from "../lib/api"
 import { useToast } from "../context/ToastContext"
 import BlogContentRenderer from "../components/blog/BlogContentRenderer"
+import { compressImage } from "../lib/imageCompress"
 
 /** Convert a YouTube/Vimeo watch URL to an embeddable src. Returns "" if not recognised. */
 function getEmbedUrl(raw) {
@@ -82,6 +84,8 @@ export default function AdminBlogFormPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [showPreview, setShowPreview] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const coverInputRef = useRef(null)
 
   /* Load post + categories on mount */
   useEffect(() => {
@@ -132,6 +136,41 @@ export default function AdminBlogFormPage() {
     setPost((p) => ({ ...p, ...patch }))
   }
 
+  /* Upload a cover image through the shared media endpoint, then store the
+   * returned URL on the post. Reuses /api/v1/admin/media (multer.single("file"))
+   * — the same pipeline the Media library uses, so blog covers land alongside
+   * every other asset. */
+  async function handleCoverUpload(file) {
+    if (!file) return
+    if (!file.type.startsWith("image/")) {
+      toast?.showError?.("Please choose an image file (PNG, JPG, or WebP).")
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast?.showError?.("That image is over 5 MB. Compress it and try again.")
+      return
+    }
+    setUploadingCover(true)
+    try {
+      // Shrink large photos in the browser first — keeps covers light so they
+      // upload fast and display without a multi-second blank state.
+      const optimized = await compressImage(file)
+      const fd = new FormData()
+      fd.append("file", optimized) // backend expects multer.single("file")
+      const data = await apiRequest("/api/v1/admin/media", { method: "POST", body: fd })
+      const row = data?.data ?? data
+      const url = row?.fileUrl || row?.url || row?.path || ""
+      if (!url) throw new Error("Upload succeeded but no URL came back.")
+      update({ cover: url })
+      toast?.showSuccess?.("Cover image uploaded")
+    } catch (err) {
+      toast?.showError?.(err?.toUserMessage?.() || err?.message || "Cover upload failed")
+    } finally {
+      setUploadingCover(false)
+      if (coverInputRef.current) coverInputRef.current.value = ""
+    }
+  }
+
   function updateBlock(index, patch) {
     setPost((p) => ({
       ...p,
@@ -178,7 +217,7 @@ export default function AdminBlogFormPage() {
       const res = await (isEdit
         ? apiRequest(`/api/v1/admin/blog/posts/${id}`, { method: "PATCH", body: JSON.stringify(body) })
         : apiRequest(`/api/v1/admin/blog/posts`, { method: "POST", body: JSON.stringify(body) }))
-      toast?.success?.(isEdit ? "Post updated" : "Post created")
+      toast?.showSuccess?.(isEdit ? "Post updated" : "Post created")
       navigate(`/admin/blog/${res.post.id}/edit`, { replace: !isEdit })
     } catch (err) {
       setError(err?.message || "Save failed.")
@@ -353,21 +392,54 @@ export default function AdminBlogFormPage() {
           </Section>
 
           <Section title="Cover & SEO">
-            <Field label="Cover image URL" hint="Paste a URL or path from the Media library.">
-              <input
-                value={post.cover || ""}
-                onChange={(e) => update({ cover: e.target.value })}
-                placeholder="/images/blog/your-post.jpg"
-                className="w-full rounded-lg border border-charcoal-80/15 bg-white px-3 py-2 text-[12.5px] outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-violet/15"
-              />
+            <Field label="Cover image" hint="Upload an image, or paste a URL / Media-library path.">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <input
+                  value={post.cover || ""}
+                  onChange={(e) => update({ cover: e.target.value })}
+                  placeholder="/images/blog/your-post.jpg"
+                  className="w-full flex-1 rounded-lg border border-charcoal-80/15 bg-white px-3 py-2 text-[12.5px] outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-violet/15"
+                />
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleCoverUpload(e.target.files?.[0])}
+                />
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={uploadingCover}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-violet/25 bg-violet-pale px-3 py-2 text-[12.5px] font-semibold text-violet transition hover:bg-violet/10 disabled:opacity-60"
+                  >
+                    {uploadingCover ? (
+                      <><Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> Uploading…</>
+                    ) : (
+                      <><Upload className="h-3.5 w-3.5" aria-hidden="true" /> Upload</>
+                    )}
+                  </button>
+                  {post.cover ? (
+                    <button
+                      type="button"
+                      onClick={() => update({ cover: "" })}
+                      className="inline-flex items-center justify-center rounded-lg border border-charcoal-80/15 px-3 py-2 text-[12.5px] font-medium text-charcoal-80/60 transition hover:bg-charcoal-80/[0.04]"
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
+              </div>
             </Field>
-            {/* Live cover preview */}
+            {/* Live cover preview — mirrors the public 16:9 full-bleed render
+                so the editor sees exactly what visitors will. */}
             {post.cover ? (
-              <div className="overflow-hidden rounded-xl border border-charcoal-80/10">
+              <div className="relative aspect-[16/9] overflow-hidden rounded-xl border border-charcoal-80/10 bg-violet-pale/40">
                 <img
                   src={post.cover}
                   alt="Cover preview"
-                  className="aspect-[16/9] w-full object-cover"
+                  className="h-full w-full object-cover object-center"
                   onError={(e) => { e.currentTarget.parentElement.style.display = "none" }}
                 />
               </div>

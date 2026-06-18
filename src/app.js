@@ -53,13 +53,16 @@ app.use("/images/products", express.static(path.join(__dirname, "../public/image
     res.setHeader("Cache-Control", "public, max-age=604800, immutable")
   },
 }))
-app.use("/images/avatars", express.static(path.join(__dirname, "../public/images/avatars"), {
+// Avatars & media are user uploads — served from storage/ (persists across
+// builds), NOT ../public (wiped by Vite emptyOutDir on every build). The URL
+// prefix stays /images/* so existing database URLs keep resolving.
+app.use("/images/avatars", express.static(path.join(__dirname, "../storage/uploads/avatars"), {
   setHeaders: (res) => {
     res.setHeader("X-Content-Type-Options", "nosniff")
     res.setHeader("Content-Disposition", "inline")
   },
 }))
-app.use("/images/media", express.static(path.join(__dirname, "../public/images/media"), {
+app.use("/images/media", express.static(path.join(__dirname, "../storage/uploads/media"), {
   setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
 }))
 

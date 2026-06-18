@@ -162,6 +162,13 @@
       "item1": "A focused conversation about your goals and constraints",
       "item2": "Honest, expert-level technical input you can act on",
       "item3": "Clear next steps, no pressure, no fluff"
+    },
+    "host": {
+      "eyebrow": "Who you'll meet",
+      "name": "Mustapha Ukizuru",
+      "role": "Full-Stack Software Engineer · Educator",
+      "line": "Every call is with me directly — no sales team, no handoffs.",
+      "photoAlt": "Mustapha Ukizuru, the consultant you will meet on the call"
     }
   },
   "bookingCalendar": {

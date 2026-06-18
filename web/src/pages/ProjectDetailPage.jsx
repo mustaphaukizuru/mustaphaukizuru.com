@@ -11,6 +11,7 @@ import { creativeWorkSchema, breadcrumbSchema } from "../seo/schemas"
 import { fetchPortfolioBySlug } from "../services/portfolioService"
 import { useTranslation } from "react-i18next"
 import { aboutProjects } from "../data/aboutProjectsData" // fallback when slug not in DB
+import Lens from "../components/motion/Lens"
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -240,10 +241,10 @@ export default function ProjectDetailPage() {
           <Container>
             <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_12px_32px_rgba(93,63,211,0.08)]">
               <div className="aspect-[16/9] w-full bg-violet-pale">
-                <img
+                <Lens
                   src={displayImage}
                   alt={`${project.title}, view ${activeImage + 1}`}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full"
                 />
               </div>
               {gallery.length > 1 && (

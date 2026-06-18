@@ -39,6 +39,8 @@ import { API_BASE_URL, apiRequest } from "../lib/api";
 import { formatPrice } from "../lib/format";
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons";
 import RecentlyViewed, { useTrackProductView } from "../components/RecentlyViewed" // #4
+import SpotlightCard from "../components/motion/SpotlightCard"
+import Lens from "../components/motion/Lens"
 
 
 function resolveUrl(url = "") {
@@ -370,11 +372,12 @@ function CreatorStrip() {
  *  - Reviews count is clickable — jumps to the Reviews tab.
  *  ────────────────────────────────────────────────────────────────────────── */
 function SocialProofBar({ rating, reviewCount, downloadCount, updatedAt, onReviewClick }) {
-  const { t } = useTranslation("product")
+  const { t, i18n } = useTranslation("product")
+  const locale = i18n.language === "es" ? "es-MX" : "en-US"
   const hasRating = Number(rating) > 0;
   const hasReviews = Number(reviewCount) > 0;
   const hasDownloads = Number(downloadCount) > 0;
-  const updatedLabel = formatUpdatedDate(updatedAt);
+  const updatedLabel = formatUpdatedDate(updatedAt, t, locale);
 
   // If absolutely nothing to show, render nothing
   if (!hasRating && !hasReviews && !hasDownloads && !updatedLabel) return null;
@@ -459,8 +462,9 @@ function formatCountAbbrev(value) {
 }
 
 /* Format updatedAt as either relative ("2 days ago", "yesterday") for recent
-   updates, or "Mon YYYY" (e.g. "Oct 2025") for older ones. Returns "" if invalid. */
-function formatUpdatedDate(value) {
+   updates, or "Mon YYYY" (e.g. "Oct 2025") for older ones. Returns "" if invalid.
+   Accepts t (i18next) and locale for full i18n support. */
+function formatUpdatedDate(value, t, locale = "en-US") {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -469,17 +473,17 @@ function formatUpdatedDate(value) {
   const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
 
-  if (diffDays < 0) return ""; // future date, invalid for "updated"
-  if (diffDays === 0) return "today";
-  if (diffDays === 1) return "yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 0) return "";
+  if (diffDays === 0) return t ? t("dates.today") : "today";
+  if (diffDays === 1) return t ? t("dates.yesterday") : "yesterday";
+  if (diffDays < 7)  return t ? t("dates.daysAgo",  { count: diffDays }) : `${diffDays} days ago`;
   if (diffDays < 30) {
     const weeks = Math.floor(diffDays / 7);
-    return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+    return t ? t("dates.weeksAgo", { count: weeks }) : `${weeks} weeks ago`;
   }
 
-  // Older — use "Mon YYYY"
-  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  // Older — use locale-aware "Mon YYYY"
+  return date.toLocaleDateString(locale, { month: "short", year: "numeric" });
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -694,7 +698,8 @@ function HighlightsBlock({ specifications }) {
  *  Data source: `product.specifications` JSON column (admin-edited).
  *  ────────────────────────────────────────────────────────────────────────── */
 function SpecsTable({ specifications, product }) {
-  const { t: tSpecs } = useTranslation("product");
+  const { t: tSpecs, i18n } = useTranslation("product");
+  const locale = i18n.language === "es" ? "es-MX" : "en-US"
   const rows = Array.isArray(specifications)
     ? specifications.filter(
         (s) =>
@@ -713,8 +718,8 @@ function SpecsTable({ specifications, product }) {
   if (product?.deliveryType) synthetic.push({ key: tSpecs("info.delivery"), value: product.deliveryType });
   if (product?.files?.length) {
     synthetic.push({
-      key: "Files",
-      value: `${product.files.length} ${product.files.length === 1 ? "file" : "files"}`,
+      key: tSpecs("info.files"),
+      value: tSpecs("info.fileCount", { count: product.files.length }),
     });
   }
   if (product?.updatedAt) {
@@ -722,7 +727,7 @@ function SpecsTable({ specifications, product }) {
     if (!Number.isNaN(d.getTime())) {
       synthetic.push({
         key: tSpecs("info.lastUpdated"),
-        value: d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+        value: d.toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" }),
       });
     }
   }
@@ -734,7 +739,7 @@ function SpecsTable({ specifications, product }) {
       <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-charcoal-80/15 bg-mist/40 px-6 py-10 text-center">
         <Package className="h-8 w-8 text-charcoal-80/30" aria-hidden="true" />
         <p className="text-meta font-semibold text-charcoal-80/60">
-          {t("detail.specsComing")}
+          {tSpecs("detail.specsComing")}
         </p>
       </div>
     );
@@ -962,7 +967,8 @@ function RelatedProductCard({ product }) {
   const price = Number(product.price ?? 0);
 
   return (
-    <Link
+    <SpotlightCard
+      as={Link}
       to={`/store/${product.slug}`}
       className="group flex flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_12px_rgba(93,63,211,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(93,63,211,0.10)]"
     >
@@ -996,7 +1002,7 @@ function RelatedProductCard({ product }) {
           </span>
         </div>
       </div>
-    </Link>
+    </SpotlightCard>
   );
 }
 
@@ -1422,10 +1428,11 @@ export default function ProductDetail() {
                     className="relative aspect-square overflow-hidden rounded-xl bg-violet-pale shadow-[0_8px_32px_rgba(93,63,211,0.08)]"
                   >
                 {images[activeImg] ? (
-                  <img
+                  <Lens
                     src={images[activeImg].url}
                     alt={images[activeImg].alt}
-                    className="h-full w-full object-contain"
+                    className="h-full w-full"
+                    imgClassName="object-contain"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-violet/25">

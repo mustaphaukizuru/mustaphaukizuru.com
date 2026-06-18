@@ -14,6 +14,8 @@ import {
 } from "lucide-react"
 
 import mMarkViolet from "../../assets/logo-mark/m-mark-violet.svg"
+import Particles from "../motion/Particles"
+import WordRotate from "../motion/WordRotate"
 import { products as STORE_PRODUCTS } from "../../data/storeData"
 import { fetchFeaturedProducts } from "../../services/productService"
 import { formatPrice } from "../../lib/format"
@@ -63,19 +65,39 @@ import KineticHeadline from "../motion/KineticHeadline"
 /* ────────────────────────────── content ──────────────────────────────── */
 
 /* Demo project shown inside the phone — anchored to a real engagement
-   so the dashboard reads as authentic rather than fabricated. */
-const DEMO_PROJECT = {
-  client: "Colegio Raindrop",
-  name: "Internal Platform",
-  phaseLabel: "Phase 3 of 4 · QA in progress",
-  progress: 76,
-  milestones: [
-    { label: "Discovery", state: "done", meta: "Mar 12" },
-    { label: "Build", state: "done", meta: "Apr 28" },
-    { label: "QA & UAT", state: "now", meta: "In progress" },
-    { label: "Launch", state: "todo", meta: "Jun 20" },
-  ],
+   so the dashboard reads as authentic rather than fabricated.
+   Dates are computed dynamically at module-load time so the milestones
+   always reflect the current month: Discovery = 3 months ago, Build = 1
+   month ago, QA = now, Launch = 2 months from now. No stale dates. */
+function buildDemoProject() {
+  const now = new Date()
+  const fmt = (d) =>
+    d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+
+  const discovery = new Date(now)
+  discovery.setMonth(discovery.getMonth() - 3)
+
+  const build = new Date(now)
+  build.setMonth(build.getMonth() - 1)
+
+  const launch = new Date(now)
+  launch.setMonth(launch.getMonth() + 2)
+
+  return {
+    client: "Colegio Raindrop",
+    name: "Internal Platform",
+    phaseLabel: "Phase 3 of 4 · QA in progress",
+    progress: 76,
+    milestones: [
+      { label: "Discovery", state: "done", meta: fmt(discovery) },
+      { label: "Build",     state: "done", meta: fmt(build) },
+      { label: "QA & UAT", state: "now",  meta: "In progress" },
+      { label: "Launch",   state: "todo", meta: fmt(launch) },
+    ],
+  }
 }
+
+const DEMO_PROJECT = buildDemoProject()
 
 const TECH_STACK = ["Django", "React", "GCP"]
 
@@ -183,6 +205,17 @@ export default function HomeHero() {
         }}
       />
 
+      {/* ── Particle field — brand violet, low opacity, mouse-reactive ── */}
+      <Particles
+        quantity={60}
+        color="#5D3FD3"
+        size={1.2}
+        speed={0.3}
+        interactRadius={100}
+        interactStrength={2.5}
+        style={{ opacity: 0.45 }}
+      />
+
       {/* ── 3 % SVG noise overlay to defeat banding (Brand v3 §10) ── */}
       <div
         aria-hidden="true"
@@ -244,7 +277,18 @@ export default function HomeHero() {
             variants={fadeUp}
             className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-charcoal-80 sm:text-[17px]"
           >
-            {t("hero.subtitle")}
+            {t("hero.subtitlePre", { defaultValue: "Full-stack engineering, consulting, and STEM education for" })}{" "}
+            <WordRotate
+              words={[
+                t("hero.rotateSchools",    { defaultValue: "schools" }),
+                t("hero.rotateBusinesses", { defaultValue: "businesses" }),
+                t("hero.rotateSmes",       { defaultValue: "SMEs" }),
+                t("hero.rotateCreators",   { defaultValue: "creators" }),
+              ]}
+              className="text-violet font-semibold"
+              interval={2200}
+            />
+            {t("hero.subtitlePost", { defaultValue: " — from LATAM, for the world." })}
           </motion.p>
 
           <motion.div
@@ -253,7 +297,7 @@ export default function HomeHero() {
           >
             <Link
               to="/services"
-              className="group inline-flex items-center gap-2 rounded-full bg-grad-innovation px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet/20 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
+              className="ukz-shimmer group inline-flex items-center gap-2 rounded-full bg-grad-innovation px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet/20 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
             >
               {t("hero.exploreServices")}
               <ArrowRight

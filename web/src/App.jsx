@@ -17,6 +17,7 @@ import CookieBanner from "./components/cookies/CookieBanner";
 import LanguageWrapper from "./components/LanguageWrapper"; // I18N02 · URL→i18n sync + layout for /es routes
 import PageTransition from "./components/motion/PageTransition"; // Phase 10 · cross-fade between routes
 import { CookieConsentProvider } from "./context/CookieConsentContext";
+import FloatingContactButton from "./components/FloatingContactButton";
 
 import PublicShell from "./layout/PublicShell";
 import AuthLayout from "./layout/AuthLayout";
@@ -120,7 +121,9 @@ const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 // OAuth redirect-flow landing page — receives token + user in URL fragment
 // from /api/auth/google/callback and hands off to AuthContext.
-const GoogleReturnPage = lazy(() => import("./pages/GoogleReturnPage"));
+const GoogleReturnPage    = lazy(() => import("./pages/GoogleReturnPage"));
+const MicrosoftReturnPage = lazy(() => import("./pages/MicrosoftReturnPage"));
+const FacebookReturnPage  = lazy(() => import("./pages/FacebookReturnPage"));
 
 // Member dashboard pages
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
@@ -197,6 +200,7 @@ export default function App() {
       <div style={{ opacity: appReady ? 1 : 0, pointerEvents: appReady ? "auto" : "none", transition: "opacity 0.3s ease" }}>
         <Toaster />
         <CookieBanner />
+        <FloatingContactButton />
         <Suspense fallback={<PageLoader />}>
           <LanguageWrapper>
           <SeoRouteManager />
@@ -217,7 +221,7 @@ export default function App() {
             <Route path="/solutions/:slug" element={<PublicShell><SolutionDetailPage /></PublicShell>} />
             <Route path="/services" element={<PublicShell><ServicesPage /></PublicShell>} />
             <Route path="/services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
-            <Route path="/self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
+            <Route path="/self-audit" element={<AdminRoute><PublicShell><SelfAuditPage /></PublicShell></AdminRoute>} />
             <Route path="/contact" element={<PublicShell><ContactPage /></PublicShell>} />
             <Route path="/portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />
             <Route path="/projects/:slug" element={<PublicShell><ProjectDetailPage /></PublicShell>} />
@@ -269,8 +273,8 @@ export default function App() {
             <Route path="/book" element={<PublicShell><BookConsultationPage /></PublicShell>} />
             <Route path="/book/:serviceSlug" element={<PublicShell><BookConsultationPage /></PublicShell>} />
 
-            {/* Internal · design-system preview catalogue */}
-            <Route path="/_system" element={<SystemPreviewPage />} />
+            {/* Internal · design-system preview catalogue — admin only */}
+            <Route path="/_system" element={<AdminRoute><SystemPreviewPage /></AdminRoute>} />
 
             {/* Auth */}
             <Route path="/login" element={<AuthLayout><LoginPage /></AuthLayout>} />
@@ -279,7 +283,9 @@ export default function App() {
             <Route path="/reset-password/:token" element={<AuthLayout><ResetPasswordPage /></AuthLayout>} />
             {/* OAuth redirect-flow landing — no AuthLayout shell, lifecycle is
                 ~200ms then nav-replace to /dashboard. */}
-            <Route path="/auth/google/return" element={<GoogleReturnPage />} />
+            <Route path="/auth/google/return"    element={<GoogleReturnPage />} />
+            <Route path="/auth/microsoft/return" element={<MicrosoftReturnPage />} />
+            <Route path="/auth/facebook/return"  element={<FacebookReturnPage />} />
 
             {/* Member dashboard */}
             <Route
@@ -439,7 +445,9 @@ export default function App() {
               <Route path="signup" element={<AuthLayout><SignupPage /></AuthLayout>} />
               <Route path="forgot-password" element={<AuthLayout><ForgotPasswordPage /></AuthLayout>} />
               <Route path="reset-password/:token" element={<AuthLayout><ResetPasswordPage /></AuthLayout>} />
-              <Route path="auth/google/return" element={<GoogleReturnPage />} />
+              <Route path="auth/google/return"    element={<GoogleReturnPage />} />
+              <Route path="auth/microsoft/return" element={<MicrosoftReturnPage />} />
+              <Route path="auth/facebook/return"  element={<FacebookReturnPage />} />
 
               {/* Admin and Dashboard intentionally NOT mirrored — operator UIs stay English. */}
             </Route>

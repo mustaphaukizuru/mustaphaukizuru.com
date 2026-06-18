@@ -165,5 +165,22 @@
     "activeProjects": "Active Projects",
     "recentClients": "Recent Clients",
     "viewAll": "View all"
+  },
+  "stats": {
+    "sectionLabel": "Key stats",
+    "eyebrow": "By the numbers",
+    "title": "A track record you can verify",
+    "lede": "Every figure is anchored to a verifiable artifact — public bio, certifications on file, cohort rosters. No vanity metrics.",
+    "liveBadge": "Live",
+    "yearsLabel": "Years shipping production work",
+    "yearsHint": "Rwanda · Turkey · Ethiopia · Mexico",
+    "countriesLabel": "Countries lived & worked in",
+    "countriesHint": "EN · ES · TR · KIN",
+    "certsLabel": "Professional certifications",
+    "certsHint": "Google · IBM · University of London",
+    "studentsLabel": "CS & STEM students taught",
+    "studentsHint": "K-12 · cohort-graded",
+    "source": "Source: public bio · verified certificates on file · cohort rosters · rolling figures",
+    "verifyCta": "Verify the credentials"
   }
 }

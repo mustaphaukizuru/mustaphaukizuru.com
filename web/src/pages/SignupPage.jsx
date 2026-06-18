@@ -37,6 +37,8 @@ import AuthShell from "../components/auth/AuthShell"
 import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 import BrandMark from "../components/auth/BrandMark"
 import GoogleLoginButton from "../components/GoogleLoginButton"
+import MicrosoftLoginButton from "../components/MicrosoftLoginButton"
+import FacebookLoginButton from "../components/FacebookLoginButton"
 import { scorePassword } from "../components/AuthInput"
 import { useAuth } from "../context/AuthContext"
 import useCapsLock from "../hooks/useCapsLock"
@@ -470,8 +472,10 @@ export default function SignupPage() {
             </span>
             <div className="h-px flex-1 bg-charcoal-80/10" />
           </div>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-col gap-3">
             <GoogleLoginButton label="signup" />
+            <MicrosoftLoginButton label="signup" />
+            <FacebookLoginButton label="signup" />
           </div>
         </motion.div>
 

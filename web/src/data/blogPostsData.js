@@ -28,6 +28,7 @@
  *   **bold**     · *italic*     · `code`     · [text](url)
  */
 
+import postAiCodingAgents2026 from "./blogPosts/aiCodingAgents2026"
 import postSaasJourney from "./blogPosts/saasJourney"
 import postSchoolStrategy from "./blogPosts/schoolStrategy"
 import postReactDjango from "./blogPosts/reactDjango"
@@ -55,6 +56,7 @@ export const BLOG_TAGS = [
 ]
 
 export const BLOG_POSTS = [
+  postAiCodingAgents2026,
   postSaasJourney,
   postSchoolStrategy,
   postReactDjango,

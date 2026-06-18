@@ -6,6 +6,10 @@ const {
   googleLogin,
   startGoogleOAuth,
   googleOAuthCallback,
+  startMicrosoftOAuth,
+  microsoftOAuthCallback,
+  startFacebookOAuth,
+  facebookOAuthCallback,
   forgotPassword,
   resetPassword,
 } = require("../controllers/authController");
@@ -31,6 +35,10 @@ router.post("/login",                 loginRateLimiter,          login);
 router.post("/google",                                            googleLogin);            // legacy One-Tap endpoint (kept for backwards compat)
 router.get ("/google/start",                                      startGoogleOAuth);       // OAuth redirect flow — primary path
 router.get ("/google/callback",                                   googleOAuthCallback);    // OAuth redirect flow — Google calls back here
+router.get ("/microsoft/start",                                   startMicrosoftOAuth);    // Microsoft OAuth start
+router.get ("/microsoft/callback",                                microsoftOAuthCallback); // Microsoft OAuth callback
+router.get ("/facebook/start",                                    startFacebookOAuth);     // Facebook OAuth start
+router.get ("/facebook/callback",                                 facebookOAuthCallback);  // Facebook OAuth callback
 router.post("/forgot-password",       forgotPasswordRateLimiter, forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 router.get ("/me",                    protect, me);

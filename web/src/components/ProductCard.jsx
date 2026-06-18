@@ -44,6 +44,7 @@ import { getFileTypeStyles } from "../lib/fileTypeIcons"
 // only because some legacy call sites pass a string price; the imported
 // formatPrice handles non-number input correctly.
 import { formatPrice } from "../lib/format"
+import SpotlightCard from "./motion/SpotlightCard"
 
 function resolveImageUrl(url = "") {
   if (!url) return null
@@ -212,9 +213,12 @@ export default function ProductCard({
     <motion.article
       whileHover={{ y: -4 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={resetInteraction}
+    >
+    <SpotlightCard
+      as="div"
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
     >
       <Link to={`/store/${product?.slug || ""}`} className="block">
         <div className="relative w-full overflow-hidden bg-mist">
@@ -418,6 +422,7 @@ export default function ProductCard({
           </div>
         </div>
       </div>
+    </SpotlightCard>
     </motion.article>
   )
 }

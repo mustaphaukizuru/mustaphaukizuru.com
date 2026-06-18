@@ -51,6 +51,7 @@ import {
 } from "../data/blogPostsData"
 
 import { useTranslation } from "react-i18next"
+import BlogCoverGradient from "../components/BlogCoverGradient"
 /* ── Motion variants ──────────────────────────────────────────────────── */
 
 const fadeUp = {
@@ -75,8 +76,8 @@ const HERO_MESH =
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(iso, locale = "en-US") {
+  return new Date(iso).toLocaleDateString(locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -92,8 +93,9 @@ function categoryByValue(slug) {
    ════════════════════════════════════════════════════════════════════════ */
 
 export default function BlogPage() {
-  const { t } = useTranslation("blog")
+  const { t, i18n } = useTranslation("blog")
   const reduce = useReducedMotion()
+  const locale = i18n.language === "es" ? "es-MX" : "en-US"
 
   /* URL-driven state — search/category/tag/page sync to the address bar
    * so visitors can deep-link, share, and use browser back/forward. */
@@ -284,8 +286,8 @@ export default function BlogPage() {
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder={`Search ${allPosts.length} articles…`}
-                aria-label="Search articles"
+                placeholder={t("page.searchPlaceholder", { count: allPosts.length })}
+                aria-label={t("page.searchAria")}
                 title="Press / to search"
                 className="w-full rounded-2xl border border-charcoal-80/12 bg-white py-3.5 pl-11 pr-28 text-[14px] text-charcoal-80 shadow-[0_8px_32px_-8px_rgba(93,63,211,0.15)] placeholder-charcoal-80/40 outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-violet/20 sm:text-[15px]"
               />
@@ -293,7 +295,7 @@ export default function BlogPage() {
                 type="submit"
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-violet px-4 py-2 text-[12.5px] font-bold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
               >
-                Search
+                {t("page.searchButton")}
               </button>
             </motion.form>
 
@@ -303,7 +305,7 @@ export default function BlogPage() {
               className="mt-1 flex flex-wrap items-center justify-center gap-2 text-[12.5px]"
             >
               <span className="text-charcoal-80/55">
-                {filtered.length} article{filtered.length === 1 ? "" : "s"}
+                {t("page.articleCount", { count: filtered.length })}
               </span>
               {hasActiveFilter ? (
                 <button
@@ -796,7 +798,8 @@ function FilterChip({ children, onRemove }) {
    ════════════════════════════════════════════════════════════════════════ */
 
 function FeaturedCard({ post, reduce }) {
-  const { t } = useTranslation("blog")
+  const { t, i18n } = useTranslation("blog")
+  const locale = i18n.language === "es" ? "es-MX" : "en-US"
   const cat = categoryByValue(post.category)
   return (
     <motion.article
@@ -819,7 +822,7 @@ function FeaturedCard({ post, reduce }) {
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/12 px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.18em] text-terracotta-deep">
                 <Sparkles className="h-3 w-3" aria-hidden="true" />
-                Featured
+                {t("list.featured")}
               </span>
               {cat ? <CategoryPill category={cat} /> : null}
             </div>
@@ -847,7 +850,7 @@ function FeaturedCard({ post, reduce }) {
                 {post.author.name}
               </p>
               <p className="text-[11.5px] text-charcoal-80/50">
-                {new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                {formatDate(post.publishedAt, locale)}
               </p>
             </div>
           </div>
@@ -874,6 +877,8 @@ function FeaturedCard({ post, reduce }) {
    ════════════════════════════════════════════════════════════════════════ */
 
 function PostCard({ post }) {
+  const { i18n } = useTranslation("blog")
+  const locale = i18n.language === "es" ? "es-MX" : "en-US"
   const cat = categoryByValue(post.category)
   const displayTags = post.tags?.slice(0, 2) || []
   return (
@@ -890,7 +895,7 @@ function PostCard({ post }) {
           <div className="flex flex-wrap items-center gap-2">
             {cat ? <CategoryPill category={cat} /> : null}
             <span className="hidden font-mono text-[10.5px] text-charcoal-80/40 sm:block">
-              {new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+              {formatDate(post.publishedAt, locale)}
             </span>
           </div>
 
@@ -954,33 +959,33 @@ function CoverArt({ post, className = "" }) {
   const cat = categoryByValue(post.category)
   if (post.cover) {
     return (
-      <div className={`relative overflow-hidden ${className}`}>
+      <div className={`relative overflow-hidden bg-violet-pale/40 ${className}`}>
+        {/* Full-bleed thumbnail — object-cover fills the card frame edge to
+            edge (the standard, clean grid look). Upload covers at 16:9 so the
+            center crop stays flattering. */}
         <img
           src={post.cover}
           alt=""
           loading="lazy"
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+          className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.04]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-violet/20 via-transparent to-terracotta/10"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-violet/15 via-transparent to-terracotta/8"
         />
       </div>
     )
   }
-  // Fallback: pale violet tile with category icon — clean, on-brand, never
-  // looks like a broken placeholder.
-  const CatIcon = CATEGORY_ICONS[cat?.slug] || FileText
+  // Fallback: brand-generated gradient cover — beautiful, unique per category.
   return (
-    <div
-      className={`relative flex items-center justify-center overflow-hidden bg-violet-pale ${className}`}
-    >
-      <CatIcon
-        className="h-9 w-9 text-violet/30 transition duration-300 group-hover:scale-110 group-hover:text-violet/50"
-        strokeWidth={1.5}
-        aria-hidden="true"
-      />
-    </div>
+    <BlogCoverGradient
+      title={post.title}
+      category={cat?.label || ""}
+      accent={cat?.accent || "#5D3FD3"}
+      readMinutes={post.readMinutes}
+      aspectRatio={undefined}
+      className={`h-full ${className}`}
+    />
   )
 }
 

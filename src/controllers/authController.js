@@ -22,7 +22,19 @@ const {
   findOrCreateGoogleUser,
   buildAuthUrl: buildGoogleAuthUrl,
   exchangeCodeForProfile: exchangeGoogleCodeForProfile,
-} = require("../services/googleAuthService");
+} = require("../services/googleAuthService")
+
+const {
+  buildAuthUrl: buildMicrosoftAuthUrl,
+  exchangeCodeForProfile: exchangeMicrosoftCodeForProfile,
+  findOrCreateMicrosoftUser,
+} = require("../services/microsoftAuthService")
+
+const {
+  buildAuthUrl: buildFacebookAuthUrl,
+  exchangeCodeForProfile: exchangeFacebookCodeForProfile,
+  findOrCreateFacebookUser,
+} = require("../services/facebookAuthService");
 
 /* ────────────────────────────────────────────────────────────────────────
  * Google OAuth redirect flow · helpers
@@ -572,13 +584,187 @@ const resetPassword = asyncHandler(async (req, res) => {
   });
 });
 
+/* ════════════════════════════════════════════════════════════════════════
+ * MICROSOFT OAUTH — redirect flow
+ * Same pattern as Google: state cookie → redirect → callback → token → session
+ * ════════════════════════════════════════════════════════════════════════ */
+
+const MS_STATE_COOKIE  = "ms_oauth_state"
+const MS_NONCE_COOKIE  = "ms_oauth_nonce"
+const MS_RETURN_COOKIE = "ms_oauth_return"
+
+function getMicrosoftRedirectUri(req) {
+  if (process.env.MICROSOFT_OAUTH_REDIRECT_URI) return process.env.MICROSOFT_OAUTH_REDIRECT_URI
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "https"
+  const host  = req.headers["x-forwarded-host"]  || req.headers.host
+  return `${proto}://${host}/api/auth/microsoft/callback`
+}
+
+const startMicrosoftOAuth = asyncHandler(async (req, res) => {
+  const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  if (!process.env.MICROSOFT_CLIENT_ID || !process.env.MICROSOFT_CLIENT_SECRET) {
+    console.error("[microsoft-oauth] /start refused — missing credentials")
+    return res.redirect(302, `${frontend}/login?microsoft=server_misconfigured`)
+  }
+
+  try {
+    const state = crypto.randomBytes(32).toString("hex")
+    const nonce = crypto.randomBytes(32).toString("hex")
+    const redirectUri = getMicrosoftRedirectUri(req)
+    let returnTo = String(req.query.return_to || "/dashboard")
+    if (!returnTo.startsWith("/") || returnTo.includes("//") || returnTo.includes(":")) returnTo = "/dashboard"
+
+    const isSecure = (req.headers["x-forwarded-proto"] || req.protocol) === "https"
+    const cookieOpts = { httpOnly: true, secure: isSecure, sameSite: "lax", maxAge: 5 * 60 * 1000, path: "/" }
+    res.cookie(MS_STATE_COOKIE,  state,    cookieOpts)
+    res.cookie(MS_NONCE_COOKIE,  nonce,    cookieOpts)
+    res.cookie(MS_RETURN_COOKIE, returnTo, cookieOpts)
+
+    const authUrl = buildMicrosoftAuthUrl({ state, nonce, redirectUri })
+    return res.redirect(302, authUrl)
+  } catch (err) {
+    const frontend2 = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+    return res.redirect(302, `${frontend2}/login?microsoft=unavailable`)
+  }
+})
+
+const microsoftOAuthCallback = asyncHandler(async (req, res) => {
+  const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  if (req.query.error) {
+    res.clearCookie(MS_STATE_COOKIE, { path: "/" })
+    res.clearCookie(MS_NONCE_COOKIE, { path: "/" })
+    res.clearCookie(MS_RETURN_COOKIE, { path: "/" })
+    return res.redirect(302, `${frontend}/login?microsoft=cancelled`)
+  }
+
+  const cookies     = parseRequestCookies(req)
+  const code        = String(req.query.code  || "")
+  const stateQuery  = String(req.query.state || "")
+  const stateCookie = String(cookies[MS_STATE_COOKIE] || "")
+  const returnTo    = String(cookies[MS_RETURN_COOKIE] || "/dashboard")
+
+  res.clearCookie(MS_STATE_COOKIE,  { path: "/" })
+  res.clearCookie(MS_NONCE_COOKIE,  { path: "/" })
+  res.clearCookie(MS_RETURN_COOKIE, { path: "/" })
+
+  if (!code || !stateQuery || !stateCookie || stateQuery !== stateCookie) {
+    return res.redirect(302, `${frontend}/login?microsoft=state_mismatch`)
+  }
+
+  const redirectUri = getMicrosoftRedirectUri(req)
+  try {
+    const profile = await exchangeMicrosoftCodeForProfile({ code, redirectUri })
+    const user    = await findOrCreateMicrosoftUser(profile)
+    const token   = generateToken(user)
+
+    const safeUser = encodeURIComponent(JSON.stringify({
+      id: user.id, fullName: user.fullName, email: user.email, role: user.role,
+      avatarUrl: user.avatarUrl || null, createdAt: user.createdAt || null,
+      hasPassword: Boolean(user.passwordHash), authProvider: "microsoft",
+    }))
+    return res.redirect(302, `${frontend}/auth/microsoft/return#token=${encodeURIComponent(token)}&user=${safeUser}&return_to=${encodeURIComponent(returnTo)}`)
+  } catch (err) {
+    console.error("[microsoft-oauth] exchange failed:", err?.response?.data?.error || err?.message || "unknown")
+    return res.redirect(302, `${frontend}/login?microsoft=exchange_failed`)
+  }
+})
+
+/* ════════════════════════════════════════════════════════════════════════
+ * FACEBOOK OAUTH — redirect flow
+ * ════════════════════════════════════════════════════════════════════════ */
+
+const FB_STATE_COOKIE  = "fb_oauth_state"
+const FB_RETURN_COOKIE = "fb_oauth_return"
+
+function getFacebookRedirectUri(req) {
+  if (process.env.FACEBOOK_OAUTH_REDIRECT_URI) return process.env.FACEBOOK_OAUTH_REDIRECT_URI
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "https"
+  const host  = req.headers["x-forwarded-host"]  || req.headers.host
+  return `${proto}://${host}/api/auth/facebook/callback`
+}
+
+const startFacebookOAuth = asyncHandler(async (req, res) => {
+  const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  if (!process.env.FACEBOOK_CLIENT_ID || !process.env.FACEBOOK_CLIENT_SECRET) {
+    console.error("[facebook-oauth] /start refused — missing credentials")
+    return res.redirect(302, `${frontend}/login?facebook=server_misconfigured`)
+  }
+
+  try {
+    const state = crypto.randomBytes(32).toString("hex")
+    const redirectUri = getFacebookRedirectUri(req)
+    let returnTo = String(req.query.return_to || "/dashboard")
+    if (!returnTo.startsWith("/") || returnTo.includes("//") || returnTo.includes(":")) returnTo = "/dashboard"
+
+    const isSecure = (req.headers["x-forwarded-proto"] || req.protocol) === "https"
+    const cookieOpts = { httpOnly: true, secure: isSecure, sameSite: "lax", maxAge: 5 * 60 * 1000, path: "/" }
+    res.cookie(FB_STATE_COOKIE,  state,    cookieOpts)
+    res.cookie(FB_RETURN_COOKIE, returnTo, cookieOpts)
+
+    const authUrl = buildFacebookAuthUrl({ state, redirectUri })
+    return res.redirect(302, authUrl)
+  } catch (err) {
+    const frontend2 = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+    return res.redirect(302, `${frontend2}/login?facebook=unavailable`)
+  }
+})
+
+const facebookOAuthCallback = asyncHandler(async (req, res) => {
+  const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  if (req.query.error || req.query.error_code) {
+    res.clearCookie(FB_STATE_COOKIE,  { path: "/" })
+    res.clearCookie(FB_RETURN_COOKIE, { path: "/" })
+    return res.redirect(302, `${frontend}/login?facebook=cancelled`)
+  }
+
+  const cookies     = parseRequestCookies(req)
+  const code        = String(req.query.code  || "")
+  const stateQuery  = String(req.query.state || "")
+  const stateCookie = String(cookies[FB_STATE_COOKIE] || "")
+  const returnTo    = String(cookies[FB_RETURN_COOKIE] || "/dashboard")
+
+  res.clearCookie(FB_STATE_COOKIE,  { path: "/" })
+  res.clearCookie(FB_RETURN_COOKIE, { path: "/" })
+
+  if (!code || !stateQuery || !stateCookie || stateQuery !== stateCookie) {
+    return res.redirect(302, `${frontend}/login?facebook=state_mismatch`)
+  }
+
+  const redirectUri = getFacebookRedirectUri(req)
+  try {
+    const profile = await exchangeFacebookCodeForProfile({ code, redirectUri })
+    const user    = await findOrCreateFacebookUser(profile)
+    const token   = generateToken(user)
+
+    const safeUser = encodeURIComponent(JSON.stringify({
+      id: user.id, fullName: user.fullName, email: user.email, role: user.role,
+      avatarUrl: user.avatarUrl || null, createdAt: user.createdAt || null,
+      hasPassword: Boolean(user.passwordHash), authProvider: "facebook",
+    }))
+    return res.redirect(302, `${frontend}/auth/facebook/return#token=${encodeURIComponent(token)}&user=${safeUser}&return_to=${encodeURIComponent(returnTo)}`)
+  } catch (err) {
+    console.error("[facebook-oauth] exchange failed:", err?.response?.data?.error || err?.message || "unknown")
+    return res.redirect(302, `${frontend}/login?facebook=exchange_failed`)
+  }
+})
+
 module.exports = {
   signup,
   login,
   googleLogin,
-  // OAuth redirect flow — primary path going forward
+  // Google OAuth redirect flow
   startGoogleOAuth,
   googleOAuthCallback,
+  // Microsoft OAuth redirect flow
+  startMicrosoftOAuth,
+  microsoftOAuthCallback,
+  // Facebook OAuth redirect flow
+  startFacebookOAuth,
+  facebookOAuthCallback,
   me,
   forgotPassword,
   resetPassword,

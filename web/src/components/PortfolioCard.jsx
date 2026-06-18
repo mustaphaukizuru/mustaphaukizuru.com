@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { Sparkles, ChevronRight, ExternalLink } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
+import SpotlightCard from "./motion/SpotlightCard"
 /**
  * PortfolioCard · shared project card
  *
@@ -111,7 +112,9 @@ export default function PortfolioCard({
       variants={fadeUp}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      className="group flex flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:border-l-[4px] hover:border-l-violet hover:shadow-[0_20px_48px_rgba(93,63,211,0.10)]"
+    >
+    <SpotlightCard
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:border-l-[4px] hover:border-l-violet hover:shadow-[0_20px_48px_rgba(93,63,211,0.10)]"
     >
       {/* Image area, crossfade carousel */}
       <div className="relative aspect-video overflow-hidden bg-violet-pale">
@@ -168,7 +171,7 @@ export default function PortfolioCard({
                 key={i}
                 type="button"
                 onClick={() => setCurrentIdx(i)}
-                aria-label={"Show image " + (i + 1)}
+                aria-label={t("components.imageAria", { index: i + 1 })}
                 className={
                   "h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white " +
                   (i === currentIdx
@@ -235,6 +238,7 @@ export default function PortfolioCard({
           ) : null}
         </div>
       </div>
+    </SpotlightCard>
     </motion.article>
   )
 }

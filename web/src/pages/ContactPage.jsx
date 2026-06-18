@@ -34,6 +34,7 @@ import SocialLinks, { CONTACT_SOCIALS } from "../components/SocialLinks"
 import FloatingLabelInput    from "../components/forms/FloatingLabelInput"
 import FloatingLabelTextarea from "../components/forms/FloatingLabelTextarea"
 import AuthErrorBanner       from "../components/auth/AuthErrorBanner"
+import Confetti from "../components/motion/Confetti"
 
 /* Social icons + animations are owned by the shared SocialLinks component
  * imported above — no per-page glyph copies are required. */
@@ -481,8 +482,9 @@ function ContactSection() {
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
-                className="flex flex-col items-center gap-4 py-10 text-center sm:py-14"
+                className="relative flex flex-col items-center gap-4 py-10 text-center sm:py-14"
               >
+                <Confetti fire={success} />
                 <motion.div
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}

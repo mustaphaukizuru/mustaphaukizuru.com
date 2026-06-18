@@ -20,6 +20,8 @@ import {
 import Seo from "../components/seo/Seo"
 import BookingCalendar from "../components/booking/BookingCalendar"
 import { apiGet } from "../lib/api"
+import avatarTerracottaWebp from "../assets/avatar/avatar-terracotta.webp"
+import avatarTerracottaPng from "../assets/avatar/avatar-terracotta.png"
 
 const fadeUp = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } }
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
@@ -31,6 +33,45 @@ function HeroBadge() {
       <Sparkles className="h-3 w-3" />
       {t("book.badge")}
     </span>
+  )
+}
+
+/* HostCard · "who you'll meet" trust block — real photo at the conversion
+ * point. Consulting-booking convention: showing the actual person you'll
+ * speak with measurably lowers no-show/abandon rates vs. an anonymous
+ * calendar. Uses the canonical brand avatar (terracotta variant — §04
+ * humanity tone for founder moments) over the violet anchor banner. */
+function HostCard() {
+  const { t } = useTranslation("contact")
+  return (
+    <div className="overflow-hidden rounded-xl border border-violet/15 bg-white shadow-[0_12px_35px_rgba(93,63,211,0.08)]">
+      {/* Violet anchor banner + overlapping circular brand avatar. The webp
+          (~14 kB) is the canonical asset; png is the fallback for the rare
+          browser without webp support. */}
+      <div className="h-16 bg-gradient-to-r from-violet via-violet-deep to-charcoal-80" aria-hidden="true" />
+      <div className="-mt-12 flex justify-center">
+        <picture>
+          <source srcSet={avatarTerracottaWebp} type="image/webp" />
+          <img
+            src={avatarTerracottaPng}
+            alt={t("book.host.photoAlt")}
+            width="96"
+            height="96"
+            className="h-24 w-24 rounded-full bg-white object-cover ring-4 ring-white shadow-[0_10px_28px_rgba(26,27,35,0.18)]"
+          />
+        </picture>
+      </div>
+      <div className="p-4 pt-2.5 text-center">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet/70">
+          {t("book.host.eyebrow")}
+        </div>
+        <div className="mt-1 text-[15px] font-bold text-violet">{t("book.host.name")}</div>
+        <div className="mt-0.5 text-[12px] text-charcoal/70">{t("book.host.role")}</div>
+        <p className="mt-2.5 border-t border-charcoal/8 pt-2.5 text-[12px] leading-5 text-charcoal/70">
+          {t("book.host.line")}
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -155,6 +196,9 @@ export default function BookConsultationPage() {
           {/* Trust column · i18n-keyed so order is stable and the labels
               come from the namespace. */}
           <motion.aside variants={stagger} initial="hidden" animate="show" className="space-y-3">
+            <motion.div variants={fadeUp}>
+              <HostCard />
+            </motion.div>
             {trustItems.map(({ icon, title: tTitle, body }) => (
               <motion.div key={tTitle} variants={fadeUp}>
                 <TrustItem icon={icon} title={tTitle} body={body} />

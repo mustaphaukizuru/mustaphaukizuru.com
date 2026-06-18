@@ -26,7 +26,14 @@
     "welcomeBack": "Welcome back,",
     "milestoneThree": "Milestone 3",
     "cardConsulting": "Consulting",
-    "cardStack": "Stack"
+    "cardStack": "Stack",
+    "trending": "47 projects shipped ↑",
+    "subtitlePre": "Full-stack engineering, consulting, and STEM education for",
+    "subtitlePost": " — from LATAM, for the world.",
+    "rotateSchools": "schools",
+    "rotateBusinesses": "businesses",
+    "rotateSmes": "SMEs",
+    "rotateCreators": "creators"
   },
   "sections": {
     "audiences": {
@@ -76,6 +83,13 @@
     },
     "reviews": {
       "title": "Recent reviews"
+    },
+    "blog": {
+      "eyebrow": "From the blog",
+      "title": "Thinking out loud.",
+      "subtitle": "Strategy, code, and education — written for the people building things that matter.",
+      "cta": "All articles",
+      "read": "Read"
     }
   },
   "audiences": {
@@ -126,6 +140,34 @@
     "independentProfessional": "Independent Professional",
     "itCoordinator": "IT Coordinator"
   },
+  "stats": {
+    "eyebrow": "By the numbers",
+    "yearsLabel": "Years shipping production work",
+    "yearsHint": "Rwanda · Turkey · Ethiopia · Mexico",
+    "projectsLabel": "Projects shipped",
+    "projectsHint": "Web · SaaS · EdTech",
+    "countriesLabel": "Countries lived & worked",
+    "countriesHint": "EN · ES · TR · KIN",
+    "studentsLabel": "Students taught",
+    "studentsHint": "CS & STEM"
+  },
+  "newsletter": {
+    "eyebrow": "Weekly insights",
+    "headlinePart1": "Stay ahead",
+    "headlinePart2": "of the tech curve.",
+    "body": "Every week: one actionable tech tip, one tool I’m actually using, and one insight from the classroom or the codebase. No filler.",
+    "freeCallout": "Free · No spam · Unsubscribe any time",
+    "placeholder": "your@email.com",
+    "inputAriaLabel": "Your email address",
+    "cta": "Subscribe free",
+    "submitting": "Subscribing…",
+    "successMessage": "You’re in! Check your inbox.",
+    "validationError": "Please enter a valid email address.",
+    "serverError": "Something went wrong. Please try again.",
+    "trust1": "4 countries",
+    "trust2": "STEM educator",
+    "trust3": "8+ years shipping"
+  },
   "cta": {
     "eyebrow": "Let’s start",
     "titleLine1": "Let’s get",
@@ -133,5 +175,11 @@
     "body": "Custom software, ready-made digital solutions, and senior consulting, all under one roof. First call is free, no pressure.",
     "ctaBook": "Book a free call",
     "ctaStore": "Browse the store"
+  },
+  "techStack": {
+    "eyebrow": "My stack",
+    "titleLead": "The tools I",
+    "titleAccent": "build with",
+    "subtitle": "Frontend to infrastructure — a senior, full-stack toolkit chosen for systems that ship reliably and scale."
   }
 }

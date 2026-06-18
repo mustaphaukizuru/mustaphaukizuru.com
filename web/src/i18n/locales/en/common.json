@@ -337,10 +337,18 @@
   },
   "components": {
     "visitSite": "Visit Site",
+    "imageAria": "Show image {{index}}",
     "clearHistory": "Clear history",
     "spokenLanguages": "Levels follow the Common European Framework of Reference for Languages (CEFR).",
     "learnMore": "Learn more",
     "mostPopular": "Most popular"
+  },
+  "fab": {
+    "openLabel": "Quick contact",
+    "closeLabel": "Close contact menu",
+    "emailLabel": "Send an email",
+    "bookLabel": "Book a consultation",
+    "contactLabel": "Contact page"
   },
   "bookingCalendar": {
     "stepDate": "Date",

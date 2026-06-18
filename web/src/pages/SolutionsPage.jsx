@@ -35,6 +35,8 @@ import {
 import { AUDIENCE_LABELS } from "../data/servicesCatalogue"
 import BentoCell from "../components/motion/BentoCell"
 import Reveal    from "../components/motion/Reveal"
+import BorderBeam from "../components/motion/BorderBeam"
+import MagneticButton from "../components/motion/MagneticButton"
 
 /* ── Local helpers ──────────────────────────────────────────────────────── */
 const formatUsd = (n) => `$${Number(n).toLocaleString("en-US")}`
@@ -425,19 +427,26 @@ function PackagesBento({ activeAudience, onAudienceChange, segmented }) {
               )}
               {segmented.map((pkg, idx) => {
                 const tone = AUDIENCE_TONES[idx % AUDIENCE_TONES.length]
-                // First tile spans 2 cols on lg+ to create a proper bento
-                // asymmetry; remaining tiles are 1x1.
                 const span = idx === 0 ? "lg:col-span-2 lg:row-span-2" : ""
                 return (
-                  <BentoCell
-                    key={pkg.id || pkg.slug}
-                    to={`/solutions/${pkg.slug}`}
-                    eyebrow={pkg.audience.split(",").join(" · ")}
-                    title={pkg.name}
-                    description={pkg.tagline}
-                    tone={tone}
-                    span={span}
-                  />
+                  <div key={pkg.id || pkg.slug} className={`relative ${span}`}>
+                    <BentoCell
+                      to={`/solutions/${pkg.slug}`}
+                      eyebrow={pkg.audience.split(",").join(" · ")}
+                      title={pkg.name}
+                      description={pkg.tagline}
+                      tone={tone}
+                    />
+                    {/* BorderBeam only on the lead tile */}
+                    {idx === 0 && (
+                      <BorderBeam
+                        colorFrom="#5D3FD3"
+                        colorTo="#E9C46A"
+                        duration={10}
+                        size={180}
+                      />
+                    )}
+                  </div>
                 )
               })}
             </motion.div>
@@ -884,19 +893,23 @@ export default function SolutionsPage() {
                 </p>
 
                 <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-                  <Link
-                    to="/book"
-                    className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-[13.5px] font-semibold !text-violet shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 sm:px-7 sm:py-3.5 sm:text-[14.5px]"
-                  >
-                    {t("cta.ctaPrimary")}
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                  </Link>
-                  <Link
-                    to="/services"
-                    className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/40 px-6 py-3 text-[13.5px] font-semibold !text-white transition hover:-translate-y-0.5 hover:border-white/70 hover:bg-white/[0.10] sm:px-7 sm:py-3.5 sm:text-[14.5px]"
-                  >
-                    {t("cta.ctaSecondary")}
-                  </Link>
+                  <MagneticButton className="w-full sm:w-auto">
+                    <Link
+                      to="/book"
+                      className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-[13.5px] font-semibold !text-violet shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 sm:w-auto sm:px-7 sm:py-3.5 sm:text-[14.5px]"
+                    >
+                      {t("cta.ctaPrimary")}
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                    </Link>
+                  </MagneticButton>
+                  <MagneticButton className="w-full sm:w-auto">
+                    <Link
+                      to="/services"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border-2 border-white/40 px-6 py-3 text-[13.5px] font-semibold !text-white transition hover:-translate-y-0.5 hover:border-white/70 hover:bg-white/[0.10] sm:w-auto sm:px-7 sm:py-3.5 sm:text-[14.5px]"
+                    >
+                      {t("cta.ctaSecondary")}
+                    </Link>
+                  </MagneticButton>
                 </div>
               </div>
 

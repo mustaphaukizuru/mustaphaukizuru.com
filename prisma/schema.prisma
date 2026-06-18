@@ -198,6 +198,8 @@ model User {
   passwordHash           String?
   role                   String           @default("member")
   googleId               String?          @unique
+  microsoftId            String?          @unique
+  facebookId             String?          @unique
   avatarUrl              String?
   authProvider           String           @default("local")
   phone                  String?

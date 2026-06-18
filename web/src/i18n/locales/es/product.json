@@ -15,7 +15,18 @@
     "license": "Licencia",
     "compatibility": "Compatibilidad",
     "category": "Categoría",
-    "delivery": "Entrega"
+    "delivery": "Entrega",
+    "files": "Archivos",
+    "fileCount_one": "{{count}} archivo",
+    "fileCount_other": "{{count}} archivos"
+  },
+  "dates": {
+    "today": "hoy",
+    "yesterday": "ayer",
+    "daysAgo_one": "hace {{count}} día",
+    "daysAgo_other": "hace {{count}} días",
+    "weeksAgo_one": "hace {{count}} semana",
+    "weeksAgo_other": "hace {{count}} semanas"
   },
   "actions": {
     "addToCart": "Agregar al carrito",

@@ -162,6 +162,13 @@
       "item1": "Una conversación enfocada en tus objetivos y restricciones",
       "item2": "Aportes técnicos honestos, de nivel experto, accionables",
       "item3": "Próximos pasos claros, sin presión, sin relleno"
+    },
+    "host": {
+      "eyebrow": "Con quién hablarás",
+      "name": "Mustapha Ukizuru",
+      "role": "Ingeniero de Software Full-Stack · Educador",
+      "line": "Cada llamada es directamente conmigo — sin equipo de ventas, sin intermediarios.",
+      "photoAlt": "Mustapha Ukizuru, el consultor con quien hablarás en la llamada"
     }
   },
   "bookingCalendar": {

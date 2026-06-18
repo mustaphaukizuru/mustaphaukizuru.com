@@ -12,6 +12,11 @@ import { authFetch, API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"
 import { fetchMyOrderById } from "../services/orderService"
 import { getFileTypeStyles } from "../lib/fileTypeIcons"
+import Confetti from "../components/motion/Confetti"
+
+/* Confetti palette tuned for the Royal Violet hero band — violet pieces
+ * would vanish on the violet surface, so swap in a lighter lavender. */
+const HERO_CONFETTI_COLORS = ["#FFFFFF", "#E9C46A", "#34D399", "#B9A6F2", "#7DD3FC"]
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  CheckoutSuccessPage · F08.C · Batch 5
@@ -195,11 +200,12 @@ export default function CheckoutSuccessPage() {
       {/* Hero band — inline backgroundColor guarantees the right dark/violet
           surface even if Tailwind's JIT misses the dynamic class names. */}
       <div
-        className="py-16 text-center"
+        className="relative py-16 text-center"
         style={{
           backgroundColor: isFailed ? "#1A1B23" : polling ? "#1A1B23" : "#5D3FD3",
         }}
       >
+        <Confetti fire={!isFailed && !polling} colors={HERO_CONFETTI_COLORS} />
         <motion.div
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

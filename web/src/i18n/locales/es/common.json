@@ -337,6 +337,7 @@
   },
   "components": {
     "visitSite": "Visitar sitio",
+    "imageAria": "Mostrar imagen {{index}}",
     "clearHistory": "Limpiar historial",
     "spokenLanguages": "Los niveles siguen el Marco Común Europeo de Referencia para las Lenguas (MCER).",
     "learnMore": "Saber más",
@@ -354,5 +355,12 @@
     "minutes": "minutos",
     "optionalTag": "(opcional)",
     "confirmBooking": "Confirmar reserva"
+  },
+  "fab": {
+    "openLabel": "Contacto rápido",
+    "closeLabel": "Cerrar menú de contacto",
+    "emailLabel": "Enviar un correo",
+    "bookLabel": "Reservar consultoría",
+    "contactLabel": "Página de contacto"
   }
 }
