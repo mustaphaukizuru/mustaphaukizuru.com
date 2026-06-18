@@ -1188,14 +1188,6 @@ export default function ServicesPage() {
                       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                     </Link>
                   </MagneticButton>
-                  <MagneticButton className="w-full sm:w-auto">
-                    <Link
-                      to="/solutions"
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-white/30 bg-transparent px-6 py-3 text-[13.5px] font-semibold !text-white transition hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10 sm:w-auto sm:px-7 sm:py-3.5 sm:text-[14.5px]"
-                    >
-                      {t("finalCta.ctaSecondary")}
-                    </Link>
-                  </MagneticButton>
                 </div>
               </div>
 

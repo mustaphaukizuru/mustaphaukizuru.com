@@ -45,19 +45,6 @@ export const staticSeoEsByRoute = {
     ],
   },
 
-  "/solutions": {
-    title: "Soluciones Digitales para Escuelas, PyMES y Profesionales",
-    description:
-      "Soluciones digitales a la medida: infraestructura IT escolar, EdTech, sitios web, sistemas para PyMES y programas STEM. México, LATAM e internacional.",
-    keywords: [
-      "soluciones digitales escuelas México",
-      "infraestructura IT escolar",
-      "implementación programas STEM",
-      "software empresarial PyMES",
-      "soluciones EdTech LATAM",
-    ],
-  },
-
   "/services": {
     title: "Servicios Tecnológicos · Consultoría IT · EdTech",
     description:

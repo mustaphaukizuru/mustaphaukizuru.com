@@ -38,22 +38,6 @@ export const staticSeoByRoute = {
     ],
   },
 
-  "/solutions": {
-    title: "Digital Solutions for Schools, SMEs & Professionals",
-    description:
-      "Tailored digital solutions: school IT infrastructure, EdTech, custom websites, business systems, STEM programs. Mexico, LATAM, international.",
-    type: "website",
-    image: absoluteUrl("/og/og-solutions.png"),
-    schemaType: "CollectionPage",
-    keywords: [
-      "digital solutions for schools Mexico",
-      "school IT infrastructure",
-      "STEM program implementation",
-      "custom business software Mexico",
-      "EdTech solutions LATAM",
-    ],
-  },
-
   "/services": {
     title: "Technology Services · IT Consulting · EdTech · School IT",
     description:
@@ -194,7 +178,6 @@ export const staticSeoByRoute = {
 export const pageSeo = {
   home: staticSeoByRoute["/"],
   about: staticSeoByRoute["/about"],
-  solutions: staticSeoByRoute["/solutions"],
   services: staticSeoByRoute["/services"],
   store: staticSeoByRoute["/store"],
   portfolio: staticSeoByRoute["/portfolio"],

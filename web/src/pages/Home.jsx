@@ -15,7 +15,7 @@ import { fetchProducts } from "../services/productService"
 import { fetchFeaturedServices } from "../services/serviceService"
 import { fetchFeaturedPortfolio } from "../services/portfolioService"
 import { API_BASE_URL, apiRequest } from "../lib/api"
-import { audiences, solutions, processSteps, testimonials } from "../data/homeData"
+import { audiences, processSteps, testimonials } from "../data/homeData"
 import ProductCard from "../components/ProductCard"
 import HomeHero from "../components/heroes/HomeHero" // V2, universal hero
 import FeaturedReviewsRibbon from "../components/FeaturedReviewsRibbon"
@@ -114,87 +114,6 @@ function Audiences() {
             </motion.div>
           ))}
         </motion.div>
-      </Container>
-    </section>
-  )
-}
-
-/* ─────────────────── SOLUTIONS OVERVIEW ─────────────────── */
-function Solutions() {
-  const { t } = useTranslation("home")
-  return (
-    // Inline background guarantees the dark surface even if `bg-charcoal`
-    // utility isn't generated (was the cause of invisible white-on-cream text).
-    <section className="relative isolate overflow-hidden py-20 lg:py-28" style={{ backgroundColor: "#1A1B23" }}>
-      <Meteors number={20} />
-      <Container>
-        <div className="mb-14 flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-20">
-          <div className="lg:max-w-[380px]">
-            {/* Eyebrow, standardized shape; tone="violet-inverse" pattern for dark surfaces */}
-            <span
-              className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
-              style={{ backgroundColor: "rgba(233, 196, 106, 0.14)", color: "#E9C46A", border: "1px solid rgba(233, 196, 106, 0.30)" }}
-            >
-              {t("sections.solutions.eyebrow")}
-            </span>
-            <h2
-              className="mt-4 text-[32px] font-bold leading-[1.05] tracking-tight sm:text-[44px] lg:text-[48px]"
-              style={{ color: "#FFFFFF" }}
-            >
-              {t("sections.solutions.title")}
-            </h2>
-            <p className="mt-4 text-[15px] leading-[1.65]" style={{ color: "rgba(255, 255, 255, 0.78)" }}>
-              {t("sections.solutions.subtitle")}
-            </p>
-            {/* Secondary outline button — Terracotta (yellow) border,
-                white text, Royal Violet arrow icon. Subtle terracotta wash on hover. */}
-            <Link
-              to="/solutions"
-              className="group mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-3 text-[14px] font-semibold transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                color: "#FFFFFF",
-                backgroundColor: "transparent",
-                border: "2px solid #E9C46A",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(233, 196, 106, 0.12)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
-            >
-              {t("sections.solutions.cta")}
-              {/* Violet Light #8B6FE8 — required for WCAG on dark surfaces
-                  per Brand v3 § 04 ⚠ rule. #5D3FD3 fails 1.1:1 on charcoal. */}
-              <ArrowRight
-                className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                style={{ color: "#8B6FE8" }}
-                aria-hidden="true"
-              />
-            </Link>
-          </div>
-
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-60px" }}
-            className="grid flex-1 grid-cols-2 gap-4 sm:grid-cols-3"
-          >
-            {solutions.map(({ titleKey, icon: Icon }) => (
-              <motion.div
-                key={titleKey}
-                variants={fadeUp}
-                className="group flex flex-col gap-4 rounded-xl p-5 transition-all hover:-translate-y-0.5"
-                style={{ backgroundColor: "rgba(255, 255, 255, 0.06)", border: "1px solid rgba(255, 255, 255, 0.10)" }}
-              >
-                <div
-                  className="flex h-11 w-11 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: "rgba(93, 63, 211, 0.40)", color: "#E9C46A" }}
-                >
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <p className="text-[14px] font-semibold leading-[1.4] text-white">{t(titleKey)}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
       </Container>
     </section>
   )
@@ -880,7 +799,6 @@ export default function Home() {
       <RevealSection><HomeStatsStrip /></RevealSection>
 
       <RevealSection><Audiences /></RevealSection>
-      <RevealSection><Solutions /></RevealSection>
       <RevealSection><FeaturedProducts /></RevealSection>
       <RevealSection><FeaturedServices /></RevealSection>
       <RevealSection><FeaturedPortfolio /></RevealSection>

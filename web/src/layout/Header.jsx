@@ -66,8 +66,6 @@ const NAV_LINKS = [
   { nameKey: "header.home",      to: "/",          icon: HomeIcon },
   { nameKey: "header.about",     to: "/about",     icon: User,
     prefetch: () => import("../pages/AboutPage") },
-  { nameKey: "header.solutions", to: "/solutions", icon: Layers,
-    prefetch: () => import("../pages/SolutionsPage") },
   { nameKey: "header.services",  to: "/services",  icon: Briefcase,
     prefetch: () => import("../pages/ServicesPage") },
   { nameKey: "header.contact",   to: "/contact",   icon: Mail,

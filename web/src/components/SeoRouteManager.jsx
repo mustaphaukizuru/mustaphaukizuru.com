@@ -33,8 +33,8 @@ function buildHomeSchemas() {
     {
       "@context": "https://schema.org",
       "@type": "SiteNavigationElement",
-      name: ["Home", "About", "Solutions", "Services", "Store", "Contact"],
-      url: ["/", "/about", "/solutions", "/services", "/store", "/contact"].map(absoluteUrl),
+      name: ["Home", "About", "Services", "Store", "Contact"],
+      url: ["/", "/about", "/services", "/store", "/contact"].map(absoluteUrl),
     },
   ];
 }
