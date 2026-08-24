@@ -17,7 +17,7 @@
         "formFactor": "desktop",
         "throttlingMethod": "simulate"
       },
-      "startServerCommand": "node -e \"process.env.PORT=5098;process.env.DISABLE_CRON=1;require('./src/server')\"",
+      "startServerCommand": "node -e \"process.env.PORT=5098;require('./scripts/lighthouse-server')\"",
       "startServerReadyPattern": "Server running on port",
       "startServerReadyTimeout": 60000
     },

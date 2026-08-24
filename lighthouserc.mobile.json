@@ -23,7 +23,7 @@
           "disabled": false
         }
       },
-      "startServerCommand": "node -e \"process.env.PORT=5097;process.env.DISABLE_CRON=1;require('./src/server')\"",
+      "startServerCommand": "node -e \"process.env.PORT=5097;require('./scripts/lighthouse-server')\"",
       "startServerReadyPattern": "Server running on port",
       "startServerReadyTimeout": 60000
     },
