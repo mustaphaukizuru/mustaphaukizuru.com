@@ -46,6 +46,12 @@ const createOrder = asyncHandler(async (req, res) => {
   })
   if (!order) return res.status(404).json({ success: false, message: "Order not found" })
 
+  // Security · only the order's owner (or an admin) may start payment on it.
+  // Mirrors mercadoPagoController.getPaymentStatus.
+  if (order.userId && order.userId !== req.user?.id && req.user?.role !== "admin") {
+    return res.status(403).json({ success: false, message: "Access denied" })
+  }
+
   // Block creating a PayPal order for an order that's already paid.
   if (order.status === "paid" || order.status === "completed") {
     return res.status(409).json({ success: false, message: "Order is already paid" })

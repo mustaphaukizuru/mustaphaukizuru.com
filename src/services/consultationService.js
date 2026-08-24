@@ -9,15 +9,13 @@
 //   - complete    Host marks a meeting as completed (post-event)
 //   - markNoShow  Host marks no-show
 //
-// Concurrency (Booking Hardening v1):
-//   The previous @@unique([assignedAdminId, scheduledAt]) blocked only
-//   same-start collisions. It is replaced by a PostgreSQL EXCLUDE constraint
-//   on tstzrange(scheduledAt, endsAt) named `consultation_no_overlap`
-//   (see prisma/migrations/<ts>_booking_hardening_v1/migration.sql).
-//   Two simultaneous booking attempts that overlap by any amount → exactly
-//   one succeeds, the other surfaces as Postgres SQLSTATE 23P01
-//   (exclusion_violation) → mapped to 409 SLOT_OVERLAP by the
-//   classifyBookingWriteError() helper below.
+// Concurrency:
+//   The DB is MySQL. @@unique([assignedAdminId, scheduledAt]) on Consultation
+//   guarantees two simultaneous bookings of the same slot for the same host
+//   cannot both succeed — the loser gets Prisma P2002, mapped to 409
+//   SLOT_UNAVAILABLE by classifyBookingWriteError() below. Slots offered to
+//   clients are already non-overlapping (availabilityService), so a unique
+//   start time per host is sufficient.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const crypto  = require("crypto")

@@ -260,16 +260,21 @@ async function markOrderPaidByMP({ orderId, paymentId, status, payload, gatewayA
     }
 
     const finalOrderStatus =
-      status === "approved"                            ? "paid"    :
-      status === "pending" || status === "in_process"  ? "pending" :
-                                                          "failed"
+      status === "approved"                               ? "paid"     :
+      status === "pending" || status === "in_process"     ? "pending"  :
+      status === "refunded" || status === "charged_back"  ? "refunded" :
+                                                             "failed"
 
-    // State-regression guard · if the order is already in a terminal-paid
-    // state, refuse to downgrade to pending/failed from a late or
-    // out-of-order webhook delivery. Update the Payment row but leave the
-    // Order alone.
-    const isAlreadyTerminalPaid = current.status === "paid" || current.status === "completed"
-    const shouldRegress = isAlreadyTerminalPaid && finalOrderStatus !== "paid"
+    // State-regression guard · once an order is in a terminal state
+    // (paid, refunded, cancelled) a late or out-of-order webhook must not
+    // rewrite it. In particular, after refundService marks the order
+    // `refunded`, MP sends payment.updated{status:"refunded"} — that must
+    // NOT flip the order to `failed`. Update the Payment row but leave the
+    // Order alone. Refund bookkeeping is owned by refundService, so a
+    // `refunded` webhook is never applied to the Order here either.
+    const TERMINAL = new Set(["paid", "completed", "refunded", "cancelled"])
+    const shouldRegress = TERMINAL.has(current.status) && finalOrderStatus !== "paid"
+      || finalOrderStatus === "refunded"
 
     const order = shouldRegress
       ? await tx.order.findUnique({ where: { id: orderId }, include: { items: true } })
@@ -289,8 +294,9 @@ async function markOrderPaidByMP({ orderId, paymentId, status, payload, gatewayA
       amount:               order.totalAmount,
       currency:             (order.currency || "MXN").toUpperCase(),
       paymentStatus:
-        finalOrderStatus === "paid"    ? "paid"    :
-        finalOrderStatus === "pending" ? "pending" : "failed",
+        finalOrderStatus === "paid"     ? "paid"     :
+        finalOrderStatus === "pending"  ? "pending"  :
+        finalOrderStatus === "refunded" ? "refunded" : "failed",
       paidAt:        finalOrderStatus === "paid" ? new Date() : null,
       failureReason: finalOrderStatus === "failed" ? `MP status: ${status}` : null,
     }

@@ -268,6 +268,38 @@ describe("markOrderPaidByMP — idempotency + state-regression guard", () => {
     expect(prisma.__tx.payment.create.mock.calls[0][0].data.paymentStatus).toBe("failed")
   })
 
+  test("'refunded' webhook replay on an already-refunded order leaves it refunded (not failed)", async () => {
+    prisma.__tx.order.findUnique
+      .mockResolvedValueOnce(buildCurrentOrder({ status: "refunded" }))
+      .mockResolvedValueOnce({ ...buildPaidOrderWithItems(), status: "refunded" })
+
+    const result = await markOrderPaidByMP({
+      orderId:         "order_1",
+      paymentId:       "MP-PAY-1",
+      status:          "refunded",
+      gatewayAmount:   "129.00",
+      gatewayCurrency: "MXN",
+    })
+
+    expect(result.order.status).toBe("refunded")
+    expect(prisma.__tx.order.update).not.toHaveBeenCalled()
+    expect(prisma.__tx.payment.create.mock.calls[0][0].data.paymentStatus).toBe("refunded")
+  })
+
+  test("'charged_back' webhook on a paid order does NOT flip it to failed", async () => {
+    prisma.__tx.order.findUnique
+      .mockResolvedValueOnce(buildCurrentOrder({ status: "paid" }))
+      .mockResolvedValueOnce(buildPaidOrderWithItems())
+
+    const result = await markOrderPaidByMP({
+      orderId: "order_1", paymentId: "MP-PAY-2", status: "charged_back",
+      gatewayAmount: "129.00", gatewayCurrency: "MXN",
+    })
+
+    expect(result.order.status).toBe("paid")
+    expect(prisma.__tx.order.update).not.toHaveBeenCalled()
+  })
+
   test("throws ORDER_NOT_FOUND when the orderId doesn't exist", async () => {
     prisma.__tx.order.findUnique.mockResolvedValueOnce(null)
 

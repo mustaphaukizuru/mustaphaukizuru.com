@@ -43,17 +43,29 @@ const imageFilter = (req, file, cb) => {
   else cb(new Error("Only image files allowed"), false)
 }
 
-// Blocked extensions for media uploads
-const MEDIA_BLOCKED_EXT = new Set([
-  ".php",".php3",".php4",".php5",".phtml",
-  ".js",".mjs",".cjs",".ts",".jsx",".tsx",
-  ".sh",".bash",".py",".rb",".pl",".exe",".com",".bat",".cmd",
-  ".htaccess",".htpasswd",".svg",  // SVG can contain JS
+// Security · ALLOWLIST for media uploads. Files land under /images/media and
+// are served by express.static with a Content-Type derived from extension,
+// so anything the browser will execute or render as a document (.html,
+// .svg, .js, .php, …) is an XSS vector. Extension AND declared MIME must
+// both match one of these.
+const MEDIA_ALLOWED = new Map([
+  [".jpg",  ["image/jpeg"]],
+  [".jpeg", ["image/jpeg"]],
+  [".png",  ["image/png"]],
+  [".gif",  ["image/gif"]],
+  [".webp", ["image/webp"]],
+  [".avif", ["image/avif"]],
+  [".mp4",  ["video/mp4"]],
+  [".webm", ["video/webm"]],
+  [".mp3",  ["audio/mpeg"]],
+  [".pdf",  ["application/pdf"]],
+  [".zip",  ["application/zip", "application/x-zip-compressed"]],
 ])
 function mediaFilter(req, file, cb) {
-  const ext = path.extname(file.originalname).toLowerCase()
-  if (MEDIA_BLOCKED_EXT.has(ext)) {
-    return cb(new Error(`File type "${ext}" not permitted in media library`))
+  const ext   = path.extname(file.originalname).toLowerCase()
+  const mimes = MEDIA_ALLOWED.get(ext)
+  if (!mimes || !mimes.includes(String(file.mimetype).toLowerCase())) {
+    return cb(new Error(`File type "${ext || file.mimetype}" not permitted in media library`))
   }
   cb(null, true)
 }

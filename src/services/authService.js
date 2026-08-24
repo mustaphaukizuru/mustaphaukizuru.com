@@ -140,16 +140,9 @@ async function loginUser({ email, password, rememberMe = false }) {
     isMatch = false;
   }
 
-  // legacy fallback: plain-text password stored in DB
-  if (!isMatch && user.passwordHash === password) {
-    isMatch = true;
-
-    const upgradedHash = await bcrypt.hash(password, 12);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { passwordHash: upgradedHash },
-    });
-  }
+  // Security · no plaintext fallback. Rows that are not bcrypt hashes are
+  // invalidated by scripts/invalidate-plaintext-passwords.js; those users
+  // must use "forgot password".
 
   if (!isMatch) {
     const err = new Error("Invalid email or password");

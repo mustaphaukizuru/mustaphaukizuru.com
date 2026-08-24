@@ -13,6 +13,7 @@ const prisma = require("../lib/prisma")
 const layout = require("./emailLayoutService")
 const { renderBlocks } = require("./emailContentRenderer")
 const emailService = require("./emailService")
+const newsletterService = require("./newsletterService")
 
 function serializeCampaign(c) {
   return {
@@ -107,17 +108,28 @@ async function deleteCampaign(id) {
 async function resolveAudience(audience, recipientEmails) {
   if (audience === "newsletter") {
     const subs = await prisma.newsletterSubscriber.findMany({
-      where: { status: { in: ["subscribed", "active", "confirmed"] } },
-      select: { email: true, id: true },
+      where: { status: "subscribed" },
+      select: { email: true, id: true, unsubscribeToken: true },
     })
-    return subs.map((s) => ({ email: s.email, userId: null }))
+    return subs.map((s) => ({ email: s.email, userId: null, unsubscribeToken: s.unsubscribeToken }))
   }
   if (audience === "members") {
     const users = await prisma.user.findMany({
       where: { email: { not: null } },
       select: { id: true, email: true },
     })
-    return users.map((u) => ({ email: u.email, userId: u.id }))
+    // Attach the subscriber token where one exists so the unsubscribe link
+    // in the footer is real for members who are also on the newsletter.
+    const subs = await prisma.newsletterSubscriber.findMany({
+      where: { email: { in: users.map((u) => u.email) } },
+      select: { email: true, unsubscribeToken: true },
+    })
+    const tokenByEmail = new Map(subs.map((s) => [s.email.toLowerCase(), s.unsubscribeToken]))
+    return users.map((u) => ({
+      email: u.email,
+      userId: u.id,
+      unsubscribeToken: tokenByEmail.get(u.email.toLowerCase()) || null,
+    }))
   }
   if (audience === "custom") {
     const list = (Array.isArray(recipientEmails) ? recipientEmails : [])
@@ -197,7 +209,12 @@ async function sendCampaignNow(id) {
 
   let sent = 0, failed = 0
   for (const recipient of audience) {
-    const unsubscribeUrl = `${layout.SITE_URL}/unsubscribed?email=${encodeURIComponent(recipient.email)}`
+    // Compliance · the link must actually unsubscribe. Subscribers carry a
+    // per-row token (newsletterService); user-only recipients without a
+    // subscriber row fall back to the contact page rather than a dead link.
+    const unsubscribeUrl = recipient.unsubscribeToken
+      ? newsletterService.buildUnsubscribeUrl(recipient.unsubscribeToken)
+      : `${layout.SITE_URL}/contact?subject=unsubscribe`
     const html = renderCampaignHtml(campaign, { unsubscribeUrl })
     try {
       const result = await emailService.sendRawEmail({

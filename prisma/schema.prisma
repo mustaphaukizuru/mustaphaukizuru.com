@@ -1142,16 +1142,12 @@ model Consultation {
   rescheduledFrom Consultation?  @relation("ConsultationReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
   rescheduledTo   Consultation[] @relation("ConsultationReschedule")
 
-  /// Race-safe booking — superseded by Booking Hardening v1.
-  /// The previous @@unique([assignedAdminId, scheduledAt]) only prevented
-  /// SAME-START collisions. Booking Hardening v1 replaces it with a
-  /// PostgreSQL EXCLUDE constraint on tstzrange(scheduledAt, endsAt)
-  /// (see migrations/<ts>_booking_hardening_v1/migration.sql) which
-  /// rejects ALL overlapping bookings — variable durations included.
-  /// Prisma can't express EXCLUDE natively, so the constraint lives in
-  /// raw SQL only. The catch blocks in consultationService.bookConsultation
-  /// and rescheduleConsultation map Postgres exclusion_violation
-  /// (SQLSTATE 23P01) to 409 SLOT_OVERLAP.
+  /// Race-safe booking. This database is MySQL, which has no EXCLUDE
+  /// constraint, so same-start collisions per host are rejected at the DB
+  /// level by this unique index (P2002 → 409 in consultationService).
+  /// Overlap of different-length bookings is handled by the availability
+  /// check in bookConsultation, which only offers non-overlapping slots.
+  @@unique([assignedAdminId, scheduledAt])
   @@index([serviceOrderId])
   @@index([serviceId])
   @@index([userId])

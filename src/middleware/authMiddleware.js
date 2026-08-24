@@ -1,6 +1,15 @@
 const jwt = require("jsonwebtoken")
 const prisma = require("../lib/prisma")
 
+/**
+ * A session token is one issued by utils/generateToken: it carries a userId
+ * and NO `purpose` claim. Anything with a purpose (e.g. "2fa-pending") is a
+ * scoped token and must be verified by its own service, never here.
+ */
+function isSessionToken(decoded) {
+  return Boolean(decoded && decoded.userId && decoded.purpose === undefined)
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // protect — validates JWT, loads user, checks status
 // ─────────────────────────────────────────────────────────────────────────────
@@ -22,6 +31,14 @@ async function protect(req, res, next) {
     } catch (jwtErr) {
       const code = jwtErr.name === "TokenExpiredError" ? "AUTH_EXPIRED" : "AUTH_INVALID"
       return res.status(401).json({ success: false, code, message: jwtErr.name === "TokenExpiredError" ? "Session expired, please sign in again" : "Invalid authentication token" })
+    }
+
+    // Security · only plain session tokens authenticate. Purpose-scoped
+    // tokens (2FA-pending, etc.) are signed with the same secret but must
+    // never be accepted as a session — otherwise password-only login would
+    // bypass the second factor.
+    if (!isSessionToken(decoded)) {
+      return res.status(401).json({ success: false, code: "AUTH_INVALID", message: "Invalid authentication token" })
     }
 
     const user = await prisma.user.findUnique({
@@ -120,6 +137,7 @@ async function attachUserIfPresent(req, _res, next) {
       // Invalid/expired token on a public route is silently ignored.
       return next()
     }
+    if (!isSessionToken(decoded)) return next()
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },

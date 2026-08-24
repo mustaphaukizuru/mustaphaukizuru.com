@@ -8,6 +8,22 @@ const {
   sendResetEmail, // template-free fallback (built inline in mailer.js)
 } = require("../utils/mailer");
 const { sendTemplateEmail } = require("../services/emailService");
+const twoFactorService = require("../services/twoFactorService");
+
+/**
+ * Security · OAuth logins must honour 2FA exactly like password logins.
+ * If the linked account has 2FA enabled, hand the SPA a short-lived
+ * 2FA-pending token (via URL fragment) instead of a session token; the
+ * login page exchanges it for a session after the code is verified.
+ * Returns true when a redirect was issued.
+ */
+async function redirectIfTwoFactorRequired(res, { user, frontend, returnTo }) {
+  const enabled = await twoFactorService.isEnabledForUser(user.id);
+  if (!enabled) return false;
+  const twoFactorToken = twoFactorService.issueTwoFactorToken({ userId: user.id, rememberMe: false });
+  res.redirect(302, `${frontend}/login#twoFactorToken=${encodeURIComponent(twoFactorToken)}&return_to=${encodeURIComponent(returnTo || "/dashboard")}`);
+  return true;
+}
 const { resolveUserLocale } = require("../utils/resolveUserLocale");
 const { notifyWelcome, notifyPasswordChanged } = require("../services/notificationService");
 
@@ -193,8 +209,9 @@ const googleOAuthCallback = asyncHandler(async (req, res) => {
       expectedNonce: nonceCookie || undefined,
     })
     const user = await findOrCreateGoogleUser(profile)
-    const token = generateToken(user)
     clearOAuthCookies(res)
+    if (await redirectIfTwoFactorRequired(res, { user, frontend, returnTo })) return
+    const token = generateToken(user)
 
     // Token + user are handed to the SPA via URL FRAGMENT, not query
     // string. Fragments aren't sent in the HTTP request line (the server
@@ -657,6 +674,7 @@ const microsoftOAuthCallback = asyncHandler(async (req, res) => {
   try {
     const profile = await exchangeMicrosoftCodeForProfile({ code, redirectUri })
     const user    = await findOrCreateMicrosoftUser(profile)
+    if (await redirectIfTwoFactorRequired(res, { user, frontend, returnTo })) return
     const token   = generateToken(user)
 
     const safeUser = encodeURIComponent(JSON.stringify({
@@ -738,6 +756,7 @@ const facebookOAuthCallback = asyncHandler(async (req, res) => {
   try {
     const profile = await exchangeFacebookCodeForProfile({ code, redirectUri })
     const user    = await findOrCreateFacebookUser(profile)
+    if (await redirectIfTwoFactorRequired(res, { user, frontend, returnTo })) return
     const token   = generateToken(user)
 
     const safeUser = encodeURIComponent(JSON.stringify({

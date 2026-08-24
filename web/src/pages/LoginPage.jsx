@@ -90,6 +90,18 @@ export default function LoginPage() {
   const capsOn = useCapsLock()
   const lockout = useCountdown()
 
+  // OAuth + 2FA: the backend redirects here with a 2FA-pending token in the
+  // URL fragment (never the query string, so it stays out of server logs).
+  // Consume it once, scrub the URL, and open the code prompt.
+  useEffect(() => {
+    const hash = window.location.hash || ""
+    if (!hash.includes("twoFactorToken=")) return
+    const params = new URLSearchParams(hash.replace(/^#/, ""))
+    const token = params.get("twoFactorToken")
+    if (token) setTwoFactorToken(token)
+    window.history.replaceState(null, "", window.location.pathname + window.location.search)
+  }, [])
+
   // Restore saved email if remember-me was previously set.
   useEffect(() => {
     try {
