@@ -107,7 +107,11 @@
     "legalTerms": "Términos y condiciones",
     "legalPrivacy": "Política de privacidad",
     "legalCookies": "Política de cookies",
-    "legalRefund": "Política de reembolsos"
+    "legalRefund": "Política de reembolsos",
+    "legalTermsShort": "Términos",
+    "legalPrivacyShort": "Privacidad",
+    "legalCookiesShort": "Cookies",
+    "legalRefundShort": "Reembolsos"
   },
   "language": {
     "english": "Inglés",
@@ -230,8 +234,8 @@
       "skipToForm": "Saltar al formulario",
       "backHome": "Volver al inicio",
       "rights": "Mustapha Ukizuru. Todos los derechos reservados.",
-      "privacy": "Política de privacidad",
-      "terms": "Términos y condiciones",
+      "privacy": "Privacidad",
+      "terms": "Términos",
       "aboutAria": "Sobre Mustapha Ukizuru"
     },
     "marketing": {
@@ -359,6 +363,8 @@
   "fab": {
     "openLabel": "Contacto rápido",
     "closeLabel": "Cerrar menú de contacto",
+    "whatsappLabel": "Escríbeme por WhatsApp",
+    "whatsappText": "Hola Mustapha, te encontré en tu sitio web y me gustaría platicar.",
     "emailLabel": "Enviar un correo",
     "bookLabel": "Reservar consultoría",
     "contactLabel": "Página de contacto"

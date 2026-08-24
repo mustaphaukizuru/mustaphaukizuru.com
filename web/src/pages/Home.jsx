@@ -18,9 +18,7 @@ import { API_BASE_URL, apiRequest } from "../lib/api"
 import { audiences, processSteps, testimonials } from "../data/homeData"
 import ProductCard from "../components/ProductCard"
 import HomeHero from "../components/heroes/HomeHero" // V2, universal hero
-import FeaturedReviewsRibbon from "../components/FeaturedReviewsRibbon"
 import { getAllPosts, BLOG_CATEGORIES } from "../data/blogPostsData"
-import NewsletterSection from "../components/NewsletterSection"
 import TestimonialsMarquee from "../components/TestimonialsMarquee"
 import BlogCoverGradient from "../components/BlogCoverGradient"
 import HomeStatsStrip from "../components/HomeStatsStrip"
@@ -81,6 +79,13 @@ function RevealSection({ children, className = "" }) {
 }
 
 /* ─────────────────── WHO I WORK WITH ─────────────────── */
+/* Pastel sibling tints (reference audit 2026-07): uniform white card grids
+   read flat; the reference sites differentiate siblings with soft brand
+   washes. Three tints = the three permitted hues per viewport (Brand v3
+   §08): violet ghost, azure pale, terracotta wash. Inline style because
+   the Card primitive hard-codes bg via CSS var — inline always wins. */
+const AUDIENCE_TINTS = ["#F5F2FE", "rgba(224,242,254,0.55)", "rgba(233,196,106,0.12)"]
+
 function Audiences() {
   const { t } = useTranslation("home")
   return (
@@ -98,9 +103,14 @@ function Audiences() {
           viewport={{ once: true, margin: "-60px" }}
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {audiences.map(({ titleKey, descriptionKey, icon: Icon }) => (
+          {audiences.map(({ titleKey, descriptionKey, icon: Icon }, i) => (
             <motion.div key={titleKey} variants={fadeUp}>
-              <Card variant="interactive" padding="lg" className="group h-full">
+              <Card
+                variant="interactive"
+                padding="lg"
+                className="group h-full"
+                style={{ backgroundColor: AUDIENCE_TINTS[i % AUDIENCE_TINTS.length] }}
+              >
                 <div className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-[var(--color-violet-pale)] text-[var(--color-violet)] transition-colors duration-[var(--motion-base)] group-hover:bg-[var(--color-violet)] group-hover:text-white">
                   <Icon className="h-7 w-7" aria-hidden="true" />
                 </div>
@@ -333,6 +343,10 @@ function FeaturedPortfolio() {
 }
 
 /* ─────────────────── PROCESS ─────────────────── */
+/* Same pastel-sibling treatment as Audiences — four steps cycle through
+   the three permitted hues (violet twice, at two densities). */
+const PROCESS_TINTS = ["bg-violet-ghost", "bg-azure-pale/50", "bg-terracotta/10", "bg-violet-pale/40"]
+
 function Process() {
   const { t } = useTranslation("home")
   const containerRef = useRef(null)
@@ -343,7 +357,7 @@ function Process() {
   const stepRefs = [step1Ref, step2Ref, step3Ref, step4Ref]
 
   return (
-    <section className="bg-slate-100 py-20 lg:py-28">
+    <section className="bg-mist py-20 lg:py-28">
       <Container>
         <SectionHeading
           eyebrow={t("sections.process.eyebrow")}
@@ -359,7 +373,7 @@ function Process() {
           className="relative grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
         >
           {processSteps.map(({ titleKey, descriptionKey, icon: Icon }, i) => (
-            <motion.div key={titleKey} ref={stepRefs[i]} variants={fadeUp} className="relative flex flex-col gap-4 rounded-xl bg-white p-6 shadow-[0_6px_20px_rgba(93,63,211,0.06)] transition hover:-translate-y-0.5">
+            <motion.div key={titleKey} ref={stepRefs[i]} variants={fadeUp} className={`relative flex flex-col gap-4 rounded-xl ${PROCESS_TINTS[i % PROCESS_TINTS.length]} ring-1 ring-charcoal-80/8 p-6 shadow-[0_6px_20px_rgba(93,63,211,0.06)] transition hover:-translate-y-0.5`}>
               <div className="flex items-center justify-between">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   {Icon ? <Icon className="h-5.5 w-5.5" aria-hidden="true" /> : null}
@@ -743,6 +757,26 @@ function CTA() {
                 {t("cta.body")}
               </motion.p>
 
+              {/* Human signature (reference audit 2026-07): a personal brand
+                  closes with the person, not just buttons. */}
+              <motion.div variants={itemUp} className="mt-6 flex items-center gap-3">
+                <img
+                  src="/images/profile/Ukizuru_Mustapha_Photo.jpg"
+                  alt=""
+                  aria-hidden="true"
+                  width={44}
+                  height={44}
+                  loading="lazy"
+                  className="h-11 w-11 rounded-full object-cover ring-2 ring-white/30"
+                />
+                <div>
+                  <p className="text-[13px] font-bold leading-tight text-white">Mustapha Ukizuru</p>
+                  <p className="text-[12px] leading-tight text-white/65">
+                    {t("cta.signature", { defaultValue: "Your single point of contact — no handoffs, no agencies." })}
+                  </p>
+                </div>
+              </motion.div>
+
               <motion.div variants={itemUp} className="mt-8 flex flex-wrap items-center gap-3">
                 <MagneticButton><CtaPill to="/book" label={t("cta.ctaBook")} icon={Calendar} /></MagneticButton>
                 <MagneticButton><CtaPill to="/store" label={t("cta.ctaStore")} icon={ShoppingBag} /></MagneticButton>
@@ -814,13 +848,16 @@ export default function Home() {
         />
       </RevealSection>
 
-      {/* Real customer reviews admin has pinned. Renders nothing if zero. */}
-      <FeaturedReviewsRibbon limit={6} />
+      {/* FeaturedReviewsRibbon removed (reference audit 2026-07): two
+          back-to-back social-proof sections diluted each other. The
+          marquee above is now the single testimonial moment on Home;
+          pinned reviews still render on the About page. */}
       <RevealSection><LatestBlogPosts /></RevealSection>
 
-      {/* Newsletter capture — wired to /api/v1/newsletter/subscribe */}
-      <NewsletterSection />
-
+      {/* NewsletterSection removed from Home (2026-07): two consecutive
+          dark conversion bands (newsletter + gradient CTA) diluted each
+          other, and the Footer's newsletter band already captures email
+          on every page. */}
       <RevealSection><CTA /></RevealSection>
     </>
   )

@@ -1112,11 +1112,6 @@ function HeaderInner() {
             className="hidden h-8 w-px bg-charcoal-80/15 lg:block"
           />
 
-          {/* Language switcher (desktop only) */}
-          <span className="hidden lg:inline-flex">
-            <LanguageSwitcher />
-          </span>
-
           {/* Cart */}
           <Link
             to="/cart"
@@ -1161,6 +1156,12 @@ function HeaderInner() {
               {t("header.exploreStore")}
             </PrimaryButton>
           </Link>
+
+          {/* Language switcher (desktop only) — compact globe dropdown at the
+              far-right edge, after the primary CTA. */}
+          <span className="hidden lg:inline-flex">
+            <LanguageSwitcher variant="dropdown" />
+          </span>
 
           {/* Hamburger (mobile) — Pattern 1 · Trigger morph.
               Tapping the hamburger morphs the three lines into an X by

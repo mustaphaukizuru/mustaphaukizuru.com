@@ -33,7 +33,11 @@
     "rotateSchools": "escuelas",
     "rotateBusinesses": "empresas",
     "rotateSmes": "PYMEs",
-    "rotateCreators": "creadores"
+    "rotateCreators": "creadores",
+    "audiencesInline": "escuelas, empresas y creadores",
+    "portraitRole": "Ingeniero full-stack · Educador STEM",
+    "portraitCta": "Mi historia",
+    "portraitAria": "Mustapha Ukizuru — ingeniero full-stack y educador STEM, disponible para trabajar. Lee la historia completa."
   },
   "sections": {
     "audiences": {
@@ -174,12 +178,14 @@
     "titleLine2": "a trabajar.",
     "body": "Software a la medida, soluciones digitales listas para usar y consultoría senior, todo bajo un mismo techo. La primera llamada es gratis, sin presión.",
     "ctaBook": "Reserva una llamada gratis",
-    "ctaStore": "Explorar la tienda"
+    "ctaStore": "Explorar la tienda",
+    "signature": "Tu único punto de contacto — sin intermediarios ni agencias."
   },
   "techStack": {
     "eyebrow": "Mi stack",
     "titleLead": "Las herramientas con las que",
     "titleAccent": "construyo",
-    "subtitle": "Del frontend a la infraestructura — un toolkit full-stack y senior, elegido para sistemas que se entregan con fiabilidad y escalan."
+    "subtitle": "Del frontend a la infraestructura — un toolkit full-stack y senior, elegido para sistemas que se entregan con fiabilidad y escalan.",
+    "stripLabel": "El stack detrás del trabajo"
   }
 }

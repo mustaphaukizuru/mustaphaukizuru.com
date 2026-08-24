@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { motion, useReducedMotion } from "framer-motion"
@@ -6,48 +5,47 @@ import {
   ArrowRight,
   ArrowUpRight,
   MapPin,
-  Calendar,
-  Zap,
-  Globe2,
   TrendingUp,
-  Sparkles,
 } from "lucide-react"
 
 import mMarkViolet from "../../assets/logo-mark/m-mark-violet.svg"
-import Particles from "../motion/Particles"
-import WordRotate from "../motion/WordRotate"
-import { products as STORE_PRODUCTS } from "../../data/storeData"
-import { fetchFeaturedProducts } from "../../services/productService"
-import { formatPrice } from "../../lib/format"
 import KineticHeadline from "../motion/KineticHeadline"
 
 /**
- * HomeHero · V10 — "Floating cluster" composition
+ * HomeHero · V11 — "Calm cluster" composition
  * ─────────────────────────────────────────────────────────────────────────
- * Inspiration: modern fintech-style hero (one centerpiece + 6 satellite
- * proof elements) — adapted to mustaphaukizuru.com's three pillars:
- *   Products · Services · Expertise.
+ * V10 shipped 6 satellite cards + 2 accent bubbles + a particle field.
+ * V11 applies the reference-site audit (2026-07): the heroes that convert
+ * best carry ONE centerpiece and at most 3 proof satellites, and every
+ * human-services reference leads with a human face. So:
+ *
+ *   · Satellites cut 6 → 3, and the strongest one is now a PORTRAIT card
+ *     (photo + name + open-to-work status) — a personal brand must show
+ *     the person above the fold.
+ *   · Particle field removed (visual noise + main-thread cost on mobile;
+ *     the aurora mesh + noise grain carry the depth alone).
+ *   · Subtitle no longer word-rotates — visitors kept missing their own
+ *     segment mid-cycle; the audience list is now static and readable.
  *
  * Centerpiece  · Phone mockup of the signed-in member dashboard
  *                showing a real client-project view (proves the platform
  *                is a live SaaS, not a portfolio).
  *
- * Satellite cluster (6 elements):
+ * Satellite cluster (3 elements):
  *   ┌──────────────────────────────────────────────────────────────┐
- *   │  ◉ {t("hero.openToWork")}          ┌───── PHONE ─────┐    📍 LATAM     │
- *   │  ★ STEM Pack · $48       │   Project       │    Stack ⓘ      │
- *   │                          │   Raindrop      │    Django/React │
- *   │  📅 Consulting · 3 slots │   76% complete  │    8yrs · 47 ↑  │
- *   │                          └─────────────────┘                  │
+ *   │                        ┌───── PHONE ─────┐       📍 LATAM    │
+ *   │  🙍 Mustapha Ukizuru    │   Project       │                   │
+ *   │     ◉ Open to work     │   Raindrop      │                   │
+ *   │                        │   76% complete  │    8yrs · 47 ↑    │
+ *   │                        └─────────────────┘                   │
  *   └──────────────────────────────────────────────────────────────┘
  *
  * Layout strategy:
  *   • Desktop (lg+): floating cluster — cards absolutely positioned
  *     around the phone, anchored to a max-width container so the
  *     composition stays intentional at any monitor width.
- *   • Tablet/mobile: phone centered, cards in a horizontal scroll-rail
- *     beneath it (snap-x mandatory) — preserves the "floating" feel on
- *     small viewports without forcing a flat 2x2 grid.
+ *   • Tablet/mobile: portrait card above the phone, phone centered,
+ *     years card beneath — no scroll-rail needed at 3 satellites.
  *
  * Brand tokens (Brand Identity v3.0, defined in web/src/index.css @theme):
  *   bg-mist · bg-violet · bg-violet-pale · bg-violet-deep · bg-violet-ghost
@@ -99,64 +97,11 @@ function buildDemoProject() {
 
 const DEMO_PROJECT = buildDemoProject()
 
-const TECH_STACK = ["Django", "React", "GCP"]
-
-/* Defensive featured-product picker. Falls back to a static placeholder
-   if the data shape changes or the store is empty — the hero must never
-   render a blank card.
-   Normalises both shapes (live API + static storeData) so downstream
-   rendering can treat them identically. */
-function pickFeaturedProduct(products) {
-  if (!Array.isArray(products) || products.length === 0) return null
-  const fiveStarFeatured = products.find(
-    (p) => (p?.featured === true || p?.isFeatured === true) && (p?.rating ?? 0) >= 5,
-  )
-  return (
-    fiveStarFeatured ||
-    products.find((p) => p?.featured === true || p?.isFeatured === true) ||
-    products[0]
-  )
-}
-
-/* Normalise a product (either shape) into the minimal contract the
-   FeaturedProductCard needs: { id (slug for routing), title, price, currency }. */
-function normaliseFeaturedProduct(p) {
-  if (!p) return null
-  return {
-    id: p.slug || p.id,  // route param — prefer slug since that's what /store/:slug expects
-    title: p.title,
-    price: Number(p.price ?? 0),
-    currency: p.currency || "MXN",
-  }
-}
-
 /* ────────────────────────── component ────────────────────────────────── */
 
 export default function HomeHero() {
   const { t } = useTranslation("home")
   const reduced = useReducedMotion()
-
-  /* Featured product — live from the API, with a defensive fall-back to
-     static data so the hero never renders blank. The API call is non-
-     blocking; first paint shows the static pick, then swaps to the live
-     "latest featured" once the request resolves (PDF #9). */
-  const [liveFeatured, setLiveFeatured] = useState(null)
-  useEffect(() => {
-    let cancelled = false
-    fetchFeaturedProducts(1)
-      .then((rows) => {
-        if (cancelled) return
-        const first = Array.isArray(rows) && rows.length > 0 ? rows[0] : null
-        if (first) setLiveFeatured(first)
-      })
-      .catch(() => { /* keep static fallback */ })
-    return () => { cancelled = true }
-  }, [])
-
-  const featuredProduct = useMemo(
-    () => normaliseFeaturedProduct(liveFeatured || pickFeaturedProduct(STORE_PRODUCTS)),
-    [liveFeatured],
-  )
 
   /* Framer Motion variants — match existing fadeUp/stagger conventions
      used across the codebase (see Audiences, Solutions, FeaturedProducts). */
@@ -205,17 +150,6 @@ export default function HomeHero() {
         }}
       />
 
-      {/* ── Particle field — brand violet, low opacity, mouse-reactive ── */}
-      <Particles
-        quantity={60}
-        color="#5D3FD3"
-        size={1.2}
-        speed={0.3}
-        interactRadius={100}
-        interactStrength={2.5}
-        style={{ opacity: 0.45 }}
-      />
-
       {/* ── 3 % SVG noise overlay to defeat banding (Brand v3 §10) ── */}
       <div
         aria-hidden="true"
@@ -258,36 +192,33 @@ export default function HomeHero() {
             {t("hero.eyebrow")}
           </span>
 
-          {/* Phase 10 · kinetic headline — word-by-word reveal with
-              gradient-swept emphasis. Falls back to a static H1 when the
-              user prefers reduced motion (handled inside KineticHeadline). */}
+          {/* Phase 10 · kinetic headline — word-by-word reveal. One accent
+              treatment only (reference audit: one colored moment per
+              headline, never two competing effects). Falls back to a static
+              H1 when the user prefers reduced motion (handled inside
+              KineticHeadline). */}
           <KineticHeadline
             as="h1"
             stagger={0.07}
             className="mt-5 font-display text-[length:var(--text-hero)] font-extrabold leading-[1.04] tracking-[-0.02em] text-charcoal text-balance"
             parts={[
               { text: t("hero.headlineBuilt") },
-              { text: t("hero.headlineShipped"), highlight: true },
+              { text: t("hero.headlineShipped") },
               { text: t("hero.headlineForYou"),  gradient: true },
             ]}
-            highlightClassName="text-terracotta"
           />
 
+          {/* Static subtitle — the audience list no longer word-rotates.
+              A 2.2s cycle meant most visitors never saw their own segment;
+              naming all three reads faster and works without JS timing. */}
           <motion.p
             variants={fadeUp}
             className="mx-auto mt-5 max-w-xl text-[15px] leading-[1.7] text-charcoal-80 sm:text-[17px]"
           >
             {t("hero.subtitlePre", { defaultValue: "Full-stack engineering, consulting, and STEM education for" })}{" "}
-            <WordRotate
-              words={[
-                t("hero.rotateSchools",    { defaultValue: "schools" }),
-                t("hero.rotateBusinesses", { defaultValue: "businesses" }),
-                t("hero.rotateSmes",       { defaultValue: "SMEs" }),
-                t("hero.rotateCreators",   { defaultValue: "creators" }),
-              ]}
-              className="text-violet font-semibold"
-              interval={2200}
-            />
+            <span className="font-semibold text-violet">
+              {t("hero.audiencesInline", { defaultValue: "schools, businesses, and creators" })}
+            </span>
             {t("hero.subtitlePost", { defaultValue: " — from LATAM, for the world." })}
           </motion.p>
 
@@ -318,54 +249,16 @@ export default function HomeHero() {
         {/* ── Cluster stage ─────────────────────────────────────────── */}
         <div className="relative mt-12 lg:mt-16">
           {/* Desktop floating cluster — absolute positioning on lg+ */}
-          <div className="relative mx-auto hidden h-[640px] w-full max-w-5xl lg:block">
-            {/* Floating: {t("hero.openToWork")} pill */}
-            <motion.div
-              variants={floatIn(0.15)}
-              className="absolute left-[4%] top-[8%] z-30"
-            >
-              <div className="inline-flex items-center gap-2 rounded-full border border-charcoal/5 bg-white px-4 py-2 text-[13px] font-semibold text-violet-deep shadow-[0_8px_24px_-12px_rgba(93,63,211,0.25)]">
-                <span className="relative flex h-2 w-2">
-                  <span
-                    className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint opacity-75"
-                    aria-hidden="true"
-                  />
-                  <span
-                    className="relative inline-flex h-2 w-2 rounded-full bg-mint"
-                    aria-hidden="true"
-                  />
-                </span>
-                {t("hero.openToWork")}
-              </div>
-            </motion.div>
-
-            {/* Accent bubble near the Open-to-Work pill */}
-            <motion.div
-              variants={floatIn(0.25)}
-              aria-hidden="true"
-              className="absolute left-[19%] top-[3%] z-20 flex h-12 w-12 items-center justify-center rounded-full bg-terracotta/40 backdrop-blur"
-            >
-              <Zap className="h-5 w-5 text-violet-deep" />
-            </motion.div>
-
+          <div className="relative mx-auto hidden h-[600px] w-full max-w-5xl lg:block">
             {/* Floating: {t("hero.builtInLatam")} pill */}
             <motion.div
               variants={floatIn(0.18)}
-              className="absolute right-[4%] top-[10%] z-30"
+              className="absolute right-[6%] top-[10%] z-30"
             >
               <div className="inline-flex items-center gap-2 rounded-full bg-violet px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_24px_-12px_rgba(93,63,211,0.45)]">
                 <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
                 {t("hero.builtInLatam")}
               </div>
-            </motion.div>
-
-            {/* Accent bubble near the LATAM pill */}
-            <motion.div
-              variants={floatIn(0.28)}
-              aria-hidden="true"
-              className="absolute right-[19%] top-[5%] z-20 flex h-12 w-12 items-center justify-center rounded-full bg-violet shadow-lg shadow-violet/30"
-            >
-              <Globe2 className="h-5 w-5 text-terracotta" />
             </motion.div>
 
             {/* Phone centerpiece — absolutely centered */}
@@ -376,63 +269,29 @@ export default function HomeHero() {
               <PhoneMockup project={DEMO_PROJECT} reduced={reduced} />
             </motion.div>
 
-            {/* Left-upper · {t("hero.featuredProduct")} card */}
+            {/* Left · Portrait card — the person behind the brand */}
             <motion.div
-              variants={floatIn(0.4)}
-              className="absolute bottom-[34%] left-[2%] z-20"
+              variants={floatIn(0.3)}
+              className="absolute left-[3%] top-1/2 z-20 -translate-y-1/2"
             >
-              <FeaturedProductCard product={featuredProduct} />
-            </motion.div>
-
-            {/* Left-lower · Consulting availability card */}
-            <motion.div
-              variants={floatIn(0.5)}
-              className="absolute bottom-[6%] left-[6%] z-20"
-            >
-              <ConsultingCard />
-            </motion.div>
-
-            {/* Right-upper · Tech stack card */}
-            <motion.div
-              variants={floatIn(0.4)}
-              className="absolute bottom-[34%] right-[2%] z-20"
-            >
-              <StackCard />
+              <PortraitCard />
             </motion.div>
 
             {/* Right-lower · Years card */}
             <motion.div
-              variants={floatIn(0.5)}
-              className="absolute bottom-[6%] right-[6%] z-20"
+              variants={floatIn(0.4)}
+              className="absolute bottom-[12%] right-[4%] z-20"
             >
               <YearsCard />
             </motion.div>
           </div>
 
-          {/* Mobile + tablet — phone centered, pills above, cards in scroll-rail */}
+          {/* Mobile + tablet — portrait above, phone centered, years below.
+              With 3 satellites the scroll-rail is gone: everything fits. */}
           <div className="lg:hidden">
-            {/* Pills row */}
-            <motion.div
-              variants={fadeUp}
-              className="mb-8 flex flex-wrap items-center justify-center gap-2"
-            >
-              <div className="inline-flex items-center gap-2 rounded-full border border-charcoal/5 bg-white px-3.5 py-1.5 text-[12px] font-semibold text-violet-deep shadow-sm">
-                <span className="relative flex h-2 w-2">
-                  <span
-                    className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint opacity-75"
-                    aria-hidden="true"
-                  />
-                  <span
-                    className="relative inline-flex h-2 w-2 rounded-full bg-mint"
-                    aria-hidden="true"
-                  />
-                </span>
-                {t("hero.openToWork")}
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-violet px-3.5 py-1.5 text-[12px] font-semibold text-white">
-                <MapPin className="h-3 w-3" aria-hidden="true" />
-                {t("hero.builtInLatam")}
-              </div>
+            {/* Portrait card — leads on mobile too */}
+            <motion.div variants={fadeUp} className="mb-8 flex justify-center">
+              <PortraitCard />
             </motion.div>
 
             {/* Phone */}
@@ -440,25 +299,16 @@ export default function HomeHero() {
               <PhoneMockup project={DEMO_PROJECT} reduced={reduced} compact />
             </motion.div>
 
-            {/* Horizontal scroll-rail of the 4 proof cards */}
+            {/* Proof row beneath the phone */}
             <motion.div
               variants={fadeUp}
-              className="mt-8 -mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="mt-8 flex flex-wrap items-center justify-center gap-3"
             >
-              <div className="flex gap-3 snap-x snap-mandatory">
-                <div className="snap-start shrink-0">
-                  <FeaturedProductCard product={featuredProduct} />
-                </div>
-                <div className="snap-start shrink-0">
-                  <ConsultingCard />
-                </div>
-                <div className="snap-start shrink-0">
-                  <StackCard />
-                </div>
-                <div className="snap-start shrink-0">
-                  <YearsCard />
-                </div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-violet px-3.5 py-1.5 text-[12px] font-semibold text-white">
+                <MapPin className="h-3 w-3" aria-hidden="true" />
+                {t("hero.builtInLatam")}
               </div>
+              <YearsCard />
             </motion.div>
           </div>
         </div>
@@ -652,112 +502,57 @@ function MilestoneDot({ state }) {
   )
 }
 
-/* {t("hero.featuredProduct")} card — pulls live from data/storeData.js with safe
-   fallback to a synthetic placeholder. Links to the product page when
-   real data is available. */
-function FeaturedProductCard({ product }) {
-  const { t } = useTranslation("home")
-  const safe = product || {
-    id: null,
-    title: "STEM Curriculum Pack",
-    price: 48,
-    currency: "MXN",
-  }
-  const priceLabel = formatPrice(safe.price, safe.currency || "MXN")
-  const inner = (
-    <div className="flex w-[224px] items-center gap-3 rounded-2xl border border-charcoal/5 bg-white p-3 shadow-[0_12px_28px_-10px_rgba(93,63,211,0.15)] transition-transform hover:-translate-y-0.5">
-      {/* Icon plate — solid Royal Violet (Brand v3 §08: icon fills must
-          never be the Innovation Gradient, which is sacred to conversion). */}
-      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-violet">
-        <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
-        <div className="absolute -right-2 -top-2 h-8 w-8 rounded-full bg-terracotta/40" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-charcoal-80/60">
-          {t("hero.featuredProduct")}
-        </p>
-        <p className="mt-0.5 truncate text-[13px] font-semibold text-charcoal">
-          {safe.title}
-        </p>
-        <p className="mt-1 font-mono text-[12px] font-semibold tabular-nums text-violet">
-          {priceLabel}
-        </p>
-      </div>
-    </div>
-  )
-  return safe.id ? (
-    <Link
-      to={`/store/${safe.id}`}
-      className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-mist rounded-2xl"
-      aria-label={`Featured product — ${safe.title}, ${priceLabel}`}
-    >
-      {inner}
-    </Link>
-  ) : (
-    inner
-  )
-}
-
-/* Consulting availability card. Soft CTA toward /contact (booking flow). */
-function ConsultingCard() {
+/* Portrait card — the face behind the personal brand (reference audit:
+   every human-services reference site leads with a human; this platform
+   sells the person, so the person appears above the fold). Folds the old
+   "Open to Work" pill into the card so status and identity read as one
+   proof element. Links to /about. */
+function PortraitCard() {
   const { t } = useTranslation("home")
   return (
     <Link
-      to="/contact"
-      className="block w-[208px] rounded-2xl border border-charcoal/5 bg-white p-4 shadow-[0_12px_28px_-10px_rgba(93,63,211,0.15)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
-      aria-label={t("hero.consultingAria")}
+      to="/about"
+      className="block w-[248px] rounded-2xl border border-charcoal/5 bg-white p-4 shadow-[0_16px_40px_-14px_rgba(93,63,211,0.28)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
+      aria-label={t("hero.portraitAria", { defaultValue: "Mustapha Ukizuru — full-stack engineer and STEM educator, open to work. Read the full story." })}
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-pale text-violet-deep">
-          <Calendar className="h-4 w-4" aria-hidden="true" />
-        </div>
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-charcoal-80/60">
-            {t("hero.cardConsulting")}
+        <img
+          src="/images/profile/Ukizuru_Mustapha_Photo.jpg"
+          alt=""
+          aria-hidden="true"
+          width={56}
+          height={56}
+          className="h-14 w-14 shrink-0 rounded-xl object-cover ring-2 ring-violet-pale"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[14px] font-bold text-charcoal">
+            Mustapha Ukizuru
           </p>
-          <p className="text-[13px] font-semibold text-charcoal">
-            {t("hero.availableNow")}
+          <p className="mt-0.5 text-[11px] leading-snug text-charcoal-80/60">
+            {t("hero.portraitRole", { defaultValue: "Full-stack engineer · STEM educator" })}
           </p>
         </div>
       </div>
-      <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint">
-        <span
-          className="h-1.5 w-1.5 rounded-full bg-mint"
-          aria-hidden="true"
-        />
-        {t("hero.slotsOpen")}
+      <div className="mt-3 flex items-center justify-between">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-mint/15 px-2.5 py-1 text-[11px] font-semibold text-mint-700">
+          <span className="relative flex h-1.5 w-1.5">
+            <span
+              className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint opacity-75"
+              aria-hidden="true"
+            />
+            <span
+              className="relative inline-flex h-1.5 w-1.5 rounded-full bg-mint"
+              aria-hidden="true"
+            />
+          </span>
+          {t("hero.openToWork")}
+        </span>
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet">
+          {t("hero.portraitCta", { defaultValue: "My story" })}
+          <ArrowRight className="h-3 w-3" aria-hidden="true" />
+        </span>
       </div>
     </Link>
-  )
-}
-
-/* Tech stack card — three brand-spec stack chips. */
-function StackCard() {
-  const { t } = useTranslation("home")
-  return (
-    <div className="w-[208px] rounded-2xl border border-charcoal/5 bg-white p-4 shadow-[0_12px_28px_-10px_rgba(93,63,211,0.15)]">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-charcoal-80/60">
-        {t("hero.cardStack")}
-      </p>
-      <p className="mt-0.5 text-[13px] font-semibold text-charcoal">
-        {t("hero.engineeredWith")}
-      </p>
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {TECH_STACK.map((tech, i) => (
-          <span
-            key={tech}
-            className={
-              "rounded-full px-2.5 py-1 text-[11px] font-semibold " +
-              (i === TECH_STACK.length - 1
-                ? "bg-terracotta/20 text-terracotta-deep"
-                : "bg-violet-pale text-violet-deep")
-            }
-          >
-            {tech}
-          </span>
-        ))}
-      </div>
-    </div>
   )
 }
 

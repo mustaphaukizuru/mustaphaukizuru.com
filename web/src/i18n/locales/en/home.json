@@ -33,7 +33,11 @@
     "rotateSchools": "schools",
     "rotateBusinesses": "businesses",
     "rotateSmes": "SMEs",
-    "rotateCreators": "creators"
+    "rotateCreators": "creators",
+    "audiencesInline": "schools, businesses, and creators",
+    "portraitRole": "Full-stack engineer · STEM educator",
+    "portraitCta": "My story",
+    "portraitAria": "Mustapha Ukizuru — full-stack engineer and STEM educator, open to work. Read the full story."
   },
   "sections": {
     "audiences": {
@@ -174,12 +178,14 @@
     "titleLine2": "to work.",
     "body": "Custom software, ready-made digital solutions, and senior consulting, all under one roof. First call is free, no pressure.",
     "ctaBook": "Book a free call",
-    "ctaStore": "Browse the store"
+    "ctaStore": "Browse the store",
+    "signature": "Your single point of contact — no handoffs, no agencies."
   },
   "techStack": {
     "eyebrow": "My stack",
     "titleLead": "The tools I",
     "titleAccent": "build with",
-    "subtitle": "Frontend to infrastructure — a senior, full-stack toolkit chosen for systems that ship reliably and scale."
+    "subtitle": "Frontend to infrastructure — a senior, full-stack toolkit chosen for systems that ship reliably and scale.",
+    "stripLabel": "The stack behind the work"
   }
 }

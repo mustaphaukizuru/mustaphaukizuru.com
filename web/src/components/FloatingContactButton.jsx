@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
-import { MessageCircle, X, Mail, Calendar, ArrowRight } from "lucide-react"
+import { MessageCircle, X, Mail, Calendar, ArrowRight, ArrowUp } from "lucide-react"
+import { FaWhatsapp } from "react-icons/fa"
 import { useTranslation } from "react-i18next"
 
 /**
@@ -49,7 +50,18 @@ export default function FloatingContactButton() {
     return () => window.removeEventListener("keydown", onKey)
   }, [open])
 
+  const scrollToTop = () =>
+    window.scrollTo({ top: 0, left: 0, behavior: reduced ? "auto" : "smooth" })
+
   const menuItems = [
+    {
+      icon: FaWhatsapp,
+      label: t("fab.whatsappLabel"),
+      // Reuses the site's canonical WhatsApp number (same as SocialLinks),
+      // with a pre-filled greeting so the chat opens ready to send.
+      href: `https://wa.me/525552139993?text=${encodeURIComponent(t("fab.whatsappText"))}`,
+      external: true,
+    },
     {
       icon: Mail,
       label: t("fab.emailLabel"),
@@ -99,6 +111,26 @@ export default function FloatingContactButton() {
           className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3"
           aria-label={t("fab.openLabel")}
         >
+          {/* Scroll-to-top — secondary action, sits above the contact FAB and
+              hides while the menu is open so the two never collide. */}
+          <AnimatePresence>
+            {!open && (
+              <motion.button
+                type="button"
+                onClick={scrollToTop}
+                aria-label={t("system.scrollTop")}
+                initial={{ opacity: 0, scale: 0.8, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: 8 }}
+                transition={{ duration: 0.2 }}
+                whileHover={reduced ? undefined : { y: -2 }}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-charcoal-80/10 bg-white text-violet shadow-[0_8px_24px_rgba(93,63,211,0.18)] transition hover:border-violet/30 hover:text-violet-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2"
+              >
+                <ArrowUp className="h-5 w-5" strokeWidth={2.4} aria-hidden="true" />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
           {/* Expanded menu */}
           <AnimatePresence>
             {open && (

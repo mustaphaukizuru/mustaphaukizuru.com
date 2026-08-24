@@ -1,5 +1,7 @@
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Globe, ChevronDown, Check } from "lucide-react";
 import { useLanguage } from "../i18n/hooks/useLanguage";
 import { pathWithLanguage } from "../i18n/utils/pathWithLanguage";
 
@@ -56,6 +58,52 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
                    (location.search || "") + (location.hash || "");
     navigate(target, { replace: false });
   };
+
+  // Dropdown open state + close-on-outside-click / Escape (used by the
+  // "dropdown" variant only; harmless no-op for the others).
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
+  }, [open]);
+
+  if (variant === "dropdown") {
+    const LANGS = [
+      { code: "en", label: "EN", name: t("language.english"), Flag: FlagEN },
+      { code: "es", label: "ES", name: t("language.spanish"), Flag: FlagMX },
+    ];
+    const current = LANGS.find((l) => l.code === lang) || LANGS[0];
+    return (
+      <div ref={ref} className={"relative " + className}>
+        <button type="button" onClick={() => setOpen((o) => !o)}
+          aria-haspopup="listbox" aria-expanded={open} aria-label={t("language.ariaSelector")}
+          className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12.5px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 " + (isDark ? "text-white/80 hover:bg-white/10" : "text-charcoal-80/70 hover:bg-violet/8 hover:text-violet")}>
+          <Globe className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+          {current.label}
+          <ChevronDown className={"h-3.5 w-3.5 transition-transform " + (open ? "rotate-180" : "")} aria-hidden="true" />
+        </button>
+        {open && (
+          <div role="listbox" aria-label={t("language.ariaSelector")}
+            className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-1 shadow-[0_12px_36px_rgba(93,63,211,0.16)]">
+            {LANGS.map(({ code, name, Flag }) => (
+              <button key={code} type="button" role="option" aria-selected={lang === code}
+                onClick={() => { switchTo(code); setOpen(false); }}
+                className={"flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 " + (lang === code ? "bg-violet-pale text-violet" : "text-charcoal/80 hover:bg-violet-pale/50")}>
+                <Flag className="h-3.5 w-[21px]" />
+                <span className="flex-1 text-left">{name}</span>
+                {lang === code ? <Check className="h-4 w-4 text-violet" aria-hidden="true" /> : null}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (variant === "text") {
     const activeClass = isDark ? "text-terracotta" : "text-violet";

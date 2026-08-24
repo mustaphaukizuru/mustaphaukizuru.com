@@ -141,16 +141,22 @@ export default defineConfig({
      * the dev console was showing. Default Vite HMR auto-detects the host
      * from the page origin, but when the dev server binds to 0.0.0.0 (so
      * it's reachable from other devices on the LAN) some browsers compute
-     * the wrong WebSocket host. Pinning the HMR client to localhost:5173
+     * the wrong WebSocket host. Pinning the HMR client host to localhost
      * keeps HMR working in the local browser; LAN clients hitting the dev
      * server by IP fall back to full-reload mode, which is the right
      * trade-off for occasional cross-device testing.
+     *
+     * Do NOT pin `port`/`clientPort` here: a hard-coded port makes any
+     * second dev instance (e.g. `--port 5273`) spawn a *dedicated* HMR
+     * WebSocket server on 5173 alongside the real one. Windows allows the
+     * double-bind, and browsers resolving localhost to ::1 then hit the
+     * WebSocket listener and render "426 Upgrade Required" instead of the
+     * app. Without an explicit port, the HMR socket rides the dev server's
+     * own port — correct on 5173, 5273, or anywhere else.
      */
     hmr: {
-      host:       "localhost",
-      port:       5173,
-      clientPort: 5173,
-      protocol:   "ws",
+      host:     "localhost",
+      protocol: "ws",
     },
   },
 

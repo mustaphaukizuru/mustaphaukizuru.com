@@ -10,7 +10,6 @@ import AnalyticsTracker from "./components/AnalyticsTracker";
 import SearchPalette from "./components/SearchPalette"; // #6
 import CartDrawer from "./components/CartDrawer"; // #2
 import CompareBar from "./components/CompareBar"; // #3
-import ScrollToTop from "./components/ScrollToTop";
 import ErrorBoundary from "./components/ErrorBoundary"; // V2, top-level safety net
 import Toaster from "./components/ui/Toaster"; // V2, sonner-based toasts
 import CookieBanner from "./components/cookies/CookieBanner";
@@ -205,7 +204,6 @@ export default function App() {
       <SearchPalette />
       <CartDrawer />
       <CompareBar />
-          <ScrollToTop />
 
           <PageTransition>
           <Routes>

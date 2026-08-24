@@ -66,9 +66,12 @@ export default function HomeStatsStrip() {
       to: 100,
       suffix: "+",
       Icon: GraduationCap,
+      // Tone was "mint" — swapped to violet per Brand v3 §08 ("never stack
+      // more than three hues in a single viewport"): violet + azure +
+      // terracotta is the full budget, and mint stays sacred to feedback.
       label: t("stats.studentsLabel", { defaultValue: "Students taught" }),
       hint:  t("stats.studentsHint",  { defaultValue: "CS & STEM" }),
-      tone: "mint",
+      tone: "violet",
     },
   ]
 
@@ -124,7 +127,7 @@ export default function HomeStatsStrip() {
           viewport={{ once: true, margin: "-60px" }}
           className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:auto-rows-[minmax(160px,1fr)]"
         >
-          {tiles.map((tile, idx) => {
+          {tiles.map((tile) => {
             const p = TONE[tile.tone]
             const span = tile.lead ? "col-span-2 lg:col-span-2 lg:row-span-2" : ""
 

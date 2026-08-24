@@ -45,10 +45,10 @@ const QUICK_LINKS = [
 ]
 
 const LEGAL_LINKS = [
-  { nameKey: "footer.legalTerms", path: "/terms" },
-  { nameKey: "footer.legalPrivacy", path: "/privacy" },
-  { nameKey: "footer.legalCookies", path: "/cookies" },
-  { nameKey: "footer.legalRefund", path: "/refund" },
+  { nameKey: "footer.legalTerms",   shortKey: "footer.legalTermsShort",   path: "/terms" },
+  { nameKey: "footer.legalPrivacy", shortKey: "footer.legalPrivacyShort", path: "/privacy" },
+  { nameKey: "footer.legalCookies", shortKey: "footer.legalCookiesShort", path: "/cookies" },
+  { nameKey: "footer.legalRefund",  shortKey: "footer.legalRefundShort",  path: "/refund" },
 ]
 
 /* Mesh gradient — three radial glows on a deep charcoal base.
@@ -273,7 +273,9 @@ export default function Footer() {
                     to={link.path}
                     className="rounded-md px-2 py-0.5 text-[12px] text-white/40 transition hover:text-white/75 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-terracotta/40 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
                   >
-                    {t(link.nameKey)}
+                    {/* Brief labels on small screens, full labels from sm up */}
+                    <span className="sm:hidden">{t(link.shortKey)}</span>
+                    <span className="hidden sm:inline">{t(link.nameKey)}</span>
                   </Link>
                   {i < LEGAL_LINKS.length - 1 ? (
                     <span className="text-white/15" aria-hidden="true">|</span>
