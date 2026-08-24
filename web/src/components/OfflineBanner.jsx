@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { WifiOff, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
@@ -47,7 +47,7 @@ export default function OfflineBanner() {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
+        <m.div
           key="offline-banner"
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -78,7 +78,7 @@ export default function OfflineBanner() {
               <X className="h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
             </button>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   )

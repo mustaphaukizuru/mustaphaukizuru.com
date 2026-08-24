@@ -19,7 +19,7 @@
 
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { Cookie, ShieldCheck, Settings, Check, X } from "lucide-react"
 import { useCookieConsent, COOKIE_CATEGORIES } from "../../context/CookieConsentContext"
 import { useTranslation } from "react-i18next"
@@ -172,7 +172,7 @@ export default function CookieBanner() {
     <>
       <AnimatePresence>
         {!decided && (
-          <motion.aside
+          <m.aside
             role="region"
             aria-label={t("cookies.consentAria")}
             initial={{ opacity: 0, y: 24 }}
@@ -225,7 +225,7 @@ export default function CookieBanner() {
                 </button>
               </div>
             </div>
-          </motion.aside>
+          </m.aside>
         )}
       </AnimatePresence>
 

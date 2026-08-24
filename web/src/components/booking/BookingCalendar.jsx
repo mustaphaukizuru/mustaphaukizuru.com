@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Calendar, ChevronLeft, ChevronRight, ChevronDown, Clock, Globe2,
   Check, ArrowLeft, Loader2, AlertCircle, CheckCircle2,
@@ -158,7 +158,7 @@ function MonthYearPicker({
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             role="dialog"
             aria-label={t("bookingCalendar.monthYearAria")}
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
@@ -225,7 +225,7 @@ function MonthYearPicker({
             <div className="mt-2.5 border-t border-charcoal/8 pt-2 text-center text-[10.5px] text-charcoal/55">
               {t("bookingCalendar.bookableHighlight")}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -437,7 +437,7 @@ export default function BookingCalendar({
   // ── SUCCESS STATE ──────────────────────────────────────────────────────────
   if (bookedRecord) {
     return (
-      <motion.div
+      <m.div
         variants={fadeUp} initial="hidden" animate="show"
         className="rounded-xl border border-charcoal/10 bg-white p-6 text-center shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-10"
       >
@@ -472,18 +472,18 @@ export default function BookingCalendar({
             {t("bookingCalendar.bookAnother")}
           </button>
         </div>
-      </motion.div>
+      </m.div>
     )
   }
 
   // ── MAIN UI ────────────────────────────────────────────────────────────────
   return (
-    <motion.div
+    <m.div
       variants={stagger} initial="hidden" animate="show"
       className="rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-6"
     >
       {/* Header, title + stepper + timezone */}
-      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-3 border-b border-charcoal/10 pb-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+      <m.div variants={fadeUp} className="mb-5 flex flex-col gap-3 border-b border-charcoal/10 pb-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">
             <span className="rounded-full bg-violet-pale px-2 py-0.5">{t("bookingCalendar.bookingShort")}</span>
@@ -494,10 +494,10 @@ export default function BookingCalendar({
           </h2>
         </div>
         <StepperHeader step={step} />
-      </motion.div>
+      </m.div>
 
       {/* Timezone selector, always visible */}
-      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-2 rounded-xl bg-violet-ghost p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+      <m.div variants={fadeUp} className="mb-5 flex flex-col gap-2 rounded-xl bg-violet-ghost p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
         <div className="flex items-center gap-2 text-[12px] text-charcoal/75">
           <Globe2 className="h-4 w-4 text-violet" />
           <span>{t("bookingCalendar.timesShown")}</span>
@@ -512,12 +512,12 @@ export default function BookingCalendar({
             <option key={tz} value={tz}>{tz}</option>
           ))}
         </select>
-      </motion.div>
+      </m.div>
 
       {/* Error banner */}
       <AnimatePresence>
         {errorMessage && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -525,13 +525,13 @@ export default function BookingCalendar({
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{errorMessage}</span>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* ── STEP 1, DATE ───────────────────────────────────────────────────── */}
       {step === 1 && (
-        <motion.div variants={fadeUp}>
+        <m.div variants={fadeUp}>
           {/* Month nav, clickable label opens a month/year picker */}
           <div className="mb-4 flex items-center justify-between">
             <button
@@ -622,12 +622,12 @@ export default function BookingCalendar({
           )}
 
           <PolicyHint {...policy} />
-        </motion.div>
+        </m.div>
       )}
 
       {/* ── STEP 2, TIME ───────────────────────────────────────────────────── */}
       {step === 2 && (
-        <motion.div variants={fadeUp}>
+        <m.div variants={fadeUp}>
           <button
             type="button"
             onClick={() => setStep(1)}
@@ -674,12 +674,12 @@ export default function BookingCalendar({
           <p className="mt-4 text-[11px] text-charcoal/55">
             {t("bookingCalendar.eachSlotIs")} {durationMin} {t("bookingCalendar.minutesLong")}
           </p>
-        </motion.div>
+        </m.div>
       )}
 
       {/* ── STEP 3, CONFIRM ────────────────────────────────────────────────── */}
       {step === 3 && selectedSlot && (
-        <motion.div variants={fadeUp}>
+        <m.div variants={fadeUp}>
           <button
             type="button"
             onClick={() => setStep(2)}
@@ -740,8 +740,8 @@ export default function BookingCalendar({
           >
             {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> {t("bookingCalendar.bookingEllipsis")}</>) : (<>{t("bookingCalendar.confirmBooking")} <Check className="h-4 w-4" /></>)}
           </button>
-        </motion.div>
+        </m.div>
       )}
-    </motion.div>
+    </m.div>
   )
 }

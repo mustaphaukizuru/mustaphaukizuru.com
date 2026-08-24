@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { Save, ArrowLeft, AlertCircle, CheckCircle2, X } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  FormShell · F10.I · Batch 6B-3
@@ -122,7 +122,7 @@ export default function FormShell({
       {/* ── Alerts ──────────────────────────────────────────── */}
       <AnimatePresence mode="popLayout">
         {error && (
-          <motion.div
+          <m.div
             key="error"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -143,10 +143,10 @@ export default function FormShell({
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             )}
-          </motion.div>
+          </m.div>
         )}
         {success && (
-          <motion.div
+          <m.div
             key="success"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -167,7 +167,7 @@ export default function FormShell({
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             )}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 

@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Calendar, Clock, Mail, ExternalLink, AlertCircle, CheckCircle2,
   XCircle, RefreshCw, Loader2, Filter, Globe2,
@@ -128,7 +128,7 @@ export default function AdminConsultationsPage() {
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <motion.div
+      <m.div
         variants={fadeUp}
         initial="hidden"
         animate="show"
@@ -156,7 +156,7 @@ export default function AdminConsultationsPage() {
             Refresh
           </button>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Error banner */}
       {error && (

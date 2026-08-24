@@ -233,7 +233,14 @@ export default defineConfig({
         manualChunks(id) {
           if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return "react-vendor"
           if (id.includes("node_modules/react-router"))               return "router"
-          if (id.includes("node_modules/framer-motion"))              return "framer"
+          // framer-motion: no manual chunk — LazyMotion (src/components/motion/
+          // MotionProvider) async-loads the domMax feature bundle, and pinning the
+          // whole package into one chunk would drag it back into the critical path.
+          if (id.includes("node_modules/framer-motion"))              return undefined
+          // gsap + ScrollTrigger: own chunk, only reached via dynamic import()
+          // from components/motion/scroll/useScrollNarrative (Home process,
+          // case studies) — admin/dashboard bundles never pull it.
+          if (id.includes("node_modules/gsap"))                       return "gsap"
           if (id.includes("node_modules/lucide-react"))               return "lucide"
           if (id.includes("node_modules/react-icons"))                return "icons"
           if (id.includes("node_modules/pdfjs-dist"))                 return "pdfjs"

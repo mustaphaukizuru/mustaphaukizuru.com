@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useParams, useSearchParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Calendar, Clock, Globe2, ShieldCheck, ArrowRight, Sparkles, Tag,
 } from "lucide-react"
@@ -165,37 +165,37 @@ export default function BookConsultationPage() {
       />
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
-        <motion.div variants={stagger} initial="hidden" animate="show" className="mb-8 sm:mb-10">
-          <motion.div variants={fadeUp}><HeroBadge /></motion.div>
-          <motion.h1 variants={fadeUp} className="mt-3 text-[28px] font-bold tracking-tight text-violet sm:text-[36px] lg:text-[42px]">
+        <m.div variants={stagger} initial="hidden" animate="show" className="mb-8 sm:mb-10">
+          <m.div variants={fadeUp}><HeroBadge /></m.div>
+          <m.h1 variants={fadeUp} className="mt-3 text-[28px] font-bold tracking-tight text-violet sm:text-[36px] lg:text-[42px]">
             {ts("booking.title")}
-          </motion.h1>
-          <motion.p variants={fadeUp} className="mt-3 max-w-2xl text-[14px] text-charcoal/75 sm:text-[15px]">
+          </m.h1>
+          <m.p variants={fadeUp} className="mt-3 max-w-2xl text-[14px] text-charcoal/75 sm:text-[15px]">
             {subtitle}
-          </motion.p>
+          </m.p>
           {category ? (
-            <motion.div variants={fadeUp}>
+            <m.div variants={fadeUp}>
               <ServiceContextCard category={category} offering={offering} lang={lang} />
-            </motion.div>
+            </m.div>
           ) : (
-            <motion.div variants={fadeUp} className="mt-4">
+            <m.div variants={fadeUp} className="mt-4">
               <Link to="/services" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition hover:underline">
                 {t("book.browseAll")}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-            </motion.div>
+            </m.div>
           )}
           {requestedSlug && !category && !loading && !service && (
-            <motion.div variants={fadeUp} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber/20 bg-amber/10 px-3 py-2 text-[12px] text-amber-700">
+            <m.div variants={fadeUp} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber/20 bg-amber/10 px-3 py-2 text-[12px] text-amber-700">
               {ts("booking.unknownService")}
-            </motion.div>
+            </m.div>
           )}
           {errorMessage && (
-            <motion.div variants={fadeUp} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber/20 bg-amber/10 px-3 py-2 text-[12px] text-amber-700">
+            <m.div variants={fadeUp} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber/20 bg-amber/10 px-3 py-2 text-[12px] text-amber-700">
               {errorMessage}
-            </motion.div>
+            </m.div>
           )}
-        </motion.div>
+        </m.div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_360px] lg:gap-8">
           <div className="min-w-0">
@@ -215,22 +215,22 @@ export default function BookConsultationPage() {
             )}
           </div>
 
-          <motion.aside variants={stagger} initial="hidden" animate="show" className="space-y-3">
-            <motion.div variants={fadeUp}><HostCard /></motion.div>
+          <m.aside variants={stagger} initial="hidden" animate="show" className="space-y-3">
+            <m.div variants={fadeUp}><HostCard /></m.div>
             {trustItems.map(({ icon, title: tTitle, body }) => (
-              <motion.div key={tTitle} variants={fadeUp}>
+              <m.div key={tTitle} variants={fadeUp}>
                 <TrustItem icon={icon} title={tTitle} body={body} />
-              </motion.div>
+              </m.div>
             ))}
-            <motion.div variants={fadeUp} className="rounded-xl border border-violet/15 bg-gradient-to-br from-violet-ghost to-white p-5">
+            <m.div variants={fadeUp} className="rounded-xl border border-violet/15 bg-gradient-to-br from-violet-ghost to-white p-5">
               <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet">{t("book.expect.title")}</div>
               <ul className="mt-3 space-y-2.5 text-[12.5px] text-charcoal/85">
                 <li>• {t("book.expect.item1")}</li>
                 <li>• {t("book.expect.item2")}</li>
                 <li>• {t("book.expect.item3")}</li>
               </ul>
-            </motion.div>
-          </motion.aside>
+            </m.div>
+          </m.aside>
         </div>
       </div>
     </section>

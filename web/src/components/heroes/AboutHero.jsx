@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
+import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import Image from "../ui/Image"
 import { Link } from "react-router-dom"
@@ -138,14 +138,14 @@ export default function AboutHero() {
         <div className="grid w-full items-center gap-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-0">
 
           {/* ═══ LEFT, greeting · stats · CTAs · socials ═══ */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             animate="show"
             className="flex flex-col gap-7 pr-0 lg:pr-8"
           >
             {/* Greeting + headline */}
-            <motion.div variants={fadeUp} className="flex flex-col gap-2">
+            <m.div variants={fadeUp} className="flex flex-col gap-2">
               <p className="text-[clamp(16px,1.4vw,20px)] font-semibold text-charcoal-80/65">
                 {t("hero.helloIAm")}
               </p>
@@ -165,10 +165,10 @@ export default function AboutHero() {
                 ]}
                 highlightClassName="text-terracotta"
               />
-            </motion.div>
+            </m.div>
 
             {/* Stats */}
-            <motion.div variants={fadeUp} className="flex items-center gap-4">
+            <m.div variants={fadeUp} className="flex items-center gap-4">
               <div>
                 <span className="text-[clamp(40px,5vw,52px)] font-extrabold leading-none text-violet">
                   8+
@@ -186,10 +186,10 @@ export default function AboutHero() {
                   {t("hero.projectsDelivered")}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* CTAs, primary: Book Consultation · secondary: Download CV */}
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
+            <m.div variants={fadeUp} className="flex flex-wrap gap-3">
               {/* Primary conversion CTA — Innovation Gradient (Brand v3 sacred,
                   reserved for Book / Buy / Checkout / Contact CTAs). */}
               <Link
@@ -209,12 +209,12 @@ export default function AboutHero() {
               </Link>
 
               <CvPicker t={t} />
-            </motion.div>
+            </m.div>
 
             {/* Socials — filled brand chips, no surrounding panel.
                 Same SocialLinks component the Footer uses, rendered
                 directly on the hero's mist surface. */}
-            <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-3">
+            <m.div variants={fadeUp} className="flex flex-wrap items-center gap-3">
               <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45">
                 {t("hero.connectLabel")}
               </span>
@@ -226,11 +226,11 @@ export default function AboutHero() {
                 align="start"
                 ariaLabel="Connect with Mustapha"
               />
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
 
           {/* ═══ CENTRE, circular portrait with rotating gradient ring ═══ */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
@@ -268,17 +268,17 @@ export default function AboutHero() {
                 imgClassName="h-full w-full object-cover object-top"
               />
             </div>
-          </motion.div>
+          </m.div>
 
           {/* ═══ RIGHT, tagline · review · role · trust bullets (lg+ only) ═══ */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             animate="show"
             className="hidden flex-col gap-7 pl-0 lg:flex lg:pl-8"
           >
             {/* Tagline */}
-            <motion.div variants={fadeUp} className="text-right">
+            <m.div variants={fadeUp} className="text-right">
               <p className="text-[clamp(15px,1.1vw,17px)] italic leading-7 text-charcoal-80/65">
                 {t("hero.tagline1")}
                 <br />
@@ -286,10 +286,10 @@ export default function AboutHero() {
                   {t("hero.tagline2")}
                 </span>
               </p>
-            </motion.div>
+            </m.div>
 
             {/* Review card */}
-            <motion.div variants={fadeUp} className="flex justify-end">
+            <m.div variants={fadeUp} className="flex justify-end">
               <div className="rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_32px_-8px_rgba(93,63,211,0.15)]">
                 <div className="flex items-center gap-3 text-[13px] font-semibold">
                   <span className="text-[12px] font-normal text-charcoal-80/60">
@@ -320,10 +320,10 @@ export default function AboutHero() {
                   {t("hero.basedOnFeedback")}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Role */}
-            <motion.div variants={fadeUp} className="text-right">
+            <m.div variants={fadeUp} className="text-right">
               <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-charcoal-80/50">
                 {t("hero.technologyKicker")}
               </p>
@@ -333,10 +333,10 @@ export default function AboutHero() {
               >
                 {t("hero.consultantWord")}
               </p>
-            </motion.div>
+            </m.div>
 
             {/* Trust bullets */}
-            <motion.div variants={fadeUp} className="flex flex-col gap-3">
+            <m.div variants={fadeUp} className="flex flex-col gap-3">
               {TRUST_BULLETS.map((bullet) => {
                 const Icon = bullet.icon
                 return (
@@ -354,8 +354,8 @@ export default function AboutHero() {
                   </div>
                 )
               })}
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         </div>
       </Container>
     </section>
@@ -449,7 +449,7 @@ function CvPicker({ t }) {
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             role="menu"
             aria-label={t("hero.cvs.menuLabel", "Professional profiles")}
             // Animate from a tiny offset in the direction the menu OPENS
@@ -509,7 +509,7 @@ function CvPicker({ t }) {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

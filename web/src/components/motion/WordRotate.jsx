@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
+import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 
 /**
  * WordRotate · cycling word animation — 21st.dev signature pattern
@@ -66,7 +66,7 @@ export default function WordRotate({
   return (
     <span className={`relative inline-block overflow-hidden ${className}`}>
       <AnimatePresence mode="wait">
-        <motion.span
+        <m.span
           key={words[index]}
           variants={variants}
           initial="initial"
@@ -75,7 +75,7 @@ export default function WordRotate({
           className={`inline-block ${wordClass}`}
         >
           {words[index]}
-        </motion.span>
+        </m.span>
       </AnimatePresence>
     </span>
   )

@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useParams, Navigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   ArrowLeft, ArrowRight, Calendar, Clock, Tag, Share2, CalendarCheck, Copy, Check,
 } from "lucide-react"
@@ -325,7 +325,7 @@ export default function BlogPostPage() {
       {/* Article header — full-width container so title aligns with the nav */}
       <section className="bg-white">
         <Container py="md">
-          <motion.header
+          <m.header
             variants={fadeUp}
             initial={reduce ? false : "hidden"}
             animate="show"
@@ -379,7 +379,7 @@ export default function BlogPostPage() {
                 {t("post.meta.minRead", { count: post.readMinutes })}
               </span>
             </div>
-          </motion.header>
+          </m.header>
         </Container>
       </section>
 

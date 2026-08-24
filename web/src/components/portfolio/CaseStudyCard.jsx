@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Sparkles, ChevronRight, ExternalLink, Grid3x3, TrendingUp } from "lucide-react"
 import { getCaseStudy, responsiveSrcSet, hasPlaceholder } from "./caseStudy"
@@ -23,7 +23,7 @@ export default function CaseStudyCard({ item }) {
   const service = cs?.serviceSlug
 
   return (
-    <motion.article
+    <m.article
       variants={fadeUp}
       className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(93,63,211,0.12)]"
     >
@@ -31,7 +31,8 @@ export default function CaseStudyCard({ item }) {
         {/* Cover */}
         <div className="relative aspect-[16/10] overflow-hidden bg-violet-pale">
           {item.coverImage ? (
-            <img
+            <m.img
+              layoutId={`project-cover-${item.slug}`}
               src={item.coverImage}
               srcSet={responsiveSrcSet(item.coverImage)}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
@@ -95,6 +96,6 @@ export default function CaseStudyCard({ item }) {
           </div>
         </div>
       </Link>
-    </motion.article>
+    </m.article>
   )
 }

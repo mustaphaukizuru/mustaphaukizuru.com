@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   ClipboardCheck, ArrowRight, ShieldCheck, Clock, Layers,
   Sparkles, Building2, GraduationCap, User, CheckCircle2,
@@ -87,7 +87,7 @@ export default function SelfAuditPage() {
         }} />
 
         <div className="relative mx-auto w-full max-w-5xl px-4 pb-12 pt-12 sm:px-6 sm:pb-20 sm:pt-24 lg:px-8">
-          <motion.div {...fade} className="max-w-3xl">
+          <m.div {...fade} className="max-w-3xl">
             {/* Eyebrow */}
             <span className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet">
               <Sparkles className="h-3 w-3" aria-hidden="true" />
@@ -123,7 +123,7 @@ export default function SelfAuditPage() {
 
             {/* CTA */}
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <motion.button
+              <m.button
                 onClick={openModal}
                 whileHover={reduce ? {} : { scale: 1.02, y: -1 }}
                 whileTap={reduce ? {} : { scale: 0.98 }}
@@ -131,7 +131,7 @@ export default function SelfAuditPage() {
               >
                 Begin your free audit
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </motion.button>
+              </m.button>
               <a
                 href="#what-youll-get"
                 className="text-[14px] font-medium text-charcoal/55 underline underline-offset-2 hover:text-violet transition"
@@ -139,10 +139,10 @@ export default function SelfAuditPage() {
                 See what you'll get
               </a>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Trust stats */}
-          <motion.div
+          <m.div
             {...fade}
             transition={{ ...(fade.transition || {}), delay: 0.15 }}
             className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6"
@@ -153,7 +153,7 @@ export default function SelfAuditPage() {
                 <div className="mt-1 text-[12px] text-charcoal/55">{label}</div>
               </div>
             ))}
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
@@ -179,16 +179,16 @@ export default function SelfAuditPage() {
       {/* ── What you'll get ─────────────────────────────────────────────── */}
       <section id="what-youll-get" className="py-16 sm:py-20 bg-mist">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <motion.div {...fade} className="mb-12 text-center">
+          <m.div {...fade} className="mb-12 text-center">
             <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-violet mb-3">WHAT YOU GET</p>
             <h2 className="text-[clamp(24px,3.5vw,38px)] font-extrabold tracking-tight text-charcoal">
               From self-assessment to action plan
             </h2>
-          </motion.div>
+          </m.div>
 
           <div className="grid gap-6 sm:grid-cols-3">
             {WHAT_YOU_GET.map(({ step, eyebrow, title, body, icon: Icon }, i) => (
-              <motion.div
+              <m.div
                 key={step}
                 {...fade}
                 transition={{ ...(fade.transition || {}), delay: i * 0.1 }}
@@ -200,7 +200,7 @@ export default function SelfAuditPage() {
                 <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet mb-2">{eyebrow}</p>
                 <h3 className="text-[17px] font-bold text-charcoal mb-2">{title}</h3>
                 <p className="text-[13.5px] leading-relaxed text-charcoal/60">{body}</p>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function SelfAuditPage() {
       <section className="py-16 sm:py-20 bg-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-            <motion.div {...fade}>
+            <m.div {...fade}>
               <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-violet mb-3">YOUR RESULTS LOOK LIKE THIS</p>
               <h2 className="text-[clamp(22px,3vw,34px)] font-extrabold tracking-tight text-charcoal mb-4">
                 A real picture of where you are. Not a sales deck.
@@ -231,10 +231,10 @@ export default function SelfAuditPage() {
                   </li>
                 ))}
               </ul>
-            </motion.div>
+            </m.div>
 
             {/* Mock result card */}
-            <motion.div
+            <m.div
               {...fade}
               transition={{ ...(fade.transition || {}), delay: 0.12 }}
               className="rounded-2xl border border-charcoal/8 bg-mist p-6 shadow-[0_24px_64px_-24px_rgba(15,23,42,0.12)]"
@@ -269,7 +269,7 @@ export default function SelfAuditPage() {
                 </div>
               ))}
               <p className="mt-4 text-center text-[11px] text-charcoal/35 italic">Sample only — your results will reflect your actual scores</p>
-            </motion.div>
+            </m.div>
           </div>
         </div>
       </section>
@@ -277,7 +277,7 @@ export default function SelfAuditPage() {
       {/* ── CTA banner ──────────────────────────────────────────────────── */}
       <section className="bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] py-14 sm:py-16">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div {...fade}>
+          <m.div {...fade}>
             <div className="flex justify-center mb-5">
               <div className="flex gap-1">
                 {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-terracotta text-terracotta" aria-hidden="true" />)}
@@ -289,7 +289,7 @@ export default function SelfAuditPage() {
             <p className="text-[15px] text-white/75 mb-8 max-w-xl mx-auto">
               Free. No account. No sales call unless you want one. Results visible immediately — email is optional.
             </p>
-            <motion.button
+            <m.button
               onClick={openModal}
               whileHover={reduce ? {} : { scale: 1.03, y: -1 }}
               whileTap={reduce ? {} : { scale: 0.97 }}
@@ -297,8 +297,8 @@ export default function SelfAuditPage() {
             >
               Begin your free audit
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </motion.button>
-          </motion.div>
+            </m.button>
+          </m.div>
         </div>
       </section>
 

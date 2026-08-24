@@ -191,12 +191,51 @@ enum PortfolioStatus {
 /// USERS
 /// =============================================================
 
+/// Step 42 · schema tidy. Named AccountRole (not UserRole) because a
+/// `UserRole` join model already exists in this schema.
+enum AccountRole {
+  member
+  admin
+}
+
+enum ContactMessageStatus {
+  new
+  read
+  replied
+}
+
+enum NewsletterStatus {
+  pending
+  subscribed
+  unsubscribed
+}
+
+enum CampaignRecipientStatus {
+  queued
+  sent
+  failed
+  bounced
+}
+
+enum DiagnosticAudience {
+  EDU
+  SMB
+  IND
+}
+
+enum DiagnosticTier {
+  Foundation
+  Stabilizing
+  Optimizing
+  Mature
+}
+
 model User {
   id                     String           @id @default(cuid())
   fullName               String
   email                  String           @unique
   passwordHash           String?
-  role                   String           @default("member")
+  role                   AccountRole      @default(member)
   googleId               String?          @unique
   microsoftId            String?          @unique
   facebookId             String?          @unique
@@ -439,6 +478,8 @@ model Product {
   createdById        String?
   rating             Float         @default(0)
   reviewCount        Int           @default(0)
+  /// Step 42 · soft delete. Non-null = hidden from every public read.
+  deletedAt          DateTime?
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
@@ -461,6 +502,7 @@ model Product {
   @@index([status])
   @@index([isActive])
   @@index([isFeatured])
+  @@index([deletedAt])
 }
 
 model ProductFeature {
@@ -693,6 +735,8 @@ model Service {
   metaTitle        String?
   metaDescription  String?       @db.Text
   createdById      String?
+  /// Step 42 · soft delete. Non-null = hidden from every public read.
+  deletedAt        DateTime?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -738,6 +782,7 @@ model Service {
   @@index([status])
   @@index([isBookable])
   @@index([audienceCode])
+  @@index([deletedAt])
 }
 
 model ServiceFeature {
@@ -1366,9 +1411,9 @@ model DiagnosticSubmission {
   name            String
   email           String
   organization    String?
-  audience        String   // EDU | SMB | IND
+  audience        DiagnosticAudience
   overallScore    Int      // 0-100 normalised
-  tier            String   // Foundation | Stabilizing | Optimizing | Mature
+  tier            DiagnosticTier
   sectionScores   Json     // { A: { pct, raw, max }, ... }
   scores          Json     // raw { "A.1": 3, ... }
   topPriorities   Json     // [{id,svc,title,score,tier}]
@@ -1388,7 +1433,7 @@ model ContactMessage {
   phone     String?
   subject   String?
   message   String    @db.Text
-  status    String    @default("new")
+  status    ContactMessageStatus @default(new)
   repliedAt DateTime?
   createdAt DateTime  @default(now())
 }
@@ -1396,7 +1441,7 @@ model ContactMessage {
 model NewsletterSubscriber {
   id             String    @id @default(cuid())
   email          String    @unique
-  status         String    @default("subscribed")
+  status         NewsletterStatus @default(subscribed)
   subscribedAt   DateTime  @default(now())
   unsubscribedAt DateTime?
 
@@ -1441,21 +1486,38 @@ model EmailTemplate {
   @@index([locale])
 }
 
+/// Delivery state of one EmailLog row (roadmap step 41 · single email layer).
+enum EmailStatus {
+  queued
+  sent
+  failed
+  bounced
+  skipped
+}
+
 model EmailLog {
-  id                String    @id @default(cuid())
+  id                String      @id @default(cuid())
   userId            String?
   emailTo           String
   templateKey       String?
   subject           String
-  status            String    @default("queued")
+  status            EmailStatus @default(queued)
   providerMessageId String?
   sentAt            DateTime?
-  errorMessage      String?   @db.Text
-  createdAt         DateTime  @default(now())
+  errorMessage      String?     @db.Text
+  /// Number of delivery attempts made so far (1 after the first send).
+  attempts          Int         @default(0)
+  /// When the retry job may re-attempt delivery. Null = no retry scheduled.
+  nextAttemptAt     DateTime?
+  /// Stored mail options (from/to/subject/html/text/headers/ics) so the
+  /// retry job can re-send without re-rendering. Null for permanent rows.
+  payload           Json?
+  createdAt         DateTime    @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([status, nextAttemptAt])
 }
 
 /// =============================================================
@@ -1897,12 +1959,16 @@ model BlogPost {
 
   tags BlogTagMap[]
 
+  /// Step 42 · soft delete. Non-null = hidden from every public read.
+  deletedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status, publishedAt])
   @@index([isFeatured, publishedAt])
   @@index([categoryId])
+  @@index([deletedAt])
 }
 
 /// =============================================================
@@ -1968,7 +2034,7 @@ model EmailCampaignRecipient {
   campaign     EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   email        String
   userId       String?
-  status       String        @default("queued") // queued | sent | failed | bounced
+  status       CampaignRecipientStatus @default(queued)
   providerId   String?
   errorMessage String?       @db.Text
   sentAt       DateTime?

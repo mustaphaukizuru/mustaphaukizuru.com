@@ -28,7 +28,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Search, Tag, Calendar, Clock, ArrowRight, X, Mail, Filter,
   TrendingUp, Folder, Archive, ChevronRight, BookOpen, Sparkles,
@@ -230,21 +230,21 @@ export default function BlogPage() {
           className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:radial-gradient(circle_at_1px_1px,rgba(93,63,211,0.55)_1px,transparent_0)] [background-size:32px_32px]"
         />
         <Container>
-          <motion.div
+          <m.div
             variants={reduce ? undefined : stagger}
             initial={reduce ? false : "hidden"}
             animate="show"
             className="flex flex-col items-center gap-5 py-16 text-center sm:py-20 lg:py-24"
           >
-            <motion.span
+            <m.span
               variants={fadeUp}
               className="inline-flex items-center gap-1.5 rounded-full border border-violet/20 bg-violet/[0.06] px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-violet backdrop-blur-sm"
             >
               <BookOpen className="h-3 w-3" aria-hidden="true" />
               {t("page.title")}
-            </motion.span>
+            </m.span>
 
-            <motion.h1
+            <m.h1
               variants={fadeUp}
               id="blog-hero-title"
               className="max-w-3xl text-display text-violet"
@@ -258,17 +258,17 @@ export default function BlogPage() {
                 />
               </span>
               .
-            </motion.h1>
+            </m.h1>
 
-            <motion.p
+            <m.p
               variants={fadeUp}
               className="max-w-2xl text-[15px] leading-7 text-charcoal-80/70 sm:text-[16px]"
             >
               {t("page.subtitle")}
-            </motion.p>
+            </m.p>
 
             {/* Hero search — primary discovery entry point */}
-            <motion.form
+            <m.form
               variants={fadeUp}
               onSubmit={(e) => {
                 e.preventDefault()
@@ -295,10 +295,10 @@ export default function BlogPage() {
               >
                 {t("page.searchButton")}
               </button>
-            </motion.form>
+            </m.form>
 
             {/* Result meta — shows filter context when active */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               className="mt-1 flex flex-wrap items-center justify-center gap-2 text-[12.5px]"
             >
@@ -315,8 +315,8 @@ export default function BlogPage() {
                   {t("page.clearFilters")}
                 </button>
               ) : null}
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         </Container>
       </section>
 
@@ -800,7 +800,7 @@ function FeaturedCard({ post, reduce }) {
   const locale = i18n.language === "es" ? "es-MX" : "en-US"
   const cat = categoryByValue(post.category)
   return (
-    <motion.article
+    <m.article
       initial={reduce ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
@@ -866,7 +866,7 @@ function FeaturedCard({ post, reduce }) {
           </span>
         </div>
       </Link>
-    </motion.article>
+    </m.article>
   )
 }
 

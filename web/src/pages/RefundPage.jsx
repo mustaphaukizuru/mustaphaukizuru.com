@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useTranslation, Trans } from "react-i18next"
 import {
   RotateCcw, Calendar, Mail, CheckCircle2, XCircle, Clock,
@@ -52,18 +52,18 @@ export default function RefundPage() {
     <div className="bg-mist">
       <section className="py-16 text-center" style={{ backgroundColor: "#5D3FD3" }}>
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <motion.div {...fadeUp} className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-white">
+          <m.div {...fadeUp} className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-white">
             <RotateCcw className="h-7 w-7" />
-          </motion.div>
-          <motion.h1 {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }} className="mt-5 text-page font-bold text-white">
+          </m.div>
+          <m.h1 {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.05 }} className="mt-5 text-page font-bold text-white">
             {t("refund.title")}
-          </motion.h1>
-          <motion.p {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }} className="mt-3 text-body text-white/65">
+          </m.h1>
+          <m.p {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.1 }} className="mt-3 text-body text-white/65">
             {t("refund.subtitle")}
-          </motion.p>
-          <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.15 }} className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white/55">
+          </m.p>
+          <m.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.15 }} className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white/55">
             <Calendar className="h-3.5 w-3.5" /> {t("refund.lastUpdated")}
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
@@ -71,7 +71,7 @@ export default function RefundPage() {
         <div className="flex flex-col gap-6">
 
           {/* Headline policy statement */}
-          <motion.div
+          <m.div
             {...fadeUp}
             className="rounded-xl border border-violet/15 bg-violet-pale p-6 shadow-[0_4px_16px_rgba(93,63,211,0.08)]"
           >
@@ -87,10 +87,10 @@ export default function RefundPage() {
                 />
               </div>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Eligible */}
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.05 }}
             className="rounded-xl border border-mint-600/20 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
@@ -106,10 +106,10 @@ export default function RefundPage() {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </m.div>
 
           {/* Not eligible */}
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.1 }}
             className="rounded-xl border border-rose/20/40 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
@@ -125,10 +125,10 @@ export default function RefundPage() {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </m.div>
 
           {/* Process */}
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.15 }}
             className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
@@ -170,10 +170,10 @@ export default function RefundPage() {
                 )
               })}
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Chargebacks notice */}
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.2 }}
             className="rounded-xl border border-amber/20/60 bg-amber/10 p-6"
@@ -184,10 +184,10 @@ export default function RefundPage() {
             <p className="text-meta text-amber-700/85">
               {t("refund.chargebacks.body")}
             </p>
-          </motion.div>
+          </m.div>
 
           {/* Spanish summary, PROFECO compliance */}
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.25 }}
             className="rounded-xl border border-violet/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
@@ -204,9 +204,9 @@ export default function RefundPage() {
                 }),
               }}
             />
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.3 }}
             className="flex items-center gap-4 rounded-xl bg-violet p-6 text-white"
@@ -223,7 +223,7 @@ export default function RefundPage() {
                 {SUPPORT_EMAIL}
               </a>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </div>

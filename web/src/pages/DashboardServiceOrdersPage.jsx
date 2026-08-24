@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Briefcase, Calendar, Clock, CheckCircle2, AlertCircle, Pause, XCircle,
   ChevronRight, Loader2, MessageSquare, Folder, FileText, ArrowRight,
@@ -116,7 +116,7 @@ function ServiceOrderCard({ order }) {
   }, [order])
 
   return (
-    <motion.article
+    <m.article
       {...fadeUp}
       className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_4px_18px_rgba(93,63,211,0.04)]"
     >
@@ -199,7 +199,7 @@ function ServiceOrderCard({ order }) {
           </Link>
         </div>
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 

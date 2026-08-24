@@ -50,7 +50,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import { useRef, useId } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
@@ -164,7 +164,7 @@ function Modal({
             style={wrapperStyle}
           >
             {/* Backdrop */}
-            <motion.div
+            <m.div
               {...backdrop}
               onClick={handleBackdrop}
               className={cx(
@@ -175,7 +175,7 @@ function Modal({
             />
 
             {/* Dialog */}
-            <motion.div
+            <m.div
               ref={dialogRef}
               role="dialog"
               aria-modal="true"
@@ -224,7 +224,7 @@ function Modal({
                   {footer ? <ModalFooter className="mx-0 mb-0 mt-0 shrink-0">{footer}</ModalFooter> : null}
                 </>
               )}
-            </motion.div>
+            </m.div>
           </div>
         )}
       </AnimatePresence>

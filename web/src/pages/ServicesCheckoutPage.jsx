@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams, useNavigate, Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   ArrowLeft, ShieldCheck, Zap, CheckCircle2, AlertCircle, Loader2,
   CreditCard, Briefcase,
@@ -319,7 +319,7 @@ export default function ServicesCheckoutPage() {
 
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
           {/* ── LEFT · plan summary + customer form ───────────────────── */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
             className="space-y-6"
           >
@@ -404,10 +404,10 @@ export default function ServicesCheckoutPage() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* ── RIGHT · payment sidebar ──────────────────────────────── */}
-          <motion.aside
+          <m.aside
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}
             className="lg:sticky lg:top-6 space-y-4 self-start"
           >
@@ -495,7 +495,7 @@ export default function ServicesCheckoutPage() {
                 ))}
               </div>
             </div>
-          </motion.aside>
+          </m.aside>
         </div>
       </div>
     </div>

@@ -22,7 +22,9 @@
     "seed:blog": "node prisma/seed-blog.js",
     "google:bootstrap": "node scripts/google-oauth-bootstrap.js",
     "google:verify": "node scripts/google-meet-verify.js",
-    "consultations:heal-links": "node scripts/heal-consultation-links.js"
+    "consultations:heal-links": "node scripts/heal-consultation-links.js",
+    "test:integration": "jest test/integration",
+    "test:unit": "jest --testPathIgnorePatterns=test/integration"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -72,7 +74,15 @@
       "!src/lib/prisma.js"
     ],
     "coverageDirectory": "<rootDir>/coverage",
-    "verbose": true
+    "verbose": true,
+    "coverageThreshold": {
+      "global": {
+        "lines": 30,
+        "statements": 27,
+        "branches": 22,
+        "functions": 23
+      }
+    }
   },
   "engines": {
     "node": ">=20.0.0 <23.0.0"

@@ -26,7 +26,7 @@
 
 import { useEffect, useId, useRef, useState } from "react"
 import { ArrowUp, Paperclip, Mic, Sparkles, ChevronDown, Square } from "lucide-react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 
 import { useTranslation } from "react-i18next"
 /**
@@ -236,7 +236,7 @@ export default function AIPromptInput({
             Stop
           </button>
         ) : (
-          <motion.button
+          <m.button
             type="button"
             onClick={submit}
             disabled={!canSubmit}
@@ -251,7 +251,7 @@ export default function AIPromptInput({
             aria-label="Send"
           >
             <ArrowUp className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
-          </motion.button>
+          </m.button>
         )}
       </div>
     </div>

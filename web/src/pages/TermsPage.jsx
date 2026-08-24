@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { FileText, Calendar, Scale, Mail, Link as LinkIcon } from "lucide-react"
 
@@ -108,7 +108,7 @@ export default function TermsPage() {
 
         <article className="flex flex-col gap-4">
           {sections.map(({ slug, title, content }, i) => (
-            <motion.section
+            <m.section
               key={slug}
               id={slug}
               className="scroll-mt-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
@@ -131,7 +131,7 @@ export default function TermsPage() {
                 </a>
               </h2>
               <p className="text-meta leading-7 text-charcoal-80/70">{content}</p>
-            </motion.section>
+            </m.section>
           ))}
         </article>
 

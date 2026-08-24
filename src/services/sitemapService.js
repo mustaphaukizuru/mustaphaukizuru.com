@@ -78,7 +78,7 @@ async function buildSitemapXml() {
   // Products — only active and visible
   try {
     const products = await prisma.product.findMany({
-      where:  { isActive: true },
+      where:  { isActive: true, deletedAt: null },
       select: { slug: true, updatedAt: true },
     })
     products.forEach((p) => {
@@ -94,10 +94,12 @@ async function buildSitemapXml() {
     console.warn("[sitemap] product query failed:", e.message)
   }
 
-  // Services — only active
+  // Services — published + not soft-deleted. (Service has no `isActive`
+  // column; the previous filter threw on every build and services were
+  // silently missing from the sitemap.)
   try {
     const services = await prisma.service.findMany({
-      where:  { isActive: true },
+      where:  { status: "published", deletedAt: null },
       select: { slug: true, updatedAt: true },
     })
     services.forEach((s) => {

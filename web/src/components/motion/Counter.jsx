@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { motion, useInView, useMotionValue, useReducedMotion, useSpring } from "framer-motion"
+import { m, useInView, useMotionValue, useReducedMotion, useSpring } from "framer-motion"
 
 /**
  * Counter · animated number counter
@@ -67,11 +67,11 @@ export default function Counter({
   }, [reduced, to, format])
 
   return (
-    <motion.span ref={ref} className={className} aria-label={`${prefix}${to}${suffix}`}>
+    <m.span ref={ref} className={className} aria-label={`${prefix}${to}${suffix}`}>
       <span aria-hidden="true">
         {prefix}{display}{suffix}
       </span>
-    </motion.span>
+    </m.span>
   )
 }
 

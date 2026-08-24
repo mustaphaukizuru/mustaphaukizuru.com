@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   MapPin, Plus, Pencil, Trash2, Star, X, AlertCircle,
   Home as HomeIcon, Building2, Check,
@@ -172,7 +172,7 @@ export default function DashboardAddressesPage() {
             <div className="space-y-3">
               <AnimatePresence>
                 {items.map((address) => (
-                  <motion.div
+                  <m.div
                     key={address.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -186,7 +186,7 @@ export default function DashboardAddressesPage() {
                       onSetDefault={() => handleSetDefault(address)}
                       isDeleting={deletingId === address.id}
                     />
-                  </motion.div>
+                  </m.div>
                 ))}
               </AnimatePresence>
             </div>

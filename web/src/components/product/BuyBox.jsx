@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Minus, Plus, ShoppingCart, Star, Zap, Lock, Check, Share2, User, BadgeCheck,
   Download, RefreshCw, CreditCard, ShieldCheck,
@@ -238,7 +238,7 @@ export function MobileBuyBar({ price, currency, onAddToCart, added, productTitle
   }, [])
 
   return (
-    <motion.div
+    <m.div
       initial={false}
       animate={{ y: visible ? 0 : 100, opacity: visible ? 1 : 0 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
@@ -264,6 +264,6 @@ export function MobileBuyBar({ price, currency, onAddToCart, added, productTitle
           {added ? <><Check className="h-4 w-4" />{t("misc.added")}</> : <><ShoppingCart className="h-4 w-4" />{t("actions.addToCart")}</>}
         </button>
       </div>
-    </motion.div>
+    </m.div>
   )
 }

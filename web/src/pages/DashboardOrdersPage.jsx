@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { useTranslation, Trans } from "react-i18next"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   CreditCard, Receipt, Clock3, CheckCircle2, ChevronUp, ChevronDown,
   Eye, FileDown, Search, X, RotateCcw, ShieldCheck, AlertTriangle,
@@ -427,7 +427,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
   }
 
   return (
-    <motion.div
+    <m.div
       className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal-80/55 px-4 py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -436,7 +436,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
       aria-modal="true"
       aria-label={t("orders.refundModal.ariaLabel")}
     >
-      <motion.form
+      <m.form
         onSubmit={handleSubmit}
         className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-[0_24px_48px_rgba(93,63,211,0.18)]"
         {...fadeUp}
@@ -531,7 +531,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
             {submitting ? t("orders.refundModal.submitting") : t("orders.refundModal.submit")}
           </button>
         </div>
-      </motion.form>
-    </motion.div>
+      </m.form>
+    </m.div>
   )
 }

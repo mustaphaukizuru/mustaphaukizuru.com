@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { Video, Clock, ExternalLink } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
@@ -114,7 +114,7 @@ export default function UpcomingMeetingBanner() {
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         layout
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -165,7 +165,7 @@ export default function UpcomingMeetingBanner() {
             <ExternalLink className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
           </a>
         </div>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   )
 }

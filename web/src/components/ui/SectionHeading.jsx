@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Link } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
 
@@ -37,7 +37,7 @@ export default function SectionHeading({
     >
       <div className={cn("flex flex-col gap-3", isCenter && "items-center text-center")}>
         {eyebrow && (
-          <motion.span
+          <m.span
             initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
@@ -46,10 +46,10 @@ export default function SectionHeading({
           >
             <span className="h-1.5 w-1.5 rounded-full bg-violet" aria-hidden="true" />
             {eyebrow}
-          </motion.span>
+          </m.span>
         )}
 
-        <motion.h2
+        <m.h2
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
@@ -57,10 +57,10 @@ export default function SectionHeading({
           className="text-[clamp(26px,3.5vw,40px)] font-bold leading-[1.1] tracking-[-0.01em] text-violet"
         >
           {title}
-        </motion.h2>
+        </m.h2>
 
         {subtitle && (
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
@@ -71,7 +71,7 @@ export default function SectionHeading({
             )}
           >
             {subtitle}
-          </motion.p>
+          </m.p>
         )}
       </div>
 

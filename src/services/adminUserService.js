@@ -28,8 +28,10 @@ const SAFE_USER_SELECT = {
    ──────────────────────────────────────────────────────────────────── */
 async function getAdminUsers({ page = 1, limit = 50, role, status, search } = {}) {
   const where = {}
-  if (role)   where.role   = role
-  if (status) where.status = status
+  // Enum columns: an out-of-set filter value would make Prisma throw, so
+  // unknown values are ignored rather than surfaced as a 500.
+  if (role   && ["member", "admin"].includes(role))                 where.role   = role
+  if (status && ["active", "suspended", "pending"].includes(status)) where.status = status
   if (search?.trim()) {
     const q = search.trim()
     where.OR = [

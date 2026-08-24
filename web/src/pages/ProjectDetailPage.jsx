@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   ArrowLeft, ArrowRight, ExternalLink, Github, Calendar, Briefcase,
   CheckCircle2, AlertCircle, Sparkles, ChevronRight, Tag,
@@ -181,8 +181,8 @@ export default function ProjectDetailPage() {
             <span className="font-medium text-violet line-clamp-1">{project.title}</span>
           </nav>
 
-          <motion.div initial="hidden" animate="show" variants={stagger} className="flex flex-col gap-5">
-            <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-2">
+          <m.div initial="hidden" animate="show" variants={stagger} className="flex flex-col gap-5">
+            <m.div variants={fadeUp} className="flex flex-wrap items-center gap-2">
               {serviceLabel ? (
                 <Link
                   to={`/portfolio?service=${cs.serviceSlug}`}
@@ -201,16 +201,16 @@ export default function ProjectDetailPage() {
                   <Sparkles className="h-3 w-3" aria-hidden="true" /> {t("card.featured")}
                 </span>
               ) : null}
-            </motion.div>
-            <motion.h1 variants={fadeUp} className="text-page font-bold leading-tight tracking-tight text-violet sm:text-page">
+            </m.div>
+            <m.h1 variants={fadeUp} className="text-page font-bold leading-tight tracking-tight text-violet sm:text-page">
               {project.title}
-            </motion.h1>
-            <motion.p variants={fadeUp} className="max-w-3xl text-body leading-7 text-charcoal-80/75 sm:text-body">
+            </m.h1>
+            <m.p variants={fadeUp} className="max-w-3xl text-body leading-7 text-charcoal-80/75 sm:text-body">
               {project.shortDescription}
-            </motion.p>
+            </m.p>
 
             {/* Meta pills */}
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-3 pt-2 text-micro">
+            <m.div variants={fadeUp} className="flex flex-wrap gap-3 pt-2 text-micro">
               {project.role ? (
                 <span className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-3 py-1.5 text-charcoal-80/75">
                   <Briefcase className="h-3.5 w-3.5 text-violet" aria-hidden="true" /> {project.role}
@@ -242,8 +242,8 @@ export default function ProjectDetailPage() {
                   <Github className="h-3.5 w-3.5 text-violet" aria-hidden="true" /> {t("detail.source")}
                 </a>
               ) : null}
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         </Container>
       </section>
 
@@ -252,7 +252,8 @@ export default function ProjectDetailPage() {
         <section className="py-10 sm:py-14">
           <Container>
             <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_12px_32px_rgba(93,63,211,0.08)]">
-              <div className="aspect-[16/9] w-full bg-violet-pale">
+              {/* layoutId shared with PortfolioCard/CaseStudyCard for the page transition */}
+              <m.div layoutId={`project-cover-${slug}`} className="aspect-[16/9] w-full bg-violet-pale">
                 {heroSrcSet ? (
                   <picture className="block h-full w-full">
                     <source type="image/webp" srcSet={heroSrcSet} sizes="(max-width: 1152px) 100vw, 1152px" />
@@ -271,7 +272,7 @@ export default function ProjectDetailPage() {
                     className="h-full w-full"
                   />
                 )}
-              </div>
+              </m.div>
               {gallery.length > 1 ? (
                 <div className="flex gap-3 overflow-x-auto p-4">
                   {gallery.map((src, idx) => (

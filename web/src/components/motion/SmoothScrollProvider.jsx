@@ -1,4 +1,5 @@
-import { useEffect } from "react"
+/* eslint-disable react-refresh/only-export-components -- exports the Lenis context hooks used by scroll narratives */
+import { createContext, useContext, useEffect, useMemo, useRef } from "react"
 import Lenis from "lenis"
 
 /**
@@ -15,17 +16,76 @@ import Lenis from "lenis"
  *   - Native scrolling APIs (scrollIntoView, anchor #hash) still work
  *     because Lenis only intercepts wheel/touch.
  *
- * Why this lives at the React layer instead of a top-level script:
- *   - cleans up cleanly on HMR / route changes
- *   - ties Lenis lifetime to the React tree (no zombie RAF after unmount)
- *   - lets us listen to scroll events later via Lenis's API if needed
+ * Step 33 · GSAP ScrollTrigger sync
+ *   The Lenis instance is exposed through `LenisContext` (see `useLenis`).
+ *   Consumers that lazily load GSAP (components/motion/scroll/useScrollNarrative)
+ *   call `subscribe(fn)` — `fn(lenis | null)` fires immediately with the current
+ *   instance and again whenever it is (re)created or destroyed — then wire
+ *   `lenis.on("scroll", ScrollTrigger.update)`. `claimTicker()` hands the RAF
+ *   loop to an external driver (gsap.ticker) so Lenis and ScrollTrigger tick in
+ *   the same frame; the provider's own loop resumes when the claim is released.
+ *   The provider itself never imports gsap, so the gsap chunk stays lazy.
  *
  * Usage (main.jsx, wrap App):
  *   <SmoothScrollProvider>
  *     <App />
  *   </SmoothScrollProvider>
  */
+export const LenisContext = createContext(null)
+
+/** Access the Lenis bridge: `{ get lenis, subscribe, claimTicker }` (null outside the provider). */
+export function useLenis() {
+  return useContext(LenisContext)
+}
+
 export default function SmoothScrollProvider({ children, enabled }) {
+  const lenisRef     = useRef(null)
+  const listenersRef = useRef(new Set())
+  const claimsRef    = useRef(0)
+  const rafRef       = useRef({ id: 0, running: false })
+
+  const api = useMemo(() => {
+    const startLoop = () => {
+      const state = rafRef.current
+      if (state.running || claimsRef.current > 0 || !lenisRef.current) return
+      state.running = true
+      const raf = (time) => {
+        if (!state.running) return
+        lenisRef.current?.raf(time)
+        state.id = requestAnimationFrame(raf)
+      }
+      state.id = requestAnimationFrame(raf)
+    }
+    const stopLoop = () => {
+      const state = rafRef.current
+      state.running = false
+      cancelAnimationFrame(state.id)
+    }
+    return {
+      get lenis() { return lenisRef.current },
+      /** fn(lenis|null) now + on every change. Returns unsubscribe. */
+      subscribe(fn) {
+        listenersRef.current.add(fn)
+        fn(lenisRef.current)
+        return () => { listenersRef.current.delete(fn) }
+      },
+      /** Pause the internal RAF loop while an external ticker drives `lenis.raf`. Returns release(). */
+      claimTicker() {
+        claimsRef.current += 1
+        stopLoop()
+        let released = false
+        return () => {
+          if (released) return
+          released = true
+          claimsRef.current = Math.max(0, claimsRef.current - 1)
+          startLoop()
+        }
+      },
+      _startLoop: startLoop,
+      _stopLoop: stopLoop,
+    }
+  }, [])
+
   useEffect(() => {
     // Resolve final enabled state. Order of precedence:
     //   1. explicit `enabled` prop (runtime override)
@@ -64,21 +124,20 @@ export default function SmoothScrollProvider({ children, enabled }) {
       window.__lenis = lenis
     }
 
-    let rafId = 0
-    function raf(time) {
-      lenis.raf(time)
-      rafId = requestAnimationFrame(raf)
-    }
-    rafId = requestAnimationFrame(raf)
+    lenisRef.current = lenis
+    api._startLoop()
+    listenersRef.current.forEach((fn) => fn(lenis))
 
     return () => {
-      cancelAnimationFrame(rafId)
+      api._stopLoop()
+      lenisRef.current = null
+      listenersRef.current.forEach((fn) => fn(null))
       lenis.destroy()
       if (typeof window !== "undefined" && window.__lenis === lenis) {
         delete window.__lenis
       }
     }
-  }, [enabled])
+  }, [enabled, api])
 
-  return children
+  return <LenisContext.Provider value={api}>{children}</LenisContext.Provider>
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Plus, Search, Edit2, Trash2, Star, StarOff, Eye, AlertCircle,
   Filter, Grid3x3, X, Globe, RefreshCw,
@@ -240,14 +240,14 @@ export default function AdminPortfolioPage() {
           )}
         </div>
       ) : (
-        <motion.div
+        <m.div
           initial="hidden"
           animate="show"
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
           {visible.map((item) => (
-            <motion.article
+            <m.article
               key={item.id}
               variants={fadeUp}
               className="group overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:border-violet/20 hover:shadow-[0_12px_28px_rgba(93,63,211,0.10)]"
@@ -331,15 +331,15 @@ export default function AdminPortfolioPage() {
                   </div>
                 </div>
               </div>
-            </motion.article>
+            </m.article>
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       {/* Delete confirmation modal */}
       <AnimatePresence>
         {confirmDelete && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
             onClick={() => setConfirmDelete(null)}
@@ -347,7 +347,7 @@ export default function AdminPortfolioPage() {
             aria-modal="true"
             aria-label="Confirm archive"
           >
-            <motion.div
+            <m.div
               initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
@@ -384,8 +384,8 @@ export default function AdminPortfolioPage() {
                   {busyId === confirmDelete.id ? "Archiving…" : "Archive"}
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </section>

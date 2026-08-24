@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Briefcase, Calendar, FileText, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react"
 import { fetchMyProjects } from "../services/clientProjectService"
 import useApiQuery from "../hooks/useApiQuery"
@@ -82,7 +82,7 @@ export default function DashboardProjectsPage() {
             const pct = progressPct(p.milestones)
             const fileCount = p._count?.files ?? 0
             return (
-              <motion.article
+              <m.article
                 key={p.id}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -120,7 +120,7 @@ export default function DashboardProjectsPage() {
                 >
                   {t("projects.card.open")} <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
-              </motion.article>
+              </m.article>
             )
           })}
         </div>

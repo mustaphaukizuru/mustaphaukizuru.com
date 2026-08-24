@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 
 /**
  * KineticHeadline · word-by-word reveal headline
@@ -91,7 +91,7 @@ export default function KineticHeadline({
   // We animate at the WORD level (not character) — letter-by-letter
   // animation reads as gimmicky on a serious brand site, and word-level
   // gives plenty of dynamic feel without the noise.
-  const MotionTag = motion[as] || motion.h1
+  const MotionTag = m[as] || m.h1
   const container = {
     hidden: {},
     show:   { transition: { staggerChildren: stagger, delayChildren: 0.05 } },
@@ -125,7 +125,7 @@ export default function KineticHeadline({
           aria-hidden="true"
         >
           {tk.leadingSpace && <span>&nbsp;</span>}
-          <motion.span
+          <m.span
             variants={word}
             className={`inline-block ${
               tk.gradient ? gradientClassName :
@@ -133,7 +133,7 @@ export default function KineticHeadline({
             }`}
           >
             {tk.word}
-          </motion.span>
+          </m.span>
         </span>
       ))}
     </MotionTag>

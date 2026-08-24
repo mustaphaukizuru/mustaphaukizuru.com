@@ -22,7 +22,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Briefcase, Plus, RefreshCw, Pencil, Trash2, Save, X, Loader2,
   CheckCircle2, AlertCircle, Star, ChevronDown, ChevronUp, Tag, Layers, Eye, EyeOff,
@@ -661,7 +661,7 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
   const featureCount = detail?.features?.length ?? service?._count?.features ?? 0
 
   return (
-    <motion.article
+    <m.article
       variants={fadeUp}
       className="overflow-hidden rounded-2xl border border-charcoal/10 bg-white shadow-[0_4px_18px_rgba(93,63,211,0.05)] transition hover:shadow-[0_8px_24px_rgba(93,63,211,0.08)]"
     >
@@ -711,7 +711,7 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
       {/* Expanded body */}
       <AnimatePresence initial={false}>
         {expanded && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -804,10 +804,10 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
                 </>
               )}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -955,11 +955,11 @@ export default function AdminServicePlansPage() {
           )}
         </div>
       ) : (
-        <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-3">
+        <m.div variants={stagger} initial="hidden" animate="show" className="grid gap-3">
           {filtered.map((s) => (
             <ServiceCard key={s.id} service={s} onEdit={handleEdit} onDelete={handleDelete} onChanged={load} />
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       {/* ── Modal ──────────────────────────────────────────────────── */}

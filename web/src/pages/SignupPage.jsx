@@ -20,7 +20,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Eye,
   EyeOff,
@@ -231,12 +231,12 @@ export default function SignupPage() {
   return (
     <AuthShell
     >
-      <motion.div
+      <m.div
         initial="hidden"
         animate="show"
         variants={reduce ? undefined : stagger}
       >
-        <motion.div variants={fadeUp} className="text-center">
+        <m.div variants={fadeUp} className="text-center">
           <BrandMark />
           <h1 className="mt-5 font-display text-[1.75rem] font-bold tracking-tight text-charcoal">
             {t("signup.title")}
@@ -244,15 +244,15 @@ export default function SignupPage() {
           <p className="mt-2 text-[14px] leading-6 text-charcoal-80/65">
             {t("signup.subtitle")}
           </p>
-        </motion.div>
+        </m.div>
 
         {error && (
-          <motion.div variants={fadeUp} className="mt-6">
+          <m.div variants={fadeUp} className="mt-6">
             <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
-          </motion.div>
+          </m.div>
         )}
 
-        <motion.form
+        <m.form
           variants={reduce ? undefined : stagger}
           onSubmit={handleSubmit}
           noValidate
@@ -269,7 +269,7 @@ export default function SignupPage() {
             className="absolute left-[-9999px] h-0 w-0 opacity-0"
           />
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="signup-name" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("signup.nameLabel")}
             </label>
@@ -284,9 +284,9 @@ export default function SignupPage() {
               disabled={loading}
               required
             />
-          </motion.div>
+          </m.div>
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="signup-email" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("signup.emailLabel")}
             </label>
@@ -306,9 +306,9 @@ export default function SignupPage() {
               required
               valid={email.length > 0 && emailValid}
             />
-          </motion.div>
+          </m.div>
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="signup-password" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("signup.passwordLabel")}
             </label>
@@ -370,9 +370,9 @@ export default function SignupPage() {
                 <ShieldAlert className="h-3 w-3" /> {t("signup.capsLockOn")}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="signup-confirm" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("signup.repeatPassword")}
             </label>
@@ -421,9 +421,9 @@ export default function SignupPage() {
                 )}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
-          <motion.label
+          <m.label
             variants={fadeUp}
             className="mt-1 inline-flex cursor-pointer items-start gap-2.5 text-[12.5px] leading-5 text-charcoal-80/75"
           >
@@ -444,9 +444,9 @@ export default function SignupPage() {
               </Link>
               .
             </span>
-          </motion.label>
+          </m.label>
 
-          <motion.button
+          <m.button
             variants={fadeUp}
             type="submit"
             disabled={submitDisabled}
@@ -461,10 +461,10 @@ export default function SignupPage() {
             ) : (
               t("signup.createAccount") || "Sign Up"
             )}
-          </motion.button>
-        </motion.form>
+          </m.button>
+        </m.form>
 
-        <motion.div variants={fadeUp} className="mt-6">
+        <m.div variants={fadeUp} className="mt-6">
           <div className="relative flex items-center gap-3">
             <div className="h-px flex-1 bg-charcoal-80/10" />
             <span className="text-[12px] font-medium text-charcoal-80/50">
@@ -477,9 +477,9 @@ export default function SignupPage() {
             <MicrosoftLoginButton label="signup" />
             <FacebookLoginButton label="signup" />
           </div>
-        </motion.div>
+        </m.div>
 
-        <motion.p
+        <m.p
           variants={fadeUp}
           className="mt-7 text-center text-[13px] text-charcoal-80/65"
         >
@@ -487,8 +487,8 @@ export default function SignupPage() {
           <Link to="/login" className="font-semibold text-violet transition hover:text-violet-deep">
             {t("signup.signIn")}
           </Link>
-        </motion.p>
-      </motion.div>
+        </m.p>
+      </m.div>
     </AuthShell>
   )
 }

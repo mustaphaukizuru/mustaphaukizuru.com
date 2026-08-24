@@ -12,7 +12,7 @@
 const prisma = require("../lib/prisma")
 
 /** Default selection for public reads — drafts/archived are excluded. */
-const PUBLIC_WHERE = { status: "published" }
+const PUBLIC_WHERE = { status: "published", deletedAt: null }
 
 function serializePost(post) {
   if (!post) return null
@@ -102,7 +102,7 @@ async function listTopTags(limit = 14) {
   const rows = await prisma.blogTag.findMany({
     include: {
       _count: {
-        select: { posts: { where: { post: { status: "published" } } } },
+        select: { posts: { where: { post: PUBLIC_WHERE } } },
       },
     },
   })

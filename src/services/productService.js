@@ -166,7 +166,7 @@ function parseJsonField(value, fallback = null) {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function getAllProducts(filters = {}) {
-  const where = { isActive: true }
+  const where = { isActive: true, deletedAt: null }
 
   const categoryFilter = typeof filters === "string" ? filters : (filters.category || "")
   if (categoryFilter) where.category = categoryFilter
@@ -222,7 +222,7 @@ async function getAllProducts(filters = {}) {
 
 async function getProductBySlug(slug, locale = "en") {
   const product = await prisma.product.findFirst({
-    where: { slug, isActive: true },
+    where: { slug, isActive: true, deletedAt: null },
     include: {
       images:      { orderBy: { sortOrder: "asc" } },
       features:    { orderBy: { sortOrder: "asc" } },
@@ -270,6 +270,7 @@ async function getProductBySlug(slug, locale = "en") {
           where: {
             category: product.category,
             isActive: true,
+            deletedAt: null,
             id:       { not: product.id },
           },
         })
@@ -300,7 +301,7 @@ async function getProductBySlug(slug, locale = "en") {
 
 async function getCategories() {
   const rows = await prisma.product.findMany({
-    where:    { isActive: true, category: { not: null } },
+    where:    { isActive: true, deletedAt: null, category: { not: null } },
     select:   { category: true },
     distinct: ["category"],
     orderBy:  { category: "asc" },
@@ -317,8 +318,8 @@ async function getCategories() {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function getRelatedProducts(slug) {
-  const current = await prisma.product.findUnique({
-    where:  { slug },
+  const current = await prisma.product.findFirst({
+    where:  { slug, deletedAt: null },
     select: { id: true, category: true },
   })
   if (!current || !current.category) return []
@@ -327,6 +328,7 @@ async function getRelatedProducts(slug) {
     where: {
       category: current.category,
       isActive: true,
+      deletedAt: null,
       id:       { not: current.id },
     },
     include: {
@@ -350,7 +352,7 @@ async function getRelatedProducts(slug) {
 
 async function getFeaturedProducts() {
   const items = await prisma.product.findMany({
-    where:   { isFeatured: true, isActive: true },
+    where:   { isFeatured: true, isActive: true, deletedAt: null },
     include: {
       images:      { orderBy: { sortOrder: "asc" }, take: 1 },
       features:    { orderBy: { sortOrder: "asc" }, take: 3 },
@@ -384,6 +386,7 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
     where: {
       AND: [
         { isActive: true },
+        { deletedAt: null },
         {
           OR: [
             { title:            { contains: trimmed } },
@@ -456,7 +459,7 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     select: { id: true, name: true, slug: true, description: true, isActive: true },
   })
 
-  let where = { isActive: true }
+  let where = { isActive: true, deletedAt: null }
 
   if (category && category.isActive) {
     where.categoryId = category.id
@@ -465,7 +468,7 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     //     e.g. "digital-toolkits" → "digital toolkits", "Digital Toolkits", "Digital & Toolkits"
     const candidates = buildCategoryCandidates(categorySlug)
     const match = await prisma.product.findFirst({
-      where:  { isActive: true, OR: candidates.map((name) => ({ category: { contains: name } })) },
+      where:  { isActive: true, deletedAt: null, OR: candidates.map((name) => ({ category: { contains: name } })) },
       select: { category: true },
     })
     if (!match || !match.category) return null

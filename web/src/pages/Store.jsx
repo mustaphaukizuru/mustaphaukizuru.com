@@ -6,7 +6,7 @@ import {
   Sparkles, Download, BookOpen, Cpu, Wrench, Briefcase, FlaskConical,
 } from "lucide-react"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useCart } from "../store/CartContext"
 import { fetchProducts, fetchFeaturedProducts } from "../services/productService"
 import StoreHero from "../components/heroes/StoreHero"
@@ -256,7 +256,7 @@ function StoreProductCard({ product }) {
   }
 
   return (
-    <motion.article
+    <m.article
       whileHover={{ y: -4 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition-shadow duration-200 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
@@ -366,7 +366,7 @@ function StoreProductCard({ product }) {
           </div>
         </div>
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 

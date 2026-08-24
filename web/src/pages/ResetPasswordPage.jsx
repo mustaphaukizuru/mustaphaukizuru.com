@@ -20,7 +20,7 @@
 import { useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Lock,
   Eye,
@@ -169,41 +169,41 @@ export default function ResetPasswordPage() {
     return (
       <AuthShell
       >
-        <motion.div
+        <m.div
           initial="hidden"
           animate="show"
           variants={reduce ? undefined : stagger}
           className="text-center"
         >
-          <motion.div
+          <m.div
             variants={fadeUp}
             className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-mint shadow-[0_12px_36px_rgba(16,185,129,0.40)] ring-4 ring-mint/15"
           >
             <CheckCircle2 className="h-8 w-8 text-white" />
-          </motion.div>
+          </m.div>
 
-          <motion.h1
+          <m.h1
             variants={fadeUp}
             className="mt-6 font-display text-[1.75rem] font-bold tracking-tight text-charcoal"
           >
             {t("reset.successTitle")}
-          </motion.h1>
-          <motion.p
+          </m.h1>
+          <m.p
             variants={fadeUp}
             className="mt-2 text-[14px] leading-6 text-charcoal-80/65"
           >
             {t("reset.successBody")}
-          </motion.p>
+          </m.p>
 
-          <motion.div variants={fadeUp} className="mt-7">
+          <m.div variants={fadeUp} className="mt-7">
             <Link
               to="/login"
               className="inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
             >
               {t("reset.backToLogin")}
             </Link>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </AuthShell>
     )
   }
@@ -211,12 +211,12 @@ export default function ResetPasswordPage() {
   return (
     <AuthShell
     >
-      <motion.div
+      <m.div
         initial="hidden"
         animate="show"
         variants={reduce ? undefined : stagger}
       >
-        <motion.div variants={fadeUp}>
+        <m.div variants={fadeUp}>
           <Link
             to="/login"
             className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-charcoal-80/65 transition hover:text-violet"
@@ -224,30 +224,30 @@ export default function ResetPasswordPage() {
             <ArrowLeft className="h-3.5 w-3.5" />
             Back
           </Link>
-        </motion.div>
+        </m.div>
 
-        <motion.div variants={fadeUp} className="mt-6 text-center">
+        <m.div variants={fadeUp} className="mt-6 text-center">
           <h1 className="font-display text-[1.75rem] font-bold tracking-tight text-charcoal">
             {t("reset.createNew")}
           </h1>
           <p className="mt-2 text-[14px] leading-6 text-charcoal-80/65">
             {t("reset.subtitle")}
           </p>
-        </motion.div>
+        </m.div>
 
         {error && (
-          <motion.div variants={fadeUp} className="mt-6">
+          <m.div variants={fadeUp} className="mt-6">
             <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
-          </motion.div>
+          </m.div>
         )}
 
-        <motion.form
+        <m.form
           variants={reduce ? undefined : stagger}
           onSubmit={handleSubmit}
           noValidate
           className="mt-6 flex flex-col gap-4"
         >
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="reset-password" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("reset.newPasswordLabel")}
             </label>
@@ -326,9 +326,9 @@ export default function ResetPasswordPage() {
                 <ShieldAlert className="h-3 w-3" /> {t("reset.capsLockOn")}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="reset-confirm" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("reset.repeatNew")}
             </label>
@@ -392,9 +392,9 @@ export default function ResetPasswordPage() {
                 )}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
-          <motion.button
+          <m.button
             variants={fadeUp}
             type="submit"
             disabled={submitDisabled}
@@ -410,7 +410,7 @@ export default function ResetPasswordPage() {
             ) : (
               "Submit"
             )}
-          </motion.button>
+          </m.button>
 
           {/* Surfacing the first unmet requirement when the button is
               disabled — the previous build silently disabled Submit when
@@ -429,8 +429,8 @@ export default function ResetPasswordPage() {
                 : "Complete the requirements above to continue."}
             </p>
           )}
-        </motion.form>
-      </motion.div>
+        </m.form>
+      </m.div>
     </AuthShell>
   )
 }

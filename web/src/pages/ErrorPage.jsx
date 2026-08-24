@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Helmet } from "react-helmet-async"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   ArrowLeft,
   Clock,
@@ -351,7 +351,7 @@ export default function ErrorPage({
         aria-atomic="true"
         className="relative flex min-h-[70vh] items-center justify-center px-4 py-16"
       >
-        <motion.div
+        <m.div
           variants={stagger}
           initial="hidden"
           animate="show"
@@ -360,32 +360,32 @@ export default function ErrorPage({
           {/* Visual — friendly illustration for 404, tone-aware icon tile
               for every other (more serious) error type */}
           {resolvedType === "404" ? (
-            <motion.div variants={fadeUp} aria-hidden="true">
+            <m.div variants={fadeUp} aria-hidden="true">
               <NotFoundArt />
-            </motion.div>
+            </m.div>
           ) : (
-            <motion.div
+            <m.div
               variants={fadeUp}
               className={`flex h-24 w-24 items-center justify-center rounded-2xl ring-1 ${tone.tile} ${tone.ring} shadow-[0_12px_32px_rgba(15,23,42,0.06)]`}
               aria-hidden="true"
             >
               <Icon className="h-12 w-12" strokeWidth={1.6} />
-            </motion.div>
+            </m.div>
           )}
 
           {/* HTTP code — large, soft, decorative */}
           {code && (
-            <motion.div
+            <m.div
               variants={fadeUp}
               aria-hidden="true"
               className="mt-4 text-display font-bold leading-none text-violet/10 select-none"
             >
               {code}
-            </motion.div>
+            </m.div>
           )}
 
           {/* Title */}
-          <motion.h1
+          <m.h1
             ref={headingRef}
             tabIndex={-1}
             variants={fadeUp}
@@ -393,26 +393,26 @@ export default function ErrorPage({
             style={{ marginTop: code ? "-1rem" : "1.5rem" }}
           >
             {label}
-          </motion.h1>
+          </m.h1>
 
           {/* Message */}
-          <motion.p
+          <m.p
             variants={fadeUp}
             className="mt-3 max-w-md text-body leading-7 text-charcoal-80/65"
           >
             {desc}
-          </motion.p>
+          </m.p>
 
           {/* Actions */}
-          <motion.div
+          <m.div
             variants={fadeUp}
             className="mt-8 flex flex-wrap items-center justify-center gap-3"
           >
             {ActionButtons}
-          </motion.div>
+          </m.div>
 
           {/* Reference id + support hint — single, calm line */}
-          <motion.div variants={fadeUp} className="mt-8 max-w-md space-y-2">
+          <m.div variants={fadeUp} className="mt-8 max-w-md space-y-2">
             <p className="text-micro text-charcoal-80/55">
               {t("reference.label")}{" "}
               <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-steel-700">
@@ -429,11 +429,11 @@ export default function ErrorPage({
               </Link>
               {t("support.suffix")}
             </p>
-          </motion.div>
+          </m.div>
 
           {/* Dev-only technical detail. Production users never see this. */}
           {isDev && technicalDump && (
-            <motion.details
+            <m.details
               variants={fadeUp}
               className="mt-8 w-full max-w-md rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-xs text-steel-700"
             >
@@ -443,9 +443,9 @@ export default function ErrorPage({
               <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-steel-700">
                 {String(technicalDump)}
               </pre>
-            </motion.details>
+            </m.details>
           )}
-        </motion.div>
+        </m.div>
       </div>
     </>
   )

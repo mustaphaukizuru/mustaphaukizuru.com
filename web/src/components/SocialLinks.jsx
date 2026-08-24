@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { Mail, Globe } from "lucide-react"
 
 /**
@@ -315,7 +315,7 @@ export default function SocialLinks({
     .filter(Boolean)
 
   return (
-    <motion.ul
+    <m.ul
       role="list"
       aria-label={ariaLabel}
       variants={reduce ? undefined : containerVariants}
@@ -334,7 +334,7 @@ export default function SocialLinks({
           reduce={reduce}
         />
       ))}
-    </motion.ul>
+    </m.ul>
   )
 }
 
@@ -360,7 +360,7 @@ function SocialChip({ item, variant, tone, sizing, reduce }) {
   const cssVars = { "--brand": item.color }
 
   return (
-    <motion.li
+    <m.li
       variants={reduce ? undefined : itemVariants}
       className="ukz-social-chip relative isolate"
       style={cssVars}
@@ -373,7 +373,7 @@ function SocialChip({ item, variant, tone, sizing, reduce }) {
         style={{ backgroundColor: item.color, zIndex: 0 }}
       />
 
-      <motion.a
+      <m.a
         href={item.href}
         target={target}
         rel={rel}
@@ -443,7 +443,7 @@ function SocialChip({ item, variant, tone, sizing, reduce }) {
               : undefined
           }
         />
-      </motion.a>
+      </m.a>
 
       <style>{`
         .ukz-social-chip:hover .ukz-social-halo { opacity: 0.55; }
@@ -459,7 +459,7 @@ function SocialChip({ item, variant, tone, sizing, reduce }) {
           .ukz-social-chip .ukz-social-sheen > span { animation: none !important; }
         }
       `}</style>
-    </motion.li>
+    </m.li>
   )
 }
 

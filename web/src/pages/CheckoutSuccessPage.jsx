@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useParams, useSearchParams } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Download, LayoutDashboard, ArrowRight, Mail, ShoppingBag, Package, Shield,
   Clock3, AlertCircle, Loader2, FileDown, FileText, Check, RefreshCw, KeyRound, LogIn,
@@ -13,6 +13,7 @@ import { fetchMyOrderById } from "../services/orderService"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import { downloadFileById, downloadInvoice, downloadErrorKey } from "../components/product/downloadHelpers"
 import Confetti from "../components/motion/Confetti"
+import SuccessCheck from "../components/motion/SuccessCheck"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  CheckoutSuccessPage · roadmap 26 · instant download after payment
@@ -36,23 +37,9 @@ const MAX_POLLS = 40 // ≈ 2 minutes
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } } }
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.10 } } }
 
-function AnimatedCheckmark({ size = 96 }) {
-  const { t } = useTranslation("checkout")
-  return (
-    <motion.svg
-      width={size} height={size} viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg"
-      role="img" aria-label={t("success.successAria")}
-      initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <motion.circle cx="48" cy="48" r="44" fill="var(--color-mint)" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} />
-      <motion.path
-        d="M30 50 L43 63 L66 36" fill="none" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"
-        initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.30, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
-      />
-    </motion.svg>
-  )
-}
+// The success checkmark lives in components/motion/SuccessCheck.jsx — it is the
+// same drawing as the one that used to be inlined here, but it honours
+// prefers-reduced-motion (renders the final frame instead of animating).
 
 function formatOrderRef({ order, probe, fallbackId }) {
   const number = order?.orderNumber || probe?.orderNumber
@@ -256,7 +243,7 @@ export default function CheckoutSuccessPage() {
       {/* Hero */}
       <div className="relative py-16 text-center" style={{ backgroundColor: heroBg }}>
         <Confetti fire={isPaid} colors={HERO_CONFETTI_COLORS} />
-        <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: "backOut" }} className="mx-auto inline-flex items-center justify-center">
+        <m.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: "backOut" }} className="mx-auto inline-flex items-center justify-center">
           {isFailed ? (
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E5484D] shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
               <AlertCircle className="h-12 w-12 text-white" aria-hidden="true" />
@@ -266,11 +253,11 @@ export default function CheckoutSuccessPage() {
               {isPending ? <Loader2 className="h-12 w-12 animate-spin text-white" aria-hidden="true" /> : <Clock3 className="h-12 w-12 text-white" aria-hidden="true" />}
             </div>
           ) : (
-            <AnimatedCheckmark size={96} />
+            <SuccessCheck size={96} label={t("success.successAria")} />
           )}
-        </motion.div>
+        </m.div>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }}>
+        <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }}>
           <h1 className="mt-6 text-page font-bold text-white">
             {isFailed ? t("success.failedTitle", "Payment Failed")
               : isPending ? t("success.confirming", "Confirming Payment…")
@@ -294,38 +281,38 @@ export default function CheckoutSuccessPage() {
               {t("misc.paidVia")} {gateway === "mercadopago" ? "Mercado Pago" : "PayPal"}
             </div>
           )}
-        </motion.div>
+        </m.div>
       </div>
 
       <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
         {isFailed ? (
-          <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-5 text-center">
-            <motion.p variants={fadeUp} className="text-body text-charcoal-80/65">{t("misc.noChargeBody")}</motion.p>
-            <motion.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-5 text-center">
+            <m.p variants={fadeUp} className="text-body text-charcoal-80/65">{t("misc.noChargeBody")}</m.p>
+            <m.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               <Link to="/checkout" className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
                 {t("success.tryAgain")}
               </Link>
               <Link to="/store" className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/20 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
                 {t("success.backToStore")}
               </Link>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         ) : isPending ? (
-          <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
-            <motion.div variants={fadeUp} className="max-w-sm rounded-xl border border-amber/20 bg-amber/8 p-6 text-meta text-amber-700">
+          <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
+            <m.div variants={fadeUp} className="max-w-sm rounded-xl border border-amber/20 bg-amber/8 p-6 text-meta text-amber-700">
               <Clock3 className="mx-auto mb-3 h-8 w-8 text-amber" aria-hidden="true" />
               {t("success.processingMP")}
               {orderRef && <div className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/60">{orderRef}</div>}
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         ) : isTimeout ? (
-          <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
-            <motion.div variants={fadeUp} className="max-w-md rounded-xl border border-charcoal-80/10 bg-white p-6 text-meta text-charcoal-80/75 shadow-[0_4px_16px_rgba(93,63,211,0.05)]">
+          <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
+            <m.div variants={fadeUp} className="max-w-md rounded-xl border border-charcoal-80/10 bg-white p-6 text-meta text-charcoal-80/75 shadow-[0_4px_16px_rgba(93,63,211,0.05)]">
               <Mail className="mx-auto mb-3 h-8 w-8 text-violet" aria-hidden="true" />
               {t("success.pendingTimeoutBody")}
               {orderRef && <div className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/60">{orderRef}</div>}
-            </motion.div>
-            <motion.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
+            </m.div>
+            <m.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
                 onClick={() => { setPollCount(0); setPhase("pending") }}
@@ -336,14 +323,14 @@ export default function CheckoutSuccessPage() {
               <Link to="/dashboard/downloads" className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/20 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale">
                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> {t("success.accessDashboard")}
               </Link>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         ) : (
-          <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-5">
+          <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-5">
 
             {/* Guest / claim-link buyer — downloads stay behind sign-in */}
             {!signedIn && (
-              <motion.div variants={fadeUp} className="overflow-hidden rounded-xl border border-violet/20 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.06)]">
+              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-violet/20 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.06)]">
                 <div className="flex items-start gap-4 p-6">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                     <KeyRound className="h-6 w-6" aria-hidden="true" />
@@ -357,19 +344,19 @@ export default function CheckoutSuccessPage() {
                     </Link>
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             )}
 
             {signedIn && orderForbidden && (
-              <motion.div variants={fadeUp} className="flex items-start gap-3 rounded-xl border border-amber/25 bg-amber/8 p-4 text-meta text-amber-700">
+              <m.div variants={fadeUp} className="flex items-start gap-3 rounded-xl border border-amber/25 bg-amber/8 p-4 text-meta text-amber-700">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 {t("success.notYourOrder")}
-              </motion.div>
+              </m.div>
             )}
 
             {/* Your downloads — instant */}
             {signedIn && !orderForbidden && (
-              <motion.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
+              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
                 <div className="flex items-center justify-between border-b border-charcoal-80/10 px-6 py-5">
                   <div>
                     <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/50">{t("success.downloadsTitle")}</div>
@@ -420,12 +407,12 @@ export default function CheckoutSuccessPage() {
                     </span>
                   </p>
                 </div>
-              </motion.div>
+              </m.div>
             )}
 
             {/* Order summary + receipt */}
             {signedIn && !orderForbidden && (
-              <motion.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
+              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 px-6 py-5">
                   <div>
                     <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/50">{t("success.orderSummary")}</div>
@@ -491,19 +478,19 @@ export default function CheckoutSuccessPage() {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </m.div>
             )}
 
             {/* Email chip */}
-            <motion.div variants={fadeUp} className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.05)]">
+            <m.div variants={fadeUp} className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.05)]">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint/15 text-mint">
                 <Mail className="h-5 w-5" aria-hidden="true" />
               </div>
               <div className="min-w-0 text-meta text-charcoal-80/75">{t("success.checkEmail")}</div>
-            </motion.div>
+            </m.div>
 
             {/* What happens next */}
-            <motion.div variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.05)]">
+            <m.div variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.05)]">
               <h3 className="mb-4 text-body font-bold text-violet">{t("success.whatNext")}</h3>
               <div className="space-y-4">
                 {[
@@ -529,10 +516,10 @@ export default function CheckoutSuccessPage() {
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Actions */}
-            <motion.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
+            <m.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
               <Link to="/dashboard/downloads" className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet py-4 text-meta font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
                 <Download className="h-5 w-5" aria-hidden="true" />
                 {t("success.downloadResources")}
@@ -541,14 +528,14 @@ export default function CheckoutSuccessPage() {
               <Link to="/dashboard" className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-violet/20 py-4 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> {t("success.accessDashboard")}
               </Link>
-            </motion.div>
+            </m.div>
 
-            <motion.div variants={fadeUp} className="flex items-center justify-center">
+            <m.div variants={fadeUp} className="flex items-center justify-center">
               <Link to="/store" className="inline-flex items-center gap-1.5 rounded-md text-meta font-medium text-charcoal-80/55 hover:text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">
                 <ShoppingBag className="h-4 w-4" aria-hidden="true" /> {t("success.continueShopping")} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </div>
     </div>

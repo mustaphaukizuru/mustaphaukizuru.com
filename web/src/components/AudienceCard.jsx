@@ -1,10 +1,10 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 
 export default function AudienceCard({ item }) {
   const Icon = item.icon
 
   return (
-    <motion.div
+    <m.div
       whileHover={{ y: -4, scale: 1.02 }}
       transition={{ duration: 0.2 }}
       className="rounded-xl border border-charcoal-80/10 bg-white p-8 text-center shadow-[0_12px_30px_rgba(93,63,211,0.06)]"
@@ -18,6 +18,6 @@ export default function AudienceCard({ item }) {
       <p className="mt-3 text-sm leading-6 text-charcoal-80/80">
         {item.description}
       </p>
-    </motion.div>
+    </m.div>
   )
 }

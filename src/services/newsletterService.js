@@ -1,5 +1,6 @@
 const crypto = require("crypto")
 const prisma = require("../lib/prisma")
+const NEWSLETTER_STATUSES = ["pending", "subscribed", "unsubscribed"] // enum NewsletterStatus
 
 /**
  * Newsletter service (B07)
@@ -164,7 +165,7 @@ async function listSubscribers({ status, page = 1, limit = 50, q } = {}) {
   const safeLimit = Math.min(200, Math.max(1, Number(limit) || 50))
 
   const where = {}
-  if (status) where.status = status
+  if (status && NEWSLETTER_STATUSES.includes(status)) where.status = status
   if (q) where.email = { contains: String(q).trim() }
 
   const [items, total] = await Promise.all([
@@ -195,7 +196,7 @@ async function deleteSubscriber(id) {
 
 async function exportSubscribersCsv({ status } = {}) {
   const where = {}
-  if (status) where.status = status
+  if (status && NEWSLETTER_STATUSES.includes(status)) where.status = status
 
   const rows = await prisma.newsletterSubscriber.findMany({
     where,

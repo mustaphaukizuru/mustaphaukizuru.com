@@ -12,16 +12,10 @@
 const asyncHandler = require("../utils/asyncHandler")
 const prisma        = require("../lib/prisma")
 const logger        = require("../utils/logger")
-const nodemailer    = require("nodemailer")
 const PDFDocument   = require("pdfkit")
+const emailService  = require("../services/emailService")
 
-/* ── SMTP ────────────────────────────────────────────────────────────── */
-const transporter = nodemailer.createTransport({
-  host:   process.env.SMTP_HOST || "smtp.hostinger.com",
-  port:   Number(process.env.SMTP_PORT || 465),
-  secure: process.env.SMTP_SECURE !== "false",
-  auth: { user: process.env.SMTP_USER || "", pass: process.env.SMTP_PASS || "" },
-})
+/* ── SMTP: single shared transport + EmailLog + retry via emailService ── */
 
 const ADMIN_EMAIL  = process.env.CONTACT_ADMIN_EMAIL || process.env.SMTP_USER || "hello@mustaphaukizuru.com"
 const SITE_URL     = process.env.FRONTEND_URL || "https://mustaphaukizuru.com"
@@ -507,8 +501,8 @@ const submitDiagnostic = asyncHandler(async (req, res) => {
   }
 
   Promise.all([
-    transporter.sendMail(adminMail).catch((e) => logger.error("[diagnostic] admin email failed", e)),
-    transporter.sendMail(visitorMail).catch((e) => logger.error("[diagnostic] visitor email failed", e)),
+    emailService.sendRawEmail({ ...adminMail,   templateKey: "diagnostic.admin" }).catch((e) => logger.error("[diagnostic] admin email failed", e)),
+    emailService.sendRawEmail({ ...visitorMail, templateKey: "diagnostic.report" }).catch((e) => logger.error("[diagnostic] visitor email failed", e)),
   ]).then(() => {
     if (record?.id) {
       prisma.diagnosticSubmission.update({ where: { id: record.id }, data: { emailSent: true } }).catch(() => {})

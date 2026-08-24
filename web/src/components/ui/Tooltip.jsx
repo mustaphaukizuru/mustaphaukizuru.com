@@ -24,7 +24,7 @@ import {
   useState,
 } from "react"
 import { createPortal } from "react-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 const SIDE_OFFSET = 8
 
@@ -171,7 +171,7 @@ export default function Tooltip({
       ? createPortal(
           <AnimatePresence>
             {open && !disabled && content && (
-              <motion.div
+              <m.div
                 ref={panelRef}
                 id={tipId}
                 role="tooltip"
@@ -195,7 +195,7 @@ export default function Tooltip({
                 ].join(" ")}
               >
                 {content}
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>,
           document.body,

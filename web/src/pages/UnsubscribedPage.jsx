@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { CheckCircle2, MailCheck, ArrowLeft, Mail } from "lucide-react"
 
 /**
@@ -29,20 +29,20 @@ export default function UnsubscribedPage() {
       <div className="pointer-events-none absolute -bottom-16 left-1/4 h-56 w-56 rounded-full bg-terracotta/10 blur-2xl" />
 
       <div className="relative mx-auto max-w-xl px-4 sm:px-6 lg:px-8">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="rounded-3xl border border-charcoal-80/10 bg-white p-10 text-center shadow-[0_30px_80px_rgba(93,63,211,0.08)] lg:p-14"
         >
-          <motion.div
+          <m.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 180, damping: 14, delay: 0.1 }}
             className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-mint/12 text-emerald-700"
           >
             <Icon className="h-9 w-9" />
-          </motion.div>
+          </m.div>
 
           <h1 className="mt-6 text-section font-bold tracking-tight text-violet">
             {t(`${k}.title`)}
@@ -75,7 +75,7 @@ export default function UnsubscribedPage() {
             </a>
             .
           </p>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

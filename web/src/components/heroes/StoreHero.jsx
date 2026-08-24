@@ -27,7 +27,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Sparkles, ArrowRight, Zap, ShieldCheck, RotateCcw, Headphones, Star,
   ChevronLeft, ChevronRight, ImageIcon, Package,
@@ -81,7 +81,7 @@ function FeaturedCard({ product, position, total }) {
   const s = POSITIONS[position] ?? POSITIONS[2]
 
   return (
-    <motion.article
+    <m.article
       initial={false}
       animate={{
         scale: s.scale,
@@ -155,7 +155,7 @@ function FeaturedCard({ product, position, total }) {
           </p>
         )}
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -168,7 +168,7 @@ function FeaturedSkeleton({ reduce }) {
     <div className="relative h-[440px] w-full sm:h-[460px] lg:h-[480px]">
       <div className="absolute inset-0 mx-auto flex w-[86%] flex-col overflow-hidden rounded-3xl bg-white/80 shadow-[0_18px_44px_rgba(0,0,0,0.18)] ring-1 ring-white/10 backdrop-blur-sm">
         <div className="relative aspect-[5/3] w-full overflow-hidden bg-gradient-to-br from-violet-pale to-terracotta/30">
-          <motion.div
+          <m.div
             aria-hidden="true"
             animate={reduce ? undefined : { x: ["-100%", "100%"] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
@@ -233,7 +233,7 @@ function FeaturedProductsCarousel({ products, reduce }) {
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 24, scale: 0.96 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -268,7 +268,7 @@ function FeaturedProductsCarousel({ products, reduce }) {
 
       {/* Auto-advance progress bar · resets per slide, pauses on hover */}
       {total > 1 && (
-        <motion.div
+        <m.div
           key={`${current}-${paused ? "p" : "r"}`}
           aria-hidden="true"
           initial={{ width: "0%" }}
@@ -323,7 +323,7 @@ function FeaturedProductsCarousel({ products, reduce }) {
           </button>
         </div>
       )}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -342,19 +342,19 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
     >
 
       {/* ── Animated background ──────────────────────────────────────── */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, 30, 0], y: [0, 20, 0], scale: [1, 1.08, 1] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
         className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-white/5 blur-3xl"
       />
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, -22, 0], y: [0, 28, 0], scale: [1, 1.12, 1] }}
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
         className="pointer-events-none absolute -bottom-16 left-1/3 h-56 w-56 rounded-full bg-terracotta/10 blur-2xl"
       />
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, 24, 0], y: [0, -18, 0], opacity: [0.35, 0.75, 0.35] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1.4 }}
@@ -371,7 +371,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
           backgroundSize: "44px 44px",
         }}
       />
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
@@ -388,7 +388,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
 
           {/* LEFT · narrative + CTAs + trust strip (PRESERVED) */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -467,14 +467,14 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
                 24/7 support
               </li>
             </ul>
-          </motion.div>
+          </m.div>
 
           {/* RIGHT — Featured products carousel.
               FeaturedProductsCarousel is the 3-card stack with auto-advance,
               hover-pause, keyboard ← / →, dot nav, and progress bar.
               FeaturedSkeleton renders a graceful empty state when the feed
               is still loading or returns no products. */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
@@ -485,7 +485,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
             ) : (
               <FeaturedSkeleton reduce={reduce} />
             )}
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

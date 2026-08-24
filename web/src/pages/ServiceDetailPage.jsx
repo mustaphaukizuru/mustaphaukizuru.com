@@ -17,6 +17,7 @@ import { fetchServiceBySlug } from "../services/serviceService"
 import { Container, EyebrowChip, SectionHeader } from "../components/services/Primitives"
 import OfferingList from "../components/services/OfferingList"
 import HowItWorks from "../components/services/HowItWorks"
+import ServiceDemo from "../components/services/demos/ServiceDemo"
 import CategoryFaq from "../components/services/CategoryFaq"
 import { BookCallButton, StickyBookBar } from "../components/services/BookCallCta"
 import { pick, useCatalogueLang } from "../components/services/localize"
@@ -146,6 +147,9 @@ export default function ServiceDetailPage() {
           <OfferingList offerings={category.offerings} />
         </Container>
       </section>
+
+      {/* Interactive demo (ai-automation only; lazy chunk, loads near viewport) */}
+      <ServiceDemo slug={category.slug} />
 
       {/* How it works */}
       <section className="bg-white py-16 sm:py-20">

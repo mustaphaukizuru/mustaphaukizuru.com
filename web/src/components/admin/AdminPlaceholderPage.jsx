@@ -7,7 +7,7 @@
 // while we build out the missing endpoints.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Construction, ArrowRight, FileCode2 } from "lucide-react"
 
 export default function AdminPlaceholderPage({
@@ -19,7 +19,7 @@ export default function AdminPlaceholderPage({
   apiPlan = [],
 }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
@@ -103,6 +103,6 @@ export default function AdminPlaceholderPage({
           )}
         </div>
       )}
-    </motion.div>
+    </m.div>
   )
 }

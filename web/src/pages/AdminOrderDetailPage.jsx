@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useParams, useSearchParams } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   ArrowLeft, CreditCard, Package, User, RotateCcw, AlertTriangle,
   CheckCircle2, X, ShieldAlert, Clock, FileText,
@@ -517,7 +517,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
     (hasBlocked && !force)
 
   return (
-    <motion.div
+    <m.div
       className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal-80/55 px-4 py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -526,7 +526,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
       aria-modal="true"
       aria-label="Issue refund"
     >
-      <motion.form
+      <m.form
         onSubmit={handleSubmit}
         className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-[0_24px_48px_rgba(93, 63, 211,0.18)]"
         {...fadeUp}
@@ -719,7 +719,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
             . All customer downloads for this order will be revoked immediately.
           </p>
         </div>
-      </motion.form>
-    </motion.div>
+      </m.form>
+    </m.div>
   )
 }

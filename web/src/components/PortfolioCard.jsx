@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Sparkles, ChevronRight, ExternalLink } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
@@ -121,7 +121,7 @@ export default function PortfolioCard({
   }, [paused, images.length, cardIndex])
 
   return (
-    <motion.article
+    <m.article
       variants={fadeUp}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -130,7 +130,10 @@ export default function PortfolioCard({
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:border-l-[4px] hover:border-l-violet hover:shadow-[0_20px_48px_rgba(93,63,211,0.10)]"
     >
       {/* Image area, crossfade carousel */}
-      <div className="relative aspect-video overflow-hidden bg-violet-pale">
+      <m.div
+        layoutId={project?.slug ? `project-cover-${project.slug}` : undefined}
+        className="relative aspect-video overflow-hidden bg-violet-pale"
+      >
         {images.length > 0 ? (
           images.map((src, i) => (
             <img
@@ -198,7 +201,7 @@ export default function PortfolioCard({
             ))}
           </div>
         ) : null}
-      </div>
+      </m.div>
 
       {/* Card body */}
       <div className="flex flex-1 flex-col p-6">
@@ -255,6 +258,6 @@ export default function PortfolioCard({
         </div>
       </div>
     </SpotlightCard>
-    </motion.article>
+    </m.article>
   )
 }

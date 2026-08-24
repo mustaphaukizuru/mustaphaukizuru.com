@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Minus, Plus, Trash2, ArrowRight, ShoppingCart,
   Package, Shield, Zap, Tag, X, ChevronRight,
@@ -57,7 +57,7 @@ function EmptyCart() {
   const { t } = useTranslation("cart")
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <motion.div
+      <m.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.4, ease: "backOut" }}
@@ -69,7 +69,7 @@ function EmptyCart() {
         <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-mist bg-violet font-mono text-micro font-bold tabular-nums text-white">
           0
         </div>
-      </motion.div>
+      </m.div>
 
       <h2 className="mt-6 text-section font-bold text-violet">{t("empty.title")}</h2>
       <p className="mx-auto mt-2 max-w-sm text-meta leading-6 text-charcoal-80/60">
@@ -135,7 +135,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
   }
 
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -171,7 +171,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
               <h3 className="mt-1 text-meta font-bold leading-tight text-violet sm:text-body sm:truncate">{item.title}</h3>
             </div>
             {/* F08.A · Trash2 with shake animation on click */}
-            <motion.button
+            <m.button
               type="button"
               onClick={handleRemove}
               animate={shaking ? { x: [0, -3, 3, -3, 3, -2, 2, 0], rotate: [0, -4, 4, -4, 4, 0] } : { x: 0, rotate: 0 }}
@@ -181,7 +181,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
               title={t("actions.removeFromCart")}
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-            </motion.button>
+            </m.button>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
@@ -223,7 +223,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 

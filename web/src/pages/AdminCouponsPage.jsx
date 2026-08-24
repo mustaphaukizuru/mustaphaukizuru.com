@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Tag, Plus, Edit3, Trash2, X, Check, Activity, ChevronRight,
   Copy, Users, TrendingUp, Calendar, AlertCircle, Percent, DollarSign,
@@ -492,7 +492,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
   }, [onClose])
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
       onClick={onClose}
@@ -500,7 +500,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
       aria-modal="true"
       aria-label={mode === "create" ? "New coupon" : "Edit coupon"}
     >
-      <motion.div
+      <m.div
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
@@ -643,8 +643,8 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
             </button>
           </div>
         </form>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   )
 }
 
@@ -659,7 +659,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
   }, [onClose])
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-[60] flex justify-end bg-black/40 backdrop-blur-sm"
       onClick={onClose}
@@ -667,7 +667,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
       aria-modal="true"
       aria-label={`Usage history for ${coupon.code}`}
     >
-      <motion.aside
+      <m.aside
         initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
         transition={{ duration: 0.24, ease: "easeOut" }}
         onClick={(e) => e.stopPropagation()}
@@ -723,7 +723,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
             </ul>
           )}
         </div>
-      </motion.aside>
-    </motion.div>
+      </m.aside>
+    </m.div>
   )
 }

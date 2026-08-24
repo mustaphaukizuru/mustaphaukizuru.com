@@ -23,7 +23,7 @@
 import { useEffect, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Eye,
   EyeOff,
@@ -313,13 +313,13 @@ export default function LoginPage() {
 
   return (
     <AuthShell>
-      <motion.div
+      <m.div
         initial="hidden"
         animate="show"
         variants={reduce ? undefined : stagger}
       >
         {/* Brand mark + headline */}
-        <motion.div variants={fadeUp} className="text-center">
+        <m.div variants={fadeUp} className="text-center">
           <BrandMark />
           <h1 className="mt-5 font-display text-[1.75rem] font-bold tracking-tight text-charcoal">
             {t("login.welcomeBack")}
@@ -327,18 +327,18 @@ export default function LoginPage() {
           <p className="mt-2 text-[14px] leading-6 text-charcoal-80/65">
             {t("login.subtitle")}
           </p>
-        </motion.div>
+        </m.div>
 
         {/* Error banner · shared brand v3 surface (AuthErrorBanner).
             Accepts both legacy strings and the richer { title, body, action }
             shape produced by the catch-block branches above. */}
         {error && (
-          <motion.div variants={fadeUp} className="mt-6">
+          <m.div variants={fadeUp} className="mt-6">
             <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
-          </motion.div>
+          </m.div>
         )}
 
-        <motion.form
+        <m.form
           variants={reduce ? undefined : stagger}
           onSubmit={handleSubmit}
           noValidate
@@ -364,7 +364,7 @@ export default function LoginPage() {
           />
 
           {/* Email */}
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label
               htmlFor="login-email"
               className="mb-1.5 block text-[12px] font-semibold text-charcoal"
@@ -393,10 +393,10 @@ export default function LoginPage() {
                 className="block w-full rounded-xl border border-charcoal-80/15 bg-white py-3.5 pl-11 pr-4 text-[14px] text-charcoal outline-none transition placeholder:text-charcoal-80/35 focus:border-violet focus:ring-[3px] focus:ring-violet/15 disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Password */}
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label
               htmlFor="login-password"
               className="mb-1.5 block text-[12px] font-semibold text-charcoal"
@@ -441,10 +441,10 @@ export default function LoginPage() {
                 <ShieldAlert className="h-3 w-3" /> {t("login.capsLockOn")}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
           {/* Remember + Forgot */}
-          <motion.div
+          <m.div
             variants={fadeUp}
             className="flex items-center justify-between"
           >
@@ -463,10 +463,10 @@ export default function LoginPage() {
             >
               {t("login.forgot")}
             </Link>
-          </motion.div>
+          </m.div>
 
           {/* Submit · dark CTA matches reference */}
-          <motion.button
+          <m.button
             variants={fadeUp}
             type="submit"
             disabled={submitDisabled}
@@ -484,7 +484,7 @@ export default function LoginPage() {
             ) : (
               "Sign In"
             )}
-          </motion.button>
+          </m.button>
 
           {/* Surface the lockout reason when active so the user knows the
               button is disabled by the rate-limiter, not by validation. */}
@@ -498,10 +498,10 @@ export default function LoginPage() {
               {t("login.tooMany")}
             </p>
           )}
-        </motion.form>
+        </m.form>
 
         {/* Divider · {t("login.orLoginWith")} */}
-        <motion.div variants={fadeUp} className="mt-6">
+        <m.div variants={fadeUp} className="mt-6">
           <div className="flex items-center gap-3 text-[11.5px] text-charcoal-80/45">
             <span className="h-px flex-1 bg-charcoal-80/12" />
             <span className="font-semibold uppercase tracking-[0.16em]">
@@ -514,10 +514,10 @@ export default function LoginPage() {
             <MicrosoftLoginButton />
             <FacebookLoginButton />
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Footer link */}
-        <motion.p
+        <m.p
           variants={fadeUp}
           className="mt-7 text-center text-[13px] text-charcoal-80/65"
         >
@@ -528,8 +528,8 @@ export default function LoginPage() {
           >
             {t("login.signUp")}
           </Link>
-        </motion.p>
-      </motion.div>
+        </m.p>
+      </m.div>
     </AuthShell>
   )
 }

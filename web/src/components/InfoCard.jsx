@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 
 export default function InfoCard({
   title,
@@ -7,7 +7,7 @@ export default function InfoCard({
   centered = true,
 }) {
   return (
-    <motion.div
+    <m.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.2 }}
       className={`rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_12px_30px_rgba(93,63,211,0.06)] ${
@@ -33,6 +33,6 @@ export default function InfoCard({
       <p className="mt-4 text-base leading-8 text-charcoal-80/80">
         {description}
       </p>
-    </motion.div>
+    </m.div>
   )
 }

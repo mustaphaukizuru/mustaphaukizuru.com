@@ -20,7 +20,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Star, RefreshCw, CheckCircle2, EyeOff, X, Trash2, MessageSquare,
   AlertTriangle, ShieldCheck, Search, ExternalLink, Loader2,
@@ -131,7 +131,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
   const SubjectIcon = review.subjectType === "service" ? Briefcase : Package
 
   return (
-    <motion.article
+    <m.article
       variants={fadeUp}
       className={`group relative flex items-start gap-3 rounded-2xl border bg-white p-4 transition hover:border-violet/30 hover:shadow-[0_8px_22px_rgba(93,63,211,0.06)] ${
         selected ? "border-violet shadow-[0_8px_22px_rgba(93,63,211,0.10)]" : "border-charcoal/12"
@@ -225,7 +225,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
           <X className="h-4 w-4" />
         </button>
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -299,14 +299,14 @@ function DetailPanel({ review, onClose, onUpdated }) {
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         key="backdrop"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
         className="fixed inset-0 z-[110] bg-black/40"
         aria-hidden="true"
       />
-      <motion.aside
+      <m.aside
         key="panel"
         role="dialog"
         aria-modal="true"
@@ -459,7 +459,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             <Trash2 className="h-4 w-4" />
           </button>
         </footer>
-      </motion.aside>
+      </m.aside>
 
       <ConfirmModal
         open={confirmDelete}
@@ -481,7 +481,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
 function BulkBar({ count, onAction, onClear, busy }) {
   if (count === 0) return null
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
       className="sticky bottom-4 z-20 mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet/15 bg-white p-3 shadow-[0_12px_36px_rgba(93,63,211,0.15)]"
     >
@@ -502,7 +502,7 @@ function BulkBar({ count, onAction, onClear, busy }) {
           Clear
         </button>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -689,7 +689,7 @@ export default function AdminReviewsPage() {
           </p>
         </div>
       ) : (
-        <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-3">
+        <m.div variants={stagger} initial="hidden" animate="show" className="grid gap-3">
           {visible.map((r) => (
             <ReviewCard
               key={r.id}
@@ -700,7 +700,7 @@ export default function AdminReviewsPage() {
               onQuickAction={handleQuickAction}
             />
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       <AnimatePresence>

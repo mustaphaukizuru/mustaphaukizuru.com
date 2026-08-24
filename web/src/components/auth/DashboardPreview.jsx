@@ -13,7 +13,7 @@
    when prefers-reduced-motion is set.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   ArrowUpRight,
   ChevronRight,
@@ -82,7 +82,7 @@ export default function DashboardPreview({ reduce }) {
           {/* Bar chart */}
           <div className="flex h-16 items-end gap-1.5">
             {BAR_HEIGHTS.map((h, i) => (
-              <motion.span
+              <m.span
                 key={i}
                 initial={{ scaleY: 0.3, opacity: 0.4 }}
                 animate={{ scaleY: 1, opacity: 1 }}
@@ -141,7 +141,7 @@ export default function DashboardPreview({ reduce }) {
           </span>
         </div>
         <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/8">
-          <motion.div
+          <m.div
             initial={{ width: "0%" }}
             animate={{ width: "92%" }}
             transition={{ duration: 1.4, delay: 0.6, ease: "easeOut" }}
@@ -157,14 +157,14 @@ export default function DashboardPreview({ reduce }) {
 
 function Card({ children, delay = 0, className = "" }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
       className={`rounded-2xl border border-white/8 bg-white/[0.04] p-3.5 backdrop-blur-sm ${className}`}
     >
       {children}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -194,7 +194,7 @@ function Sparkline({ reduce }) {
           <stop offset="100%" stopColor="#5D3FD3" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <motion.path
+      <m.path
         initial={reduce ? { pathLength: 1 } : { pathLength: 0 }}
         animate={{ pathLength: 1 }}
         transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
@@ -228,7 +228,7 @@ function CircularProgress({ value = 0, reduce }) {
           strokeWidth="5"
           fill="none"
         />
-        <motion.circle
+        <m.circle
           cx="30"
           cy="30"
           r={radius}
@@ -277,7 +277,7 @@ function Doughnut({ reduce }) {
           const offset = -cursor * circumference
           cursor += s.pct
           return (
-            <motion.circle
+            <m.circle
               key={i}
               cx="35"
               cy="35"

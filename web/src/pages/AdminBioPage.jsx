@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Briefcase, Award, Sparkles, GraduationCap } from "lucide-react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 
 import {
   ExperienceSection, EducationSection, CertificatesSection, SkillsSection,
@@ -68,9 +68,9 @@ export default function AdminBioPage() {
         })}
       </nav>
 
-      <motion.div key={tab} {...fadeUp} className="mt-6">
+      <m.div key={tab} {...fadeUp} className="mt-6">
         <Panel />
-      </motion.div>
+      </m.div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { ShieldCheck, KeyRound, ArrowLeft } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
@@ -96,7 +96,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
   const totpComplete = digits.every((d) => d !== "")
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -213,6 +213,6 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
           {mode === "totp" ? "Use a backup code instead" : "Use authenticator code"}
         </button>
       </div>
-    </motion.div>
+    </m.div>
   )
 }

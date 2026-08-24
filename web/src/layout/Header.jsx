@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, NavLink, useLocation } from "react-router-dom"
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, m } from "framer-motion"
 import { Menu, X, ShoppingCart } from "lucide-react"
 
 import PrimaryButton from "../ui/PrimaryButton"
@@ -251,7 +251,7 @@ function HeaderInner() {
           >
             <AnimatePresence initial={false} mode="wait">
               {mobileOpen ? (
-                <motion.span
+                <m.span
                   key="close-icon"
                   initial={{ opacity: 0, rotate: -90 }}
                   animate={{ opacity: 1, rotate: 0 }}
@@ -261,9 +261,9 @@ function HeaderInner() {
                   aria-hidden="true"
                 >
                   <X className="h-5 w-5" />
-                </motion.span>
+                </m.span>
               ) : (
-                <motion.span
+                <m.span
                   key="menu-icon"
                   initial={{ opacity: 0, rotate: 90 }}
                   animate={{ opacity: 1, rotate: 0 }}
@@ -273,7 +273,7 @@ function HeaderInner() {
                   aria-hidden="true"
                 >
                   <Menu className="h-5 w-5" />
-                </motion.span>
+                </m.span>
               )}
             </AnimatePresence>
           </button>

@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   ArrowLeft, Briefcase, Loader2, AlertCircle, Mail, Calendar, Save,
   CheckCircle2, XCircle, ExternalLink, FileText,
@@ -147,7 +147,7 @@ export default function AdminServiceOrderDetailPage() {
   const orderRef = `#${String(order.id).slice(-12).toUpperCase()}`
 
   return (
-    <motion.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
+    <m.div variants={fadeUp} initial="hidden" animate="show" className="space-y-6">
       <Link
         to="/admin/service-orders"
         className="inline-flex items-center gap-1.5 text-[12px] font-medium text-steel-700 transition hover:text-violet"
@@ -296,6 +296,6 @@ export default function AdminServiceOrderDetailPage() {
           className="mt-3 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-[13px] text-charcoal outline-none transition focus:border-violet"
         />
       </div>
-    </motion.div>
+    </m.div>
   )
 }

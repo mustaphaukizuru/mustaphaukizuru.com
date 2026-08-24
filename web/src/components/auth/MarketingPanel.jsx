@@ -27,7 +27,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, m } from "framer-motion"
 import {
   ArrowUpRight,
   Briefcase,
@@ -89,7 +89,7 @@ function AudienceDonut({ reduce }) {
           const gap = circumference - dash
           const offset = -starts[i] * circumference
           return (
-            <motion.circle
+            <m.circle
               key={s.labelKey}
               cx="50"
               cy="50"
@@ -118,7 +118,7 @@ function AudienceDonut({ reduce }) {
 function SlideAudience({ reduce }) {
   const { t } = useTranslation("common")
   return (
-    <motion.div
+    <m.div
       key="slide-audience"
       variants={slideVariants}
       initial="enter"
@@ -152,7 +152,7 @@ function SlideAudience({ reduce }) {
           </li>
         </ul>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -182,7 +182,7 @@ const PILLARS = [
 function SlidePillars() {
   const { t } = useTranslation("common")
   return (
-    <motion.div
+    <m.div
       key="slide-pillars"
       variants={slideVariants}
       initial="enter"
@@ -214,7 +214,7 @@ function SlidePillars() {
           </div>
         ))}
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -223,7 +223,7 @@ function SlidePillars() {
 function SlideTestimonial() {
   const { t } = useTranslation("common")
   return (
-    <motion.div
+    <m.div
       key="slide-testimonial"
       variants={slideVariants}
       initial="enter"
@@ -268,7 +268,7 @@ function SlideTestimonial() {
         {t("auth.marketing.exploreStore")}
         <ArrowUpRight className="h-3.5 w-3.5 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </Link>
-    </motion.div>
+    </m.div>
   )
 }
 

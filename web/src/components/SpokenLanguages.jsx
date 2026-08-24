@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { Languages, MessageCircle, Globe2 } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
@@ -72,7 +72,7 @@ function CefrMeter({ name, level, value }) {
         {CEFR_ORDER.map((step, i) => {
           const filled = i < value
           return (
-            <motion.span
+            <m.span
               key={step}
               initial={reduce ? false : { scaleX: 0, originX: 0 }}
               whileInView={{ scaleX: 1 }}
@@ -101,7 +101,7 @@ function LanguageCard({ language }) {
   const flag = resolveFlag(language)
 
   return (
-    <motion.article
+    <m.article
       variants={fadeUp}
       whileHover={reduce ? undefined : { y: -4 }}
       transition={{ type: "spring", stiffness: 240, damping: 24 }}
@@ -151,7 +151,7 @@ function LanguageCard({ language }) {
         aria-hidden="true"
         className="absolute inset-x-5 bottom-0 h-px origin-left scale-x-0 bg-gradient-to-r from-violet via-violet/40 to-transparent transition-transform duration-500 group-hover:scale-x-100"
       />
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -170,21 +170,21 @@ export default function SpokenLanguages({ languages = null }) {
       <div aria-hidden="true" className="pointer-events-none absolute -right-32 top-10 h-72 w-72 rounded-full bg-violet/5 blur-3xl" />
 
       <div className="relative">
-        <motion.div
+        <m.div
           variants={stagger}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-80px" }}
           className="mb-10 flex flex-col items-center gap-3 text-center"
         >
-          <motion.span
+          <m.span
             variants={fadeUp}
             className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet"
           >
             <Globe2 className="h-3 w-3" aria-hidden="true" />
             Languages
-          </motion.span>
-          <motion.h2
+          </m.span>
+          <m.h2
             id="languages-heading"
             variants={fadeUp}
             className="max-w-3xl text-[26px] font-bold tracking-tight text-violet sm:text-section md:text-[34px]"
@@ -194,16 +194,16 @@ export default function SpokenLanguages({ languages = null }) {
               Three continents.
             </span>{" "}
             One conversation.
-          </motion.h2>
-          <motion.p
+          </m.h2>
+          <m.p
             variants={fadeUp}
             className="max-w-xl text-body leading-7 text-charcoal-80/70"
           >
             {t("components.spokenLanguages")}
-          </motion.p>
-        </motion.div>
+          </m.p>
+        </m.div>
 
-        <motion.div
+        <m.div
           variants={stagger}
           initial="hidden"
           whileInView="show"
@@ -214,9 +214,9 @@ export default function SpokenLanguages({ languages = null }) {
           {data.map((lang) => (
             <LanguageCard key={lang.code + lang.name} language={lang} />
           ))}
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           variants={fadeUp}
           initial="hidden"
           whileInView="show"
@@ -229,7 +229,7 @@ export default function SpokenLanguages({ languages = null }) {
           </span>
           <span aria-hidden="true">·</span>
           <span><span className="font-mono text-violet">A1</span> Beginner → <span className="font-mono text-violet">C2</span> Proficient → <span className="font-mono text-violet">Native</span></span>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

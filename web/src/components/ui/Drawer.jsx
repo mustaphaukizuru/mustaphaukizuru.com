@@ -32,7 +32,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import { useRef, useId } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
@@ -145,7 +145,7 @@ function Drawer({
           <>
             {/* Backdrop — its own fixed layer so it covers the viewport
                 regardless of the panel wrapper's dimensions. */}
-            <motion.div
+            <m.div
               key="drawer-backdrop"
               {...backdrop}
               onClick={handleBackdrop}
@@ -172,7 +172,7 @@ function Drawer({
               )}
               style={wrapperStyle}
             >
-              <motion.aside
+              <m.aside
                 ref={panelRef}
                 role="dialog"
                 aria-modal="true"
@@ -221,7 +221,7 @@ function Drawer({
                     {footer ? <DrawerFooter className="shrink-0">{footer}</DrawerFooter> : null}
                   </>
                 )}
-              </motion.aside>
+              </m.aside>
             </div>
           </>
         )}

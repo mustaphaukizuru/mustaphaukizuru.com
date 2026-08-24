@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { Mail, ArrowRight, Sparkles, Check, AlertCircle } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { apiRequest } from "../lib/api"
@@ -100,7 +100,7 @@ export default function NewsletterSection() {
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Confetti fire={status === "success"} />
-        <motion.div
+        <m.div
           variants={stagger}
           initial="hidden"
           whileInView="show"
@@ -108,7 +108,7 @@ export default function NewsletterSection() {
           className="mx-auto max-w-2xl text-center"
         >
           {/* Eyebrow */}
-          <motion.span
+          <m.span
             variants={fadeUp}
             className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
             style={{
@@ -119,10 +119,10 @@ export default function NewsletterSection() {
           >
             <Sparkles className="h-3 w-3" aria-hidden="true" />
             {t("newsletter.eyebrow", { defaultValue: "Weekly insights" })}
-          </motion.span>
+          </m.span>
 
           {/* Headline */}
-          <motion.h2
+          <m.h2
             id="newsletter-heading"
             variants={fadeUp}
             className="mt-5 text-[30px] font-extrabold leading-[1.05] tracking-tight text-white sm:text-[40px] lg:text-[48px]"
@@ -131,10 +131,10 @@ export default function NewsletterSection() {
             <span style={{ color: "#E9C46A" }}>
               {t("newsletter.headlinePart2", { defaultValue: "of the tech curve." })}
             </span>
-          </motion.h2>
+          </m.h2>
 
           {/* Body */}
-          <motion.p
+          <m.p
             variants={fadeUp}
             className="mt-4 text-[15px] leading-[1.7] text-white/70 sm:text-[16px]"
           >
@@ -142,18 +142,18 @@ export default function NewsletterSection() {
               defaultValue:
                 "Every week: one actionable tech tip, one tool I'm actually using, and one insight from the classroom or the codebase. No filler.",
             })}
-          </motion.p>
+          </m.p>
 
           {/* Free callout */}
-          <motion.p
+          <m.p
             variants={fadeUp}
             className="mt-2 font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-white/35"
           >
             {t("newsletter.freeCallout", { defaultValue: "Free · No spam · Unsubscribe any time" })}
-          </motion.p>
+          </m.p>
 
           {/* Form or success state */}
-          <motion.div variants={fadeUp} className="mt-8">
+          <m.div variants={fadeUp} className="mt-8">
             {status === "success" ? (
               <div className="inline-flex items-center gap-3 rounded-2xl border border-mint/30 bg-mint/10 px-6 py-4 text-mint">
                 <Check className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -220,10 +220,10 @@ export default function NewsletterSection() {
                 {errMsg}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
           {/* Trust strip */}
-          <motion.div
+          <m.div
             variants={fadeUp}
             className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2"
           >
@@ -240,8 +240,8 @@ export default function NewsletterSection() {
                 {label}
               </span>
             ))}
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </div>
     </section>
   )

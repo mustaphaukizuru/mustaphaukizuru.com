@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { Modal } from "../ui/Modal"
 import {
   X, ChevronLeft, ChevronRight, GraduationCap, Building2, User,
@@ -77,7 +77,7 @@ function ScoreRing({ pct, tier, size = 200 }) {
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size/2} cy={size/2} r={size/2 - 14} fill="none" stroke="#EFF1F5" strokeWidth={10} />
-        <motion.circle
+        <m.circle
           cx={size/2} cy={size/2} r={size/2 - 14}
           fill="none" stroke={tc.hex} strokeWidth={10}
           strokeLinecap="round"
@@ -269,7 +269,7 @@ export default function AuditModal({ open, onClose }) {
               {step === "audit" && (
                 <div className="flex-1 max-w-xs mx-4 hidden sm:block">
                   <div className="h-1.5 bg-charcoal/8 rounded-full overflow-hidden">
-                    <motion.div
+                    <m.div
                       className="h-full rounded-full bg-[linear-gradient(90deg,#5D3FD3,#0284C7)]"
                       animate={{ width: `${progressPct}%` }}
                       transition={{ duration: 0.3 }}
@@ -301,7 +301,7 @@ export default function AuditModal({ open, onClose }) {
             {/* Mobile progress bar */}
             {step === "audit" && (
               <div className="sm:hidden h-1 bg-charcoal/8">
-                <motion.div
+                <m.div
                   className="h-full bg-[linear-gradient(90deg,#5D3FD3,#0284C7)]"
                   animate={{ width: `${progressPct}%` }}
                   transition={{ duration: 0.3 }}
@@ -315,7 +315,7 @@ export default function AuditModal({ open, onClose }) {
               {/* ══ RESUME PROMPT ══════════════════════════════════════ */}
               {resumePrompt && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-charcoal/50 backdrop-blur-sm p-4">
-                  <motion.div
+                  <m.div
                     initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
                     className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-[0_24px_64px_rgba(15,23,42,0.25)]"
                   >
@@ -332,7 +332,7 @@ export default function AuditModal({ open, onClose }) {
                         Start fresh
                       </button>
                     </div>
-                  </motion.div>
+                  </m.div>
                 </div>
               )}
 
@@ -674,7 +674,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                 {/* Tooltip: risk + invest */}
                 <AnimatePresence>
                   {showTip && (
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
                       className="mt-3 sm:ml-[52px] overflow-hidden"
                     >
@@ -689,7 +689,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                           <p className="text-[12px] text-charcoal/45 mt-0.5">{tier}</p>
                         </div>
                       </div>
-                    </motion.div>
+                    </m.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -798,7 +798,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
                 </div>
                 <div className="ml-8 flex items-center gap-2.5">
                   <div className="flex-1 h-2.5 bg-charcoal/8 rounded-full overflow-hidden">
-                    <motion.div
+                    <m.div
                       className="h-full rounded-full"
                       initial={reduce ? { width: `${d.pct}%` } : { width: 0 }}
                       animate={{ width: `${d.pct}%` }}

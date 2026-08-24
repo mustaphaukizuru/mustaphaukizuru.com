@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, Users,
   RefreshCw, Download, Plus, ArrowRight, ArrowUpRight,
@@ -124,7 +124,7 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
   const TrendIcon = isUp ? TrendingUp : isDown ? TrendingDown : null
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut", delay }}
@@ -179,7 +179,7 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
           <span className="text-micro text-charcoal-80/55">{deltaLabel}</span>
         </div>
       )}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -233,8 +233,8 @@ function RevenueAreaChart({ data, height = 220 }) {
         {gridY.map((y, i) => (
           <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="currentColor" strokeOpacity="0.10" strokeDasharray="2 4" />
         ))}
-        <motion.path d={fillD} fill="url(#rev-area-grad-v2)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.15 }} />
-        <motion.path
+        <m.path d={fillD} fill="url(#rev-area-grad-v2)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.15 }} />
+        <m.path
           d={pathD}
           fill="none"
           stroke="#5D3FD3"
@@ -259,7 +259,7 @@ function RevenueAreaChart({ data, height = 220 }) {
                 onMouseLeave={() => setHoverIdx(null)}
                 style={{ cursor: "crosshair" }}
               />
-              <motion.circle
+              <m.circle
                 cx={p.x}
                 cy={p.y}
                 r={hoverIdx === i ? 5 : 3}
@@ -297,7 +297,7 @@ function RevenueAreaChart({ data, height = 220 }) {
       </svg>
       <AnimatePresence>
         {hoverIdx != null && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
@@ -311,7 +311,7 @@ function RevenueAreaChart({ data, height = 220 }) {
             <div className="mt-0.5 font-mono text-meta font-bold tabular-nums text-violet">
               {fmtMoney(points[hoverIdx].value)}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -345,7 +345,7 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
             const portion = seg.value / sum
             const dash = portion * C
             const segCircle = (
-              <motion.circle
+              <m.circle
                 key={seg.label}
                 cx="80" cy="80" r={R}
                 fill="none"
@@ -769,7 +769,7 @@ export default function AdminDashboardPage() {
                         <div className="font-mono text-meta font-bold tabular-nums text-violet">{fmtMoney(rev)}</div>
                       </div>
                       <div className="mt-2 h-1 overflow-hidden rounded-full bg-charcoal-80/8">
-                        <motion.div
+                        <m.div
                           className="h-full rounded-full bg-violet"
                           initial={{ width: 0 }}
                           animate={{ width: `${ratio}%` }}

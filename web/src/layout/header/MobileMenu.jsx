@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   X,
   Search,
@@ -321,7 +321,7 @@ export default function MobileMenu({ open, onClose }) {
                 </span>
               </span>
             </Link>
-            <motion.button
+            <m.button
               ref={closeButtonRef}
               type="button"
               onClick={() => onClose("x_button")}
@@ -331,7 +331,7 @@ export default function MobileMenu({ open, onClose }) {
               className="cursor-pointer inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-charcoal-80/10 bg-white text-charcoal-80/65 shadow-[0_2px_8px_-2px_rgba(26,27,35,0.08)] transition-colors hover:border-rose/25 hover:bg-rose/5 hover:text-rose focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
               <X className="h-[18px] w-[18px]" strokeWidth={2.2} />
-            </motion.button>
+            </m.button>
           </div>
           {/* Brand-seam — 2px Innovation gradient line, fades right.
               Sits just inside the bottom of the header card so the panel
@@ -350,7 +350,7 @@ export default function MobileMenu({ open, onClose }) {
               like a button. Opens the global SearchPalette via the
               `ukz:open-search` event. whileTap gives the press a
               tactile depress feel. */}
-          <motion.button
+          <m.button
             type="button"
             onClick={() => {
               onClose()
@@ -367,7 +367,7 @@ export default function MobileMenu({ open, onClose }) {
             <kbd aria-hidden="true" className="hidden h-5 select-none items-center rounded border border-charcoal-80/12 bg-white px-1.5 font-mono text-[10px] font-bold text-charcoal-80/55 shadow-[0_1px_0_rgba(26,27,35,0.04)] sm:inline-flex">
               ⌘K
             </kbd>
-          </motion.button>
+          </m.button>
 
           {/* Section eyebrow — frames the nav list and gives the cascade
               a visual anchor at the top of the scroll region. */}
@@ -385,7 +385,7 @@ export default function MobileMenu({ open, onClose }) {
               tells Framer to morph it between rows on route change — that
               produces the silky "active marker glides between items"
               effect users expect from premium navigation. */}
-          <motion.nav
+          <m.nav
             aria-label={t("header.primaryMobile")}
             className="flex flex-col gap-0.5"
             variants={{
@@ -399,7 +399,7 @@ export default function MobileMenu({ open, onClose }) {
             {NAV_LINKS.map((link) => {
               const Icon = link.icon
               return (
-                <motion.div
+                <m.div
                   key={link.nameKey}
                   variants={{
                     open:   { opacity: 1, x: 0, transition: { duration: reduce ? 0 : 0.32, ease: PREMIUM_EASE } },
@@ -430,7 +430,7 @@ export default function MobileMenu({ open, onClose }) {
                             element from the OLD active row's position to
                             the NEW active row's position — silky morph. */}
                         {isActive && !reduce ? (
-                          <motion.span
+                          <m.span
                             layoutId="mobile-nav-active-bar"
                             aria-hidden="true"
                             className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-violet"
@@ -471,10 +471,10 @@ export default function MobileMenu({ open, onClose }) {
                       </>
                     )}
                   </NavLink>
-                </motion.div>
+                </m.div>
               )
             })}
-          </motion.nav>
+          </m.nav>
 
           {/* Authenticated user summary lives in the scroll region so the
               footer CTAs stay tight even with a long display name.
@@ -500,7 +500,7 @@ export default function MobileMenu({ open, onClose }) {
               </div>
 
               {signOutPhase === "idle" ? (
-                <motion.button
+                <m.button
                   type="button"
                   onClick={handleSignOut}
                   aria-label={t("header.signOut")}
@@ -510,9 +510,9 @@ export default function MobileMenu({ open, onClose }) {
                   className="cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rose/20 bg-white text-rose transition-colors hover:border-rose/40 hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30 focus-visible:ring-offset-2"
                 >
                   <LogOut className="h-4 w-4" />
-                </motion.button>
+                </m.button>
               ) : (
-                <motion.button
+                <m.button
                   type="button"
                   onClick={handleSignOut}
                   aria-label={signOutPhase === "loading" ? t("header.signingOut", { defaultValue: "Signing out…" }) : t("header.signOutConfirm", { defaultValue: "Tap to confirm sign out" })}
@@ -534,7 +534,7 @@ export default function MobileMenu({ open, onClose }) {
                       <span>{t("header.confirmSignOut", { defaultValue: "Tap to confirm" })}</span>
                     </>
                   )}
-                </motion.button>
+                </m.button>
               )}
             </div>
           ) : null}
@@ -563,7 +563,7 @@ export default function MobileMenu({ open, onClose }) {
               footer real estate. */}
           <div className="flex flex-col gap-2.5">
             {/* 1 · Account / Dashboard */}
-            <motion.div whileTap={reduce ? undefined : { scale: 0.985 }} transition={{ duration: 0.1 }}>
+            <m.div whileTap={reduce ? undefined : { scale: 0.985 }} transition={{ duration: 0.1 }}>
               <Link
                 to={isAuthenticated ? "/dashboard" : "/login"}
                 onClick={() => onNavClick(isAuthenticated ? "/dashboard" : "/login")}
@@ -576,10 +576,10 @@ export default function MobileMenu({ open, onClose }) {
                 )}
                 {isAuthenticated ? t("header.openDashboard") : t("header.account")}
               </Link>
-            </motion.div>
+            </m.div>
 
             {/* 2 · Explore Store · Innovation Gradient (sole conversion CTA) */}
-            <motion.div whileTap={reduce ? undefined : { scale: 0.985 }} transition={{ duration: 0.1 }}>
+            <m.div whileTap={reduce ? undefined : { scale: 0.985 }} transition={{ duration: 0.1 }}>
               <Link
                 to="/store"
                 onClick={() => onNavClick("/store")}
@@ -590,7 +590,7 @@ export default function MobileMenu({ open, onClose }) {
                   {t("header.exploreStore")}
                 </PrimaryButton>
               </Link>
-            </motion.div>
+            </m.div>
 
             {/* 3 · Languages */}
             <div className="mt-1 flex items-center justify-center pt-1">

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   ShieldCheck, Shield, Smartphone, Copy, Check, Download, RefreshCw,
   AlertCircle, Lock, X, KeyRound, Trash2, ChevronRight,
@@ -483,11 +483,11 @@ function BackupCodesModal({ codes, onClose }) {
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
     >
-      <motion.div
+      <m.div
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", stiffness: 220, damping: 22 }}
         className="w-full max-w-[520px] rounded-xl bg-white shadow-[0_30px_80px_rgba(93,63,211,0.22)]"
@@ -541,8 +541,8 @@ function BackupCodesModal({ codes, onClose }) {
             {t("twoFactor.backupModal.saved")}
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   )
 }
 
@@ -571,11 +571,11 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
     : "bg-violet hover:bg-violet-deep shadow-[0_8px_20px_rgba(93,63,211,0.22)]"
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
     >
-      <motion.div
+      <m.div
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", stiffness: 220, damping: 22 }}
         className="w-full max-w-[440px] rounded-xl bg-white shadow-[0_30px_80px_rgba(93,63,211,0.22)]"
@@ -627,7 +627,7 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
             {t("twoFactor.passwordModal.cancel")}
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   )
 }

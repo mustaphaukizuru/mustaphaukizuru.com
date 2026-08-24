@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Calendar, Clock, Plus, Trash2, Globe2, AlertCircle, Save, ShieldOff, CalendarPlus, Loader2,
 } from "lucide-react"
@@ -323,7 +323,7 @@ export default function AdminAvailabilityPage() {
   }
 
   return (
-    <motion.section variants={fadeUp} initial="hidden" animate="show" className="space-y-5">
+    <m.section variants={fadeUp} initial="hidden" animate="show" className="space-y-5">
       {error && (
         <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -409,6 +409,6 @@ export default function AdminAvailabilityPage() {
         <Globe2 className="mr-1 inline h-3 w-3" />
         Tip: clients always see times converted to their own timezone, set rules in the timezone you actually take calls.
       </p>
-    </motion.section>
+    </m.section>
   )
 }

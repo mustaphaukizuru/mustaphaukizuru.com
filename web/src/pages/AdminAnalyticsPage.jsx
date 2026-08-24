@@ -4,7 +4,7 @@ import {
   CreditCard, DollarSign, TrendingUp, Smartphone, Monitor, Tablet, Bot,
   Loader2, AlertCircle,
 } from "lucide-react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 
 import { adminFetchAnalyticsDashboard, adminFetchAnalyticsEvents } from "../services/analyticsService"
 
@@ -123,7 +123,7 @@ export default function AdminAnalyticsPage() {
       ) : (
         <>
           {/* KPI grid */}
-          <motion.section {...fadeUp} className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-7">
+          <m.section {...fadeUp} className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-7">
             <KpiCard icon={Activity} label="Pageviews" value={num(kpis.pageviews)} tone="violet" />
             <KpiCard icon={BarChart3} label="Sessions" value={num(kpis.sessions)} tone="azure" />
             <KpiCard icon={MousePointerClick} label="Add to cart" value={num(kpis.addToCart)} tone="cyan" />
@@ -131,44 +131,44 @@ export default function AdminAnalyticsPage() {
             <KpiCard icon={CreditCard} label="Purchases" value={num(kpis.purchases)} tone="mint" />
             <KpiCard icon={DollarSign} label="Revenue" value={money(kpis.revenue)} tone="violet" />
             <KpiCard icon={TrendingUp} label="Conversion rate" value={`${(kpis.conversionRate || 0).toFixed(2)}%`} tone="azure" />
-          </motion.section>
+          </m.section>
 
           {/* Sparkline */}
-          <motion.section {...fadeUp} className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+          <m.section {...fadeUp} className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="mb-3 text-lg font-semibold text-charcoal">Daily pageviews</h2>
             <Sparkline points={data.daily} />
-          </motion.section>
+          </m.section>
 
           {/* Top paths + Devices side by side */}
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <motion.section {...fadeUp} className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-5">
+            <m.section {...fadeUp} className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-5">
               <h2 className="mb-3 text-lg font-semibold text-charcoal">Top paths</h2>
               {data.topPaths.length === 0 ? (
                 <p className="py-4 text-center text-sm text-charcoal-50">No traffic in this range yet.</p>
               ) : (
                 <PathList paths={data.topPaths} />
               )}
-            </motion.section>
+            </m.section>
 
-            <motion.section {...fadeUp} className="rounded-2xl border border-slate-200 bg-white p-5">
+            <m.section {...fadeUp} className="rounded-2xl border border-slate-200 bg-white p-5">
               <h2 className="mb-3 text-lg font-semibold text-charcoal">Devices</h2>
               {data.devices.length === 0 ? (
                 <p className="py-4 text-center text-sm text-charcoal-50">No data.</p>
               ) : (
                 <DeviceList devices={data.devices} />
               )}
-            </motion.section>
+            </m.section>
           </div>
 
           {/* Recent events */}
-          <motion.section {...fadeUp} className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+          <m.section {...fadeUp} className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="mb-3 text-lg font-semibold text-charcoal">Recent events</h2>
             {events.length === 0 ? (
               <p className="py-4 text-center text-sm text-charcoal-50">No events recorded yet.</p>
             ) : (
               <EventList events={events} />
             )}
-          </motion.section>
+          </m.section>
         </>
       )}
     </div>

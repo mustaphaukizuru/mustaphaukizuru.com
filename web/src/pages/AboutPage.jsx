@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import Image from "../components/ui/Image"
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion"
+import { m, useReducedMotion, useScroll, useTransform } from "framer-motion"
 import { Link } from "react-router-dom"
 import Seo from "../components/seo/Seo"
 import { pageSeo } from "../seo/pageSeo"
@@ -115,7 +115,7 @@ function Container({ children, className = "" }) {
 function SH({ eyebrow, title, subtitle, align = "center" }) {
   const c = align === "center"
   return (
-    <motion.div
+    <m.div
       variants={stagger}
       initial="hidden"
       whileInView="show"
@@ -123,28 +123,28 @@ function SH({ eyebrow, title, subtitle, align = "center" }) {
       className={`mb-12 flex flex-col gap-3 ${c ? "items-center text-center" : "items-start"}`}
     >
       {eyebrow && (
-        <motion.span
+        <m.span
           variants={fadeUp}
           className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet"
         >
           {eyebrow}
-        </motion.span>
+        </m.span>
       )}
-      <motion.h2
+      <m.h2
         variants={fadeUp}
         className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page lg:text-page"
       >
         {title}
-      </motion.h2>
+      </m.h2>
       {subtitle && (
-        <motion.p
+        <m.p
           variants={fadeUp}
           className={`max-w-2xl text-body leading-7 text-charcoal-80/70 ${c ? "mx-auto" : ""}`}
         >
           {subtitle}
-        </motion.p>
+        </m.p>
       )}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -228,7 +228,7 @@ const CORE_COMPETENCIES = [
 function CoreCompetenciesSection() {
   const { t } = useTranslation("about")
   return (
-    <motion.div
+    <m.div
       variants={stagger}
       initial="hidden"
       whileInView="show"
@@ -245,7 +245,7 @@ function CoreCompetenciesSection() {
         {/* Photo column · square aspect for parallel alignment with the
             competencies list on the right. Sticky on lg+ so the photo
             stays in view while users scan the competencies. */}
-        <motion.figure variants={fadeUp} className="relative lg:col-span-5 lg:sticky lg:top-28">
+        <m.figure variants={fadeUp} className="relative lg:col-span-5 lg:sticky lg:top-28">
           {/* Soft violet halo behind the photo */}
           <div
             aria-hidden="true"
@@ -269,16 +269,16 @@ function CoreCompetenciesSection() {
               imgClassName="aspect-square w-full object-cover object-center"
             />
           </div>
-        </motion.figure>
+        </m.figure>
 
         {/* Competencies column · tighter rhythm so the column height
             stays close to the photo height for parallel visual weight. */}
-        <motion.ul
+        <m.ul
           variants={tightStagger}
           className="flex flex-col gap-3.5 lg:col-span-7"
         >
           {CORE_COMPETENCIES.map(({ Icon, keyId }, i) => (
-            <motion.li
+            <m.li
               key={keyId}
               variants={fadeUp}
               className="group flex items-start gap-3.5 border-b border-charcoal-80/8 pb-3.5 last:border-0 last:pb-0"
@@ -303,11 +303,11 @@ function CoreCompetenciesSection() {
                   {t(`core.items.${keyId}.desc`)}
                 </p>
               </div>
-            </motion.li>
+            </m.li>
           ))}
-        </motion.ul>
+        </m.ul>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -319,7 +319,7 @@ function TechRow({ name, Icon, color, value = 75 }) {
   const reduce = useReducedMotion()
   const safe = Math.max(0, Math.min(100, value))
   return (
-    <motion.li
+    <m.li
       variants={fadeUp}
       className="group flex flex-col gap-1.5"
       title={`${name} · ${safe}%`}
@@ -346,7 +346,7 @@ function TechRow({ name, Icon, color, value = 75 }) {
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        <motion.div
+        <m.div
           initial={{ width: reduce ? `${safe}%` : "0%" }}
           whileInView={{ width: `${safe}%` }}
           viewport={{ once: true, margin: "-60px" }}
@@ -354,7 +354,7 @@ function TechRow({ name, Icon, color, value = 75 }) {
           className="h-full rounded-full bg-gradient-to-r from-violet via-[#6A4FD8] to-terracotta"
         />
       </div>
-    </motion.li>
+    </m.li>
   )
 }
 
@@ -367,7 +367,7 @@ function SkillBar({ name, value }) {
         <span className="font-mono tabular-nums text-charcoal-80/60">{value}%</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-violet-pale">
-        <motion.div
+        <m.div
           initial={{ width: 0 }}
           whileInView={{ width: `${value}%` }}
           viewport={{ once: true }}
@@ -391,7 +391,7 @@ function TimelineEntry({ item, index, total, accent }) {
     : "bg-terracotta/15 text-terracotta-deep"
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: xFrom }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true, margin: "-40px" }}
@@ -419,7 +419,7 @@ function TimelineEntry({ item, index, total, accent }) {
           </p>
         )}
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -431,7 +431,7 @@ function Timeline({ items, accent }) {
 
   return (
     <div className="relative">
-      <motion.div
+      <m.div
         initial={{ scaleY: 0 }}
         whileInView={{ scaleY: 1 }}
         viewport={{ once: true, margin: "-80px" }}
@@ -574,7 +574,7 @@ function AboutStatsStrip() {
       <Container>
         <div className="relative">
           {/* Proof-spine on the left edge — scales in with scroll progress */}
-          <motion.span
+          <m.span
             aria-hidden="true"
             className="absolute -left-3 top-3 hidden h-20 w-px origin-top bg-gradient-to-b from-violet via-azure to-cyan sm:block"
             style={reduce ? { scaleY: 1 } : { scaleY: spineScale }}
@@ -620,7 +620,7 @@ function AboutStatsStrip() {
 
             return (
               <Reveal key={tile.key} as="div" amount={0.3} delay={idx * 0.06}>
-                <motion.div
+                <m.div
                   whileHover={reduce ? undefined : { y: -3 }}
                   transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                   className={`group relative isolate flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] ${palette.surface} ring-1 ${palette.ring} p-5 sm:p-6 lg:p-7 ${span}`}
@@ -696,7 +696,7 @@ function AboutStatsStrip() {
                     aria-hidden="true"
                     className={`absolute bottom-0 left-0 h-[2px] w-0 ${palette.accent} transition-[width] duration-[var(--motion-base)] ease-[var(--ease-out-soft)] group-hover:w-full`}
                   />
-                </motion.div>
+                </m.div>
               </Reveal>
             )
           })}
@@ -946,22 +946,22 @@ export default function AboutPage() {
           ══════════════════════════════════════════════════════════════════ */}
       <section className="py-16 sm:py-20 lg:py-28">
         <Container>
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-80px" }}
             className="mb-12 flex flex-col items-center gap-3 text-center sm:mb-14"
           >
-            <motion.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">{t("mvv.eyebrow")}</motion.span>
-            <motion.h2 variants={fadeUp} className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page">{t("mvv.title")}</motion.h2>
-            <motion.p variants={fadeUp} className="max-w-xl text-body leading-7 text-charcoal-80/70">{t("mvv.subtitle")}</motion.p>
-          </motion.div>
-          <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 lg:grid-cols-3">
+            <m.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">{t("mvv.eyebrow")}</m.span>
+            <m.h2 variants={fadeUp} className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page">{t("mvv.title")}</m.h2>
+            <m.p variants={fadeUp} className="max-w-xl text-body leading-7 text-charcoal-80/70">{t("mvv.subtitle")}</m.p>
+          </m.div>
+          <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 lg:grid-cols-3">
             {aboutMissionVisionValues.map(({ title, description }) => {
               const Icon = MVVIcons[title]
               return (
-                <motion.div
+                <m.div
                   key={title}
                   variants={fadeUp}
                   className="group rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(93,63,211,0.10)]"
@@ -971,10 +971,10 @@ export default function AboutPage() {
                   </div>
                   <h3 className="mb-2 text-card font-bold text-violet">{title}</h3>
                   <p className="text-meta leading-6 text-charcoal-80/65">{description}</p>
-                </motion.div>
+                </m.div>
               )
             })}
-          </motion.div>
+          </m.div>
         </Container>
       </section>
 
@@ -984,20 +984,20 @@ export default function AboutPage() {
       <section className="py-20 lg:py-28">
         <Container>
           <SH eyebrow={t("expertise.eyebrow")} title={t("expertise.title")} subtitle={t("expertise.subtitle")} />
-          <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {expertiseAreas.map(({ title, description }) => {
               const Icon = ExpertiseIcons[title]
               return (
-                <motion.div key={title} variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 transition hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(93,63,211,0.08)]">
+                <m.div key={title} variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 transition hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(93,63,211,0.08)]">
                   <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-violet-pale text-violet">
                     {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
                   </div>
                   <h3 className="mb-1 text-body font-bold text-violet">{title}</h3>
                   <p className="text-meta leading-6 text-charcoal-80/65">{description}</p>
-                </motion.div>
+                </m.div>
               )
             })}
-          </motion.div>
+          </m.div>
         </Container>
       </section>
 
@@ -1016,7 +1016,7 @@ export default function AboutPage() {
             from 0% to 100% height as the user scrolls through the
             section. Pure visual rhythm marker; aria-hidden because
             screen readers don't need a scroll-progress signal. */}
-        <motion.div
+        <m.div
           aria-hidden="true"
           style={{ scaleY: journeyLineScale, transformOrigin: "0% 0%" }}
           className="pointer-events-none absolute left-3 top-0 hidden h-full w-px origin-top bg-gradient-to-b from-violet via-violet-deep to-violet/0 sm:left-6 lg:block lg:left-8"
@@ -1027,26 +1027,26 @@ export default function AboutPage() {
         <div className="pointer-events-none absolute -left-32 bottom-0 h-[300px] w-[300px] rounded-full bg-terracotta/10 blur-3xl" aria-hidden="true" />
 
         <Container className="relative">
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-80px" }}
             className="mb-12 flex flex-col items-center gap-3 text-center sm:mb-14"
           >
-            <motion.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
+            <m.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
               {t("journey.eyebrow")}
-            </motion.span>
-            <motion.h2 variants={fadeUp} className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page">{t("journey.title")}</motion.h2>
-            <motion.p variants={fadeUp} className="max-w-xl text-body leading-7 text-charcoal-80/65">
+            </m.span>
+            <m.h2 variants={fadeUp} className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page">{t("journey.title")}</m.h2>
+            <m.p variants={fadeUp} className="max-w-xl text-body leading-7 text-charcoal-80/65">
               {t("journey.subtitle")}
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
 
           <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.15fr] lg:gap-12 xl:gap-16">
             {/* Education column · sticky on lg+ so the longer Experience
                 column on the right scrolls past while Education stays put. */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               initial="hidden"
               whileInView="show"
@@ -1063,10 +1063,10 @@ export default function AboutPage() {
                 </div>
               </div>
               <Timeline items={displayedEducation} accent="violet" />
-            </motion.div>
+            </m.div>
 
             {/* Experience column */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               initial="hidden"
               whileInView="show"
@@ -1083,7 +1083,7 @@ export default function AboutPage() {
                 </div>
               </div>
               <Timeline items={displayedExperience} accent="terracotta" />
-            </motion.div>
+            </m.div>
           </div>
         </Container>
       </section>
@@ -1096,7 +1096,7 @@ export default function AboutPage() {
       <section id="certifications" className="scroll-mt-24 py-20 lg:py-28" style={{ backgroundColor: "#1A1B23" }}>
         <Container>
           <div className="grid items-start gap-10 lg:grid-cols-[320px_1fr] xl:grid-cols-[380px_1fr] xl:gap-14">
-            <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col items-center gap-5 text-center lg:sticky lg:top-28 lg:items-start lg:text-left">
+            <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col items-center gap-5 text-center lg:sticky lg:top-28 lg:items-start lg:text-left">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
                 style={{ backgroundColor: "rgba(233, 196, 106, 0.16)", color: "#E9C46A", border: "1px solid rgba(233, 196, 106, 0.32)" }}
@@ -1120,11 +1120,11 @@ export default function AboutPage() {
                 {t("credentials.knowMore")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" style={{ color: "#8B6FE8" }} aria-hidden="true" />
               </Link>
-            </motion.div>
+            </m.div>
 
 
 
-<motion.div
+<m.div
               variants={stagger}
               initial="hidden"
               whileInView="show"
@@ -1132,7 +1132,7 @@ export default function AboutPage() {
               className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
             >
               {displayedCerts.map((c) => (
-                <motion.div key={c.title} variants={fadeUp}>
+                <m.div key={c.title} variants={fadeUp}>
                   <CertificatePreview
                     src={c.pdfUrl}
                     thumbnail={c.thumbnail}
@@ -1143,9 +1143,9 @@ export default function AboutPage() {
                     date={c.issueDate}
                     verified
                   />
-                </motion.div>
+                </m.div>
               ))}
-            </motion.div>
+            </m.div>
 
 
           </div>
@@ -1168,25 +1168,25 @@ export default function AboutPage() {
 
           {/* 2 · Tech Stack · branded logo wall — kept as-is, full colour
                  by design. Two visual roles, deliberately different. */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-80px" }}
             className="flex flex-col items-center gap-3 text-center"
           >
-            <motion.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
+            <m.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
               {t("tech.eyebrow")}
-            </motion.span>
-            <motion.h3 variants={fadeUp} className="text-[24px] font-bold tracking-tight text-violet sm:text-section md:text-page">
+            </m.span>
+            <m.h3 variants={fadeUp} className="text-[24px] font-bold tracking-tight text-violet sm:text-section md:text-page">
               {t("tech.title")}
-            </motion.h3>
-            <motion.p variants={fadeUp} className="max-w-xl text-meta leading-7 text-charcoal-80/75">
+            </m.h3>
+            <m.p variants={fadeUp} className="max-w-xl text-meta leading-7 text-charcoal-80/75">
               {t("tech.subtitle")}
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
 
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
@@ -1194,7 +1194,7 @@ export default function AboutPage() {
             className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
           >
             {techStackByCategory.map(({ labelKey, items }) => (
-              <motion.div
+              <m.div
                 key={labelKey}
                 variants={fadeUp}
                 className="px-1"
@@ -1202,7 +1202,7 @@ export default function AboutPage() {
                 <h4 className="mb-5 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-violet">
                   {t(`tech.categories.${labelKey}`)}
                 </h4>
-                <motion.ul
+                <m.ul
                   variants={tightStagger}
                   initial="hidden"
                   whileInView="show"
@@ -1212,10 +1212,10 @@ export default function AboutPage() {
                   {items.map(({ name, Icon, color, value }) => (
                     <TechRow key={name} name={name} Icon={Icon} color={color} value={value} />
                   ))}
-                </motion.ul>
-              </motion.div>
+                </m.ul>
+              </m.div>
             ))}
-          </motion.div>
+          </m.div>
 
           {/* 3 · Spoken languages · CEFR scale, premium card, real flag SVGs */}
           <SpokenLanguages
@@ -1257,7 +1257,7 @@ export default function AboutPage() {
                 : t("portfolio.emptyState")}
             </div>
           ) : (
-            <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {displayProjects.map((p, idx) => (
                 <PortfolioCard
                   key={p.id || p.slug || p.title}
@@ -1266,7 +1266,7 @@ export default function AboutPage() {
                   linkLabel={p.tags ? t("portfolio.linkLearnMore") : t("portfolio.linkCaseStudy")}
                 />
               ))}
-            </motion.div>
+            </m.div>
           )}
         </Container>
       </section>
@@ -1285,7 +1285,7 @@ export default function AboutPage() {
             <div className="relative grid items-center gap-10 lg:grid-cols-12 lg:gap-8">
 
               {/* ─────────────── LEFT · Headline + CTA ─────────────── */}
-              <motion.div
+              <m.div
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="show"
@@ -1313,13 +1313,13 @@ export default function AboutPage() {
                     </Link>
                   </MagneticButton>
                 </div>
-              </motion.div>
+              </m.div>
               {/* ─────────────── CENTER · Phone (absolutely positioned on lg+
                                   so the card height is driven only by text;
                                   phone overflows below and is clipped by the
                                   card's `overflow-hidden`) ─────────── */}
               <div className="relative flex justify-center lg:col-span-2 lg:self-stretch">
-                <motion.div
+                <m.div
                   variants={fadeUp}
                   initial="hidden"
                   whileInView="show"
@@ -1327,18 +1327,18 @@ export default function AboutPage() {
                   className="flex w-full justify-center lg:absolute lg:left-1/2 lg:top-3 lg:-translate-x-1/2"
                 >
                   <CtaPhoneMockup />
-                </motion.div>
+                </m.div>
               </div>
 
               {/* ─────────────── RIGHT · Office + Contact info ─────────────── */}
-              <motion.div
+              <m.div
                 variants={stagger}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, margin: "-80px" }}
                 className="space-y-6 lg:col-span-5 lg:pl-2"
               >
-                <motion.div variants={fadeUp}>
+                <m.div variants={fadeUp}>
                   <h3 className="text-[15px] font-bold tracking-tight text-white">
                     {t("ctaBand.officeAddress")}
                   </h3>
@@ -1346,9 +1346,9 @@ export default function AboutPage() {
                     {t("ctaBand.officeAddressBody1")}<br />
                     {t("ctaBand.officeAddressBody2")}
                   </p>
-                </motion.div>
+                </m.div>
 
-                <motion.div variants={fadeUp}>
+                <m.div variants={fadeUp}>
                   <h3 className="text-[15px] font-bold tracking-tight text-white">
                     {t("ctaBand.contactInfo")}
                   </h3>
@@ -1372,8 +1372,8 @@ export default function AboutPage() {
                       </a>
                     </li>
                   </ul>
-                </motion.div>
-              </motion.div>
+                </m.div>
+              </m.div>
             </div>
           </div>
         </Container>
@@ -1395,7 +1395,7 @@ function CtaPhoneMockup() {
   ]
 
   return (
-    <motion.div
+    <m.div
       animate={reduce ? undefined : { y: [0, -8, 0] }}
       transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       className="relative mx-auto w-[210px] sm:w-[220px] lg:w-[230px]"
@@ -1491,14 +1491,14 @@ function CtaPhoneMockup() {
                     </p>
                     <p className="font-mono text-[22px] font-bold leading-none tabular-nums">12</p>
                   </div>
-                  <motion.span
+                  <m.span
                     animate={reduce ? undefined : { opacity: [1, 0.55, 1] }}
                     transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                     className="inline-flex items-center gap-1 rounded-full bg-terracotta px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                     Live
-                  </motion.span>
+                  </m.span>
                 </div>
               </div>
 
@@ -1570,6 +1570,6 @@ function CtaPhoneMockup() {
           aria-hidden="true"
         />
       </div>
-    </motion.div>
+    </m.div>
   )
 }

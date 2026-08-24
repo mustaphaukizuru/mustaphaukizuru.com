@@ -18,7 +18,7 @@
    Drops in via `<ServicesHero />` — ServicesPage.jsx already imports it.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
@@ -99,7 +99,7 @@ const CUSTOMER_PHOTO = "https://images.unsplash.com/photo-1573496359142-b8d87734
 function ServicesHeroIllustration({ reduce }) {
   const { t } = useTranslation("services")
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 24, scale: 0.97 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -140,7 +140,7 @@ function ServicesHeroIllustration({ reduce }) {
         {/* ═══════════════════════════════════════════════════════════
            CENTER PHOTO CARD
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.92 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
@@ -165,12 +165,12 @@ function ServicesHeroIllustration({ reduce }) {
             className="pointer-events-none absolute inset-0"
             style={{ background: "linear-gradient(180deg, transparent 50%, rgba(45,26,94,0.18) 100%)" }}
           />
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            LEFT BIG CARD — Services (violet)
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, x: -24 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -198,12 +198,12 @@ function ServicesHeroIllustration({ reduce }) {
               96
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            RIGHT BIG CARD — Engagements (charcoal)
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, x: 24 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -231,12 +231,12 @@ function ServicesHeroIllustration({ reduce }) {
               82+
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            TOP FLOAT — "{t("hero.servicePlan")}" tag (above center photo)
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: -16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -247,12 +247,12 @@ function ServicesHeroIllustration({ reduce }) {
         >
           <Package className="h-3.5 w-3.5 text-violet sm:h-4 sm:w-4" style={{ color: "#5D3FD3" }} aria-hidden="true" />
           <span>{t("hero.servicePlan")}</span>
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            TOP-RIGHT FLOAT — "{t("hero.onTimeDelivery")}" stat (peach card)
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, x: 16, y: -8 }}
           whileInView={{ opacity: 1, x: 0, y: 0 }}
           viewport={{ once: true }}
@@ -271,12 +271,12 @@ function ServicesHeroIllustration({ reduce }) {
               5.2%
             </span>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            BOTTOM-RIGHT FLOAT — "On duty" availability mini-card
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -304,9 +304,9 @@ function ServicesHeroIllustration({ reduce }) {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
           </div>
-        </motion.div>
+        </m.div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -321,13 +321,13 @@ export default function ServicesHero() {
     <section className="relative overflow-hidden bg-white pb-12 pt-4 sm:pb-16 sm:pt-6 lg:pb-20 lg:pt-8">
 
       {/* ── Soft ambient blobs · gentle motion ─────────────────────── */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, 22, 0], y: [0, 14, 0], scale: [1, 1.06, 1] }}
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
         className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet/[0.05] blur-3xl"
       />
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, -18, 0], y: [0, -10, 0], scale: [1, 1.08, 1] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
@@ -338,19 +338,19 @@ export default function ServicesHero() {
         <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
 
           {/* ── LEFT · narrative + CTAs + proof ─────────────────────── */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             animate="show"
             className="max-w-xl"
           >
             {/* Eyebrow */}
-            <motion.div variants={fadeUp}>
+            <m.div variants={fadeUp}>
               <EyebrowChip>
                 <Sparkles className="h-3 w-3" aria-hidden="true" />
                 {t("hero.servicesEyebrow")}
               </EyebrowChip>
-            </motion.div>
+            </m.div>
 
             {/* Phase 10b · kinetic word-by-word reveal. The legacy
                 gradient-clipped span (with its underline decoration) is
@@ -370,15 +370,15 @@ export default function ServicesHero() {
             />
 
             {/* Subhead · marketing voice — three-beat rhythm, plain words */}
-            <motion.p
+            <m.p
               variants={fadeUp}
               className="mt-5 max-w-md text-[15px] leading-7 text-charcoal-80/65 sm:text-[16px]"
             >
               {t("hero.headlineWebsitesApps")} <span className="font-semibold text-charcoal-80">{t("hero.builtRight")}</span>, <span className="font-semibold text-charcoal-80">{t("hero.pricedFair")}</span>, <span className="font-semibold text-charcoal-80">{t("hero.deliveredFast")}</span>.
-            </motion.p>
+            </m.p>
 
             {/* CTAs */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               className="mt-7 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4"
             >
@@ -417,10 +417,10 @@ export default function ServicesHero() {
                 <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
                 {t("hero.selfAuditCta", "Take the free self-audit")}
               </Link>
-            </motion.div>
+            </m.div>
 
             {/* Stats row */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               className="mt-8 grid grid-cols-2 gap-6 sm:max-w-sm sm:gap-8"
             >
@@ -440,17 +440,17 @@ export default function ServicesHero() {
                   {t("hero.atomicServices")}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Divider */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               aria-hidden="true"
               className="mt-7 h-px w-full max-w-sm bg-gradient-to-r from-charcoal-80/15 via-charcoal-80/10 to-transparent"
             />
 
             {/* Feature ticks — three concrete value points */}
-            <motion.ul
+            <m.ul
               variants={fadeUp}
               className="mt-5 grid grid-cols-1 gap-2.5 sm:max-w-md sm:grid-cols-1"
             >
@@ -472,8 +472,8 @@ export default function ServicesHero() {
                   </span>
                 </li>
               ))}
-            </motion.ul>
-          </motion.div>
+            </m.ul>
+          </m.div>
 
           {/* ── RIGHT · Live Delivery Pipeline ──────────────────────── */}
           <ServicesHeroIllustration reduce={reduce} />

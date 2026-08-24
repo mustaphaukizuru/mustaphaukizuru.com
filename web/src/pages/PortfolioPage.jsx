@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useSearchParams } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { ArrowRight, Sparkles, Search, Grid3x3, AlertCircle, Tag } from "lucide-react"
 import Seo from "../components/seo/Seo"
 import Breadcrumbs from "../components/Breadcrumbs"
@@ -148,17 +148,17 @@ export default function PortfolioPage() {
       {/* HERO */}
       <section className="border-b border-charcoal-80/10 bg-white">
         <Container className="py-12 sm:py-16 lg:py-20">
-          <motion.div initial="hidden" animate="show" variants={stagger} className="flex flex-col gap-5">
-            <motion.span variants={fadeUp} className="inline-flex w-fit items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
+          <m.div initial="hidden" animate="show" variants={stagger} className="flex flex-col gap-5">
+            <m.span variants={fadeUp} className="inline-flex w-fit items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
               <Sparkles className="h-3 w-3" aria-hidden="true" /> {t("hero.eyebrow")}
-            </motion.span>
-            <motion.h1 variants={fadeUp} className="text-page font-bold tracking-tight text-violet sm:text-page lg:text-display">
+            </m.span>
+            <m.h1 variants={fadeUp} className="text-page font-bold tracking-tight text-violet sm:text-page lg:text-display">
               {t("hero.title")}
-            </motion.h1>
-            <motion.p variants={fadeUp} className="max-w-2xl text-body leading-7 text-charcoal-80/75 sm:text-body">
+            </m.h1>
+            <m.p variants={fadeUp} className="max-w-2xl text-body leading-7 text-charcoal-80/75 sm:text-body">
               {t("hero.subtitle")}
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
         </Container>
       </section>
 

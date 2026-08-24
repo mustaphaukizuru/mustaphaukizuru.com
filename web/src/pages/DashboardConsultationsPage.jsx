@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Calendar, Clock, Video, Trash2, RefreshCw, X, AlertCircle, CheckCircle2, Loader2, ExternalLink,
 } from "lucide-react"
@@ -82,12 +82,12 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
             onClick={onClose}
           />
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
             className="fixed left-1/2 top-1/2 z-[70] w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-charcoal/10 bg-white p-5 shadow-[0_20px_50px_rgba(93,63,211,0.18)] sm:p-6"
           >
@@ -144,7 +144,7 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
                 {t("consultations.cancelModal.confirm")}
               </button>
             </div>
-          </motion.div>
+          </m.div>
         </>
       )}
     </AnimatePresence>
@@ -221,12 +221,12 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
             onClick={onClose}
           />
-          <motion.div
+          <m.div
             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.3 }}
             className="fixed inset-y-0 right-0 z-[70] flex w-full max-w-xl flex-col overflow-y-auto bg-white shadow-2xl"
@@ -333,7 +333,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                 </div>
               )}
             </div>
-          </motion.div>
+          </m.div>
         </>
       )}
     </AnimatePresence>
@@ -486,7 +486,7 @@ export default function DashboardConsultationsPage() {
   }
 
   return (
-    <motion.section variants={fadeUp} initial="hidden" animate="show" className="space-y-5">
+    <m.section variants={fadeUp} initial="hidden" animate="show" className="space-y-5">
       {error && (
         <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -560,6 +560,6 @@ export default function DashboardConsultationsPage() {
           }}
         />
       )}
-    </motion.section>
+    </m.section>
   )
 }

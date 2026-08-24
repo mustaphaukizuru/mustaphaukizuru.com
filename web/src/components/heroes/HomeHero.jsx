@@ -1,8 +1,13 @@
+import { lazy, Suspense, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { ArrowRight, Calendar } from "lucide-react"
 import Image from "../ui/Image"
+import { canRenderHeroDepth, scheduleAfterLoad } from "../motion/heroDepth/gate"
+
+// Separate chunk; only requested on capable desktops after load + idle.
+const HeroDepth = lazy(() => import("../motion/HeroDepth"))
 
 /**
  * HomeHero · V12 — "One thesis, two paths" (roadmap step 24)
@@ -19,10 +24,19 @@ import Image from "../ui/Image"
  *   · useReducedMotion → children render in place with no transform.
  *   · At 375px the headline and both CTAs fit above the fold: the
  *     signature row is the only element pushed below them.
+ *   · Step 34: on desktop (≥1024px, no reduced-motion, no saveData,
+ *     ≥4 cores) a lazy <HeroDepth> canvas fades in over the static
+ *     gradient after `load` + idle. Mobile never requests the chunk.
  */
 export default function HomeHero() {
   const { t } = useTranslation("home")
   const reduced = useReducedMotion()
+  const [depth, setDepth] = useState(false)
+
+  useEffect(() => {
+    if (!canRenderHeroDepth()) return undefined
+    return scheduleAfterLoad(() => setDepth(true))
+  }, [])
 
   const stagger = {
     hidden: {},
@@ -49,40 +63,45 @@ export default function HomeHero() {
             "radial-gradient(at 0% 100%, rgba(233,196,106,0.12) 0px, transparent 50%)",
         }}
       />
+      {depth && (
+        <Suspense fallback={null}>
+          <HeroDepth />
+        </Suspense>
+      )}
 
-      <motion.div
+      <m.div
         variants={stagger}
         initial="hidden"
         animate="show"
         className="relative z-10 mx-auto flex max-w-7xl flex-col items-start px-4 pb-14 pt-12 sm:px-6 sm:pb-20 sm:pt-20 lg:px-8 lg:pb-24 lg:pt-24"
       >
         {/* 1 · Eyebrow */}
-        <motion.span
+        <m.span
           variants={item}
           className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1.5 text-micro font-semibold uppercase tracking-[0.12em] text-violet-deep"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-violet" aria-hidden="true" />
           {t("hero.eyebrow")}
-        </motion.span>
+        </m.span>
 
         {/* 2 · Headline — the LCP element */}
-        <motion.h1
+        <m.h1
           variants={item}
           className="mt-5 max-w-4xl font-display text-[clamp(32px,6.2vw,60px)] font-extrabold leading-[1.05] tracking-[-0.02em] text-charcoal text-balance"
         >
           {t("hero.headline")}
-        </motion.h1>
+        </m.h1>
 
         {/* 3 · Subtitle — the four catalogue categories, plainly */}
-        <motion.p
+        <m.p
           variants={item}
           className="mt-5 max-w-2xl text-[15px] leading-[1.7] text-charcoal-80/75 sm:text-[17px]"
         >
           {t("hero.subtitle")}
-        </motion.p>
+        </m.p>
 
         {/* 4 · Exactly two CTAs */}
-        <motion.div
+        <m.div
           variants={item}
           className="mt-7 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center"
         >
@@ -100,10 +119,10 @@ export default function HomeHero() {
           >
             {t("hero.ctaSecondary")}
           </Link>
-        </motion.div>
+        </m.div>
 
         {/* 5 · Signature — the person behind the offer + the no-pressure note */}
-        <motion.div
+        <m.div
           variants={item}
           className="mt-8 flex items-center gap-3"
         >
@@ -124,8 +143,8 @@ export default function HomeHero() {
             <p className="mt-0.5 text-[12.5px] leading-tight text-charcoal-80/60">{t("hero.avatarRole")}</p>
             <p className="mt-1 text-[12px] leading-tight text-violet">{t("hero.callNote")}</p>
           </div>
-        </motion.div>
-      </motion.div>
+        </m.div>
+      </m.div>
     </section>
   )
 }

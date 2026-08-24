@@ -40,7 +40,7 @@ import {
   useState,
 } from "react"
 import { createPortal } from "react-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { CheckCircle2, AlertOctagon, AlertTriangle, Info, X } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
@@ -183,7 +183,7 @@ function ToastItem({ toast, onDismiss }) {
   }
 
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, y: 16, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -235,7 +235,7 @@ function ToastItem({ toast, onDismiss }) {
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 

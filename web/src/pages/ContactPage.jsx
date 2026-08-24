@@ -23,7 +23,7 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Send, CheckCircle2, Mail, MapPin, Sparkles,
   GraduationCap, Briefcase, User, Layers, Clock as ClockIcon, Tag,
@@ -157,7 +157,7 @@ function RadioPill({ label, value, current, onChange, name }) {
         }
       >
         {checked ? (
-          <motion.span
+          <m.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 400, damping: 18 }}
@@ -401,7 +401,7 @@ function ContactSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* "Two ways to reach me", clarifies Book vs. Send Message */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
@@ -455,9 +455,9 @@ function ContactSection() {
               <span className="transition-transform group-hover:translate-y-0.5" aria-hidden="true">↓</span>
             </span>
           </a>
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
@@ -469,7 +469,7 @@ function ContactSection() {
           {/* ════════════════════════════════════════════════════════
                FORM panel · full-width centered
                ════════════════════════════════════════════════════════ */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
@@ -477,21 +477,21 @@ function ContactSection() {
             className="bg-white p-6 sm:p-10 lg:p-12"
           >
             {success ? (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
                 className="relative flex flex-col items-center gap-4 py-10 text-center sm:py-14"
               >
                 <Confetti fire={success} />
-                <motion.div
+                <m.div
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 14 }}
                   className="flex h-16 w-16 items-center justify-center rounded-2xl bg-mint/12 text-emerald-700"
                 >
                   <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
-                </motion.div>
+                </m.div>
                 <h3 className="text-card font-bold text-violet">{t("form.successDetail.title")}</h3>
                 <p className="max-w-xs text-meta text-charcoal-80/65">
                   {t("form.successDetail.body")}
@@ -503,7 +503,7 @@ function ContactSection() {
                 >
                   {t("form.successDetail.again")}
                 </button>
-              </motion.div>
+              </m.div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-6 sm:gap-7" noValidate>
                 {/* Honeypot (hidden) */}
@@ -523,19 +523,19 @@ function ContactSection() {
                 />
 
                 {error ? (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] font-medium text-rose-700"
                     role="alert"
                   >
                     {error}
-                  </motion.div>
+                  </m.div>
                 ) : null}
 
                 {/* Context chip · only when URL params pre-filled the form */}
                 {paramContext ? (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: -6, scale: 0.97 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -555,7 +555,7 @@ function ContactSection() {
                         ].filter(Boolean).join(" · ") || t("form.context.yourSelection")}
                       </span>
                     </div>
-                  </motion.div>
+                  </m.div>
                 ) : null}
 
                 {/* Phase 10 · Floating-label inputs replace the previous
@@ -566,7 +566,7 @@ function ContactSection() {
                     focus or when filled. */}
 
                 {/* Row · First Name + Last Name */}
-                <motion.div variants={fadeUp} className="grid gap-5 sm:grid-cols-2 sm:gap-6">
+                <m.div variants={fadeUp} className="grid gap-5 sm:grid-cols-2 sm:gap-6">
                   <FloatingLabelInput
                     name="firstName"
                     label={t("form.firstName")}
@@ -587,10 +587,10 @@ function ContactSection() {
                     error={touched.lastName ? fieldErrors.lastName : ""}
                     required
                   />
-                </motion.div>
+                </m.div>
 
                 {/* Row · Mail */}
-                <motion.div variants={fadeUp}>
+                <m.div variants={fadeUp}>
                   <FloatingLabelInput
                     name="email"
                     label={t("form.email")}
@@ -602,10 +602,10 @@ function ContactSection() {
                     error={touched.email ? fieldErrors.email : ""}
                     required
                   />
-                </motion.div>
+                </m.div>
 
                 {/* Audience selector · 3 RadioPills */}
-                <motion.fieldset variants={fadeUp} className="border-0 p-0">
+                <m.fieldset variants={fadeUp} className="border-0 p-0">
                   <legend className="text-[13px] font-semibold text-charcoal sm:text-meta">
                     {t("form.audienceLegend")}
                   </legend>
@@ -625,10 +625,10 @@ function ContactSection() {
                   {touched.audience && fieldErrors.audience && (
                     <p className="mt-2 text-[12px] text-rose">{fieldErrors.audience}</p>
                   )}
-                </motion.fieldset>
+                </m.fieldset>
 
                 {/* Message */}
-                <motion.div variants={fadeUp}>
+                <m.div variants={fadeUp}>
                   <FloatingLabelTextarea
                     label={t("form.messageLabel")}
                     name="message"
@@ -640,10 +640,10 @@ function ContactSection() {
                     error={touched.message ? fieldErrors.message : ""}
                     required
                   />
-                </motion.div>
+                </m.div>
 
                 {/* Consent */}
-                <motion.label variants={fadeUp} className="flex items-start gap-3 text-[13px] text-charcoal/75">
+                <m.label variants={fadeUp} className="flex items-start gap-3 text-[13px] text-charcoal/75">
                   <input
                     type="checkbox"
                     checked={form.consent}
@@ -654,19 +654,19 @@ function ContactSection() {
                   <span>
                     {t("form.consent")}
                   </span>
-                </motion.label>
+                </m.label>
                 {touched.consent && fieldErrors.consent && (
                   <p className="-mt-3 ml-7 text-[12px] text-rose">{fieldErrors.consent}</p>
                 )}
 
                 {error && (
-                  <motion.div variants={fadeUp}>
+                  <m.div variants={fadeUp}>
                     <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
-                  </motion.div>
+                  </m.div>
                 )}
 
                 {/* Submit */}
-                <motion.div variants={fadeUp} className="pt-2">
+                <m.div variants={fadeUp} className="pt-2">
                   <button
                     type="submit"
                     disabled={loading}
@@ -683,11 +683,11 @@ function ContactSection() {
                       </>
                     )}
                   </button>
-                </motion.div>
+                </m.div>
               </form>
             )}
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </div>
     </section>
   )

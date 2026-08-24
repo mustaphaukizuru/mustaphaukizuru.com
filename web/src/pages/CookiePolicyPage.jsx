@@ -5,7 +5,7 @@
    for visual consistency across the legal cluster.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Cookie, Calendar, Mail, Settings2, ShieldCheck, BarChart3, Megaphone, Link as LinkIcon } from "lucide-react"
 import { useCookieConsent, COOKIE_CATEGORIES } from "../context/CookieConsentContext"
@@ -179,7 +179,7 @@ export default function CookiePolicyPage() {
         {/* ── Sections ───────────────────────────────────────────────────── */}
         <article className="flex flex-col gap-4">
           {sections.map(({ slug, title, content }, i) => (
-            <motion.section
+            <m.section
               key={slug}
               id={slug}
               className="scroll-mt-24 rounded-xl border border-charcoal/10 bg-white p-6 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
@@ -202,7 +202,7 @@ export default function CookiePolicyPage() {
                 </a>
               </h2>
               <p className="text-[14px] leading-7 text-charcoal/75">{content}</p>
-            </motion.section>
+            </m.section>
           ))}
         </article>
 

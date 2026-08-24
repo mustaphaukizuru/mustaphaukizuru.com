@@ -44,8 +44,9 @@ function sanitizeProductFaqs(value) {
   return cleaned.length > 0 ? cleaned : null
 }
 
+/** Step 42 · admin list shows soft-deleted rows too, flagged `isDeleted`. */
 async function getAdminProducts() {
-  return prisma.product.findMany({
+  const rows = await prisma.product.findMany({
     include: {
       images: {
         orderBy: { sortOrder: "asc" },
@@ -60,6 +61,7 @@ async function getAdminProducts() {
     orderBy: { createdAt: "desc" },
     take: 200,
   })
+  return rows.map((p) => ({ ...p, isDeleted: p.deletedAt != null }))
 }
 
 async function createAdminProduct(payload) {
@@ -203,7 +205,37 @@ async function updateAdminProduct(productId, payload) {
   })
 }
 
-async function deleteAdminProduct(productId) {
+/* ────────────────────────────────────────────────────────────────────────────
+ * Step 42 · soft delete.
+ *   deleteAdminProduct(id)                 → sets deletedAt (row + files kept;
+ *                                            orders / downloads still resolve)
+ *   deleteAdminProduct(id, { hard: true }) → legacy destructive path
+ *   restoreAdminProduct(id)                → clears deletedAt (isActive is left
+ *                                            false so the admin re-publishes
+ *                                            deliberately)
+ * ──────────────────────────────────────────────────────────────────────────── */
+async function deleteAdminProduct(productId, { hard = false } = {}) {
+  if (!hard) {
+    const existing = await prisma.product.findUnique({ where: { id: productId }, select: { id: true } })
+    if (!existing) return null
+    return prisma.product.update({
+      where: { id: productId },
+      data:  { deletedAt: new Date(), isActive: false, isFeatured: false },
+    })
+  }
+  return hardDeleteAdminProduct(productId)
+}
+
+async function restoreAdminProduct(productId) {
+  const existing = await prisma.product.findUnique({ where: { id: productId }, select: { id: true, deletedAt: true } })
+  if (!existing) return null
+  return prisma.product.update({
+    where: { id: productId },
+    data:  { deletedAt: null },
+  })
+}
+
+async function hardDeleteAdminProduct(productId) {
   const files = await prisma.productFile.findMany({
     where: { productId },
   })
@@ -412,6 +444,8 @@ module.exports = {
   createAdminProduct,
   updateAdminProduct,
   deleteAdminProduct,
+  hardDeleteAdminProduct,
+  restoreAdminProduct,
   getAdminProductById,
   addProductFile,
   removeProductFile,

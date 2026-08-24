@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Package, Star } from "lucide-react"
 import Lens from "../motion/Lens"
 
@@ -41,8 +41,9 @@ export default function Gallery({ images = [], activeImg = 0, onSelect, product 
       )}
 
       <div className="order-1 flex-1 sm:order-2">
-        <motion.div
+        <m.div
           key={activeImg}
+          layoutId={activeImg === 0 && product?.slug ? `product-cover-${product.slug}` : undefined}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.25 }}
@@ -69,7 +70,7 @@ export default function Gallery({ images = [], activeImg = 0, onSelect, product 
               </span>
             )}
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </div>
   )

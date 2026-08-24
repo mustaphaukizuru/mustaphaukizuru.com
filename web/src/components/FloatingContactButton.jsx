@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 import { MessageCircle, X, Mail, Calendar, ArrowRight, ArrowUp } from "lucide-react"
 import { FaWhatsapp } from "react-icons/fa"
 import { useTranslation } from "react-i18next"
@@ -103,7 +103,7 @@ export default function FloatingContactButton() {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.6 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.6 }}
@@ -115,7 +115,7 @@ export default function FloatingContactButton() {
               hides while the menu is open so the two never collide. */}
           <AnimatePresence>
             {!open && (
-              <motion.button
+              <m.button
                 type="button"
                 onClick={scrollToTop}
                 aria-label={t("system.scrollTop")}
@@ -127,14 +127,14 @@ export default function FloatingContactButton() {
                 className="flex h-11 w-11 items-center justify-center rounded-full border border-charcoal-80/10 bg-white text-violet shadow-[0_8px_24px_rgba(93,63,211,0.18)] transition hover:border-violet/30 hover:text-violet-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2"
               >
                 <ArrowUp className="h-5 w-5" strokeWidth={2.4} aria-hidden="true" />
-              </motion.button>
+              </m.button>
             )}
           </AnimatePresence>
 
           {/* Expanded menu */}
           <AnimatePresence>
             {open && (
-              <motion.div
+              <m.div
                 variants={menuVariants}
                 initial="hidden"
                 animate="show"
@@ -144,7 +144,7 @@ export default function FloatingContactButton() {
               >
                 {menuItems.map(({ icon: Icon, label, href, to, external }, i) => {
                   const inner = (
-                    <motion.div
+                    <m.div
                       custom={i}
                       variants={itemVariants}
                       initial="hidden"
@@ -159,7 +159,7 @@ export default function FloatingContactButton() {
                       <span className="whitespace-nowrap text-[13px] font-semibold text-charcoal">
                         {label}
                       </span>
-                    </motion.div>
+                    </m.div>
                   )
                   return href ? (
                     <a
@@ -185,7 +185,7 @@ export default function FloatingContactButton() {
                     </Link>
                   )
                 })}
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
 
@@ -208,7 +208,7 @@ export default function FloatingContactButton() {
             >
               <AnimatePresence mode="wait">
                 {open ? (
-                  <motion.span
+                  <m.span
                     key="x"
                     initial={{ rotate: -90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
@@ -216,9 +216,9 @@ export default function FloatingContactButton() {
                     transition={{ duration: 0.2 }}
                   >
                     <X className="h-5 w-5 text-white" aria-hidden="true" />
-                  </motion.span>
+                  </m.span>
                 ) : (
-                  <motion.span
+                  <m.span
                     key="chat"
                     initial={{ rotate: 90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
@@ -226,12 +226,12 @@ export default function FloatingContactButton() {
                     transition={{ duration: 0.2 }}
                   >
                     <MessageCircle className="h-5 w-5 text-white" aria-hidden="true" />
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </button>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   )

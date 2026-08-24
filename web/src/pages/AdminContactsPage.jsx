@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   MessageSquare, Search, Trash2, X, Mail, Phone, User as UserIcon,
   CheckCircle2, Reply, Filter, AlertCircle, ExternalLink, RefreshCw,
@@ -289,7 +289,7 @@ export default function AdminContactsPage() {
       {/* Detail drawer */}
       <AnimatePresence>
         {selected && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -304,7 +304,7 @@ export default function AdminContactsPage() {
               onClick={() => setSelected(null)}
               aria-hidden="true"
             />
-            <motion.aside
+            <m.aside
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
@@ -399,8 +399,8 @@ export default function AdminContactsPage() {
                   )}
                 </div>
               </footer>
-            </motion.aside>
-          </motion.div>
+            </m.aside>
+          </m.div>
         )}
       </AnimatePresence>
 

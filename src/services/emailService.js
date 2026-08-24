@@ -3,53 +3,63 @@ const logger = require("../utils/logger")
 const layout = require("./emailLayoutService")
 
 /**
- * Template-based email service (B07)
+ * Email service — THE single email layer (roadmap step 41).
  *
- * This sits on top of the existing `src/utils/mailer.js` nodemailer transport
- * — we reuse its pooled SMTP connection and its logEmail helper. What this
- * service adds is:
+ * Owns the one nodemailer transport for the whole backend. Everything that
+ * sends mail goes through here:
  *
- *   1. Load an EmailTemplate row by `templateKey` from the DB
- *   2. Substitute {{variables}} in subject + htmlBody + textBody
- *   3. Send via the shared transport
- *   4. Write an EmailLog entry (status: sent | failed, provider message id, error)
+ *   sendTemplateEmail  → DB EmailTemplate (key + locale) + {{variables}}
+ *   sendRawEmail       → explicit subject/html (campaigns, admin one-offs,
+ *                        diagnostic reports)
+ *   retryEmailLog      → re-send a failed EmailLog row from its stored payload
+ *   verifyTransport    → SMTP handshake for /health deep checks
  *
- * NOTE on locale: the current EmailTemplate schema does not have a `locale`
- * column, so `locale` is accepted but currently ignored. When i18n lands
- * (I18N prompt later), add a `locale` column to EmailTemplate and update the
- * `findTemplate` query to prefer the requested locale and fall back to "en".
+ * Every send writes an EmailLog row (sent | failed | skipped) with attempts,
+ * providerMessageId and errorMessage. Transient SMTP failures are scheduled
+ * for retry (see classifyError / RETRY policy) and picked up by
+ * src/jobs/emailRetryJob.js. Nothing here throws into request handlers —
+ * callers get `{ ok, error, logId }` and may fire-and-forget.
  */
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Transport — reuses SMTP config from mailer.js via its internal nodemailer
-// pool if exposed, otherwise creates its own (same config) so the service is
-// independent and mailer.js does not have to be modified.
-// ─────────────────────────────────────────────────────────────────────────────
+/* ─────────────────────────── retry policy ─────────────────────────────── */
+
+const MAX_ATTEMPTS      = 3
+const BASE_BACKOFF_MS   = 5 * 60 * 1000 // 5 min × 2^attempts
+const TRANSIENT_CODES   = new Set(["ECONNECTION", "ETIMEDOUT", "EAI_AGAIN", "ECONNRESET", "ESOCKET", "ECONNREFUSED"])
+const TRANSIENT_SMTP    = new Set([421, 450, 451, 452])
+
+/**
+ * Decide whether an SMTP error is worth retrying.
+ * Transient: connection/timeouts/DNS and 4xx "try again later" replies.
+ * Permanent: 5xx (bad mailbox, policy rejection), auth errors, bad input.
+ */
+function isTransientError(err) {
+  if (!err) return false
+  if (err.code && TRANSIENT_CODES.has(String(err.code))) return true
+  const code = Number(err.responseCode)
+  if (code && TRANSIENT_SMTP.has(code)) return true
+  if (code && code >= 500) return false
+  const msg = String(err.message || "")
+  return /\b(421|450|451)\b/.test(msg) || /timed? ?out|ECONN|EAI_AGAIN|greylist/i.test(msg)
+}
+
+/** Backoff for the retry after `attempts` failed attempts: 5 min × 2^(attempts-1). */
+function backoffFor(attempts) {
+  return new Date(Date.now() + BASE_BACKOFF_MS * Math.pow(2, Math.max(0, attempts - 1)))
+}
+
+/* ─────────────────────────── transport ────────────────────────────────── */
 
 let _transport = null
 
+function smtpConfigured() {
+  return Boolean(process.env.SMTP_USER && process.env.SMTP_PASS)
+}
+
+/** The ONE pooled nodemailer transport. Null when SMTP is not configured. */
 function getTransport() {
   if (_transport) return _transport
-
-  // Prefer the shared pool if mailer.js exports it (either today or later)
-  try {
-    const mailer = require("../utils/mailer")
-    if (typeof mailer.getTransporter === "function") {
-      _transport = mailer.getTransporter()
-      return _transport
-    }
-    if (mailer.transporter) {
-      _transport = mailer.transporter
-      return _transport
-    }
-  } catch {
-    // mailer.js may not be available — fall through to self-hosted transport
-  }
-
-  // Self-hosted nodemailer pool using the same env vars as mailer.js.
-  // Safe duplicate — both pools can coexist.
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return null
-
+  if (!smtpConfigured()) return null
   const nodemailer = require("nodemailer")
   _transport = nodemailer.createTransport({
     host:   process.env.SMTP_HOST || "smtp.hostinger.com",
@@ -59,16 +69,31 @@ function getTransport() {
     pool:   true,
     maxConnections: 3,
     rateLimit:      10,
+    connectionTimeout: 15000,
+    greetingTimeout:   10000,
+    socketTimeout:     30000,
   })
   return _transport
 }
 
+/** SMTP handshake check. Returns { ok } or { skipped, reason }; throws on failure. */
+async function verifyTransport() {
+  const transport = getTransport()
+  if (!transport) return { skipped: true, reason: "SMTP not configured" }
+  await transport.verify()
+  return { ok: true }
+}
+
+/** Used by tests / graceful shutdown. */
+function resetTransport() {
+  try { _transport?.close?.() } catch { /* ignore */ }
+  _transport = null
+}
+
+/* ─────────────────────────── helpers ──────────────────────────────────── */
+
 function fromAddress() {
-  return (
-    `"Mustapha Ukizuru" <${
-      process.env.SMTP_USER || "hello@mustaphaukizuru.com"
-    }>`
-  )
+  return `"Mustapha Ukizuru" <${process.env.SMTP_USER || "hello@mustaphaukizuru.com"}>`
 }
 
 function supportEmail() {
@@ -83,11 +108,7 @@ function esc(value = "") {
     .replace(/"/g, "&quot;")
 }
 
-/**
- * Substitute {{key}} tokens in a string with values from `variables`.
- * Missing keys are left as empty strings so the email doesn't ship with
- * literal `{{orderNumber}}` in the body.
- */
+/** Substitute {{key}} tokens; missing keys render as empty strings. */
 function renderTemplate(template, variables = {}) {
   if (!template) return ""
   return String(template).replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_, key) => {
@@ -96,10 +117,7 @@ function renderTemplate(template, variables = {}) {
   })
 }
 
-/**
- * Strip HTML to a best-effort plain-text version. Used only when an
- * EmailTemplate has no textBody set.
- */
+/** Best-effort plain-text version of an HTML body. */
 function htmlToText(html) {
   return String(html || "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
@@ -115,185 +133,207 @@ function htmlToText(html) {
     .trim()
 }
 
-/**
- * Fetch the template row for a given key. Always returns the active row if
- * one exists; otherwise returns null.
- */
+function toAddressString(to) {
+  return Array.isArray(to) ? to.join(", ") : String(to || "")
+}
+
 /**
  * Resolve a template by (key, locale) with fallback to English.
- *
- * The EmailTemplate schema (post-Phase 3) carries a (key, locale)
- * composite unique. Many seed rows still only exist in `"en"`, so any
- * Spanish-locale request first tries `(key, "es")`, then falls back to
- * `(key, "en")` if the Spanish row hasn't been seeded yet. This keeps
- * Spanish users on the right surface when ES content exists, and never
- * blocks an email when only English exists.
- *
- * @param {string} templateKey  EmailTemplate.key
- * @param {"en"|"es"} [locale]  Defaults to "en"
  */
 async function findTemplate(templateKey, locale = "en") {
   const wantedLocale = locale === "es" ? "es" : "en"
-
-  // Try the requested locale first (if not English).
   if (wantedLocale !== "en") {
     const localized = await prisma.emailTemplate.findFirst({
       where: { key: templateKey, locale: wantedLocale, isActive: true },
     })
     if (localized) return localized
   }
-
-  // Fall back to English — the seed always populates `(key, "en")`.
   return prisma.emailTemplate.findFirst({
     where: { key: templateKey, locale: "en", isActive: true },
   })
 }
 
+/* ─────────────────────────── EmailLog bookkeeping ─────────────────────── */
+
 /**
- * Write an EmailLog row. Never throws — mail delivery bookkeeping should not
- * break a request.
+ * Build the JSON payload stored on EmailLog so the retry job can re-send.
+ * Buffer attachments (PDF receipts) are dropped — only string content (ICS)
+ * survives; the row is flagged so the admin can see the attachment is gone.
  */
-async function writeLog({ userId, to, templateKey, subject, status, providerMessageId, errorMessage }) {
+function serializePayload(mail) {
+  const keepAttachment = (a) => a && typeof a.content === "string"
+  const attachments = Array.isArray(mail.attachments) ? mail.attachments.filter(keepAttachment) : []
+  const dropped = Array.isArray(mail.attachments) ? mail.attachments.length - attachments.length : 0
+  const alternatives = Array.isArray(mail.alternatives) ? mail.alternatives.filter(keepAttachment) : []
+  return {
+    from:    mail.from,
+    replyTo: mail.replyTo || null,
+    to:      mail.to,
+    subject: mail.subject,
+    html:    mail.html || null,
+    text:    mail.text || null,
+    headers: mail.headers || null,
+    attachments:  attachments.length ? attachments : null,
+    alternatives: alternatives.length ? alternatives : null,
+    icalEvent:    mail.icalEvent && typeof mail.icalEvent.content === "string" ? mail.icalEvent : null,
+    attachmentsDropped: dropped || undefined,
+  }
+}
+
+/** Create an EmailLog row. Never throws. */
+async function writeLog(data) {
   try {
-    return await prisma.emailLog.create({
-      data: {
-        userId: userId || null,
-        emailTo: String(to),
-        templateKey: templateKey || null,
-        subject: subject || "(no subject)",
-        status,
-        providerMessageId: providerMessageId || null,
-        sentAt: status === "sent" ? new Date() : null,
-        errorMessage: errorMessage || null,
-      },
-    })
+    return await prisma.emailLog.create({ data })
   } catch (err) {
     logger.error("[emailService] failed to write EmailLog:", err.message)
     return null
   }
 }
 
+/** Update an EmailLog row. Never throws. */
+async function updateLog(id, data) {
+  try {
+    return await prisma.emailLog.update({ where: { id }, data })
+  } catch (err) {
+    logger.error("[emailService] failed to update EmailLog:", err.message)
+    return null
+  }
+}
+
+/* ─────────────────────────── core delivery ────────────────────────────── */
+
 /**
- * sendTemplateEmail
+ * deliver — send one nodemailer message and record the outcome.
  *
- * @param {object} opts
- * @param {string|string[]} opts.to            Recipient email(s)
- * @param {string}          opts.templateKey   EmailTemplate.key
- * @param {object}          [opts.variables]   Substitution map
- * @param {string}          [opts.locale]      Accepted but ignored until i18n lands
- * @param {string}          [opts.userId]      Associates the log row with a user
- * @param {object}          [opts.headers]     Extra mail headers (List-Unsubscribe, etc.)
- * @param {Array}           [opts.attachments] Nodemailer attachments — e.g.
- *   [{ filename: "receipt-XYZ.pdf", content: <Buffer>, contentType: "application/pdf" }]
- *   Forwarded verbatim to transport.sendMail; left undefined when empty so
- *   transports that don't support attachments still send the body cleanly.
- * @returns {Promise<{ ok: boolean, messageId?: string, error?: string, logId?: string }>}
+ * @param {object} mail   nodemailer options (from/to/subject/html/text/...)
+ * @param {object} meta   { userId, templateKey, logId, attempts }
+ *   logId/attempts are set when re-sending an existing EmailLog row.
+ * @returns {Promise<{ ok, messageId?, error?, logId?, willRetry? }>}
  */
-async function sendTemplateEmail({ to, templateKey, variables = {}, locale, userId, headers, attachments } = {}) {
-  if (!to || !templateKey) {
-    return { ok: false, error: "Missing `to` or `templateKey`" }
-  }
+async function deliver(mail, meta = {}) {
+  const { userId = null, templateKey = null, logId = null } = meta
+  const attempts = (Number(meta.attempts) || 0) + 1
+  const emailTo  = toAddressString(mail.to)
+  const subject  = String(mail.subject || "(no subject)")
+  const base     = { userId, emailTo, templateKey, subject }
 
-  const template = await findTemplate(templateKey, locale)
-  if (!template) {
-    const error = `Template not found or inactive: ${templateKey}`
-    const log = await writeLog({ userId, to, templateKey, subject: "", status: "failed", errorMessage: error })
-    return { ok: false, error, logId: log?.id }
-  }
-
-  const subject     = renderTemplate(template.subject, variables)
-  const rawHtmlBody = renderTemplate(template.htmlBody, variables)
-
-  /* Auto-wrap content-only templates with the brand layout.
-   *
-   * Conventions:
-   *   • Templates that begin with `<!doctype` or `<html` are treated as
-   *     already-wrapped (legacy seed) — sent verbatim.
-   *   • Templates that start with anything else are treated as content
-   *     fragments and wrapped via emailLayoutService.wrap(...) so they
-   *     pick up the header, social bar, address block, and unsubscribe
-   *     row without the author having to author chrome by hand.
-   *
-   * The convention is opt-in by content shape, not by config flag, so
-   * existing seeded templates render identically and new templates can
-   * be authored as a single <p>…</p> + {{variables}}.
-   */
-  const trimmedBody = rawHtmlBody.trimStart()
-  const looksWrapped = /^<(!doctype|html\b)/i.test(trimmedBody)
-  const htmlBody = looksWrapped
-    ? rawHtmlBody
-    : layout.wrap({
-        preheader:      variables.preheader || "",
-        eyebrow:        variables.eyebrow   || "",
-        bodyHtml:       rawHtmlBody,
-        unsubscribeUrl: variables.unsubscribeUrl || null,
-      })
-
-  const textBody = template.textBody
-    ? renderTemplate(template.textBody, variables)
-    : htmlToText(htmlBody)
+  const record = (data) => (logId ? updateLog(logId, data) : writeLog({ ...base, ...data }))
 
   const transport = getTransport()
   if (!transport) {
-    // SMTP not configured — log-only so dev keeps working.
-    logger.warn(`[emailService] SMTP not configured, logging only (${templateKey} → ${to})`)
-    const log = await writeLog({
-      userId, to, templateKey,
-      subject, status: "failed",
-      errorMessage: "SMTP not configured",
-    })
-    return { ok: false, error: "SMTP not configured", logId: log?.id }
+    logger.warn(`[emailService] SMTP not configured — skipping "${subject}" → ${emailTo}`)
+    const log = await record({ status: "skipped", errorMessage: "SMTP not configured", attempts, nextAttemptAt: null, payload: serializePayload(mail) })
+    return { ok: false, skipped: true, error: "SMTP not configured", logId: log?.id }
   }
 
   try {
-    const info = await transport.sendMail({
+    const info = await transport.sendMail(mail)
+    logger.info(`[emailService] sent "${subject}" → ${emailTo}${attempts > 1 ? ` (attempt ${attempts})` : ""}`)
+    const log = await record({
+      status: "sent",
+      providerMessageId: info?.messageId || null,
+      sentAt: new Date(),
+      errorMessage: null,
+      attempts,
+      nextAttemptAt: null,
+      payload: null,
+    })
+    return { ok: true, messageId: info?.messageId, logId: log?.id }
+  } catch (err) {
+    const error     = err?.message || "SMTP send failed"
+    const transient = isTransientError(err)
+    const willRetry = transient && attempts < MAX_ATTEMPTS
+    logger.error(`[emailService] send failed "${subject}" → ${emailTo} (attempt ${attempts}/${MAX_ATTEMPTS}${willRetry ? ", will retry" : transient ? ", giving up" : ", permanent"}): ${error}`)
+    const log = await record({
+      status: "failed",
+      errorMessage: error,
+      attempts,
+      nextAttemptAt: willRetry ? backoffFor(attempts) : null,
+      payload: willRetry ? serializePayload(mail) : null,
+    })
+    return { ok: false, error, logId: log?.id, willRetry }
+  }
+}
+
+/* ─────────────────────────── public API ───────────────────────────────── */
+
+/**
+ * sendTemplateEmail — render a DB EmailTemplate and deliver it.
+ *
+ * @param {object} opts
+ * @param {string|string[]} opts.to
+ * @param {string}          opts.templateKey    EmailTemplate.key
+ * @param {object}          [opts.variables]    {{token}} substitution map.
+ *   `preheader` / `eyebrow` / `unsubscribeUrl` also feed the layout wrapper.
+ * @param {"en"|"es"}       [opts.locale]
+ * @param {string}          [opts.userId]
+ * @param {object}          [opts.headers]
+ * @param {Array}           [opts.attachments]  nodemailer attachments
+ * @param {Array}           [opts.alternatives] e.g. text/calendar parts
+ * @param {object}          [opts.icalEvent]    nodemailer icalEvent
+ * @param {string}          [opts.replyTo]
+ */
+async function sendTemplateEmail({ to, templateKey, variables = {}, locale, userId, headers, attachments, alternatives, icalEvent, replyTo } = {}) {
+  if (!to || !templateKey) return { ok: false, error: "Missing `to` or `templateKey`" }
+
+  let template = null
+  try {
+    template = await findTemplate(templateKey, locale)
+  } catch (err) {
+    const error = `Template lookup failed: ${err.message}`
+    const log = await writeLog({ userId, emailTo: toAddressString(to), templateKey, subject: "", status: "failed", errorMessage: error, attempts: 0 })
+    return { ok: false, error, logId: log?.id }
+  }
+  if (!template) {
+    const error = `Template not found or inactive: ${templateKey}`
+    logger.warn(`[emailService] ${error}`)
+    const log = await writeLog({ userId, emailTo: toAddressString(to), templateKey, subject: "", status: "failed", errorMessage: error, attempts: 0 })
+    return { ok: false, error, logId: log?.id }
+  }
+
+  const vars        = { year: new Date().getFullYear(), ...variables }
+  const subject     = renderTemplate(template.subject, vars)
+  const rawHtmlBody = renderTemplate(template.htmlBody, vars)
+
+  // Content-only templates (no <!doctype>/<html>) get the brand chrome from
+  // emailLayoutService; already-wrapped legacy rows are sent verbatim.
+  const looksWrapped = /^<(!doctype|html\b)/i.test(rawHtmlBody.trimStart())
+  const htmlBody = looksWrapped
+    ? rawHtmlBody
+    : layout.wrap({
+        preheader:      vars.preheader || "",
+        eyebrow:        vars.eyebrow   || "",
+        bodyHtml:       rawHtmlBody,
+        unsubscribeUrl: vars.unsubscribeUrl || null,
+      })
+
+  const textBody = template.textBody ? renderTemplate(template.textBody, vars) : htmlToText(htmlBody)
+
+  return deliver(
+    {
       from:    fromAddress(),
+      replyTo: replyTo || undefined,
       to,
       subject,
       html:    htmlBody,
       text:    textBody,
       headers: headers || undefined,
-      attachments: (Array.isArray(attachments) && attachments.length > 0) ? attachments : undefined,
-    })
-    const log = await writeLog({
-      userId, to, templateKey,
-      subject,
-      status: "sent",
-      providerMessageId: info?.messageId || null,
-    })
-    return { ok: true, messageId: info?.messageId, logId: log?.id }
-  } catch (err) {
-    const error = err?.message || "SMTP send failed"
-    logger.error(`[emailService] send failed (${templateKey} → ${to}):`, error)
-    const log = await writeLog({
-      userId, to, templateKey,
-      subject,
-      status: "failed",
-      errorMessage: error,
-    })
-    return { ok: false, error, logId: log?.id }
-  }
+      attachments:  Array.isArray(attachments)  && attachments.length  ? attachments  : undefined,
+      alternatives: Array.isArray(alternatives) && alternatives.length ? alternatives : undefined,
+      icalEvent:    icalEvent || undefined,
+    },
+    { userId, templateKey }
+  )
 }
 
 /**
- * sendRawEmail — direct send without loading a DB template.
- * Used for one-off admin cases (custom announcements, test sends with an
- * explicit subject/body). Still logs to EmailLog with templateKey = null.
+ * sendRawEmail — direct send with an explicit subject/html (no DB template).
+ * `templateKey` is optional and only labels the EmailLog row.
  */
-async function sendRawEmail({ to, subject, html, text, userId, headers, from, replyTo } = {}) {
+async function sendRawEmail({ to, subject, html, text, userId, headers, from, replyTo, attachments, alternatives, icalEvent, templateKey = null } = {}) {
   if (!to || !subject) return { ok: false, error: "Missing `to` or `subject`" }
-
-  const transport = getTransport()
-  if (!transport) {
-    const log = await writeLog({
-      userId, to, templateKey: null, subject,
-      status: "failed", errorMessage: "SMTP not configured",
-    })
-    return { ok: false, error: "SMTP not configured", logId: log?.id }
-  }
-
-  try {
-    const info = await transport.sendMail({
+  return deliver(
+    {
       from:    from    || fromAddress(),
       replyTo: replyTo || undefined,
       to,
@@ -301,25 +341,50 @@ async function sendRawEmail({ to, subject, html, text, userId, headers, from, re
       html:    html || undefined,
       text:    text || (html ? htmlToText(html) : undefined),
       headers: headers || undefined,
-    })
-    const log = await writeLog({
-      userId, to, templateKey: null, subject,
-      status: "sent", providerMessageId: info?.messageId || null,
-    })
-    return { ok: true, messageId: info?.messageId, logId: log?.id }
-  } catch (err) {
-    const error = err?.message || "SMTP send failed"
-    const log = await writeLog({
-      userId, to, templateKey: null, subject,
-      status: "failed", errorMessage: error,
-    })
-    return { ok: false, error, logId: log?.id }
+      attachments:  Array.isArray(attachments)  && attachments.length  ? attachments  : undefined,
+      alternatives: Array.isArray(alternatives) && alternatives.length ? alternatives : undefined,
+      icalEvent:    icalEvent || undefined,
+    },
+    { userId, templateKey }
+  )
+}
+
+/**
+ * retryEmailLog — re-send a failed EmailLog row from its stored payload.
+ * Updates the same row (attempts++, status, nextAttemptAt).
+ */
+async function retryEmailLog(log) {
+  if (!log?.id) return { ok: false, error: "Missing log row" }
+  const p = log.payload
+  if (!p || !p.to || !p.subject) {
+    await updateLog(log.id, { nextAttemptAt: null, errorMessage: `${log.errorMessage || "failed"} (no stored payload — not retryable)` })
+    return { ok: false, error: "No stored payload", logId: log.id }
   }
+  const mail = {
+    from:    p.from || fromAddress(),
+    replyTo: p.replyTo || undefined,
+    to:      p.to,
+    subject: p.subject,
+    html:    p.html || undefined,
+    text:    p.text || undefined,
+    headers: p.headers || undefined,
+    attachments:  p.attachments  || undefined,
+    alternatives: p.alternatives || undefined,
+    icalEvent:    p.icalEvent    || undefined,
+  }
+  return deliver(mail, { userId: log.userId, templateKey: log.templateKey, logId: log.id, attempts: log.attempts || 0 })
 }
 
 module.exports = {
   sendTemplateEmail,
   sendRawEmail,
+  retryEmailLog,
+  verifyTransport,
+  getTransport,
+  resetTransport,
+  isTransientError,
+  backoffFor,
+  MAX_ATTEMPTS,
   // Exposed for admin "Send test" preview and unit tests
   renderTemplate,
   htmlToText,

@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Briefcase, Filter, RefreshCw, AlertCircle, Loader2, Mail, ExternalLink, Package, Eye,
 } from "lucide-react"
@@ -109,7 +109,7 @@ export default function AdminServiceOrdersPage() {
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <motion.div
+      <m.div
         variants={fadeUp}
         initial="hidden"
         animate="show"
@@ -137,7 +137,7 @@ export default function AdminServiceOrdersPage() {
             Refresh
           </button>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Error banner */}
       {error && (

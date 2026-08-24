@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- exports performSignOut/UserAvatar used by MobileMenu */
 // ════════════════════════════════════════════════════════════════════════════
 // layout/header/AccountMenu.jsx · desktop avatar dropdown (role="menu")
 // ────────────────────────────────────────────────────────────────────────────

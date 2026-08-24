@@ -16,7 +16,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { Link } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { ArrowLeft } from "lucide-react"
 import MarketingPanel from "./MarketingPanel"
 import LanguageSwitcher from "../LanguageSwitcher"
@@ -73,7 +73,7 @@ export default function AuthShell({ children }) {
           className="relative hidden overflow-hidden bg-[#0E0F14] lg:flex lg:flex-col"
         >
           {/* Ambient brand-tinted glows */}
-          <motion.div
+          <m.div
             aria-hidden="true"
             animate={
               reduce
@@ -83,7 +83,7 @@ export default function AuthShell({ children }) {
             transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
             className="pointer-events-none absolute -right-32 -top-24 h-[26rem] w-[26rem] rounded-full bg-violet/25 blur-3xl"
           />
-          <motion.div
+          <m.div
             aria-hidden="true"
             animate={
               reduce

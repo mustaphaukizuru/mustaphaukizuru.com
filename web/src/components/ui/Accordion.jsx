@@ -22,7 +22,7 @@ import {
   Children,
   isValidElement,
 } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 
 const AccordionContext = createContext(null)
@@ -217,7 +217,7 @@ function AccordionContent({ children, className = "" }) {
   return (
     <AnimatePresence initial={false}>
       {open && (
-        <motion.section
+        <m.section
           key="content"
           id={panelId}
           role="region"
@@ -236,7 +236,7 @@ function AccordionContent({ children, className = "" }) {
           >
             {children}
           </div>
-        </motion.section>
+        </m.section>
       )}
     </AnimatePresence>
   )

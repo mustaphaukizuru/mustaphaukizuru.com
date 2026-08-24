@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { Clock, ArrowRight } from "lucide-react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 
 import { useTranslation } from "react-i18next"
 /**
@@ -133,7 +133,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
 
         <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 sm:gap-5">
           {filtered.map((p) => (
-            <motion.div
+            <m.div
               key={p.slug}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -169,7 +169,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
                   )}
                 </div>
               </Link>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

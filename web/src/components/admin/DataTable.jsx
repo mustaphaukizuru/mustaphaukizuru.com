@@ -3,7 +3,7 @@ import {
   ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, X,
   Inbox, RefreshCw, MoreHorizontal,
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  DataTable · F10.H + F10.L · Batch 6B-2
@@ -140,7 +140,7 @@ function BulkActionsToolbar({ selectedCount, actions, onClear, totalCount }) {
   return (
     <AnimatePresence>
       {selectedCount > 0 && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 8, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 8, scale: 0.98 }}
@@ -190,7 +190,7 @@ function BulkActionsToolbar({ selectedCount, actions, onClear, totalCount }) {
               <X className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   )

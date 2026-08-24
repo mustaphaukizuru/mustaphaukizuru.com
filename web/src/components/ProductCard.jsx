@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   ShoppingCart,
   Eye,
@@ -152,7 +152,7 @@ export default function ProductCard({ product }) {
   }
 
   return (
-    <motion.article
+    <m.article
       whileHover={{ y: -4 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
       onMouseEnter={() => setHovered(true)}
@@ -166,7 +166,8 @@ export default function ProductCard({ product }) {
         <div className="relative w-full overflow-hidden bg-mist">
           <div className="aspect-[4/3] w-full overflow-hidden">
             {activeImage ? (
-              <img
+              <m.img
+                layoutId={`product-cover-${product?.slug || ""}`}
                 src={activeImage.url}
                 alt={activeImage.alt}
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
@@ -322,6 +323,6 @@ export default function ProductCard({ product }) {
         </div>
       </div>
     </SpotlightCard>
-    </motion.article>
+    </m.article>
   )
 }

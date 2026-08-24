@@ -183,5 +183,75 @@
       "label": "You're booking about",
       "change": "Change"
     }
+  },
+  "demo": {
+    "eyebrow": "Live demo",
+    "title": "WhatsApp lead qualifier",
+    "subtitle": "Type like a prospect would. The bot qualifies the lead and fills your CRM card — no data leaves this page.",
+    "samples": [
+      "Hi, I need a WhatsApp bot for my store",
+      "Budget is around 3,000 USD",
+      "We need it live this week"
+    ],
+    "chat": {
+      "header": "WhatsApp Business",
+      "logLabel": "Conversation",
+      "typing": "typing…",
+      "samplesLabel": "Try a sample message",
+      "inputLabel": "Your message",
+      "placeholder": "Write a message…",
+      "send": "Send",
+      "reset": "Start over"
+    },
+    "bot": {
+      "greeting": "Hi! Tell me what you need and I'll see how we can help.",
+      "ask": {
+        "need": "Got it. What would you like to automate first?",
+        "budget": "Understood. What budget range are you working with?",
+        "timeline": "Perfect. When would you like this live?"
+      },
+      "done": {
+        "hot": "That's everything I need. A specialist will contact you today.",
+        "warm": "Thanks — I've passed this on. Expect a reply within 24 hours.",
+        "nurture": "Thanks. I'll send you resources and follow up when the timing suits you."
+      }
+    },
+    "crm": {
+      "title": "CRM record",
+      "empty": "Not captured yet",
+      "note": "Created automatically from the conversation — no manual data entry.",
+      "status": {
+        "open": "Qualifying",
+        "hot": "Hot lead",
+        "warm": "Warm lead",
+        "nurture": "Nurture"
+      },
+      "fields": {
+        "need": "Need",
+        "budget": "Budget",
+        "timeline": "Timeline",
+        "score": "Lead score"
+      }
+    },
+    "values": {
+      "need": {
+        "whatsappBot": "WhatsApp bot",
+        "invoicing": "Invoicing",
+        "crmSync": "CRM sync",
+        "emailFlows": "Email flows",
+        "reporting": "Reporting"
+      },
+      "budget": {
+        "none": "No budget yet",
+        "low": "Under $1,000",
+        "mid": "$1,000 – $5,000",
+        "high": "Over $5,000"
+      },
+      "timeline": {
+        "now": "Immediately",
+        "soon": "Within weeks",
+        "later": "Exploring"
+      }
+    }
   }
 }

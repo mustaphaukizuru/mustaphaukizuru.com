@@ -1,6 +1,5 @@
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion } from "framer-motion"
 import {
   ArrowLeft, Briefcase, Calendar, FileText, Download, CheckCircle2,
   Clock, AlertCircle, User as UserIcon, Hourglass,
@@ -112,7 +111,7 @@ export default function DashboardProjectDetailPage() {
                        : m.status === "in_progress" ? "bg-amber/10 text-amber-700 border-amber/20"
                        : "bg-charcoal-80/5 text-charcoal-80/65 border-charcoal-80/10"
             return (
-              <motion.div
+              <m.div
                 key={m.id}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -133,7 +132,7 @@ export default function DashboardProjectDetailPage() {
                     {m.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(m.completedAt) })}</span>}
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             )
           })}
         </div>

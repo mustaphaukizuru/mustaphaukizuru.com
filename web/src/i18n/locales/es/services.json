@@ -183,5 +183,75 @@
       "label": "Vas a hablar sobre",
       "change": "Cambiar"
     }
+  },
+  "demo": {
+    "eyebrow": "Demo en vivo",
+    "title": "Calificador de leads por WhatsApp",
+    "subtitle": "Escribe como lo haría un prospecto. El bot califica el lead y llena tu ficha de CRM — ningún dato sale de esta página.",
+    "samples": [
+      "Hola, necesito un bot de WhatsApp para mi tienda",
+      "El presupuesto es de unos 3,000 USD",
+      "Lo necesitamos esta semana"
+    ],
+    "chat": {
+      "header": "WhatsApp Business",
+      "logLabel": "Conversación",
+      "typing": "escribiendo…",
+      "samplesLabel": "Prueba un mensaje de ejemplo",
+      "inputLabel": "Tu mensaje",
+      "placeholder": "Escribe un mensaje…",
+      "send": "Enviar",
+      "reset": "Empezar de nuevo"
+    },
+    "bot": {
+      "greeting": "¡Hola! Cuéntame qué necesitas y veo cómo podemos ayudarte.",
+      "ask": {
+        "need": "Entendido. ¿Qué te gustaría automatizar primero?",
+        "budget": "De acuerdo. ¿Con qué rango de presupuesto trabajas?",
+        "timeline": "Perfecto. ¿Para cuándo lo necesitas en marcha?"
+      },
+      "done": {
+        "hot": "Es todo lo que necesito. Un especialista te contactará hoy mismo.",
+        "warm": "Gracias — ya lo pasé al equipo. Tendrás respuesta en menos de 24 horas.",
+        "nurture": "Gracias. Te enviaré recursos y te doy seguimiento cuando sea buen momento."
+      }
+    },
+    "crm": {
+      "title": "Ficha de CRM",
+      "empty": "Aún sin capturar",
+      "note": "Creada automáticamente desde la conversación — sin captura manual.",
+      "status": {
+        "open": "Calificando",
+        "hot": "Lead caliente",
+        "warm": "Lead tibio",
+        "nurture": "Seguimiento"
+      },
+      "fields": {
+        "need": "Necesidad",
+        "budget": "Presupuesto",
+        "timeline": "Plazo",
+        "score": "Puntaje del lead"
+      }
+    },
+    "values": {
+      "need": {
+        "whatsappBot": "Bot de WhatsApp",
+        "invoicing": "Facturación",
+        "crmSync": "Sincronización con CRM",
+        "emailFlows": "Flujos de correo",
+        "reporting": "Reportes"
+      },
+      "budget": {
+        "none": "Sin presupuesto aún",
+        "low": "Menos de $1,000",
+        "mid": "$1,000 – $5,000",
+        "high": "Más de $5,000"
+      },
+      "timeline": {
+        "now": "De inmediato",
+        "soon": "En semanas",
+        "later": "Explorando"
+      }
+    }
   }
 }

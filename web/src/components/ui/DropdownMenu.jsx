@@ -31,7 +31,7 @@ import {
   useState,
 } from "react"
 import { createPortal } from "react-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 const OFFSET = 6
 
@@ -206,7 +206,7 @@ export default function DropdownMenu({
         createPortal(
           <AnimatePresence>
             {open && (
-              <motion.div
+              <m.div
                 ref={panelRef}
                 id={menuId}
                 role="menu"
@@ -289,7 +289,7 @@ export default function DropdownMenu({
                     </button>
                   )
                 })}
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>,
           document.body,

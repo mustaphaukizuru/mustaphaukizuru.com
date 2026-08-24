@@ -1,7 +1,7 @@
 /* ── IconPicker — searchable visual dropdown bound to ICON_REGISTRY ──── */
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Search } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { ICON_REGISTRY } from "../../SkillsByCapability"
 import { inputClass } from "../Field"
 
@@ -52,7 +52,7 @@ export default function IconPicker({ value, onChange }) {
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
@@ -114,7 +114,7 @@ export default function IconPicker({ value, onChange }) {
             <div className="border-t border-slate-200 px-3 py-1.5 font-mono text-[10px] text-charcoal-50">
               {filtered.length} of {allKeys.length} icons
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

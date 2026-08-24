@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { Shield, Calendar, Mail, Link as LinkIcon } from "lucide-react"
@@ -92,7 +92,7 @@ export default function PrivacyPage() {
 
         <article className="flex flex-col gap-4">
           {sections.map(({ slug, title, content }, i) => (
-            <motion.section
+            <m.section
               key={slug}
               id={slug}
               // scroll-mt offset accounts for the sticky Header so the
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
                 </a>
               </h2>
               <p className="text-meta leading-7 text-charcoal-80/70">{content}</p>
-            </motion.section>
+            </m.section>
           ))}
         </article>
         <div className="mt-8 flex items-center gap-4 rounded-xl p-6 text-white" style={{ backgroundColor: "#1A1B23" }}>

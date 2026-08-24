@@ -34,6 +34,7 @@ const { aggregateDailyMetrics } = require("./aggregateDailyMetrics")
 const { runReminderPass } = require("./bookingReminderJob")
 const { cancelStaleOrders } = require("./cancelStaleOrders")
 const { runCampaignSenderPass } = require("./campaignSenderJob")
+const { runEmailRetryPass } = require("./emailRetryJob")
 
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
@@ -98,6 +99,16 @@ function startScheduler() {
     logger.info("[scheduler] registered campaign sender · every minute")
   } catch (err) {
     logger.error("[scheduler] failed to register campaignSenderJob", err)
+  }
+
+  // ── Email retry · every 5 minutes ───────────────────────────────────
+  // Re-sends EmailLog rows that failed transiently (nextAttemptAt due,
+  // attempts < 3). emailService updates the same row so no duplicates.
+  try {
+    cron.schedule("*/5 * * * *", () => guarded("emailRetry", runEmailRetryPass))
+    logger.info("[scheduler] registered email retry pass · every 5 min")
+  } catch (err) {
+    logger.error("[scheduler] failed to register emailRetryJob", err)
   }
 }
 

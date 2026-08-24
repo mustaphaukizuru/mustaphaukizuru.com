@@ -25,7 +25,7 @@
      · pageEyebrow, pageIcon, pageAccent · accepted, intentionally unused
    ════════════════════════════════════════════════════════════════════════ */
 
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { Link } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
 import profilePhoto from "../assets/avatar/avatar-master.png"
@@ -67,7 +67,7 @@ function AnimatedBackground({ reduce }) {
       />
 
       {/* ── Blob 1 · top-right · large · slow drift ───────────────── */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={
           reduce
@@ -83,7 +83,7 @@ function AnimatedBackground({ reduce }) {
       />
 
       {/* ── Blob 2 · mid-right · medium · counter-phase drift ─────── */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={
           reduce
@@ -99,7 +99,7 @@ function AnimatedBackground({ reduce }) {
       />
 
       {/* ── Blob 3 · bottom-right · small · gentle pulse ──────────── */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={
           reduce
@@ -115,7 +115,7 @@ function AnimatedBackground({ reduce }) {
       />
 
       {/* ── Blob 4 · bottom-left edge · subtle ────────────────────── */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={
           reduce
@@ -132,7 +132,7 @@ function AnimatedBackground({ reduce }) {
 
       {/* ── Floating particles · soft white pulses ────────────────── */}
       {PARTICLES.map((p, i) => (
-        <motion.span
+        <m.span
           key={i}
           aria-hidden="true"
           animate={
@@ -193,14 +193,14 @@ export default function AuthBrandPanel({ title, subtitle, bullets = [] }) {
       </Link>
 
       {/* ── Centered content stack ───────────────────────────────── */}
-      <motion.div
+      <m.div
         variants={stagger}
         initial="hidden"
         animate="show"
         className="relative my-auto flex max-w-md flex-col gap-5"
       >
         {/* Profile row · avatar + name + role */}
-        <motion.div variants={fadeUp} className="flex items-center gap-3.5">
+        <m.div variants={fadeUp} className="flex items-center gap-3.5">
           <div className="relative h-[52px] w-[52px] shrink-0 overflow-hidden rounded-xl ring-2 ring-white/15 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
             <img
               src={profilePhoto}
@@ -216,29 +216,29 @@ export default function AuthBrandPanel({ title, subtitle, bullets = [] }) {
               {t("auth.brand.title")}
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Title · primary content */}
-        <motion.h1
+        <m.h1
           variants={fadeUp}
           className="text-[2rem] font-extrabold leading-[1.1] tracking-tight text-white sm:text-[2.25rem] lg:text-[2.375rem]"
         >
           {title}
-        </motion.h1>
+        </m.h1>
 
         {/* Subtitle · supporting copy */}
         {subtitle && (
-          <motion.p
+          <m.p
             variants={fadeUp}
             className="text-[14.5px] leading-7 text-white/65"
           >
             {subtitle}
-          </motion.p>
+          </m.p>
         )}
 
         {/* Bullets · feature list with ringed dot accent */}
         {Array.isArray(bullets) && bullets.length > 0 && (
-          <motion.ul variants={fadeUp} className="mt-1 flex flex-col gap-2.5">
+          <m.ul variants={fadeUp} className="mt-1 flex flex-col gap-2.5">
             {bullets.map((b) => (
               <li
                 key={b}
@@ -253,19 +253,19 @@ export default function AuthBrandPanel({ title, subtitle, bullets = [] }) {
                 <span>{b}</span>
               </li>
             ))}
-          </motion.ul>
+          </m.ul>
         )}
-      </motion.div>
+      </m.div>
 
       {/* ── Bottom: © + All Rights Reserved · professional footer ─── */}
-      <motion.p
+      <m.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.9 }}
         className="relative text-[10.5px] font-medium text-white/40"
       >
         © {year} {t("auth.brand.rights")}
-      </motion.p>
+      </m.p>
     </div>
   )
 }
