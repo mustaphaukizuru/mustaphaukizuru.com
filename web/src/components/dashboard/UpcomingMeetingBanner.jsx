@@ -120,7 +120,7 @@ export default function UpcomingMeetingBanner() {
         animate={{ opacity: 1, y: 0 }}
         exit={{    opacity: 0, y: -10 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="mb-4 overflow-hidden rounded-2xl bg-gradient-to-r from-violet to-violet-deep p-4 shadow-[0_12px_36px_rgba(93,63,211,0.20)] sm:p-5"
+        className="mb-4 overflow-hidden rounded-2xl bg-gradient-to-r from-violet to-violet-deep p-4 shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.20)] sm:p-5"
         role="region"
         aria-live="polite"
         aria-label={t("meetingBanner.regionLabel", { defaultValue: "Upcoming meeting" })}

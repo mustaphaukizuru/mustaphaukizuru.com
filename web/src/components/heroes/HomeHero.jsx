@@ -58,9 +58,9 @@ export default function HomeHero() {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(at 8% 12%, rgba(93,63,211,0.16) 0px, transparent 50%), " +
-            "radial-gradient(at 92% 0%, rgba(2,132,199,0.12) 0px, transparent 50%), " +
-            "radial-gradient(at 0% 100%, rgba(233,196,106,0.12) 0px, transparent 50%)",
+            "radial-gradient(at 8% 12%, rgb(var(--color-violet-rgb)/0.16) 0px, transparent 50%), " +
+            "radial-gradient(at 92% 0%, rgb(var(--color-azure-rgb)/0.12) 0px, transparent 50%), " +
+            "radial-gradient(at 0% 100%, rgb(var(--color-terracotta-rgb)/0.12) 0px, transparent 50%)",
         }}
       />
       {depth && (
@@ -136,7 +136,7 @@ export default function HomeHero() {
             loading="eager"
             fetchPriority="high"
             className="h-14 w-14 shrink-0"
-            imgClassName="h-14 w-14 rounded-full object-cover ring-2 ring-white shadow-[0_8px_20px_-8px_rgba(93,63,211,0.35)]"
+            imgClassName="h-14 w-14 rounded-full object-cover ring-2 ring-white shadow-[0_8px_20px_-8px_rgb(var(--color-violet-rgb)/0.35)]"
           />
           <div className="min-w-0">
             <p className="text-[14px] font-bold leading-tight text-charcoal">{t("hero.avatarName")}</p>

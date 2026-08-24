@@ -31,7 +31,7 @@ const TONE_CLASS = {
   info:
     "bg-[var(--color-feedback-info-bg)] text-[var(--color-feedback-info-text)]",
   neutral:
-    "bg-[rgba(99,79,64,0.08)] text-[var(--color-charcoal-80)]",
+    "bg-[rgb(var(--color-charcoal-rgb)/0.08)] text-[var(--color-charcoal-80)]",
   violet:
     "bg-[var(--color-violet-pale)] text-[var(--color-violet)]",
   dark:

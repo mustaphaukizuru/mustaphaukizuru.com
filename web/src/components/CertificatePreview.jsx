@@ -158,9 +158,9 @@ export default function CertificatePreview({
             className="absolute inset-0"
             style={{
               backgroundImage:
-                "radial-gradient(at 20% 0%, rgba(93,63,211,0.92), transparent 60%), " +
+                "radial-gradient(at 20% 0%, rgb(var(--color-violet-rgb)/0.92), transparent 60%), " +
                 "radial-gradient(at 100% 100%, rgba(53,0,80,0.95), transparent 55%), " +
-                "linear-gradient(180deg, #3B2487 0%, #1A1B23 100%)",
+                "linear-gradient(180deg, var(--color-action-primary-active) 0%, var(--color-charcoal) 100%)",
             }}
           />
           <div
@@ -557,7 +557,7 @@ function CertificateViewer({ src, title, issuer, onClose }) {
                 <a
                   href={src}
                   download={filename}
-                  className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+                  className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
                 >
                   <Download className="h-3.5 w-3.5" />
                   {t("certificate.downloadShort", { defaultValue: "Download" })}

@@ -33,10 +33,10 @@ function clearState() { try { localStorage.removeItem(LS_KEY) } catch { /* ok */
 
 /* ─── Tier colors ───────────────────────────────────────────────────── */
 const TIER_COLOR = {
-  Foundation:  { bg: "bg-rose/10",   text: "text-rose",  ring: "ring-rose/30",   hex: "#E11D48" },
-  Stabilizing: { bg: "bg-amber/10",  text: "text-amber", ring: "ring-amber/30",  hex: "#F59E0B" },
-  Optimizing:  { bg: "bg-azure/10",  text: "text-azure", ring: "ring-azure/30",  hex: "#0284C7" },
-  Mature:      { bg: "bg-mint/10",   text: "text-mint",  ring: "ring-mint/30",   hex: "#10B981" },
+  Foundation:  { bg: "bg-rose/10",   text: "text-rose",  ring: "ring-rose/30",   hex: "var(--color-rose)" },
+  Stabilizing: { bg: "bg-amber/10",  text: "text-amber", ring: "ring-amber/30",  hex: "var(--color-amber)" },
+  Optimizing:  { bg: "bg-azure/10",  text: "text-azure", ring: "ring-azure/30",  hex: "var(--color-azure)" },
+  Mature:      { bg: "bg-mint/10",   text: "text-mint",  ring: "ring-mint/30",   hex: "var(--color-mint)" },
 }
 
 /* ─── Score button colors ───────────────────────────────────────────── */
@@ -76,7 +76,7 @@ function ScoreRing({ pct, tier, size = 200 }) {
   return (
     <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size/2} cy={size/2} r={size/2 - 14} fill="none" stroke="#EFF1F5" strokeWidth={10} />
+        <circle cx={size/2} cy={size/2} r={size/2 - 14} fill="none" stroke="var(--color-slate-100)" strokeWidth={10} />
         <m.circle
           cx={size/2} cy={size/2} r={size/2 - 14}
           fill="none" stroke={tc.hex} strokeWidth={10}
@@ -252,7 +252,7 @@ export default function AuditModal({ open, onClose }) {
       motion="slide-up"
       zIndex={90}
       backdropClassName="bg-charcoal/60 backdrop-blur-sm"
-      className="flex flex-col bg-white sm:rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(15,23,42,0.35)]"
+      className="flex flex-col bg-white sm:rounded-2xl overflow-hidden shadow-[0_32px_80px_rgb(var(--color-charcoal-rgb)/0.35)]"
     >
             {/* ── Header bar ────────────────────────────────────────── */}
             <div className="shrink-0 flex items-center justify-between gap-4 border-b border-charcoal/8 bg-white/95 backdrop-blur-sm px-4 py-3 sm:px-6">
@@ -270,7 +270,7 @@ export default function AuditModal({ open, onClose }) {
                 <div className="flex-1 max-w-xs mx-4 hidden sm:block">
                   <div className="h-1.5 bg-charcoal/8 rounded-full overflow-hidden">
                     <m.div
-                      className="h-full rounded-full bg-[linear-gradient(90deg,#5D3FD3,#0284C7)]"
+                      className="h-full rounded-full bg-[linear-gradient(90deg,var(--color-violet),var(--color-azure))]"
                       animate={{ width: `${progressPct}%` }}
                       transition={{ duration: 0.3 }}
                     />
@@ -302,7 +302,7 @@ export default function AuditModal({ open, onClose }) {
             {step === "audit" && (
               <div className="sm:hidden h-1 bg-charcoal/8">
                 <m.div
-                  className="h-full bg-[linear-gradient(90deg,#5D3FD3,#0284C7)]"
+                  className="h-full bg-[linear-gradient(90deg,var(--color-violet),var(--color-azure))]"
                   animate={{ width: `${progressPct}%` }}
                   transition={{ duration: 0.3 }}
                 />
@@ -317,7 +317,7 @@ export default function AuditModal({ open, onClose }) {
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-charcoal/50 backdrop-blur-sm p-4">
                   <m.div
                     initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                    className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-[0_24px_64px_rgba(15,23,42,0.25)]"
+                    className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-[0_24px_64px_rgb(var(--color-charcoal-rgb)/0.25)]"
                   >
                     <div className="h-12 w-12 rounded-xl bg-violet-pale flex items-center justify-center mb-4">
                       <CheckCircle2 className="h-6 w-6 text-violet" />
@@ -415,7 +415,7 @@ function AudienceStep({ onSelect }) {
       title: "School / Educational Institution",
       scope: "All 6 sections · 82 items",
       body: "Strategy, brand, infrastructure, web & AI, EdTech, and managed services. Section E (EdTech) is built specifically for you.",
-      color: "hover:border-violet/50 hover:shadow-[0_16px_40px_-12px_rgba(93,63,211,0.22)]",
+      color: "hover:border-violet/50 hover:shadow-[0_16px_40px_-12px_rgb(var(--color-violet-rgb)/0.22)]",
       iconBg: "bg-violet-pale text-violet",
     },
     {
@@ -423,7 +423,7 @@ function AudienceStep({ onSelect }) {
       title: "Business / SME / Startup",
       scope: "5 sections · 70 items",
       body: "Strategy through managed services, end to end. Section E (EdTech) is skipped as it doesn't apply.",
-      color: "hover:border-azure/50 hover:shadow-[0_16px_40px_-12px_rgba(2,132,199,0.22)]",
+      color: "hover:border-azure/50 hover:shadow-[0_16px_40px_-12px_rgb(var(--color-azure-rgb)/0.22)]",
       iconBg: "bg-azure/10 text-azure",
     },
     {
@@ -431,7 +431,7 @@ function AudienceStep({ onSelect }) {
       title: "Individual / Professional",
       scope: "Focused scan · 12 items",
       body: "Personal brand, web presence, and managed hosting. A targeted scan in under 5 minutes.",
-      color: "hover:border-mint/50 hover:shadow-[0_16px_40px_-12px_rgba(16,185,129,0.20)]",
+      color: "hover:border-mint/50 hover:shadow-[0_16px_40px_-12px_rgb(var(--color-mint-rgb)/0.20)]",
       iconBg: "bg-mint/10 text-mint",
     },
   ]
@@ -537,7 +537,7 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
         </button>
         <button
           onClick={onNext}
-          className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_4px_16px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_20px_rgba(93,63,211,0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-3"
+          className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.3)] hover:shadow-[0_6px_20px_rgb(var(--color-violet-rgb)/0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-3"
         >
           {prequal.challenge || prequal.timeline ? "Start the audit" : "Skip & start the audit"}
           <ChevronRight className="h-4 w-4" />
@@ -572,7 +572,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                 <div key={letter} className="flex items-center gap-1.5 min-w-[80px]">
                   <span className="font-mono text-[10px] font-bold text-violet w-3 shrink-0">{letter}</span>
                   <div className="flex-1 h-1.5 bg-charcoal/10 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-300" style={{ width: `${d.pct}%`, background: c?.hex || "#5D3FD3" }} />
+                    <div className="h-full rounded-full transition-all duration-300" style={{ width: `${d.pct}%`, background: c?.hex || "var(--color-violet)" }} />
                   </div>
                   <span className="font-mono text-[10px] text-charcoal/50 w-6 text-right shrink-0">{d.pct}</span>
                 </div>
@@ -707,7 +707,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
           </button>
           <button
             onClick={onNext}
-            className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_4px_12px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_18px_rgba(93,63,211,0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-2.5"
+            className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.3)] hover:shadow-[0_6px_18px_rgb(var(--color-violet-rgb)/0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-2.5"
           >
             {isLast ? "See my results" : "Next section"} <ChevronRight className="h-4 w-4" />
           </button>
@@ -725,7 +725,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
               <div key={letter} className="flex items-center gap-2.5">
                 <span className="font-mono text-[11px] font-bold text-violet w-4">{letter}</span>
                 <div className="flex-1 h-1.5 bg-charcoal/10 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-300" style={{ width: `${d.pct}%`, background: c?.hex || "#5D3FD3" }} />
+                  <div className="h-full rounded-full transition-all duration-300" style={{ width: `${d.pct}%`, background: c?.hex || "var(--color-violet)" }} />
                 </div>
                 <span className="font-mono text-[11px] text-charcoal/50 w-7 text-right">{d.pct}</span>
               </div>
@@ -858,7 +858,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
 
       {/* Recommended bundle */}
       {bundle && (
-        <div className="relative overflow-hidden rounded-2xl p-6 mb-6 bg-[linear-gradient(135deg,#5D3FD3,#0284C7_50%,#7DD3FC)]">
+        <div className="relative overflow-hidden rounded-2xl p-6 mb-6 bg-[linear-gradient(135deg,var(--color-violet),#0284C7_50%,var(--color-cyan))]">
           <div className="absolute -top-1/2 -right-8 h-[200%] w-1/2 rounded-full bg-white/10 blur-3xl pointer-events-none" />
           <div className="relative">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 mb-2">RECOMMENDED SOLUTION BUNDLE</p>
@@ -967,7 +967,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
               placeholder="you@yourorg.com"
               value={emailForm.email}
               onChange={(e) => setEmailForm((f) => ({ ...f, email: e.target.value }))}
-              className="w-full rounded-xl border border-charcoal/15 bg-white px-4 py-3 text-[14.5px] text-charcoal placeholder-charcoal/30 transition focus:border-azure focus:outline-none focus:shadow-[0_0_0_4px_rgba(2,132,199,0.15)]"
+              className="w-full rounded-xl border border-charcoal/15 bg-white px-4 py-3 text-[14.5px] text-charcoal placeholder-charcoal/30 transition focus:border-azure focus:outline-none focus:shadow-[0_0_0_4px_rgb(var(--color-azure-rgb)/0.15)]"
             />
           </div>
 
@@ -983,7 +983,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
                 placeholder="Your name"
                 value={emailForm.name}
                 onChange={(e) => setEmailForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full rounded-xl border border-charcoal/12 bg-white px-3 py-2.5 text-[13.5px] text-charcoal placeholder-charcoal/25 transition focus:border-azure focus:outline-none focus:shadow-[0_0_0_3px_rgba(2,132,199,0.12)]"
+                className="w-full rounded-xl border border-charcoal/12 bg-white px-3 py-2.5 text-[13.5px] text-charcoal placeholder-charcoal/25 transition focus:border-azure focus:outline-none focus:shadow-[0_0_0_3px_rgb(var(--color-azure-rgb)/0.12)]"
               />
             </div>
             <div>
@@ -996,7 +996,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
                 placeholder="Your school / company"
                 value={emailForm.org}
                 onChange={(e) => setEmailForm((f) => ({ ...f, org: e.target.value }))}
-                className="w-full rounded-xl border border-charcoal/12 bg-white px-3 py-2.5 text-[13.5px] text-charcoal placeholder-charcoal/25 transition focus:border-azure focus:outline-none focus:shadow-[0_0_0_3px_rgba(2,132,199,0.12)]"
+                className="w-full rounded-xl border border-charcoal/12 bg-white px-3 py-2.5 text-[13.5px] text-charcoal placeholder-charcoal/25 transition focus:border-azure focus:outline-none focus:shadow-[0_0_0_3px_rgb(var(--color-azure-rgb)/0.12)]"
               />
             </div>
           </div>
@@ -1012,7 +1012,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
           <button
             type="submit"
             disabled={!emailForm.email || emailStatus === "sending"}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_4px_16px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_20px_rgba(93,63,211,0.4)] transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.3)] hover:shadow-[0_6px_20px_rgb(var(--color-violet-rgb)/0.4)] transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {emailStatus === "sending" ? (
               <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Sending…</>

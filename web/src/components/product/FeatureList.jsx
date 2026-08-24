@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { m, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { CheckCircle2, Star, Package, ChevronDown, ChevronUp, HelpCircle } from "lucide-react"
 import { validFaqs } from "./utils"
@@ -14,20 +15,60 @@ import { validFaqs } from "./utils"
  *    FAQSection            single-expand accordion (hides when empty)
  *  ────────────────────────────────────────────────────────────────────────── */
 
+/* ── Bullet reveal · roadmap step 35 ──────────────────────────────────────
+ * Restrained in-view stagger: 40ms apart, 8px rise, once only. Under
+ * `prefers-reduced-motion` the list renders as plain static markup — no
+ * variants, no observer. LazyMotion-safe (`m.` components only).
+ * ──────────────────────────────────────────────────────────────────────── */
+const EASE = [0.16, 1, 0.3, 1]
+
+const LIST_VARIANTS = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.04 } },
+}
+
+const BULLET_VARIANTS = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: EASE } },
+}
+
+const BULLET_CLASS = "group flex items-start gap-3 text-meta leading-6 text-charcoal-80/85"
+const BULLET_ICON_CLASS =
+  "mt-1 h-4 w-4 shrink-0 text-mint-600 transition-transform duration-200 ease-out motion-safe:group-hover:scale-110"
+
 export default function FeatureList({ items = [] }) {
   const { t } = useTranslation("product")
+  const reduced = useReducedMotion()
   if (!Array.isArray(items) || items.length === 0) return null
+
   return (
     <div>
       <h3 className="mb-3 text-meta font-bold text-charcoal">{t("detail.whatYouGet")}</h3>
-      <ul className="space-y-2.5">
-        {items.map((feature, i) => (
-          <li key={i} className="flex items-start gap-3 text-meta leading-6 text-charcoal-80/85">
-            <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-mint-600" aria-hidden="true" />
-            {feature}
-          </li>
-        ))}
-      </ul>
+      {reduced ? (
+        <ul className="space-y-2.5">
+          {items.map((feature, i) => (
+            <li key={i} className={BULLET_CLASS}>
+              <CheckCircle2 className={BULLET_ICON_CLASS} aria-hidden="true" />
+              {feature}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <m.ul
+          className="space-y-2.5"
+          variants={LIST_VARIANTS}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          {items.map((feature, i) => (
+            <m.li key={i} className={BULLET_CLASS} variants={BULLET_VARIANTS}>
+              <CheckCircle2 className={BULLET_ICON_CLASS} aria-hidden="true" />
+              {feature}
+            </m.li>
+          ))}
+        </m.ul>
+      )}
     </div>
   )
 }

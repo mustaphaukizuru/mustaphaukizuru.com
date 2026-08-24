@@ -37,10 +37,10 @@ const STATE_BORDER = {
   default:
     "border-[var(--color-border-default)] " +
     "hover:border-[var(--color-border-strong)] " +
-    "focus:border-[var(--color-action-primary)] focus:shadow-[0_0_0_3px_rgba(93,63,211,0.12)]",
+    "focus:border-[var(--color-action-primary)] focus:shadow-[0_0_0_3px_rgb(var(--color-violet-rgb)/0.12)]",
   error:
     "border-[var(--color-feedback-danger)] " +
-    "focus:border-[var(--color-feedback-danger)] focus:shadow-[0_0_0_3px_rgba(220,38,38,0.15)]",
+    "focus:border-[var(--color-feedback-danger)] focus:shadow-[0_0_0_3px_rgb(var(--color-rose-rgb)/0.15)]",
 }
 
 /**

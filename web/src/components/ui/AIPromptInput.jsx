@@ -106,7 +106,7 @@ export default function AIPromptInput({
         "relative w-full rounded-[18px] border bg-[var(--color-surface-card)]",
         "transition-[border-color,box-shadow,background-color] duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
         focused
-          ? "border-[var(--color-action-primary)] shadow-[0_0_0_4px_rgba(93,63,211,0.10),0_8px_24px_rgba(93,63,211,0.06)]"
+          ? "border-[var(--color-action-primary)] shadow-[0_0_0_4px_rgb(var(--color-violet-rgb)/0.10),0_8px_24px_rgb(var(--color-violet-rgb)/0.06)]"
           : "border-[var(--color-border-subtle)] shadow-[var(--shadow-rest)]",
         className,
       ]
@@ -245,7 +245,7 @@ export default function AIPromptInput({
               "inline-flex h-8 w-8 items-center justify-center rounded-full",
               "transition-[background-color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
               canSubmit
-                ? "bg-[var(--color-action-primary)] text-[var(--color-text-on-violet)] shadow-[0_4px_14px_rgba(93,63,211,0.30)] hover:bg-[var(--color-action-primary-hover)]"
+                ? "bg-[var(--color-action-primary)] text-[var(--color-text-on-violet)] shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.30)] hover:bg-[var(--color-action-primary-hover)]"
                 : "bg-[var(--color-surface-elevated)] text-[var(--color-text-muted)] cursor-not-allowed",
             ].join(" ")}
             aria-label="Send"

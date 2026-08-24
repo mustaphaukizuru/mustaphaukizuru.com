@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from "react"
 import { useReducedMotion } from "framer-motion"
+import { TOKENS } from "../../styles/tokens.js"
 
 /**
  * Particles · canvas-based floating particle field
@@ -27,7 +28,7 @@ import { useReducedMotion } from "framer-motion"
  */
 export default function Particles({
   quantity = 80,
-  color = "#5D3FD3",
+  color = TOKENS.violet,
   size = 1.5,
   speed = 0.4,
   interactRadius = 120,

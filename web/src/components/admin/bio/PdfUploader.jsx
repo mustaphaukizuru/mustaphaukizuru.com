@@ -12,7 +12,7 @@
 
 import { useRef, useState } from "react"
 import { AlertCircle, CheckCircle2, Loader2, Upload, X } from "lucide-react"
-import { API_BASE_URL, getStoredToken } from "../../../lib/api"
+import { API_BASE_URL, getCsrfToken } from "../../../lib/api"
 
 export default function PdfUploader({ value, onChange, disabled = false }) {
   const inputRef = useRef(null)
@@ -40,7 +40,6 @@ export default function PdfUploader({ value, onChange, disabled = false }) {
     setError(""); setUploading(true); setProgress(0); setFileName(file.name)
 
     try {
-      const token = getStoredToken()
       const fd = new FormData()
       fd.append("file", file)
 
@@ -48,7 +47,11 @@ export default function PdfUploader({ value, onChange, disabled = false }) {
       const data = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest()
         xhr.open("POST", `${API_BASE_URL}/api/admin/media`)
-        if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`)
+        // Session auth is an httpOnly cookie, so this raw XHR must send
+        // credentials and mirror the CSRF token the way lib/api.js does.
+        xhr.withCredentials = true
+        const csrf = getCsrfToken()
+        if (csrf) xhr.setRequestHeader("X-CSRF-Token", csrf)
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100))
         }

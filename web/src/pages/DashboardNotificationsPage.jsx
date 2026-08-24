@@ -87,7 +87,7 @@ function NotificationRow({ notification, onRead, t }) {
 
   return (
     <div
-      className={`group flex items-start gap-3 rounded-xl border border-charcoal-80/8 px-4 py-3 transition hover:border-violet/20 hover:shadow-[0_8px_22px_rgba(93,63,211,0.06)] ${
+      className={`group flex items-start gap-3 rounded-xl border border-charcoal-80/8 px-4 py-3 transition hover:border-violet/20 hover:shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.06)] ${
         !notification.isRead ? "bg-violet-ghost" : "bg-white"
       }`}
     >
@@ -183,7 +183,7 @@ export default function DashboardNotificationsPage() {
     <section className="space-y-5">
       <ProfileTabs />
       {/* Page heading */}
-      <header className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
+      <header className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
         <span className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.18em] text-violet">
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           {t("notificationsPage.eyebrow")}

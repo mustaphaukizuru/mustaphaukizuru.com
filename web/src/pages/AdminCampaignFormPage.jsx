@@ -232,7 +232,7 @@ export default function AdminCampaignFormPage() {
           <button type="button" onClick={() => handleSave()} disabled={form.submitting} className="inline-flex items-center gap-1.5 rounded-lg border border-violet/30 bg-violet-pale/60 px-3 py-2 text-[13px] font-semibold text-violet hover:bg-violet-pale disabled:opacity-60">
             <Save className="h-4 w-4" /> {form.submitting ? "Saving…" : "Save draft"}
           </button>
-          <button type="button" onClick={() => setConfirmSend(true)} disabled={form.submitting || !audienceCount} className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(93,63,211,0.50)] transition hover:bg-violet-deep disabled:opacity-50">
+          <button type="button" onClick={() => setConfirmSend(true)} disabled={form.submitting || !audienceCount} className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgb(var(--color-violet-rgb)/0.50)] transition hover:bg-violet-deep disabled:opacity-50">
             <Send className="h-4 w-4" /> Send now
           </button>
         </div>

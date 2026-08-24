@@ -129,7 +129,7 @@ export default function AdminCampaignsPage() {
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </button>
         </div>
-        <Link to="/admin/campaigns/new" className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3.5 py-2 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(93,63,211,0.50)] transition hover:bg-violet-deep">
+        <Link to="/admin/campaigns/new" className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3.5 py-2 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgb(var(--color-violet-rgb)/0.50)] transition hover:bg-violet-deep">
           <Plus className="h-4 w-4" /> New campaign
         </Link>
       </div>

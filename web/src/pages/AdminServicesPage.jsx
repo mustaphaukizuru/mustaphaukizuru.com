@@ -103,7 +103,7 @@ function ServiceOrderCard({ order, onUpdate }) {
   }
 
   return (
-    <article className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:border-violet/15">
+    <article className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:border-violet/15">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 p-5">
         <div className="min-w-0 flex-1">
@@ -410,7 +410,7 @@ export default function AdminServicesPage() {
               onClick={() => setFilterStatus(s)}
               className={`rounded-lg px-3 py-1.5 text-micro font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                 active
-                  ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.20)]"
+                  ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.20)]"
                   : "border border-charcoal-80/12 bg-white text-charcoal-80/65 hover:border-violet/20 hover:bg-violet-pale hover:text-violet"
               }`}
             >

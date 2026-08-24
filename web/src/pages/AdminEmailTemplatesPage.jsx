@@ -60,7 +60,7 @@ const testSendSchema = z.object({ to: emailField("Recipient") })
 
 function TemplateCard({ template, onEdit, onPreview, onTest }) {
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:border-violet/20 hover:shadow-[0_8px_20px_rgba(93,63,211,0.08)] md:flex-row md:items-center md:justify-between">
+    <article className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:border-violet/20 hover:shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.08)] md:flex-row md:items-center md:justify-between">
       <div className="flex min-w-0 items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
           <Mail className="h-5 w-5" aria-hidden="true" />
@@ -197,7 +197,7 @@ function EditModal({ template, onClose, onSaved }) {
               onClick={() => setLocale(opt.value)}
               className={`rounded-full px-3 py-1 text-[12px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 disabled:cursor-not-allowed disabled:opacity-50 ${
                 locale === opt.value
-                  ? "bg-violet text-white shadow-[0_2px_6px_rgba(93,63,211,0.18)]"
+                  ? "bg-violet text-white shadow-[0_2px_6px_rgb(var(--color-violet-rgb)/0.18)]"
                   : "text-charcoal-80/70 hover:bg-violet-pale hover:text-violet"
               }`}
             >{opt.label}</button>

@@ -25,7 +25,7 @@ export default function LicenseUpdates({ product }) {
     <section
       aria-labelledby="license-heading"
       data-placeholder="license-terms"
-      className="mt-8 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+      className="mt-8 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export default function LicenseUpdates({ product }) {
         data-placeholder="updates-policy"
         className="mt-4 flex items-start gap-3 rounded-xl border border-violet/15 bg-violet-pale/50 p-4"
       >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-violet shadow-[0_2px_8px_rgba(93,63,211,0.10)]" aria-hidden="true">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-violet shadow-[0_2px_8px_rgb(var(--color-violet-rgb)/0.10)]" aria-hidden="true">
           <RefreshCw className="h-4 w-4" />
         </div>
         <div className="min-w-0">

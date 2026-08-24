@@ -195,7 +195,7 @@ export default function CommandPalette({
           onClick={(e) => {
             if (e.target === e.currentTarget) close()
           }}
-          className="fixed inset-0 z-[var(--z-modal,70)] flex items-start justify-center bg-[rgba(26,27,35,0.55)] backdrop-blur-md p-4 pt-[12vh]"
+          className="fixed inset-0 z-[var(--z-modal,70)] flex items-start justify-center bg-[rgb(var(--color-charcoal-rgb)/0.55)] backdrop-blur-md p-4 pt-[12vh]"
         >
           <m.div
             initial={{ y: -10, scale: 0.98, opacity: 0 }}

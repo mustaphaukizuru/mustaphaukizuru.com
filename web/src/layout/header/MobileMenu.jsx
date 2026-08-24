@@ -291,7 +291,7 @@ export default function MobileMenu({ open, onClose }) {
       initialFocusRef={closeButtonRef}
       wrapperClassName="lg:hidden"
       backdropClassName="bg-charcoal/55 backdrop-blur-md"
-      className="sm:w-[88vw] sm:max-w-md bg-white shadow-[0_30px_80px_-20px_rgba(26,27,35,0.45)]"
+      className="sm:w-[88vw] sm:max-w-md bg-white shadow-[0_30px_80px_-20px_rgb(var(--color-charcoal-rgb)/0.45)]"
       transition={{ enter: 0.36, exit: 0.28, ease: PREMIUM_EASE }}
     >
         {/* Region 1 · pinned header (logo + close).
@@ -302,7 +302,7 @@ export default function MobileMenu({ open, onClose }) {
         <div className="relative shrink-0 px-5 py-4 sm:px-6">
           <div className="flex items-center justify-between">
             <Link to="/" onClick={() => onNavClick("/")} aria-label={t("header.homeAria")} className="flex items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">
-              <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-violet shadow-[0_10px_28px_-6px_rgba(93,63,211,0.55)] ring-1 ring-violet/15">
+              <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-violet shadow-[0_10px_28px_-6px_rgb(var(--color-violet-rgb)/0.55)] ring-1 ring-violet/15">
                 <BrandLogo variant="mark" theme="dark" size={22} />
                 {/* Subtle live-pulse dot — communicates "site is live /
                     accepting work" at a glance. Sits just outside the
@@ -328,7 +328,7 @@ export default function MobileMenu({ open, onClose }) {
               aria-label={t("header.closeMenu")}
               whileTap={reduce ? undefined : { scale: 0.92 }}
               transition={{ duration: 0.1 }}
-              className="cursor-pointer inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-charcoal-80/10 bg-white text-charcoal-80/65 shadow-[0_2px_8px_-2px_rgba(26,27,35,0.08)] transition-colors hover:border-rose/25 hover:bg-rose/5 hover:text-rose focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              className="cursor-pointer inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-charcoal-80/10 bg-white text-charcoal-80/65 shadow-[0_2px_8px_-2px_rgb(var(--color-charcoal-rgb)/0.08)] transition-colors hover:border-rose/25 hover:bg-rose/5 hover:text-rose focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
               <X className="h-[18px] w-[18px]" strokeWidth={2.2} />
             </m.button>
@@ -360,11 +360,11 @@ export default function MobileMenu({ open, onClose }) {
             transition={{ duration: 0.1 }}
             className="cursor-pointer group flex items-center gap-3 rounded-xl border border-charcoal-80/12 bg-charcoal-80/[0.03] px-3.5 py-3 text-left text-[14px] font-medium text-charcoal-80/65 transition-colors duration-200 hover:border-violet/30 hover:bg-violet-pale/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
           >
-            <span aria-hidden="true" className="flex h-7 w-7 items-center justify-center rounded-md bg-white shadow-[0_2px_6px_-2px_rgba(26,27,35,0.10)] transition-colors group-hover:bg-violet-pale">
+            <span aria-hidden="true" className="flex h-7 w-7 items-center justify-center rounded-md bg-white shadow-[0_2px_6px_-2px_rgb(var(--color-charcoal-rgb)/0.10)] transition-colors group-hover:bg-violet-pale">
               <Search className="h-3.5 w-3.5 text-charcoal-80/55 transition-colors group-hover:text-violet" strokeWidth={2.2} />
             </span>
             <span className="flex-1 truncate">{t("header.searchPlaceholder")}</span>
-            <kbd aria-hidden="true" className="hidden h-5 select-none items-center rounded border border-charcoal-80/12 bg-white px-1.5 font-mono text-[10px] font-bold text-charcoal-80/55 shadow-[0_1px_0_rgba(26,27,35,0.04)] sm:inline-flex">
+            <kbd aria-hidden="true" className="hidden h-5 select-none items-center rounded border border-charcoal-80/12 bg-white px-1.5 font-mono text-[10px] font-bold text-charcoal-80/55 shadow-[0_1px_0_rgb(var(--color-charcoal-rgb)/0.04)] sm:inline-flex">
               ⌘K
             </kbd>
           </m.button>
@@ -448,7 +448,7 @@ export default function MobileMenu({ open, onClose }) {
                           aria-hidden="true"
                           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 ${
                             isActive
-                              ? "bg-white text-violet shadow-[0_2px_8px_-2px_rgba(93,63,211,0.25)]"
+                              ? "bg-white text-violet shadow-[0_2px_8px_-2px_rgb(var(--color-violet-rgb)/0.25)]"
                               : "bg-violet-pale/50 text-violet/70 group-hover:bg-white group-hover:text-violet"
                           }`}
                         >
@@ -521,7 +521,7 @@ export default function MobileMenu({ open, onClose }) {
                   animate={{ opacity: 1, scale: 1 }}
                   whileTap={reduce || signOutPhase === "loading" ? undefined : { scale: 0.97 }}
                   transition={{ duration: 0.16, ease: PREMIUM_EASE }}
-                  className="cursor-pointer inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-rose bg-rose px-3 text-[12px] font-semibold text-white shadow-[0_4px_12px_-2px_rgba(225,29,72,0.35)] transition-colors hover:bg-rose-700 disabled:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30 focus-visible:ring-offset-2"
+                  className="cursor-pointer inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-rose bg-rose px-3 text-[12px] font-semibold text-white shadow-[0_4px_12px_-2px_rgb(var(--color-rose-rgb)/0.35)] transition-colors hover:bg-rose-700 disabled:opacity-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30 focus-visible:ring-offset-2"
                 >
                   {signOutPhase === "loading" ? (
                     <>
@@ -567,7 +567,7 @@ export default function MobileMenu({ open, onClose }) {
               <Link
                 to={isAuthenticated ? "/dashboard" : "/login"}
                 onClick={() => onNavClick(isAuthenticated ? "/dashboard" : "/login")}
-                className="group inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-charcoal-80/10 bg-white px-4 py-2.5 text-[14px] font-semibold text-charcoal-80/85 shadow-[0_2px_8px_-2px_rgba(26,27,35,0.06)] transition-all hover:border-violet/30 hover:bg-violet-pale/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                className="group inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-charcoal-80/10 bg-white px-4 py-2.5 text-[14px] font-semibold text-charcoal-80/85 shadow-[0_2px_8px_-2px_rgb(var(--color-charcoal-rgb)/0.06)] transition-all hover:border-violet/30 hover:bg-violet-pale/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
               >
                 {isAuthenticated ? (
                   <LayoutDashboard className="h-4 w-4 transition-transform group-hover:scale-105" />

@@ -256,7 +256,7 @@ function CoreCompetenciesSection() {
             aria-hidden="true"
             className="absolute -bottom-3 -right-3 -z-10 h-full w-full rounded-3xl border border-terracotta/40"
           />
-          <div className="relative overflow-hidden rounded-3xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_-20px_rgba(93,63,211,0.30)]">
+          <div className="relative overflow-hidden rounded-3xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_-20px_rgb(var(--color-violet-rgb)/0.30)]">
             <Image
               src="/images/profile/Ukizuru_Mustapha_Photo.jpg"
               alt={t("core.photoAlt")}
@@ -291,7 +291,7 @@ function CoreCompetenciesSection() {
               </span>
               <span
                 aria-hidden="true"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-pale text-violet transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgba(93,63,211,0.30)]"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-pale text-violet transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.30)]"
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={1.85} />
               </span>
@@ -326,7 +326,7 @@ function TechRow({ name, Icon, color, value = 75 }) {
     >
       <div className="flex items-center gap-3">
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-mist transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_18px_rgba(93,63,211,0.10)]"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-mist transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.10)]"
           aria-hidden="true"
         >
           <Icon className="h-5 w-5" style={{ color }} aria-hidden="true" />
@@ -351,7 +351,7 @@ function TechRow({ name, Icon, color, value = 75 }) {
           whileInView={{ width: `${safe}%` }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: reduce ? 0 : 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
-          className="h-full rounded-full bg-gradient-to-r from-violet via-[#6A4FD8] to-terracotta"
+          className="h-full rounded-full bg-gradient-to-r from-violet via-[var(--color-violet-mid)] to-terracotta"
         />
       </div>
     </m.li>
@@ -398,10 +398,10 @@ function TimelineEntry({ item, index, total, accent }) {
       transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
       className="relative flex gap-5 pl-12"
     >
-      <div className={`absolute left-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-micro font-bold tabular-nums shadow-[0_4px_12px_rgba(93,63,211,0.20)] ${dotClass} ${ringClass}`}>
+      <div className={`absolute left-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-micro font-bold tabular-nums shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.20)] ${dotClass} ${ringClass}`}>
         {String(total - index).padStart(2, "0")}
       </div>
-      <div className="flex-1 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(93,63,211,0.08)]">
+      <div className="flex-1 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.08)]">
         <div className={`mb-2 inline-flex rounded-full px-2.5 py-0.5 font-mono text-micro font-semibold tabular-nums tracking-[0.05em] ${chipClass}`}>
           {item.period}
         </div>
@@ -527,7 +527,7 @@ function AboutStatsStrip() {
       icon:    "bg-violet/12 text-violet",
       hint:    "text-violet/70",
       accent:  "bg-violet",
-      glow:    "radial-gradient(60% 50% at 50% 0%, rgba(93,63,211,0.18), transparent 70%)",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-violet-rgb)/0.18), transparent 70%)",
     },
     azure: {
       surface: "bg-azure-pale/70",
@@ -536,7 +536,7 @@ function AboutStatsStrip() {
       icon:    "bg-azure/12 text-azure",
       hint:    "text-azure-deep/75",
       accent:  "bg-azure",
-      glow:    "radial-gradient(60% 50% at 50% 0%, rgba(2,132,199,0.18), transparent 70%)",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-azure-rgb)/0.18), transparent 70%)",
     },
     terracotta: {
       surface: "bg-terracotta/15",
@@ -545,7 +545,7 @@ function AboutStatsStrip() {
       icon:    "bg-terracotta/25 text-charcoal",
       hint:    "text-charcoal/65",
       accent:  "bg-terracotta",
-      glow:    "radial-gradient(60% 50% at 50% 0%, rgba(233,196,106,0.30), transparent 70%)",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-terracotta-rgb)/0.30), transparent 70%)",
     },
     mint: {
       surface: "bg-mint-50/80",
@@ -554,7 +554,7 @@ function AboutStatsStrip() {
       icon:    "bg-mint/12 text-mint",
       hint:    "text-mint-700/75",
       accent:  "bg-mint",
-      glow:    "radial-gradient(60% 50% at 50% 0%, rgba(16,185,129,0.18), transparent 70%)",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-mint-rgb)/0.18), transparent 70%)",
     },
   }
 
@@ -593,9 +593,9 @@ function AboutStatsStrip() {
               <h2 className="text-[var(--text-section)] font-extrabold tracking-tight text-balance">
                 <AnimatedGradientText
                   className="text-[var(--text-section)] font-extrabold tracking-tight"
-                  from="#5D3FD3"
-                  via="#0284C7"
-                  to="#7DD3FC"
+                  from="var(--color-violet)"
+                  via="var(--color-azure)"
+                  to="var(--color-cyan)"
                   duration={5}
                 >
                   {t("stats.title", { defaultValue: "A track record you can verify" })}
@@ -964,7 +964,7 @@ export default function AboutPage() {
                 <m.div
                   key={title}
                   variants={fadeUp}
-                  className="group rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(93,63,211,0.10)]"
+                  className="group rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgb(var(--color-violet-rgb)/0.10)]"
                 >
                   <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet transition group-hover:bg-violet group-hover:text-white">
                     {Icon && <Icon className="h-6 w-6" aria-hidden="true" />}
@@ -988,7 +988,7 @@ export default function AboutPage() {
             {expertiseAreas.map(({ title, description }) => {
               const Icon = ExpertiseIcons[title]
               return (
-                <m.div key={title} variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 transition hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(93,63,211,0.08)]">
+                <m.div key={title} variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 transition hover:-translate-y-1 hover:shadow-[0_16px_36px_rgb(var(--color-violet-rgb)/0.08)]">
                   <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-violet-pale text-violet">
                     {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
                   </div>
@@ -1009,7 +1009,7 @@ export default function AboutPage() {
         ref={journeyRef}
         id="journey"
         className="scroll-mt-24 relative overflow-hidden py-20 lg:py-28"
-        style={{ background: "linear-gradient(180deg, var(--color-mist) 0%, #f8f3fa 60%, var(--color-mist) 100%)" }}
+        style={{ background: "linear-gradient(180deg, var(--color-mist) 0%, var(--color-violet-ghost) 60%, var(--color-mist) 100%)" }}
       >
         {/* Phase 10 · scrollytelling progress line — a hair-thin violet
             ribbon on the left edge of the journey section that fills
@@ -1054,7 +1054,7 @@ export default function AboutPage() {
               className="lg:sticky lg:top-28 lg:self-start"
             >
               <div className="mb-8 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_20px_rgba(93,63,211,0.30)]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.30)]">
                   <GraduationCap className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
@@ -1074,7 +1074,7 @@ export default function AboutPage() {
               transition={{ delay: 0.1 }}
             >
               <div className="mb-8 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-terracotta text-violet shadow-[0_8px_20px_rgba(233, 196, 106,0.40)]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-terracotta text-violet shadow-[0_8px_20px_rgb(var(--color-terracotta-rgb)/0.40)]">
                   <Briefcase className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
@@ -1093,18 +1093,18 @@ export default function AboutPage() {
           ══════════════════════════════════════════════════════════════════ */}
       {/* Dark Credentials section — inline bg guarantees dark surface even
           if `bg-charcoal` utility doesn't generate (Tailwind v4 JIT quirk). */}
-      <section id="certifications" className="scroll-mt-24 py-20 lg:py-28" style={{ backgroundColor: "#1A1B23" }}>
+      <section id="certifications" className="scroll-mt-24 py-20 lg:py-28" style={{ backgroundColor: "var(--color-charcoal)" }}>
         <Container>
           <div className="grid items-start gap-10 lg:grid-cols-[320px_1fr] xl:grid-cols-[380px_1fr] xl:gap-14">
             <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col items-center gap-5 text-center lg:sticky lg:top-28 lg:items-start lg:text-left">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
-                style={{ backgroundColor: "rgba(233, 196, 106, 0.16)", color: "#E9C46A", border: "1px solid rgba(233, 196, 106, 0.32)" }}
+                style={{ backgroundColor: "rgb(var(--color-terracotta-rgb)/0.16)", color: "var(--color-terracotta)", border: "1px solid rgb(var(--color-terracotta-rgb)/0.32)" }}
               >
                 {t("credentials.eyebrow")}
               </span>
               <div>
-                <p className="text-body italic" style={{ color: "rgba(233, 196, 106, 0.85)" }}>{t("credentials.italic")}</p>
+                <p className="text-body italic" style={{ color: "rgb(var(--color-terracotta-rgb)/0.85)" }}>{t("credentials.italic")}</p>
                 <h2 className="mt-1 text-[28px] font-bold tracking-tight sm:text-[40px]" style={{ color: "#FFFFFF" }}>{t("credentials.title")}</h2>
               </div>
               <p className="max-w-xs text-meta leading-6" style={{ color: "rgba(255, 255, 255, 0.72)" }}>
@@ -1113,12 +1113,12 @@ export default function AboutPage() {
               <Link
                 to="/contact"
                 className="group mt-2 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-meta font-semibold transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2"
-                style={{ color: "#FFFFFF", backgroundColor: "transparent", border: "2px solid #E9C46A" }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(233, 196, 106, 0.12)" }}
+                style={{ color: "#FFFFFF", backgroundColor: "transparent", border: "2px solid var(--color-terracotta)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgb(var(--color-terracotta-rgb)/0.12)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
                 {t("credentials.knowMore")}
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" style={{ color: "#8B6FE8" }} aria-hidden="true" />
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" style={{ color: "var(--color-violet-light)" }} aria-hidden="true" />
               </Link>
             </m.div>
 
@@ -1387,8 +1387,8 @@ function CtaPhoneMockup() {
   const reduce = useReducedMotion()
   const initials = ["MR", "AC", "DV", "LP", "EK"]
   const tints    = [
-    "from-terracotta to-[#E07A4A]",
-    "from-violet to-[#7B5FE0]",
+    "from-terracotta to-[var(--color-coral)]",
+    "from-violet to-[var(--color-violet-mid)]",
     "from-azure to-[#3E80E0]",
     "from-[#3FB47E] to-[#2D8C5F]",
     "from-[#E94F8B] to-[#B8336A]",
@@ -1421,7 +1421,7 @@ function CtaPhoneMockup() {
         <div className="relative h-full w-full overflow-hidden rounded-[37px] bg-[#0a0b0e] p-[2px]">
 
           {/* ── Screen ── */}
-          <div className="relative h-full w-full overflow-hidden rounded-[35px] bg-gradient-to-b from-mist via-[#F2EBF6] to-[#EDE7F6]">
+          <div className="relative h-full w-full overflow-hidden rounded-[35px] bg-gradient-to-b from-mist via-[var(--color-violet-ghost)] to-[var(--color-violet-pale)]">
 
             {/* ── Dynamic Island ── */}
             <div className="absolute left-1/2 top-[8px] z-30 flex h-[22px] w-[80px] -translate-x-1/2 items-center justify-end rounded-full bg-black px-2 ring-1 ring-black/60">
@@ -1466,7 +1466,7 @@ function CtaPhoneMockup() {
             <div className="relative z-10 px-4 pt-2">
 
               {/* Welcome card */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet via-[#6A4FD8] to-[#7B5FE0] p-3.5 text-white shadow-[0_8px_22px_rgba(93, 63, 211,0.28)]">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet via-[var(--color-violet-mid)] to-[var(--color-violet-mid)] p-3.5 text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.28)]">
                 {/* Subtle inner sheen */}
                 <div
                   className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/15 blur-xl"
@@ -1511,7 +1511,7 @@ function CtaPhoneMockup() {
                   { Icon: MoreHorizontal, label: "More"    },
                 ].map(({ Icon, label }) => (
                   <div key={label} className="flex flex-col items-center gap-1">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white shadow-[0_2px_6px_rgba(93, 63, 211,0.10)] ring-1 ring-charcoal/5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white shadow-[0_2px_6px_rgb(var(--color-violet-rgb)/0.10)] ring-1 ring-charcoal/5">
                       <Icon className="h-3.5 w-3.5 text-violet" strokeWidth={2.4} aria-hidden="true" />
                     </span>
                     <span className="text-[8px] font-semibold text-charcoal/75">{label}</span>
@@ -1520,7 +1520,7 @@ function CtaPhoneMockup() {
               </div>
 
               {/* Recent clients */}
-              <div className="mt-3.5 rounded-2xl bg-white p-3 shadow-[0_2px_6px_rgba(93, 63, 211,0.06)] ring-1 ring-charcoal/5">
+              <div className="mt-3.5 rounded-2xl bg-white p-3 shadow-[0_2px_6px_rgb(var(--color-violet-rgb)/0.06)] ring-1 ring-charcoal/5">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-bold text-charcoal">{t("dashboardWidget.recentClients")}</p>
                   <span className="text-[9px] font-semibold text-violet">{t("dashboardWidget.viewAll")}</span>

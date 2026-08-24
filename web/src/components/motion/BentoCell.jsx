@@ -155,7 +155,7 @@ export default function BentoCell({
   const motionProps = reduced
     ? {}
     : {
-        whileHover: { y: -4, boxShadow: "0 18px 40px -16px rgba(15,23,42,0.18)" },
+        whileHover: { y: -4, boxShadow: "0 18px 40px -16px rgb(var(--color-charcoal-rgb)/0.18)" },
         transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
         onHoverStart: () => setHovered(true),
         onHoverEnd:   () => setHovered(false),

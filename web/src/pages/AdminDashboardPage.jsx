@@ -79,7 +79,7 @@ function timeAgo(date) {
 /* ──────────────────────────────────────────────────────────────────── */
 /* Sparkline */
 /* ──────────────────────────────────────────────────────────────────── */
-function Sparkline({ data, color = "var(--color-violet, #5D3FD3)", width = 88, height = 28 }) {
+function Sparkline({ data, color = "var(--color-violet)", width = 88, height = 28 }) {
   const gradId = `spark-grad-${useId().replace(/:/g, "")}`
   if (!data || data.length < 2) {
     return (
@@ -128,7 +128,7 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut", delay }}
-      className="relative overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:shadow-[0_10px_28px_rgba(93,63,211,0.08)]"
+      className="relative overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.08)]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -153,7 +153,7 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
         </div>
 
         {spark && (
-          <div className="shrink-0" style={{ color: trend === "down" ? "#e11d48" : "#5D3FD3" }}>
+          <div className="shrink-0" style={{ color: trend === "down" ? "var(--color-rose)" : "var(--color-violet)" }}>
             <Sparkline data={spark} color="currentColor" />
           </div>
         )}
@@ -226,8 +226,8 @@ function RevenueAreaChart({ data, height = 220 }) {
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" role="img" aria-label="Revenue trend chart">
         <defs>
           <linearGradient id="rev-area-grad-v2" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#5D3FD3" stopOpacity="0.20" />
-            <stop offset="100%" stopColor="#5D3FD3" stopOpacity="0.00" />
+            <stop offset="0%" stopColor="var(--color-violet)" stopOpacity="0.20" />
+            <stop offset="100%" stopColor="var(--color-violet)" stopOpacity="0.00" />
           </linearGradient>
         </defs>
         {gridY.map((y, i) => (
@@ -237,7 +237,7 @@ function RevenueAreaChart({ data, height = 220 }) {
         <m.path
           d={pathD}
           fill="none"
-          stroke="#5D3FD3"
+          stroke="var(--color-violet)"
           strokeWidth="2"
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -263,7 +263,7 @@ function RevenueAreaChart({ data, height = 220 }) {
                 cx={p.x}
                 cy={p.y}
                 r={hoverIdx === i ? 5 : 3}
-                fill="#5D3FD3"
+                fill="var(--color-violet)"
                 stroke="white"
                 strokeWidth="2"
                 initial={{ opacity: 0 }}
@@ -271,7 +271,7 @@ function RevenueAreaChart({ data, height = 220 }) {
                 transition={{ delay: 0.6 + i * 0.04 }}
               />
               {hoverIdx === i && (
-                <line x1={p.x} y1={PAD_Y} x2={p.x} y2={H - PAD_Y} stroke="#5D3FD3" strokeOpacity="0.25" strokeDasharray="3 3" />
+                <line x1={p.x} y1={PAD_Y} x2={p.x} y2={H - PAD_Y} stroke="var(--color-violet)" strokeOpacity="0.25" strokeDasharray="3 3" />
               )}
             </g>
           )
@@ -286,7 +286,7 @@ function RevenueAreaChart({ data, height = 220 }) {
               y={H - 4}
               textAnchor="middle"
               fontSize="10"
-              fontFamily="JetBrains Mono, monospace"
+              fontFamily="var(--font-mono)"
               fill="currentColor"
               fillOpacity="0.55"
             >
@@ -302,7 +302,7 @@ function RevenueAreaChart({ data, height = 220 }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
-            className="pointer-events-none absolute top-2 rounded-lg border border-violet/15 bg-white px-3 py-2 shadow-[0_8px_24px_rgba(93,63,211,0.12)]"
+            className="pointer-events-none absolute top-2 rounded-lg border border-violet/15 bg-white px-3 py-2 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.12)]"
             style={{ left: `${(points[hoverIdx].x / W) * 100}%`, transform: "translateX(-50%)" }}
           >
             <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">
@@ -323,10 +323,10 @@ function RevenueAreaChart({ data, height = 220 }) {
 /* ──────────────────────────────────────────────────────────────────── */
 function StatusDonut({ paid, pending, failed, refunded, total }) {
   const segments = [
-    { label: "Paid", value: paid, color: "#10b981", icon: CheckCircle2 },
-    { label: "Pending", value: pending, color: "#f59e0b", icon: Clock },
-    { label: "Failed", value: failed, color: "#e11d48", icon: XCircle },
-    { label: "Refunded", value: refunded, color: "#6366f1", icon: RotateCcw },
+    { label: "Paid", value: paid, color: "var(--color-mint)", icon: CheckCircle2 },
+    { label: "Pending", value: pending, color: "var(--color-amber)", icon: Clock },
+    { label: "Failed", value: failed, color: "var(--color-rose)", icon: XCircle },
+    { label: "Refunded", value: refunded, color: "var(--color-violet-mid)", icon: RotateCcw },
   ]
 
   const sum = segments.reduce((s, x) => s + x.value, 0) || 1
@@ -694,7 +694,7 @@ export default function AdminDashboardPage() {
 
       {/* ── 3 · Revenue chart + Status donut ───────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] lg:col-span-2">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] lg:col-span-2">
           <div className="flex items-baseline justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="text-card font-bold text-violet">Revenue Trend</h2>
@@ -714,7 +714,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="border-b border-charcoal-80/8 px-5 py-4">
             <h2 className="text-card font-bold text-violet">Order Status</h2>
             <p className="mt-0.5 text-micro text-charcoal-80/55">Live distribution</p>
@@ -728,7 +728,7 @@ export default function AdminDashboardPage() {
       {/* ── 4 · Top products + Recent orders ───────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Top products */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="text-card font-bold text-violet">Top Products</h2>
@@ -785,7 +785,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent orders */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="text-card font-bold text-violet">Recent Orders</h2>
@@ -839,7 +839,7 @@ export default function AdminDashboardPage() {
       {/* ── 5 · NEW · Pending Support + Recent Signups ─────────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Pending Support */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="flex items-center gap-2 text-card font-bold text-violet">
@@ -894,7 +894,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Signups */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="flex items-center gap-2 text-card font-bold text-violet">
@@ -949,7 +949,7 @@ export default function AdminDashboardPage() {
       {/* ── 6 · NEW · Active service projects + Audit feed ─────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Active Service Projects */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="flex items-center gap-2 text-card font-bold text-violet">
@@ -1024,7 +1024,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Admin Activity */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="flex items-center gap-2 text-card font-bold text-violet">
@@ -1088,7 +1088,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ── 7 · Quick actions row ──────────────────────────────────────── */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-card font-bold text-violet">
             <Zap className="h-4 w-4" aria-hidden="true" />
@@ -1108,7 +1108,7 @@ export default function AdminDashboardPage() {
               to={to}
               className={`group flex items-center gap-2 rounded-lg px-3 py-2.5 text-micro font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                 primary
-                  ? "bg-violet text-white hover:bg-violet-deep hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(93,63,211,0.20)]"
+                  ? "bg-violet text-white hover:bg-violet-deep hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.20)]"
                   : "border border-charcoal-80/12 bg-white text-violet hover:border-violet/20 hover:bg-violet-pale"
               }`}
             >

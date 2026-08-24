@@ -303,7 +303,7 @@ function CapabilityCard({ capability, skills, index }) {
       variants={fadeUp}
       whileHover={reduce ? undefined : { y: -4 }}
       transition={{ type: "spring", stiffness: 240, damping: 24 }}
-      className="group relative overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_18px_rgba(93,63,211,0.05)] transition-shadow hover:shadow-[0_18px_44px_rgba(93,63,211,0.12)]"
+      className="group relative overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_18px_rgb(var(--color-violet-rgb)/0.05)] transition-shadow hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.12)]"
     >
       {/* Decorative gradient blob, appears on hover, fades cleanly */}
       <m.div
@@ -322,7 +322,7 @@ function CapabilityCard({ capability, skills, index }) {
 
       <header className="mb-5 flex items-start gap-3">
         <span
-          className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet shadow-[inset_0_-1px_0_rgba(93,63,211,0.12)] transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgba(93,63,211,0.30)]"
+          className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet shadow-[inset_0_-1px_0_rgb(var(--color-violet-rgb)/0.12)] transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.30)]"
           aria-hidden="true"
         >
           <Icon className="h-5 w-5" strokeWidth={1.75} />
@@ -370,7 +370,7 @@ function FilterPill({ active, label, count, onClick, layoutGroup }) {
         // shared element morph — the violet pill slides between filters
         <m.span
           layoutId={`pill-${layoutGroup}`}
-          className="absolute inset-0 -z-10 rounded-full bg-violet shadow-[0_8px_18px_rgba(93,63,211,0.28)]"
+          className="absolute inset-0 -z-10 rounded-full bg-violet shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.28)]"
           transition={{ type: "spring", stiffness: 380, damping: 32 }}
         />
       )}
@@ -459,7 +459,7 @@ export default function SkillsByCapability({
             className="max-w-3xl text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page"
           >
             {t("skills.engineered")}{" "}
-            <span className="bg-gradient-to-r from-violet via-[#6A4FD8] to-terracotta bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet via-[var(--color-violet-mid)] to-terracotta bg-clip-text text-transparent">
               {t("skills.builtToScale")}
             </span>
           </m.h2>
@@ -563,7 +563,7 @@ export default function SkillsByCapability({
           </div>
           <a
             href="/contact"
-            className="group inline-flex items-center gap-1.5 rounded-full border border-violet/25 bg-white px-4 py-1.5 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:border-violet hover:shadow-[0_8px_20px_rgba(93,63,211,0.15)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-violet/25 bg-white px-4 py-1.5 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:border-violet hover:shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.15)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
           >
             <Layers className="h-3.5 w-3.5" aria-hidden="true" />
             {t("skills.applyToProject")}

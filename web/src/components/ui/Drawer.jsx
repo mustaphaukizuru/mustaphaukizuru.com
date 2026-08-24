@@ -153,7 +153,7 @@ function Drawer({
               className={cx(
                 "fixed inset-0",
                 zClass,
-                backdropClassName || "bg-[rgba(26,27,35,0.55)]",
+                backdropClassName || "bg-[rgb(var(--color-charcoal-rgb)/0.55)]",
                 wrapperClassName
               )}
               style={zIndex != null ? { zIndex } : undefined}

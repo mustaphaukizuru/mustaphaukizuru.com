@@ -57,7 +57,7 @@ export default function IconPicker({ value, onChange }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.16 }}
-            className="absolute left-0 right-0 z-30 mt-1.5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.10)]"
+            className="absolute left-0 right-0 z-30 mt-1.5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_18px_44px_rgb(var(--color-charcoal-rgb)/0.10)]"
             role="listbox"
           >
             <div className="flex items-center gap-2 border-b border-slate-200 px-3 py-2">

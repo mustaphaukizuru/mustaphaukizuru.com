@@ -27,7 +27,7 @@ const TONE = {
     role: "status",
     subtle:
       "bg-[var(--color-feedback-info-bg)] text-[var(--color-feedback-info-text)] " +
-      "border-[rgba(37,99,235,0.20)]",
+      "border-[rgb(var(--color-azure-rgb)/0.20)]",
     solid:
       "bg-[var(--color-feedback-info)] text-white border-[var(--color-feedback-info)]",
   },
@@ -36,7 +36,7 @@ const TONE = {
     role: "status",
     subtle:
       "bg-[var(--color-feedback-success-bg)] text-[var(--color-feedback-success-text)] " +
-      "border-[rgba(22,163,74,0.20)]",
+      "border-[rgb(var(--color-mint-rgb)/0.20)]",
     solid:
       "bg-[var(--color-feedback-success)] text-white border-[var(--color-feedback-success)]",
   },
@@ -45,7 +45,7 @@ const TONE = {
     role: "alert",
     subtle:
       "bg-[var(--color-feedback-warning-bg)] text-[var(--color-feedback-warning-text)] " +
-      "border-[rgba(217,119,6,0.20)]",
+      "border-[rgb(var(--color-amber-rgb)/0.20)]",
     solid:
       "bg-[var(--color-feedback-warning)] text-white border-[var(--color-feedback-warning)]",
   },
@@ -54,7 +54,7 @@ const TONE = {
     role: "alert",
     subtle:
       "bg-[var(--color-feedback-danger-bg)] text-[var(--color-feedback-danger-text)] " +
-      "border-[rgba(220,38,38,0.20)]",
+      "border-[rgb(var(--color-rose-rgb)/0.20)]",
     solid:
       "bg-[var(--color-feedback-danger)] text-white border-[var(--color-feedback-danger)]",
   },

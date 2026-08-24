@@ -1,3 +1,4 @@
+import { TOKENS } from "../styles/tokens.js"
 const RAW_SITE_URL = import.meta.env.VITE_SITE_URL || "https://mustaphaukizuru.com";
 
 export const SITE_URL = "https://mustaphaukizuru.com";
@@ -13,8 +14,8 @@ export const siteConfig = {
     "Technology consulting, digital products, website systems, school IT transformation, and STEM education solutions for businesses, professionals, and educational institutions.",
   siteUrl: SITE_URL,
   locale: "en_US",
-  themeColor: "#5D3FD3",
-  backgroundColor: "#F8FAFC",
+  themeColor: TOKENS.violet,
+  backgroundColor: TOKENS.mist,
   contactEmail: "hello@mustaphaukizuru.com",
   social: {
     linkedin: "https://www.linkedin.com/in/mustaphaukizuru/",

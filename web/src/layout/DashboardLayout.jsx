@@ -158,7 +158,7 @@ function SidebarItem({ item }) {
           // for the 4px left border so the icon remains in the same x-axis
           // position regardless of state.
           (forced ?? navActive)
-            ? "bg-violet-pale border-l-[4px] border-l-azure pl-[calc(0.75rem-4px)] pr-3 text-violet shadow-[inset_0_0_0_1px_rgba(93,63,211,0.06)]"
+            ? "bg-violet-pale border-l-[4px] border-l-azure pl-[calc(0.75rem-4px)] pr-3 text-violet shadow-[inset_0_0_0_1px_rgb(var(--color-violet-rgb)/0.06)]"
             : "border-l-[4px] border-l-transparent pl-[calc(0.75rem-4px)] pr-3 text-charcoal-80 hover:bg-violet-ghost hover:text-violet",
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2",
         ].join(" ")
@@ -169,7 +169,7 @@ function SidebarItem({ item }) {
           <div
             className={[
               "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
-              isActive ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.18)]" : "bg-violet-pale/60 text-violet group-hover:bg-white",
+              isActive ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.18)]" : "bg-violet-pale/60 text-violet group-hover:bg-white",
             ].join(" ")}
           >
             <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -357,13 +357,13 @@ export default function DashboardLayout() {
           {/* ── Desktop Sidebar ── */}
           <div className="hidden lg:sticky lg:top-4 lg:block lg:h-[calc(100vh-2rem)]">
             <aside
-              className="flex h-full min-h-0 w-full flex-col rounded-xl border border-charcoal-80/10 bg-white px-4 py-4 shadow-[0_14px_40px_rgba(93,63,211,0.06)]"
+              className="flex h-full min-h-0 w-full flex-col rounded-xl border border-charcoal-80/10 bg-white px-4 py-4 shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.06)]"
               aria-label={t("layout.navAria")}
             >
               {/* Brand */}
               <div className="border-b border-charcoal-80/10 px-2 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet text-white shadow-[0_10px_22px_rgba(93,63,211,0.18)]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet text-white shadow-[0_10px_22px_rgb(var(--color-violet-rgb)/0.18)]">
                     <ShieldCheck className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -433,9 +433,9 @@ export default function DashboardLayout() {
           <div className="min-w-0">
 
             {/* ── Mobile Header ── */}
-            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgba(93,63,211,0.06)] lg:hidden">
+            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden">
               <div className="flex items-center gap-3">
-                <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_12px_rgba(93,63,211,0.22)]" />
+                <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.22)]" />
                 <div>
                   <div className="text-body font-bold text-violet">{currentMeta.title}</div>
                   <div className="text-micro text-charcoal-80/55">{t("layout.memberDashboard")}</div>
@@ -463,7 +463,7 @@ export default function DashboardLayout() {
             </header>
 
             {/* ── Desktop Header ── */}
-            <header className="sticky top-4 z-20 hidden rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_35px_rgba(93,63,211,0.05)] lg:block">
+            <header className="sticky top-4 z-20 hidden rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.05)] lg:block">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
                   <div className="text-micro font-medium uppercase tracking-[0.12em] text-charcoal-80/50">
@@ -498,7 +498,7 @@ export default function DashboardLayout() {
                   </button>
                   <NotificationDropdown />
                   <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3.5 py-2">
-                    <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_10px_rgba(93,63,211,0.22)]" />
+                    <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_10px_rgb(var(--color-violet-rgb)/0.22)]" />
                     <div className="min-w-0">
                       <div className="truncate text-meta font-semibold leading-none text-violet">
                         {user?.fullName?.split(" ")[0] || "Member"}
@@ -535,7 +535,7 @@ export default function DashboardLayout() {
       />
 
       {/* ── Mobile Bottom Tab Bar ── */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-charcoal-80/10 bg-white shadow-[0_-4px_16px_rgba(93,63,211,0.06)] lg:hidden" aria-label={t("layout.quickNav")}>
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-charcoal-80/10 bg-white shadow-[0_-4px_16px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden" aria-label={t("layout.quickNav")}>
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1.5">
           {bottomTabs.map((tab) => {
             const Icon = tab.icon
@@ -559,7 +559,7 @@ export default function DashboardLayout() {
                     <div
                       className={[
                         "flex h-8 w-8 items-center justify-center rounded-xl transition-all",
-                        isActive ? "bg-violet text-white shadow-[0_4px_14px_rgba(93,63,211,0.25)]" : "",
+                        isActive ? "bg-violet text-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.25)]" : "",
                       ].join(" ")}
                     >
                       <Icon className="h-[18px] w-[18px]" aria-hidden="true" />

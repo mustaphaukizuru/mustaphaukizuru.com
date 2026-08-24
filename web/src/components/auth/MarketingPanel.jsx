@@ -69,9 +69,9 @@ function SubCopy({ children }) {
 /* ─────────────────────────── slide 1 · audience ─────────────────────── */
 
 const AUDIENCES = [
-  { color: "#5D3FD3", labelKey: "auth.marketing.audienceProsLabel", pct: 0.58, count: "1,650", noteKey: "auth.marketing.audienceProsNote" },
-  { color: "#E9C46A", labelKey: "auth.marketing.audienceInstitutionsLabel", pct: 0.29, count: "458", noteKey: "auth.marketing.audienceInstitutionsNote" },
-  { color: "#8B6FE8", labelKey: "auth.marketing.audienceSmesLabel", pct: 0.13, count: "350", noteKey: "auth.marketing.audienceSmesNote" },
+  { color: "var(--color-violet)", labelKey: "auth.marketing.audienceProsLabel", pct: 0.58, count: "1,650", noteKey: "auth.marketing.audienceProsNote" },
+  { color: "var(--color-terracotta)", labelKey: "auth.marketing.audienceInstitutionsLabel", pct: 0.29, count: "458", noteKey: "auth.marketing.audienceInstitutionsNote" },
+  { color: "var(--color-violet-light)", labelKey: "auth.marketing.audienceSmesLabel", pct: 0.13, count: "350", noteKey: "auth.marketing.audienceSmesNote" },
 ]
 
 function AudienceDonut({ reduce }) {
@@ -239,7 +239,7 @@ function SlideTestimonial() {
       <figure className="relative rounded-2xl border border-white/8 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5">
         <Quote
           aria-hidden="true"
-          className="absolute -top-2.5 left-5 h-5 w-5 rounded-full bg-violet p-1 text-white shadow-[0_8px_20px_rgba(93,63,211,0.4)]"
+          className="absolute -top-2.5 left-5 h-5 w-5 rounded-full bg-violet p-1 text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.4)]"
         />
         <blockquote className="text-[13.5px] leading-6 text-white/85">
           {t("auth.marketing.testimonialQuote")}

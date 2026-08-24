@@ -209,7 +209,7 @@ export default function DashboardOrdersPage() {
       </div>
 
       {/* Orders table */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h3 className="text-card font-semibold text-violet">{t("orders.table.title")}</h3>
@@ -438,7 +438,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
     >
       <m.form
         onSubmit={handleSubmit}
-        className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-[0_24px_48px_rgba(93,63,211,0.18)]"
+        className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-[0_24px_48px_rgb(var(--color-violet-rgb)/0.18)]"
         {...fadeUp}
       >
         <button
@@ -522,8 +522,8 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
             type="submit"
             disabled={submitDisabled}
             // Brand v3 §04: hover state for Royal Violet is `violet-deep`,
-            // never the retired legacy palette #5a0d80 (which was a darker
-            // version of the also-retired #420060). Aligns with all other
+            // never the retired legacy v2 purple (which was a darker
+            // version of the also-retired v1 aubergine). Aligns with all other
             // primary-action buttons across the codebase.
             className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-violet-deep disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
           >

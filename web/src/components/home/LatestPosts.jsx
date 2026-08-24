@@ -6,6 +6,7 @@ import { apiRequest } from "../../lib/api"
 import { getAllPosts, BLOG_CATEGORIES } from "../../data/blogPostsData"
 import BlogCoverGradient from "../BlogCoverGradient"
 import { Container, SectionHeading, SectionLink } from "./primitives"
+import { TOKENS } from "../../styles/tokens.js"
 
 /** LatestPosts · three newest articles (API first, bundled data as fallback). */
 export default function LatestPosts() {
@@ -46,12 +47,12 @@ export default function LatestPosts() {
               <Link
                 key={post.slug}
                 to={`/blog/${post.slug}`}
-                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_6px_20px_rgba(93,63,211,0.06)] transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_16px_40px_-12px_rgba(93,63,211,0.18)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_6px_20px_rgb(var(--color-violet-rgb)/0.06)] transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_16px_40px_-12px_rgb(var(--color-violet-rgb)/0.18)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
               >
                 <BlogCoverGradient
                   title={post.title}
                   category={cat?.label || ""}
-                  accent={cat?.accent || "#5D3FD3"}
+                  accent={cat?.accent || TOKENS.violet}
                   readMinutes={post.readMinutes}
                   aspectRatio="16 / 7"
                 />

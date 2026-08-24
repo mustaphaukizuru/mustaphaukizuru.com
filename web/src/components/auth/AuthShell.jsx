@@ -70,7 +70,7 @@ export default function AuthShell({ children }) {
         {/* ── RIGHT · Dark hero with marketing content ──────────────── */}
         <aside
           aria-label={t("auth.shell.aboutAria")}
-          className="relative hidden overflow-hidden bg-[#0E0F14] lg:flex lg:flex-col"
+          className="relative hidden overflow-hidden bg-[var(--color-charcoal-deep)] lg:flex lg:flex-col"
         >
           {/* Ambient brand-tinted glows */}
           <m.div

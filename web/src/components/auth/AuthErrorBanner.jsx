@@ -6,8 +6,8 @@
    server-side failure inside an AuthShell-like layout.
 
    Brand alignment (Brand Identity v3.0 §11 + §05):
-     · Rose Signal #E11D48 reserved for hard failures (kind="error")
-     · Amber Glow #F59E0B for recoverable warnings (kind="warning")
+     · Rose Signal var(--color-rose) reserved for hard failures (kind="error")
+     · Amber Glow var(--color-amber) for recoverable warnings (kind="warning")
      · Charcoal-tinted neutral for transient info (kind="info")
      · Icon plate · title + body hierarchy · optional inline action
      · role="alert" + aria-live="assertive" wired automatically

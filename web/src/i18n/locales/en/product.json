@@ -82,7 +82,8 @@
     "ariaLabel": "Product purchase bar"
   },
   "files": {
-    "untitled": "Untitled file"
+    "untitled": "Untitled file",
+    "downloadAria": "Download {{name}}"
   },
   "errors": {
     "notFound": "Product not found"

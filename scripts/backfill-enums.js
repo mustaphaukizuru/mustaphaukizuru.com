@@ -2,7 +2,7 @@
 /**
  * scripts/backfill-enums.js — roadmap step 42 (schema tidy)
  *
- * Run this BEFORE `npx prisma db push` on production. Step 42 converts five
+ * Run this BEFORE `npx prisma db push` on production. Step 42 converts seven
  * free-text columns to MySQL ENUMs. MySQL (strict mode) refuses the ALTER —
  * or, in non-strict mode, silently truncates the value to '' — when any
  * existing row holds a value outside the new enum set. This script lists
@@ -15,6 +15,7 @@
  *   EmailCampaignRecipient.status   -> queued | sent | failed | bounced
  *   DiagnosticSubmission.audience   -> EDU | SMB | IND
  *   DiagnosticSubmission.tier       -> Foundation | Stabilizing | Optimizing | Mature
+ *   EmailLog.status                 -> queued | sent | failed | bounced | skipped
  *
  * Usage
  *   node scripts/backfill-enums.js            # dry run (default) - report only
@@ -39,6 +40,9 @@ const CHECKS = [
   { table: "EmailCampaignRecipient", column: "status",   allowed: ["queued", "sent", "failed", "bounced"],               fallback: "failed" },
   { table: "DiagnosticSubmission",   column: "audience", allowed: ["EDU", "SMB", "IND"],                                 fallback: null },
   { table: "DiagnosticSubmission",   column: "tier",     allowed: ["Foundation", "Stabilizing", "Optimizing", "Mature"], fallback: null },
+  // EmailLog.status became `enum EmailStatus` in the same schema pass (the
+  // single-email-layer work), so it needs the same pre-push check.
+  { table: "EmailLog",               column: "status",   allowed: ["queued", "sent", "failed", "bounced", "skipped"],    fallback: "failed" },
 ]
 
 function q(s) { return "'" + String(s).replace(/'/g, "''") + "'" }

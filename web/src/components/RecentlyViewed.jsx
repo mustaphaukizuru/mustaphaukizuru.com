@@ -142,7 +142,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
             >
               <Link
                 to={`/store/${p.slug}`}
-                className="group block overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_14px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(93,63,211,0.10)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+                className="group block overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_12px_28px_rgb(var(--color-violet-rgb)/0.10)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
               >
                 <div className="aspect-square w-full overflow-hidden bg-violet-pale">
                   {p.coverImage ? (

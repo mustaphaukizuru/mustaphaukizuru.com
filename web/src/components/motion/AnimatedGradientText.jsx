@@ -28,11 +28,11 @@
 export default function AnimatedGradientText({
   children,
   className = "",
-  from = "#5D3FD3",
-  via = "#0284C7",
-  to = "#7DD3FC",
+  from = "var(--color-violet)",
+  via = "var(--color-azure)",
+  to = "var(--color-cyan)",
   duration = 4,
-  fallbackColor = "#5D3FD3",
+  fallbackColor = "var(--color-violet)",
 }) {
   const styleId = "ukz-agt-keyframe"
 

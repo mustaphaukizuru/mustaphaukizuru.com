@@ -82,7 +82,8 @@
     "ariaLabel": "Barra de compra del producto"
   },
   "files": {
-    "untitled": "Archivo sin título"
+    "untitled": "Archivo sin título",
+    "downloadAria": "Descargar {{name}}"
   },
   "errors": {
     "notFound": "Producto no encontrado"

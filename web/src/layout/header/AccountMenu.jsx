@@ -12,7 +12,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom"
 import { ChevronDown, LogOut, Shield } from "lucide-react"
 
 import { useAuth } from "../../context/AuthContext"
-import { API_BASE_URL } from "../../lib/api"
+import { API_BASE_URL, clearAuth } from "../../lib/api"
+import { signOut } from "../../services/authService"
 import { USER_MENU_ITEMS } from "./navLinks"
 
 function resolveAvatar(url) {
@@ -24,6 +25,13 @@ function resolveAvatar(url) {
  * Defensively perform a sign out — calls AuthContext.logout if it exists,
  * then redirects to home. Survives older AuthContext shapes that may
  * have used a different function name.
+ *
+ * Step 40 · the raw `localStorage.removeItem("auth-token")` pokes that used
+ * to live here are gone (audit M1). They were a third copy of storage logic
+ * that knew the key name by hand, and since the session moved to an httpOnly
+ * cookie, clearing localStorage no longer ends a session at all — only the
+ * server can. Both branches now go through lib/api.js: `signOut()` (server
+ * logout + local clear) and `clearAuth()` (local clear + "auth:cleared").
  */
 export async function performSignOut(authValue, navigate) {
   try {
@@ -32,18 +40,15 @@ export async function performSignOut(authValue, navigate) {
     } else if (authValue && typeof authValue.signOut === "function") {
       await authValue.signOut()
     } else {
-      // Fallback: clear local storage + dispatch the cleared event so any
-      // listener (e.g. CartProvider, dashboard guards) can react.
-      try { localStorage.removeItem("auth-token") } catch { /* ignore */ }
-      try { localStorage.removeItem("auth-user") } catch { /* ignore */ }
-      window.dispatchEvent(new CustomEvent("auth:cleared"))
+      // No AuthContext in this tree — hit the logout endpoint directly so the
+      // cookie session really ends, then clear the cached display user and
+      // notify listeners (CartProvider, dashboard guards).
+      await signOut()
     }
   } catch {
     // Even if the server call fails, force-clear locally so the UI
     // doesn't claim the user is still signed in.
-    try { localStorage.removeItem("auth-token") } catch { /* ignore */ }
-    try { localStorage.removeItem("auth-user") } catch { /* ignore */ }
-    window.dispatchEvent(new CustomEvent("auth:cleared"))
+    clearAuth()
   } finally {
     if (typeof navigate === "function") navigate("/")
   }
@@ -139,7 +144,7 @@ export default function AccountMenu() {
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-[260px] origin-top-right overflow-hidden rounded-2xl border border-charcoal-80/8 bg-white shadow-[0_20px_60px_-12px_rgba(93,63,211,0.20),0_0_0_1px_rgba(93,63,211,0.04)]"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-[260px] origin-top-right overflow-hidden rounded-2xl border border-charcoal-80/8 bg-white shadow-[0_20px_60px_-12px_rgb(var(--color-violet-rgb)/0.20),0_0_0_1px_rgb(var(--color-violet-rgb)/0.04)]"
         >
           <div className="bg-gradient-to-br from-violet-pale to-white p-4">
             <div className="flex items-center gap-3">

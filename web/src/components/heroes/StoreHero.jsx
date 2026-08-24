@@ -338,7 +338,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
   return (
     <section
       className="relative overflow-hidden bg-gradient-to-br from-violet via-violet-deep to-charcoal-80 py-12 sm:py-16 lg:py-20"
-      style={{ backgroundImage: "linear-gradient(135deg, #5D3FD3 0%, #4A2EAB 50%, #1A1B23 100%)" }}
+      style={{ backgroundImage: "linear-gradient(135deg, var(--color-violet) 0%, var(--color-violet-deep) 50%, var(--color-charcoal) 100%)" }}
     >
 
       {/* ── Animated background ──────────────────────────────────────── */}
@@ -377,7 +377,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         style={{
           backgroundImage:
-            "linear-gradient(120deg, transparent 30%, rgba(233, 196, 106,0.06) 50%, transparent 70%)",
+            "linear-gradient(120deg, transparent 30%, rgb(var(--color-terracotta-rgb)/0.06) 50%, transparent 70%)",
           backgroundSize: "200% 200%",
         }}
         className="pointer-events-none absolute inset-0"
@@ -432,7 +432,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
             <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 to="/store#products"
-                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet shadow-[0_14px_36px_rgba(233, 196, 106,0.30)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.30)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
               >
                 {t("hero.shopNow")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />

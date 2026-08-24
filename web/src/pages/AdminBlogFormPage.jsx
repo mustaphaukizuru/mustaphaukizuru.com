@@ -259,7 +259,7 @@ export default function AdminBlogFormPage() {
           <button
             type="submit"
             disabled={form.submitting}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(93,63,211,0.50)] transition hover:bg-violet-deep disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgb(var(--color-violet-rgb)/0.50)] transition hover:bg-violet-deep disabled:opacity-60"
           >
             <Save className="h-4 w-4" /> {form.submitting ? "Saving…" : isEdit ? "Save changes" : "Create post"}
           </button>
@@ -601,7 +601,7 @@ function renderBlockField(block, onChange) {
           onChange={(e) => onChange({ code: e.target.value })}
           placeholder="Paste your code here…"
           rows={6}
-          className="w-full resize-y rounded border border-charcoal-80/15 bg-[#1A1B23] px-3 py-2 font-mono text-[12.5px] leading-6 text-[#C8C8D0] outline-none focus:border-violet/40"
+          className="w-full resize-y rounded border border-charcoal-80/15 bg-[var(--color-charcoal)] px-3 py-2 font-mono text-[12.5px] leading-6 text-[var(--color-code-fg)] outline-none focus:border-violet/40"
         />
       </div>
     )

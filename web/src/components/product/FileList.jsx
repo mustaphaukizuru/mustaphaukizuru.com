@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
-import { Files } from "lucide-react"
+import { Files, Download, Loader2 } from "lucide-react"
 import { getFileTypeStyles, formatFileSize } from "../../lib/fileTypeIcons"
+import SuccessCheck from "../motion/SuccessCheck"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  FileList — "What's inside" manifest rendered from product.files[].
@@ -9,9 +10,14 @@ import { getFileTypeStyles, formatFileSize } from "../../lib/fileTypeIcons"
  *    default FileList     2-col grid of FileRow (1-col mobile) + empty state
  *    FileRow              icon chip · mono name · size · version · primary
  *    FileTypeStrip        compact distinct-type chip strip for the buy box
+ *
+ *  Optional download affordance (roadmap step 35): pass `onDownload(file)` to
+ *  FileList (plus `downloadStates` — a { [file.id]: "idle"|"busy"|"done" } map)
+ *  or straight to FileRow (`onDownload` + `state`). Omit them and the markup is
+ *  byte-identical to before, so the public product page is unaffected.
  *  ────────────────────────────────────────────────────────────────────────── */
 
-export default function FileList({ files = [] }) {
+export default function FileList({ files = [], onDownload, downloadStates }) {
   const { t } = useTranslation("product")
   if (!Array.isArray(files) || files.length === 0) {
     return (
@@ -26,13 +32,18 @@ export default function FileList({ files = [] }) {
   return (
     <ul className="grid gap-2.5 sm:grid-cols-2">
       {files.map((file, i) => (
-        <FileRow key={file.id || `file-${i}`} file={file} />
+        <FileRow
+          key={file.id || `file-${i}`}
+          file={file}
+          onDownload={onDownload}
+          state={downloadStates?.[file.id] || "idle"}
+        />
       ))}
     </ul>
   )
 }
 
-export function FileRow({ file }) {
+export function FileRow({ file, onDownload, state = "idle" }) {
   const { t } = useTranslation("product")
   const styles = getFileTypeStyles(file.fileType || file.fileName || "")
   const Icon = styles.icon
@@ -68,10 +79,57 @@ export function FileRow({ file }) {
         </div>
       </div>
 
-      <span className={`shrink-0 rounded-md px-2 py-0.5 font-mono text-micro font-bold ${styles.chip}`}>
-        {styles.label}
-      </span>
+      <div className="flex shrink-0 items-center gap-2">
+        <span className={`rounded-md px-2 py-0.5 font-mono text-micro font-bold ${styles.chip}`}>
+          {styles.label}
+        </span>
+        {onDownload && (
+          <DownloadAction
+            state={state}
+            label={displayName}
+            onClick={() => onDownload(file)}
+          />
+        )}
+      </div>
     </li>
+  )
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  DownloadAction — per-row download state machine · roadmap step 35
+ *
+ *  idle → busy → done. The whole control is a fixed 36×36 box with a fixed
+ *  16×16 icon slot inside it, so swapping the glyph can never reflow the row.
+ *  `busy` keeps a real spinner (the request is genuinely in flight); `done`
+ *  draws the shared <SuccessCheck tone="inline">, which self-flattens under
+ *  `prefers-reduced-motion`.
+ *  ────────────────────────────────────────────────────────────────────────── */
+function DownloadAction({ state = "idle", label, onClick }) {
+  const { t } = useTranslation("product")
+  const busy = state === "busy"
+  const done = state === "done"
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={busy}
+      aria-busy={busy || undefined}
+      aria-label={t("files.downloadAria", { name: label, defaultValue: "Download {{name}}" })}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 disabled:cursor-wait ${
+        done
+          ? "border-mint/40 bg-mint/10 text-mint-600"
+          : "border-charcoal-80/10 bg-mist text-violet hover:border-violet/25 hover:bg-violet-pale"
+      }`}
+    >
+      <span className="flex h-4 w-4 items-center justify-center" aria-hidden="true">
+        {busy
+          ? <Loader2 className="h-4 w-4 animate-spin" />
+          : done
+            ? <SuccessCheck size={16} tone="inline" />
+            : <Download className="h-4 w-4 transition motion-safe:group-hover:translate-y-0.5" />}
+      </span>
+    </button>
   )
 }
 

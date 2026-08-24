@@ -54,7 +54,7 @@ export default function ScrollProgress({ height = 3, zIndex = 9999 }) {
         style={{
           height: "100%",
           width: "100%",
-          background: "linear-gradient(90deg, #5D3FD3, #0284C7)",
+          background: "linear-gradient(90deg, var(--color-violet), var(--color-azure))",
           transformOrigin: "left center",
           transform: "scaleX(0)",
           transition: reduced ? "none" : undefined,

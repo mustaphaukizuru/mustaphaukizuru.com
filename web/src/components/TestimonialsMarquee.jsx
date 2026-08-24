@@ -46,7 +46,7 @@ function TestimonialCard({ item, t }) {
   return (
     <figure
       data-placeholder={item.placeholder ? "true" : undefined}
-      className="flex h-full flex-col gap-4 rounded-2xl border border-charcoal-80/8 bg-white p-6 shadow-[0_8px_28px_rgba(93,63,211,0.06)]"
+      className="flex h-full flex-col gap-4 rounded-2xl border border-charcoal-80/8 bg-white p-6 shadow-[0_8px_28px_rgb(var(--color-violet-rgb)/0.06)]"
     >
       <div className="flex items-center justify-between">
         <div className="flex gap-0.5 text-terracotta" aria-label={`${item.rating} / 5`}>

@@ -9,7 +9,7 @@ import Confetti from "./motion/Confetti"
  * NewsletterSection · full-width email capture for the Home page
  * ─────────────────────────────────────────────────────────────────────────
  * Brand design language:
- *   · Midnight Charcoal (#1A1B23) dark canvas — matches Solutions section
+ *   · Midnight Charcoal (var(--color-charcoal)) dark canvas — matches Solutions section
  *   · Terracotta eyebrow pill — inverse variant for dark surfaces
  *   · Innovation Gradient on the submit button (single conversion CTA)
  *   · Animated floating orbs + subtle noise texture (Brand v3 §10)
@@ -66,22 +66,22 @@ export default function NewsletterSection() {
   return (
     <section
       className="relative isolate overflow-hidden py-20 lg:py-28"
-      style={{ backgroundColor: "#1A1B23" }}
+      style={{ backgroundColor: "var(--color-charcoal)" }}
       aria-labelledby="newsletter-heading"
     >
       {/* ── Ambient orbs ────────────────────────────────────────────── */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className="absolute -left-40 top-1/4 h-[500px] w-[500px] rounded-full blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(93,63,211,0.22) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgb(var(--color-violet-rgb)/0.22) 0%, transparent 70%)" }}
         />
         <div
           className="absolute -right-32 bottom-0 h-[400px] w-[400px] rounded-full blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(2,132,199,0.18) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgb(var(--color-azure-rgb)/0.18) 0%, transparent 70%)" }}
         />
         <div
           className="absolute left-1/2 top-0 h-[300px] w-[300px] -translate-x-1/2 rounded-full blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(233,196,106,0.10) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgb(var(--color-terracotta-rgb)/0.10) 0%, transparent 70%)" }}
         />
       </div>
 
@@ -112,9 +112,9 @@ export default function NewsletterSection() {
             variants={fadeUp}
             className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
             style={{
-              backgroundColor: "rgba(233, 196, 106, 0.14)",
-              color: "#E9C46A",
-              border: "1px solid rgba(233, 196, 106, 0.30)",
+              backgroundColor: "rgb(var(--color-terracotta-rgb)/0.14)",
+              color: "var(--color-terracotta)",
+              border: "1px solid rgb(var(--color-terracotta-rgb)/0.30)",
             }}
           >
             <Sparkles className="h-3 w-3" aria-hidden="true" />
@@ -128,7 +128,7 @@ export default function NewsletterSection() {
             className="mt-5 text-[30px] font-extrabold leading-[1.05] tracking-tight text-white sm:text-[40px] lg:text-[48px]"
           >
             {t("newsletter.headlinePart1", { defaultValue: "Stay ahead" })}{" "}
-            <span style={{ color: "#E9C46A" }}>
+            <span style={{ color: "var(--color-terracotta)" }}>
               {t("newsletter.headlinePart2", { defaultValue: "of the tech curve." })}
             </span>
           </m.h2>
@@ -184,7 +184,7 @@ export default function NewsletterSection() {
                     className="w-full rounded-xl border py-3 pl-10 pr-4 text-[14px] font-medium text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-azure/50 focus:ring-offset-1 focus:ring-offset-charcoal"
                     style={{
                       backgroundColor: "rgba(255,255,255,0.07)",
-                      borderColor: status === "error" ? "rgba(225,29,72,0.5)" : "rgba(255,255,255,0.12)",
+                      borderColor: status === "error" ? "rgb(var(--color-rose-rgb)/0.5)" : "rgba(255,255,255,0.12)",
                     }}
                   />
                 </div>
@@ -193,8 +193,8 @@ export default function NewsletterSection() {
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="group inline-flex shrink-0 items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-bold text-white shadow-[0_8px_24px_rgba(93,63,211,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(93,63,211,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-azure/50 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal disabled:pointer-events-none disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #5D3FD3, #0284C7)" }}
+                  className="group inline-flex shrink-0 items-center gap-2 rounded-xl px-6 py-3 text-[14px] font-bold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-azure/50 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal disabled:pointer-events-none disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, var(--color-violet), var(--color-azure))" }}
                 >
                   {status === "loading"
                     ? t("newsletter.submitting", { defaultValue: "Subscribing…" })

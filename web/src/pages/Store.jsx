@@ -107,7 +107,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
       aria-label={t("toolbar.filtersAria")}
       // scroll-mt-24 offsets the sticky site header so the rail is visible
       // when StoreHero's "Browse categories" CTA jumps via the #categories hash.
-      className="scroll-mt-24 sticky top-[88px] flex flex-col gap-5 self-start rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_18px_rgba(93,63,211,0.04)]"
+      className="scroll-mt-24 sticky top-[88px] flex flex-col gap-5 self-start rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_18px_rgb(var(--color-violet-rgb)/0.04)]"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -168,7 +168,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
                 aria-pressed={active}
                 className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-meta font-medium transition-all focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${
                   active
-                    ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.20)]"
+                    ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.20)]"
                     : "text-charcoal-80/75 hover:bg-violet-pale hover:text-violet"
                 }`}
               >
@@ -259,7 +259,7 @@ function StoreProductCard({ product }) {
     <m.article
       whileHover={{ y: -4 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition-shadow duration-200 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition-shadow duration-200 hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.10)]"
     >
       <Link
         to={`/store/${product.slug}`}
@@ -381,7 +381,7 @@ function StoreListItem({ product }) {
   const price = Number(product?.price || 0)
 
   return (
-    <div className="flex overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]">
+    <div className="flex overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.08)]">
       <div className="aspect-square w-[160px] shrink-0 overflow-hidden rounded-xl bg-violet-pale p-3 sm:w-[200px]">
         {imgUrl ? (
           <img src={imgUrl} alt={product.title} className="h-full w-full object-contain" loading="lazy" />
@@ -460,7 +460,7 @@ function EmptyState({ hasFilters, onReset }) {
 /* ── F05.C · skeleton card matching real card aspect ratio ─────────────── */
 function SkeletonCard() {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
       <div className="aspect-square w-full animate-pulse bg-violet-pale" />
       <div className="flex flex-col gap-3 p-4">
         <div className="h-3 w-16 animate-pulse rounded-full bg-violet-pale" />
@@ -527,7 +527,7 @@ function StorePagination({ page, totalPages, onChange }) {
             aria-current={p === page ? "page" : undefined}
             className={`flex h-10 w-10 items-center justify-center rounded-xl font-mono text-meta font-semibold tabular-nums transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
               p === page
-                ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.22)]"
+                ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.22)]"
                 : "border border-charcoal-80/12 bg-white text-violet hover:bg-violet-pale"
             }`}
           >

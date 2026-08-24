@@ -55,7 +55,7 @@ export default function OfflineBanner() {
           transition={{ duration: 0.22, ease: "easeOut" }}
           role="alert"
           aria-live="assertive"
-          className="fixed inset-x-0 top-0 z-[60] bg-rose text-mist shadow-[0_12px_32px_rgba(225,29,72,0.30)]"
+          className="fixed inset-x-0 top-0 z-[60] bg-rose text-mist shadow-[0_12px_32px_rgb(var(--color-rose-rgb)/0.30)]"
         >
           <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:px-6 lg:px-8">
             <WifiOff

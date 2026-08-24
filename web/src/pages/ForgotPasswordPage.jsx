@@ -140,7 +140,7 @@ export default function ForgotPasswordPage() {
         >
           <m.div
             variants={fadeUp}
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet to-violet-deep shadow-[0_12px_36px_rgba(93,63,211,0.40)] ring-4 ring-violet-pale"
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet to-violet-deep shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.40)] ring-4 ring-violet-pale"
           >
             <Inbox className="h-7 w-7 text-white" />
           </m.div>
@@ -165,7 +165,7 @@ export default function ForgotPasswordPage() {
                 href={inbox.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-charcoal-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
               >
                 {inbox.label}
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -319,7 +319,7 @@ export default function ForgotPasswordPage() {
             disabled={loading || cooldown.isRunning}
             aria-busy={loading || undefined}
             aria-describedby={!emailValid && email.length > 0 ? "forgot-email-hint" : (cooldown.isRunning ? "forgot-cooldown-hint" : undefined)}
-            className="mt-1 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-1 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-charcoal-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">

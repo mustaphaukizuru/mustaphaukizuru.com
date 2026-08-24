@@ -52,6 +52,7 @@ import {
 
 import { useTranslation } from "react-i18next"
 import BlogCoverGradient from "../components/BlogCoverGradient"
+import { TOKENS } from "../styles/tokens.js"
 /* ── Motion variants ──────────────────────────────────────────────────── */
 
 const fadeUp = {
@@ -69,10 +70,10 @@ const stagger = {
  * full screen at most viewport sizes before pagination kicks in. */
 const POSTS_PER_PAGE = 9
 const HERO_MESH =
-  "radial-gradient(at 18% 20%, rgba(124,58,237,0.20) 0px, transparent 55%), " +
-  "radial-gradient(at 82% 0%, rgba(2,132,199,0.14) 0px, transparent 50%), " +
-  "radial-gradient(at 50% 100%, rgba(233,196,106,0.18) 0px, transparent 55%), " +
-  "linear-gradient(160deg, #F8FAFC 0%, #EFE7F8 45%, #EFF1F5 100%)"
+  "radial-gradient(at 18% 20%, rgb(var(--color-violet-rgb)/0.20) 0px, transparent 55%), " +
+  "radial-gradient(at 82% 0%, rgb(var(--color-azure-rgb)/0.14) 0px, transparent 50%), " +
+  "radial-gradient(at 50% 100%, rgb(var(--color-terracotta-rgb)/0.18) 0px, transparent 55%), " +
+  "linear-gradient(160deg, var(--color-mist) 0%, var(--color-violet-pale) 45%, var(--color-slate-100) 100%)"
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
@@ -150,7 +151,7 @@ export default function BlogPage() {
       // Merge API counts with the canonical category metadata so accents stay correct
       return apiData.categories.map((c) => {
         const local = (getCategoryCounts() || []).find((x) => x.slug === c.slug)
-        return { slug: c.slug, label: c.label, accent: c.accent || local?.accent || "#5D3FD3", count: c.count }
+        return { slug: c.slug, label: c.label, accent: c.accent || local?.accent || TOKENS.violet, count: c.count }
       })
     }
     return getCategoryCounts()
@@ -227,7 +228,7 @@ export default function BlogPage() {
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:radial-gradient(circle_at_1px_1px,rgba(93,63,211,0.55)_1px,transparent_0)] [background-size:32px_32px]"
+          className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:radial-gradient(circle_at_1px_1px,rgb(var(--color-violet-rgb)/0.55)_1px,transparent_0)] [background-size:32px_32px]"
         />
         <Container>
           <m.div
@@ -287,7 +288,7 @@ export default function BlogPage() {
                 placeholder={t("page.searchPlaceholder", { count: allPosts.length })}
                 aria-label={t("page.searchAria")}
                 title="Press / to search"
-                className="w-full rounded-2xl border border-charcoal-80/12 bg-white py-3.5 pl-11 pr-28 text-[14px] text-charcoal-80 shadow-[0_8px_32px_-8px_rgba(93,63,211,0.15)] placeholder-charcoal-80/40 outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-violet/20 sm:text-[15px]"
+                className="w-full rounded-2xl border border-charcoal-80/12 bg-white py-3.5 pl-11 pr-28 text-[14px] text-charcoal-80 shadow-[0_8px_32px_-8px_rgb(var(--color-violet-rgb)/0.15)] placeholder-charcoal-80/40 outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-violet/20 sm:text-[15px]"
               />
               <button
                 type="submit"
@@ -571,7 +572,7 @@ function BlogSidebar({
                     "inline-flex items-center rounded-full border px-2.5 py-1 text-[11.5px] font-medium transition",
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30",
                     active
-                      ? "border-violet bg-violet text-white shadow-[0_4px_14px_-4px_rgba(93,63,211,0.5)]"
+                      ? "border-violet bg-violet text-white shadow-[0_4px_14px_-4px_rgb(var(--color-violet-rgb)/0.5)]"
                       : "border-charcoal-80/12 bg-white text-charcoal-80/75 hover:border-violet/40 hover:bg-violet-pale/40 hover:text-violet",
                   ].join(" ")}
                   aria-pressed={active}
@@ -804,7 +805,7 @@ function FeaturedCard({ post, reduce }) {
       initial={reduce ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative overflow-hidden rounded-3xl border border-charcoal-80/10 bg-white shadow-[0_18px_50px_-20px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-20px_rgba(93,63,211,0.30)]"
+      className="group relative overflow-hidden rounded-3xl border border-charcoal-80/10 bg-white shadow-[0_18px_50px_-20px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-20px_rgb(var(--color-violet-rgb)/0.30)]"
     >
       <Link
         to={`/blog/${post.slug}`}
@@ -880,7 +881,7 @@ function PostCard({ post }) {
   const cat = categoryByValue(post.category)
   const displayTags = post.tags?.slice(0, 2) || []
   return (
-    <article className="group overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white transition hover:border-violet/25 hover:shadow-[0_12px_36px_-12px_rgba(93,63,211,0.18)]">
+    <article className="group overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white transition hover:border-violet/25 hover:shadow-[0_12px_36px_-12px_rgb(var(--color-violet-rgb)/0.18)]">
       <Link to={`/blog/${post.slug}`} className="flex h-full items-stretch">
         {/* Thumbnail — fixed width, full-height cover art */}
         <div className="w-28 shrink-0 sm:w-40">
@@ -979,7 +980,7 @@ function CoverArt({ post, className = "" }) {
     <BlogCoverGradient
       title={post.title}
       category={cat?.label || ""}
-      accent={cat?.accent || "#5D3FD3"}
+      accent={cat?.accent || TOKENS.violet}
       readMinutes={post.readMinutes}
       aspectRatio={undefined}
       className={`h-full ${className}`}
@@ -1077,7 +1078,7 @@ function BlogInlineNewsletter() {
   return (
     <div
       className="mt-8 overflow-hidden rounded-2xl"
-      style={{ background: "linear-gradient(135deg, #5D3FD3, #0284C7)" }}
+      style={{ background: "linear-gradient(135deg, var(--color-violet), var(--color-azure))" }}
     >
       <div className="flex flex-col items-start gap-5 px-6 py-6 sm:flex-row sm:items-center sm:gap-8 sm:px-8">
         <div className="flex-1 min-w-0">

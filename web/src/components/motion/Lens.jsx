@@ -54,7 +54,7 @@ export default function Lens({
       {hovering && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute rounded-full ring-2 ring-white shadow-[0_12px_36px_rgba(26,27,35,0.35)]"
+          className="pointer-events-none absolute rounded-full ring-2 ring-white shadow-[0_12px_36px_rgb(var(--color-charcoal-rgb)/0.35)]"
           style={{
             left: lens.x - lensSize / 2,
             top: lens.y - lensSize / 2,

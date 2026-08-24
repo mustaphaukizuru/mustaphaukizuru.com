@@ -16,7 +16,7 @@ function ensureKeyframes() {
   document.head.appendChild(style)
 }
 
-const COLORS = ["#5D3FD3", "#0284C7", "#E9C46A", "#34D399", "#FFFFFF"]
+const COLORS = ["var(--color-violet)", "var(--color-azure)", "var(--color-terracotta)", "var(--color-mint-light)", "#FFFFFF"]
 const PIECE_COUNT = 40
 const LIFETIME = 2000
 

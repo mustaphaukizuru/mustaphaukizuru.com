@@ -406,7 +406,7 @@ export default function AdminCouponsPage() {
         </p>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgba(93,63,211,0.22)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-2 rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           New coupon
@@ -506,7 +506,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ duration: 0.18, ease: "easeOut" }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-xl overflow-y-auto rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_24px_60px_rgba(93,63,211,0.18)] max-h-[90vh]"
+        className="w-full max-w-xl overflow-y-auto rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_24px_60px_rgb(var(--color-violet-rgb)/0.18)] max-h-[90vh]"
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-card font-bold text-violet">

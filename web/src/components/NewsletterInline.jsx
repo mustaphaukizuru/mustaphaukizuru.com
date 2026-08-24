@@ -50,7 +50,7 @@ export default function NewsletterInline({ source = "blog-post", className = "" 
   return (
     <aside
       className={`relative isolate overflow-hidden rounded-2xl px-6 py-7 sm:px-8 sm:py-8 ${className}`}
-      style={{ backgroundColor: "#1A1B23" }}
+      style={{ backgroundColor: "var(--color-charcoal)" }}
       aria-label={t("newsletterCta.title")}
     >
       <Confetti fire={status === "success"} />
@@ -58,13 +58,13 @@ export default function NewsletterInline({ source = "blog-post", className = "" 
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(93,63,211,0.30) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgb(var(--color-violet-rgb)/0.30) 0%, transparent 70%)" }}
       />
 
       <div className="relative">
         <span
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em]"
-          style={{ backgroundColor: "rgba(233,196,106,0.16)", color: "#E9C46A", border: "1px solid rgba(233,196,106,0.32)" }}
+          style={{ backgroundColor: "rgb(var(--color-terracotta-rgb)/0.16)", color: "var(--color-terracotta)", border: "1px solid rgb(var(--color-terracotta-rgb)/0.32)" }}
         >
           <Mail className="h-3 w-3" aria-hidden="true" />
           {t("newsletterCta.eyebrow")}
@@ -94,14 +94,14 @@ export default function NewsletterInline({ source = "blog-post", className = "" 
                 aria-label={t("newsletterCta.placeholder")}
                 aria-invalid={status === "error"}
                 className="w-full rounded-xl border bg-white/[0.06] py-3 pl-10 pr-3 text-[14px] text-white placeholder-white/35 outline-none transition focus:border-azure focus:ring-[3px] focus:ring-azure/25"
-                style={{ borderColor: status === "error" ? "rgba(225,29,72,0.5)" : "rgba(255,255,255,0.12)" }}
+                style={{ borderColor: status === "error" ? "rgb(var(--color-rose-rgb)/0.5)" : "rgba(255,255,255,0.12)" }}
               />
             </div>
             <button
               type="submit"
               disabled={status === "loading"}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-6 py-3 text-[14px] font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.35)] transition hover:-translate-y-0.5 disabled:opacity-70"
-              style={{ background: "linear-gradient(135deg, #5D3FD3, #0284C7)" }}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-6 py-3 text-[14px] font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.35)] transition hover:-translate-y-0.5 disabled:opacity-70"
+              style={{ background: "linear-gradient(135deg, var(--color-violet), var(--color-azure))" }}
             >
               {status === "loading"
                 ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> …</>

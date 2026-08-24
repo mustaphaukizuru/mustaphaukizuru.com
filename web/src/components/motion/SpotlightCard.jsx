@@ -26,7 +26,7 @@ import { useRef, useCallback } from "react"
 export default function SpotlightCard({
   children,
   className = "",
-  spotColor = "rgba(93,63,211,0.10)",
+  spotColor = "rgb(var(--color-violet-rgb)/0.10)",
   size = 340,
   as: Tag = "div",
   ...rest

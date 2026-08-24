@@ -62,7 +62,7 @@ function CartBadge({ count }) {
 // could re-trigger the same error.
 function HeaderFallback() {
   return (
-    <header role="banner" className="sticky top-0 z-[80] bg-white shadow-[0_1px_0_rgba(26,27,35,0.06)]">
+    <header role="banner" className="sticky top-0 z-[80] bg-white shadow-[0_1px_0_rgb(var(--color-charcoal-rgb)/0.06)]">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
         <a href="/" className="text-[16px] font-bold tracking-tight text-violet sm:text-[18px]">
           Mustapha Ukizuru
@@ -104,7 +104,7 @@ function HeaderInner() {
   // close-on-nav logic co-located with the menu component.
 
   const headerClass = scrolled
-    ? "bg-white/85 backdrop-blur-md shadow-[0_1px_0_rgba(26,27,35,0.06)]"
+    ? "bg-white/85 backdrop-blur-md shadow-[0_1px_0_rgb(var(--color-charcoal-rgb)/0.06)]"
     : "bg-white/0 backdrop-blur-0"
 
   return (

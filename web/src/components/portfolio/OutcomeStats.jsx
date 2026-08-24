@@ -82,7 +82,7 @@ export default function OutcomeStats({ outcomes = [], compact = false }) {
               className={`relative overflow-hidden rounded-2xl border p-5 ${
                 o.placeholder
                   ? "border-dashed border-violet/30 bg-violet-ghost"
-                  : "border-charcoal-80/10 bg-white shadow-[0_6px_20px_rgba(93,63,211,0.05)]"
+                  : "border-charcoal-80/10 bg-white shadow-[0_6px_20px_rgb(var(--color-violet-rgb)/0.05)]"
               }`}
             >
               <dd className={`font-bold tabular-nums tracking-tight text-violet ${compact ? "text-section" : "text-page"}`}>

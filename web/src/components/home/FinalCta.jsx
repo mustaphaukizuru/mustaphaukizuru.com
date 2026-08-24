@@ -17,15 +17,15 @@ export default function FinalCta() {
   return (
     <section className="py-16 lg:py-24" aria-labelledby="home-cta-heading">
       <Container>
-        <div className="ukz-cta-bg relative overflow-hidden rounded-[28px] text-white shadow-[0_30px_80px_-20px_rgba(93,63,211,0.50)]">
+        <div className="ukz-cta-bg relative overflow-hidden rounded-[28px] text-white shadow-[0_30px_80px_-20px_rgb(var(--color-violet-rgb)/0.50)]">
           <div className="relative px-6 py-14 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
             <div className="max-w-[44ch]">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
                 style={{
-                  backgroundColor: "rgba(233, 196, 106, 0.16)",
-                  color: "#E9C46A",
-                  border: "1px solid rgba(233, 196, 106, 0.32)",
+                  backgroundColor: "rgb(var(--color-terracotta-rgb)/0.16)",
+                  color: "var(--color-terracotta)",
+                  border: "1px solid rgb(var(--color-terracotta-rgb)/0.32)",
                 }}
               >
                 {t("cta.eyebrow")}

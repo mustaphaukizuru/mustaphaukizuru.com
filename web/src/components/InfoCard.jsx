@@ -10,7 +10,7 @@ export default function InfoCard({
     <m.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.2 }}
-      className={`rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_12px_30px_rgba(93,63,211,0.06)] ${
+      className={`rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_12px_30px_rgb(var(--color-violet-rgb)/0.06)] ${
         centered ? "text-center" : "text-left"
       }`}
     >
@@ -26,7 +26,7 @@ export default function InfoCard({
         )}
       </div>
 
-      <h3 className="font-['Sora'] text-2xl font-semibold text-violet">
+      <h3 className="font-display text-2xl font-semibold text-violet">
         {title}
       </h3>
 

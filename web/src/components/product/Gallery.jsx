@@ -30,7 +30,7 @@ export default function Gallery({ images = [], activeImg = 0, onSelect, product 
               onClick={() => onSelect?.(i)}
               className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition-all focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 ${
                 activeImg === i
-                  ? "border-violet shadow-[0_0_0_3px_rgba(93,63,211,0.15)]"
+                  ? "border-violet shadow-[0_0_0_3px_rgb(var(--color-violet-rgb)/0.15)]"
                   : "border-charcoal-80/12 hover:border-violet/40"
               }`}
             >
@@ -47,7 +47,7 @@ export default function Gallery({ images = [], activeImg = 0, onSelect, product 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.25 }}
-          className="relative aspect-square overflow-hidden rounded-xl bg-violet-pale shadow-[0_8px_32px_rgba(93,63,211,0.08)]"
+          className="relative aspect-square overflow-hidden rounded-xl bg-violet-pale shadow-[0_8px_32px_rgb(var(--color-violet-rgb)/0.08)]"
         >
           {current ? (
             <Lens src={current.url} alt={current.alt} className="h-full w-full" imgClassName="object-contain" />

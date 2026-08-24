@@ -30,17 +30,17 @@ const TONE_CLASS = {
   // Status / availability — "Open to work", "Now booking", etc.
   success:
     "bg-[var(--color-feedback-success-bg)] text-[var(--color-feedback-success-text)] " +
-    "border border-[rgba(22,163,74,0.20)]",
+    "border border-[rgb(var(--color-mint-rgb)/0.20)]",
 
   // Informational
   info:
     "bg-[var(--color-feedback-info-bg)] text-[var(--color-feedback-info-text)] " +
-    "border border-[rgba(37,99,235,0.20)]",
+    "border border-[rgb(var(--color-azure-rgb)/0.20)]",
 
   // Warning / heads-up
   warning:
     "bg-[var(--color-feedback-warning-bg)] text-[var(--color-feedback-warning-text)] " +
-    "border border-[rgba(217,119,6,0.20)]",
+    "border border-[rgb(var(--color-amber-rgb)/0.20)]",
 }
 
 /**

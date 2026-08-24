@@ -13,7 +13,7 @@ export default function CategoryCard({ category, index = 0 }) {
   const Icon = category.Icon
 
   return (
-    <article className="group flex h-full flex-col rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:border-violet/30 hover:shadow-[0_16px_40px_rgba(93,63,211,0.12)] sm:p-8">
+    <article className="group flex h-full flex-col rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition-all hover:-translate-y-1 hover:border-violet/30 hover:shadow-[0_16px_40px_rgb(var(--color-violet-rgb)/0.12)] sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl text-white ${category.tile}`}>
           {Icon && <Icon className="h-6 w-6" aria-hidden="true" />}

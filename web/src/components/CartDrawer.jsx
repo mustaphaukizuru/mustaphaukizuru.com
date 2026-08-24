@@ -208,7 +208,7 @@ export default function CartDrawer() {
                   <Link
                     to="/checkout"
                     onClick={closeDrawer}
-                    className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-4 py-3 text-meta font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.24)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+                    className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-4 py-3 text-meta font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.24)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
                   >
                     Checkout <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>

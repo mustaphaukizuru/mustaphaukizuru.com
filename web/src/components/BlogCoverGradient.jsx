@@ -1,3 +1,4 @@
+import { TOKENS } from "../styles/tokens.js"
 /**
  * BlogCoverGradient · auto-generated cover image for blog posts
  * ─────────────────────────────────────────────────────────────────────────
@@ -20,7 +21,7 @@
 export default function BlogCoverGradient({
   title = "",
   category = "",
-  accent = "#5D3FD3",
+  accent = TOKENS.violet,
   readMinutes,
   aspectRatio = "16 / 7",
   className = "",

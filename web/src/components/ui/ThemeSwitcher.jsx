@@ -144,7 +144,7 @@ export default function ThemeSwitcher({
           "border border-[var(--color-border-subtle)] bg-[var(--color-surface-card)]",
           "transition-[background-color,color,border-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
           "hover:text-[var(--color-violet)] hover:border-[var(--color-border-violet)] hover:bg-[var(--color-violet-pale)]",
-          "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)]",
+          "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgb(var(--color-violet-rgb)/0.18)]",
           className,
         ].join(" ")}
       >
@@ -178,7 +178,7 @@ export default function ThemeSwitcher({
               "cursor-pointer inline-flex items-center gap-1.5 rounded-[8px] font-semibold",
               sizeCls,
               "transition-colors duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
-              "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)]",
+              "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgb(var(--color-violet-rgb)/0.18)]",
               active
                 ? "bg-[var(--color-violet-pale)] text-[var(--color-violet)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",

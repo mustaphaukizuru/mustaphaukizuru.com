@@ -132,7 +132,7 @@ export default function BuyBox({
   const { t } = useTranslation("product")
 
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.06)]">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)]">
       <h1 className="text-section font-bold leading-tight tracking-tight text-violet">{product.title}</h1>
 
       <CreatorStrip />
@@ -183,7 +183,7 @@ export default function BuyBox({
         <button
           type="button"
           onClick={onAddToCart}
-          className={`flex w-full items-center justify-center gap-2 rounded-xl py-4 text-body font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.22)] transition-all hover:-translate-y-0.5 ${
+          className={`flex w-full items-center justify-center gap-2 rounded-xl py-4 text-body font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.22)] transition-all hover:-translate-y-0.5 ${
             added ? "bg-mint-600 shadow-[0_10px_28px_rgba(47,163,107,0.25)]" : "bg-violet hover:bg-violet-deep"
           }`}
         >
@@ -242,7 +242,7 @@ export function MobileBuyBar({ price, currency, onAddToCart, added, productTitle
       initial={false}
       animate={{ y: visible ? 0 : 100, opacity: visible ? 1 : 0 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-charcoal-80/10 bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(93,63,211,0.08)] backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-charcoal-80/10 bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgb(var(--color-violet-rgb)/0.08)] backdrop-blur-md md:hidden"
       style={{ pointerEvents: visible ? "auto" : "none" }}
       role="region"
       aria-label={t("mobileBar.ariaLabel")}
@@ -257,7 +257,7 @@ export function MobileBuyBar({ price, currency, onAddToCart, added, productTitle
         <button
           type="button"
           onClick={onAddToCart}
-          className={`flex shrink-0 items-center gap-2 rounded-xl px-5 py-3 text-meta font-semibold text-white shadow-[0_6px_16px_rgba(93,63,211,0.18)] transition active:scale-95 ${
+          className={`flex shrink-0 items-center gap-2 rounded-xl px-5 py-3 text-meta font-semibold text-white shadow-[0_6px_16px_rgb(var(--color-violet-rgb)/0.18)] transition active:scale-95 ${
             added ? "bg-mint-600" : "bg-violet hover:bg-violet-deep"
           }`}
         >

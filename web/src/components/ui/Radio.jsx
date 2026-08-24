@@ -108,7 +108,7 @@ const Radio = forwardRef(function Radio(
             : "border-[var(--color-border-default)] group-hover:border-[var(--color-border-strong)]",
           isChecked &&
             "border-[var(--color-action-primary)]",
-          "peer-focus-visible:shadow-[0_0_0_3px_rgba(93,63,211,0.18)]",
+          "peer-focus-visible:shadow-[0_0_0_3px_rgb(var(--color-violet-rgb)/0.18)]",
         ]
           .filter(Boolean)
           .join(" ")}

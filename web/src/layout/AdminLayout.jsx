@@ -256,9 +256,9 @@ export default function AdminLayout() {
           <div className="min-w-0">
 
             {/* ── Mobile Header ── */}
-            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgba(93,63,211,0.06)] lg:hidden">
+            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.18)]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.18)]">
                   <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <div>
@@ -310,7 +310,7 @@ export default function AdminLayout() {
 
       {/* Mobile bottom tab bar */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-charcoal-80/10 bg-white shadow-[0_-4px_16px_rgba(93,63,211,0.06)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-charcoal-80/10 bg-white shadow-[0_-4px_16px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden"
         aria-label="Quick navigation"
       >
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1.5">
@@ -334,7 +334,7 @@ export default function AdminLayout() {
                   <>
                     <div className={[
                       "flex h-8 w-8 items-center justify-center rounded-lg transition-all",
-                      isActive ? "bg-violet text-white shadow-[0_4px_14px_rgba(93,63,211,0.25)]" : "",
+                      isActive ? "bg-violet text-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.25)]" : "",
                     ].join(" ")}>
                       <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
                     </div>

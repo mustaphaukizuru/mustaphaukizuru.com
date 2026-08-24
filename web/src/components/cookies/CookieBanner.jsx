@@ -3,7 +3,7 @@
    ────────────────────────────────────────────────────────────────────────
    Renders only when the user has not yet decided. Provides three explicit
    actions: {t("cookies.acceptAll")}, {t("cookies.rejectAll")}, Manage preferences (granular). Uses
-   Framer Motion for the entrance/exit and brand tokens (#5D3FD3 / #1A1B23)
+   Framer Motion for the entrance/exit and brand tokens (var(--color-violet) / var(--color-charcoal))
    for visual consistency with the rest of the site.
 
    Accessibility:
@@ -54,7 +54,7 @@ function PreferencesModal({ open, onClose }) {
       zIndex={120}
       wrapperClassName="p-4"
       backdropClassName="bg-black/50 backdrop-blur-sm"
-      className="max-w-2xl overflow-hidden rounded-2xl border border-charcoal/15 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.25)]"
+      className="max-w-2xl overflow-hidden rounded-2xl border border-charcoal/15 bg-white shadow-[0_30px_80px_rgb(var(--color-violet-rgb)/0.25)]"
     >
             <div className="flex items-start justify-between gap-4 border-b border-charcoal/10 px-6 py-5">
               <div>
@@ -149,7 +149,7 @@ function PreferencesModal({ open, onClose }) {
               <button
                 type="button"
                 onClick={handleSave}
-                className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
+                className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
               >
                 <Check className="h-4 w-4" /> {t("cookies.savePrefs2")}
               </button>
@@ -181,7 +181,7 @@ export default function CookieBanner() {
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-x-3 bottom-3 z-[110] sm:inset-x-6 sm:bottom-6"
           >
-            <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl border border-charcoal/12 bg-white/95 p-5 shadow-[0_30px_80px_rgba(93,63,211,0.18)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-6 sm:p-6">
+            <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl border border-charcoal/12 bg-white/95 p-5 shadow-[0_30px_80px_rgb(var(--color-violet-rgb)/0.18)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-6 sm:p-6">
               <div className="flex shrink-0 items-start gap-3 sm:items-center">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Cookie className="h-5 w-5" />
@@ -219,7 +219,7 @@ export default function CookieBanner() {
                 <button
                   type="button"
                   onClick={acceptAll}
-                  className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
+                  className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
                 >
                   {t("cookies.acceptAll")}
                 </button>

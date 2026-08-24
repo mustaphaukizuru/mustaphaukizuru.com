@@ -160,7 +160,7 @@ export default function ProductCard({ product }) {
     >
     <SpotlightCard
       as="div"
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.04)] transition-shadow duration-300 hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.10)]"
     >
       <Link to={`/store/${product?.slug || ""}`} className="block">
         <div className="relative w-full overflow-hidden bg-mist">

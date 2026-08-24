@@ -33,7 +33,7 @@ export default function UnsubscribedPage() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="rounded-3xl border border-charcoal-80/10 bg-white p-10 text-center shadow-[0_30px_80px_rgba(93,63,211,0.08)] lg:p-14"
+          className="rounded-3xl border border-charcoal-80/10 bg-white p-10 text-center shadow-[0_30px_80px_rgb(var(--color-violet-rgb)/0.08)] lg:p-14"
         >
           <m.div
             initial={{ scale: 0, rotate: -180 }}
@@ -54,7 +54,7 @@ export default function UnsubscribedPage() {
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-3 text-meta font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+              className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-3 text-meta font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
             >
               <ArrowLeft className="h-4 w-4" />
               {t(`${k}.back`)}

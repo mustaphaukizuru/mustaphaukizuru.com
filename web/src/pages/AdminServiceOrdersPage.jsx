@@ -148,7 +148,7 @@ export default function AdminServiceOrdersPage() {
       )}
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
         {loading ? (
           <div className="flex items-center justify-center px-6 py-16 text-violet">
             <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />

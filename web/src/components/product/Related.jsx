@@ -45,7 +45,7 @@ function RelatedCard({ product }) {
     <SpotlightCard
       as={Link}
       to={`/store/${product.slug}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_12px_rgba(93,63,211,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(93,63,211,0.10)]"
+      className="group flex flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.10)]"
     >
       <div className="aspect-[4/3] overflow-hidden bg-mist">
         {imageUrl ? (

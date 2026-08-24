@@ -1,3 +1,4 @@
+import { TOKENS } from "../../styles/tokens.js"
 /**
  * BorderBeam · animated light beam tracing a card border — 21st.dev signature
  * ─────────────────────────────────────────────────────────────────────────
@@ -29,8 +30,8 @@
 export default function BorderBeam({
   size = 200,
   duration = 8,
-  colorFrom = "#5D3FD3",
-  colorTo = "#0284C7",
+  colorFrom = TOKENS.violet,
+  colorTo = TOKENS.azure,
   delay = 0,
   className = "",
 }) {

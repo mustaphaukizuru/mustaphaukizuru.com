@@ -89,7 +89,7 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
         </button>
         {open && (
           <div role="listbox" aria-label={t("language.ariaSelector")}
-            className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-1 shadow-[0_12px_36px_rgba(93,63,211,0.16)]">
+            className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-1 shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.16)]">
             {LANGS.map(({ code, name, Flag }) => (
               <button key={code} type="button" role="option" aria-selected={lang === code}
                 onClick={() => { switchTo(code); setOpen(false); }}
@@ -148,7 +148,7 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
       className={"inline-flex items-center gap-0.5 rounded-full border border-slate-200 bg-white p-0.5 " + className}>
       <button type="button" onClick={() => switchTo("en")} aria-pressed={lang === "en"}
         aria-label={t("language.switchTo", { lang: t("language.english") })}
-        className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 " + (lang === "en" ? "bg-violet text-white shadow-[0_2px_6px_rgba(93,63,211,0.18)]" : "text-charcoal/70 hover:bg-violet-pale hover:text-violet")}>
+        className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 " + (lang === "en" ? "bg-violet text-white shadow-[0_2px_6px_rgb(var(--color-violet-rgb)/0.18)]" : "text-charcoal/70 hover:bg-violet-pale hover:text-violet")}>
         <FlagEN className="h-3 w-[18px]" />EN
       </button>
       <button type="button" onClick={() => switchTo("es")} aria-pressed={lang === "es"}

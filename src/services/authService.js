@@ -331,9 +331,38 @@ async function createAccountClaim(userId) {
   return rawToken
 }
 
+/**
+ * Step 40 · server-side session revocation.
+ *
+ * Bumps the user's `tokensValidFrom` watermark to now, which authMiddleware
+ * compares against every JWT's `iat`. Because the watermark is per-user this
+ * invalidates EVERY outstanding session for that account — the cookie we
+ * just cleared, any Bearer token still cached by an old SPA build, and any
+ * long-lived rememberMe token on another device. That is the behaviour we
+ * want from an explicit sign-out: a session that lives in an httpOnly cookie
+ * cannot be deleted by the client itself, so the server has to be the one
+ * that makes it unusable.
+ *
+ * Never throws — sign-out must succeed even if the write fails, otherwise a
+ * DB hiccup would leave the user apparently signed in.
+ */
+async function revokeUserSessions(userId) {
+  if (!userId) return false
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data:  { tokensValidFrom: new Date() },
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
 module.exports = {
   registerUser,
   loginUser,
+  revokeUserSessions,
   completeLoginAfter2FA,
   getUserProfile,
   findOrCreateUserForCheckout,

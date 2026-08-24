@@ -40,7 +40,7 @@ function Avatar({ user, size = "md" }) {
   }
 
   return (
-    <div className={`${sizeClass} flex items-center justify-center rounded-full bg-gradient-to-br from-violet to-violet-deep font-bold text-white shadow-[0_4px_12px_rgba(93,63,211,0.25)]`}>
+    <div className={`${sizeClass} flex items-center justify-center rounded-full bg-gradient-to-br from-violet to-violet-deep font-bold text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.25)]`}>
       {initials}
     </div>
   )
@@ -90,7 +90,7 @@ export default function UserMenu() {
       <Link
         to="/login"
         state={{ from: returnTo }}
-        className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white shadow-[0_6px_18px_rgba(93,63,211,0.22)] transition-all hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_10px_24px_rgba(93,63,211,0.28)]"
+        className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white shadow-[0_6px_18px_rgb(var(--color-violet-rgb)/0.22)] transition-all hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.28)]"
       >
         {t("userMenu.memberLogin")}
       </Link>
@@ -107,7 +107,7 @@ export default function UserMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="true"
-        className="group flex items-center gap-2.5 rounded-xl border border-charcoal-80/10 bg-white px-3 py-2 shadow-sm transition-all hover:border-violet/20 hover:shadow-[0_4px_14px_rgba(93,63,211,0.10)]"
+        className="group flex items-center gap-2.5 rounded-xl border border-charcoal-80/10 bg-white px-3 py-2 shadow-sm transition-all hover:border-violet/20 hover:shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.10)]"
       >
         <Avatar user={user} size="sm" />
         <div className="hidden flex-col items-start md:flex">
@@ -125,7 +125,7 @@ export default function UserMenu() {
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-[200] w-64 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgba(93,63,211,0.14)]">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-[200] w-64 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgb(var(--color-violet-rgb)/0.14)]">
           {/* User info header */}
           <div className="flex items-center gap-3 border-b border-charcoal-80/8 bg-violet-pale/40 px-4 py-4">
             <Avatar user={user} size="md" />

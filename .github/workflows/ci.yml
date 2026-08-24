@@ -79,6 +79,14 @@ jobs:
         working-directory: web
         run: npm ci
 
+      # Roadmap step 22 — design-system lock. Fails when a raw hex, a brand
+      # rgba() triple, or a literal font-family reappears in web/src outside
+      # the documented allowlist. Runs BEFORE lint so a token regression is
+      # reported even when ESLint is also failing.
+      - name: Design tokens gate
+        working-directory: web
+        run: npm run lint:tokens
+
       - name: Lint
         working-directory: web
         run: npm run lint

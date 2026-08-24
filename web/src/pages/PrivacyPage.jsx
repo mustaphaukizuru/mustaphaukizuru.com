@@ -49,7 +49,7 @@ export default function PrivacyPage() {
   const { t } = useTranslation("legal")
   return (
     <div className="bg-mist">
-      <section className="py-16 text-center" style={{ backgroundColor: "#1A1B23" }}>
+      <section className="py-16 text-center" style={{ backgroundColor: "var(--color-charcoal)" }}>
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-terracotta">
             <Shield className="h-7 w-7" />
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
             and CookiePolicyPage for consistency across the legal trio. */}
         <nav
           aria-label={t("privacy.tocAria", { defaultValue: "Table of contents" })}
-          className="mb-8 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+          className="mb-8 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
         >
           <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
             {t("privacy.tocLabel", { defaultValue: "On this page" })}
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
               id={slug}
               // scroll-mt offset accounts for the sticky Header so the
               // section title isn't hidden behind it on anchor jumps.
-              className="scroll-mt-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+              className="scroll-mt-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -125,7 +125,7 @@ export default function PrivacyPage() {
             </m.section>
           ))}
         </article>
-        <div className="mt-8 flex items-center gap-4 rounded-xl p-6 text-white" style={{ backgroundColor: "#1A1B23" }}>
+        <div className="mt-8 flex items-center gap-4 rounded-xl p-6 text-white" style={{ backgroundColor: "var(--color-charcoal)" }}>
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
             <Mail className="h-6 w-6" />
           </div>

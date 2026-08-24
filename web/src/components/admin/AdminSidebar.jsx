@@ -169,7 +169,7 @@ function SidebarItem({ item }) {
           "group relative flex items-center gap-3 rounded-lg py-2.5 transition-all duration-150",
           // 4px Royal Violet left border on active per F10.G
           isActive
-            ? "bg-violet-pale border-l-[4px] border-l-violet pl-[calc(0.625rem-4px)] pr-2.5 text-violet shadow-[inset_0_0_0_1px_rgba(93,63,211,0.06)]"
+            ? "bg-violet-pale border-l-[4px] border-l-violet pl-[calc(0.625rem-4px)] pr-2.5 text-violet shadow-[inset_0_0_0_1px_rgb(var(--color-violet-rgb)/0.06)]"
             : "border-l-[4px] border-l-transparent pl-[calc(0.625rem-4px)] pr-2.5 text-charcoal-80 hover:bg-violet-ghost hover:text-violet",
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
         ].join(" ")
@@ -306,13 +306,13 @@ export default function AdminSidebar() {
 
   return (
     <aside
-      className="flex h-full min-h-0 w-full flex-col rounded-xl border border-charcoal-80/10 bg-white shadow-[0_14px_40px_rgba(93,63,211,0.06)]"
+      className="flex h-full min-h-0 w-full flex-col rounded-xl border border-charcoal-80/10 bg-white shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.06)]"
       aria-label="Admin navigation"
     >
       {/* Brand · sticky top */}
       <div className="border-b border-charcoal-80/10 px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_18px_rgba(93,63,211,0.22)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)]">
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
           </div>
           <div className="min-w-0">

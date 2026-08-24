@@ -19,7 +19,7 @@ export function BookCallButton({ slug = null, size = "md", tone = "violet", labe
     <Link
       to={bookHref(slug)}
       aria-label={t("funnel.ctaAria")}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold shadow-[0_8px_24px_rgba(93,63,211,0.18)] transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${sizes[size] || sizes.md} ${tones[tone] || tones.violet} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.18)] transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${sizes[size] || sizes.md} ${tones[tone] || tones.violet} ${className}`}
     >
       <Calendar className="h-4 w-4" aria-hidden="true" />
       {label || t("funnel.cta")}
@@ -44,7 +44,7 @@ export function StickyBookBar({ slug = null, title }) {
       aria-hidden={!visible}
       className={`fixed inset-x-0 bottom-0 z-40 transition-transform duration-300 ${visible ? "translate-y-0" : "translate-y-full"}`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 border-t border-violet/15 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgba(26,27,35,0.10)] backdrop-blur sm:px-6 lg:mb-4 lg:rounded-2xl lg:border lg:px-6">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 border-t border-violet/15 bg-white/95 px-4 py-3 shadow-[0_-8px_30px_rgb(var(--color-charcoal-rgb)/0.10)] backdrop-blur sm:px-6 lg:mb-4 lg:rounded-2xl lg:border lg:px-6">
         <div className="min-w-0">
           <div className="truncate text-[13px] font-bold text-violet">{title || t("funnel.stickyTitle")}</div>
           <div className="hidden text-micro text-charcoal-80/60 sm:block">{t("funnel.stickyBody")}</div>

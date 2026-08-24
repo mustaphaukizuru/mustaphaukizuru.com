@@ -146,13 +146,13 @@ function TabsTrigger({
   const baseInteractive =
     "inline-flex items-center gap-2 font-semibold whitespace-nowrap " +
     "transition-[color,background-color,border-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--ease-standard)] " +
-    "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)] " +
+    "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgb(var(--color-violet-rgb)/0.18)] " +
     "disabled:opacity-50 disabled:cursor-not-allowed"
 
   let visual
   if (variant === "pill") {
     visual = isActive
-      ? "bg-[var(--color-surface-card)] text-[var(--color-violet)] shadow-[0_2px_8px_rgba(93,63,211,0.10)] rounded-full px-3.5 py-1.5 text-[13px]"
+      ? "bg-[var(--color-surface-card)] text-[var(--color-violet)] shadow-[0_2px_8px_rgb(var(--color-violet-rgb)/0.10)] rounded-full px-3.5 py-1.5 text-[13px]"
       : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] rounded-full px-3.5 py-1.5 text-[13px]"
   } else if (variant === "segmented") {
     visual = isActive
@@ -214,7 +214,7 @@ function TabsPanel({ value: panelValue, children, className = "", forceMount = f
       hidden={!isActive}
       tabIndex={0}
       className={[
-        "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)] rounded-[8px]",
+        "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgb(var(--color-violet-rgb)/0.18)] rounded-[8px]",
         className,
       ]
         .filter(Boolean)

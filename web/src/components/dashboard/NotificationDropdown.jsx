@@ -165,7 +165,7 @@ export default function NotificationDropdown() {
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[360px] rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgba(93,63,211,0.14)]">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[360px] rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgb(var(--color-violet-rgb)/0.14)]">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-charcoal-80/10 px-4 py-3">
             <div>

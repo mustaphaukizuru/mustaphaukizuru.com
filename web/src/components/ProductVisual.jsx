@@ -17,7 +17,7 @@ export default function ProductVisual({
           {category}
         </div>
 
-        <div className={`mt-6 ${compact ? "text-xl" : "text-2xl"} font-['Sora'] font-semibold text-violet`}>
+        <div className={`mt-6 ${compact ? "text-xl" : "text-2xl"} font-display font-semibold text-violet`}>
           {title}
         </div>
 

@@ -94,16 +94,16 @@ export default function GoogleLoginButton({
           "min-h-[48px] px-5 py-3 sm:py-3.5",
           /* surface */
           "rounded-xl border border-charcoal-80/12 bg-white",
-          "shadow-[0_1px_2px_rgba(26,27,35,0.04)]",
+          "shadow-[0_1px_2px_rgb(var(--color-charcoal-rgb)/0.04)]",
           /* type */
           "font-display text-[14px] font-semibold text-charcoal-80/85 sm:text-[14.5px]",
           /* motion */
           "transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
           /* hover */
           "hover:-translate-y-0.5 hover:border-charcoal-80/22 hover:bg-mist",
-          "hover:shadow-[0_8px_20px_-6px_rgba(26,27,35,0.18)]",
+          "hover:shadow-[0_8px_20px_-6px_rgb(var(--color-charcoal-rgb)/0.18)]",
           /* active */
-          "active:translate-y-0 active:shadow-[0_1px_2px_rgba(26,27,35,0.04)]",
+          "active:translate-y-0 active:shadow-[0_1px_2px_rgb(var(--color-charcoal-rgb)/0.04)]",
           /* focus */
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2",
         ].join(" ")}

@@ -39,7 +39,7 @@ export default function Toaster() {
         classNames: {
           toast:
             "group !pointer-events-auto !rounded-2xl !border !border-charcoal-80/10 " +
-            "!bg-white/95 !shadow-[0_18px_50px_-12px_rgba(93,63,211,0.18),0_2px_8px_rgba(0,0,0,0.04)] " +
+            "!bg-white/95 !shadow-[0_18px_50px_-12px_rgb(var(--color-violet-rgb)/0.18),0_2px_8px_rgba(0,0,0,0.04)] " +
             "!backdrop-blur-md !text-charcoal-80 !p-4 !text-[13.5px] !font-medium",
           title: "!font-semibold !text-charcoal !leading-snug",
           description: "!mt-1 !text-[12.5px] !text-charcoal-80/70",

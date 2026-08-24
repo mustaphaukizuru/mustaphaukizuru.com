@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useReducedMotion } from "framer-motion"
+import { TOKENS } from "../../styles/tokens.js"
 
 const STYLE_ID = "ukz-meteors-kf"
 
@@ -17,7 +18,7 @@ function ensureKeyframes() {
   document.head.appendChild(style)
 }
 
-const COLORS = ["#7DD3FC", "#5D3FD3", "#0284C7"]
+const COLORS = [TOKENS.cyan, TOKENS.violet, TOKENS.azure]
 
 /**
  * Meteors · diagonal shooting-star streaks for dark surfaces — 21st.dev/Magic UI pattern

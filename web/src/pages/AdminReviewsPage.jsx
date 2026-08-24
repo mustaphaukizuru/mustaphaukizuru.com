@@ -16,7 +16,7 @@
      · Keyboard shortcuts: J/K to navigate, A approve, H hide.
      · Empty state nudges admin toward something to do.
 
-   Brand tokens: #5D3FD3 / #1A1B23 throughout. Framer Motion fade/stagger.
+   Brand tokens: var(--color-violet) / var(--color-charcoal) throughout. Framer Motion fade/stagger.
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
@@ -106,7 +106,7 @@ function FilterChips({ active, onSelect, stats }) {
             onClick={() => onSelect(s.key)}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${
               isActive
-                ? "bg-violet text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)]"
+                ? "bg-violet text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.20)]"
                 : "bg-violet-pale text-violet hover:bg-violet-pale"
             }`}
           >
@@ -133,8 +133,8 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
   return (
     <m.article
       variants={fadeUp}
-      className={`group relative flex items-start gap-3 rounded-2xl border bg-white p-4 transition hover:border-violet/30 hover:shadow-[0_8px_22px_rgba(93,63,211,0.06)] ${
-        selected ? "border-violet shadow-[0_8px_22px_rgba(93,63,211,0.10)]" : "border-charcoal/12"
+      className={`group relative flex items-start gap-3 rounded-2xl border bg-white p-4 transition hover:border-violet/30 hover:shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.06)] ${
+        selected ? "border-violet shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.10)]" : "border-charcoal/12"
       }`}
     >
       <input
@@ -312,7 +312,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
         aria-modal="true"
         initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed right-0 top-0 z-[111] flex h-full w-full max-w-xl flex-col overflow-hidden border-l border-charcoal/12 bg-white shadow-[-30px_0_80px_rgba(93,63,211,0.15)]"
+        className="fixed right-0 top-0 z-[111] flex h-full w-full max-w-xl flex-col overflow-hidden border-l border-charcoal/12 bg-white shadow-[-30px_0_80px_rgb(var(--color-violet-rgb)/0.15)]"
       >
         <header className="flex items-start justify-between gap-4 border-b border-charcoal/10 bg-violet-pale/40 px-6 py-5">
           <div className="min-w-0">
@@ -406,7 +406,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             />
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <button type="button" onClick={saveReply} disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)] transition hover:bg-violet-deep disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.20)] transition hover:bg-violet-deep disabled:opacity-60"
               >
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 {review.adminReply ? "Update reply" : "Post reply"}
@@ -483,7 +483,7 @@ function BulkBar({ count, onAction, onClear, busy }) {
   return (
     <m.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
-      className="sticky bottom-4 z-20 mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet/15 bg-white p-3 shadow-[0_12px_36px_rgba(93,63,211,0.15)]"
+      className="sticky bottom-4 z-20 mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet/15 bg-white p-3 shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.15)]"
     >
       <span className="text-[12.5px] font-semibold text-violet">
         {count} selected
@@ -651,7 +651,7 @@ export default function AdminReviewsPage() {
       </header>
 
       {stats && (
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_2px_10px_rgba(93,63,211,0.04)]">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]">
           <FilterChips active={activeStatus} onSelect={(s) => { clearSelection(); setActive(s) }} stats={stats} />
           <div className="ml-auto flex items-center gap-2 text-[12px] text-charcoal/65">
             <Star className="h-3.5 w-3.5 fill-terracotta text-terracotta" />

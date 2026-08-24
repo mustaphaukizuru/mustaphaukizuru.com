@@ -33,7 +33,7 @@ export default function SuccessCheck({ size = 96, tone = "mint", delay = 0, labe
     >
       {!inline && (
         <m.circle
-          cx="48" cy="48" r="44" fill="var(--color-mint, #34D399)"
+          cx="48" cy="48" r="44" fill="var(--color-mint, var(--color-mint-light))"
           initial={reduced ? false : { scale: 0 }} animate={{ scale: 1 }}
           style={{ transformOrigin: "48px 48px" }}
           transition={{ duration: 0.4, ease: EASE, delay }}

@@ -375,7 +375,7 @@ export default function AdminPortfolioFormPage() {
               <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">
                 Edit locale
               </span>
-              <div role="tablist" aria-label="Edit locale" className="inline-flex items-center gap-1 rounded-md bg-white p-0.5 shadow-[inset_0_0_0_1px_rgba(26,27,35,0.08)]">
+              <div role="tablist" aria-label="Edit locale" className="inline-flex items-center gap-1 rounded-md bg-white p-0.5 shadow-[inset_0_0_0_1px_rgb(var(--color-charcoal-rgb)/0.08)]">
                 <button
                   type="button"
                   role="tab"

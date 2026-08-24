@@ -125,14 +125,14 @@ function PaymentOption({ active, onClick, title, subtitle, badge, logo }) {
       aria-checked={active}
       className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all sm:gap-4 sm:p-4 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
         active
-          ? "border-[3px] border-violet bg-violet-ghost shadow-[0_8px_24px_rgba(93,63,211,0.10)]"
+          ? "border-[3px] border-violet bg-violet-ghost shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.10)]"
           : "border-2 border-charcoal-80/12 bg-white hover:border-violet/30"
       }`}
     >
       <div className="shrink-0">
         {logo || (
           <div className={`flex h-12 w-12 items-center justify-center rounded-xl border ${
-            active ? "border-violet/20 bg-violet-pale" : "border-charcoal-80/10 bg-[#f4f4f4]"
+            active ? "border-violet/20 bg-violet-pale" : "border-charcoal-80/10 bg-[var(--color-slate-50)]"
           }`}>
             <CreditCard className={`h-5 w-5 ${active ? "text-violet" : "text-charcoal-80/50"}`} aria-hidden="true" />
           </div>
@@ -166,7 +166,7 @@ function PaymentOption({ active, onClick, title, subtitle, badge, logo }) {
 //     visual weight in the radio group regardless of brand artwork.
 //   • Brand mark sized at ~50% of pill height — gives generous breathing
 //     room and prevents the "logo over the card" overflow seen pre-fix.
-//   • MercadoPago keeps its sacred yellow #FFE600 brand chip (LATAM
+//   • MercadoPago keeps its sacred yellow brand chip (LATAM
 //     recognition); PayPal sits on a neutral surface that tints to
 //     violet-pale on selection so the active card reads decisively.
 //   • Border softens on selection to ring the pill in violet, mirroring
@@ -496,7 +496,7 @@ export default function CheckoutPage() {
           <div className="flex flex-col gap-5">
 
             {/* Contact info, name + email */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <h2 className="mb-5 text-card font-bold text-violet">{t("sections.billing")}</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
@@ -580,7 +580,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Delivery */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <h2 className="mb-4 text-card font-bold text-violet">{t("delivery.label")}</h2>
               <div className="flex items-center gap-3 rounded-xl border border-mint/30 bg-mint/8 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint text-white">
@@ -595,7 +595,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* B08 · Billing address (preserved) */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-card font-bold text-violet">{t("misc.billingAddress")}</h2>
@@ -638,7 +638,7 @@ export default function CheckoutPage() {
                         onClick={() => setSelectedAddressId(isSelected ? "" : addr.id)}
                         className={`flex w-full items-start gap-3 rounded-xl p-3 text-left transition-all sm:gap-4 sm:p-4 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                           isSelected
-                            ? "border-2 border-violet bg-violet-ghost shadow-[0_6px_18px_rgba(93,63,211,0.08)]"
+                            ? "border-2 border-violet bg-violet-ghost shadow-[0_6px_18px_rgb(var(--color-violet-rgb)/0.08)]"
                             : "border-2 border-charcoal-80/10 hover:border-violet/30"
                         }`}
                       >
@@ -677,7 +677,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Payment method · F08.B · 3px violet border on selected */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <h2 className="mb-4 text-card font-bold text-violet">{t("sections.payment")}</h2>
               <div role="radiogroup" aria-label={t("payment.ariaLabel")} className="flex flex-col gap-3">
                 <PaymentOption
@@ -754,13 +754,13 @@ export default function CheckoutPage() {
                 Brand v3 §06 — the canonical 2-stop violet→azure gradient
                 lives in the bg-grad-innovation utility class. Previously
                 this used an inline 3-stop gradient with off-palette
-                #7c3aed; switched to the utility for token alignment and
+                Tailwind violet-600; switched to the utility for token alignment and
                 visual parity with the CartPage primary action. */}
             <button
               type="button"
               onClick={handleSubmit}
               disabled={loading || paypalLoading}
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-grad-innovation py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgba(93,63,211,0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(93,63,211,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 disabled:opacity-60 disabled:hover:translate-y-0"
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-grad-innovation py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgb(var(--color-violet-rgb)/0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 disabled:opacity-60 disabled:hover:translate-y-0"
             >
               {(loading || paypalLoading) ? (
                 <><Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> {t("payment.processing")}</>
@@ -789,7 +789,7 @@ export default function CheckoutPage() {
 
             {/* PayPal buttons render target */}
             {paymentMethod === "paypal" && orderCreated?.id && (
-              <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+              <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
                 <div className="mb-3 text-meta font-semibold text-violet">{t("misc.completePayPal")}</div>
                 <div ref={paypalRef} className="min-h-[50px]" />
               </div>
@@ -820,7 +820,7 @@ export default function CheckoutPage() {
 
           {/* ── RIGHT · Order summary sidebar ────────────────────────────── */}
           <div>
-            <div className="sticky top-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.06)]">
+            <div className="sticky top-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)]">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-card font-bold text-violet">{t("sections.summary")}</h2>
                 <span className="rounded-xl bg-violet-pale px-3 py-1 font-mono text-micro font-semibold tabular-nums text-violet">

@@ -36,9 +36,9 @@ const DEBOUNCE_MS = 220
 const RESULT_LIMIT = 8
 
 const PALETTE_BG =
-  "radial-gradient(at 20% 0%, rgba(93,63,211,0.95) 0px, transparent 60%), " +
+  "radial-gradient(at 20% 0%, rgb(var(--color-violet-rgb)/0.95) 0px, transparent 60%), " +
   "radial-gradient(at 100% 100%, rgba(61,42,138,0.95) 0px, transparent 55%), " +
-  "linear-gradient(180deg, #3B2487 0%, #1A1B23 100%)"
+  "linear-gradient(180deg, var(--color-action-primary-active) 0%, var(--color-charcoal) 100%)"
 
 /* ─────────────────────────── helpers ────────────────────────────────────── */
 

@@ -169,7 +169,7 @@ function Modal({
               onClick={handleBackdrop}
               className={cx(
                 "absolute inset-0",
-                backdropClassName || "bg-[rgba(26,27,35,0.55)] backdrop-blur-[2px]"
+                backdropClassName || "bg-[rgb(var(--color-charcoal-rgb)/0.55)] backdrop-blur-[2px]"
               )}
               aria-hidden="true"
             />

@@ -87,7 +87,7 @@ export default function DashboardProjectsPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: idx * 0.04, ease: "easeOut" }}
-                className="flex flex-col gap-4 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(93,63,211,0.10)]"
+                className="flex flex-col gap-4 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgb(var(--color-violet-rgb)/0.10)]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

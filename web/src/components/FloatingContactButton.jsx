@@ -124,7 +124,7 @@ export default function FloatingContactButton() {
                 exit={{ opacity: 0, scale: 0.8, y: 8 }}
                 transition={{ duration: 0.2 }}
                 whileHover={reduced ? undefined : { y: -2 }}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-charcoal-80/10 bg-white text-violet shadow-[0_8px_24px_rgba(93,63,211,0.18)] transition hover:border-violet/30 hover:text-violet-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-charcoal-80/10 bg-white text-violet shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.18)] transition hover:border-violet/30 hover:text-violet-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2"
               >
                 <ArrowUp className="h-5 w-5" strokeWidth={2.4} aria-hidden="true" />
               </m.button>
@@ -149,7 +149,7 @@ export default function FloatingContactButton() {
                       variants={itemVariants}
                       initial="hidden"
                       animate="show"
-                      className="flex items-center gap-3 rounded-2xl border border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_8px_28px_rgba(93,63,211,0.12)] transition hover:-translate-x-0.5 hover:border-violet/30 hover:shadow-[0_12px_36px_rgba(93,63,211,0.18)]"
+                      className="flex items-center gap-3 rounded-2xl border border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_8px_28px_rgb(var(--color-violet-rgb)/0.12)] transition hover:-translate-x-0.5 hover:border-violet/30 hover:shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.18)]"
                       role="menuitem"
                       key={label}
                     >
@@ -203,8 +203,8 @@ export default function FloatingContactButton() {
               onClick={() => setOpen((o) => !o)}
               aria-label={open ? t("fab.closeLabel") : t("fab.openLabel")}
               aria-expanded={open}
-              className="relative flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_32px_rgba(93,63,211,0.40)] transition-all duration-300 hover:scale-110 hover:shadow-[0_12px_40px_rgba(93,63,211,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2"
-              style={{ background: "linear-gradient(135deg, #5D3FD3, #0284C7)" }}
+              className="relative flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_32px_rgb(var(--color-violet-rgb)/0.40)] transition-all duration-300 hover:scale-110 hover:shadow-[0_12px_40px_rgb(var(--color-violet-rgb)/0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2"
+              style={{ background: "linear-gradient(135deg, var(--color-violet), var(--color-azure))" }}
             >
               <AnimatePresence mode="wait">
                 {open ? (

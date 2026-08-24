@@ -31,7 +31,7 @@ const VARIANT = {
     "hover:bg-[var(--color-violet-pale)]",
   solid:
     "bg-[var(--color-action-primary)] text-[var(--color-text-on-violet)] " +
-    "shadow-[0_4px_14px_rgba(93,63,211,0.18)] " +
+    "shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.18)] " +
     "hover:bg-[var(--color-action-primary-hover)]",
   destructive:
     "bg-transparent text-[var(--color-feedback-danger)] " +
@@ -84,7 +84,7 @@ const IconButton = forwardRef(function IconButton(
         "relative inline-flex items-center justify-center select-none",
         "transition-[background-color,color,border-color,box-shadow,transform]",
         "duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
-        "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)]",
+        "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgb(var(--color-violet-rgb)/0.18)]",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         "motion-safe:active:translate-y-[1px]",
         cfg.box,

@@ -83,7 +83,7 @@ const DAY_STYLE = {
   empty: { wrap: "invisible", num: "" },
   weekend: { wrap: "bg-violet-ghost/70", num: "!text-charcoal/45" },
   available:{ wrap: "bg-white ring-1 ring-mint-400/45", num: "!text-violet" },
-  today: { wrap: "bg-terracotta shadow-[0_6px_18px_rgba(233,196,106,0.55)]", num: "!text-violet font-extrabold" },
+  today: { wrap: "bg-terracotta shadow-[0_6px_18px_rgb(var(--color-terracotta-rgb)/0.55)]", num: "!text-violet font-extrabold" },
   booked: { wrap: "bg-violet", num: "!text-white" },
   kickoff: { wrap: "bg-violet-pale ring-1 ring-violet/55", num: "!text-violet" },
   progress: { wrap: "bg-[#fed978]", num: "!text-[#5a4506]" },
@@ -241,15 +241,15 @@ function BookingCalendar({ reduce }) {
           viewBox="0 0 200 70"
           className="pointer-events-none absolute -left-3 -top-7 z-20 h-14 w-44"
         >
-          <text x="0" y="22" fontFamily="'Caveat','Brush Script MT',cursive" fontSize="22" fontWeight="700" fill="#E9C46A">
+          <text x="0" y="22" fontFamily="var(--font-script)" fontSize="22" fontWeight="700" fill="var(--color-terracotta)">
             {t("hero.letsBuild")}
           </text>
           <path
             d="M85 28 C 110 36, 135 46, 160 60"
-            stroke="#E9C46A" strokeWidth="1.6" fill="none"
+            stroke="var(--color-terracotta)" strokeWidth="1.6" fill="none"
             strokeLinecap="round" strokeDasharray="4 4" opacity="0.75"
           />
-          <polygon points="155,55 167,58 161,67" fill="#E9C46A" opacity="0.8" />
+          <polygon points="155,55 167,58 161,67" fill="var(--color-terracotta)" opacity="0.8" />
         </svg>
 
         {/* ── "{t("hero.repliesIn")}" yellow pill · top-right rotated ───── */}
@@ -308,9 +308,9 @@ function BookingCalendar({ reduce }) {
                       reduce || !active
                         ? undefined
                         : { boxShadow: [
-                            "0 0 0 0 rgba(93,63,211,0.35)",
-                            "0 0 0 6px rgba(93,63,211,0)",
-                            "0 0 0 0 rgba(93,63,211,0)",
+                            "0 0 0 0 rgb(var(--color-violet-rgb)/0.35)",
+                            "0 0 0 6px rgb(var(--color-violet-rgb)/0)",
+                            "0 0 0 0 rgb(var(--color-violet-rgb)/0)",
                           ] }
                     }
                     transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
@@ -408,7 +408,7 @@ function BookingCalendar({ reduce }) {
           <div className="border-t border-violet/10 bg-white px-5 py-2.5">
             <Link
               to="/book"
-              className="group flex w-full items-center justify-center gap-2 rounded-full bg-violet px-4 py-2 text-[12px] font-extrabold uppercase tracking-[0.14em] !text-white shadow-[0_10px_22px_rgba(93,63,211,0.30)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/45"
+              className="group flex w-full items-center justify-center gap-2 rounded-full bg-violet px-4 py-2 text-[12px] font-extrabold uppercase tracking-[0.14em] !text-white shadow-[0_10px_22px_rgb(var(--color-violet-rgb)/0.30)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/45"
             >
               <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
               {t("hero.pickSlot")}
@@ -471,7 +471,7 @@ function BookingCalendar({ reduce }) {
         >
           <div className="rounded-md border-[1.5px] border-[#1f2937] bg-white px-3 py-1 shadow-[0_10px_24px_rgba(0,0,0,0.30)]">
             <span
-              style={{ fontFamily: "'Caveat','Brush Script MT',cursive" }}
+              style={{ fontFamily: "var(--font-script)" }}
               className="text-[15px] font-extrabold !text-[#1f3508]"
             >
               {t("hero.letsBuildCheck")}
@@ -517,7 +517,7 @@ export default function ContactHero() {
         className="relative overflow-hidden py-12 sm:py-16 lg:py-20"
         style={{
           backgroundImage:
-            "radial-gradient(80% 70% at 80% 20%, #3B2487 0%, #1A1B23 45%, #0F1018 100%)",
+            "radial-gradient(80% 70% at 80% 20%, var(--color-action-primary-active) 0%, var(--color-charcoal) 45%, var(--color-charcoal-deep) 100%)",
         }}
       >
         {/* ── Drifting orbs (violet × 2 + terracotta) ────────────── */}
@@ -599,7 +599,7 @@ export default function ContactHero() {
                   className="pointer-events-none absolute inset-0 rounded-full opacity-60"
                   style={{
                     background:
-                      "radial-gradient(60% 100% at 50% 0%, rgba(233,196,106,0.18), transparent 70%)",
+                      "radial-gradient(60% 100% at 50% 0%, rgb(var(--color-terracotta-rgb)/0.18), transparent 70%)",
                   }}
                   aria-hidden="true"
                 />
@@ -617,7 +617,7 @@ export default function ContactHero() {
                   className="!text-terracotta"
                   style={{
                     background:
-                      "linear-gradient(180deg, #FFD9BB 0%, #E9C46A 50%, #F0B58C 100%)",
+                      "linear-gradient(180deg, #FFD9BB 0%, var(--color-terracotta) 50%, #F0B58C 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
@@ -642,7 +642,7 @@ export default function ContactHero() {
               >
                 <Link
                   to="/book"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-terracotta px-7 py-3.5 text-[13.5px] font-bold !text-violet shadow-[0_14px_36px_rgba(233,196,106,0.25)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal sm:text-[14px]"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-terracotta px-7 py-3.5 text-[13.5px] font-bold !text-violet shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.25)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal sm:text-[14px]"
                 >
                   <Calendar className="h-4 w-4" aria-hidden="true" />
                   {t("hero.bookDiscovery")}
@@ -672,7 +672,7 @@ export default function ContactHero() {
                       className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                       style={{
                         background:
-                          "radial-gradient(80% 100% at 50% 100%, rgba(93,63,211,0.25), transparent 70%)",
+                          "radial-gradient(80% 100% at 50% 100%, rgb(var(--color-violet-rgb)/0.25), transparent 70%)",
                       }}
                     />
                     <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15 transition group-hover:bg-white/15 sm:h-9 sm:w-9">

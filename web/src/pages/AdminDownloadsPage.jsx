@@ -192,7 +192,7 @@ export default function AdminDownloadsPage() {
       {/* Two-column: Top products list + Download activity table */}
       <div className="grid gap-4 xl:grid-cols-[1fr_1.5fr]">
         {/* Top products card (kept as ranked list, better than table for top-N) */}
-        <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <h3 className="truncate text-card font-bold text-violet">Top Downloaded Products</h3>

@@ -187,11 +187,11 @@ export default function DashboardProfilePage() {
       <div className="grid gap-5 xl:grid-cols-[320px_1fr]">
 
         {/* Avatar card */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex flex-col items-center text-center gap-4">
             {/* Avatar with upload overlay */}
             <div className="relative group">
-              <div className="h-24 w-24 overflow-hidden rounded-xl bg-violet shadow-[0_12px_28px_rgba(93,63,211,0.18)]">
+              <div className="h-24 w-24 overflow-hidden rounded-xl bg-violet shadow-[0_12px_28px_rgb(var(--color-violet-rgb)/0.18)]">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={user?.fullName} className="h-full w-full object-cover" />
                 ) : (
@@ -248,7 +248,7 @@ export default function DashboardProfilePage() {
 
         {/* Details card */}
         <div className="flex flex-col gap-5">
-          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <h3 className="text-card font-semibold text-violet">{t("profile.account.title")}</h3>
@@ -320,7 +320,7 @@ export default function DashboardProfilePage() {
                 users (just new + confirm, with an explanatory intro
                 paragraph framing why this is useful and that we never
                 see their Google password). */}
-          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-pale text-violet">

@@ -76,16 +76,16 @@ const TRUST_BULLETS = [
 const REVIEW_INITIALS = ["AM", "JN", "CK", "TM"]
 
 const HERO_BG =
-  "radial-gradient(at 100% 0%, rgba(124,58,237,0.10) 0px, transparent 55%), " +
-  "radial-gradient(at 0% 100%, rgba(233,196,106,0.18) 0px, transparent 50%), " +
-  "linear-gradient(160deg, #F8FAFC 0%, #EFE7F8 40%, #EFF1F5 100%)"
+  "radial-gradient(at 100% 0%, rgb(var(--color-violet-rgb)/0.10) 0px, transparent 55%), " +
+  "radial-gradient(at 0% 100%, rgb(var(--color-terracotta-rgb)/0.18) 0px, transparent 50%), " +
+  "linear-gradient(160deg, var(--color-mist) 0%, var(--color-violet-pale) 40%, var(--color-slate-100) 100%)"
 
 // Conic ring around the portrait. Middle stop uses Violet Light
-// (#8B6FE8, brand v3 --u-violet-lt) instead of Tailwind's off-palette
-// #7c3aed — keeps the brightness arc while staying in the sanctioned
+// (var(--color-violet-light), brand v3 --u-violet-lt) instead of Tailwind's off-palette
+// Tailwind violet-600 — keeps the brightness arc while staying in the sanctioned
 // token system per Brand v3 §04 (no hex outside the five tiers).
 const RING_GRADIENT =
-  "conic-gradient(from 0deg, #E9C46A 0%, #5D3FD3 35%, #8B6FE8 50%, #5D3FD3 65%, #E9C46A 100%)"
+  "conic-gradient(from 0deg, var(--color-terracotta) 0%, var(--color-violet) 35%, var(--color-violet-light) 50%, var(--color-violet) 65%, var(--color-terracotta) 100%)"
 
 /* ─────────────────────────── component ───────────────────────────────── */
 
@@ -195,7 +195,7 @@ export default function AboutHero() {
               <Link
                 to="/contact"
                 aria-label={t("hero.contactAria")}
-                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-grad-innovation px-6 py-3.5 text-[14px] font-bold !text-white shadow-[0_14px_34px_-8px_rgba(93,63,211,0.55),0_4px_10px_-2px_rgba(2,132,199,0.25)] ring-1 ring-inset ring-white/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-8px_rgba(93,63,211,0.65),0_6px_14px_-2px_rgba(2,132,199,0.32)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/50 focus-visible:ring-offset-2"
+                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-grad-innovation px-6 py-3.5 text-[14px] font-bold !text-white shadow-[0_14px_34px_-8px_rgb(var(--color-violet-rgb)/0.55),0_4px_10px_-2px_rgb(var(--color-azure-rgb)/0.25)] ring-1 ring-inset ring-white/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-8px_rgb(var(--color-violet-rgb)/0.65),0_6px_14px_-2px_rgb(var(--color-azure-rgb)/0.32)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/50 focus-visible:ring-offset-2"
               >
                 <span
                   aria-hidden="true"
@@ -247,12 +247,12 @@ export default function AboutHero() {
             <div
               aria-hidden="true"
               className="absolute inset-[6px] rounded-full"
-              style={{ background: "#F8FAFC" }}
+              style={{ background: "var(--color-mist)" }}
             />
 
             {/* Portrait, gentle idle float */}
             <div
-              className="ukz-about-float relative z-10 overflow-hidden rounded-full shadow-[0_20px_60px_-10px_rgba(93,63,211,0.30)]"
+              className="ukz-about-float relative z-10 overflow-hidden rounded-full shadow-[0_20px_60px_-10px_rgb(var(--color-violet-rgb)/0.30)]"
               style={{ width: "min(320px, 80vw)", height: "min(380px, 95vw)" }}
             >
               <Image
@@ -290,7 +290,7 @@ export default function AboutHero() {
 
             {/* Review card */}
             <m.div variants={fadeUp} className="flex justify-end">
-              <div className="rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_32px_-8px_rgba(93,63,211,0.15)]">
+              <div className="rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_32px_-8px_rgb(var(--color-violet-rgb)/0.15)]">
                 <div className="flex items-center gap-3 text-[13px] font-semibold">
                   <span className="text-[12px] font-normal text-charcoal-80/60">
                     {t("hero.clientReviews")}
@@ -469,7 +469,7 @@ function CvPicker({ t }) {
             // moved INSIDE the <ul> so the rounded corners + header stay
             // intact while the menu body scrolls.
             className={[
-              "absolute left-0 z-30 w-[min(20rem,90vw)] overflow-hidden rounded-xl border border-charcoal-80/8 bg-white shadow-[0_18px_44px_-12px_rgba(93,63,211,0.28)]",
+              "absolute left-0 z-30 w-[min(20rem,90vw)] overflow-hidden rounded-xl border border-charcoal-80/8 bg-white shadow-[0_18px_44px_-12px_rgb(var(--color-violet-rgb)/0.28)]",
               "max-h-[min(70vh,420px)] flex flex-col",
               placement === "top" ? "bottom-full mb-2" : "top-full mt-2",
             ].join(" ")}

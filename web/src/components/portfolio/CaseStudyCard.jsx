@@ -25,7 +25,7 @@ export default function CaseStudyCard({ item }) {
   return (
     <m.article
       variants={fadeUp}
-      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(93,63,211,0.12)]"
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgb(var(--color-violet-rgb)/0.12)]"
     >
       <Link to={`/projects/${item.slug}`} className="flex h-full flex-col focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30">
         {/* Cover */}

@@ -229,8 +229,8 @@ function Sparkline({ points }) {
       <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label="Daily pageviews trend">
         <defs>
           <linearGradient id="sparklineFill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#5D3FD3" stopOpacity="0.20" />
-            <stop offset="100%" stopColor="#5D3FD3" stopOpacity="0.00" />
+            <stop offset="0%" stopColor="var(--color-violet)" stopOpacity="0.20" />
+            <stop offset="100%" stopColor="var(--color-violet)" stopOpacity="0.00" />
           </linearGradient>
         </defs>
         {/* horizontal grid — currentColor inherits from the parent's
@@ -241,9 +241,9 @@ function Sparkline({ points }) {
           return <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="currentColor" strokeOpacity="0.10" strokeDasharray="2 4" />
         })}
         <path d={areaPath} fill="url(#sparklineFill)" />
-        <path d={linePath} fill="none" stroke="#5D3FD3" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        <path d={linePath} fill="none" stroke="var(--color-violet)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
         {coords.map((c, i) => (
-          <circle key={i} cx={c.x} cy={c.y} r="3" fill="#5D3FD3">
+          <circle key={i} cx={c.x} cy={c.y} r="3" fill="var(--color-violet)">
             <title>{`${c.day}: ${c.val} pageviews`}</title>
           </circle>
         ))}

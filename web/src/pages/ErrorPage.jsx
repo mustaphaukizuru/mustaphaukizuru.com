@@ -113,48 +113,48 @@ function NotFoundArt() {
       focusable="false"
     >
       {/* Ground shadow */}
-      <ellipse cx="100" cy="122" rx="64" ry="7" fill="#5D3FD3" opacity="0.08" />
+      <ellipse cx="100" cy="122" rx="64" ry="7" fill="var(--color-violet)" opacity="0.08" />
       {/* Browser window */}
-      <rect x="34" y="14" width="132" height="92" rx="12" fill="#FFFFFF" stroke="#5D3FD3" strokeOpacity="0.22" strokeWidth="2" />
-      <line x1="34" y1="36" x2="166" y2="36" stroke="#5D3FD3" strokeOpacity="0.14" strokeWidth="2" />
+      <rect x="34" y="14" width="132" height="92" rx="12" fill="#FFFFFF" stroke="var(--color-violet)" strokeOpacity="0.22" strokeWidth="2" />
+      <line x1="34" y1="36" x2="166" y2="36" stroke="var(--color-violet)" strokeOpacity="0.14" strokeWidth="2" />
       {/* Traffic dots */}
-      <circle cx="48" cy="25" r="3.5" fill="#E9C46A" />
-      <circle cx="60" cy="25" r="3.5" fill="#34D399" />
-      <circle cx="72" cy="25" r="3.5" fill="#0284C7" />
+      <circle cx="48" cy="25" r="3.5" fill="var(--color-terracotta)" />
+      <circle cx="60" cy="25" r="3.5" fill="var(--color-mint-light)" />
+      <circle cx="72" cy="25" r="3.5" fill="var(--color-azure)" />
       {/* Ghost content lines */}
-      <rect x="48" y="48" width="58" height="7" rx="3.5" fill="#5D3FD3" opacity="0.12" />
-      <rect x="48" y="62" width="84" height="7" rx="3.5" fill="#5D3FD3" opacity="0.08" />
-      <rect x="48" y="76" width="42" height="7" rx="3.5" fill="#5D3FD3" opacity="0.08" />
+      <rect x="48" y="48" width="58" height="7" rx="3.5" fill="var(--color-violet)" opacity="0.12" />
+      <rect x="48" y="62" width="84" height="7" rx="3.5" fill="var(--color-violet)" opacity="0.08" />
+      <rect x="48" y="76" width="42" height="7" rx="3.5" fill="var(--color-violet)" opacity="0.08" />
       {/* Dashed search trail ending nowhere */}
       <path
         d="M52 94 C 78 88, 102 96, 124 84"
         fill="none"
-        stroke="#0284C7"
+        stroke="var(--color-azure)"
         strokeOpacity="0.5"
         strokeWidth="2"
         strokeDasharray="5 5"
         strokeLinecap="round"
       />
       {/* Magnifier */}
-      <circle cx="134" cy="76" r="17" fill="#0284C7" fillOpacity="0.08" stroke="#0284C7" strokeWidth="4" />
-      <line x1="146.5" y1="88.5" x2="160" y2="102" stroke="#0284C7" strokeWidth="6" strokeLinecap="round" />
+      <circle cx="134" cy="76" r="17" fill="var(--color-azure)" fillOpacity="0.08" stroke="var(--color-azure)" strokeWidth="4" />
+      <line x1="146.5" y1="88.5" x2="160" y2="102" stroke="var(--color-azure)" strokeWidth="6" strokeLinecap="round" />
       {/* The missing-page question mark inside the glass */}
       <text
         x="134"
         y="83"
         textAnchor="middle"
-        fontFamily="'JetBrains Mono', ui-monospace, monospace"
+        fontFamily="var(--font-mono)"
         fontSize="19"
         fontWeight="700"
-        fill="#5D3FD3"
+        fill="var(--color-violet)"
       >
         ?
       </text>
       {/* Floating accents */}
-      <circle cx="22" cy="44" r="5" fill="#E9C46A" opacity="0.7" />
-      <circle cx="180" cy="32" r="4" fill="#5D3FD3" opacity="0.35" />
-      <circle cx="186" cy="78" r="3" fill="#34D399" opacity="0.6" />
-      <circle cx="16" cy="86" r="3" fill="#0284C7" opacity="0.45" />
+      <circle cx="22" cy="44" r="5" fill="var(--color-terracotta)" opacity="0.7" />
+      <circle cx="180" cy="32" r="4" fill="var(--color-violet)" opacity="0.35" />
+      <circle cx="186" cy="78" r="3" fill="var(--color-mint-light)" opacity="0.6" />
+      <circle cx="16" cy="86" r="3" fill="var(--color-azure)" opacity="0.45" />
     </svg>
   )
 }
@@ -275,7 +275,7 @@ export default function ErrorPage({
           key="retry"
           type="button"
           onClick={handleRetry}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
         >
           <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("actions.tryAgain")}
         </button>
@@ -288,7 +288,7 @@ export default function ErrorPage({
           key="signIn"
           type="button"
           onClick={handleSignIn}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
         >
           <LogIn className="h-4 w-4" aria-hidden="true" /> {t("actions.signIn")}
         </button>
@@ -366,7 +366,7 @@ export default function ErrorPage({
           ) : (
             <m.div
               variants={fadeUp}
-              className={`flex h-24 w-24 items-center justify-center rounded-2xl ring-1 ${tone.tile} ${tone.ring} shadow-[0_12px_32px_rgba(15,23,42,0.06)]`}
+              className={`flex h-24 w-24 items-center justify-center rounded-2xl ring-1 ${tone.tile} ${tone.ring} shadow-[0_12px_32px_rgb(var(--color-charcoal-rgb)/0.06)]`}
               aria-hidden="true"
             >
               <Icon className="h-12 w-12" strokeWidth={1.6} />

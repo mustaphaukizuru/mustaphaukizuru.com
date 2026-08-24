@@ -55,7 +55,7 @@ const asList = (res) => (Array.isArray(res) ? res : Array.isArray(res?.data) ? r
 function Block({ title, icon: Icon, to, linkLabel, query, empty, children, className = "" }) {
   const { t } = useTranslation("dashboard")
   return (
-    <div className={`flex flex-col rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] ${className}`}>
+    <div className={`flex flex-col rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] ${className}`}>
       <div className="flex items-center justify-between gap-3 border-b border-charcoal-80/8 px-5 py-4">
         <h3 className="flex items-center gap-2 text-card font-bold text-violet">
           <Icon className="h-4 w-4" aria-hidden="true" />
@@ -184,7 +184,7 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+          className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
         >
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
@@ -199,7 +199,7 @@ export default function DashboardPage() {
             </div>
             <Link
               to="/store"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgba(93,63,211,0.22)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
             >
               <ShoppingBag className="h-3.5 w-3.5" aria-hidden="true" />
               {t("overview.welcome.browseStore")}
@@ -209,7 +209,7 @@ export default function DashboardPage() {
 
         {/* ── Profile completion (only when < 100%) ──────────────────── */}
         {profileStats.percent < 100 && (
-          <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                 <UserIcon className="h-5 w-5" aria-hidden="true" />

@@ -150,7 +150,7 @@ function BulkActionsToolbar({ selectedCount, actions, onClear, totalCount }) {
           aria-live="polite"
           aria-label={`${selectedCount} of ${totalCount} rows selected`}
         >
-          <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-violet/20 bg-white px-4 py-2.5 shadow-[0_18px_44px_rgba(93,63,211,0.18)]">
+          <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-violet/20 bg-white px-4 py-2.5 shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.18)]">
             <div className="flex items-center gap-2">
               <span className="rounded-md bg-violet px-2 py-0.5 font-mono text-[11px] font-bold tabular-nums text-white">
                 {selectedCount}
@@ -330,7 +330,7 @@ export default function DataTable({
   const someOnPageSelected = pagedRows.some((r) => selected.has(rowKey(r))) && !allOnPageSelected
 
   return (
-    <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+    <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
       {/* Toolbar */}
       <div className="flex flex-col gap-3 border-b border-charcoal-80/8 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">

@@ -109,7 +109,7 @@ export default function DashboardOrderDetailPage() {
       </Link>
 
       {/* Header card */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/45">
@@ -137,7 +137,7 @@ export default function DashboardOrderDetailPage() {
       </div>
 
       {/* Items */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
         <h2 className="text-card font-bold text-violet">
           {t("orderDetail.items", "Items")}
         </h2>

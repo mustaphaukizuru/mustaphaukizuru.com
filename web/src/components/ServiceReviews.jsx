@@ -18,7 +18,7 @@ import {
   deleteServiceReview,
   markReviewHelpful,
 } from "../services/reviewService"
-import { getStoredUser, getStoredToken } from "../lib/api"
+import { getStoredUser } from "../lib/api"
 
 import { useTranslation } from "react-i18next"
 /* ─── atoms (identical to ProductReviews) ─────────────────────────────── */
@@ -150,7 +150,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
   const [formSuccess, setFormSuccess] = useState("")
 
   const currentUser = getStoredUser()
-  const isLoggedIn = Boolean(getStoredToken())
+  const isLoggedIn = Boolean(getStoredUser())
 
   const loadReviews = useCallback(async () => {
     try {
@@ -256,7 +256,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-xl border border-violet/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+          className="space-y-4 rounded-xl border border-violet/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
         >
           <div>
             <label className="mb-2 block text-sm font-semibold text-violet">{t("reviews.yourRating")}</label>
@@ -317,7 +317,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
             return (
               <article
                 key={review.id}
-                className="rounded-xl border border-charcoal-80/8 bg-white p-5 shadow-[0_2px_8px_rgba(93,63,211,0.03)]"
+                className="rounded-xl border border-charcoal-80/8 bg-white p-5 shadow-[0_2px_8px_rgb(var(--color-violet-rgb)/0.03)]"
               >
                 <header className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">

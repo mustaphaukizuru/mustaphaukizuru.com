@@ -11,7 +11,7 @@ function PagerCell({ item, dir }) {
     <Link
       to={`/projects/${item.slug}`}
       rel={dir}
-      className={`group flex items-center gap-4 rounded-2xl border border-charcoal-80/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_30px_rgba(93,63,211,0.10)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${isNext ? "flex-row-reverse text-right" : ""}`}
+      className={`group flex items-center gap-4 rounded-2xl border border-charcoal-80/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_30px_rgb(var(--color-violet-rgb)/0.10)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${isNext ? "flex-row-reverse text-right" : ""}`}
     >
       <div className="hidden h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-violet-pale sm:block">
         {item.coverImage ? (

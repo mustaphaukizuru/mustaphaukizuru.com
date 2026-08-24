@@ -5,10 +5,12 @@ import {
   Download, Package, Clock3, FileArchive, RefreshCw, AlertCircle, CheckCircle2,
   Search, X, Calendar, FileText, Loader2, ShoppingBag, Sparkles, ExternalLink,
 } from "lucide-react"
-import { MetricCard, SkeletonCard, SectionCard } from "../components/ui/index"
-import { authFetch, API_BASE_URL, getStoredToken } from "../lib/api"
+import { MetricCard, SectionCard } from "../components/ui/index"
+import Skeleton from "../components/ui/SkeletonPrimitives"
+import { authFetch, API_BASE_URL, hasStoredSession } from "../lib/api"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import { downloadFileById, downloadInvoice, downloadErrorKey } from "../components/product/downloadHelpers"
+import SuccessCheck from "../components/motion/SuccessCheck"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  DashboardDownloadsPage · roadmap 26 · grouped by order
@@ -94,7 +96,15 @@ function FileRow({ file, product, state, onDownload }) {
               : "bg-violet text-white hover:-translate-y-0.5 hover:bg-violet-deep disabled:opacity-60"
         }`}
       >
-        {state.busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4 transition group-hover:translate-y-0.5" aria-hidden="true" />}
+        {/* Fixed 16px slot: idle → busy → done never changes the icon box, so
+            the button never reflows as the download state advances. */}
+        <span className="flex h-4 w-4 shrink-0 items-center justify-center" aria-hidden="true">
+          {state.busy
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : state.done
+              ? <SuccessCheck size={16} tone="inline" />
+              : <Download className="h-4 w-4 transition group-hover:translate-y-0.5" />}
+        </span>
         {revoked ? t("downloads.file.revoked")
           : exhausted ? t("downloads.file.limitReached")
           : state.busy ? t("downloads.file.preparing")
@@ -193,6 +203,112 @@ function OrderCard({ order, fileState, onDownload, onReceipt, receiptBusy }) {
   )
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Loading state · roadmap step 35 — skeletons, not spinners
+ *
+ *  Every block below mirrors the *exact* box model of the real component it
+ *  stands in for (MetricCard · SectionCard header · OrderCard header ·
+ *  product row · FileRow), so nothing reflows when the library resolves.
+ *  Shimmer comes from the canonical <Skeleton> block — one CSS-only sweep,
+ *  static under `prefers-reduced-motion`, no JS.
+ *  ────────────────────────────────────────────────────────────────────────── */
+
+/* Mirrors <MetricCard> — border + p-4/sm:p-5, label · value · subtitle. */
+function MetricSkeleton() {
+  return (
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <Skeleton w="w-2/3" h="h-3" rounded="full" />
+          <Skeleton w="w-1/2" h="h-7" rounded="md" className="mt-1.5 sm:mt-2" />
+          <Skeleton w="w-3/4" h="h-2.5" rounded="full" tone="muted" className="mt-1.5 sm:mt-2" />
+        </div>
+        <Skeleton w="w-10" h="h-10" rounded="lg" className="shrink-0" />
+      </div>
+    </div>
+  )
+}
+
+/* Mirrors <FileRow> — icon chip · two meta lines · download button. */
+function FileRowSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <Skeleton w="w-9" h="h-9" rounded="lg" className="shrink-0" />
+        <div className="min-w-0 flex-1">
+          <Skeleton w="w-1/2" h="h-4" rounded="full" />
+          <Skeleton w="w-3/4" h="h-3" rounded="full" tone="muted" className="mt-1.5" />
+        </div>
+      </div>
+      <Skeleton w="w-[132px]" h="h-[38px]" rounded="lg" className="shrink-0 self-start sm:self-center" />
+    </div>
+  )
+}
+
+/* Mirrors one product block inside <OrderCard> — cover · title · file rows. */
+function ProductSkeleton({ files = 2 }) {
+  return (
+    <div className="p-4">
+      <div className="mb-3 flex items-start gap-3">
+        <Skeleton w="w-[72px]" h="h-14" rounded="lg" className="shrink-0" />
+        <div className="min-w-0 flex-1">
+          <Skeleton w="w-2/5" h="h-4" rounded="full" />
+          <Skeleton w="w-1/3" h="h-3" rounded="full" tone="muted" className="mt-1.5" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        {Array.from({ length: files }).map((_, i) => <FileRowSkeleton key={i} />)}
+      </div>
+    </div>
+  )
+}
+
+/* Mirrors <OrderCard> — header (order no · date · receipt) + product blocks. */
+function OrderCardSkeleton({ products = 1, files = 2 }) {
+  return (
+    <article className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 px-5 py-4">
+        <div className="min-w-0 flex-1">
+          <Skeleton w="w-1/3" h="h-5" rounded="full" />
+          <Skeleton w="w-1/4" h="h-3" rounded="full" tone="muted" className="mt-1" />
+        </div>
+        <Skeleton w="w-[112px]" h="h-[38px]" rounded="lg" className="shrink-0" />
+      </header>
+      <div className="divide-y divide-charcoal-80/8 bg-mist">
+        {Array.from({ length: products }).map((_, i) => <ProductSkeleton key={i} files={files} />)}
+      </div>
+    </article>
+  )
+}
+
+/* Full-page placeholder. Reuses the real <SectionCard> shell so the header,
+ * borders and padding are pixel-identical to the loaded view. */
+function LibrarySkeleton({ title, subtitle, label }) {
+  return (
+    <section className="space-y-5" role="status" aria-busy="true" aria-label={label}>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => <MetricSkeleton key={i} />)}
+      </div>
+
+      <SectionCard
+        title={title}
+        subtitle={subtitle}
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <Skeleton w="w-[200px]" h="h-[36px]" rounded="lg" />
+            <Skeleton w="w-[104px]" h="h-[36px]" rounded="lg" />
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <OrderCardSkeleton products={1} files={2} />
+          <OrderCardSkeleton products={1} files={1} />
+        </div>
+      </SectionCard>
+    </section>
+  )
+}
+
 export default function DashboardDownloadsPage() {
   const { t, i18n } = useTranslation("dashboard")
   const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
@@ -258,7 +374,7 @@ export default function DashboardDownloadsPage() {
     const id = file.fileId
     setFileState((s) => ({ ...s, [id]: { ...s[id], busy: true } }))
     try {
-      if (!getStoredToken()) throw new Error(t("downloads.errors.loginRequired"))
+      if (!hasStoredSession()) throw new Error(t("downloads.errors.loginRequired"))
       const filename = await downloadFileById(id, file.fileName)
       setFileState((s) => {
         const prev = s[id] || {}
@@ -285,10 +401,11 @@ export default function DashboardDownloadsPage() {
 
   if (loading) {
     return (
-      <section className="space-y-5" role="status" aria-busy="true" aria-label={t("downloads.loading")}>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}</div>
-        <SkeletonCard height="h-[320px]" />
-      </section>
+      <LibrarySkeleton
+        title={t("downloads.library.title")}
+        subtitle={t("downloads.library.subtitle")}
+        label={t("downloads.loading")}
+      />
     )
   }
 

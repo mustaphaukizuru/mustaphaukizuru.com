@@ -111,7 +111,7 @@ export default function ProjectDetailPage() {
             <div className="h-4 w-48 rounded bg-violet-pale/60" />
             <div className="h-10 w-3/4 rounded-lg bg-violet-pale" />
             <div className="h-4 w-2/3 rounded bg-violet-pale/60" />
-            <div className="mt-8 aspect-[16/9] rounded-2xl bg-white shadow-[0_8px_24px_rgba(93,63,211,0.06)]" />
+            <div className="mt-8 aspect-[16/9] rounded-2xl bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)]" />
           </div>
         </Container>
       </div>
@@ -251,7 +251,7 @@ export default function ProjectDetailPage() {
       {displayImage ? (
         <section className="py-10 sm:py-14">
           <Container>
-            <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_12px_32px_rgba(93,63,211,0.08)]">
+            <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.08)]">
               {/* layoutId shared with PortfolioCard/CaseStudyCard for the page transition */}
               <m.div layoutId={`project-cover-${slug}`} className="aspect-[16/9] w-full bg-violet-pale">
                 {heroSrcSet ? (
@@ -424,7 +424,7 @@ export default function ProjectDetailPage() {
                 <Link
                   key={r.id}
                   to={`/projects/${r.slug}`}
-                  className="group overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_14px_34px_rgba(93,63,211,0.12)]"
+                  className="group overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_14px_34px_rgb(var(--color-violet-rgb)/0.12)]"
                 >
                   {r.coverImage ? (
                     <div className="aspect-[16/10] overflow-hidden bg-violet-pale">
@@ -496,7 +496,7 @@ function Fact({ label, value }) {
 
 function InfoCard({ title, children }) {
   return (
-    <div className="rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_6px_20px_rgba(93,63,211,0.04)]">
+    <div className="rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_6px_20px_rgb(var(--color-violet-rgb)/0.04)]">
       <div className="mb-3 text-micro font-semibold uppercase tracking-[0.16em] text-violet">{title}</div>
       {children}
     </div>

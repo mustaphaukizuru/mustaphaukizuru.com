@@ -145,7 +145,7 @@ function RadioPill({ label, value, current, onChange, name }) {
       className={
         "group relative flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 focus-within:ring-[3px] focus-within:ring-violet/25 " +
         (checked
-          ? "border-violet bg-violet/[0.06] shadow-[0_2px_8px_rgba(93,63,211,0.08)]"
+          ? "border-violet bg-violet/[0.06] shadow-[0_2px_8px_rgb(var(--color-violet-rgb)/0.08)]"
           : "border-charcoal-80/12 hover:border-violet/40 hover:bg-violet-pale/30")
       }
     >
@@ -410,7 +410,7 @@ function ContactSection() {
         >
           <Link
             to="/book"
-            className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border-2 border-violet bg-violet p-5 text-white shadow-[0_14px_40px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(93,63,211,0.28)] sm:p-6"
+            className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border-2 border-violet bg-violet p-5 text-white shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgb(var(--color-violet-rgb)/0.28)] sm:p-6"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
@@ -434,7 +434,7 @@ function ContactSection() {
 
           <a
             href="#contact-form"
-            className="group relative flex flex-col gap-3 rounded-2xl border-2 border-violet/15 bg-white p-5 text-charcoal-80 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_14px_40px_rgba(93,63,211,0.12)] sm:p-6"
+            className="group relative flex flex-col gap-3 rounded-2xl border-2 border-violet/15 bg-white p-5 text-charcoal-80 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.12)] sm:p-6"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-pale text-violet">
@@ -462,7 +462,7 @@ function ContactSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_-20px_rgba(93,63,211,0.20)] ring-1 ring-charcoal-80/[0.06]"
+          className="mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_-20px_rgb(var(--color-violet-rgb)/0.20)] ring-1 ring-charcoal-80/[0.06]"
           id="contact-form"
         >
 
@@ -670,7 +670,7 @@ function ContactSection() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(93,63,211,0.28)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-violet-rgb)/0.28)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   >
                     {loading ? (
                       <>
@@ -702,7 +702,7 @@ function ContactSection() {
 function ContactChannelsSection() {
   const { t } = useTranslation("contact")
   return (
-    <section className="py-16 sm:py-20" style={{ backgroundColor: "rgba(248, 250, 252, 0.5)" }}>
+    <section className="py-16 sm:py-20" style={{ backgroundColor: "rgb(var(--color-mist-rgb)/0.5)" }}>
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <h2 className="text-[24px] font-bold text-violet sm:text-[32px]">{t("channels.title")}</h2>
@@ -712,7 +712,7 @@ function ContactChannelsSection() {
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <a
               href={`mailto:${EMAIL}`}
-              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
+              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.08)]"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                 <Mail className="h-5 w-5" aria-hidden="true" />
@@ -726,7 +726,7 @@ function ContactChannelsSection() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
+              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.08)]"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint-50 text-mint">
                 <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
