@@ -63,11 +63,28 @@ describe("createOgInjector", () => {
     expect(next).toHaveBeenCalled()
   })
 
-  test("falls through when entity missing", async () => {
+  test("serves the SPA shell with a real 404 when the entity does not exist", async () => {
     const mw = createOgInjector({ indexPath, lookupFn: async () => null })
     const next = jest.fn()
-    await mw({ method: "GET", path: "/blog/missing" }, mkRes(), next)
-    expect(next).toHaveBeenCalled()
+    const res = mkRes()
+    await mw({ method: "GET", path: "/blog/missing" }, res, next)
+    // A dead detail URL must not be a soft-404: the client still renders its
+    // not-found screen, but crawlers get the correct status.
+    expect(res.statusCode).toBe(404)
+    expect(res.body).toContain("<html")
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  test("still falls through when the lookup itself fails (never a false 404)", async () => {
+    const mw = createOgInjector({
+      indexPath,
+      timeoutMs: 5,
+      lookupFn: () => new Promise((r) => setTimeout(() => r({ title: "Slow" }), 50)),
+    })
+    const next = jest.fn()
+    const res = mkRes()
+    await mw({ method: "GET", path: "/blog/slow" }, res, next)
+    expect(res.statusCode).not.toBe(404)
   })
 
   test("injects and sends 200 when found", async () => {

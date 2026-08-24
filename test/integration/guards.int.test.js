@@ -86,11 +86,12 @@ describe("SPA fallback + OG injection", () => {
     expect(res.text).toContain("A very shiny template")
   })
 
-  test("/store/:slug for an unknown product falls through to the SPA 200 (client renders not-found)", async () => {
+  test("/store/:slug for an unknown product is a real 404 with the SPA shell", async () => {
     ctx.mocks.productService.getProductBySlug.mockResolvedValueOnce(null)
     const res = await request(ctx.app).get("/store/missing").set("Accept", "text/html")
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(404)
     expect(res.text).not.toContain('og:type" content="product"')
+    expect(res.text).toContain("<html")
   })
 })
 

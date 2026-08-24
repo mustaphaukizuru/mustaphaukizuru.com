@@ -117,29 +117,35 @@ const addNewsletterSubscriber = asyncHandler(async (req, res) => {
   }
 
   try {
-    const { subscriber, isNew, unsubscribeUrl } = await newsletterService.subscribe({
+    // Legacy alias for POST /newsletter/subscribe. It MUST use the same
+    // double-opt-in contract: newsletterService.subscribe now returns
+    // { subscriber, sendConfirmation, confirmUrl }. Reading the old
+    // { isNew, unsubscribeUrl } shape left every subscriber stuck in
+    // `pending` with no confirmation email ever sent.
+    const { subscriber, sendConfirmation, confirmUrl } = await newsletterService.subscribe({
       email,
       name:   name || null,
       source: source || "footer",
     });
 
-    if (isNew) {
+    if (sendConfirmation) {
       emailService.sendTemplateEmail({
-      locale: resolveUserLocale({ req }),
+        locale:      resolveUserLocale({ req }),
         to:          subscriber.email,
         templateKey: "newsletter.confirm",
         variables: {
-          email:          subscriber.email,
-          name:           subscriber.name || "",
-          unsubscribeUrl,
+          email:      subscriber.email,
+          name:       subscriber.name || "",
+          confirmUrl,
         },
-        headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` },
-      }).catch((err) => logger.error("[newsletter] welcome email:", err.message));
+      }).catch((err) => logger.error("[newsletter] confirmation email:", err.message));
     }
 
     return res.status(200).json({
       success: true,
-      message: isNew ? "You're subscribed!" : "You're already subscribed.",
+      message: subscriber.status === "subscribed"
+        ? "You're already subscribed."
+        : "Almost there — check your inbox to confirm your subscription.",
     });
   } catch (err) {
     if (err.code === "VALIDATION_ERROR") {
