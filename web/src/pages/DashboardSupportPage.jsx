@@ -6,6 +6,7 @@ import {
 } from "lucide-react"
 import { EmptyState, SectionCard, StatusBadge, SkeletonCard } from "../components/ui/index"
 import { authFetch } from "../lib/api"
+import useApiQuery from "../hooks/useApiQuery"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Member support ticket page · I18N · Phase 119C — strings under
@@ -295,30 +296,17 @@ function TicketThread({ ticket, onClose }) {
 
 export default function DashboardSupportPage() {
   const { t } = useTranslation("dashboard")
-  const [tickets, setTickets] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const { data: tickets = [], loading, error, setData: setTickets } = useApiQuery(
+    "support:tickets",
+    () => authFetch("/api/member/support/tickets"),
+    { select: (res) => (Array.isArray(res?.data) ? res.data : []) }
+  )
   const [showCreate, setShowCreate] = useState(false)
   const [selected, setSelected] = useState(null)
 
-  async function loadTickets() {
-    setLoading(true)
-    setError("")
-    try {
-      const res = await authFetch("/api/member/support/tickets")
-      setTickets(Array.isArray(res.data) ? res.data : [])
-    } catch (err) {
-      setError(err.message || t("support.errors.loadTickets"))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { loadTickets()   }, [])
-
   function handleCreated(ticket) {
     setShowCreate(false)
-    setTickets((prev) => [ticket, ...prev])
+    setTickets((prev = []) => [ticket, ...prev])
     setSelected(ticket)
   }
 

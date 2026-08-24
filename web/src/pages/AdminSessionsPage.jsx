@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { authFetch as apiRequest } from "../lib/api"
 import { useToast } from "../context/ToastContext"
+import { ConfirmModal } from "../components/admin/forms"
 
 function formatRelative(iso) {
   if (!iso) return "-"
@@ -165,28 +166,19 @@ export default function AdminSessionsPage() {
         </table>
       </div>
 
-      {pendingRevoke ? (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose-700">
-                <AlertCircle className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-[16px] font-bold text-charcoal-80">Revoke session?</h2>
-                <p className="mt-1 text-[13px] text-charcoal-80/65">
-                  <strong>{pendingRevoke.user?.fullName || pendingRevoke.user?.email}</strong> will be signed out
-                  on this device immediately. They can sign back in normally.
-                </p>
-              </div>
-            </div>
-            <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => setPendingRevoke(null)} className="rounded-lg border border-charcoal-80/15 bg-white px-4 py-2 text-[13px] font-semibold text-charcoal-80 hover:bg-charcoal-80/[0.04]">Cancel</button>
-              <button type="button" onClick={confirmRevoke} className="rounded-lg bg-red-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-red-700">Revoke</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ConfirmModal
+        open={Boolean(pendingRevoke)}
+        onClose={() => setPendingRevoke(null)}
+        onConfirm={confirmRevoke}
+        title="Revoke session?"
+        confirmLabel="Revoke"
+        tone="danger"
+      >
+        <p className="text-[13px] text-charcoal-80/65">
+          <strong>{pendingRevoke?.user?.fullName || pendingRevoke?.user?.email}</strong> will be signed out
+          on this device immediately. They can sign back in normally.
+        </p>
+      </ConfirmModal>
     </div>
   )
 }

@@ -39,19 +39,59 @@ export const staticSeoByRoute = {
   },
 
   "/services": {
-    title: "Technology Services · IT Consulting · EdTech · School IT",
+    title: "Technology Services · IT Strategy · AI & Automation · Cloud · Product Engineering",
     description:
-      "Professional IT consulting, website systems, school IT transformation, and STEM program development for businesses and educational institutions.",
+      "Four service lines, 21 services: IT strategy consulting, AI & workflow automation, cloud architecture & migration, and end-to-end digital product engineering for SMBs.",
     type: "website",
     image: absoluteUrl("/og/og-services.png"),
     schemaType: "Service",
     keywords: [
       "IT consulting services Mexico",
-      "EdTech consulting",
-      "school IT consulting",
-      "technology consulting LATAM",
-      "STEM program development",
+      "fractional CTO",
+      "AI automation consulting",
+      "cloud migration consultant",
+      "MVP development",
     ],
+  },
+
+  "/services/it-strategy-consulting": {
+    title: "IT Strategy Consulting · Software Audit · Fractional CTO · Compliance",
+    description:
+      "Software-stack audits, fractional CTO leadership, vendor evaluation and RFPs, digital-transformation roadmaps, and LFPDPPP compliance and risk assessment.",
+    type: "website",
+    image: absoluteUrl("/og/og-services.png"),
+    schemaType: "Service",
+    keywords: ["IT strategy consulting", "fractional CTO Mexico", "software audit", "LFPDPPP compliance"],
+  },
+
+  "/services/ai-automation": {
+    title: "AI Integration & Workflow Automation · Bots · RAG · WhatsApp Lead Qualifiers",
+    description:
+      "Custom LLM persona bots, WhatsApp lead qualifiers synced to your CRM, cross-platform API pipelines, private RAG knowledge bases, and document data-extraction workflows.",
+    type: "website",
+    image: absoluteUrl("/og/og-services.png"),
+    schemaType: "Service",
+    keywords: ["AI automation consulting", "WhatsApp chatbot CRM", "RAG knowledge base", "Make Zapier integration"],
+  },
+
+  "/services/cloud-architecture-migration": {
+    title: "Cloud Architecture & Migration · AWS · Azure · GCP · Docker · Zero Trust",
+    description:
+      "On-premise to cloud migration, cloud-bill optimisation up to 40%, disaster-recovery planning, Docker containerisation, and zero-trust security hardening.",
+    type: "website",
+    image: absoluteUrl("/og/og-services.png"),
+    schemaType: "Service",
+    keywords: ["cloud migration consultant", "AWS Azure GCP migration", "cloud cost optimisation", "Docker containerization"],
+  },
+
+  "/services/digital-product-engineering": {
+    title: "Digital Product Engineering · UI/UX · MVP Web Apps · Mobile · APIs · CI/CD",
+    description:
+      "Interactive UI/UX wireframing, MVP web applications, cross-platform mobile apps, secure API design, CI/CD automation, and managed maintenance retainers.",
+    type: "website",
+    image: absoluteUrl("/og/og-services.png"),
+    schemaType: "Service",
+    keywords: ["MVP development Mexico", "cross-platform mobile app", "API design", "CI/CD automation"],
   },
 
   "/store": {
@@ -75,7 +115,7 @@ export const staticSeoByRoute = {
     description:
       "Selected work: school IT transformations, custom websites, educational platforms, and digital product launches. Mexico, Rwanda, international.",
     type: "website",
-    image: absoluteUrl("/og/og-portfolio.jpg"),
+    image: absoluteUrl("/og/og-portfolio.png"),
     schemaType: "CollectionPage",
     keywords: [
       "portfolio Mustapha Ukizuru",
@@ -91,7 +131,7 @@ export const staticSeoByRoute = {
     description:
       "Get in touch for technology consulting, custom development, EdTech implementations, school IT services. Based in Mexico · responds within 24 hours.",
     type: "website",
-    image: absoluteUrl("/og/og-contact.jpg"),
+    image: absoluteUrl("/og/og-contact.png"),
     schemaType: "ContactPage",
     keywords: [
       "contact Mustapha Ukizuru",
@@ -106,7 +146,7 @@ export const staticSeoByRoute = {
     description:
       "Field notes on IT strategy, full-stack engineering, EdTech, STEM education, and the occasional career story, written from Mexico by way of Rwanda.",
     type: "website",
-    image: DEFAULT_OG_IMAGE,
+    image: absoluteUrl("/og/og-blog.png"),
     schemaType: "Blog",
     keywords: [
       "IT strategy blog",
@@ -121,7 +161,7 @@ export const staticSeoByRoute = {
     description:
       "Schedule a free 30-minute discovery call to discuss IT consulting, full-stack development, school technology, or STEM education projects.",
     type: "website",
-    image: DEFAULT_OG_IMAGE,
+    image: absoluteUrl("/og/og-book.png"),
     schemaType: "WebPage",
     keywords: ["book a consultation", "free discovery call", "tech consultant Mexico"],
   },

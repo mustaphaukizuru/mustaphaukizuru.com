@@ -45,16 +45,44 @@ export const staticSeoEsByRoute = {
   },
 
   "/services": {
-    title: "Servicios Tecnológicos · Consultoría IT · EdTech",
+    title: "Servicios Tecnológicos · Consultoría de TI · IA y Automatización · Nube · Producto Digital",
     description:
-      "Consultoría IT profesional, sistemas web, transformación IT escolar y desarrollo de programas STEM para empresas e instituciones educativas.",
+      "Cuatro líneas de servicio, 21 servicios: consultoría estratégica de TI, integración con IA y automatización, arquitectura en la nube y migración, e ingeniería de producto digital para PyMEs.",
     keywords: [
-      "servicios de consultoría IT México",
-      "consultoría EdTech",
-      "consultoría IT escolar",
-      "consultoría tecnológica LATAM",
-      "desarrollo de programas STEM",
+      "consultoría de TI México",
+      "CTO fraccional",
+      "automatización con IA",
+      "migración a la nube",
+      "desarrollo de MVP",
     ],
+  },
+
+  "/services/it-strategy-consulting": {
+    title: "Consultoría Estratégica de TI · Auditoría de software · CTO fraccional · Cumplimiento",
+    description:
+      "Auditoría de la pila de software, CTO fraccional, evaluación de proveedores y RFP, hoja de ruta de transformación digital y cumplimiento LFPDPPP.",
+    keywords: ["consultoría estratégica de TI", "CTO fraccional México", "auditoría de software", "cumplimiento LFPDPPP"],
+  },
+
+  "/services/ai-automation": {
+    title: "Integración con IA y Automatización · Bots · RAG · Calificadores de WhatsApp",
+    description:
+      "Bots de persona con LLM, calificadores de leads por WhatsApp sincronizados al CRM, pipelines API multiplataforma, bases de conocimiento RAG y extracción de datos.",
+    keywords: ["automatización con IA", "chatbot WhatsApp CRM", "base de conocimiento RAG", "integración Make Zapier"],
+  },
+
+  "/services/cloud-architecture-migration": {
+    title: "Arquitectura en la Nube y Migración · AWS · Azure · GCP · Docker · Zero Trust",
+    description:
+      "Migración on-premise a la nube, optimización de facturas hasta 40 %, recuperación ante desastres, contenedorización con Docker y seguridad zero-trust.",
+    keywords: ["migración a la nube", "AWS Azure GCP", "optimización de costos en la nube", "contenedorización Docker"],
+  },
+
+  "/services/digital-product-engineering": {
+    title: "Ingeniería de Producto Digital · UI/UX · MVP web · Móvil · APIs · CI/CD",
+    description:
+      "Wireframing interactivo UI/UX, aplicaciones web MVP, apps móviles multiplataforma, diseño seguro de APIs, automatización CI/CD y mantenimiento gestionado.",
+    keywords: ["desarrollo de MVP México", "app móvil multiplataforma", "diseño de APIs", "automatización CI/CD"],
   },
 
   "/store": {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation, Trans } from "react-i18next"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -12,6 +12,7 @@ import { formatPrice } from "../lib/format"
 import { triggerBrowserDownload } from "../services/downloadService"
 import { MetricCard } from "../components/ui/index"
 import { useToast } from "../context/ToastContext"
+import useApiQuery from "../hooks/useApiQuery"
 
 /* ── Refund-window constant — must match REFUND_WINDOW_DAYS in src/services/refundService.js ── */
 const REFUND_WINDOW_DAYS = 14
@@ -100,33 +101,15 @@ export default function DashboardOrdersPage() {
   const { t, i18n } = useTranslation("dashboard")
   const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
   const { showSuccess, showError } = useToast()
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [errorMessage, setError] = useState("")
+  const { data: orders = [], loading, error: errorMessage } = useApiQuery("orders", () => fetchMyOrders(), {
+    select: (data) => (Array.isArray(data) ? data : []),
+  })
   const [search, setSearch] = useState("")
   const [sortKey, setSortKey] = useState("createdAt")
   const [sortDir, setSortDir] = useState("desc")
   const [busyInvoiceId, setBusyId] = useState("")
   const [invoiceError, setInvErr] = useState("")
   const [refundOrder, setRefundOrder] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-    async function loadOrders() {
-      try {
-        setLoading(true); setError("")
-        const data = await fetchMyOrders()
-        if (!cancelled) setOrders(Array.isArray(data) ? data : [])
-      } catch (error) {
-        if (!cancelled) setError(error.message || t("orders.errors.load"))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    loadOrders()
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   function handleSort(field) {
     if (field === sortKey) {

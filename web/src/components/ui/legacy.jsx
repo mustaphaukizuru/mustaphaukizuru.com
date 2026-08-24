@@ -222,7 +222,7 @@ export function PrimaryBtn({
       onClick={onClick}
       disabled={disabled || loading}
       aria-busy={loading ? "true" : "false"}
-      className={`inline-flex items-center justify-center rounded-lg font-semibold transition hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2 ${sizes[size]} ${variants[variant]} ${className}`}
+      className={`cursor-pointer inline-flex items-center justify-center rounded-lg font-semibold transition hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2 ${sizes[size]} ${variants[variant]} ${className}`}
     >
       {loading ? (
         <span
@@ -260,7 +260,7 @@ export function AlertBanner({ type = "error", message, onDismiss }) {
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="shrink-0 rounded p-0.5 opacity-65 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-current/30"
+          className="cursor-pointer shrink-0 rounded p-0.5 opacity-65 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-current/30"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
         </button>

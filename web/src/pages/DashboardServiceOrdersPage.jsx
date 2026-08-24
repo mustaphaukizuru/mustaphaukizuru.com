@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { motion } from "framer-motion"
@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 
 import { fetchMyServiceOrders } from "../services/serviceOrderService"
+import useApiQuery from "../hooks/useApiQuery"
 
 /**
  * DashboardServiceOrdersPage · #5
@@ -49,20 +50,11 @@ function fmtDate(iso) {
 
 export default function DashboardServiceOrdersPage() {
   const { t } = useTranslation("dashboard")
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true); setError("")
-    fetchMyServiceOrders()
-      .then((data) => { if (!cancelled) setOrders(data) })
-      .catch((e) => { if (!cancelled) setError(e?.message || t("serviceOrders.errors.load")) })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const { data: orders = [], loading, error } = useApiQuery(
+    "serviceOrders",
+    () => fetchMyServiceOrders(),
+    { select: (data) => (Array.isArray(data) ? data : []) }
+  )
 
   if (loading) {
     return (

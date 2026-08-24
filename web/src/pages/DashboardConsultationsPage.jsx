@@ -28,6 +28,7 @@ import {
 } from "../services/bookingService"
 import BookingCalendar from "../components/booking/BookingCalendar"
 import { useToast } from "../context/ToastContext"
+import useApiQuery from "../hooks/useApiQuery"
 
 const fadeUp = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } }
 
@@ -442,25 +443,17 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function DashboardConsultationsPage() {
   const { t } = useTranslation("dashboard")
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const { data: items = [], loading, error, refetch: load, setData: setItems } = useApiQuery(
+    "consultations",
+    () => fetchMyConsultations(),
+    { select: (data) => (Array.isArray(data) ? data : []) }
+  )
   const [cancelTarget, setCancelTarget] = useState(null)
   const [rescheduleTarget, setRescheduleTarget] = useState(null)
 
-  async function load() {
-    try {
-      setLoading(true); setError("")
-      const data = await fetchMyConsultations()
-      setItems(Array.isArray(data) ? data : [])
-    } catch (e) {
-      setError(e?.message || t("consultations.errors.load"))
-    } finally { setLoading(false) }
-  }
-  useEffect(() => { load()   }, [])
-
+  // Snapshot once per mount — Date.now() inside useMemo trips the purity rule.
+  const [now] = useState(() => Date.now())
   const { upcoming, past } = useMemo(() => {
-    const now = Date.now()
     const up = [], pa = []
     items.forEach((c) => {
       const ts = new Date(c.scheduledAt).getTime()
@@ -470,10 +463,10 @@ export default function DashboardConsultationsPage() {
     up.sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt))
     pa.sort((a, b) => new Date(b.scheduledAt) - new Date(a.scheduledAt))
     return { upcoming: up, past: pa }
-  }, [items])
+  }, [items, now])
 
   function replaceItem(updated) {
-    setItems((prev) => {
+    setItems((prev = []) => {
       const idx = prev.findIndex((x) => x.id === updated.id)
       if (idx === -1) return [updated, ...prev]
       const copy = [...prev]; copy[idx] = updated

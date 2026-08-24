@@ -80,7 +80,7 @@ export default function SectionHeading({
           {action.to ? (
             <Link
               to={action.to}
-              className="group inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-violet transition hover:text-violet-deep"
+              className="cursor-pointer group inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-violet transition hover:text-violet-deep"
             >
               {action.label}
               <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
@@ -90,7 +90,7 @@ export default function SectionHeading({
               href={action.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="group inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-violet transition hover:text-violet-deep"
+              className="cursor-pointer group inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-violet transition hover:text-violet-deep"
             >
               {action.label}
               <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />

@@ -13,11 +13,29 @@
  */
 
 const fs = require("fs")
+const path = require("path")
 
 const LOOKUP_TIMEOUT_MS = 300
 const SITE_NAME = "Mustapha Ukizuru"
+const DEFAULT_OG_IMAGE = "/og/og-default.png"
+// Pre-rendered per-entity cards (web `npm run og:build -- --from-json …`) land in public/og/<type>/<slug>.png
+const DEFAULT_OG_DIR = path.resolve(__dirname, "..", "..", "public", "og")
+const SAFE_SLUG_RE = /^[a-z0-9][a-z0-9._-]*$/i
 
 const ROUTE_RE = /^\/(?:es\/)?(store|blog|services|projects)\/([^/?#]+)\/?$/
+
+/**
+ * Fallback image for an entity without its own artwork:
+ * /og/<kind>/<slug>.png when that file exists on disk, else /og/og-default.png.
+ */
+function fallbackOgImage(kind, slug, ogDir = DEFAULT_OG_DIR) {
+  if (SAFE_SLUG_RE.test(slug) && !slug.includes("..")) {
+    try {
+      if (fs.existsSync(path.join(ogDir, kind, `${slug}.png`))) return `/og/${kind}/${slug}.png`
+    } catch { /* fall through */ }
+  }
+  return DEFAULT_OG_IMAGE
+}
 
 /* ─── HTML helpers (pure, unit-tested) ─────────────────────────────────── */
 
@@ -165,7 +183,7 @@ function withTimeout(promise, ms) {
 /* ─── middleware factory ───────────────────────────────────────────────── */
 
 /**
- * @param {{ indexPath: string, siteUrl?: string, timeoutMs?: number, lookupFn?: Function }} opts
+ * @param {{ indexPath: string, siteUrl?: string, timeoutMs?: number, lookupFn?: Function, ogDir?: string }} opts
  */
 function createOgInjector(opts) {
   const { indexPath } = opts
@@ -202,7 +220,7 @@ function createOgInjector(opts) {
       html = injectMeta(html, {
         title: `${truncate(entity.title || SITE_NAME, 90)} | ${SITE_NAME}`,
         description: truncate(entity.description || "", 200) || SITE_NAME,
-        image: absoluteUrl(siteUrl, entity.image),
+        image: absoluteUrl(siteUrl, entity.image || fallbackOgImage(kind, slug, opts.ogDir)),
         url: `${siteUrl}${req.path}`,
         type: entity.type,
       })
@@ -213,4 +231,4 @@ function createOgInjector(opts) {
   }
 }
 
-module.exports = { createOgInjector, injectMeta, escapeAttr, upsertMeta, absoluteUrl, truncate, lookup }
+module.exports = { createOgInjector, injectMeta, escapeAttr, upsertMeta, absoluteUrl, truncate, lookup, fallbackOgImage }

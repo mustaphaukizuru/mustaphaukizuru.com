@@ -1,474 +1,357 @@
 /* ════════════════════════════════════════════════════════════════════════
-   servicesCatalogue.js · Mustapha Ukizuru Service Catalog v1.0
+   servicesCatalogue.js · Service catalogue · August 2026
    ────────────────────────────────────────────────────────────────────────
-   Source of truth for the Services page (catalog browser).
+   Source of truth: docs/SERVICE_CATALOGUE_2026-08.md ("CONSULTORÍA
+   ESTRATÉGICA DE TI", PDF 2026-08-24). Structure: 4 categories → 21
+   offerings. Spanish is the primary voice; English is a faithful
+   translation.
 
-   Encodes 82 atomic services across 6 categories per the official Service
-   Catalog v1.0 (29 April 2026).
+   Top-level exports (stable API — other modules import these):
+     CATEGORIES            4 categories, each with nested `offerings`
+     SERVICES              flat list of the 21 offerings (legacy shape:
+                           id / categoryCode / name / outcome / tier /
+                           audience / engagement / duration / pricingModel)
+     getServiceById, getServicesByIds, servicesByCategory,
+     servicesByAudience, servicesByEngagement, getFlagshipServices,
+     filterServices, FLAGSHIP_SERVICE_IDS
+     AUDIENCE_PRICING_PLANS / AUDIENCE_PRICING_ORDER (checkout, unchanged)
 
-   Schema per service entry:
-     id            UKZ-{CC}-{NNN} unique identifier
-     name          Service display name
-     outcome       One-sentence value statement
-     audience      Array of "EDU" | "SMB" | "IND" (catalog uses "ALL" → expand)
-     format        "Service" | "Product" | "Hybrid"
-     engagement    Engagement type label
-     duration      Typical delivery timeframe
-     pricingModel  "Fixed" | "T&M" | "Retainer" | "Per-seat" | "Per-unit" | "Day rate"
-     tier          1 (Flagship) · 2 (Standard) · 3 (Specialized)
-     status        "active" | "beta" | "roadmap" | "retired"
-     deliverables  Array of specific outputs (from catalog § Includes)
-     related       Array of related service IDs
-     categoryCode  CS | BD | IC | WD | ET | MS
-
-   Helpers:
-     servicesByCategory(code)     — services in a category
-     servicesByAudience(code)     — services for an audience segment
-     servicesByEngagement(label)  — services of an engagement type
-     getFlagshipServices()        — Tier 1 services
-     getServiceById(id)           — lookup
-     getServicesByIds(ids)        — lookup batch
-     filterServices(opts)         — search + filter (text, audience, engagement)
+   Funnel helpers (new):
+     getCategoryBySlug(slug)         category + offerings, legacy-aware
+     getOfferingBySlug(slug)         offering + its category
+     resolveLegacySlug(slug)         old category/SKU slug → new category slug
+     legacyIdMap                     old SKU id → new offering id (or null)
+     LEGACY_CATEGORY_SLUG_MAP        old category slug → new category slug
+     bookHref(slug)                  "/book?service=<slug>"
+     HOW_IT_WORKS                    call → proposal → delivery
    ════════════════════════════════════════════════════════════════════════ */
 
 import {
-  // Category icons
-  Brain, Sparkles, Server, Code2, GraduationCap, Wrench,
-  // Other icons used in trust strip & faq actions
+  Brain, Bot, CloudCog, Code2,
   Award, ShieldCheck, BookMarked, Globe2, Languages, UserCheck,
-  Calendar, Mail, Phone,
-  // Audience pricing icons
-  User, Briefcase, GraduationCap as GraduationCap2,
-  // Differentiation pillars
-  FileText,
+  Calendar, Mail, Phone, FileText,
+  User, Briefcase, GraduationCap,
 } from "lucide-react"
 
-/* ── Categories (6) ─────────────────────────────────────────────────────── */
+/* ── Pricing model constants ─────────────────────────────────────────────── */
+export const PRICING_FROM_QUOTE = "From quote"
+export const PRICING_FIXED = "Fixed"
+export const PRICING_RETAINER = "Retainer"
+
+/* ── Engagement type constants ───────────────────────────────────────────── */
+export const ENGAGEMENT_TYPES = [
+  "Audit", "Retainer", "Engagement", "Roadmap", "Build",
+  "Integration", "Migration", "Implementation", "Sprint",
+]
+
+/* ── Audience labels (kept for filterServices / servicesByAudience) ─────── */
+export const AUDIENCE_LABELS = {
+  SMB: { code: "SMB", label: "SMEs & Businesses", tone: "azure", priority: "Primary" },
+  EDU: { code: "EDU", label: "Schools & Education", tone: "mint", priority: "Secondary" },
+  IND: { code: "IND", label: "Individuals & Pros", tone: "terracotta", priority: "Inbound" },
+}
+
+export const TIER_LABELS = {
+  1: { label: "Flagship", description: "Featured offering", chip: "bg-violet text-white" },
+  2: { label: "Standard", description: "Actively sold", chip: "bg-violet-pale text-violet" },
+}
+
+/* ── The 4 categories × 21 offerings ─────────────────────────────────────
+   Category slugs are stable and double as the `Service.slug` DB rows
+   (prisma/seed/services-seed.js). Offering `slug` is used by
+   /book?service=<slug> and resolves back to its category for the
+   Service row.
+   ──────────────────────────────────────────────────────────────────────── */
 export const CATEGORIES = [
   {
-    code: "CS",
-    slug: "consulting-strategy",
-    name: "IT Consulting & Strategy",
-    tagline: "Senior advisory on what to build, what to buy, what to fix, what to leave alone.",
+    code: "ITS",
+    slug: "it-strategy-consulting",
+    name: "IT Strategy Consulting",
+    nameEs: "Consultoría Estratégica de TI",
+    tagline: "Independent senior advice on what to keep, what to cut, and what to build next.",
+    taglineEs: "Asesoría senior independiente sobre qué conservar, qué eliminar y qué construir después.",
+    outcome: "Cut wasted software spend and get a clear, sequenced technology roadmap your team can execute.",
+    outcomeEs: "Reduce el gasto desperdiciado en software y obtén una hoja de ruta tecnológica clara y secuenciada que tu equipo pueda ejecutar.",
     Icon: Brain,
     accent: "violet",
-    bento: "lg",
+    tile: "bg-violet",
+    offerings: [
+      {
+        id: "UKZ-ITS-001", slug: "software-stack-audit",
+        name: "Software Stack Audit", nameEs: "Auditoría de la pila de software",
+        description: "Review of existing licences to eliminate duplicate subscriptions and cut waste.",
+        descriptionEs: "Revisión de licencias existentes para eliminar suscripciones duplicadas y reducir el desperdicio.",
+        engagement: "Audit", duration: "2–3 weeks", durationEs: "2–3 semanas",
+        pricingModel: PRICING_FIXED, tier: 2, audience: ["SMB", "EDU"],
+        deliverables: ["Licence and subscription inventory", "Duplicate / unused tooling report", "Savings estimate", "Consolidation plan"],
+        deliverablesEs: ["Inventario de licencias y suscripciones", "Informe de herramientas duplicadas o sin uso", "Estimación de ahorro", "Plan de consolidación"],
+      },
+      {
+        id: "UKZ-ITS-002", slug: "fractional-cto",
+        name: "Fractional CTO Engagement", nameEs: "Participación fraccional de CTO",
+        description: "Part-time technical leadership: roadmaps and hiring guidance.",
+        descriptionEs: "Liderazgo técnico a tiempo parcial: hojas de ruta y orientación en contratación.",
+        engagement: "Retainer", duration: "Ongoing · 3-month minimum", durationEs: "Continuo · mínimo 3 meses",
+        pricingModel: PRICING_RETAINER, tier: 1, audience: ["SMB"],
+        deliverables: ["Weekly leadership cadence", "Technology roadmap ownership", "Hiring rubrics and interviews", "Vendor and architecture decisions"],
+        deliverablesEs: ["Cadencia semanal de liderazgo", "Responsabilidad de la hoja de ruta tecnológica", "Rúbricas de contratación y entrevistas", "Decisiones de proveedores y arquitectura"],
+      },
+      {
+        id: "UKZ-ITS-003", slug: "vendor-evaluation-rfp",
+        name: "Vendor Evaluation & RFP", nameEs: "Evaluación de proveedores y RFP",
+        description: "Independent expert review of third-party software offers for fairness.",
+        descriptionEs: "Experto independiente que revisa ofertas de software de terceros en cuanto a equidad.",
+        engagement: "Engagement", duration: "3–6 weeks", durationEs: "3–6 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB", "EDU"],
+        deliverables: ["Requirements definition", "RFP drafting and management", "Comparison matrix", "Contract review and recommendation"],
+        deliverablesEs: ["Definición de requisitos", "Redacción y gestión de la RFP", "Matriz comparativa", "Revisión de contrato y recomendación"],
+      },
+      {
+        id: "UKZ-ITS-004", slug: "digital-transformation-roadmap",
+        name: "Digital Transformation Roadmap", nameEs: "Hoja de ruta para la transformación digital",
+        description: "Step-by-step migrations from paper and spreadsheets to automated platforms.",
+        descriptionEs: "Migraciones paso a paso de papel/hojas de cálculo a plataformas automatizadas.",
+        engagement: "Roadmap", duration: "4–6 weeks", durationEs: "4–6 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "EDU"],
+        deliverables: ["Process and systems audit", "Prioritised opportunity matrix", "12-month sequenced roadmap", "Budget and change-management plan"],
+        deliverablesEs: ["Auditoría de procesos y sistemas", "Matriz de oportunidades priorizada", "Hoja de ruta secuenciada a 12 meses", "Plan de presupuesto y gestión del cambio"],
+      },
+      {
+        id: "UKZ-ITS-005", slug: "compliance-risk-assessment",
+        name: "Compliance & Risk Assessment", nameEs: "Cumplimiento y evaluación de riesgos",
+        description: "Architecture audit to comply with Mexican privacy law (LFPDPPP).",
+        descriptionEs: "Auditoría de arquitectura para cumplir leyes mexicanas de privacidad (LFPDPPP).",
+        engagement: "Audit", duration: "2–3 weeks", durationEs: "2–3 semanas",
+        pricingModel: PRICING_FIXED, tier: 2, audience: ["SMB", "EDU"],
+        deliverables: ["Data inventory and flow map", "LFPDPPP gap analysis", "Risk register", "Remediation roadmap"],
+        deliverablesEs: ["Inventario y mapa de flujo de datos", "Análisis de brechas LFPDPPP", "Registro de riesgos", "Hoja de ruta de remediación"],
+      },
+    ],
   },
   {
-    code: "BD",
-    slug: "brand-digital-presence",
-    name: "Brand & Digital Presence",
-    tagline: "Visual identity, the surfaces that carry it, and the systems that distribute it.",
-    Icon: Sparkles,
+    code: "AIA",
+    slug: "ai-automation",
+    name: "AI Integration & Workflow Automation",
+    nameEs: "Integración con IA y Automatización de Flujos de Trabajo",
+    tagline: "Assistants, agents and pipelines that remove repetitive work from your team's week.",
+    taglineEs: "Asistentes, agentes y pipelines que quitan el trabajo repetitivo de la semana de tu equipo.",
+    outcome: "Answer customers faster, sync leads automatically, and turn documents into clean data without adding headcount.",
+    outcomeEs: "Responde a clientes más rápido, sincroniza prospectos automáticamente y convierte documentos en datos limpios sin contratar más personal.",
+    Icon: Bot,
     accent: "terracotta",
-    bento: "sm",
+    tile: "bg-terracotta",
+    offerings: [
+      {
+        id: "UKZ-AIA-001", slug: "custom-persona-bots",
+        name: "Custom Persona Bots", nameEs: "Bots de persona personalizados",
+        description: "LLM assistants trained exclusively on the client's brand voice and documents.",
+        descriptionEs: "Asistentes LLM entrenados exclusivamente en la voz y documentos de marca del cliente.",
+        engagement: "Build", duration: "2–4 weeks", durationEs: "2–4 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "IND"],
+        deliverables: ["Voice and tone guide ingestion", "Assistant with guardrails", "Web or chat deployment", "Evaluation set and monitoring"],
+        deliverablesEs: ["Ingesta de guía de voz y tono", "Asistente con salvaguardas", "Despliegue web o de chat", "Conjunto de evaluación y monitoreo"],
+      },
+      {
+        id: "UKZ-AIA-002", slug: "whatsapp-lead-qualifiers",
+        name: "WhatsApp Lead Qualifiers", nameEs: "Calificadores de líderes de WhatsApp",
+        description: "Automated chat agents that answer FAQs and sync prospects to the CRM.",
+        descriptionEs: "Agentes de chat automatizados que responden FAQs y sincronizan prospectos al CRM.",
+        engagement: "Build", duration: "2–3 weeks", durationEs: "2–3 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB"],
+        deliverables: ["WhatsApp Business API setup", "Qualification flow", "CRM sync (HubSpot, Zoho or sheet)", "Handover to a human"],
+        deliverablesEs: ["Configuración de WhatsApp Business API", "Flujo de calificación", "Sincronización con CRM (HubSpot, Zoho u hoja)", "Traspaso a un humano"],
+      },
+      {
+        id: "UKZ-AIA-003", slug: "cross-platform-api-pipelines",
+        name: "Cross-Platform API Pipelines", nameEs: "Pipelines API multiplataforma",
+        description: "Connect disconnected tools (e.g. payments, Slack, email) with Make or Zapier.",
+        descriptionEs: "Conectar herramientas desconectadas (p. ej. pagos, Slack, email) con Make o Zapier.",
+        engagement: "Integration", duration: "1–3 weeks", durationEs: "1–3 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB", "IND"],
+        deliverables: ["Integration map", "Make / Zapier scenarios", "Error handling and alerts", "Runbook"],
+        deliverablesEs: ["Mapa de integraciones", "Escenarios en Make / Zapier", "Manejo de errores y alertas", "Manual operativo"],
+      },
+      {
+        id: "UKZ-AIA-004", slug: "rag-knowledge-base",
+        name: "Internal RAG Knowledge Base", nameEs: "Base de conocimiento interna RAG",
+        description: "Private corporate search engines built on vector databases (Pinecone).",
+        descriptionEs: "Motores de búsqueda corporativos privados con bases vectoriales (Pinecone).",
+        engagement: "Build", duration: "4–8 weeks", durationEs: "4–8 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "EDU"],
+        deliverables: ["Document ingestion pipeline", "Vector index (Pinecone)", "Search / chat interface with citations", "Access control"],
+        deliverablesEs: ["Pipeline de ingesta de documentos", "Índice vectorial (Pinecone)", "Interfaz de búsqueda / chat con citas", "Control de acceso"],
+      },
+      {
+        id: "UKZ-AIA-005", slug: "data-extraction-workflows",
+        name: "Data Extraction Workflows", nameEs: "Flujos de extracción de datos",
+        description: "Tools that parse PDFs, invoices or forms into clean spreadsheets.",
+        descriptionEs: "Herramientas que analizan PDFs, facturas o formularios en hojas de cálculo limpias.",
+        engagement: "Build", duration: "2–4 weeks", durationEs: "2–4 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        deliverables: ["Document classifier", "Field extraction with validation", "Spreadsheet / database output", "Exception review queue"],
+        deliverablesEs: ["Clasificador de documentos", "Extracción de campos con validación", "Salida a hoja de cálculo / base de datos", "Cola de revisión de excepciones"],
+      },
+    ],
   },
   {
-    code: "IC",
-    slug: "infrastructure-cloud",
-    name: "IT Infrastructure & Cloud",
-    tagline: "On-premise, hybrid, and cloud-native treated as one continuous discipline.",
-    Icon: Server,
+    code: "CAM",
+    slug: "cloud-architecture-migration",
+    name: "Cloud Architecture & Infrastructure Migration",
+    nameEs: "Arquitectura en la Nube y Migración de Infraestructura",
+    tagline: "Move to the cloud safely, pay less for it, and survive the bad day.",
+    taglineEs: "Migra a la nube con seguridad, paga menos por ella y sobrevive al mal día.",
+    outcome: "Retire the office server, cut cloud bills by up to 40 %, and know your backups actually restore.",
+    outcomeEs: "Retira el servidor de la oficina, reduce la factura en la nube hasta 40 % y confirma que tus respaldos realmente restauran.",
+    Icon: CloudCog,
     accent: "azure",
-    bento: "sm",
+    tile: "bg-azure",
+    offerings: [
+      {
+        id: "UKZ-CAM-001", slug: "on-premise-to-cloud-migration",
+        name: "On-Premise to Cloud Migration", nameEs: "Migración on-premise a la nube",
+        description: "Safely move physical office servers to AWS, Azure or GCP.",
+        descriptionEs: "Mover servidores físicos de oficina de forma segura a AWS, Azure o GCP.",
+        engagement: "Migration", duration: "6–12 weeks", durationEs: "6–12 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "EDU"],
+        deliverables: ["Migration assessment", "Landing zone (VPC, IAM)", "Workload migration and cutover", "Post-migration support"],
+        deliverablesEs: ["Evaluación de migración", "Landing zone (VPC, IAM)", "Migración de cargas y corte", "Soporte posterior a la migración"],
+      },
+      {
+        id: "UKZ-CAM-002", slug: "cloud-bill-optimization",
+        name: "Cloud Bill Optimisation", nameEs: "Optimización de facturas en la nube",
+        description: "Audit configurations to right-size servers and cut costs by up to 40 %.",
+        descriptionEs: "Auditar configuraciones para dimensionar servidores y reducir costos hasta 40 %.",
+        engagement: "Audit", duration: "1–2 weeks", durationEs: "1–2 semanas",
+        pricingModel: PRICING_FIXED, tier: 2, audience: ["SMB"],
+        deliverables: ["Billing analysis", "Right-sizing recommendations", "Reserved / committed-use plan", "Savings tracker"],
+        deliverablesEs: ["Análisis de facturación", "Recomendaciones de dimensionamiento", "Plan de instancias reservadas / uso comprometido", "Seguimiento de ahorros"],
+      },
+      {
+        id: "UKZ-CAM-003", slug: "disaster-recovery-planning",
+        name: "Disaster Recovery Planning", nameEs: "Planificación de recuperación ante desastres",
+        description: "Automated, encrypted backups with failover.",
+        descriptionEs: "Respaldos automatizados y cifrados con conmutación por error.",
+        engagement: "Implementation", duration: "2–4 weeks", durationEs: "2–4 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB", "EDU"],
+        deliverables: ["RPO / RTO definition", "Encrypted backup automation", "Failover configuration", "Restore drill and runbook"],
+        deliverablesEs: ["Definición de RPO / RTO", "Automatización de respaldos cifrados", "Configuración de conmutación por error", "Simulacro de restauración y manual"],
+      },
+      {
+        id: "UKZ-CAM-004", slug: "docker-containerization",
+        name: "Docker & Containerisation", nameEs: "Docker y contenedorización",
+        description: "Package legacy applications into containers for fast deployments.",
+        descriptionEs: "Empaquetar aplicaciones antiguas en contenedores para despliegues rápidos.",
+        engagement: "Implementation", duration: "2–4 weeks", durationEs: "2–4 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        deliverables: ["Dockerfiles and compose / orchestration", "Environment parity", "Registry and deployment flow", "Documentation"],
+        deliverablesEs: ["Dockerfiles y compose / orquestación", "Paridad de entornos", "Registro y flujo de despliegue", "Documentación"],
+      },
+      {
+        id: "UKZ-CAM-005", slug: "zero-trust-security-hardening",
+        name: "Zero-Trust Security Hardening", nameEs: "Endurecimiento de seguridad zero-trust",
+        description: "Enterprise-grade access controls for remote work.",
+        descriptionEs: "Controles de acceso para trabajo remoto de nivel empresarial.",
+        engagement: "Implementation", duration: "3–5 weeks", durationEs: "3–5 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB", "EDU"],
+        deliverables: ["Identity and MFA rollout", "Device and network policies", "Least-privilege access review", "Security baseline report"],
+        deliverablesEs: ["Despliegue de identidad y MFA", "Políticas de dispositivos y red", "Revisión de acceso de mínimo privilegio", "Informe de línea base de seguridad"],
+      },
+    ],
   },
   {
-    code: "WD",
-    slug: "web-app-ai",
-    name: "Web, Application & AI",
-    tagline: "Full-stack engineering on Django, React, and GCP, extended with modern AI tooling.",
+    code: "DPE",
+    slug: "digital-product-engineering",
+    name: "End-to-End Digital Product Engineering",
+    nameEs: "Ingeniería de Producto Digital de Extremo a Extremo",
+    tagline: "From clickable prototype to shipped product, with the pipeline and maintenance to keep it running.",
+    taglineEs: "Del prototipo clicable al producto publicado, con el pipeline y el mantenimiento para mantenerlo funcionando.",
+    outcome: "Validate before you build, ship an MVP in weeks, and keep it patched and improving every month.",
+    outcomeEs: "Valida antes de construir, publica un MVP en semanas y mantenlo parchado y mejorando cada mes.",
     Icon: Code2,
     accent: "violet",
-    bento: "lg",
-  },
-  {
-    code: "ET",
-    slug: "edtech-training",
-    name: "EdTech Implementation & Training",
-    tagline: "Helping institutions actually use the technology they have invested in.",
-    Icon: GraduationCap,
-    accent: "mint",
-    bento: "sm",
-  },
-  {
-    code: "MS",
-    slug: "managed-services",
-    name: "Managed Services & Support",
-    tagline: "The recurring-revenue layer. The natural follow-on to every project.",
-    Icon: Wrench,
-    accent: "azure",
-    bento: "sm",
+    tile: "bg-charcoal-80",
+    offerings: [
+      {
+        id: "UKZ-DPE-001", slug: "ui-ux-wireframing",
+        name: "Interactive UI/UX Wireframing", nameEs: "Wireframing interactivo UI/UX",
+        description: "High-fidelity clickable prototypes before writing any backend.",
+        descriptionEs: "Prototipos clicables de alta fidelidad antes de escribir backend.",
+        engagement: "Sprint", duration: "1–2 weeks", durationEs: "1–2 semanas",
+        pricingModel: PRICING_FIXED, tier: 2, audience: ["SMB", "IND"],
+        deliverables: ["User flows", "Clickable Figma prototype", "Design tokens", "Handoff notes"],
+        deliverablesEs: ["Flujos de usuario", "Prototipo clicable en Figma", "Tokens de diseño", "Notas de entrega"],
+      },
+      {
+        id: "UKZ-DPE-002", slug: "mvp-web-app-development",
+        name: "MVP Web App Development", nameEs: "Desarrollo de aplicaciones web MVP",
+        description: "Fast, working minimum viable products built on modern ecosystems.",
+        descriptionEs: "Productos mínimos viables rápidos y funcionales con ecosistemas modernos.",
+        engagement: "Build", duration: "4–10 weeks", durationEs: "4–10 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "IND"],
+        deliverables: ["Scoped MVP backlog", "Web application (React + API)", "Auth and payments if needed", "Deployment and 30-day support"],
+        deliverablesEs: ["Backlog del MVP delimitado", "Aplicación web (React + API)", "Autenticación y pagos si se requieren", "Despliegue y 30 días de soporte"],
+      },
+      {
+        id: "UKZ-DPE-003", slug: "cross-platform-mobile-apps",
+        name: "Cross-Platform Mobile Apps", nameEs: "Aplicaciones móviles multiplataforma",
+        description: "A single codebase for iOS and Android.",
+        descriptionEs: "Base de código única para iOS y Android.",
+        engagement: "Build", duration: "6–12 weeks", durationEs: "6–12 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        deliverables: ["React Native / Expo app", "Store-ready builds", "Push notifications and analytics", "Release pipeline"],
+        deliverablesEs: ["App en React Native / Expo", "Compilaciones listas para tiendas", "Notificaciones push y analítica", "Pipeline de publicación"],
+      },
+      {
+        id: "UKZ-DPE-004", slug: "secure-api-design",
+        name: "Secure API Design", nameEs: "Diseño seguro de APIs",
+        description: "Fast, well-documented backend APIs that link business applications.",
+        descriptionEs: "APIs backend rápidas y bien documentadas para enlazar aplicaciones de negocio.",
+        engagement: "Build", duration: "2–6 weeks", durationEs: "2–6 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        deliverables: ["API contract (OpenAPI)", "Auth, rate limiting, audit logs", "Implementation and tests", "Developer documentation"],
+        deliverablesEs: ["Contrato de API (OpenAPI)", "Autenticación, límites de tasa y registros de auditoría", "Implementación y pruebas", "Documentación para desarrolladores"],
+      },
+      {
+        id: "UKZ-DPE-005", slug: "ci-cd-pipeline-automation",
+        name: "CI/CD Pipeline Automation", nameEs: "Automatización de pipeline CI/CD",
+        description: "Automated, zero-downtime deployment scripts.",
+        descriptionEs: "Scripts de despliegue automatizados sin tiempo de inactividad.",
+        engagement: "Implementation", duration: "1–3 weeks", durationEs: "1–3 semanas",
+        pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        deliverables: ["Pipeline (GitHub Actions or similar)", "Automated tests and checks", "Zero-downtime deploy strategy", "Rollback procedure"],
+        deliverablesEs: ["Pipeline (GitHub Actions o similar)", "Pruebas y verificaciones automatizadas", "Estrategia de despliegue sin tiempo de inactividad", "Procedimiento de reversión"],
+      },
+      {
+        id: "UKZ-DPE-006", slug: "managed-maintenance",
+        name: "Managed Maintenance", nameEs: "Mantenimiento gestionado",
+        description: "Recurring monthly support: fixes, patches and feature rollouts.",
+        descriptionEs: "Soporte mensual recurrente: correcciones, parches y despliegue de funciones.",
+        engagement: "Retainer", duration: "Monthly · ongoing", durationEs: "Mensual · continuo",
+        pricingModel: PRICING_RETAINER, tier: 2, audience: ["SMB", "IND"],
+        deliverables: ["Bug fixes and security patches", "Dependency updates", "Feature deployment slots", "Monthly report"],
+        deliverablesEs: ["Corrección de errores y parches de seguridad", "Actualización de dependencias", "Espacios para despliegue de funciones", "Informe mensual"],
+      },
+    ],
   },
 ]
 
-/* ── Audience labels & color tokens ─────────────────────────────────────── */
-export const AUDIENCE_LABELS = {
-  EDU: { code: "EDU", label: "Schools & Education", tone: "mint", priority: "Primary" },
-  IND: { code: "IND", label: "Individuals & Pros", tone: "terracotta", priority: "Secondary" },
-  SMB: { code: "SMB", label: "SMEs & Businesses", tone: "azure", priority: "Inbound" },
-}
+/* ── Flat offering list (legacy `SERVICES` shape) ───────────────────────── */
+export const SERVICES = CATEGORIES.flatMap((c) =>
+  c.offerings.map((o) => ({
+    ...o,
+    categoryCode: c.code,
+    categorySlug: c.slug,
+    outcome: o.description,
+    outcomeEs: o.descriptionEs,
+    status: "active",
+    format: "Service",
+    related: [],
+  })),
+)
 
-/* ── Engagement labels (flat list in catalog order) ─────────────────────── */
-export const ENGAGEMENT_TYPES = [
-  "Audit", "Assessment", "Sprint", "Build", "Implementation", "Setup",
-  "Rollout", "Migration", "Workshop", "Cohort", "Program", "Engagement",
-  "Retainer", "Pack", "Toolkit", "Service", "Consultation", "Integration",
-]
-
-/* ── Tier labels ────────────────────────────────────────────────────────── */
-export const TIER_LABELS = {
-  1: { label: "Flagship", description: "Featured offering · highest revenue per engagement", chip: "bg-violet text-white" },
-  2: { label: "Standard", description: "Actively sold · known buyer demand", chip: "bg-violet-pale text-violet" },
-  3: { label: "Specialized", description: "Available on request · niche or low-volume", chip: "bg-mist text-charcoal-80/65" },
-}
-
-/* ── 82 Services ────────────────────────────────────────────────────────── */
-export const SERVICES = [
-  /* ── CS · IT Consulting and Strategy ────────────────────────────────── */
-  { id: "UKZ-CS-001", categoryCode: "CS", name: "Technology Assessment and Audit", tier: 2, audience: ["EDU","SMB","IND"], engagement: "Audit", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Comprehensive current-state assessment of infrastructure, applications, and processes with prioritized remediation roadmap.",
-    deliverables: ["Infrastructure inventory","Application portfolio review","Process audit","Gap analysis","Risk assessment","Prioritized recommendations","Executive summary","Technical detail report"],
-    related: ["UKZ-CS-002","UKZ-CS-006","UKZ-IC-001"] },
-  { id: "UKZ-CS-002", categoryCode: "CS", name: "Annual Technology Roadmap", tier: 2, audience: ["EDU","SMB"], engagement: "Workshop", duration: "4–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Twelve-month technology roadmap aligned with business or institutional objectives, including budget, milestones, and process automation opportunities.",
-    deliverables: ["Stakeholder workshops","Strategic objective alignment","Initiative prioritization","Capacity and budget planning","Risk and dependency mapping","Quarterly milestone definition","Process automation opportunity assessment","Roadmap document and presentation"],
-    related: ["UKZ-CS-007"] },
-  { id: "UKZ-CS-003", categoryCode: "CS", name: "Software Architecture Review", tier: 2, audience: ["SMB"], engagement: "Audit", duration: "2–3 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Independent assessment of system architecture with actionable recommendations for scalability, maintainability, and modernization.",
-    deliverables: ["Architecture diagram review","Code structure analysis","Database design review","Technology stack evaluation","Scalability bottleneck identification","Refactoring recommendations","ADR templates"],
-    related: ["UKZ-CS-005","UKZ-WD-017","UKZ-WD-018"] },
-  { id: "UKZ-CS-004", categoryCode: "CS", name: "Vendor Selection and Procurement Advisory", tier: 2, audience: ["EDU","SMB"], engagement: "Engagement", duration: "3–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Independent vendor evaluation, comparison matrix, and contract negotiation support that surfaces the best-fit option without vendor bias.",
-    deliverables: ["Requirements definition","Vendor longlist research","Comparison matrix","RFP drafting and management","Demo coordination","Reference checks","Contract review and negotiation support","Final recommendation report"],
-    related: [] },
-  { id: "UKZ-CS-005", categoryCode: "CS", name: "Technical Due Diligence Report", tier: 3, audience: ["SMB"], engagement: "Assessment", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Code, architecture, and engineering team assessment for investors, acquirers, or board-level technology decisions.",
-    deliverables: ["Code quality review","Architecture assessment","Security posture review","Technical debt quantification","Team evaluation","Scalability analysis","Investor-grade report"],
-    related: [] },
-  { id: "UKZ-CS-006", categoryCode: "CS", name: "Cybersecurity Posture Review", tier: 2, audience: ["EDU","SMB"], engagement: "Audit", duration: "2–3 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Comprehensive security assessment with prioritized remediation plan and compliance gap analysis (LFPDPPP, GDPR, FERPA).",
-    deliverables: ["Asset and data inventory","Access control review","Network security assessment","OWASP application review","Compliance gap analysis","Incident response readiness check","Remediation roadmap","Executive risk summary"],
-    related: ["UKZ-IC-014","UKZ-ET-012"] },
-  { id: "UKZ-CS-007", categoryCode: "CS", name: "AI Strategy and Adoption Roadmap", tier: 1, audience: ["EDU","SMB"], engagement: "Workshop", duration: "3–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "AI use-case discovery, adoption roadmap, and acceptable-use framework that gets the institution started without breaking what already works.",
-    deliverables: ["Stakeholder discovery workshops","Use-case identification and prioritization","Build-vs-buy analysis","Tooling recommendations (Claude, ChatGPT, Gemini)","AI ethics and safety framework","Acceptable use policy template","Pilot project recommendations","12-month adoption roadmap","Executive briefing"],
-    related: ["UKZ-WD-009","UKZ-WD-011","UKZ-ET-008"] },
-  { id: "UKZ-CS-008", categoryCode: "CS", name: "Engineering and IT Hiring Support", tier: 3, audience: ["SMB"], engagement: "Engagement", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "End-to-end hiring support that produces qualified, technically vetted candidates for engineering and IT roles.",
-    deliverables: ["Job description writing","Hiring rubric definition","Sourcing strategy","Resume screening","Technical screen design and execution","Interview panel preparation","Final-round interview support","Offer guidance"],
-    related: [] },
-  { id: "UKZ-CS-009", categoryCode: "CS", name: "Project Recovery Consultation", tier: 3, audience: ["SMB"], engagement: "Engagement", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Diagnosis and turnaround plan for stalled or failing technology initiatives, with optional execution leadership.",
-    deliverables: ["Project diagnosis","Stakeholder interviews","Root cause analysis","Salvage-vs-restart recommendation","Recovery roadmap","Optional interim leadership"],
-    related: [] },
-  { id: "UKZ-CS-010", categoryCode: "CS", name: "Fractional CTO Retainer", tier: 1, audience: ["SMB"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Monthly technical leadership for SMEs and startups that need a CTO without the full-time cost.",
-    deliverables: ["Weekly leadership cadence","Engineering team oversight","Technical hiring support","Roadmap and architecture decisions","Vendor and tool selection","Code review and standards","Investor and board technical communication","Async availability"],
-    related: ["UKZ-CS-002","UKZ-CS-008"] },
-  { id: "UKZ-CS-011", categoryCode: "CS", name: "Virtual IT Director Retainer", tier: 1, audience: ["EDU"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Monthly fractional IT leadership for schools without a dedicated technology director.",
-    deliverables: ["Weekly leadership cadence","IT operations oversight","Faculty and admin liaison","Procurement guidance","Cybersecurity oversight","Technology budget planning","EdTech vendor management","Board and leadership reporting"],
-    related: ["UKZ-MS-001","UKZ-MS-006"] },
-  { id: "UKZ-CS-012", categoryCode: "CS", name: "Executive Technology Briefing Service", tier: 2, audience: ["EDU","SMB"], engagement: "Workshop", duration: "Quarterly", pricingModel: "Fixed", status: "active",
-    outcome: "Quarterly executive-facing technology briefing covering posture, risks, opportunities, and recommended actions.",
-    deliverables: ["Pre-briefing data gathering","Executive summary deck","Live presentation","Q&A facilitation","Action item documentation","Optional follow-up advisory"],
-    related: [] },
-
-  /* ── BD · Brand and Digital Presence ────────────────────────────────── */
-  { id: "UKZ-BD-001", categoryCode: "BD", name: "Brand Identity System", tier: 1, audience: ["EDU","SMB","IND"], engagement: "Build", duration: "4–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Complete visual identity system that gives the brand a coherent, professional look across every surface.",
-    deliverables: ["Brand discovery workshop","Logo design (primary, secondary, submark)","Color palette","Typography system","Brand guidelines","Brand voice and messaging","Usage and accessibility specs","Asset library handover"],
-    related: ["UKZ-BD-004","UKZ-BD-005","UKZ-BD-006"] },
-  { id: "UKZ-BD-002", categoryCode: "BD", name: "Brand Refresh and Audit", tier: 2, audience: ["EDU","SMB"], engagement: "Audit", duration: "3–5 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Diagnostic and selective refresh of an existing brand identity that preserves equity while modernizing weak elements.",
-    deliverables: ["Brand audit report","Competitive landscape review","Refresh recommendations","Selective asset redesign","Updated brand guidelines","Migration plan for legacy assets"],
-    related: [] },
-  { id: "UKZ-BD-003", categoryCode: "BD", name: "Brand Naming and Tagline Service", tier: 3, audience: ["SMB"], engagement: "Sprint", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Strategically-developed brand name and tagline with trademark and domain availability validation.",
-    deliverables: ["Naming strategy workshop","50+ candidate names","Shortlist validation","Trademark and domain availability check","Tagline development","Bilingual EN-ES validation","Final recommendation report"],
-    related: [] },
-  { id: "UKZ-BD-004", categoryCode: "BD", name: "Print Collateral Suite", tier: 2, audience: ["EDU","SMB","IND"], engagement: "Pack", duration: "2–3 weeks", pricingModel: "Per-unit",status: "active",
-    outcome: "Complete print-ready collateral suite for daily business and event use.",
-    deliverables: ["Letterhead","Business cards","Email signature","Folders","Badges & lanyards","Certificates","Flyers","Posters","Brochures","Trifolds","One-pagers"],
-    related: [] },
-  { id: "UKZ-BD-005", categoryCode: "BD", name: "Presentation and Document Templates", tier: 2, audience: ["EDU","SMB","IND"], engagement: "Pack", duration: "1–2 weeks", pricingModel: "Per-unit",status: "active",
-    outcome: "Branded presentation and document template system for consistent deliverables across every author.",
-    deliverables: ["Pitch deck (PowerPoint, Slides, Keynote)","Internal presentation template","Document template (Word, Docs)","Report template","Proposal template","Style guide"],
-    related: [] },
-  { id: "UKZ-BD-006", categoryCode: "BD", name: "Digital Asset Pack", tier: 2, audience: ["EDU","SMB","IND"], engagement: "Pack", duration: "1–2 weeks", pricingModel: "Per-unit",status: "active",
-    outcome: "Complete set of digital banners and social media assets for every channel.",
-    deliverables: ["Web banners","Email headers","LinkedIn covers","YouTube channel art","Twitter/X headers","Instagram & Facebook templates","Story & reel templates","Iconography pack","Custom illustration set"],
-    related: [] },
-  { id: "UKZ-BD-007", categoryCode: "BD", name: "Personal Website Build", tier: 1, audience: ["IND"], engagement: "Build", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Custom personal portfolio website on a custom domain that establishes professional presence and supports career or business goals.",
-    deliverables: ["Discovery and content strategy","Domain and hosting setup","Custom design","Up to 6 pages","Mobile-responsive","WCAG 2.1 AA","SEO foundations","Analytics setup","Two rounds of revisions"],
-    related: ["UKZ-BD-001","UKZ-BD-010","UKZ-BD-013"] },
-  { id: "UKZ-BD-008", categoryCode: "BD", name: "Business Website Build", tier: 1, audience: ["EDU","SMB"], engagement: "Build", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-grade business or institutional website that supports lead generation, credibility, and ongoing content publishing.",
-    deliverables: ["Discovery and IA workshop","Sitemap and wireframes","Custom design","Up to 12 pages","CMS setup (Wagtail, WordPress, custom)","Mobile-responsive","WCAG 2.1 AA","SEO foundations","Form & CTA integration","Analytics","Documentation & training"],
-    related: ["UKZ-BD-001","UKZ-MS-004"] },
-  { id: "UKZ-BD-009", categoryCode: "BD", name: "Landing Page Build", tier: 2, audience: ["SMB","IND"], engagement: "Build", duration: "1–2 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "High-conversion landing page for a specific campaign, product launch, or lead-capture goal.",
-    deliverables: ["Conversion strategy session","Custom design","Copywriting support","Form & CTA setup","A/B test variant","Analytics & conversion tracking","Mobile optimization"],
-    related: [] },
-  { id: "UKZ-BD-010", categoryCode: "BD", name: "Website Performance and SEO Service", tier: 2, audience: ["EDU","SMB","IND"], engagement: "Implementation", duration: "2–3 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Measurable website performance improvement and on-page SEO optimization for visibility and Core Web Vitals compliance.",
-    deliverables: ["Performance audit","Core Web Vitals analysis","Image & asset optimization","Caching configuration","CDN setup","Technical SEO audit","On-page optimization","Structured data","Search Console setup","Before/after benchmark"],
-    related: [] },
-  { id: "UKZ-BD-011", categoryCode: "BD", name: "Social Media Presence Setup", tier: 2, audience: ["SMB","IND"], engagement: "Setup", duration: "1–2 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Optimized social media presence across all relevant channels with consistent branding and discoverability.",
-    deliverables: ["LinkedIn profile optimization","Twitter/X optimization","Instagram, TikTok, YouTube setup","Facebook business page","Google Business Profile","Online reputation audit","Channel strategy"],
-    related: [] },
-  { id: "UKZ-BD-012", categoryCode: "BD", name: "Content System Build", tier: 2, audience: ["SMB","IND"], engagement: "Setup", duration: "2–3 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Complete content production and distribution system across newsletter, blog, and email marketing.",
-    deliverables: ["Content strategy session","Newsletter setup (Beehiiv, Substack, ConvertKit)","Blog setup & editorial workflow","Email marketing platform","Lead magnet design","Content calendar template","Editorial guidelines","Distribution playbook"],
-    related: ["UKZ-BD-013","UKZ-BD-014"] },
-  { id: "UKZ-BD-013", categoryCode: "BD", name: "Analytics and Tracking Setup", tier: 2, audience: ["EDU","SMB","IND"], engagement: "Setup", duration: "1 week", pricingModel: "Fixed", status: "active",
-    outcome: "Privacy-compliant analytics and tracking infrastructure that produces actionable data without violating user privacy.",
-    deliverables: ["Google Analytics 4","Search Console","Tag Manager","Conversion goals","Event tracking","Privacy-compliant cookie consent","Custom dashboard","Quarterly review template"],
-    related: [] },
-  { id: "UKZ-BD-014", categoryCode: "BD", name: "Bilingual Content Localization", tier: 3, audience: ["EDU","SMB","IND"], engagement: "Service", duration: "Variable", pricingModel: "T&M", status: "active",
-    outcome: "Professional EN-ES content adaptation that preserves voice, intent, and cultural fit across languages.",
-    deliverables: ["Source content review","Translation and adaptation","Cultural localization","SEO localization","Bilingual content asset library","Style guide for ongoing translations"],
-    related: [] },
-
-  /* ── IC · IT Infrastructure and Cloud ───────────────────────────────── */
-  { id: "UKZ-IC-001", categoryCode: "IC", name: "Network Design and Deployment", tier: 1, audience: ["EDU","SMB"], engagement: "Build", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-grade network for a single or multi-building site that supports current users and scales with growth.",
-    deliverables: ["Site survey","Network design (TCP/IP, DNS, DHCP, VPN, LAN, WAN)","Wi-Fi planning","Cabling consultation","Equipment specification","Configuration & deployment","Documentation & runbooks","Knowledge transfer"],
-    related: ["UKZ-IC-002","UKZ-IC-006","UKZ-MS-001"] },
-  { id: "UKZ-IC-002", categoryCode: "IC", name: "Server Infrastructure Setup", tier: 2, audience: ["EDU","SMB"], engagement: "Build", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Properly configured server infrastructure on Linux or Windows Server, hardened and ready for production use.",
-    deliverables: ["Hardware specification","OS installation and hardening","Service configuration","User and group setup","Backup configuration","Monitoring setup","Documentation"],
-    related: [] },
-  { id: "UKZ-IC-003", categoryCode: "IC", name: "Device Fleet Setup and Imaging", tier: 2, audience: ["EDU","SMB"], engagement: "Setup", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Standardized device fleet ready for distribution to users, with consistent configuration and security baseline.",
-    deliverables: ["Device specification","Imaging & configuration","Security hardening","Software deployment","Asset tagging & inventory","Distribution coordination","End-user documentation"],
-    related: [] },
-  { id: "UKZ-IC-004", categoryCode: "IC", name: "Google Workspace Administration Setup", tier: 1, audience: ["EDU","SMB"], engagement: "Rollout", duration: "3–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Fully configured Google Workspace tenant with users provisioned, policies set, and admin documentation in place.",
-    deliverables: ["Domain setup & verification","User provisioning","Group structure","Sharing & security policies","Email migration","Drive structure","Calendar setup","Admin documentation","Admin training"],
-    related: ["UKZ-ET-003","UKZ-MS-005"] },
-  { id: "UKZ-IC-005", categoryCode: "IC", name: "Microsoft 365 Administration Setup", tier: 2, audience: ["EDU","SMB"], engagement: "Rollout", duration: "3–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Fully configured Microsoft 365 tenant with users provisioned, policies set, and admin documentation in place.",
-    deliverables: ["Tenant setup","User provisioning","License assignment","SharePoint & Teams structure","Email migration","Security baseline","Compliance configuration","Admin documentation","Admin training"],
-    related: [] },
-  { id: "UKZ-IC-006", categoryCode: "IC", name: "Identity and Access Management Implementation", tier: 2, audience: ["EDU","SMB"], engagement: "Implementation", duration: "3–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Centralized identity and access management with single sign-on, multi-factor authentication, and role-based access control.",
-    deliverables: ["Identity provider selection","SSO implementation","MFA rollout (passwordless)","Role and group design","Conditional access policies","Audit logging","User onboarding/offboarding workflow","Documentation"],
-    related: [] },
-  { id: "UKZ-IC-007", categoryCode: "IC", name: "Helpdesk and Ticketing System Setup", tier: 2, audience: ["EDU","SMB"], engagement: "Setup", duration: "2–3 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-ready helpdesk system with ticket workflows, SLA definitions, and reporting in place.",
-    deliverables: ["Platform selection (JIRA, Zendesk, Freshdesk)","Workflow configuration","Category & priority taxonomy","SLA definition","Knowledge base structure","Email & portal integration","Reporting dashboards","Agent training"],
-    related: ["UKZ-MS-007"] },
-  { id: "UKZ-IC-008", categoryCode: "IC", name: "Cloud Migration Assessment", tier: 2, audience: ["SMB"], engagement: "Assessment", duration: "2–3 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Cloud readiness assessment with migration strategy, target architecture, and cost projection.",
-    deliverables: ["Current-state inventory","Application portfolio assessment","Cloud target selection (GCP vs AWS vs hybrid)","Migration approach (rehost, replatform, refactor)","Cost projection","Risk register","Migration roadmap"],
-    related: [] },
-  { id: "UKZ-IC-009", categoryCode: "IC", name: "GCP Cloud Migration", tier: 1, audience: ["SMB"], engagement: "Migration", duration: "6–12 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Workload migration to Google Cloud Platform with cost optimization, security baseline, and runbook handover.",
-    deliverables: ["Project setup & IAM","Network and VPC design","Compute Engine, Cloud Run, GKE migration","Cloud SQL database migration","Cloud Storage setup","Cost optimization","Security baseline","Runbook documentation","Post-migration support"],
-    related: ["UKZ-IC-013","UKZ-MS-002"] },
-  { id: "UKZ-IC-010", categoryCode: "IC", name: "AWS Cloud Migration", tier: 2, audience: ["SMB"], engagement: "Migration", duration: "6–12 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Workload migration to AWS with cost optimization, security baseline, and runbook handover.",
-    deliverables: ["Account setup & IAM","VPC design","EC2, ECS, Lambda migration","RDS database migration","S3 setup","Cost optimization","Security baseline","Runbook documentation","Post-migration support"],
-    related: [] },
-  { id: "UKZ-IC-011", categoryCode: "IC", name: "Containerization and CI/CD Implementation", tier: 2, audience: ["SMB"], engagement: "Implementation", duration: "3–5 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-grade containerization and continuous integration/deployment pipeline that accelerates safe delivery.",
-    deliverables: ["Docker containerization","Multi-stage build optimization","Container registry","CI/CD pipeline (GitHub Actions, Cloud Build, AWS CodePipeline)","Test automation integration","Deployment automation","Rollback procedures","Documentation"],
-    related: ["UKZ-IC-016"] },
-  { id: "UKZ-IC-012", categoryCode: "IC", name: "Workflow Automation Implementation", tier: 2, audience: ["EDU","SMB"], engagement: "Implementation", duration: "2–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Custom workflow automation that eliminates manual processes and recovers staff hours each week.",
-    deliverables: ["Process discovery","Automation opportunity assessment","Tool selection (Python, n8n, Zapier, Make)","Pipeline design and build","Scheduled jobs and webhooks","Error handling and alerting","Documentation"],
-    related: [] },
-  { id: "UKZ-IC-013", categoryCode: "IC", name: "Cloud Cost Optimization Service", tier: 3, audience: ["SMB"], engagement: "Audit", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Measurable reduction in cloud spend through right-sizing, reserved capacity, and architectural recommendations.",
-    deliverables: ["Cost analysis","Resource utilization audit","Right-sizing recommendations","Reserved instance & savings plan analysis","Architectural optimization","Implementation of agreed changes","Before/after cost report"],
-    related: [] },
-  { id: "UKZ-IC-014", categoryCode: "IC", name: "OWASP Security Audit and Hardening", tier: 2, audience: ["SMB"], engagement: "Audit", duration: "3–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "OWASP-aligned security audit with prioritized remediation and hardening of identified vulnerabilities.",
-    deliverables: ["Application security audit","Infrastructure security review","Dependency vulnerability scan","Configuration hardening","Secrets management review","Remediation of high-priority issues","Security documentation"],
-    related: ["UKZ-CS-006"] },
-  { id: "UKZ-IC-015", categoryCode: "IC", name: "Backup and Disaster Recovery Implementation", tier: 2, audience: ["EDU","SMB"], engagement: "Implementation", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Automated backup, tested recovery procedures, and a documented business continuity plan.",
-    deliverables: ["RTO/RPO definition","Backup strategy design","Backup automation","Off-site replication","Recovery testing","Continuity plan documentation","Tabletop exercise"],
-    related: [] },
-  { id: "UKZ-IC-016", categoryCode: "IC", name: "Observability and Monitoring Setup", tier: 3, audience: ["SMB"], engagement: "Setup", duration: "2–3 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-grade logging, metrics, and alerting that surface problems before users notice them.",
-    deliverables: ["Logging architecture","Metrics collection","Distributed tracing","Dashboard design","Alert rule configuration","On-call rotation setup","Runbook templates"],
-    related: [] },
-
-  /* ── WD · Web, Application and AI Development ───────────────────────── */
-  { id: "UKZ-WD-001", categoryCode: "WD", name: "Custom Web Application Build", tier: 1, audience: ["SMB"], engagement: "Build", duration: "6–16 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-ready custom web application built on Django and React, fully tested and deployed.",
-    deliverables: ["Discovery & requirements","Architecture design","Database schema","Backend (Django)","Frontend (React)","Authentication","Real-time features","Mobile-responsive UI","WCAG 2.1 AA","Testing","Deployment","Documentation"],
-    related: ["UKZ-WD-006","UKZ-WD-007","UKZ-MS-003"] },
-  { id: "UKZ-WD-002", categoryCode: "WD", name: "SaaS MVP Build", tier: 1, audience: ["SMB"], engagement: "Sprint", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Working SaaS MVP delivered in four to eight weeks at fixed scope and fixed price, ready for first paying customers.",
-    deliverables: ["Scope & feature definition","Multi-tenant architecture","Auth & authorization","Subscription billing (Stripe)","Admin dashboard","Customer-facing app","Onboarding flow","Email notifications","GCP deployment","Launch support"],
-    related: ["UKZ-WD-007","UKZ-WD-009"] },
-  { id: "UKZ-WD-003", categoryCode: "WD", name: "E-commerce Platform Build", tier: 2, audience: ["SMB"], engagement: "Build", duration: "6–12 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Custom e-commerce platform or Shopify customization tailored to a specific business workflow.",
-    deliverables: ["Catalog architecture","Cart & checkout","Payment integration (MercadoPago / PayPal)","Inventory management","Order fulfillment workflow","Customer account","Admin dashboard","SEO foundations","Deployment"],
-    related: [] },
-  { id: "UKZ-WD-004", categoryCode: "WD", name: "Custom CMS Build", tier: 2, audience: ["EDU","SMB"], engagement: "Build", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Custom content management system on Wagtail, WordPress, or Django that fits the specific publishing workflow.",
-    deliverables: ["Content model design","Editor experience","Workflow & approval","Media management","Multi-author support","API for headless use","Migration from existing CMS","Editor training"],
-    related: [] },
-  { id: "UKZ-WD-005", categoryCode: "WD", name: "Internal Tool and Admin Dashboard Build", tier: 2, audience: ["EDU","SMB"], engagement: "Build", duration: "3–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Custom internal tools and reporting dashboards that eliminate manual workflows across departments.",
-    deliverables: ["Workflow discovery","Database design","Admin UI","Reporting and exports","User management","Integration with existing systems","Documentation","User training"],
-    related: ["UKZ-IC-012","UKZ-WD-015"] },
-  { id: "UKZ-WD-006", categoryCode: "WD", name: "REST and GraphQL API Development", tier: 2, audience: ["SMB"], engagement: "Build", duration: "3–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-grade REST or GraphQL API with authentication, documentation, and third-party integration ready.",
-    deliverables: ["API design","Schema definition","Endpoint implementation","Auth & authorization","Rate limiting","Versioning strategy","OpenAPI/GraphQL docs","Postman collection","Integration test suite"],
-    related: [] },
-  { id: "UKZ-WD-007", categoryCode: "WD", name: "Authentication and Payment Integration", tier: 2, audience: ["SMB"], engagement: "Build", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-ready authentication and payment systems integrated into a new or existing application.",
-    deliverables: ["OAuth, JWT, or SSO","MFA","RBAC","MercadoPago / PayPal","Subscription billing","Webhook handling","Admin & user-facing UI","Testing"],
-    related: [] },
-  { id: "UKZ-WD-008", categoryCode: "WD", name: "Third-Party Service Integration", tier: 3, audience: ["SMB"], engagement: "Build", duration: "1–3 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Reliable integration with third-party services (Twilio, SendGrid, Google APIs, CRMs) with error handling and monitoring.",
-    deliverables: ["Integration design","API client implementation","Webhook handling","Error handling & retry logic","Monitoring & alerting","Documentation"],
-    related: [] },
-  { id: "UKZ-WD-009", categoryCode: "WD", name: "Claude and LLM API Integration", tier: 1, audience: ["EDU","SMB"], engagement: "Build", duration: "2–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-grade integration of Anthropic Claude, OpenAI, or Google Gemini APIs into existing applications or workflows.",
-    deliverables: ["Use-case scoping","API integration","Prompt engineering","Response handling","Cost monitoring","Rate limiting & fallback","Logging","Documentation","Integration test suite"],
-    related: ["UKZ-WD-010","UKZ-WD-011","UKZ-CS-007"] },
-  { id: "UKZ-WD-010", categoryCode: "WD", name: "AI Chatbot and Virtual Assistant Build", tier: 2, audience: ["SMB"], engagement: "Build", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production AI chatbot or virtual assistant integrated into a website or customer service workflow, with handoff to human agents.",
-    deliverables: ["Use-case definition","Conversation design","LLM integration","Context & memory management","Human handoff workflow","Admin UI","Analytics","Deployment"],
-    related: [] },
-  { id: "UKZ-WD-011", categoryCode: "WD", name: "Knowledge Base AI and RAG System", tier: 1, audience: ["EDU","SMB"], engagement: "Build", duration: "4–10 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Custom retrieval-augmented generation system on a private knowledge base, with semantic search and grounded answers.",
-    deliverables: ["Content ingestion pipeline","Embedding generation","Vector database (Pinecone, Weaviate, pgvector)","Retrieval pipeline","Custom GPT or Claude Project","Citation & source tracking","Admin UI","Evaluation framework"],
-    related: ["UKZ-WD-009","UKZ-WD-012"] },
-  { id: "UKZ-WD-012", categoryCode: "WD", name: "AI Document Processing Pipeline", tier: 2, audience: ["EDU","SMB"], engagement: "Build", duration: "3–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Automated document processing pipeline using LLMs for extraction, summarization, and classification at scale.",
-    deliverables: ["Document intake design","OCR for scans","LLM-based extraction","Validation & human-review queue","Output to target systems","Cost monitoring","Quality dashboard"],
-    related: [] },
-  { id: "UKZ-WD-013", categoryCode: "WD", name: "AI Agent and Workflow Build", tier: 3, audience: ["SMB"], engagement: "Build", duration: "4–10 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Multi-step AI agent or workflow that performs complex tasks autonomously with appropriate guardrails.",
-    deliverables: ["Use-case definition","Agent architecture (LangChain, LlamaIndex, custom)","Tool integration","Memory & state management","Safety guardrails","Monitoring","Human-in-the-loop checkpoints","Documentation"],
-    related: [] },
-  { id: "UKZ-WD-014", categoryCode: "WD", name: "AI Content Auditing System", tier: 3, audience: ["EDU"], engagement: "Build", duration: "3–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "AI-content detection and academic integrity system for schools concerned about plagiarism and unattributed AI use.",
-    deliverables: ["Detection model integration","Submission workflow","Teacher review interface","Reporting dashboard","Policy framework","LMS integration"],
-    related: ["UKZ-ET-008","UKZ-ET-011"] },
-  { id: "UKZ-WD-015", categoryCode: "WD", name: "Business Intelligence Dashboard Build", tier: 2, audience: ["EDU","SMB"], engagement: "Build", duration: "3–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Custom business intelligence dashboard on Looker Studio, Power BI, or Metabase with KPI tracking and automated reporting.",
-    deliverables: ["KPI definition workshop","Data source integration","Dashboard design","Automated refresh","Scheduled reports","Alert thresholds","User access control","Training"],
-    related: [] },
-  { id: "UKZ-WD-016", categoryCode: "WD", name: "Data Pipeline and Warehouse Setup", tier: 3, audience: ["SMB"], engagement: "Build", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production data pipeline and warehouse on BigQuery, Redshift, or Snowflake, with ETL, modeling, and analytics-ready schemas.",
-    deliverables: ["Data source inventory","ETL pipeline","Data warehouse setup","Dimensional modeling","Data quality monitoring","BI integration","Documentation"],
-    related: [] },
-  { id: "UKZ-WD-017", categoryCode: "WD", name: "Performance Optimization Engagement", tier: 2, audience: ["SMB"], engagement: "Audit", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Measurable application performance improvement with documented before/after benchmarks.",
-    deliverables: ["Performance audit","Bottleneck identification","Database query optimization","Caching strategy","Frontend performance optimization","Load testing","Before/after benchmark"],
-    related: [] },
-  { id: "UKZ-WD-018", categoryCode: "WD", name: "Legacy System Modernization", tier: 2, audience: ["SMB"], engagement: "Engagement", duration: "8–24 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Phased migration of aging PHP, ASP, or WordPress systems onto a modern Django and React stack with feature parity and improved performance.",
-    deliverables: ["Current-state assessment","Modernization strategy (strangler fig, big-bang, hybrid)","Data migration","Incremental rebuild","Parallel-run validation","Cutover plan","Post-launch support"],
-    related: [] },
-
-  /* ── ET · EdTech Implementation and Training ────────────────────────── */
-  { id: "UKZ-ET-001", categoryCode: "ET", name: "LMS Selection and Strategy Consultation", tier: 2, audience: ["EDU"], engagement: "Consultation", duration: "2–3 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Independent LMS selection (Google Classroom, Moodle, Canvas, Edmodo, Schoology) with implementation roadmap.",
-    deliverables: ["Requirements workshop","Vendor evaluation","Comparison matrix","Demo coordination","Reference checks","Final recommendation","Implementation roadmap"],
-    related: ["UKZ-ET-002","UKZ-CS-004"] },
-  { id: "UKZ-ET-002", categoryCode: "ET", name: "LMS Deployment and Migration", tier: 1, audience: ["EDU"], engagement: "Migration", duration: "6–12 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production LMS deployment with content migrated from existing platforms and faculty trained for term start.",
-    deliverables: ["Tenant setup","User provisioning","Course structure","Content migration","SIS & Workspace integration","Faculty training","Student onboarding materials","Go-live support","Post-launch support"],
-    related: ["UKZ-ET-003","UKZ-ET-006","UKZ-MS-006"] },
-  { id: "UKZ-ET-003", categoryCode: "ET", name: "Google Workspace for Education Rollout", tier: 1, audience: ["EDU"], engagement: "Rollout", duration: "4–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Fully configured Google Workspace for Education domain with users provisioned, classrooms ready, and faculty trained.",
-    deliverables: ["Domain setup","User provisioning","Organizational unit structure","Sharing & security policies","Classroom setup","Drive structure","Email migration","Faculty training","Student onboarding"],
-    related: ["UKZ-IC-004","UKZ-ET-006"] },
-  { id: "UKZ-ET-004", categoryCode: "ET", name: "Student Information System Integration", tier: 2, audience: ["EDU"], engagement: "Integration", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "SIS integrated with LMS, parent portal, and reporting systems for unified student data flow.",
-    deliverables: ["SIS evaluation","Data mapping","Integration design and build","Sync automation","Validation testing","Documentation","Admin training"],
-    related: [] },
-  { id: "UKZ-ET-005", categoryCode: "ET", name: "Parent Portal Setup and Training", tier: 2, audience: ["EDU"], engagement: "Setup", duration: "3–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production parent portal with grades, attendance, communications, and parent-facing training delivered.",
-    deliverables: ["Platform selection or custom build","Configuration","SIS integration","Bilingual EN-ES interface","Parent training","Faculty training","Support documentation"],
-    related: [] },
-  { id: "UKZ-ET-006", categoryCode: "ET", name: "Faculty Professional Development Cohort", tier: 1, audience: ["EDU"], engagement: "Cohort", duration: "6–12 weeks", pricingModel: "Per-seat",status: "active",
-    outcome: "Structured faculty cohort program that transforms how teachers use EdTech tools in daily instruction.",
-    deliverables: ["Pre-assessment of digital fluency","Eight live sessions","Self-paced practice","Coaching office hours","Project-based application","Final showcase","Post-program assessment"],
-    related: ["UKZ-ET-007","UKZ-ET-008"] },
-  { id: "UKZ-ET-007", categoryCode: "ET", name: "Google Certified Educator Preparation Cohort", tier: 2, audience: ["EDU"], engagement: "Cohort", duration: "8–10 weeks", pricingModel: "Per-seat",status: "active",
-    outcome: "Faculty cohort fully prepared for and supported through Google Certified Educator Level 1 or Level 2 certification.",
-    deliverables: ["Curriculum aligned to certification","Live training sessions","Practice scenarios","Mock exam","Exam coaching","Certification reimbursement coordination"],
-    related: [] },
-  { id: "UKZ-ET-008", categoryCode: "ET", name: "AI for Educators Training Program", tier: 1, audience: ["EDU"], engagement: "Program", duration: "6–8 weeks", pricingModel: "Per-seat",status: "active",
-    outcome: "Faculty trained to use AI tools (Claude, ChatGPT, Gemini) responsibly and effectively in lesson planning, content creation, and assessment.",
-    deliverables: ["AI fundamentals","Tool-specific training","Prompt engineering for teaching","Lesson planning with AI","Assessment design","Academic integrity framework","Acceptable use policy","Practical projects"],
-    related: ["UKZ-CS-007","UKZ-WD-014","UKZ-ET-011"] },
-  { id: "UKZ-ET-009", categoryCode: "ET", name: "Bilingual Digital Content Production", tier: 2, audience: ["EDU"], engagement: "Service", duration: "Variable", pricingModel: "T&M", status: "active",
-    outcome: "High-quality bilingual EN-ES digital learning content (slides, videos, interactives) ready for classroom use.",
-    deliverables: ["Curriculum alignment review","Content design","Bilingual production","Interactive elements (Quizizz, Edpuzzle, Nearpod)","Video recording & editing","LMS publishing","Style guide"],
-    related: [] },
-  { id: "UKZ-ET-010", categoryCode: "ET", name: "Smart Classroom and STEM Lab Setup", tier: 2, audience: ["EDU"], engagement: "Setup", duration: "4–8 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Production-ready technology-integrated classroom or STEM/robotics lab with devices, network, software, and instructional design.",
-    deliverables: ["Space planning","Equipment specification","Network and power design","Installation coordination","Software setup","Initial curriculum content","Faculty orientation"],
-    related: [] },
-  { id: "UKZ-ET-011", categoryCode: "ET", name: "Digital Citizenship and AUP Implementation", tier: 2, audience: ["EDU"], engagement: "Implementation", duration: "2–4 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "School-wide acceptable use policy and digital citizenship framework implemented with student, parent, and faculty rollout.",
-    deliverables: ["AUP drafting","BYOD policy","Digital citizenship curriculum","AI acceptable use policy","Parent communication pack","Faculty training","Student onboarding","Annual review template"],
-    related: [] },
-  { id: "UKZ-ET-012", categoryCode: "ET", name: "Student Data Privacy Compliance Service", tier: 3, audience: ["EDU"], engagement: "Service", duration: "4–6 weeks", pricingModel: "Fixed", status: "active",
-    outcome: "Student data privacy compliance posture aligned with applicable regulations (LFPDPPP, FERPA, GDPR).",
-    deliverables: ["Data inventory","Vendor compliance audit","Data flow mapping","Policy & procedure documentation","Faculty & staff training","Parent disclosure templates","Annual review framework"],
-    related: [] },
-
-  /* ── MS · Managed Services and Support ──────────────────────────────── */
-  { id: "UKZ-MS-001", categoryCode: "MS", name: "Managed IT Operations Retainer", tier: 1, audience: ["EDU","SMB"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Fully managed IT operations with defined SLAs across networks, devices, identity, and platforms.",
-    deliverables: ["SLA-backed incident response","Proactive monitoring","Patching & updates","User onboarding/offboarding","Vendor coordination","Monthly performance report","Quarterly business review"],
-    related: ["UKZ-IC-001","UKZ-MS-007"] },
-  { id: "UKZ-MS-002", categoryCode: "MS", name: "Managed Cloud Operations Retainer", tier: 2, audience: ["SMB"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Ongoing management of cloud infrastructure on GCP or AWS with cost optimization, security monitoring, and incident response.",
-    deliverables: ["24/7 monitoring","Incident response","Cost optimization","Security posture management","Patching & updates","Backup verification","Monthly cost & performance report"],
-    related: ["UKZ-IC-009","UKZ-IC-010","UKZ-IC-013"] },
-  { id: "UKZ-MS-003", categoryCode: "MS", name: "Managed Application Maintenance Retainer", tier: 2, audience: ["SMB"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Ongoing maintenance, bug fixes, dependency updates, and minor enhancements for production applications.",
-    deliverables: ["Monthly maintenance window","Dependency updates","Security patching","Bug fixes (within retainer hours)","Minor feature enhancements","Performance monitoring","Monthly report"],
-    related: [] },
-  { id: "UKZ-MS-004", categoryCode: "MS", name: "Managed Website Hosting and Maintenance", tier: 2, audience: ["EDU","SMB","IND"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Hosted, maintained, and monitored website with backups, updates, and uptime guarantees.",
-    deliverables: ["Hosting","Daily backups","Security monitoring","CMS, plugin, dependency updates","Performance monitoring","SSL renewal","Minor content updates","Monthly report"],
-    related: [] },
-  { id: "UKZ-MS-005", categoryCode: "MS", name: "Managed Workspace Administration", tier: 2, audience: ["EDU","SMB"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Ongoing administration of Google Workspace or Microsoft 365 tenant including user lifecycle, policy enforcement, and support.",
-    deliverables: ["User provisioning & deprovisioning","License management","Policy enforcement","Security monitoring","End-user support","Quarterly admin review"],
-    related: [] },
-  { id: "UKZ-MS-006", categoryCode: "MS", name: "Managed LMS Administration for Schools", tier: 1, audience: ["EDU"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Ongoing LMS administration for schools without a dedicated EdTech administrator.",
-    deliverables: ["Term-based user provisioning","Course setup","Integration management","Faculty support","Student support","Issue resolution","Term-end reporting","Annual rollover"],
-    related: [] },
-  { id: "UKZ-MS-007", categoryCode: "MS", name: "Helpdesk-as-a-Service Retainer", tier: 2, audience: ["EDU","SMB"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Outsourced helpdesk function with tiered response times and bilingual EN-ES support.",
-    deliverables: ["Tier 1 to Tier 3 support","SLA-backed response","Ticket management","Knowledge base maintenance","Escalation procedures","Bilingual support","Monthly performance report"],
-    related: [] },
-  { id: "UKZ-MS-008", categoryCode: "MS", name: "Managed Cybersecurity Monitoring", tier: 3, audience: ["SMB"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Continuous security monitoring, alerting, and incident response for production environments.",
-    deliverables: ["SIEM integration","Threat monitoring","Alert triage","Incident response","Monthly threat report","Quarterly security review"],
-    related: [] },
-  { id: "UKZ-MS-009", categoryCode: "MS", name: "Managed Compliance Monitoring", tier: 3, audience: ["EDU","SMB"], engagement: "Retainer", duration: "Ongoing", pricingModel: "Retainer",status: "active",
-    outcome: "Ongoing compliance posture monitoring for LFPDPPP, GDPR, or FERPA with quarterly attestation.",
-    deliverables: ["Control monitoring","Vendor compliance tracking","Policy review","Quarterly attestation report","Annual compliance review","Remediation coordination"],
-    related: [] },
-  { id: "UKZ-MS-010", categoryCode: "MS", name: "Quarterly Health Check Service", tier: 2, audience: ["EDU","SMB"], engagement: "Audit", duration: "Per quarter",pricingModel: "Fixed", status: "active",
-    outcome: "Quarterly review of infrastructure, security, and operational posture with prioritized recommendations.",
-    deliverables: ["Infrastructure review","Security posture review","Performance review","Cost review","Recommendations report","Executive presentation"],
-    related: [] },
-]
-
-/* ── Flagship service IDs (Tier 1) ──────────────────────────────────────── */
 export const FLAGSHIP_SERVICE_IDS = SERVICES.filter((s) => s.tier === 1).map((s) => s.id)
 
-/* ── Helpers ────────────────────────────────────────────────────────────── */
+/* ── Lookups ─────────────────────────────────────────────────────────────── */
 export const getServiceById = (id) => SERVICES.find((s) => s.id === id) || null
 export const getServicesByIds = (ids = []) => ids.map(getServiceById).filter(Boolean)
 export const servicesByCategory = (code) => SERVICES.filter((s) => s.categoryCode === code)
@@ -476,159 +359,229 @@ export const servicesByAudience = (code) => SERVICES.filter((s) => s.audience.in
 export const servicesByEngagement = (label) => SERVICES.filter((s) => s.engagement === label)
 export const getFlagshipServices = () => SERVICES.filter((s) => s.tier === 1)
 
-/**
- * Filter & search services. All criteria are optional and combine via AND.
- * @param {Object} opts
- * @param {string}  opts.q          Free-text query (matches name, outcome, id, deliverables)
- * @param {string}  opts.audience   "EDU" | "SMB" | "IND" | null
- * @param {string}  opts.engagement Engagement type or null
- * @param {string}  opts.category   Category code or null
- * @param {1|2|3}   opts.tier       Tier filter or null
- */
 export function filterServices(opts = {}) {
-  const { q, audience, engagement, category, tier } = opts
-  const text = q ? q.trim().toLowerCase() : ""
-
+  const { q = "", audience = null, engagement = null, categoryCode = null } = opts
+  const needle = q.trim().toLowerCase()
   return SERVICES.filter((s) => {
+    if (categoryCode && s.categoryCode !== categoryCode) return false
     if (audience && !s.audience.includes(audience)) return false
     if (engagement && s.engagement !== engagement) return false
-    if (category && s.categoryCode !== category) return false
-    if (tier && s.tier !== tier) return false
-    if (text) {
-      const hay = `${s.id} ${s.name} ${s.outcome} ${s.deliverables.join(" ")}`.toLowerCase()
-      if (!hay.includes(text)) return false
+    if (needle) {
+      const hay = [s.id, s.name, s.nameEs, s.outcome, s.outcomeEs, ...(s.deliverables || [])].join(" ").toLowerCase()
+      if (!hay.includes(needle)) return false
     }
     return true
   })
 }
 
-/* ── Trust strip credentials (preserved) ────────────────────────────────── */
+/* ── Legacy → new mapping (for 301s and old bookmarks) ──────────────────── */
+export const LEGACY_CATEGORY_SLUG_MAP = {
+  "consulting-strategy": "it-strategy-consulting",
+  "brand-digital-presence": "digital-product-engineering",
+  "infrastructure-cloud": "cloud-architecture-migration",
+  "web-app-ai": "digital-product-engineering",
+  "edtech-training": "it-strategy-consulting",
+  "managed-services": "digital-product-engineering",
+  // Older DB slugs from the first services seed
+  "digital-transformation-consulting": "it-strategy-consulting",
+  "it-infrastructure": "cloud-architecture-migration",
+  "cloud-migration-automation": "cloud-architecture-migration",
+  "branding-digital-presence": "digital-product-engineering",
+}
+
+/** Old SKU id → new offering id (null = retired; falls back to the category). */
+export const legacyIdMap = {
+  "UKZ-CS-001": "UKZ-ITS-001", "UKZ-CS-002": "UKZ-ITS-004", "UKZ-CS-003": "UKZ-DPE-004",
+  "UKZ-CS-004": "UKZ-ITS-003", "UKZ-CS-005": null, "UKZ-CS-006": "UKZ-ITS-005",
+  "UKZ-CS-007": "UKZ-ITS-004", "UKZ-CS-008": "UKZ-ITS-002", "UKZ-CS-009": null,
+  "UKZ-CS-010": "UKZ-ITS-002", "UKZ-CS-011": "UKZ-ITS-002", "UKZ-CS-012": null,
+  "UKZ-BD-001": null, "UKZ-BD-002": null, "UKZ-BD-003": null, "UKZ-BD-004": null,
+  "UKZ-BD-005": null, "UKZ-BD-006": null, "UKZ-BD-007": "UKZ-DPE-002", "UKZ-BD-008": "UKZ-DPE-002",
+  "UKZ-BD-009": "UKZ-DPE-001", "UKZ-BD-010": null, "UKZ-BD-011": null, "UKZ-BD-012": null,
+  "UKZ-BD-013": null, "UKZ-BD-014": null,
+  "UKZ-IC-001": null, "UKZ-IC-002": "UKZ-CAM-001", "UKZ-IC-003": null, "UKZ-IC-004": null,
+  "UKZ-IC-005": null, "UKZ-IC-006": "UKZ-CAM-005", "UKZ-IC-007": null, "UKZ-IC-008": "UKZ-CAM-001",
+  "UKZ-IC-009": "UKZ-CAM-001", "UKZ-IC-010": "UKZ-CAM-001", "UKZ-IC-011": "UKZ-CAM-004",
+  "UKZ-IC-012": "UKZ-AIA-003", "UKZ-IC-013": "UKZ-CAM-002", "UKZ-IC-014": "UKZ-CAM-005",
+  "UKZ-IC-015": "UKZ-CAM-003", "UKZ-IC-016": null,
+  "UKZ-WD-001": "UKZ-DPE-002", "UKZ-WD-002": "UKZ-DPE-002", "UKZ-WD-003": "UKZ-DPE-002",
+  "UKZ-WD-004": null, "UKZ-WD-005": "UKZ-DPE-002", "UKZ-WD-006": "UKZ-DPE-004",
+  "UKZ-WD-007": "UKZ-AIA-003", "UKZ-WD-008": "UKZ-AIA-003", "UKZ-WD-009": "UKZ-AIA-001",
+  "UKZ-WD-010": "UKZ-AIA-002", "UKZ-WD-011": "UKZ-AIA-004", "UKZ-WD-012": "UKZ-AIA-005",
+  "UKZ-WD-013": "UKZ-AIA-003", "UKZ-WD-014": null, "UKZ-WD-015": null, "UKZ-WD-016": null,
+  "UKZ-WD-017": null, "UKZ-WD-018": "UKZ-CAM-004",
+  "UKZ-ET-001": "UKZ-ITS-003", "UKZ-ET-002": null, "UKZ-ET-003": null, "UKZ-ET-004": null,
+  "UKZ-ET-005": null, "UKZ-ET-006": null, "UKZ-ET-007": null, "UKZ-ET-008": null,
+  "UKZ-ET-009": null, "UKZ-ET-010": null, "UKZ-ET-011": null, "UKZ-ET-012": "UKZ-ITS-005",
+  "UKZ-MS-001": "UKZ-DPE-006", "UKZ-MS-002": "UKZ-DPE-006", "UKZ-MS-003": "UKZ-DPE-006",
+  "UKZ-MS-004": "UKZ-DPE-006", "UKZ-MS-005": null, "UKZ-MS-006": null, "UKZ-MS-007": null,
+  "UKZ-MS-008": "UKZ-CAM-005", "UKZ-MS-009": "UKZ-ITS-005", "UKZ-MS-010": "UKZ-DPE-006",
+}
+
+const LEGACY_PREFIX_TO_CATEGORY = {
+  CS: "it-strategy-consulting", BD: "digital-product-engineering", IC: "cloud-architecture-migration",
+  WD: "digital-product-engineering", ET: "it-strategy-consulting", MS: "digital-product-engineering",
+}
+
+export const getCategoryByCode = (code) => CATEGORIES.find((c) => c.code === code) || null
+
+export function getOfferingBySlug(slug) {
+  if (!slug) return null
+  const needle = String(slug).toLowerCase()
+  for (const category of CATEGORIES) {
+    const offering = category.offerings.find(
+      (o) => o.slug === needle || o.id.toLowerCase() === needle,
+    )
+    if (offering) return { ...offering, category }
+  }
+  return null
+}
+
+/**
+ * Resolve any slug (new category, new offering, legacy category slug, legacy
+ * SKU id) to the new category slug. Returns null when nothing matches.
+ */
+export function resolveLegacySlug(slug) {
+  if (!slug) return null
+  const needle = String(slug).toLowerCase()
+  const direct = CATEGORIES.find((c) => c.slug === needle)
+  if (direct) return direct.slug
+  const offering = getOfferingBySlug(needle)
+  if (offering) return offering.category.slug
+  if (LEGACY_CATEGORY_SLUG_MAP[needle]) return LEGACY_CATEGORY_SLUG_MAP[needle]
+  const upper = String(slug).toUpperCase()
+  if (upper in legacyIdMap) {
+    const mapped = legacyIdMap[upper]
+    if (mapped) return getOfferingBySlug(mapped)?.category.slug || null
+    const prefix = upper.split("-")[1]
+    return LEGACY_PREFIX_TO_CATEGORY[prefix] || null
+  }
+  return null
+}
+
+export function getCategoryBySlug(slug) {
+  const resolved = resolveLegacySlug(slug)
+  return resolved ? CATEGORIES.find((c) => c.slug === resolved) || null : null
+}
+
+/* ── Funnel: single CTA everywhere ──────────────────────────────────────── */
+export const bookHref = (slug) => (slug ? `/book?service=${encodeURIComponent(slug)}` : "/book")
+
+export const HOW_IT_WORKS = [
+  { id: "call", step: "01", Icon: Calendar, title: "30-minute call", titleEs: "Llamada de 30 min",
+    body: "Free. We diagnose the situation and agree on whether there is a fit.",
+    bodyEs: "Gratis. Diagnosticamos la situación y acordamos si hay encaje." },
+  { id: "proposal", step: "02", Icon: FileText, title: "Written proposal", titleEs: "Propuesta escrita",
+    body: "Scope, timeline and price in one document, usually within 3 business days.",
+    bodyEs: "Alcance, plazos y precio en un solo documento, normalmente en 3 días hábiles." },
+  { id: "delivery", step: "03", Icon: ShieldCheck, title: "Delivery", titleEs: "Entrega",
+    body: "Weekly sync, written status every Friday, runbooks at handover.",
+    bodyEs: "Sincronización semanal, estatus escrito cada viernes y manuales en la entrega." },
+]
+
+/* ── Per-category FAQ (3–5 each) ────────────────────────────────────────── */
+export const CATEGORY_FAQS = {
+  "it-strategy-consulting": [
+    { id: "who", q: "Is this only for companies with an IT department?", qEs: "¿Es solo para empresas con departamento de TI?",
+      a: "No. Most clients are SMEs with 5–80 people and no internal IT lead. The engagement replaces that role for the duration.",
+      aEs: "No. La mayoría de los clientes son PyMEs de 5 a 80 personas sin un líder de TI interno. El servicio cubre ese rol durante el proyecto." },
+    { id: "vendor", q: "Do you resell software or earn vendor commissions?", qEs: "¿Revendes software o cobras comisiones de proveedores?",
+      a: "No. Recommendations are independent; you pay for the advice, not for a product I am paid to push.",
+      aEs: "No. Las recomendaciones son independientes; pagas por la asesoría, no por un producto que me paguen por impulsar." },
+    { id: "lfpdppp", q: "Does the compliance assessment cover LFPDPPP?", qEs: "¿La evaluación de cumplimiento cubre la LFPDPPP?",
+      a: "Yes. The architecture audit maps personal data flows against the Mexican privacy law and produces a remediation roadmap.",
+      aEs: "Sí. La auditoría de arquitectura mapea los flujos de datos personales contra la ley mexicana de privacidad y produce una hoja de ruta de remediación." },
+    { id: "cto-min", q: "What is the minimum for the fractional CTO engagement?", qEs: "¿Cuál es el mínimo para la participación fraccional de CTO?",
+      a: "Three months, so roadmap decisions have time to land. Cancel with 30 days' notice after that.",
+      aEs: "Tres meses, para que las decisiones de la hoja de ruta tengan tiempo de asentarse. Después, cancela con 30 días de aviso." },
+  ],
+  "ai-automation": [
+    { id: "data", q: "Where does our data go when you build a bot or a RAG system?", qEs: "¿A dónde van nuestros datos cuando construyes un bot o un sistema RAG?",
+      a: "Into infrastructure you own (your cloud account and your vector database). Model providers are configured with no-training terms.",
+      aEs: "A infraestructura que tú posees (tu cuenta en la nube y tu base vectorial). Los proveedores de modelos se configuran con términos de no entrenamiento." },
+    { id: "whatsapp", q: "Do we need the official WhatsApp Business API?", qEs: "¿Necesitamos la API oficial de WhatsApp Business?",
+      a: "Yes, for anything automated. Setup and Meta verification are included in the engagement.",
+      aEs: "Sí, para cualquier automatización. La configuración y la verificación de Meta están incluidas en el servicio." },
+    { id: "tools", q: "Make, Zapier or custom code?", qEs: "¿Make, Zapier o código a medida?",
+      a: "Make or Zapier when the volume is modest and speed matters; custom code when you need reliability at scale or non-standard logic.",
+      aEs: "Make o Zapier cuando el volumen es moderado y la velocidad importa; código a medida cuando necesitas fiabilidad a escala o lógica no estándar." },
+    { id: "maint", q: "What happens when a model or an API changes?", qEs: "¿Qué pasa cuando cambia un modelo o una API?",
+      a: "Every build ships with an evaluation set and monitoring. Managed Maintenance covers the updates month to month.",
+      aEs: "Cada construcción incluye un conjunto de evaluación y monitoreo. El Mantenimiento gestionado cubre las actualizaciones mes a mes." },
+  ],
+  "cloud-architecture-migration": [
+    { id: "provider", q: "AWS, Azure or GCP?", qEs: "¿AWS, Azure o GCP?",
+      a: "Whichever fits your team, licences and budget. I have shipped production workloads on all three and will recommend one on the call.",
+      aEs: "El que encaje con tu equipo, licencias y presupuesto. He publicado cargas en producción en los tres y recomendaré uno en la llamada." },
+    { id: "downtime", q: "Will the migration take us offline?", qEs: "¿La migración nos dejará fuera de línea?",
+      a: "Cutover is planned outside business hours with a rehearsed rollback. Typical downtime is minutes, not days.",
+      aEs: "El corte se planifica fuera del horario laboral con una reversión ensayada. El tiempo de inactividad típico es de minutos, no días." },
+    { id: "savings", q: "Is the 40 % cloud saving guaranteed?", qEs: "¿El ahorro del 40 % en la nube está garantizado?",
+      a: "No. It is the upper end of what right-sizing typically finds. The audit quantifies your figure before you commit to changes.",
+      aEs: "No. Es el extremo superior de lo que suele encontrar el redimensionamiento. La auditoría cuantifica tu cifra antes de que te comprometas a cambios." },
+    { id: "drtest", q: "How do we know the backups work?", qEs: "¿Cómo sabemos que los respaldos funcionan?",
+      a: "Every DR engagement ends with a live restore drill you watch, plus a runbook your team can repeat.",
+      aEs: "Cada proyecto de DR termina con un simulacro de restauración en vivo que observas, más un manual que tu equipo puede repetir." },
+  ],
+  "digital-product-engineering": [
+    { id: "stack", q: "Which stack do you build on?", qEs: "¿Con qué tecnologías construyes?",
+      a: "React and Node or Django for web, React Native for mobile, PostgreSQL, deployed on GCP or AWS. Other stacks by agreement.",
+      aEs: "React y Node o Django para web, React Native para móvil, PostgreSQL, desplegado en GCP o AWS. Otras tecnologías por acuerdo." },
+    { id: "own", q: "Who owns the code?", qEs: "¿Quién es dueño del código?",
+      a: "You do, from the first commit. Repositories live in your organisation and IP assignment is in the contract.",
+      aEs: "Tú, desde el primer commit. Los repositorios viven en tu organización y la cesión de propiedad intelectual está en el contrato." },
+    { id: "mvp", q: "How fast is an MVP?", qEs: "¿Qué tan rápido es un MVP?",
+      a: "Four to ten weeks after scope is signed, depending on integrations. The wireframing sprint before it removes most surprises.",
+      aEs: "De cuatro a diez semanas después de firmar el alcance, según las integraciones. El sprint de wireframing previo elimina la mayoría de las sorpresas." },
+    { id: "after", q: "What happens after launch?", qEs: "¿Qué pasa después del lanzamiento?",
+      a: "Thirty days of support are included. After that, Managed Maintenance keeps the product patched and shipping features monthly.",
+      aEs: "Se incluyen treinta días de soporte. Después, el Mantenimiento gestionado mantiene el producto parchado y publicando funciones cada mes." },
+  ],
+}
+
+/* ── Trust strip credentials ────────────────────────────────────────────── */
 export const CREDENTIALS = [
   { id: "google-l2", label: "Google Certified Educator L2", issuer: "Google", type: "certification", Icon: Award },
   { id: "google-it", label: "Google IT Support Professional", issuer: "Google", type: "certification", Icon: ShieldCheck },
   { id: "meta-fe", label: "Meta Front-End Developer", issuer: "Meta", type: "certification", Icon: Award },
-  { id: "msc", label: "MSc · Software Engineering (in progress)",issuer: "UNEATLANTICO", type: "academic", Icon: BookMarked },
+  { id: "msc", label: "MSc · Software Engineering (in progress)", issuer: "UNEATLANTICO", type: "academic", Icon: BookMarked },
   { id: "bsc", label: "BEd · IT, Distinction", issuer: "AUCA, Rwanda", type: "academic", Icon: BookMarked },
   { id: "raindrop", label: "Colegio de Excelencia Raindrop", issuer: "IT Manager · CS Teacher", type: "institution", Icon: ShieldCheck },
   { id: "intellectual", label: "Intellectual Schools, Ethiopia", issuer: "ICT Director (2021)", type: "institution", Icon: ShieldCheck },
-  { id: "design-office",label: "Design Office of Africa", issuer: "Project Manager (2022)", type: "institution", Icon: ShieldCheck },
+  { id: "design-office", label: "Design Office of Africa", issuer: "Project Manager (2022)", type: "institution", Icon: ShieldCheck },
 ]
 
-/* ── Differentiation pillars · 5 reasons + summary tile ─────────────────── */
+/* ── Differentiation pillars ────────────────────────────────────────────── */
 export const DIFFERENTIATION_PILLARS = [
-  {
-    id: "international",
-    title: "International Reach",
-    claim: "Four countries, three continents, one delivery standard",
-    support: "Production track record across Rwanda, Turkey, Ethiopia, and Mexico, with over eight years of shipping reliable systems.",
-    proof: "8+ years",
-    accent: "violet",
-    Icon: Globe2,
-  },
-  {
-    id: "bilingual",
-    title: "Bilingual Delivery",
-    claim: "Bilingual delivery as a default, not an upcharge",
-    support: "Technical artifacts in English (C2), Spanish (B2), or Turkish (C1). You choose the language, with no translation overhead.",
-    proof: "EN · ES · TR",
-    accent: "terracotta",
-    Icon: Languages,
-  },
-  {
-    id: "solo-senior",
-    title: "Senior Solo Execution",
-    claim: "Senior solo execution. You brief me; I write the code and the curriculum.",
-    support: "No junior handoffs, no agency overhead, no telephone game between specs and shipping.",
-    proof: "No handoffs",
-    accent: "azure",
-    Icon: UserCheck,
-  },
-  {
-    id: "edu-eng",
-    title: "Dual Expertise",
-    claim: "Education and engineering in one person. Load-bearing for school clients.",
-    support: "BEd with Distinction, MSc Software Engineering in progress, and Google Certified Educator L2.",
-    proof: "Dual track",
-    accent: "mint",
-    Icon: BookMarked,
-  },
-  {
-    id: "documented",
-    title: "Documented Handover",
-    claim: "Every engagement ends with runbooks, not just code",
-    support: "Architecture diagrams, deployment runbooks, faculty training, and clean knowledge transfer included by default.",
-    proof: "Runbooks included",
-    accent: "violet",
-    Icon: FileText,
-  },
+  { id: "international", title: "International Reach", claim: "Four countries, three continents, one delivery standard",
+    support: "Production track record across Rwanda, Turkey, Ethiopia, and Mexico, with over eight years of shipping reliable systems.", proof: "8+ years", accent: "violet", Icon: Globe2 },
+  { id: "bilingual", title: "Bilingual Delivery", claim: "Bilingual delivery as a default, not an upcharge",
+    support: "Technical artifacts in English, Spanish, or Turkish. You choose the language, with no translation overhead.", proof: "EN · ES · TR", accent: "terracotta", Icon: Languages },
+  { id: "solo-senior", title: "Senior Solo Execution", claim: "You brief me; I write the code and the runbooks.",
+    support: "No junior handoffs, no agency overhead, no telephone game between specs and shipping.", proof: "No handoffs", accent: "azure", Icon: UserCheck },
+  { id: "documented", title: "Documented Handover", claim: "Every engagement ends with runbooks, not just code",
+    support: "Architecture diagrams, deployment runbooks, and clean knowledge transfer included by default.", proof: "Runbooks included", accent: "violet", Icon: FileText },
 ]
 
-/* ── Services-specific FAQ ──────────────────────────────────────────────── */
+/* ── Services-wide FAQ (overview page) ──────────────────────────────────── */
 export const SERVICES_FAQ_ITEMS = [
-  {
-    id: "start",
-    category: "Engagement",
-    question: "Where do I start if I'm not sure which service I need?",
-    answer: "Book the discovery call (30 minutes, free). The first job is to give you a clear diagnosis, even if we do not end up working together. Alternatively, pick the closest match in the catalog and the call will refine it.",
-  },
-  {
-    id: "pricing",
-    category: "Pricing",
-    question: "How is pricing structured?",
-    answer: "Most services are fixed scope · fixed price after a short scoping conversation. Retainers and managed services are monthly fixed. Cohort programs are per-seat. The catalog tells you the pricing model for every service; the call gives you the actual number.",
-  },
-  {
-    id: "minimum",
-    category: "Pricing",
-    question: "What's the minimum engagement?",
-    answer: "Sprints start at 2 weeks. Monthly retainers require a 3-month minimum so the system has time to settle. Discovery and advisory sessions are single-session and have no minimum.",
-  },
-  {
-    id: "team-join",
-    category: "Engagement",
-    question: "Can you join an existing engineering team?",
-    answer: "Yes. Fractional and contractor engagements are common. I integrate as a senior engineer, an IT lead, or both, depending on the gap. NDAs and IP assignment are signed before any code is touched.",
-  },
-  {
-    id: "nda",
-    category: "Engagement",
-    question: "Do you sign NDAs?",
-    answer: "Yes, before scoping. I work with regulated industries such as healthcare and education, where NDAs are routine. Bring your template or use mine.",
-  },
-  {
-    id: "scope-changes",
-    category: "Delivery",
-    question: "How do you handle scope changes?",
-    answer: "Scope changes go through a written change-order process: a short document that is sized, priced, and signed. Adjustments within the agreed scope are included; net-new scope is a separate line item.",
-  },
-  {
-    id: "cadence",
-    category: "Delivery",
-    question: "What's your communication cadence?",
-    answer: "Default is one weekly sync (30 minutes), async by Slack or email between syncs, and a written status update every Friday. We can flex up to daily standups if the project needs it.",
-  },
-  {
-    id: "geo",
-    category: "Reach",
-    question: "Do you work outside Mexico?",
-    answer: "Yes. Production track record across Rwanda, Turkey, Ethiopia, and Mexico. Operation is 100% remote, with on-site sessions in CDMX or Estado de México when they add value.",
-  },
-  {
-    id: "direct",
-    category: "Engagement",
-    question: "Will I work directly with you?",
-    answer: "Yes, on every engagement. There are no junior handoffs, no offshore relays, and no account managers. You brief me; I write the code, the docs, and the curriculum.",
-  },
+  { id: "start", category: "Engagement", question: "Where do I start if I'm not sure which service I need?",
+    answer: "Book the 30-minute call. The first job is a clear diagnosis, even if we do not end up working together." },
+  { id: "pricing", category: "Pricing", question: "How is pricing structured?",
+    answer: "Audits and wireframing sprints are fixed price. Bespoke builds and migrations are quoted after the call; retainers are monthly." },
+  { id: "nda", category: "Engagement", question: "Do you sign NDAs?", answer: "Yes, before scoping. Bring your template or use mine." },
+  { id: "geo", category: "Reach", question: "Do you work outside Mexico?",
+    answer: "Yes. Operation is 100 % remote, with on-site sessions in CDMX or Estado de México when they add value." },
+  { id: "direct", category: "Engagement", question: "Will I work directly with you?",
+    answer: "Yes, on every engagement. No junior handoffs, no account managers." },
 ]
 
-/* ── FAQ contact actions (kept for the FAQ side rail) ───────────────────── */
 export const FAQ_CONTACT_ACTIONS = [
-  { Icon: Calendar, title: "Book discovery call", desc: "30 minutes · no commitment · clear next step.", to: "/book" },
+  { Icon: Calendar, title: "Book a 30-min call", desc: "Free · no commitment · clear next step.", to: "/book" },
   { Icon: Mail, title: "Email me directly", desc: "hello@mustaphaukizuru.com", to: "mailto:hello@mustaphaukizuru.com", external: true },
   { Icon: Phone, title: "WhatsApp / Telegram", desc: "Async-friendly, fast turnaround.", to: "https://wa.me/+525552139993", external: true },
 ]
 
-/* ── Catalog summary stats (computed once) ──────────────────────────────── */
 export const CATALOG_STATS = {
   totalServices: SERVICES.length,
   flagshipCount: SERVICES.filter((s) => s.tier === 1).length,
@@ -637,91 +590,8 @@ export const CATALOG_STATS = {
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   PRICE PLANS · per service type (category)
-   ────────────────────────────────────────────────────────────────────────
-   Three tiers per category — Starter / Professional / Enterprise.
-   Prices are starting-from anchors, real proposal sent after the call.
-   USD figures are approximate at 20 MXN/USD; override with your own rates.
-   Override path: edit any `priceFromUsd` / `priceFromMxn` in the array below.
-   ════════════════════════════════════════════════════════════════════════ */
-export const CATEGORY_PLANS = {
-  CS: {
-    starter: { name: "Starter", label: "Audit & advice", priceFromUsd: 750, priceFromMxn: 15000, unit: "fixed", duration: "2–4 weeks", includes: ["Single technology audit","Executive summary","Prioritized recommendations","One-hour debrief call"], anchorService: "UKZ-CS-001" },
-    professional: { name: "Professional", label: "Roadmap & strategy", priceFromUsd: 2400, priceFromMxn: 48000, unit: "fixed", duration: "4–6 weeks", includes: ["Full audit + 12-month roadmap","Stakeholder workshops","AI strategy & adoption plan","Quarterly milestone definition","Executive briefing"], anchorService: "UKZ-CS-002" },
-    enterprise: { name: "Enterprise", label: "Fractional CTO", priceFromUsd: 4500, priceFromMxn: 90000, unit: "monthly",duration: "Ongoing · 3-mo min", includes: ["Weekly leadership cadence","Engineering team oversight","Architecture & vendor decisions","Hiring support","Investor / board comms"], anchorService: "UKZ-CS-010" },
-  },
-  BD: {
-    starter: { name: "Starter", label: "Asset pack", priceFromUsd: 450, priceFromMxn: 9000, unit: "fixed", duration: "1–2 weeks", includes: ["Digital asset pack","Print collateral suite","Presentation templates","One round of revisions"], anchorService: "UKZ-BD-006" },
-    professional: { name: "Professional", label: "Website build", priceFromUsd: 2100, priceFromMxn: 42000, unit: "fixed", duration: "2–4 weeks", includes: ["Custom personal or business website","Up to 12 pages","Mobile responsive · WCAG AA","SEO foundations · analytics","Two rounds of revisions"], anchorService: "UKZ-BD-007" },
-    enterprise: { name: "Enterprise", label: "Brand & web foundation",priceFromUsd: 4800, priceFromMxn: 96000, unit: "fixed", duration: "5–8 weeks", includes: ["Complete brand identity system","Production website (12+ pages)","Social presence optimization","Privacy-compliant analytics","30-day post-launch support"], anchorService: "UKZ-BD-001" },
-  },
-  IC: {
-    starter: { name: "Starter", label: "Workspace setup", priceFromUsd: 1200, priceFromMxn: 24000, unit: "fixed", duration: "3–4 weeks", includes: ["Google Workspace or M365 tenant","User provisioning","Security policies","Admin training session"], anchorService: "UKZ-IC-004" },
-    professional: { name: "Professional", label: "Network + identity", priceFromUsd: 3600, priceFromMxn: 72000, unit: "fixed", duration: "5–8 weeks", includes: ["Production-grade office network","Workspace + email migration","SSO + MFA implementation","Backup + DR plan","Documentation & runbooks"], anchorService: "UKZ-IC-001" },
-    enterprise: { name: "Enterprise", label: "Cloud migration", priceFromUsd: 7500, priceFromMxn:150000, unit: "fixed", duration: "6–12 weeks", includes: ["Full GCP or AWS migration","VPC + IAM design","Workload migration","Security baseline","Cost optimization","Post-migration support"], anchorService: "UKZ-IC-009" },
-  },
-  WD: {
-    starter: { name: "Starter", label: "Landing or integration",priceFromUsd: 1500, priceFromMxn: 30000, unit: "fixed", duration: "1–3 weeks", includes: ["High-conversion landing page","Or single 3rd-party integration","Auth + payment if needed","Analytics & conversion tracking"], anchorService: "UKZ-BD-009" },
-    professional: { name: "Professional", label: "Custom application", priceFromUsd: 5500, priceFromMxn:110000, unit: "fixed", duration: "4–10 weeks", includes: ["Custom Django + React app","REST or GraphQL API","Auth + payment integration","Mobile responsive · WCAG AA","Deployment + 30-day support"], anchorService: "UKZ-WD-001" },
-    enterprise: { name: "Enterprise", label: "SaaS MVP or AI build", priceFromUsd: 12000, priceFromMxn:240000, unit: "fixed", duration: "6–14 weeks", includes: ["Multi-tenant SaaS MVP","Or RAG / AI knowledge base","Subscription billing","GCP deployment","Launch support + 30-day retainer"], anchorService: "UKZ-WD-002" },
-  },
-  ET: {
-    starter: { name: "Starter", label: "LMS consultation", priceFromUsd: 850, priceFromMxn: 17000, unit: "fixed", duration: "2–3 weeks", includes: ["LMS selection workshop","Vendor comparison matrix","Reference checks","Implementation roadmap"], anchorService: "UKZ-ET-001" },
-    professional: { name: "Professional", label: "Workspace rollout", priceFromUsd: 2800, priceFromMxn: 56000, unit: "fixed", duration: "4–6 weeks", includes: ["Google Workspace for Education","Classroom setup","Faculty training cohort","Student onboarding pack"], anchorService: "UKZ-ET-003" },
-    enterprise: { name: "Enterprise", label: "Transformation program",priceFromUsd: 9500, priceFromMxn:190000, unit: "fixed", duration: "10–14 weeks",includes: ["LMS deployment + content migration","Faculty PD cohort (8 sessions)","Smart classroom / STEM lab","Bilingual content library","6 months admin support"], anchorService: "UKZ-ET-002" },
-  },
-  MS: {
-    starter: { name: "Starter", label: "Hosting & maintenance", priceFromUsd: 180, priceFromMxn: 3600, unit: "monthly",duration: "Ongoing", includes: ["Hosted, maintained website","Daily backups · SSL renewal","Security monitoring","Minor content updates","Monthly report"], anchorService: "UKZ-MS-004" },
-    professional: { name: "Professional", label: "Managed IT", priceFromUsd: 1200, priceFromMxn: 24000, unit: "monthly",duration: "Ongoing", includes: ["SLA-backed incident response","Proactive monitoring · patching","User onboarding/offboarding","Vendor coordination","Quarterly business review"], anchorService: "UKZ-MS-001" },
-    enterprise: { name: "Enterprise", label: "Full operations", priceFromUsd: 3500, priceFromMxn: 70000, unit: "monthly",duration: "Ongoing", includes: ["Managed cloud + apps","24/7 monitoring","Cybersecurity monitoring","Compliance attestation","Quarterly health check"], anchorService: "UKZ-MS-002" },
-  },
-}
-
-/* ── Plan tier display config (shared between Services + Solutions pages) ── */
-export const PLAN_TIERS = [
-  { key: "starter", label: "Starter", tone: "azure", popular: false },
-  { key: "professional", label: "Professional", tone: "violet", popular: true },
-  { key: "enterprise", label: "Enterprise", tone: "terracotta", popular: false },
-]
-
-
-/* ── Benefits comparison (used by § 03 on ServicesPage.jsx) ─────────────── */
-export const BENEFITS_COMPARISON = [
-  { id: "workflows", with: "Simplified digital workflows", without: "Manual, repetitive, error-prone processes" },
-  { id: "adoption", with: "Faster technology adoption", without: "Slow, fragmented tool rollouts" },
-  { id: "presence", with: "Better digital presence and platforms", without: "Outdated websites and weak online identity" },
-  { id: "teams", with: "Empowered teams through training", without: "Underused tools and persistent skill gaps" },
-  { id: "infra", with: "Secure and scalable infrastructure", without: "Brittle systems and security blind spots" },
-  { id: "support", with: "Continuous technical guidance and support", without: "Reactive firefighting with no roadmap" },
-]
-
-/* ── Category tile tones (used by § 02 colored icon tiles) ──────────────── */
-export const CATEGORY_TILE_TONES = {
-  CS: "bg-violet", // IT Consulting & Strategy
-  BD: "bg-terracotta", // Brand & Digital Presence
-  IC: "bg-azure", // IT Infrastructure & Cloud
-  WD: "bg-charcoal-80", // Web, Application & AI
-  ET: "bg-mint", // EdTech Implementation & Training
-  MS: "bg-gold", // Managed Services & Support
-}
-
-
-/* ════════════════════════════════════════════════════════════════════════
-   AUDIENCE_PRICING_PLANS · 3 audiences × 3 tiers × feature matrix
-   ────────────────────────────────────────────────────────────────────────
-   Used by ServicesPage.jsx § 07 · Pricing.
-
-   Each audience defines:
-     · `features`  — full ordered list of deliverables (longest list wins)
-     · `tiers`     — Basic / Medium / Advanced, each with prices, save-label,
-                     popular flag, CTA, and a same-length boolean array
-                     `includes` indicating which features the tier covers.
-
-   Pricing strategy:
-     · Anchored in USD with MXN conversion at ~20 MXN/USD.
-     · Monthly subscription framing for recurring engagements.
-     · "Save %20" / "Most popular" markers calibrated to nudge mid tier.
-     · Marketing-grade copy — outcome-led, not feature-led.
+   AUDIENCE_PRICING_PLANS · fixed-price packages (existing checkout keeps
+   working: /checkout/service?audience=<code>&tier=<key>). Unchanged.
    ════════════════════════════════════════════════════════════════════════ */
 export const AUDIENCE_PRICING_PLANS = {
   professional: {
@@ -849,7 +719,7 @@ export const AUDIENCE_PRICING_PLANS = {
     name: "Schools",
     short: "For K-12, higher ed, and training institutions",
     description: "For schools, colleges, and training institutions modernizing teaching, learning, and operations end to end.",
-    Icon: GraduationCap2,
+    Icon: GraduationCap,
     accent: "mint",
     features: [
       "LMS deployment, configuration, and content migration program",

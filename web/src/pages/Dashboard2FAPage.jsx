@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -13,7 +13,9 @@ import {
   regenerateBackupCodes as apiRegenerateBackupCodes,
 } from "../services/authService"
 import { useToast } from "../context/ToastContext"
+import useApiQuery from "../hooks/useApiQuery"
 import { SectionCard, SkeletonCard } from "../components/ui/index"
+import ProfileTabs from "../components/dashboard/ProfileTabs"
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Dashboard2FAPage — /dashboard/2fa
@@ -28,9 +30,11 @@ import { SectionCard, SkeletonCard } from "../components/ui/index"
 export default function Dashboard2FAPage() {
   const { t, i18n } = useTranslation("dashboard")
   const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
-  const [status, setStatus] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const { data: status = null, loading, error, refetch: loadStatus, setData: setStatus } = useApiQuery(
+    "twoFactor:status",
+    () => fetchTwoFactorStatus(),
+    { select: (data) => data || { isEnabled: false, isSetupInProgress: false } }
+  )
 
   const [setupData, setSetupData] = useState(null)
   const [setupBusy, setSetupBusy] = useState(false)
@@ -43,19 +47,6 @@ export default function Dashboard2FAPage() {
 
   const { showSuccess, showError } = useToast()
 
-  async function loadStatus() {
-    setLoading(true); setError("")
-    try {
-      const data = await fetchTwoFactorStatus()
-      setStatus(data || { isEnabled: false, isSetupInProgress: false })
-    } catch (err) {
-      setError(err?.message || t("twoFactor.errors.loadStatus"))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { loadStatus()   }, [])
 
   async function handleStartSetup() {
     setSetupBusy(true)
@@ -152,6 +143,7 @@ export default function Dashboard2FAPage() {
       </AnimatePresence>
 
       <section className="space-y-5">
+      <ProfileTabs />
         {error && (
           <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}

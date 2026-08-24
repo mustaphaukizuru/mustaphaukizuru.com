@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
-    "@sentry/node": "^8.55.1",
+    "@sentry/node": "^10.71.0",
     "axios": "^1.7.9",
     "bcryptjs": "^3.0.2",
     "compression": "^1.7.4",

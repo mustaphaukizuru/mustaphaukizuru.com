@@ -13,7 +13,8 @@
     "seo:sitemap": "node ./scripts/generate-sitemap.mjs",
     "build:seo": "npm run build && npm run seo:sitemap",
     "seo:ping": "node ./scripts/sitemap-ping.mjs",
-    "images:webp": "node ./scripts/convert-images.mjs"
+    "images:webp": "node ./scripts/convert-images.mjs",
+    "og:build": "node ./scripts/generate-og-images.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
@@ -30,7 +31,8 @@
     "react-i18next": "^15.0.3",
     "react-icons": "^5.6.0",
     "react-router-dom": "^7.13.1",
-    "sonner": "^1.7.4"
+    "sonner": "^1.7.4",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

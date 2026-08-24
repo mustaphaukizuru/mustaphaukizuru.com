@@ -1,20 +1,30 @@
 {
   "hero": {
-    "eyebrow": "Portfolio",
+    "eyebrow": "Case studies",
     "title": "Selected Work",
-    "subtitle": "A curated collection of full-stack development, digital design, and educational-technology projects. Each one solves a real problem, the case studies dig into the how and the why."
+    "subtitle": "Each project is written up as a case study: the problem we started from, the approach we took, and the outcome in numbers. Filter by the service it maps to."
   },
   "filters": {
     "all": "All",
     "search": "Search work",
     "previous": "Previous",
     "next": "Next",
-    "pageOf": "Page {{page}} of {{total}}"
+    "pageOf": "Page {{page}} of {{total}}",
+    "byService": "Filter by service",
+    "byCategory": "Filter by category"
+  },
+  "services": {
+    "it-strategy-consulting": "IT strategy & consulting",
+    "ai-automation": "AI & automation",
+    "cloud-architecture-migration": "Cloud architecture & migration",
+    "digital-product-engineering": "Digital product engineering"
   },
   "card": {
     "featured": "Featured",
-    "caseStudy": "Case study",
-    "live": "Live"
+    "caseStudy": "Read case study",
+    "live": "Live",
+    "outcome": "Outcome",
+    "placeholderShort": "Illustrative figures"
   },
   "empty": "No projects match your filters.",
   "states": {
@@ -28,29 +38,54 @@
     "subtitle": "Let's discuss how we can bring it to life.",
     "button": "Start a conversation"
   },
+  "serviceCta": {
+    "eyebrow": "Related service",
+    "title": "Need something like this?",
+    "body": "This project maps to {{service}}. Book a free call and we'll scope a project like this for your team.",
+    "button": "Book a call about a project like this"
+  },
   "seo": {
-    "title": "Portfolio · Mustapha Ukizuru",
-    "description": "Selected work, full-stack development, design, branding, and school digital integration projects.",
+    "title": "Portfolio · Case studies · Mustapha Ukizuru",
+    "description": "Selected work written up as case studies: problem, approach, and measurable outcomes across product engineering, cloud, AI automation, and IT strategy.",
     "schemaName": "Portfolio",
-    "schemaDesc": "Selected projects."
+    "schemaDesc": "Selected projects as case studies."
   },
   "detail": {
     "notFound": "Project not found",
     "notFoundBody": "This project may not exist or has been moved.",
     "backToPortfolio": "Back to portfolio",
+    "home": "Home",
+    "portfolio": "Portfolio",
     "year": "Year",
+    "duration": "Duration",
     "role": "Role",
     "client": "Client",
     "tools": "Tools",
+    "source": "Source",
+    "overview": "Overview",
+    "context": "Client & context",
+    "problem": "The problem",
+    "approach": "The approach",
+    "outcome": "The outcome",
+    "stack": "Stack & tools",
     "challenge": "The challenge",
     "solution": "The solution",
     "results": "Results",
+    "moreResults": "More results",
+    "placeholderNote": "Figures marked with an asterisk are illustrative targets, not audited results.",
+    "placeholderBadge": "Illustrative",
+    "stepLabel": "Step {{n}}",
     "viewSite": "View live site",
     "visitLive": "Visit live site",
     "toolsTechTitle": "Tools & technologies",
     "projectFactsTitle": "Project facts",
+    "tags": "Tags",
     "moreToExplore": "More to explore",
     "relatedProjects": "Related projects",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "prevProject": "Previous project",
+    "nextProject": "Next project",
+    "showImage": "Show image {{n}}",
+    "viewOf": "{{title}}, view {{n}}"
   }
 }

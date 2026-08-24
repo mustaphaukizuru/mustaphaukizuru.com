@@ -1,11 +1,17 @@
 // @ts-check
 /**
- * sentry.js · centralised Sentry initialisation
+ * sentry.js · centralised Sentry initialisation (@sentry/node v10)
  *
- * Loaded once at boot. If `@sentry/node` isn't installed OR `SENTRY_DSN` is
- * unset, exports `null` so callers degrade silently. The Express handlers
- * are accessed via the returned client (Sentry.Handlers.* on v7,
- * Sentry.setupExpressErrorHandler on v8+).
+ * This is the ONLY place Sentry.init is called. server.js requires this
+ * module before anything else so Sentry's OpenTelemetry-based auto-
+ * instrumentation (http, express, prisma, …) wraps subsequent module loads.
+ *
+ * If `@sentry/node` isn't installed OR `SENTRY_DSN` is unset, exports `null`
+ * so callers degrade silently:
+ *   - app.js       → `Sentry.setupExpressErrorHandler(app)` (v10 API; the
+ *                    v7 `Handlers.requestHandler/errorHandler` no longer exist
+ *                    and no request-handler middleware is needed).
+ *   - sentryContext → `Sentry.getCurrentScope().setTag/setUser`.
  *
  * Environment:
  *   SENTRY_DSN                 — required to activate; absence = no-op
@@ -35,6 +41,9 @@ if (process.env.SENTRY_DSN) {
       environment:      env,
       release,
       tracesSampleRate,
+      // Never send request bodies / PII by default — we attach the user
+      // explicitly in sentryContext.attachUserContext.
+      sendDefaultPii:   false,
       // Filter health-check noise — these get hit hundreds of times an hour.
       beforeSendTransaction(event) {
         const url = event?.request?.url || ""

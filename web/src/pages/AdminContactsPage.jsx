@@ -66,6 +66,8 @@ export default function AdminContactsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [search, setSearch] = useState("")
   const [selected, setSelected] = useState(null)
+  const [pendingDelete, setPendingDelete] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true); setError("")
@@ -117,16 +119,25 @@ export default function AdminContactsPage() {
     }
   }
 
-  async function handleDelete(msg) {
-    if (!window.confirm(`Permanently delete the message from ${msg.name}? This cannot be undone.`)) return
+  function handleDelete(msg) {
+    setPendingDelete(msg)
+  }
+
+  async function confirmDelete() {
+    const msg = pendingDelete
+    if (!msg) return
+    setDeleting(true)
     try {
       await authFetch(`/api/v1/admin/contact-messages/${msg.id}`, { method: "DELETE" })
       showSuccess(`Message from ${msg.name} deleted`)
+      setPendingDelete(null)
       setSelected(null)
       try { load() } catch (re) { console.warn("[Contacts] reload failed:", re) }
     } catch (e) {
       console.error("[Contacts] delete failed:", e)
       showError(e?.message || "Failed to delete message.", "Could not delete")
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -392,6 +403,18 @@ export default function AdminContactsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        open={Boolean(pendingDelete)}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        busy={deleting}
+        title={`Delete the message from ${pendingDelete?.name ?? "this sender"}?`}
+        confirmLabel="Delete"
+        tone="danger"
+      >
+        <p className="text-sm text-charcoal-80">This permanently removes the message. It cannot be undone.</p>
+      </ConfirmModal>
     </div>
   )
 }

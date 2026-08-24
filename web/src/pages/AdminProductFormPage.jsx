@@ -15,6 +15,8 @@ import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import { compressImage } from "../lib/imageCompress"
 import FormShell from "../components/admin/FormShell"
 import StatusPill from "../components/admin/StatusPill"
+import useForm from "../hooks/useForm"
+import { productSchema } from "../lib/validation/product"
 
 const PRODUCT_CATEGORIES = [
   "Templates",
@@ -102,14 +104,46 @@ export default function AdminProductFormPage() {
   const isEdit = useMemo(() => Boolean(id), [id])
 
   const [loading, setLoading] = useState(isEdit)
-  const [saving, setSaving] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
 
   const [errorMessage, setErrorMessage] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
 
-  const [form, setForm] = useState(EMPTY_FORM)
+  /* Form layer (roadmap step 30): useForm + lib/validation/product. `form`
+   * stays the plain values object and `setForm` the updater so the existing
+   * field/list handlers below work unchanged. */
+  const formState = useForm({
+    schema: productSchema,
+    initialValues: EMPTY_FORM,
+    onSubmit: async (parsed) => {
+      const payload = {
+        title: parsed.title,
+        slug: parsed.slug || autoSlug(parsed.title),
+        shortDescription: parsed.shortDescription || "",
+        description: parsed.description,
+        fullDescription: parsed.fullDescription || "",
+        price: parsed.price,
+        category: parsed.category,
+        isActive: parsed.isActive,
+        isFeatured: parsed.isFeatured,
+        isNew: parsed.isNew,
+        features: parsed.features,
+        // F04 · I / K — drop empty rows; backend stores as JSON
+        specifications: parsed.specifications.filter((s) => String(s.key || "").trim() && String(s.value || "").trim()),
+        productFaqs: parsed.productFaqs.filter((f) => String(f.question || "").trim() && String(f.answer || "").trim()),
+      }
+      if (isEdit) {
+        await updateAdminProduct(id, payload)
+        await refreshProduct()
+        setSuccessMessage("Product updated successfully.")
+      } else {
+        await createAdminProduct(payload)
+        navigate("/admin/products")
+      }
+    },
+  })
+  const { values: form, setValues: setForm, errors: fieldErrors, submitting: saving } = formState
 
   const [fileUpload, setFileUpload] = useState(null)
   const [fileVersion, setFileVersion] = useState("")
@@ -133,7 +167,7 @@ export default function AdminProductFormPage() {
         setSuccessMessage("")
 
         const product = await fetchAdminProductById(id)
-        setForm(normalizeProductToForm(product))
+        formState.reset(normalizeProductToForm(product))
       } catch (error) {
         setErrorMessage(error.message || "Failed to load product.")
       } finally {
@@ -142,12 +176,14 @@ export default function AdminProductFormPage() {
     }
 
     loadProduct()
+    // formState.reset is stable; hydrate only when the route id changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isEdit])
 
   async function refreshProduct() {
     if (!isEdit || !id) return
     const product = await fetchAdminProductById(id)
-    setForm(normalizeProductToForm(product))
+    formState.reset(normalizeProductToForm(product))
   }
 
   function updateField(key, value) {
@@ -251,48 +287,20 @@ export default function AdminProductFormPage() {
     })
   }
 
+  /* Validates via zod (field errors land in `fieldErrors`), then runs the
+   * useForm onSubmit above. Server / validation failures are surfaced in the
+   * FormShell error banner. */
   async function handleSubmit(event) {
-    event.preventDefault()
+    event?.preventDefault?.()
     setErrorMessage("")
     setSuccessMessage("")
-
-    try {
-      setSaving(true)
-
-      const payload = {
-        title: form.title.trim(),
-        slug: form.slug.trim() || autoSlug(form.title),
-        shortDescription: form.shortDescription.trim(),
-        description: form.description.trim(),
-        fullDescription: form.fullDescription.trim(),
-        price: form.price,
-        category: form.category,
-        isActive: form.isActive,
-        isFeatured: form.isFeatured,
-        isNew: form.isNew,
-        features: form.features,
-        // F04 · I — Drop empty rows; backend stores as JSON
-        specifications: form.specifications.filter(
-          (s) => s.key.trim() && s.value.trim()
-        ),
-        // F04 · K — Drop empty rows; backend stores as JSON
-        productFaqs: form.productFaqs.filter(
-          (f) => f.question.trim() && f.answer.trim()
-        ),
-      }
-
-      if (isEdit) {
-        await updateAdminProduct(id, payload)
-        await refreshProduct()
-        setSuccessMessage("Product updated successfully.")
-      } else {
-        await createAdminProduct(payload)
-        navigate("/admin/products")
-      }
-    } catch (error) {
-      setErrorMessage(error.message || "Failed to save product.")
-    } finally {
-      setSaving(false)
+    const ok = await formState.handleSubmit()
+    if (!ok) {
+      const firstField = Object.entries(formState.errors || {}).find(([, v]) => v)
+      setErrorMessage(
+        formState.formError ||
+        (firstField ? `${firstField[1]}` : "Please fix the highlighted fields."),
+      )
     }
   }
 
@@ -472,7 +480,7 @@ export default function AdminProductFormPage() {
       statusBadge={isEdit ? <StatusPill status={form.isActive ? "active" : "inactive"} /> : null}
     >
       <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} noValidate className="space-y-8">
             {/* ── Basic Info ── */}
             <div>
               <h2 className="text-lg font-bold text-violet">Basic Information</h2>
@@ -487,6 +495,7 @@ export default function AdminProductFormPage() {
                     className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                     required
                   />
+                  {fieldErrors.title && <p className="mt-1 text-xs text-rose-600" role="alert">{fieldErrors.title}</p>}
                 </div>
 
                 <div>
@@ -512,6 +521,7 @@ export default function AdminProductFormPage() {
                     className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                     required
                   />
+                  {fieldErrors.price && <p className="mt-1 text-xs text-rose-600" role="alert">{fieldErrors.price}</p>}
                 </div>
 
                 <div>
@@ -528,6 +538,7 @@ export default function AdminProductFormPage() {
                       </option>
                     ))}
                   </select>
+                  {fieldErrors.category && <p className="mt-1 text-xs text-rose-600" role="alert">{fieldErrors.category}</p>}
                 </div>
               </div>
             </div>
@@ -567,6 +578,7 @@ export default function AdminProductFormPage() {
                     onChange={(e) => updateField("description", e.target.value)}
                     className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                   />
+                  {fieldErrors.description && <p className="mt-1 text-xs text-rose-600" role="alert">{fieldErrors.description}</p>}
                 </div>
 
                 <div>

@@ -1,20 +1,30 @@
 {
   "hero": {
-    "eyebrow": "Portafolio",
+    "eyebrow": "Casos de estudio",
     "title": "Trabajo seleccionado",
-    "subtitle": "Una colección curada de proyectos de desarrollo full-stack, diseño digital y tecnología educativa. Cada uno resuelve un problema real; los casos de estudio profundizan en el cómo y el por qué."
+    "subtitle": "Cada proyecto está documentado como caso de estudio: el problema de partida, el enfoque que seguimos y el resultado en cifras. Filtra por el servicio al que corresponde."
   },
   "filters": {
     "all": "Todo",
     "search": "Buscar proyectos",
     "previous": "Anterior",
     "next": "Siguiente",
-    "pageOf": "Página {{page}} de {{total}}"
+    "pageOf": "Página {{page}} de {{total}}",
+    "byService": "Filtrar por servicio",
+    "byCategory": "Filtrar por categoría"
+  },
+  "services": {
+    "it-strategy-consulting": "Estrategia y consultoría TI",
+    "ai-automation": "IA y automatización",
+    "cloud-architecture-migration": "Arquitectura y migración cloud",
+    "digital-product-engineering": "Ingeniería de producto digital"
   },
   "card": {
     "featured": "Destacado",
-    "caseStudy": "Caso de estudio",
-    "live": "En vivo"
+    "caseStudy": "Leer caso de estudio",
+    "live": "En vivo",
+    "outcome": "Resultado",
+    "placeholderShort": "Cifras ilustrativas"
   },
   "empty": "Ningún proyecto coincide con tus filtros.",
   "states": {
@@ -28,29 +38,54 @@
     "subtitle": "Hablemos de cómo darle vida.",
     "button": "Iniciar una conversación"
   },
+  "serviceCta": {
+    "eyebrow": "Servicio relacionado",
+    "title": "¿Necesitas algo así?",
+    "body": "Este proyecto corresponde a {{service}}. Reserva una llamada gratuita y definimos un proyecto como este para tu equipo.",
+    "button": "Reservar una llamada sobre un proyecto como este"
+  },
   "seo": {
-    "title": "Portafolio · Mustapha Ukizuru",
-    "description": "Trabajos seleccionados: desarrollo full-stack, diseño, branding e integración digital escolar.",
+    "title": "Portafolio · Casos de estudio · Mustapha Ukizuru",
+    "description": "Trabajos seleccionados documentados como casos de estudio: problema, enfoque y resultados medibles en ingeniería de producto, cloud, automatización con IA y estrategia TI.",
     "schemaName": "Portafolio",
-    "schemaDesc": "Proyectos seleccionados."
+    "schemaDesc": "Proyectos seleccionados como casos de estudio."
   },
   "detail": {
     "notFound": "Proyecto no encontrado",
     "notFoundBody": "Este proyecto no existe o ha sido movido.",
     "backToPortfolio": "Volver al portafolio",
+    "home": "Inicio",
+    "portfolio": "Portafolio",
     "year": "Año",
+    "duration": "Duración",
     "role": "Rol",
     "client": "Cliente",
     "tools": "Herramientas",
+    "source": "Código",
+    "overview": "Resumen",
+    "context": "Cliente y contexto",
+    "problem": "El problema",
+    "approach": "El enfoque",
+    "outcome": "El resultado",
+    "stack": "Stack y herramientas",
     "challenge": "El reto",
     "solution": "La solución",
     "results": "Resultados",
+    "moreResults": "Más resultados",
+    "placeholderNote": "Las cifras marcadas con asterisco son objetivos ilustrativos, no resultados auditados.",
+    "placeholderBadge": "Ilustrativo",
+    "stepLabel": "Paso {{n}}",
     "viewSite": "Ver sitio en vivo",
     "visitLive": "Visitar sitio en vivo",
     "toolsTechTitle": "Herramientas y tecnologías",
     "projectFactsTitle": "Datos del proyecto",
+    "tags": "Etiquetas",
     "moreToExplore": "Más para explorar",
     "relatedProjects": "Proyectos relacionados",
-    "viewAll": "Ver todos"
+    "viewAll": "Ver todos",
+    "prevProject": "Proyecto anterior",
+    "nextProject": "Proyecto siguiente",
+    "showImage": "Mostrar imagen {{n}}",
+    "viewOf": "{{title}}, vista {{n}}"
   }
 }

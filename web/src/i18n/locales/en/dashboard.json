@@ -10,7 +10,8 @@
     "twoFactor": "Two-step verification",
     "profile": "Profile",
     "projects": "Projects",
-    "serviceOrders": "Service orders"
+    "serviceOrders": "Service orders",
+    "notifications": "Notifications"
   },
   "stats": {
     "totalOrders": "Total orders",
@@ -444,7 +445,7 @@
     },
     "loading": "Loading downloads",
     "metrics": {
-      "paid": "Paid Orders",
+      "paid": "Paid orders",
       "paidSubtitle": "Orders with download access",
       "files": "Files Available",
       "filesSubtitle": "Downloadable files across products",
@@ -489,7 +490,19 @@
       "limitReached": "Limit reached",
       "preparing": "Preparing…",
       "download": "Download",
-      "paid": "Paid"
+      "paid": "Paid",
+      "latestVersion": "Latest",
+      "version": "v{{version}}",
+      "updatedOn": "Updated {{date}}",
+      "unlimited": "Unlimited downloads",
+      "used": "{{used}} of {{max}} downloads used",
+      "revoked": "Access revoked",
+      "redownload": "Re-download"
+    },
+    "order": {
+      "title": "Order #{{number}}",
+      "receipt": "Receipt",
+      "viewProduct": "View product"
     }
   },
   "consultations": {
@@ -765,6 +778,52 @@
       "minutes": "{{count}}m",
       "hours": "{{count}}h",
       "days": "{{count}}d"
+    },
+    "blocks": {
+      "viewAll": "View all",
+      "retry": "Retry",
+      "orders": {
+        "title": "Recent orders",
+        "emptyTitle": "No orders yet",
+        "emptyBody": "Your purchases and their status will show up here.",
+        "emptyCta": "Browse the store"
+      },
+      "downloads": {
+        "title": "Downloads",
+        "link": "Open library",
+        "count_one": "{{count}} file ready to download",
+        "count_other": "{{count}} files ready to download",
+        "emptyTitle": "No downloads yet",
+        "emptyBody": "Paid product files will appear here.",
+        "emptyCta": "Browse the store"
+      },
+      "consultation": {
+        "title": "Next consultation",
+        "fallbackService": "Consultation",
+        "with": "with {{name}}",
+        "join": "Join meeting",
+        "linkPending": "The meeting link will appear here once it's ready.",
+        "emptyTitle": "No upcoming consultation",
+        "emptyBody": "Book a call and it will show up here with the join link.",
+        "emptyCta": "Book a call"
+      },
+      "projects": {
+        "title": "Active projects",
+        "active_one": "project in progress",
+        "active_other": "projects in progress",
+        "latestMilestone": "Latest milestone",
+        "noMilestone": "No milestones yet",
+        "emptyTitle": "No active projects",
+        "emptyBody": "When you order a consulting service, your project workspace appears here.",
+        "emptyCta": "Browse services"
+      },
+      "support": {
+        "title": "Open support tickets",
+        "more": "+{{count}} more open",
+        "emptyTitle": "No open tickets",
+        "emptyBody": "Need help with something? Open a ticket and we'll get back to you.",
+        "emptyCta": "Open a ticket"
+      }
     }
   },
   "notifDropdown": {
@@ -818,6 +877,22 @@
     "openMenu": "Open menu",
     "searchDashboard": "Search dashboard",
     "openSupport": "Open support",
-    "quickNav": "Quick navigation"
+    "quickNav": "Quick navigation",
+    "profileTabsAria": "Account sections",
+    "sections": {
+      "overview": "Overview",
+      "library": "Library",
+      "work": "Work with me",
+      "account": "Account"
+    },
+    "navDesc": {
+      "overview": "Summary and activity",
+      "orders": "Purchases and status",
+      "downloads": "Files and access",
+      "consultations": "Upcoming and past calls",
+      "projects": "Milestones, files, timeline",
+      "support": "Help and tickets",
+      "profile": "Details, addresses, security"
+    }
   }
 }

@@ -119,7 +119,7 @@ export function SearchInput({
           type="button"
           onClick={handleClear}
           aria-label={t("system.clearSearch")}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-charcoal-80/40 transition hover:text-violet focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-azure/40"
+          className="cursor-pointer absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-charcoal-80/40 transition hover:text-violet focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-azure/40"
         >
           <X className={sizeCfg.xBtn} aria-hidden="true" />
         </button>

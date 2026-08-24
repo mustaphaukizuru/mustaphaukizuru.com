@@ -138,12 +138,12 @@ async function parseResponseBody(response) {
     try { return await response.json() } catch { return {} }
   }
 
-  if (
-    contentType.includes("application/octet-stream") ||
-    contentType.includes("application/pdf") ||
-    contentType.includes("application/zip") ||
-    contentType.startsWith("image/")
-  ) {
+  // Anything that is not JSON and not a human-readable text/HTML body is a
+  // file (product downloads carry their own MIME — zip variants, docx,
+  // audio, fonts…). Reading those as text corrupts the bytes.
+  const isTextual = contentType.startsWith("text/") || contentType === ""
+  const hasAttachment = /attachment/i.test(response.headers.get("content-disposition") || "")
+  if (!isTextual || hasAttachment) {
     try { return await response.blob() } catch { return null }
   }
 

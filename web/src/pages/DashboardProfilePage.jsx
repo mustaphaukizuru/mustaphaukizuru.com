@@ -7,6 +7,7 @@ import {
 import { useAuth } from "../context/AuthContext"
 import { authFetch, API_BASE_URL } from "../lib/api"
 import { useToast } from "../context/ToastContext"
+import ProfileTabs from "../components/dashboard/ProfileTabs"
 
 /* I18N · Phase 119B — strings keyed under `dashboard.profile.*`. The
  * editable fields and password form arrays carry plain object shape;
@@ -182,6 +183,7 @@ export default function DashboardProfilePage() {
 
   return (
     <section className="space-y-5">
+      <ProfileTabs />
       <div className="grid gap-5 xl:grid-cols-[320px_1fr]">
 
         {/* Avatar card */}

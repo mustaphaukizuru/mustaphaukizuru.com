@@ -10,7 +10,8 @@
     "twoFactor": "Verificación en dos pasos",
     "profile": "Perfil",
     "projects": "Proyectos",
-    "serviceOrders": "Pedidos de servicios"
+    "serviceOrders": "Pedidos de servicios",
+    "notifications": "Notificaciones"
   },
   "stats": {
     "totalOrders": "Pedidos totales",
@@ -489,7 +490,19 @@
       "limitReached": "Límite alcanzado",
       "preparing": "Preparando…",
       "download": "Descargar",
-      "paid": "Pagado"
+      "paid": "Pagado",
+      "latestVersion": "Última",
+      "version": "v{{version}}",
+      "updatedOn": "Actualizado {{date}}",
+      "unlimited": "Descargas ilimitadas",
+      "used": "{{used}} de {{max}} descargas usadas",
+      "revoked": "Acceso revocado",
+      "redownload": "Volver a descargar"
+    },
+    "order": {
+      "title": "Pedido #{{number}}",
+      "receipt": "Recibo",
+      "viewProduct": "Ver producto"
     }
   },
   "consultations": {
@@ -765,6 +778,52 @@
       "minutes": "{{count}} min",
       "hours": "{{count}} h",
       "days": "{{count}} d"
+    },
+    "blocks": {
+      "viewAll": "Ver todo",
+      "retry": "Reintentar",
+      "orders": {
+        "title": "Pedidos recientes",
+        "emptyTitle": "Aún no hay pedidos",
+        "emptyBody": "Tus compras y su estado aparecerán aquí.",
+        "emptyCta": "Explorar la tienda"
+      },
+      "downloads": {
+        "title": "Descargas",
+        "link": "Abrir biblioteca",
+        "count_one": "{{count}} archivo listo para descargar",
+        "count_other": "{{count}} archivos listos para descargar",
+        "emptyTitle": "Aún no hay descargas",
+        "emptyBody": "Los archivos de productos pagados aparecerán aquí.",
+        "emptyCta": "Explorar la tienda"
+      },
+      "consultation": {
+        "title": "Próxima consulta",
+        "fallbackService": "Consulta",
+        "with": "con {{name}}",
+        "join": "Unirse a la reunión",
+        "linkPending": "El enlace de la reunión aparecerá aquí cuando esté listo.",
+        "emptyTitle": "Sin consultas próximas",
+        "emptyBody": "Reserva una llamada y aparecerá aquí con el enlace para unirte.",
+        "emptyCta": "Reservar una llamada"
+      },
+      "projects": {
+        "title": "Proyectos activos",
+        "active_one": "proyecto en curso",
+        "active_other": "proyectos en curso",
+        "latestMilestone": "Último hito",
+        "noMilestone": "Aún no hay hitos",
+        "emptyTitle": "Sin proyectos activos",
+        "emptyBody": "Cuando contrates un servicio de consultoría, tu espacio de proyecto aparecerá aquí.",
+        "emptyCta": "Ver servicios"
+      },
+      "support": {
+        "title": "Tickets de soporte abiertos",
+        "more": "+{{count}} más abiertos",
+        "emptyTitle": "Sin tickets abiertos",
+        "emptyBody": "¿Necesitas ayuda? Abre un ticket y te responderemos.",
+        "emptyCta": "Abrir un ticket"
+      }
     }
   },
   "notifDropdown": {
@@ -818,6 +877,22 @@
     "openMenu": "Abrir menú",
     "searchDashboard": "Buscar en el panel",
     "openSupport": "Abrir soporte",
-    "quickNav": "Navegación rápida"
+    "quickNav": "Navegación rápida",
+    "profileTabsAria": "Secciones de la cuenta",
+    "sections": {
+      "overview": "Inicio",
+      "library": "Biblioteca",
+      "work": "Trabaja conmigo",
+      "account": "Cuenta"
+    },
+    "navDesc": {
+      "overview": "Resumen y actividad",
+      "orders": "Compras y estado",
+      "downloads": "Archivos y acceso",
+      "consultations": "Llamadas próximas y pasadas",
+      "projects": "Hitos, archivos, cronograma",
+      "support": "Ayuda y tickets",
+      "profile": "Datos, direcciones, seguridad"
+    }
   }
 }

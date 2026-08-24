@@ -1,7 +1,7 @@
 const express  = require("express")
 const { protect, attachUserIfPresent } = require("../middleware/authMiddleware")
 const { paymentRateLimiter } = require("../middleware/rateLimiter")
-const { createOrder, getMyOrders, getOrderById } = require("../controllers/orderController")
+const { createOrder, getMyOrders, getOrderById, getOrderStatus } = require("../controllers/orderController")
 
 const router = express.Router()
 
@@ -18,6 +18,11 @@ router.post("/",    attachUserIfPresent, paymentRateLimiter, createOrder)
 // Read endpoints stay protected — only the buyer (or admin) can list/view
 // their own orders.
 router.get("/my",   protect, getMyOrders)
+
+// Payment-status probe for the checkout success page. Public by design
+// (guest buyers are not signed in yet) — returns status + reference only.
+// Must be declared before "/:id" so Express does not swallow it.
+router.get("/:id/status", attachUserIfPresent, getOrderStatus)
 router.get("/:id",  protect, getOrderById)
 
 module.exports = router

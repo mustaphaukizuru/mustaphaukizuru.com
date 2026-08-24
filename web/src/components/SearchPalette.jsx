@@ -9,10 +9,10 @@ import {
   ArrowDown,
   X,
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
 
 import { apiRequest, API_BASE_URL } from "../lib/api"
 import { useTranslation } from "react-i18next"
+import { Modal } from "./ui/Modal"
 
 /**
  * SearchPalette · V2 — command-palette style
@@ -116,9 +116,6 @@ export default function SearchPalette() {
           setOpen(true)
         }
       }
-      if (open && e.key === "Escape") {
-        setOpen(false)
-      }
     }
     function onCustom() {
       setOpen(true)
@@ -138,20 +135,6 @@ export default function SearchPalette() {
     setResults([])
     setActive(0)
     setError("")
-    const t = setTimeout(() => {
-      if (inputRef.current) inputRef.current.focus()
-    }, 60)
-    return () => clearTimeout(t)
-  }, [open])
-
-  /* Body scroll lock while open */
-  useEffect(() => {
-    if (!open) return
-    const orig = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    return () => {
-      document.body.style.overflow = orig
-    }
   }, [open])
 
   /* Debounced search */
@@ -236,35 +219,28 @@ export default function SearchPalette() {
   const showResults = !loading && results.length > 0
 
   return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Search"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.16 }}
-          // Mobile · tighter outer padding and a higher palette position so
-          // when the on-screen keyboard pops up the input still sits above
-          // the fold. Desktop keeps the original 12vh drop so the palette
-          // lands at the visual centre of attention.
-          className="fixed inset-0 z-[80] flex items-start justify-center bg-charcoal/55 p-3 pt-[6vh] backdrop-blur-md sm:p-4 sm:pt-[12vh]"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setOpen(false)
-          }}
-        >
-          <motion.div
-            initial={{ y: -12, scale: 0.98, opacity: 0 }}
-            animate={{ y: 0, scale: 1, opacity: 1 }}
-            exit={{ y: -8, scale: 0.98, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            style={{ background: PALETTE_BG }}
-            // rounded-2xl on mobile (less bulky on narrow viewports);
-            // rounded-3xl on sm+ keeps the desktop softness.
-            className="relative w-full max-w-2xl overflow-hidden rounded-2xl text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10 sm:rounded-3xl"
-          >
+    <Modal
+      open={open}
+      onClose={() => setOpen(false)}
+      bare
+      hideClose
+      ariaLabel="Search"
+      placement="top"
+      size="none"
+      motion="slide-down"
+      zIndex={80}
+      initialFocusRef={inputRef}
+      // Mobile · tighter outer padding and a higher palette position so
+      // when the on-screen keyboard pops up the input still sits above
+      // the fold. Desktop keeps the original 12vh drop so the palette
+      // lands at the visual centre of attention. (Padding lives in the
+      // Modal "top" placement.)
+      backdropClassName="bg-charcoal/55 backdrop-blur-md"
+      panelStyle={{ background: PALETTE_BG }}
+      // rounded-2xl on mobile (less bulky on narrow viewports);
+      // rounded-3xl on sm+ keeps the desktop softness.
+      className="max-w-2xl overflow-hidden rounded-2xl text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/10 sm:rounded-3xl"
+    >
             {/* Subtle dot grid for depth */}
             <div
               aria-hidden="true"
@@ -329,7 +305,7 @@ export default function SearchPalette() {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label={t("search.closeAria")}
-                className="hidden h-7 items-center gap-1 rounded-md bg-white/[0.08] px-2 font-mono text-[11px] font-semibold text-white/65 ring-1 ring-white/10 transition hover:bg-white/[0.14] hover:text-white sm:inline-flex"
+                className="cursor-pointer hidden h-7 items-center gap-1 rounded-md bg-white/[0.08] px-2 font-mono text-[11px] font-semibold text-white/65 ring-1 ring-white/10 transition hover:bg-white/[0.14] hover:text-white sm:inline-flex"
               >
                 ESC
               </button>
@@ -337,7 +313,7 @@ export default function SearchPalette() {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label={t("search.closeAria")}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.10] text-white ring-1 ring-white/15 transition active:scale-95 active:bg-white/[0.20] hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:hidden"
+                className="cursor-pointer inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/[0.10] text-white ring-1 ring-white/15 transition active:scale-95 active:bg-white/[0.20] hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 sm:hidden"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -415,10 +391,7 @@ export default function SearchPalette() {
                 </span>
               </span>
             </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    </Modal>
   )
 }
 
@@ -470,7 +443,7 @@ function EmptyState({ query, onClear }) {
       <button
         type="button"
         onClick={onClear}
-        className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 text-[12.5px] font-semibold text-white/85 transition hover:border-white/25 hover:bg-white/[0.10]"
+        className="cursor-pointer mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 text-[12.5px] font-semibold text-white/85 transition hover:border-white/25 hover:bg-white/[0.10]"
       >
         {t("search.clear")}
       </button>
@@ -494,7 +467,7 @@ function ErrorState({ message, onRetry }) {
       <button
         type="button"
         onClick={onRetry}
-        className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 text-[12.5px] font-semibold text-white/85 transition hover:border-white/25 hover:bg-white/[0.10]"
+        className="cursor-pointer mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 text-[12.5px] font-semibold text-white/85 transition hover:border-white/25 hover:bg-white/[0.10]"
       >
         {t("search.errorBody")}
       </button>
@@ -517,7 +490,7 @@ function ResultRow({ idx, item, active, onClick, onMouseEnter }) {
         data-idx={idx}
         onClick={onClick}
         onMouseEnter={onMouseEnter}
-        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${rowClass}`}
+        className={`cursor-pointer flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${rowClass}`}
       >
         <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white/[0.08] ring-1 ring-white/10">
           {cover ? (

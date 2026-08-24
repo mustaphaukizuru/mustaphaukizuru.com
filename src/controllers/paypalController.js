@@ -17,6 +17,7 @@ const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const { notifyOrderPaid }   = require("../services/notificationService")
 const { fulfillOrder, recordOrderEvent } = require("../services/orderFulfillmentService")
 const { generateReceiptPdf } = require("../services/receiptPdfService")
+const { transitionOrderPayment } = require("../services/paymentTransitionService")
 // M15+M19 — refund orchestrator (Option A enforcement, audit logging,
 // download revocation, email/notification side effects).
 const { processOrderRefund } = require("../services/refundService")
@@ -378,83 +379,18 @@ const issueRefund = asyncHandler(async (req, res) => {
 
 /**
  * Atomic Order + Payment transition. Idempotent on gatewayTransactionId.
+ * Thin wrapper over paymentTransitionService — the amount-validation,
+ * idempotency and terminal-state guarantees live there (shared with MP).
  */
 async function transitionOrderToPaid({ orderId, gatewayTransactionId, paymentGateway, payload, gatewayAmount, gatewayCurrency }) {
-  return prisma.$transaction(async (tx) => {
-    const existing = await tx.payment.findFirst({
-      where: { gatewayTransactionId: String(gatewayTransactionId), paymentGateway },
-      select: { id: true, paymentStatus: true },
-    })
-
-    // Pre-flight read so we can validate amount + guard against state
-    // regression without holding a write lock on the row first.
-    const current = await tx.order.findUnique({
-      where:  { id: orderId },
-      select: { id: true, status: true, totalAmount: true, currency: true },
-    })
-    if (!current) throw Object.assign(new Error("Order not found"), { code: "ORDER_NOT_FOUND" })
-
-    // Amount validation · REQUIRE a finite numeric amount on every paid
-    // transition. A missing/non-finite value is a fail-closed reject so a
-    // malformed webhook can never silently flip an order to paid.
-    const reported = Number(gatewayAmount)
-    const expected = Number(current.totalAmount)
-    if (gatewayAmount == null || !Number.isFinite(reported)) {
-      return {
-        order: current,
-        isFirstTransition: false,
-        payload,
-        amountMismatch: {
-          reported: gatewayAmount ?? null,
-          expected,
-          drift: null,
-          reportedCcy: String(gatewayCurrency || "").toUpperCase() || null,
-          expectedCcy: String(current.currency || "MXN").toUpperCase(),
-          reason: "missing_or_invalid_amount",
-        },
-      }
-    }
-    const drift       = Math.abs(reported - expected)
-    const reportedCcy = String(gatewayCurrency || current.currency || "MXN").toUpperCase()
-    const expectedCcy = String(current.currency || "MXN").toUpperCase()
-    if (drift > 0.01 || reportedCcy !== expectedCcy) {
-      return {
-        order: current,
-        isFirstTransition: false,
-        payload,
-        amountMismatch: { reported, expected, drift, reportedCcy, expectedCcy },
-      }
-    }
-
-    // State-regression guard · if the order is already in a paid/completed
-    // state, an out-of-order webhook arriving with the same captureId is a
-    // no-op (returns existing data). Refuse to overwrite paidAt or regress.
-    const isAlreadyPaid = current.status === "paid" || current.status === "completed"
-    const order = isAlreadyPaid
-      ? await tx.order.findUnique({ where: { id: orderId }, include: { items: true } })
-      : await tx.order.update({
-          where: { id: orderId },
-          data:  { status: "paid", paidAt: new Date() },
-          include: { items: true },
-        })
-
-    const data = {
-      paymentGateway,
-      gatewayTransactionId: String(gatewayTransactionId),
-      gatewaySessionId:     String(gatewayTransactionId),
-      amount:               order.totalAmount,
-      currency:             (order.currency || "MXN").toUpperCase(),
-      paymentStatus:        "paid",
-      paidAt:               new Date(),
-    }
-
-    if (existing) {
-      await tx.payment.update({ where: { id: existing.id }, data })
-    } else {
-      await tx.payment.create({ data: { ...data, orderId, userId: order.userId } })
-    }
-
-    return { order, isFirstTransition: !existing, payload, amountMismatch: null }
+  return transitionOrderPayment({
+    orderId,
+    gatewayTransactionId,
+    paymentGateway,
+    targetStatus: "paid",
+    payload,
+    gatewayAmount,
+    gatewayCurrency,
   })
 }
 

@@ -175,7 +175,7 @@ function AccordionTrigger({ children, icon: ExtraIcon, className = "" }) {
         aria-controls={panelId}
         onClick={() => ctx?.toggle(value)}
         className={[
-          "group flex w-full items-center justify-between gap-4 px-4 py-4 text-left",
+          "cursor-pointer group flex w-full items-center justify-between gap-4 px-4 py-4 text-left",
           "transition-colors duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
           "hover:bg-[var(--color-violet-ghost)] focus:outline-none",
           "focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)]",

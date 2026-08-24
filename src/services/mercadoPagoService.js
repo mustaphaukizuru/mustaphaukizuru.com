@@ -21,6 +21,7 @@
 const crypto = require("crypto")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
+const { transitionOrderPayment } = require("./paymentTransitionService")
 
 const MP_BASE_URL  = "https://api.mercadopago.com"
 const ACCESS_TOKEN = () => process.env.MP_ACCESS_TOKEN || ""
@@ -209,107 +210,24 @@ async function getMercadoPagoPayment(paymentId) {
 /* ──────────────────── idempotent mark-order-paid ───────────────────────── */
 
 async function markOrderPaidByMP({ orderId, paymentId, status, payload, gatewayAmount, gatewayCurrency }) {
-  // Prisma transaction for atomic Order + Payment writes.
-  return prisma.$transaction(async (tx) => {
-    // 1. Idempotency: bail if a Payment already exists for this transaction.
-    const existingPayment = await tx.payment.findFirst({
-      where: { gatewayTransactionId: String(paymentId), paymentGateway: "mercadopago" },
-      select: { id: true, paymentStatus: true, orderId: true },
-    })
+  // MP status enum → local order/payment status. The shared service applies
+  // amount validation only for the "paid" target and never regresses a
+  // terminal order (paid / completed / refunded / cancelled).
+  const targetStatus =
+    status === "approved"                               ? "paid"     :
+    status === "pending" || status === "in_process"     ? "pending"  :
+    status === "refunded" || status === "charged_back"  ? "refunded" :
+                                                           "failed"
 
-    // Pre-flight read for amount validation + state-regression guard.
-    const current = await tx.order.findUnique({
-      where:  { id: orderId },
-      select: { id: true, status: true, totalAmount: true, currency: true, userId: true },
-    })
-    if (!current) throw Object.assign(new Error("Order not found"), { code: "ORDER_NOT_FOUND" })
-
-    // Hardening · amount validation. Every approved MP webhook MUST carry a
-    // finite `transaction_amount`. A missing/non-finite amount is a fail-
-    // closed reject — silently trusting the gateway here is what allowed
-    // malformed webhooks to flip orders to paid without amount validation.
-    if (status === "approved") {
-      const reported = Number(gatewayAmount)
-      const expected = Number(current.totalAmount)
-      if (gatewayAmount == null || !Number.isFinite(reported)) {
-        return {
-          order: current,
-          isFirstTransition: false,
-          payload: payload || null,
-          amountMismatch: {
-            reported: gatewayAmount ?? null,
-            expected,
-            drift: null,
-            reportedCcy: String(gatewayCurrency || "").toUpperCase() || null,
-            expectedCcy: String(current.currency || "MXN").toUpperCase(),
-            reason: "missing_or_invalid_amount",
-          },
-        }
-      }
-      const drift       = Math.abs(reported - expected)
-      const reportedCcy = String(gatewayCurrency || current.currency || "MXN").toUpperCase()
-      const expectedCcy = String(current.currency || "MXN").toUpperCase()
-      if (drift > 0.01 || reportedCcy !== expectedCcy) {
-        return {
-          order: current,
-          isFirstTransition: false,
-          payload: payload || null,
-          amountMismatch: { reported, expected, drift, reportedCcy, expectedCcy },
-        }
-      }
-    }
-
-    const finalOrderStatus =
-      status === "approved"                               ? "paid"     :
-      status === "pending" || status === "in_process"     ? "pending"  :
-      status === "refunded" || status === "charged_back"  ? "refunded" :
-                                                             "failed"
-
-    // State-regression guard · once an order is in a terminal state
-    // (paid, refunded, cancelled) a late or out-of-order webhook must not
-    // rewrite it. In particular, after refundService marks the order
-    // `refunded`, MP sends payment.updated{status:"refunded"} — that must
-    // NOT flip the order to `failed`. Update the Payment row but leave the
-    // Order alone. Refund bookkeeping is owned by refundService, so a
-    // `refunded` webhook is never applied to the Order here either.
-    const TERMINAL = new Set(["paid", "completed", "refunded", "cancelled"])
-    const shouldRegress = TERMINAL.has(current.status) && finalOrderStatus !== "paid"
-      || finalOrderStatus === "refunded"
-
-    const order = shouldRegress
-      ? await tx.order.findUnique({ where: { id: orderId }, include: { items: true } })
-      : await tx.order.update({
-          where: { id: orderId },
-          data: {
-            status: finalOrderStatus,
-            paidAt: finalOrderStatus === "paid" ? new Date() : null,
-          },
-          include: { items: true },
-        })
-
-    const paymentData = {
-      paymentGateway:       "mercadopago",
-      gatewayTransactionId: String(paymentId),
-      gatewaySessionId:     String(paymentId),
-      amount:               order.totalAmount,
-      currency:             (order.currency || "MXN").toUpperCase(),
-      paymentStatus:
-        finalOrderStatus === "paid"     ? "paid"     :
-        finalOrderStatus === "pending"  ? "pending"  :
-        finalOrderStatus === "refunded" ? "refunded" : "failed",
-      paidAt:        finalOrderStatus === "paid" ? new Date() : null,
-      failureReason: finalOrderStatus === "failed" ? `MP status: ${status}` : null,
-    }
-
-    if (existingPayment) {
-      await tx.payment.update({ where: { id: existingPayment.id }, data: paymentData })
-    } else {
-      await tx.payment.create({
-        data: { ...paymentData, orderId, userId: order.userId },
-      })
-    }
-
-    return { order, isFirstTransition: !existingPayment, payload: payload || null, amountMismatch: null }
+  return transitionOrderPayment({
+    orderId,
+    gatewayTransactionId: paymentId,
+    paymentGateway:       "mercadopago",
+    targetStatus,
+    payload:              payload || null,
+    gatewayAmount,
+    gatewayCurrency,
+    failureReason:        `MP status: ${status}`,
   })
 }
 

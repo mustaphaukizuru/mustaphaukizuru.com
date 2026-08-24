@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom"
 import {
   LayoutDashboard,
-  Package,
   ShoppingBag,
   Download,
   Headphones,
@@ -15,7 +14,7 @@ import {
   X,
   Menu,
   Globe,
-  MapPin, Briefcase, Calendar} from "lucide-react"
+  Briefcase, Calendar} from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
 import NotificationDropdown from "../components/dashboard/NotificationDropdown"
@@ -40,7 +39,9 @@ import { useTranslation } from "react-i18next"
  *    - Skip-to-main-content link added for keyboard users.
  *
  *  Preserved verbatim:
- *    - Navigation grouping and sections (Overview · Library · Support · Account)
+ *    - Navigation grouping (consolidated in roadmap step 29 to Overview ·
+ *      Orders · Downloads · Consultations · Projects · Support · Profile;
+ *      Addresses / Security / Notifications are tabs under Profile)
  *    - Mobile slide-out behavior + body-scroll lock
  *    - Bottom tab bar structure
  *    - All routes
@@ -49,6 +50,9 @@ import { useTranslation } from "react-i18next"
  *    - User avatar resolution + fallback initials
  *    - pageMeta lookup
  *  ──────────────────────────────────────────────────────────────────── */
+
+// Sub-routes that should light up the "Profile" entry.
+const PROFILE_ROUTES = ["/dashboard/profile", "/dashboard/addresses", "/dashboard/2fa", "/dashboard/notifications"]
 
 function resolveAvatar(url) {
   if (!url) return null
@@ -77,52 +81,46 @@ function UserAvatar({ src, initials, size = 9, className = "" }) {
   )
 }
 
-// ── Navigation ──
+// ── Navigation · roadmap step 29 · consolidated to 7 entries ──
+// Addresses / Security / Notifications live as tabs inside Profile
+// (see components/dashboard/ProfileTabs). Their routes are unchanged.
+// Labels resolve through dashboard.json `nav.*` / `layout.navDesc.*`.
 const navigation = [
   {
-    section: "Overview",
+    sectionKey: "layout.sections.overview",
     items: [
-      { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard, end: true, description: "Summary and activity" },
+      { labelKey: "nav.overview", descKey: "layout.navDesc.overview", to: "/dashboard", icon: LayoutDashboard, end: true },
     ],
   },
   {
-    section: "Library",
+    sectionKey: "layout.sections.library",
     items: [
-      { label: "My Products", to: "/dashboard/products", icon: Package, description: "Downloads and access" },
-      { label: "Downloads", to: "/dashboard/downloads", icon: Download, description: "File history and logs" },
-      { label: "Order History", to: "/dashboard/orders", icon: ShoppingBag, description: "Purchases and status" },
-      { label: "Service Orders", to: "/dashboard/service-orders", icon: Briefcase, description: "Consulting services" },
+      { labelKey: "nav.orders", descKey: "layout.navDesc.orders", to: "/dashboard/orders", icon: ShoppingBag },
+      { labelKey: "nav.downloads", descKey: "layout.navDesc.downloads", to: "/dashboard/downloads", icon: Download },
     ],
   },
   {
-    section: "Bookings",
+    sectionKey: "layout.sections.work",
     items: [
-      { label: "Consultations", to: "/dashboard/consultations", icon: Calendar, description: "Upcoming and past calls" },
-      { label: "Projects", to: "/dashboard/projects", icon: Briefcase, description: "Milestones, files, timeline" },
+      { labelKey: "nav.consultations", descKey: "layout.navDesc.consultations", to: "/dashboard/consultations", icon: Calendar },
+      { labelKey: "nav.projects", descKey: "layout.navDesc.projects", to: "/dashboard/projects", icon: Briefcase },
+      { labelKey: "nav.support", descKey: "layout.navDesc.support", to: "/dashboard/support", icon: Headphones },
     ],
   },
   {
-    section: "Support",
+    sectionKey: "layout.sections.account",
     items: [
-      { label: "Support", to: "/dashboard/support", icon: Headphones, description: "Help and tickets" },
-    ],
-  },
-  {
-    section: "Account",
-    items: [
-      { label: "Profile", to: "/dashboard/profile", icon: User, description: "Personal information" },
-      { label: "Addresses", to: "/dashboard/addresses", icon: MapPin, description: "Saved billing addresses" },
-      { label: "Security", to: "/dashboard/2fa", icon: ShieldCheck, description: "Two-factor authentication" },
+      { labelKey: "nav.profile", descKey: "layout.navDesc.profile", to: "/dashboard/profile", icon: User, match: PROFILE_ROUTES },
     ],
   },
 ]
 
 const bottomTabs = [
-  { label: "Home", to: "/dashboard", icon: LayoutDashboard, end: true },
-  { label: "Products", to: "/dashboard/products", icon: Package },
-  { label: "Orders", to: "/dashboard/orders", icon: ShoppingBag },
-  { label: "Downloads", to: "/dashboard/downloads", icon: Download },
-  { label: "Profile", to: "/dashboard/profile", icon: User },
+  { labelKey: "nav.overview", to: "/dashboard", icon: LayoutDashboard, end: true },
+  { labelKey: "nav.orders", to: "/dashboard/orders", icon: ShoppingBag },
+  { labelKey: "nav.downloads", to: "/dashboard/downloads", icon: Download },
+  { labelKey: "nav.support", to: "/dashboard/support", icon: Headphones },
+  { labelKey: "nav.profile", to: "/dashboard/profile", icon: User, match: PROFILE_ROUTES },
 ]
 
 const pageMeta = {
@@ -134,6 +132,8 @@ const pageMeta = {
   "/dashboard/service-orders": { title: "Service Orders", subtitle: "Track your consulting services, consultations, and project milestones." },
   "/dashboard/addresses": { title: "Addresses", subtitle: "Manage saved billing and invoicing addresses." },
   "/dashboard/2fa": { title: "Security · Two-Factor Auth", subtitle: "Add an extra layer of protection to your account." },
+  "/dashboard/notifications": { title: "Notifications", subtitle: "Everything that happened on your account, in one place." },
+  "/dashboard/projects": { title: "Projects", subtitle: "Milestones, files, and timeline for every engagement." },
   "/dashboard/support": { title: "Support", subtitle: "Open tickets, get help, and track your support requests." },
   "/dashboard/profile": { title: "Profile", subtitle: "Manage your account information and personal details." },
 }
@@ -143,25 +143,28 @@ const pageMeta = {
  *  active. Replaces the prior solid-violet "selected" state.
  *  ──────────────────────────────────────────────────────────────────── */
 function SidebarItem({ item }) {
+  const { t } = useTranslation("dashboard")
+  const { pathname } = useLocation()
   const Icon = item.icon
+  const forced = item.match ? item.match.some((p) => pathname.startsWith(p)) : null
   return (
     <NavLink
       to={item.to}
       end={item.end}
-      className={({ isActive }) =>
+      className={({ isActive: navActive }) =>
         [
           "group relative flex items-start gap-3 rounded-xl py-3 transition-all duration-200",
           // F10.B · 4px Deep Azure left border on active. The pl-3 accounts
           // for the 4px left border so the icon remains in the same x-axis
           // position regardless of state.
-          isActive
+          (forced ?? navActive)
             ? "bg-violet-pale border-l-[4px] border-l-azure pl-[calc(0.75rem-4px)] pr-3 text-violet shadow-[inset_0_0_0_1px_rgba(93,63,211,0.06)]"
             : "border-l-[4px] border-l-transparent pl-[calc(0.75rem-4px)] pr-3 text-charcoal-80 hover:bg-violet-ghost hover:text-violet",
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2",
         ].join(" ")
       }
     >
-      {({ isActive }) => (
+      {({ isActive: navActive }) => { const isActive = forced ?? navActive; return (
         <>
           <div
             className={[
@@ -174,7 +177,7 @@ function SidebarItem({ item }) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
               <span className={`truncate text-meta font-semibold ${isActive ? "text-violet" : ""}`}>
-                {item.label}
+                {t(item.labelKey)}
               </span>
               <ChevronRight
                 className={[
@@ -185,11 +188,11 @@ function SidebarItem({ item }) {
               />
             </div>
             <div className={["mt-0.5 truncate text-micro", isActive ? "text-violet/70" : "text-charcoal-80/60"].join(" ")}>
-              {item.description}
+              {t(item.descKey)}
             </div>
           </div>
         </>
-      )}
+      ) }}
     </NavLink>
   )
 }
@@ -197,6 +200,7 @@ function SidebarItem({ item }) {
 // ── Mobile slide-out menu ──
 function MobileMenu({ open, onClose, user, initials, onLogout }) {
   const { t } = useTranslation("common")
+  const { t: td } = useTranslation("dashboard")
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden"
     else document.body.style.overflow = ""
@@ -264,9 +268,9 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
           {/* Nav */}
           <div className="flex-1 overflow-y-auto px-4 pb-4">
             {navigation.map((group) => (
-              <div key={group.section} className="mb-6">
+              <div key={group.sectionKey} className="mb-6">
                 <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/45">
-                  {group.section}
+                  {td(group.sectionKey)}
                 </div>
                 <div className="space-y-1.5">
                   {group.items.map((item) => (
@@ -307,10 +311,11 @@ export default function DashboardLayout() {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const currentMeta = pageMeta[location.pathname] || {
-    title: "Dashboard",
-    subtitle: "Manage your account and digital products.",
-  }
+  const currentMeta = useMemo(() => {
+    if (pageMeta[location.pathname]) return pageMeta[location.pathname]
+    const parent = Object.keys(pageMeta).find((p) => p !== "/dashboard" && location.pathname.startsWith(`${p}/`))
+    return pageMeta[parent] || { title: "Dashboard", subtitle: "Manage your account and digital products." }
+  }, [location.pathname])
 
   const initials = user?.fullName
     ?.split(" ")
@@ -380,9 +385,9 @@ export default function DashboardLayout() {
               {/* Nav */}
               <div className="mt-4 flex-1 overflow-y-auto pr-1">
                 {navigation.map((group) => (
-                  <div key={group.section} className="mb-6">
+                  <div key={group.sectionKey} className="mb-6">
                     <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/45">
-                      {group.section}
+                      {t(group.sectionKey)}
                     </div>
                     <div className="space-y-1.5">
                       {group.items.map((item) => (
@@ -534,21 +539,22 @@ export default function DashboardLayout() {
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1.5">
           {bottomTabs.map((tab) => {
             const Icon = tab.icon
+            const forced = tab.match ? tab.match.some((p) => location.pathname.startsWith(p)) : null
             return (
               <NavLink
                 key={tab.to}
                 to={tab.to}
                 end={tab.end}
-                aria-label={tab.label}
-                className={({ isActive }) =>
+                aria-label={t(tab.labelKey)}
+                className={({ isActive: navActive }) =>
                   [
                     "flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-center transition-all",
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
-                    isActive ? "text-violet" : "text-charcoal-80/45 hover:text-violet",
+                    (forced ?? navActive) ? "text-violet" : "text-charcoal-80/45 hover:text-violet",
                   ].join(" ")
                 }
               >
-                {({ isActive }) => (
+                {({ isActive: navActive }) => { const isActive = forced ?? navActive; return (
                   <>
                     <div
                       className={[
@@ -559,10 +565,10 @@ export default function DashboardLayout() {
                       <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
                     </div>
                     <span className={`text-micro font-semibold ${isActive ? "text-violet" : ""}`}>
-                      {tab.label}
+                      {t(tab.labelKey)}
                     </span>
                   </>
-                )}
+                ) }}
               </NavLink>
             )
           })}

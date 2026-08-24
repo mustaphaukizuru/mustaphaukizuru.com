@@ -139,7 +139,7 @@ export default function ThemeSwitcher({
         onClick={() => setTheme(next)}
         aria-label={`Activate ${next} mode`}
         className={[
-          "inline-flex items-center justify-center rounded-full",
+          "cursor-pointer inline-flex items-center justify-center rounded-full",
           "h-9 w-9 text-[var(--color-text-secondary)]",
           "border border-[var(--color-border-subtle)] bg-[var(--color-surface-card)]",
           "transition-[background-color,color,border-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
@@ -175,7 +175,7 @@ export default function ThemeSwitcher({
             aria-checked={active}
             onClick={() => setTheme(value)}
             className={[
-              "inline-flex items-center gap-1.5 rounded-[8px] font-semibold",
+              "cursor-pointer inline-flex items-center gap-1.5 rounded-[8px] font-semibold",
               sizeCls,
               "transition-colors duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
               "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)]",

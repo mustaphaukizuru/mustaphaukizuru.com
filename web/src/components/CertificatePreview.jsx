@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { Modal } from "./ui/Modal"
 import {
   Award,
   Download,
@@ -271,16 +271,13 @@ export default function CertificatePreview({
         </div>
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <CertificateModal
-            src={src}
-            title={title}
-            issuer={issuer}
-            onClose={() => setOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      <CertificateModal
+        open={open}
+        src={src}
+        title={title}
+        issuer={issuer}
+        onClose={() => setOpen(false)}
+      />
     </>
   )
 }
@@ -398,24 +395,54 @@ function PdfPageImage({ src, title, scale = 1.4 }) {
  * state with prominent Download + Open-in-new-tab CTAs. The user always
  * has a clear path forward.
  */
-function CertificateModal({ src, title, issuer, onClose }) {
+function CertificateModal({ open, src, title, issuer, onClose }) {
+  const { t } = useTranslation("about")
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      bare
+      hideClose
+      ariaLabel={`${t("certificate.modalLabel", { defaultValue: "Certificate" })}: ${title}`}
+      placement="middle"
+      size="none"
+      zIndex={80}
+      // Backdrop padding: edge-to-edge on mobile (so the modal becomes a
+      // proper fullscreen viewer), narrow inset on desktop so the page
+      // chrome behind is still acknowledged as context.
+      wrapperClassName="p-0 sm:p-4 md:p-6"
+      backdropClassName="bg-charcoal/85 backdrop-blur-md"
+      // Sizing strategy:
+      //   • Mobile: full-bleed (h-[100dvh] w-full, no rounding) — the
+      //     PDF needs every pixel of vertical space, and a 12px gutter
+      //     around the modal was eating ~24 px the iframe desperately
+      //     needed for portrait-oriented certificate PDFs.
+      //   • Desktop: large modal that scales WITH the viewport — the
+      //     previous `min(92vh, 880px)` cap meant a 1440 p monitor
+      //     showed 880 px of certificate plus 425 px of empty white
+      //     space below. Removing the 880-px ceiling lets tall
+      //     viewports finally render the full A4/landscape PDF.
+      //   • Width: max-w-6xl (was 5xl) so landscape certificates have
+      //     enough horizontal room before the iframe starts forcing
+      //     its own zoom-out.
+      className={[
+        "flex flex-col overflow-hidden bg-white shadow-[0_24px_64px_rgba(0,0,0,0.35)]",
+        "h-[100dvh] rounded-none",
+        "sm:h-[min(94vh,calc(100dvh-2rem))] sm:max-w-5xl sm:rounded-2xl",
+        "md:max-w-6xl",
+      ].join(" ")}
+    >
+      <CertificateViewer src={src} title={title} issuer={issuer} onClose={onClose} />
+    </Modal>
+  )
+}
+
+/* Stateful viewer body — mounted only while the Modal is open so the load
+ * watchdog restarts on every open. */
+function CertificateViewer({ src, title, issuer, onClose }) {
   const { t }                = useTranslation("about")
   const [state, setState]    = useState("loading") // loading · ok · error
   const watchdogRef          = useRef(null)
-
-  // Lock body scroll
-  useEffect(() => {
-    const orig = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    return () => { document.body.style.overflow = orig }
-  }, [])
-
-  // Esc to close
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose() }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [onClose])
 
   // Watchdog — if the iframe doesn't fire `load` within 5s, assume failure.
   useEffect(() => {
@@ -440,45 +467,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
   })()
 
   return (
-    <motion.div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`${t("certificate.modalLabel", { defaultValue: "Certificate" })}: ${title}`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-      // Backdrop padding: edge-to-edge on mobile (so the modal becomes a
-      // proper fullscreen viewer), narrow inset on desktop so the page
-      // chrome behind is still acknowledged as context.
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-charcoal/85 p-0 backdrop-blur-md sm:p-4 md:p-6"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <motion.div
-        initial={{ scale: 0.96, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.96, opacity: 0 }}
-        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        // Sizing strategy:
-        //   • Mobile: full-bleed (h-[100dvh] w-full, no rounding) — the
-        //     PDF needs every pixel of vertical space, and a 12px gutter
-        //     around the modal was eating ~24 px the iframe desperately
-        //     needed for portrait-oriented certificate PDFs.
-        //   • Desktop: large modal that scales WITH the viewport — the
-        //     previous `min(92vh, 880px)` cap meant a 1440 p monitor
-        //     showed 880 px of certificate plus 425 px of empty white
-        //     space below. Removing the 880-px ceiling lets tall
-        //     viewports finally render the full A4/landscape PDF.
-        //   • Width: max-w-6xl (was 5xl) so landscape certificates have
-        //     enough horizontal room before the iframe starts forcing
-        //     its own zoom-out.
-        className={[
-          "flex w-full flex-col overflow-hidden bg-white shadow-[0_24px_64px_rgba(0,0,0,0.35)]",
-          "h-[100dvh] rounded-none",
-          "sm:h-[min(94vh,calc(100dvh-2rem))] sm:max-w-5xl sm:rounded-2xl",
-          "md:max-w-6xl",
-        ].join(" ")}
-      >
+    <>
         {/* Header bar — title left · verified chip · actions right.
             Layout collapses gracefully on narrow widths: the verified chip
             hides on mobile (its meaning is conveyed by the issuer eyebrow),
@@ -502,7 +491,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
           <a
             href={src}
             download={filename}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-charcoal-80/12 bg-white px-2.5 text-[12.5px] font-semibold text-charcoal-80/85 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 sm:px-3"
+            className="cursor-pointer inline-flex h-9 items-center gap-1.5 rounded-full border border-charcoal-80/12 bg-white px-2.5 text-[12.5px] font-semibold text-charcoal-80/85 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 sm:px-3"
             aria-label={t("certificate.downloadLabel", { defaultValue: "Download PDF" })}
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
@@ -514,7 +503,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
             href={src}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+            className="cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             aria-label={t("certificate.openNewTab")}
           >
             <ExternalLink className="h-4 w-4" />
@@ -523,7 +512,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
             type="button"
             onClick={onClose}
             aria-label={t("certificate.closeLabel", { defaultValue: "Close" })}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+            className="cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
           >
             <X className="h-4 w-4" />
           </button>
@@ -568,7 +557,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
                 <a
                   href={src}
                   download={filename}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+                  className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
                 >
                   <Download className="h-3.5 w-3.5" />
                   {t("certificate.downloadShort", { defaultValue: "Download" })}
@@ -577,7 +566,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
                   href={src}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-charcoal-80/15 px-4 py-2 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
+                  className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-charcoal-80/15 px-4 py-2 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   {t("certificate.openNewTab")}
@@ -586,8 +575,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
             </div>
           )}
         </div>
-      </motion.div>
-    </motion.div>
+    </>
   )
 }
 

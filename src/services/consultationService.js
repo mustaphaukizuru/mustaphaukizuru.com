@@ -241,6 +241,11 @@ async function bookConsultation({
       consultation = await provisionMeetingAndNotify(consultation)
     }
 
+    // Roadmap step 25 · services funnel. Start the client relationship in
+    // the dashboard by opening a ClientProject shell for this booking.
+    // Best-effort: never fails the booking.
+    await ensureProjectShellForConsultation(consultation)
+
     return consultation
   } catch (err) {
     // Race: another booker won this slot in the same instant (P2002) or
@@ -248,6 +253,68 @@ async function bookConsultation({
     const mapped = classifyBookingWriteError(err)
     if (mapped) throw mapped
     throw err
+  }
+}
+
+/**
+ * Open a ClientProject shell for a freshly booked consultation so the
+ * relationship shows up in the member + admin dashboards from day one.
+ *
+ * Schema constraint (prisma/schema.prisma · ClientProject): `serviceOrderId`
+ * is REQUIRED and @unique — a project cannot exist without a ServiceOrder,
+ * and ClientProject has no consultation FK / notes field. Therefore:
+ *   · consultation has userId + serviceId + serviceOrderId and no project
+ *     exists for that order  → create { projectName from service,
+ *     projectStatus: "planning", userId, serviceOrderId, description
+ *     mentions the consultation id } and return it.
+ *   · no serviceOrderId (free discovery call — the default funnel path)
+ *     → nothing can be linked yet; log and return null. The admin can
+ *     open the project once a proposal is accepted. (Making
+ *     serviceOrderId optional + adding consultationId is the follow-up
+ *     migration.)
+ * Never throws.
+ */
+async function ensureProjectShellForConsultation(consultation) {
+  try {
+    if (!consultation?.userId || !consultation?.serviceId) return null
+
+    // One shell per relationship: reuse a project already opened for this
+    // paid order, or for this consultation (free bookings).
+    const existing = await prisma.clientProject.findFirst({
+      where: {
+        OR: [
+          ...(consultation.serviceOrderId ? [{ serviceOrderId: consultation.serviceOrderId }] : []),
+          { consultationId: consultation.id },
+        ],
+      },
+      select: { id: true },
+    })
+    if (existing) return existing
+
+    let title = consultation.service?.title || null
+    if (!title) {
+      const svc = await prisma.service.findUnique({
+        where: { id: consultation.serviceId },
+        select: { title: true },
+      })
+      title = svc?.title || "Consulting engagement"
+    }
+
+    return await prisma.clientProject.create({
+      data: {
+        serviceOrderId: consultation.serviceOrderId || null,
+        consultationId: consultation.id,
+        userId:         consultation.userId,
+        projectName:    title,
+        projectStatus:  "planning",
+        description:    `Opened from consultation ${consultation.id}`,
+      },
+    })
+  } catch (err) {
+    logger.warn("[consultation] ClientProject shell creation failed (non-fatal)", {
+      consultationId: consultation?.id, error: err?.message,
+    })
+    return null
   }
 }
 
@@ -818,6 +885,7 @@ async function adminRegenerateMeetingLink({ id, adminUserId = null, ipAddress = 
 
 module.exports = {
   bookConsultation,
+  ensureProjectShellForConsultation,
   rescheduleConsultation,
   cancelConsultation,
   findByConfirmationToken,

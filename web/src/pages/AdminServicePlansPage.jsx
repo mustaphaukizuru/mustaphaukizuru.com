@@ -40,6 +40,12 @@ import {
   removeAdminServiceFeature,
 } from "../services/serviceService"
 import { useToast } from "../context/ToastContext"
+import { Modal } from "../components/ui"
+import useForm from "../hooks/useForm"
+import { serviceSchema } from "../lib/validation/servicePlan"
+import {
+  TextField, TextAreaField, SelectField, NumberField, FormErrorBanner, FormActions, ConfirmModal,
+} from "../components/admin/forms"
 
 /* ── Constants ──────────────────────────────────────────────────────────── */
 
@@ -113,333 +119,150 @@ const inputClass =
 function ServiceModal({ open, onClose, initial, onSaved }) {
   const { showSuccess, showError } = useToast()
   const isEdit = Boolean(initial?.id)
+  // Remount the inner form whenever the modal opens for a different record so
+  // useForm picks up fresh initial values.
+  const formKey = `${open ? "open" : "closed"}-${initial?.id || "new"}`
 
-  // I18N06 · Bilingual form state. The modal carries EN + ES side-by-side so
-  // the admin can flip between locales without leaving the screen. The save
-  // payload always sends both — partial updates are safe because the backend
-  // uses a defensive spread (only touches columns explicitly present).
-  // Schema asymmetry note: long-form Spanish lives in `descriptionEs` (no
-  // `description` sibling on Service), but in the UI we label it
-  // "Full description" to keep the admin's mental model consistent.
+  return (
+    <Modal open={open} onClose={onClose} size="xl" title={isEdit ? "Edit service" : "Create a new service"}>
+      {open && (
+        <ServiceForm key={formKey} initial={initial} isEdit={isEdit} onClose={onClose} onSaved={onSaved} showSuccess={showSuccess} showError={showError} />
+      )}
+    </Modal>
+  )
+}
+
+/* I18N06 · Bilingual form. The form carries EN + ES side-by-side so the admin
+ * can flip between locales without leaving the screen. The save payload always
+ * sends both — Spanish "" is sent as null so a translation can be cleared back
+ * to "fall through to English". */
+function ServiceForm({ initial, isEdit, onClose, onSaved, showSuccess, showError }) {
   const [locale, setLocale] = useState("en")
-  const [form, setForm] = useState(() => ({
-    title: "",
-    slug: "",
-    shortDescription: "",
-    fullDescription: "",
-    basePrice: "0",
-    currency: "MXN",
-    deliveryType: "consultation",
-    status: "draft",
-    isFeatured: false,
-    isBookable: false,
-    audienceCode: "",
-    metaTitle: "",
-    metaDescription: "",
-    // Spanish counterparts
-    titleEs: "",
-    shortDescriptionEs: "",
-    descriptionEs: "",
-    metaTitleEs: "",
-    metaDescriptionEs: "",
-  }))
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    if (open && initial) {
-      setForm({
-        title: initial.title || "",
-        slug: initial.slug || "",
-        shortDescription: initial.shortDescription || "",
-        fullDescription: initial.fullDescription || "",
-        basePrice: String(initial.basePrice ?? "0"),
-        currency: initial.currency || "MXN",
-        deliveryType: initial.deliveryType || "consultation",
-        status: initial.status || "draft",
-        isFeatured: Boolean(initial.isFeatured),
-        isBookable: Boolean(initial.isBookable),
-        audienceCode: initial.audienceCode || "",
-        metaTitle: initial.metaTitle || "",
-        metaDescription: initial.metaDescription || "",
-        titleEs:            initial.titleEs            || "",
-        shortDescriptionEs: initial.shortDescriptionEs || "",
-        descriptionEs:      initial.descriptionEs      || "",
-        metaTitleEs:        initial.metaTitleEs        || "",
-        metaDescriptionEs:  initial.metaDescriptionEs  || "",
-      })
-    } else if (open && !initial) {
-      setForm({
-        title: "", slug: "", shortDescription: "", fullDescription: "",
-        basePrice: "0", currency: "MXN", deliveryType: "consultation", status: "draft",
-        isFeatured: false, isBookable: false, audienceCode: "",
-        metaTitle: "", metaDescription: "",
-        titleEs: "", shortDescriptionEs: "", descriptionEs: "",
-        metaTitleEs: "", metaDescriptionEs: "",
-      })
-    }
-    // Reset to English tab on every open so the admin always lands on the
-    // canonical locale regardless of where they left the toggle last time.
-    setLocale("en")
-    setError("")
-  }, [open, initial])
-
-  function update(field, value) {
-    setForm((f) => ({ ...f, [field]: value }))
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError("")
-
-    // Inline validation
-    if (!form.title.trim()) return setError("Title is required.")
-    if (!form.shortDescription.trim()) return setError("Short description is required.")
-    const price = Number(form.basePrice)
-    if (Number.isNaN(price) || price < 0) return setError("Base price must be a non-negative number.")
-
-    setSaving(true)
-    try {
-      const payload = { ...form, basePrice: price }
-      // Only send non-empty optional fields. audienceCode is sent as null when
-      // empty so admins can clear it after re-tagging a service.
-      payload.audienceCode = form.audienceCode || null
+  const form = useForm({
+    schema: serviceSchema,
+    initialValues: {
+      title: initial?.title || "",
+      slug: initial?.slug || "",
+      shortDescription: initial?.shortDescription || "",
+      fullDescription: initial?.fullDescription || "",
+      basePrice: String(initial?.basePrice ?? "0"),
+      currency: initial?.currency || "MXN",
+      deliveryType: initial?.deliveryType || "consultation",
+      status: initial?.status || "draft",
+      isFeatured: Boolean(initial?.isFeatured),
+      isBookable: Boolean(initial?.isBookable),
+      audienceCode: initial?.audienceCode || "",
+      metaTitle: initial?.metaTitle || "",
+      metaDescription: initial?.metaDescription || "",
+      titleEs:            initial?.titleEs            || "",
+      shortDescriptionEs: initial?.shortDescriptionEs || "",
+      descriptionEs:      initial?.descriptionEs      || "",
+      metaTitleEs:        initial?.metaTitleEs        || "",
+      metaDescriptionEs:  initial?.metaDescriptionEs  || "",
+    },
+    onSubmit: async (parsed) => {
+      const payload = { ...parsed, isBookable: Boolean(parsed.isBookable) }
+      // Optional structural fields: omit when blank (except audienceCode → null so it can be cleared).
       if (!payload.slug) delete payload.slug
       if (!payload.fullDescription) delete payload.fullDescription
       if (!payload.metaTitle) delete payload.metaTitle
       if (!payload.metaDescription) delete payload.metaDescription
-
-      // I18N06 · Spanish columns. Send empty strings as null so admins can
-      // wipe a translation back to "fall through to English" by clearing the
-      // field. Backend uses defensive `!== undefined` checks, so the keys
-      // must be present — we only convert "" → null, never strip them.
-      payload.titleEs            = form.titleEs            || null
-      payload.shortDescriptionEs = form.shortDescriptionEs || null
-      payload.descriptionEs      = form.descriptionEs      || null
-      payload.metaTitleEs        = form.metaTitleEs        || null
-      payload.metaDescriptionEs  = form.metaDescriptionEs  || null
-
-      const result = isEdit
-        ? await updateAdminService(initial.id, payload)
-        : await createAdminService(payload)
-
-      const saved = result?.data || result
-      showSuccess(isEdit ? `Service "${saved.title}" updated` : `Service "${saved.title}" created`)
-      onSaved?.(saved)
-      onClose()
-    } catch (err) {
-      const msg = err?.message || "Could not save the service."
-      setError(msg)
-      showError?.(msg, "Save failed")
-    } finally {
-      setSaving(false)
-    }
-  }
+      try {
+        const result = isEdit
+          ? await updateAdminService(initial.id, payload)
+          : await createAdminService(payload)
+        const saved = result?.data || result
+        showSuccess(isEdit ? `Service "${saved.title}" updated` : `Service "${saved.title}" created`)
+        onSaved?.(saved)
+        onClose()
+      } catch (err) {
+        showError?.(err?.message || "Could not save the service.", "Save failed")
+        throw err
+      }
+    },
+  })
+  const f = form.values
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[120] bg-black/50 backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed left-1/2 top-1/2 z-[121] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-charcoal/15 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.25)]"
+    <form onSubmit={form.handleSubmit} noValidate className="flex flex-col">
+      <div className="mb-5 flex items-center justify-between rounded-xl border border-charcoal/12 bg-violet-pale/40 px-3 py-2.5">
+        <div className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-charcoal/60">
+          <span aria-hidden="true">Locale</span>
+        </div>
+        <div role="tablist" aria-label="Edit locale" className="inline-flex items-center gap-1 rounded-lg bg-white p-1 shadow-[inset_0_0_0_1px_rgba(26,27,35,0.08)]">
+          {["en", "es"].map((loc) => (
+            <button
+              key={loc}
+              type="button"
+              role="tab"
+              aria-selected={locale === loc}
+              onClick={() => setLocale(loc)}
+              className={`rounded-md px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-violet/35 ${
+                locale === loc ? "bg-violet text-white shadow-[0_2px_6px_rgba(93,63,211,0.25)]" : "text-charcoal/65 hover:text-violet"
+              }`}
+            >
+              {loc.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {locale === "en"
+          ? <TextField form={form} name="title" label="Title" required placeholder="e.g., Personal Brand Build" />
+          : <TextField form={form} name="titleEs" label="Title (ES)" hint="Falls back to English if blank" placeholder="ej., Construcción de marca personal" />}
+        <TextField form={form} name="slug" label="Slug" hint="Auto-generated · shared across locales" mono placeholder="personal-brand-build" />
+
+        {locale === "en"
+          ? <TextField form={form} name="shortDescription" label="Short description" required placeholder="One-sentence positioning" />
+          : <TextField form={form} name="shortDescriptionEs" label="Short description (ES)" hint="Falls back to English if blank" placeholder="Posicionamiento en una frase" />}
+        <SelectField form={form} name="status" label="Status" hint="Shared across locales" options={STATUSES} />
+
+        {locale === "en"
+          ? <TextAreaField form={form} name="fullDescription" label="Full description" hint="Long-form copy for the public service page" rows={4} />
+          : <TextAreaField form={form} name="descriptionEs" label="Full description (ES)" hint="Texto largo para la página pública del servicio" rows={4} />}
+        <SelectField form={form} name="deliveryType" label="Delivery type" options={DELIVERY} />
+
+        <NumberField form={form} name="basePrice" label="Base price" hint="Used as fallback when no Package is selected" min="0" step="0.01" />
+        <SelectField form={form} name="currency" label="Currency" options={CURRENCIES} />
+
+        <Field label="Featured">
+          <button type="button" onClick={() => form.setValue("isFeatured", !f.isFeatured)}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12.5px] font-semibold transition ${
+              f.isFeatured ? "border-violet bg-violet-pale text-violet" : "border-charcoal/15 bg-white text-charcoal/65 hover:text-violet"
+            }`}
           >
-            <form onSubmit={handleSubmit} className="flex max-h-[90vh] flex-col">
-              <header className="flex items-start justify-between border-b border-charcoal/10 px-6 py-5">
-                <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-violet">
-                    <Briefcase className="h-3 w-3" /> {isEdit ? "Edit service" : "New service"}
-                  </span>
-                  <h2 className="mt-2 text-[20px] font-bold text-violet">
-                    {isEdit ? form.title || "Untitled service" : "Create a new service"}
-                  </h2>
-                </div>
-                <button
-                  type="button" onClick={onClose} aria-label="Close"
-                  className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-charcoal/55 transition hover:bg-violet-ghost hover:text-violet"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </header>
+            <Star className={`h-4 w-4 ${f.isFeatured ? "fill-violet" : ""}`} />
+            {f.isFeatured ? "Featured" : "Not featured"}
+          </button>
+        </Field>
+        <Field label="Bookable">
+          <button type="button" onClick={() => form.setValue("isBookable", !f.isBookable)}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12.5px] font-semibold transition ${
+              f.isBookable ? "border-violet bg-violet-pale text-violet" : "border-charcoal/15 bg-white text-charcoal/65 hover:text-violet"
+            }`}
+          >
+            {f.isBookable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+            {f.isBookable ? "Visible on booking calendar" : "Hidden from booking"}
+          </button>
+        </Field>
 
-              <div className="overflow-y-auto px-6 py-5">
-                {/* I18N06 · Locale toggle. Translatable fields (Title, Short
-                    description, Full description, Meta title, Meta description)
-                    bind to either English or Spanish columns based on this
-                    pill. Non-translatable structure (slug, status, pricing,
-                    audience, flags) stays canonical and is shared across
-                    locales. */}
-                <div className="mb-5 flex items-center justify-between rounded-xl border border-charcoal/12 bg-violet-pale/40 px-3 py-2.5">
-                  <div className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-charcoal/60">
-                    <span aria-hidden="true">Locale</span>
-                  </div>
-                  <div role="tablist" aria-label="Edit locale" className="inline-flex items-center gap-1 rounded-lg bg-white p-1 shadow-[inset_0_0_0_1px_rgba(26,27,35,0.08)]">
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={locale === "en"}
-                      onClick={() => setLocale("en")}
-                      className={`rounded-md px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-violet/35 ${
-                        locale === "en"
-                          ? "bg-violet text-white shadow-[0_2px_6px_rgba(93,63,211,0.25)]"
-                          : "text-charcoal/65 hover:text-violet"
-                      }`}
-                    >
-                      EN
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={locale === "es"}
-                      onClick={() => setLocale("es")}
-                      className={`rounded-md px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-wide transition focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-violet/35 ${
-                        locale === "es"
-                          ? "bg-violet text-white shadow-[0_2px_6px_rgba(93,63,211,0.25)]"
-                          : "text-charcoal/65 hover:text-violet"
-                      }`}
-                    >
-                      ES
-                    </button>
-                  </div>
-                </div>
+        <SelectField form={form} name="audienceCode" label="Audience" hint="Tag a service so it appears in the public Choose-Your-Plan matrix" options={AUDIENCE_OPTIONS} />
+        <div /> {/* spacer for grid alignment */}
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {locale === "en" ? (
-                    <Field label="Title" required>
-                      <input className={inputClass} value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="e.g., Personal Brand Build" />
-                    </Field>
-                  ) : (
-                    <Field label="Title (ES)" hint="Falls back to English if blank">
-                      <input className={inputClass} value={form.titleEs} onChange={(e) => update("titleEs", e.target.value)} placeholder="ej., Construcción de marca personal" />
-                    </Field>
-                  )}
-                  <Field label="Slug" hint="Auto-generated · shared across locales">
-                    <input className={inputClass} value={form.slug} onChange={(e) => update("slug", e.target.value)} placeholder="personal-brand-build" />
-                  </Field>
+        {locale === "en"
+          ? <TextField form={form} name="metaTitle" label="Meta title" hint="Optional · SEO" />
+          : <TextField form={form} name="metaTitleEs" label="Meta title (ES)" hint="Opcional · SEO en español" />}
+        {locale === "en"
+          ? <TextField form={form} name="metaDescription" label="Meta description" hint="Optional · SEO" />
+          : <TextField form={form} name="metaDescriptionEs" label="Meta description (ES)" hint="Opcional · SEO en español" />}
+      </div>
 
-                  {locale === "en" ? (
-                    <Field label="Short description" required>
-                      <input className={inputClass} value={form.shortDescription} onChange={(e) => update("shortDescription", e.target.value)} placeholder="One-sentence positioning" />
-                    </Field>
-                  ) : (
-                    <Field label="Short description (ES)" hint="Falls back to English if blank">
-                      <input className={inputClass} value={form.shortDescriptionEs} onChange={(e) => update("shortDescriptionEs", e.target.value)} placeholder="Posicionamiento en una frase" />
-                    </Field>
-                  )}
-                  <Field label="Status" hint="Shared across locales">
-                    <select className={inputClass} value={form.status} onChange={(e) => update("status", e.target.value)}>
-                      {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </Field>
-
-                  {locale === "en" ? (
-                    <Field label="Full description" hint="Long-form copy for the public service page">
-                      <textarea rows={4} className={inputClass} value={form.fullDescription} onChange={(e) => update("fullDescription", e.target.value)} />
-                    </Field>
-                  ) : (
-                    <Field label="Full description (ES)" hint="Texto largo para la página pública del servicio">
-                      <textarea rows={4} className={inputClass} value={form.descriptionEs} onChange={(e) => update("descriptionEs", e.target.value)} />
-                    </Field>
-                  )}
-                  <Field label="Delivery type">
-                    <select className={inputClass} value={form.deliveryType} onChange={(e) => update("deliveryType", e.target.value)}>
-                      {DELIVERY.map((d) => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                  </Field>
-
-                  <Field label="Base price" hint="Used as fallback when no Package is selected">
-                    <input type="number" min="0" step="0.01" className={inputClass} value={form.basePrice} onChange={(e) => update("basePrice", e.target.value)} />
-                  </Field>
-                  <Field label="Currency">
-                    <select className={inputClass} value={form.currency} onChange={(e) => update("currency", e.target.value)}>
-                      {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </Field>
-
-                  <Field label="Featured">
-                    <button type="button" onClick={() => update("isFeatured", !form.isFeatured)}
-                      className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12.5px] font-semibold transition ${
-                        form.isFeatured ? "border-violet bg-violet-pale text-violet" : "border-charcoal/15 bg-white text-charcoal/65 hover:text-violet"
-                      }`}
-                    >
-                      <Star className={`h-4 w-4 ${form.isFeatured ? "fill-violet" : ""}`} />
-                      {form.isFeatured ? "Featured" : "Not featured"}
-                    </button>
-                  </Field>
-                  <Field label="Bookable">
-                    <button type="button" onClick={() => update("isBookable", !form.isBookable)}
-                      className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[12.5px] font-semibold transition ${
-                        form.isBookable ? "border-violet bg-violet-pale text-violet" : "border-charcoal/15 bg-white text-charcoal/65 hover:text-violet"
-                      }`}
-                    >
-                      {form.isBookable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                      {form.isBookable ? "Visible on booking calendar" : "Hidden from booking"}
-                    </button>
-                  </Field>
-
-                  <Field label="Audience" hint="Tag a service so it appears in the public Choose-Your-Plan matrix">
-                    <select className={inputClass} value={form.audienceCode} onChange={(e) => update("audienceCode", e.target.value)}>
-                      {AUDIENCE_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  </Field>
-                  <div /> {/* spacer for grid alignment */}
-
-                  {locale === "en" ? (
-                    <Field label="Meta title" hint="Optional · SEO">
-                      <input className={inputClass} value={form.metaTitle} onChange={(e) => update("metaTitle", e.target.value)} />
-                    </Field>
-                  ) : (
-                    <Field label="Meta title (ES)" hint="Opcional · SEO en español">
-                      <input className={inputClass} value={form.metaTitleEs} onChange={(e) => update("metaTitleEs", e.target.value)} />
-                    </Field>
-                  )}
-                  {locale === "en" ? (
-                    <Field label="Meta description" hint="Optional · SEO">
-                      <input className={inputClass} value={form.metaDescription} onChange={(e) => update("metaDescription", e.target.value)} />
-                    </Field>
-                  ) : (
-                    <Field label="Meta description (ES)" hint="Opcional · SEO en español">
-                      <input className={inputClass} value={form.metaDescriptionEs} onChange={(e) => update("metaDescriptionEs", e.target.value)} />
-                    </Field>
-                  )}
-                </div>
-              </div>
-
-              {error && (
-                <div className="mx-6 mb-4 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-3 py-2 text-[12.5px] font-semibold text-rose-700">
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />{error}
-                </div>
-              )}
-
-              <footer className="flex items-center justify-end gap-2 border-t border-charcoal/10 bg-violet-pale/40 px-6 py-4">
-                <button type="button" onClick={onClose}
-                  className="rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
-                >
-                  Cancel
-                </button>
-                <button type="submit" disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {saving
-                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
-                    : <><Save className="h-4 w-4" /> {isEdit ? "Save changes" : "Create service"}</>}
-                </button>
-              </footer>
-            </form>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      <div className="mt-4">
+        <FormErrorBanner message={form.formError} />
+      </div>
+      <FormActions onCancel={onClose} saving={form.submitting} saveLabel={isEdit ? "Save changes" : "Create service"} />
+    </form>
   )
 }
 
@@ -450,6 +273,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
   const { showSuccess, showError } = useToast()
   const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   // I18N06 · Per-package locale toggle. Defaults to EN; flipping to ES
   // swaps `Plan name` and `Description` to bind to nameEs / descriptionEs.
   // Pricing/tier/period/popular/saveLabel/sortOrder/active are
@@ -513,16 +337,32 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
     finally { setBusy(false) }
   }
 
-  async function handleDelete() {
-    if (!window.confirm(`Delete plan "${pkg.name}"?\nIf this plan was already purchased, it will be deactivated to preserve order history.`)) return
+  function handleDelete() { setConfirmDelete(true) }
+
+  async function performDelete() {
     setBusy(true)
     try {
       await removeAdminServicePackage(serviceId, pkg.id)
       showSuccess(`Plan "${pkg.name}" removed`)
+      setConfirmDelete(false)
       onChanged?.()
     } catch (err) { showError(err?.message || "Could not delete package") }
     finally { setBusy(false) }
   }
+
+  const deleteConfirm = (
+    <ConfirmModal
+      open={confirmDelete}
+      onClose={() => setConfirmDelete(false)}
+      onConfirm={performDelete}
+      busy={busy}
+      title={`Delete plan "${pkg.name}"?`}
+      confirmLabel="Delete"
+      tone="danger"
+    >
+      <p className="text-sm text-charcoal-80">If this plan was already purchased, it will be deactivated to preserve order history.</p>
+    </ConfirmModal>
+  )
 
   if (editing) {
     return (
@@ -691,6 +531,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
   const includedCount = (pkg.featureSlots || []).length
 
   return (
+    <>
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-charcoal/12 bg-white p-3.5 transition hover:border-violet/20">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -740,6 +581,8 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
         </button>
       </div>
     </div>
+    {deleteConfirm}
+    </>
   )
 }
 
@@ -980,6 +823,8 @@ export default function AdminServicePlansPage() {
   const [q, setQ] = useState("")
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [pendingArchive, setPendingArchive] = useState(null)
+  const [archiving, setArchiving] = useState(false)
 
   async function load() {
     setLoading(true); setError("")
@@ -1013,14 +858,21 @@ export default function AdminServicePlansPage() {
   function handleCreate() { setEditing(null); setModalOpen(true) }
   function handleEdit(s) { setEditing(s); setModalOpen(true) }
 
-  async function handleDelete(svc) {
-    if (!window.confirm(`Archive service "${svc.title}"?\nHistorical orders and downloads will be preserved.`)) return
+  function handleDelete(svc) { setPendingArchive(svc) }
+
+  async function confirmArchive() {
+    const svc = pendingArchive
+    if (!svc) return
+    setArchiving(true)
     try {
       await deleteAdminService(svc.id)
       showSuccess(`"${svc.title}" archived`)
+      setPendingArchive(null)
       await load()
     } catch (err) {
       showError(err?.message || "Could not archive service")
+    } finally {
+      setArchiving(false)
     }
   }
 
@@ -1112,6 +964,17 @@ export default function AdminServicePlansPage() {
 
       {/* ── Modal ──────────────────────────────────────────────────── */}
       <ServiceModal open={modalOpen} onClose={() => setModalOpen(false)} initial={editing} onSaved={load} />
+      <ConfirmModal
+        open={Boolean(pendingArchive)}
+        onClose={() => setPendingArchive(null)}
+        onConfirm={confirmArchive}
+        busy={archiving}
+        title={`Archive service "${pendingArchive?.title ?? ""}"?`}
+        confirmLabel="Archive"
+        tone="danger"
+      >
+        <p className="text-sm text-charcoal-80">Historical orders and downloads will be preserved.</p>
+      </ConfirmModal>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useParams } from "react-router-dom"
 import { ArrowLeft, Package, Loader2, AlertCircle, FileDown } from "lucide-react"
@@ -6,6 +6,7 @@ import { fetchMyOrderById } from "../services/orderService"
 import { authFetch, API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"
 import { triggerBrowserDownload } from "../services/downloadService"
+import useApiQuery from "../hooks/useApiQuery"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  DashboardOrderDetailPage · member-side single-order view.
@@ -40,27 +41,13 @@ function resolveImg(item) {
 export default function DashboardOrderDetailPage() {
   const { t } = useTranslation("dashboard")
   const { orderId } = useParams()
-  const [order, setOrder] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    if (!orderId) return undefined
-    let cancelled = false
-    ;(async () => {
-      setLoading(true)
-      setError("")
-      try {
-        const data = await fetchMyOrderById(orderId)
-        if (!cancelled) setOrder(data || null)
-      } catch (err) {
-        if (!cancelled) setError(err?.message || t("orderDetail.errorLoading", "Could not load order details."))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
-  }, [orderId, t])
+  const { data: order = null, loading, error: loadError } = useApiQuery(
+    `orders:${orderId}`,
+    () => fetchMyOrderById(orderId),
+    { enabled: Boolean(orderId), select: (data) => data || null }
+  )
+  const [actionError, setError] = useState("")
+  const error = actionError || loadError
 
   async function handleInvoice() {
     if (!orderId) return

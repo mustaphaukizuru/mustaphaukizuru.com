@@ -1177,6 +1177,8 @@ model Consultation {
   /// level by this unique index (P2002 → 409 in consultationService).
   /// Overlap of different-length bookings is handled by the availability
   /// check in bookConsultation, which only offers non-overlapping slots.
+  clientProject   ClientProject? @relation("ConsultationProject")
+
   @@unique([assignedAdminId, scheduledAt])
   @@index([serviceOrderId])
   @@index([serviceId])
@@ -1244,7 +1246,9 @@ model AvailabilityException {
 
 model ClientProject {
   id              String        @id @default(cuid())
-  serviceOrderId  String        @unique
+  serviceOrderId  String?       @unique
+  /// Free consultations (no paid ServiceOrder) open a project shell too.
+  consultationId  String?       @unique
   userId          String
   assignedAdminId String?
   projectName     String
@@ -1255,7 +1259,8 @@ model ClientProject {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  serviceOrder  ServiceOrder       @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  serviceOrder  ServiceOrder?      @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  consultation  Consultation?      @relation("ConsultationProject", fields: [consultationId], references: [id], onDelete: SetNull)
   user          User               @relation("UserClientProjects", fields: [userId], references: [id], onDelete: Cascade)
   assignedAdmin User?              @relation("AssignedClientProjects", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   milestones    ProjectMilestone[]

@@ -1,159 +1,151 @@
 {
   "hero": {
-    "eyebrow": "Technology · Education · Digital Products",
-    "title": "Build your future with technology that actually works",
-    "subtitle": "Full-stack engineering, consulting, and STEM education from Tlalnepantla, Mexico. Real platforms, real classrooms, real outcomes.",
-    "ctaPrimary": "Explore services",
-    "ctaSecondary": "Browse store",
-    "ariaLabel": "Mustapha Ukizuru — full-stack engineering, consulting, and STEM education from Tlalnepantla, Mexico",
-    "exploreServices": "Explore Services",
-    "bookCall": "Book a Call",
-    "openToWork": "Open to Work",
-    "builtInLatam": "Built in LATAM",
-    "activeProject": "Active Project",
-    "paidQa": "paid · in QA",
-    "featuredProduct": "Featured product",
-    "consultingAria": "Consulting — 3 slots open this month, click to book a call",
-    "availableNow": "Available now",
-    "slotsOpen": "3 slots open · this month",
-    "engineeredWith": "Engineered with",
-    "buildingSince": "Building since 2018",
-    "yearsShipping": "years shipping",
-    "projectsShipped": "47 projects shipped",
-    "headlineBuilt": "Built.",
-    "headlineShipped": "Shipped.",
-    "headlineForYou": "For You.",
-    "welcomeBack": "Welcome back,",
-    "milestoneThree": "Milestone 3",
-    "cardConsulting": "Consulting",
-    "cardStack": "Stack",
-    "trending": "47 projects shipped ↑",
-    "subtitlePre": "Full-stack engineering, consulting, and STEM education for",
-    "subtitlePost": " — from LATAM, for the world.",
-    "rotateSchools": "schools",
-    "rotateBusinesses": "businesses",
-    "rotateSmes": "SMEs",
-    "rotateCreators": "creators",
-    "audiencesInline": "schools, businesses, and creators",
-    "portraitRole": "Full-stack engineer · STEM educator",
-    "portraitCta": "My story",
-    "portraitAria": "Mustapha Ukizuru — full-stack engineer and STEM educator, open to work. Read the full story."
-  },
-  "sections": {
-    "audiences": {
-      "eyebrow": "Who I work with",
-      "title": "Teams ready to modernize",
-      "subtitle": "I partner with organizations and individuals who want stronger systems, sharper digital presence, and smarter ways of working."
-    },
-    "solutions": {
-      "eyebrow": "Solutions",
-      "title": "Built for the way you actually work",
-      "subtitle": "Practical technology that strengthens your systems, sharpens your digital presence, and gets out of your way.",
-      "cta": "Explore solutions"
-    },
-    "featuredProducts": {
-      "eyebrow": "Store",
-      "title": "Templates and toolkits I use myself",
-      "subtitle": "Practical, opinionated resources to help you work faster, built from real client engagements.",
-      "cta": "Explore store",
-      "emptyTitle": "New resources soon",
-      "emptyBody": "I am finishing the next batch of templates and toolkits. Please check back this week.",
-      "emptyCta": "Notify me"
-    },
-    "featuredServices": {
-      "eyebrow": "Services",
-      "title": "What I do",
-      "subtitle": "Senior consulting, full-stack development, and everything in between, scoped to fit your team and budget.",
-      "cta": "All Services",
-      "learnMore": "Learn more"
-    },
-    "featuredPortfolio": {
-      "eyebrow": "Portfolio",
-      "title": "Selected work",
-      "subtitle": "Recent projects across schools, SMEs, and education platforms.",
-      "cta": "All Projects"
-    },
-    "process": {
-      "eyebrow": "How it works",
-      "title": "A clear path from idea to launch",
-      "subtitle": "Four predictable phases. No mystery and no scope creep. You will always know what is next."
-    },
-    "testimonials": {
-      "eyebrow": "Testimonials",
-      "title": "In their own words",
-      "subtitle": "What clients and collaborators have said after we shipped together.",
-      "prevAria": "Previous testimonials",
-      "nextAria": "Next testimonials"
-    },
-    "reviews": {
-      "title": "Recent reviews"
-    },
-    "blog": {
-      "eyebrow": "From the blog",
-      "title": "Thinking out loud.",
-      "subtitle": "Strategy, code, and education — written for the people building things that matter.",
-      "cta": "All articles",
-      "read": "Read"
-    }
-  },
-  "audiences": {
-    "smes": {
-      "title": "SMEs & Businesses",
-      "description": "Stronger systems, sharper digital presence, smarter operations."
-    },
-    "professionals": {
-      "title": "Professionals & Individuals",
-      "description": "Modern workflows and clear online visibility for independent professionals."
-    },
-    "schools": {
-      "title": "Schools & Education",
-      "description": "Technology, STEM, and digital learning, built for schools and faculty."
-    }
-  },
-  "solutionsList": {
-    "digitalProducts": "Digital Products",
-    "professionalTraining": "Professional Training & Workshops",
-    "websiteAndDigitalSystems": "Website and Digital Systems",
-    "technologyConsulting": "Technology Consulting",
-    "stemCodingRobotics": "STEM, Coding, and Robotics Program Development",
-    "itInfrastructure": "IT Infrastructure & Digital Transformation"
-  },
-  "processSteps": {
-    "discovery": {
-      "title": "Discovery",
-      "description": "Understand your current systems, priorities, and the real challenges affecting progress."
-    },
-    "strategy": {
-      "title": "Strategy",
-      "description": "Define a practical roadmap with clear objectives, technology choices, and implementation direction."
-    },
-    "implementation": {
-      "title": "Implementation",
-      "description": "Translate the plan into reliable systems, platforms, workflows, and digital resources."
-    },
-    "optimization": {
-      "title": "Optimization",
-      "description": "Refine performance, strengthen adoption, and improve long-term digital effectiveness."
-    }
-  },
-  "testimonialRoles": {
-    "schoolAdministrator": "School Administrator",
-    "businessOwner": "Business Owner",
-    "educationCoordinator": "Education Coordinator",
-    "operationsLead": "Operations Lead",
-    "independentProfessional": "Independent Professional",
-    "itCoordinator": "IT Coordinator"
+    "ariaLabel": "Mustapha Ukizuru — software engineering consultant for growing businesses",
+    "eyebrow": "Software engineering consultant · Mexico City & remote",
+    "headline": "Software that runs your business, built by one engineer you can call.",
+    "subtitle": "IT strategy, AI and automation, cloud infrastructure, and end-to-end product engineering for small and mid-sized companies in Mexico and abroad. One point of contact from the first call to the last deploy.",
+    "ctaPrimary": "Book a 30-min call",
+    "ctaSecondary": "Browse products",
+    "callNote": "Free · no proposal until we have talked",
+    "avatarAlt": "Mustapha Ukizuru",
+    "avatarName": "Mustapha Ukizuru",
+    "avatarRole": "Consultant & full-stack engineer"
   },
   "stats": {
-    "eyebrow": "By the numbers",
-    "yearsLabel": "Years shipping production work",
-    "yearsHint": "Rwanda · Turkey · Ethiopia · Mexico",
-    "projectsLabel": "Projects shipped",
-    "projectsHint": "Web · SaaS · EdTech",
-    "countriesLabel": "Countries lived & worked",
-    "countriesHint": "EN · ES · TR · KIN",
-    "studentsLabel": "Students taught",
-    "studentsHint": "CS & STEM"
+    "ariaLabel": "Proof in numbers",
+    "eyebrow": "Track record",
+    "yearsLabel": "years shipping production software",
+    "projectsLabel": "projects delivered",
+    "countriesLabel": "countries worked in",
+    "studentsLabel": "people trained",
+    "stackLabel": "Built with"
+  },
+  "paths": {
+    "eyebrow": "Two ways to work with me",
+    "title": "Hire me, or use what I have already built",
+    "subtitle": "Custom engagements when the problem is yours alone. Ready-made products when someone has already solved it.",
+    "services": {
+      "title": "Services",
+      "body": "Consulting and engineering scoped to your team. We start with a 30-minute call, you get a written proposal, then we build.",
+      "bullets": [
+        "Fixed-price packages or time and materials",
+        "Weekly demos, no surprise invoices",
+        "Contracts in Spanish or English"
+      ],
+      "cta": "See services",
+      "secondary": "Book a call"
+    },
+    "products": {
+      "title": "Products",
+      "body": "Templates, toolkits, and courses distilled from real engagements. Buy once, download immediately, use forever.",
+      "bullets": [
+        "Instant download after checkout",
+        "Pay in MXN or USD (MercadoPago, PayPal)",
+        "Updates included"
+      ],
+      "cta": "Browse the store"
+    }
+  },
+  "services": {
+    "eyebrow": "Services",
+    "title": "Four ways I can help",
+    "subtitle": "Each category is a set of well-defined engagements. Pick the one closest to your problem and we scope it together on the call.",
+    "cta": "All services",
+    "learnMore": "See details",
+    "items": {
+      "strategy": {
+        "title": "IT strategy consulting",
+        "body": "Software-stack audits, fractional CTO, vendor and RFP evaluation, digital transformation roadmaps, LFPDPPP compliance and risk assessment."
+      },
+      "ai": {
+        "title": "AI integration & workflow automation",
+        "body": "Brand-voice assistants, WhatsApp lead qualifiers, cross-platform API pipelines, private RAG knowledge bases, document-extraction flows."
+      },
+      "cloud": {
+        "title": "Cloud architecture & migration",
+        "body": "On-premise to AWS, Azure or GCP, cloud-bill optimisation, disaster-recovery planning, containerisation, zero-trust hardening."
+      },
+      "product": {
+        "title": "End-to-end product engineering",
+        "body": "Interactive prototypes, MVP web apps, cross-platform mobile, secure API design, CI/CD pipelines, managed maintenance."
+      }
+    }
+  },
+  "featuredProducts": {
+    "eyebrow": "Store",
+    "title": "Templates and toolkits I use myself",
+    "subtitle": "Practical resources built from real client engagements. Download and use today.",
+    "cta": "Explore store",
+    "emptyTitle": "New resources soon",
+    "emptyBody": "The next batch of templates and toolkits is being finished. Check back this week.",
+    "emptyCta": "Notify me"
+  },
+  "portfolio": {
+    "eyebrow": "Selected work",
+    "title": "Three projects, three different problems",
+    "subtitle": "Recent engagements across schools, SMBs, and education platforms.",
+    "cta": "All projects"
+  },
+  "testimonials": {
+    "eyebrow": "What clients say",
+    "title": "In their own words",
+    "subtitle": "From people who hired me and shipped with me.",
+    "placeholderNote": "Placeholder testimonial — replace before launch",
+    "items": {
+      "a": {
+        "quote": "[Placeholder] Replace with a verbatim client quote about a concrete result, e.g. cloud costs cut by a percentage or a launch date met.",
+        "name": "Client name",
+        "role": "Role",
+        "company": "Company"
+      },
+      "b": {
+        "quote": "[Placeholder] Replace with a verbatim quote about how the engagement was run: communication, scope, no surprises.",
+        "name": "Client name",
+        "role": "Role",
+        "company": "Company"
+      },
+      "c": {
+        "quote": "[Placeholder] Replace with a verbatim quote about a digital product or training that the client used and recommends.",
+        "name": "Client name",
+        "role": "Role",
+        "company": "Company"
+      }
+    }
+  },
+  "process": {
+    "eyebrow": "How I work",
+    "title": "Three steps, no mystery",
+    "subtitle": "You always know what is happening, what it costs, and what comes next.",
+    "steps": {
+      "discover": {
+        "title": "Discover",
+        "body": "A free 30-minute call to understand your systems, constraints, and the result you need. You get a written proposal within days."
+      },
+      "build": {
+        "title": "Build",
+        "body": "Short iterations with a demo every week. Scope changes are agreed in writing before they are billed."
+      },
+      "launch": {
+        "title": "Launch & support",
+        "body": "Deployment, documentation, and hand-over to your team. Optional monthly maintenance keeps it running."
+      }
+    }
+  },
+  "blog": {
+    "eyebrow": "From the blog",
+    "title": "Notes from the work",
+    "subtitle": "Strategy, code, and lessons learned, written for people who run and build things.",
+    "cta": "All articles",
+    "read": "Read",
+    "rss": "Subscribe via RSS"
+  },
+  "cta": {
+    "eyebrow": "Next step",
+    "title": "Tell me what is slowing your business down.",
+    "body": "A 30-minute call, free, in Spanish or English. You leave with a clear next step whether or not we work together.",
+    "ctaBook": "Book a 30-min call",
+    "ctaStore": "Browse products",
+    "signature": "Your single point of contact — no handoffs, no agencies."
   },
   "newsletter": {
     "eyebrow": "Weekly insights",
@@ -171,21 +163,5 @@
     "trust1": "4 countries",
     "trust2": "STEM educator",
     "trust3": "8+ years shipping"
-  },
-  "cta": {
-    "eyebrow": "Let’s start",
-    "titleLine1": "Let’s get",
-    "titleLine2": "to work.",
-    "body": "Custom software, ready-made digital solutions, and senior consulting, all under one roof. First call is free, no pressure.",
-    "ctaBook": "Book a free call",
-    "ctaStore": "Browse the store",
-    "signature": "Your single point of contact — no handoffs, no agencies."
-  },
-  "techStack": {
-    "eyebrow": "My stack",
-    "titleLead": "The tools I",
-    "titleAccent": "build with",
-    "subtitle": "Frontend to infrastructure — a senior, full-stack toolkit chosen for systems that ship reliably and scale.",
-    "stripLabel": "The stack behind the work"
   }
 }

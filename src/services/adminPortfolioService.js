@@ -1,6 +1,6 @@
 // @ts-check
 const prisma = require("../lib/prisma")
-const { serializePortfolio } = require("./portfolioService")
+const { serializePortfolio, composeResults, splitResults } = require("./portfolioService")
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Helpers
@@ -110,7 +110,7 @@ async function create(data, createdById) {
       description:      nullableString(data.description),
       challenge:        nullableString(data.challenge),
       solution:         nullableString(data.solution),
-      results:          normalizeJsonArray(data.results),
+      results:          composeResults(normalizeJsonArray(data.results), data.caseStudy),
       tools:            normalizeJsonArray(data.tools),
       tags:             normalizeJsonArray(data.tags),
       liveUrl:          nullableString(data.liveUrl),
@@ -160,7 +160,14 @@ async function update(id, data) {
   if (data.description      !== undefined) updateData.description      = nullableString(data.description)
   if (data.challenge        !== undefined) updateData.challenge        = nullableString(data.challenge)
   if (data.solution         !== undefined) updateData.solution         = nullableString(data.solution)
-  if (data.results          !== undefined) updateData.results          = normalizeJsonArray(data.results)
+  if (data.results !== undefined || data.caseStudy !== undefined) {
+    // `results` column is an envelope { items, caseStudy } — merge partial updates
+    const current = splitResults(existing.results)
+    updateData.results = composeResults(
+      data.results   !== undefined ? normalizeJsonArray(data.results) : current.items,
+      data.caseStudy !== undefined ? data.caseStudy : current.caseStudy,
+    )
+  }
   if (data.tools            !== undefined) updateData.tools            = normalizeJsonArray(data.tools)
   if (data.tags             !== undefined) updateData.tags             = normalizeJsonArray(data.tags)
   if (data.liveUrl          !== undefined) updateData.liveUrl          = nullableString(data.liveUrl)

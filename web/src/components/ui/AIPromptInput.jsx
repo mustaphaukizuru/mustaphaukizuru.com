@@ -120,7 +120,7 @@ export default function AIPromptInput({
             <button
               type="button"
               onClick={() => setModelOpen((o) => !o)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2.5 py-1 text-[11.5px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-violet)] hover:border-[var(--color-border-violet)] transition-colors"
+              className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2.5 py-1 text-[11.5px] font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-violet)] hover:border-[var(--color-border-violet)] transition-colors"
               aria-haspopup="listbox"
               aria-expanded={modelOpen}
             >
@@ -144,7 +144,7 @@ export default function AIPromptInput({
                           setModelOpen(false)
                         }}
                         className={[
-                          "flex w-full flex-col items-start gap-0.5 px-3 py-2.5 text-left text-[13px]",
+                          "cursor-pointer flex w-full flex-col items-start gap-0.5 px-3 py-2.5 text-left text-[13px]",
                           "transition-colors hover:bg-[var(--color-violet-pale)] hover:text-[var(--color-violet)]",
                           active && "bg-[var(--color-violet-pale)] text-[var(--color-violet)] font-semibold",
                         ]
@@ -204,7 +204,7 @@ export default function AIPromptInput({
               key={i}
               type="button"
               onClick={() => onSuggestion?.(s)}
-              className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2.5 py-1 text-[11.5px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-violet)] hover:border-[var(--color-border-violet)] hover:bg-[var(--color-violet-pale)] transition-colors"
+              className="cursor-pointer inline-flex items-center gap-1 rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2.5 py-1 text-[11.5px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-violet)] hover:border-[var(--color-border-violet)] hover:bg-[var(--color-violet-pale)] transition-colors"
             >
               <Sparkles className="h-3 w-3 opacity-60" aria-hidden="true" />
               {s}
@@ -229,7 +229,7 @@ export default function AIPromptInput({
           <button
             type="button"
             onClick={onStop}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-action-destructive)] px-3 py-1.5 text-[12.5px] font-semibold text-white hover:bg-[var(--color-action-destructive-hover)] transition-colors"
+            className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-[var(--color-action-destructive)] px-3 py-1.5 text-[12.5px] font-semibold text-white hover:bg-[var(--color-action-destructive-hover)] transition-colors"
             aria-label={t("ui.ai.stopGenerating")}
           >
             <Square className="h-3 w-3 fill-current" aria-hidden="true" />
@@ -264,7 +264,7 @@ function UtilityIcon({ children, label, onClick }) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[var(--color-text-muted)] hover:text-[var(--color-violet)] hover:bg-[var(--color-violet-pale)] transition-colors"
+      className="cursor-pointer inline-flex h-7 w-7 items-center justify-center rounded-full text-[var(--color-text-muted)] hover:text-[var(--color-violet)] hover:bg-[var(--color-violet-pale)] transition-colors"
     >
       {children}
     </button>

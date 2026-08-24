@@ -27,6 +27,7 @@ import {
   Send, Flag, Briefcase, Package, User as UserIcon, Sparkles,
 } from "lucide-react"
 import { useToast } from "../context/ToastContext"
+import { ConfirmModal } from "../components/admin/forms"
 import {
   fetchAdminReviewStats,
   fetchAdminReviews,
@@ -235,6 +236,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
   const [reply, setReply] = useState("")
   const [busy, setBusy] = useState(false)
   const [featured, setFeatured] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     if (review) {
@@ -277,12 +279,16 @@ function DetailPanel({ review, onClose, onUpdated }) {
     finally { setBusy(false) }
   }
 
-  async function handleDelete() {
-    if (!window.confirm("Delete this review permanently? This cannot be undone.")) return
+  function handleDelete() {
+    setConfirmDelete(true)
+  }
+
+  async function performDelete() {
     setBusy(true)
     try {
       await deleteAdminReview(review.id)
       showSuccess("Review deleted")
+      setConfirmDelete(false)
       onUpdated?.({ id: review.id, deleted: true })
       onClose()
     } catch (e) { showError(e?.message || "Could not delete review") }
@@ -454,6 +460,18 @@ function DetailPanel({ review, onClose, onUpdated }) {
           </button>
         </footer>
       </motion.aside>
+
+      <ConfirmModal
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={performDelete}
+        busy={busy}
+        title="Delete this review permanently?"
+        confirmLabel="Delete"
+        tone="danger"
+      >
+        <p className="text-sm text-charcoal-80">This cannot be undone.</p>
+      </ConfirmModal>
     </AnimatePresence>
   )
 }

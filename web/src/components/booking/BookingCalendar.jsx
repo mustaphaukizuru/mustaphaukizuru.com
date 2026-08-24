@@ -147,7 +147,7 @@ function MonthYearPicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={`Change month and year (currently ${MONTHS[month - 1]} ${year})`}
-        className="group inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-bold text-violet transition hover:bg-violet-ghost focus:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/20"
+        className="cursor-pointer group inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-bold text-violet transition hover:bg-violet-ghost focus:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/20"
       >
         <span>{MONTHS[month - 1]} {year}</span>
         <ChevronDown
@@ -458,7 +458,7 @@ export default function BookingCalendar({
           <button
             type="button"
             onClick={() => navigate("/dashboard/consultations")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
+            className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
           >
             {t("bookingCalendar.viewDashboard")}
           </button>
@@ -467,7 +467,7 @@ export default function BookingCalendar({
             onClick={() => {
               setBookedRecord(null); setSelectedSlot(null); setSelectedDate(null); setStep(1); setClientNotes("")
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/15 bg-white px-5 py-3 text-[13px] font-semibold text-violet transition hover:bg-violet-ghost"
+            className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl border border-violet/15 bg-white px-5 py-3 text-[13px] font-semibold text-violet transition hover:bg-violet-ghost"
           >
             {t("bookingCalendar.bookAnother")}
           </button>
@@ -631,7 +631,7 @@ export default function BookingCalendar({
           <button
             type="button"
             onClick={() => setStep(1)}
-            className="mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
+            className="cursor-pointer mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             {t("bookingCalendar.backToDate")}
@@ -663,7 +663,7 @@ export default function BookingCalendar({
                   key={s.startUtc}
                   type="button"
                   onClick={() => handleSlotClick(s)}
-                  className="rounded-xl border border-violet/15 bg-white px-3 py-3 text-[13px] font-semibold text-violet transition hover:border-transparent hover:bg-violet hover:text-white hover:shadow-[0_8px_20px_rgba(93,63,211,0.18)]"
+                  className="cursor-pointer rounded-xl border border-violet/15 bg-white px-3 py-3 text-[13px] font-semibold text-violet transition hover:border-transparent hover:bg-violet hover:text-white hover:shadow-[0_8px_20px_rgba(93,63,211,0.18)]"
                 >
                   {formatTime(s.startUtc, timezone)}
                 </button>
@@ -683,7 +683,7 @@ export default function BookingCalendar({
           <button
             type="button"
             onClick={() => setStep(2)}
-            className="mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
+            className="cursor-pointer mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             {t("bookingCalendar.chooseAnother")}

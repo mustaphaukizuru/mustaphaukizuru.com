@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { motion } from "framer-motion"
@@ -7,6 +6,7 @@ import {
   Clock, AlertCircle, User as UserIcon, Hourglass,
 } from "lucide-react"
 import { fetchMyProject } from "../services/clientProjectService"
+import useApiQuery from "../hooks/useApiQuery"
 import { SkeletonCard } from "../components/ui/index"
 import StatusPill from "../components/admin/StatusPill"
 import { API_BASE_URL } from "../lib/api"
@@ -34,30 +34,11 @@ function fileDownloadUrl(projectId, fileId) {
 export default function DashboardProjectDetailPage() {
   const { t } = useTranslation("dashboard")
   const { id } = useParams()
-  const [project, setProject] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      setLoading(true); setError("")
-      try {
-        const data = await fetchMyProject(id)
-        if (cancelled) return
-        if (import.meta.env.DEV) console.info("[Project] loaded", data?.id)
-        setProject(data)
-      } catch (err) {
-        if (cancelled) return
-        console.error("[Project] load failed:", err)
-        setError(err.message || t("projects.errors.loadOne"))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  const { data: project = null, loading, error } = useApiQuery(
+    `projects:${id}`,
+    () => fetchMyProject(id),
+    { enabled: Boolean(id), select: (data) => data || null }
+  )
 
   if (loading) return <section><SkeletonCard height="h-[400px]" /></section>
 

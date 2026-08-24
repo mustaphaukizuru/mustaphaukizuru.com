@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { motion } from "framer-motion"
 import { Briefcase, Calendar, FileText, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react"
 import { fetchMyProjects } from "../services/clientProjectService"
+import useApiQuery from "../hooks/useApiQuery"
 import { MetricCard, SkeletonCard } from "../components/ui/index"
 import StatusPill from "../components/admin/StatusPill"
 
@@ -23,30 +23,11 @@ function progressPct(milestones = []) {
 
 export default function DashboardProjectsPage() {
   const { t } = useTranslation("dashboard")
-  const [projects, setProjects] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      setLoading(true); setError("")
-      try {
-        const rows = await fetchMyProjects()
-        if (cancelled) return
-        if (import.meta.env.DEV) console.info("[Projects] loaded", rows.length, "projects")
-        setProjects(rows)
-      } catch (err) {
-        if (cancelled) return
-        console.error("[Projects] load failed:", err)
-        setError(err.message || t("projects.errors.load"))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const { data: projects = [], loading, error } = useApiQuery(
+    "projects",
+    () => fetchMyProjects(),
+    { select: (rows) => (Array.isArray(rows) ? rows : []) }
+  )
 
   const active = projects.filter((p) => ["planning", "in_progress", "review"].includes(p.projectStatus)).length
   const done = projects.filter((p) => p.projectStatus === "completed").length

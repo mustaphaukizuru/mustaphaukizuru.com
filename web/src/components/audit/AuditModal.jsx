@@ -8,7 +8,8 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
+import { Modal } from "../ui/Modal"
 import {
   X, ChevronLeft, ChevronRight, GraduationCap, Building2, User,
   CheckCircle2, AlertCircle, Clock, TrendingUp, ArrowRight,
@@ -100,7 +101,6 @@ function ScoreRing({ pct, tier, size = 200 }) {
 
 /* ─── Main component ─────────────────────────────────────────────────── */
 export default function AuditModal({ open, onClose }) {
-  const reduce = useReducedMotion()
 
   /* State */
   const [step, setStep]           = useState("audience")   // audience | prequal | audit | results | email
@@ -122,20 +122,6 @@ export default function AuditModal({ open, onClose }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage when the modal opens
       setResumePrompt(true)
     }
-  }, [open])
-
-  /* Close on Escape */
-  useEffect(() => {
-    if (!open) return
-    const handler = (e) => { if (e.key === "Escape") onClose() }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-  }, [open, onClose])
-
-  /* Lock body scroll while open */
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : ""
-    return () => { document.body.style.overflow = "" }
   }, [open])
 
   /* Persist state */
@@ -251,34 +237,23 @@ export default function AuditModal({ open, onClose }) {
     `Hi Mustapha, I just completed the self-audit and scored ${overall.pct}/100 (${tier?.name} tier). I'd like to discuss my results.`
   )}`
 
-  /* ── Animation ────────────────────────────────────────────────────── */
-  const overlay = { hidden: { opacity: 0 }, visible: { opacity: 1 }, exit: { opacity: 0 } }
-  const panel   = reduce
-    ? { hidden: { opacity: 0 }, visible: { opacity: 1 }, exit: { opacity: 0 } }
-    : { hidden: { opacity: 0, y: "100%" }, visible: { opacity: 1, y: 0, transition: { type: "spring", damping: 30, stiffness: 300 } }, exit: { opacity: 0, y: "100%" } }
-
   /* ── Render ───────────────────────────────────────────────────────── */
+  /* Panel — full screen on desktop (16px inset), bottom-sheet slide on
+     mobile. Escape, focus trap, scroll lock and reduced-motion handling
+     come from the canonical <Modal>. */
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="backdrop"
-            variants={overlay} initial="hidden" animate="visible" exit="exit"
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[90] bg-charcoal/60 backdrop-blur-sm"
-            onClick={handleClose}
-            aria-hidden="true"
-          />
-
-          {/* Panel — full screen on desktop, bottom-sheet on mobile */}
-          <motion.div
-            key="panel"
-            variants={panel} initial="hidden" animate="visible" exit="exit"
-            role="dialog" aria-modal="true" aria-label="Digital & Technology Self-Audit"
-            className="fixed inset-0 z-[100] flex flex-col bg-white sm:inset-[16px] sm:rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(15,23,42,0.35)]"
-          >
+    <Modal
+      open={open}
+      onClose={handleClose}
+      bare
+      hideClose
+      ariaLabel="Digital & Technology Self-Audit"
+      size="full"
+      motion="slide-up"
+      zIndex={90}
+      backdropClassName="bg-charcoal/60 backdrop-blur-sm"
+      className="flex flex-col bg-white sm:rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(15,23,42,0.35)]"
+    >
             {/* ── Header bar ────────────────────────────────────────── */}
             <div className="shrink-0 flex items-center justify-between gap-4 border-b border-charcoal/8 bg-white/95 backdrop-blur-sm px-4 py-3 sm:px-6">
               {/* Brand */}
@@ -316,7 +291,7 @@ export default function AuditModal({ open, onClose }) {
               {/* Close */}
               <button
                 onClick={handleClose}
-                className="shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-charcoal/50 hover:bg-charcoal/8 hover:text-charcoal transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40"
+                className="cursor-pointer shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-charcoal/50 hover:bg-charcoal/8 hover:text-charcoal transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40"
                 aria-label="Close audit"
               >
                 <X className="h-4 w-4" />
@@ -350,10 +325,10 @@ export default function AuditModal({ open, onClose }) {
                     <h3 className="text-[18px] font-bold text-charcoal mb-2">Welcome back!</h3>
                     <p className="text-[14px] text-charcoal/60 mb-6">You've started this audit before. Continue where you left off?</p>
                     <div className="flex gap-3">
-                      <button onClick={handleResume} className="flex-1 rounded-xl bg-violet px-4 py-2.5 text-[14px] font-semibold text-white hover:bg-violet/90 transition">
+                      <button onClick={handleResume} className="cursor-pointer flex-1 rounded-xl bg-violet px-4 py-2.5 text-[14px] font-semibold text-white hover:bg-violet/90 transition">
                         Continue
                       </button>
-                      <button onClick={handleStartFresh} className="flex-1 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[14px] font-medium text-charcoal/70 hover:bg-charcoal/5 transition">
+                      <button onClick={handleStartFresh} className="cursor-pointer flex-1 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[14px] font-medium text-charcoal/70 hover:bg-charcoal/5 transition">
                         Start fresh
                       </button>
                     </div>
@@ -426,10 +401,7 @@ export default function AuditModal({ open, onClose }) {
               )}
 
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    </Modal>
   )
 }
 
@@ -476,7 +448,7 @@ function AudienceStep({ onSelect }) {
           <button
             key={aud}
             onClick={() => onSelect(aud)}
-            className={`w-full text-left rounded-2xl border border-charcoal/10 bg-white p-6 transition duration-200 ${color} focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40`}
+            className={`cursor-pointer w-full text-left rounded-2xl border border-charcoal/10 bg-white p-6 transition duration-200 ${color} focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40`}
           >
             <div className="flex items-start gap-4">
               <div className={`mt-0.5 h-12 w-12 shrink-0 rounded-xl flex items-center justify-center ${iconBg}`}>
@@ -521,7 +493,7 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
               <button
                 key={c}
                 onClick={() => onChange("challenge", c)}
-                className={`rounded-xl border px-3 py-2.5 text-[13px] text-left transition ${
+                className={`cursor-pointer rounded-xl border px-3 py-2.5 text-[13px] text-left transition ${
                   prequal.challenge === c
                     ? "border-violet bg-violet-pale text-violet font-semibold"
                     : "border-charcoal/12 text-charcoal/65 hover:border-violet/40 hover:bg-violet/4"
@@ -542,7 +514,7 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
               <button
                 key={t}
                 onClick={() => onChange("timeline", t)}
-                className={`w-full rounded-xl border px-4 py-3 text-[13.5px] text-left transition flex items-center gap-3 ${
+                className={`cursor-pointer w-full rounded-xl border px-4 py-3 text-[13.5px] text-left transition flex items-center gap-3 ${
                   prequal.timeline === t
                     ? "border-violet bg-violet-pale text-violet font-semibold"
                     : "border-charcoal/12 text-charcoal/65 hover:border-violet/40"
@@ -560,12 +532,12 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
 
       {/* Nav — stacks on mobile (Next first, Back below), side-by-side on sm+ */}
       <div className="mt-8 flex flex-col-reverse gap-2 sm:mt-10 sm:flex-row sm:items-center sm:justify-between">
-        <button onClick={onBack} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13px] text-charcoal/60 hover:bg-charcoal/5 transition sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:justify-start">
+        <button onClick={onBack} className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13px] text-charcoal/60 hover:bg-charcoal/5 transition sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:justify-start">
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
         <button
           onClick={onNext}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_4px_16px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_20px_rgba(93,63,211,0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-3"
+          className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_4px_16px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_20px_rgba(93,63,211,0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-3"
         >
           {prequal.challenge || prequal.timeline ? "Start the audit" : "Skip & start the audit"}
           <ChevronRight className="h-4 w-4" />
@@ -671,7 +643,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                           key={n}
                           onClick={() => onScore(id, n)}
                           data-sel={sel === n}
-                          className={`flex-1 sm:flex-none h-10 sm:h-10 sm:w-10 min-w-0 rounded-lg border font-mono text-[13px] font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${SCORE_COLORS[n]}`}
+                          className={`cursor-pointer flex-1 sm:flex-none h-10 sm:h-10 sm:w-10 min-w-0 rounded-lg border font-mono text-[13px] font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${SCORE_COLORS[n]}`}
                           aria-label={`Score ${n} — ${SCORE_LABELS[n]}`}
                           aria-pressed={sel === n}
                         >
@@ -682,7 +654,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                     {/* Info button */}
                     <button
                       onClick={() => setTooltip(showTip ? null : { itemId: id })}
-                      className="shrink-0 h-10 w-10 flex items-center justify-center rounded-lg border border-charcoal/10 text-charcoal/30 hover:border-violet/30 hover:text-violet transition"
+                      className="cursor-pointer shrink-0 h-10 w-10 flex items-center justify-center rounded-lg border border-charcoal/10 text-charcoal/30 hover:border-violet/30 hover:text-violet transition"
                       aria-label="Why does this matter?"
                     >
                       <Info className="h-4 w-4" />
@@ -729,13 +701,13 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
         <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-charcoal/8 px-0 pt-4 pb-4 mt-6 flex flex-col-reverse gap-2 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pt-6 sm:pb-0 sm:mt-8 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
           <button
             onClick={onPrev}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13.5px] font-medium text-charcoal/65 hover:bg-charcoal/5 transition sm:justify-start"
+            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13.5px] font-medium text-charcoal/65 hover:bg-charcoal/5 transition sm:justify-start"
           >
             <ChevronLeft className="h-4 w-4" /> {sectionIdx === 0 ? "Back to context" : "Previous section"}
           </button>
           <button
             onClick={onNext}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_4px_12px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_18px_rgba(93,63,211,0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-2.5"
+            className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5D3FD3,#0284C7)] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_4px_12px_rgba(93,63,211,0.3)] hover:shadow-[0_6px_18px_rgba(93,63,211,0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-2.5"
           >
             {isLast ? "See my results" : "Next section"} <ChevronRight className="h-4 w-4" />
           </button>
@@ -904,7 +876,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
       <div className="grid gap-3 sm:gap-4 sm:grid-cols-3 mb-8">
         <button
           onClick={onGetPdf}
-          className="flex flex-col gap-2 rounded-xl border border-violet/25 bg-violet/[0.04] px-5 py-4 text-left hover:border-violet/45 hover:bg-violet/8 transition"
+          className="cursor-pointer flex flex-col gap-2 rounded-xl border border-violet/25 bg-violet/[0.04] px-5 py-4 text-left hover:border-violet/45 hover:bg-violet/8 transition"
         >
           <Mail className="h-5 w-5 text-violet" />
           <span className="text-[14px] font-bold text-charcoal">Get PDF report</span>
@@ -912,7 +884,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
         </button>
         <a
           href="https://mustaphaukizuru.com/contact"
-          className="flex flex-col gap-2 rounded-xl border border-charcoal/10 bg-white px-5 py-4 text-left hover:border-violet/30 transition"
+          className="cursor-pointer flex flex-col gap-2 rounded-xl border border-charcoal/10 bg-white px-5 py-4 text-left hover:border-violet/30 transition"
         >
           <Clock className="h-5 w-5 text-charcoal/50" />
           <span className="text-[14px] font-bold text-charcoal">Book a 30-min call</span>
@@ -921,7 +893,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
         <a
           href={whatsappUrl}
           target="_blank" rel="noopener noreferrer"
-          className="flex flex-col gap-2 rounded-xl border border-charcoal/10 bg-white px-5 py-4 text-left hover:border-mint/40 transition"
+          className="cursor-pointer flex flex-col gap-2 rounded-xl border border-charcoal/10 bg-white px-5 py-4 text-left hover:border-mint/40 transition"
         >
           <MessageCircle className="h-5 w-5 text-mint" />
           <span className="text-[14px] font-bold text-charcoal">Message on WhatsApp</span>
@@ -931,7 +903,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
 
       {/* Restart */}
       <div className="text-center">
-        <button onClick={onRestart} className="inline-flex items-center gap-1.5 text-[13px] text-charcoal/40 hover:text-charcoal transition">
+        <button onClick={onRestart} className="cursor-pointer inline-flex items-center gap-1.5 text-[13px] text-charcoal/40 hover:text-charcoal transition">
           <RotateCcw className="h-3.5 w-3.5" /> Start a new audit
         </button>
       </div>
@@ -975,7 +947,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
           <CheckCircle2 className="h-14 w-14 text-mint mx-auto mb-4" />
           <h3 className="text-[20px] font-bold text-charcoal mb-2">Report on its way!</h3>
           <p className="text-[14px] text-charcoal/55">Check your inbox — your PDF report will arrive within a few minutes.</p>
-          <button onClick={onSkip} className="mt-6 text-[13px] text-violet underline underline-offset-2">
+          <button onClick={onSkip} className="cursor-pointer mt-6 text-[13px] text-violet underline underline-offset-2">
             Back to results
           </button>
         </div>
@@ -1033,7 +1005,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
             <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose/8 border border-rose/20 px-4 py-3 text-[13px] text-rose">
               <AlertCircle className="h-4 w-4 shrink-0" />
               Something went wrong. Please try again or{" "}
-              <a href="mailto:hello@mustaphaukizuru.com" className="underline">email us directly</a>.
+              <a href="mailto:hello@mustaphaukizuru.com" className="cursor-pointer underline">email us directly</a>.
             </div>
           )}
 
@@ -1053,12 +1025,12 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
             <p className="text-[11px] text-charcoal/35">
               <Shield className="h-3 w-3 inline mr-1" />
               One report, no newsletter.{" "}
-              <a href="/privacy" className="underline hover:text-charcoal/60" target="_blank" rel="noopener noreferrer">Privacy policy</a>
+              <a href="/privacy" className="cursor-pointer underline hover:text-charcoal/60" target="_blank" rel="noopener noreferrer">Privacy policy</a>
             </p>
             <button
               type="button"
               onClick={onSkip}
-              className="text-[12px] text-charcoal/40 hover:text-charcoal/70 transition underline underline-offset-2"
+              className="cursor-pointer text-[12px] text-charcoal/40 hover:text-charcoal/70 transition underline underline-offset-2"
             >
               Skip — back to results
             </button>

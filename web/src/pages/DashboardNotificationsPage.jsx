@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { MetricCard, SectionCard } from "../components/ui/index"
 import { useNotifications, NOTIFICATION_TYPES } from "../context/NotificationContext"
+import ProfileTabs from "../components/dashboard/ProfileTabs"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  DashboardNotificationsPage · member-side full-history view.
@@ -180,6 +181,7 @@ export default function DashboardNotificationsPage() {
 
   return (
     <section className="space-y-5">
+      <ProfileTabs />
       {/* Page heading */}
       <header className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
         <span className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.18em] text-violet">

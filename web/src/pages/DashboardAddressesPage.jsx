@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -10,7 +10,9 @@ import {
   COUNTRY_OPTIONS,
 } from "../services/addressService"
 import { useToast } from "../context/ToastContext"
+import useApiQuery from "../hooks/useApiQuery"
 import { EmptyState, SectionCard, SkeletonCard } from "../components/ui/index"
+import ProfileTabs from "../components/dashboard/ProfileTabs"
 
 /* I18N · Phase 119C — strings keyed under `dashboard.addresses.*`. The
  * AddressFormModal scopes its own useTranslation hook so all field
@@ -34,25 +36,14 @@ const EMPTY_FORM = {
 
 export default function DashboardAddressesPage() {
   const { t } = useTranslation("dashboard")
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const { data: items = [], loading, error, setData: setItems } = useApiQuery(
+    "addresses",
+    () => fetchAddresses(),
+    { select: (data) => (Array.isArray(data) ? data : []) }
+  )
   const [editing, setEditing] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const { showSuccess, showError } = useToast()
-
-  async function load() {
-    setLoading(true); setError("")
-    try {
-      setItems(await fetchAddresses())
-    } catch (err) {
-      setError(err?.message || t("addresses.errors.load"))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { load()   }, [])
 
   async function handleSetDefault(address) {
     if (address.isDefault) return
@@ -128,6 +119,7 @@ export default function DashboardAddressesPage() {
       )}
 
       <section className="space-y-5">
+      <ProfileTabs />
         {error && (
           <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />

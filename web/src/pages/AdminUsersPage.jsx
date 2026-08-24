@@ -12,6 +12,7 @@ import DataTable from "../components/admin/DataTable"
 import StatusPill from "../components/admin/StatusPill"
 import { useToast } from "../context/ToastContext"
 import { getStoredUser } from "../lib/api"
+import { ConfirmModal } from "../components/admin/forms"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  AdminUsersPage · Option B · Wired CRUD
@@ -36,6 +37,8 @@ export default function AdminUsersPage() {
   const [error, setError] = useState("")
   const [busyId, setBusyId] = useState("")
   const [me, setMe] = useState(null)
+  // Pending confirm: { kind: "status" | "role", user, next, title, body, confirmLabel }
+  const [pending, setPending] = useState(null)
 
   useEffect(() => {
     try {
@@ -64,17 +67,20 @@ export default function AdminUsersPage() {
 
   useEffect(() => { load()   }, [])
 
-  async function handleStatus(user, nextStatus) {
+  async function handleStatus(user, nextStatus, opts = {}) {
     if (!user?.id) return
     if (me?.id === user.id) {
       showError("You cannot change your own account status.", "Self-action blocked")
       return
     }
-    if (nextStatus === "suspended") {
-      const ok = window.confirm(
-        `Suspend ${user.fullName || user.email}?\n\nThey will lose access to the platform until reactivated.`
-      )
-      if (!ok) return
+    if (nextStatus === "suspended" && !opts.confirmed) {
+      setPending({
+        kind: "status", user, next: nextStatus,
+        title: `Suspend ${user.fullName || user.email}?`,
+        body: "They will lose access to the platform until reactivated.",
+        confirmLabel: "Suspend",
+      })
+      return
     }
     setBusyId(user.id)
     try {
@@ -95,17 +101,24 @@ export default function AdminUsersPage() {
     }
   }
 
-  async function handleRole(user, nextRole) {
+  async function handleRole(user, nextRole, opts = {}) {
     if (!user?.id) return
     if (me?.id === user.id && nextRole !== "admin") {
       showError("You cannot remove your own admin role.", "Self-action blocked")
       return
     }
     const verb = nextRole === "admin" ? "Promote" : "Demote"
-    const ok = window.confirm(
-      `${verb} ${user.fullName || user.email} ${nextRole === "admin" ? "to admin" : "to member"}?`
-    )
-    if (!ok) return
+    if (!opts.confirmed) {
+      setPending({
+        kind: "role", user, next: nextRole,
+        title: `${verb} ${user.fullName || user.email} ${nextRole === "admin" ? "to admin" : "to member"}?`,
+        body: nextRole === "admin"
+          ? "Admins can manage every part of the platform."
+          : "They will lose access to the admin area immediately.",
+        confirmLabel: verb,
+      })
+      return
+    }
     setBusyId(user.id)
     try {
       const updated = await updateUserRole(user.id, nextRole)
@@ -126,6 +139,14 @@ export default function AdminUsersPage() {
   }
 
   const { users = [], metrics = {} } = data
+
+  async function confirmPending() {
+    const p = pending
+    if (!p) return
+    setPending(null)
+    if (p.kind === "status") await handleStatus(p.user, p.next, { confirmed: true })
+    else await handleRole(p.user, p.next, { confirmed: true })
+  }
 
   const columns = useMemo(() => [
     {
@@ -225,6 +246,17 @@ export default function AdminUsersPage() {
           description: "Registered accounts will appear here as members sign up.",
         }}
       />
+
+      <ConfirmModal
+        open={Boolean(pending)}
+        onClose={() => setPending(null)}
+        onConfirm={confirmPending}
+        title={pending?.title}
+        confirmLabel={pending?.confirmLabel || "Confirm"}
+        tone={pending?.kind === "status" ? "danger" : "primary"}
+      >
+        <p className="text-sm text-charcoal-80">{pending?.body}</p>
+      </ConfirmModal>
     </section>
   )
 }

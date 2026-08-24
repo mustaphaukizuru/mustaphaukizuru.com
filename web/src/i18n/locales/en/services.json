@@ -25,107 +25,6 @@
     "headlinePremium": "Premium tech.",
     "headlineWebsitesApps": "Websites, apps, AI, IT strategy —"
   },
-  "sections": {
-    "browseAll": "Browse all services",
-    "consulting": "IT Consulting",
-    "websiteSystems": "Website Systems",
-    "schoolIT": "School IT Transformation",
-    "stem": "STEM Programs"
-  },
-  "cta": {
-    "choosePlan": "Choose plan",
-    "viewDetails": "View details",
-    "bookConsultation": "Book a consultation"
-  },
-  "overview": {
-    "eyebrow": "What we offer",
-    "title": "Technology Services",
-    "subtitle": "Specialized services designed to improve digital systems, infrastructure reliability, and technology strategy."
-  },
-  "value": {
-    "eyebrow": "Value",
-    "title": "How These Services Benefit Your Organization",
-    "subtitle": "See how the right technology systems improve productivity, reliability, and operational efficiency.",
-    "toggle": {
-      "with": "With Our Services",
-      "without": "Without Our Services",
-      "ariaLabel": "Toggle benefits comparison"
-    },
-    "footer": "Outcomes vary by engagement scope · benchmarks shared during scoping call"
-  },
-  "why": {
-    "eyebrow": "Why choose us",
-    "titlePart1": "Senior Delivery You Can",
-    "titlePart2": "Trust, End to End"
-  },
-  "social": {
-    "eyebrow": "Social proof",
-    "title": "Certified, credentialed, currently shipping",
-    "subtitle": "Past institutions and active certifications. Every claim below is auditable.",
-    "credentialsAria": "Certifications and institutions",
-    "testimonialQuote": "Strong communication, thoughtful planning, and modern systems thinking made the implementation process smooth.",
-    "testimonialName": "Theo M.",
-    "testimonialRole": "Operations Lead"
-  },
-  "process": {
-    "eyebrow": "Process",
-    "title": "Six steps from brief to handover",
-    "subtitle": "Same shape across every service family. Only the content differs."
-  },
-  "pricing": {
-    "eyebrow": "Pricing",
-    "title": "Choose your plan",
-    "subtitle": "Audience-tailored programs. Pick the path that matches your stage, then choose the depth of engagement that fits your ambition.",
-    "audienceAria": "Pricing audience",
-    "mostPopular": "Most popular",
-    "getStarted": "Get started",
-    "serviceDetails": "Service Details",
-    "currency": "MXN",
-    "catalog": {
-      "title": "Need the full catalog detail?",
-      "subtitleLeft": "Download the complete catalog with all",
-      "subtitleRight": "services, outcome statements, deliverables, and engagement types.",
-      "pdfLabel": "PDF · 110 KB",
-      "mdLabel": "Markdown · 57 KB"
-    },
-    "selfAudit": {
-      "title": "Not sure which plan fits?",
-      "subtitle": "Take the 15-minute self-audit and walk away with a prioritized shortlist drawn from our",
-      "subtitleSuffix": "atomic services.",
-      "cta": "Take the self-audit",
-      "ctaAria": "Open the digital and technology self-audit (15 minutes)"
-    }
-  },
-  "faq": {
-    "eyebrow": "FAQ",
-    "title": "Common questions before the first call",
-    "subtitle": "Search, filter by topic, or browse the full set. Still stuck? Book a free 30-minute consult.",
-    "searchPlaceholder": "Search…",
-    "searchAria": "Search frequently asked questions",
-    "filterByTopic": "Filter by topic",
-    "filterAria": "Filter FAQs by category",
-    "countFormat": "{{count}} of {{total}} questions",
-    "emptyTitle": "No matching questions",
-    "emptyBody": "Try a different keyword or clear the filter.",
-    "emptyReset": "Reset filters",
-    "stillHaveQuestions": "Still have questions?",
-    "stillHaveBody": "Book a free 30-minute consult and we will walk through your specific scenario. No commitment, just a clear next step.",
-    "bookConsult": "Book consult"
-  },
-  "finalCta": {
-    "eyebrow": "Take the first step",
-    "titlePart1": "Six families.",
-    "titlePart2": "One discovery call to find yours.",
-    "body": "30 minutes. No commitment. The call gives you a clear next step, whether or not we end up working together.",
-    "ctaPrimary": "Book Your Consultation",
-    "ctaSecondary": "Explore Solutions",
-    "stats": {
-      "yearsExperience": "Years experience",
-      "catalogServices": "Catalog services",
-      "countriesServed": "Countries served",
-      "avgResponse": "Avg response"
-    }
-  },
   "detail": {
     "errors": {
       "notFound": "Service not found",
@@ -135,42 +34,6 @@
     "breadcrumb": {
       "home": "Home",
       "services": "Services"
-    },
-    "hero": {
-      "featured": "Featured service",
-      "packagesLabel": "package",
-      "packagesLabelPlural": "packages"
-    },
-    "features": {
-      "title": "What's included"
-    },
-    "packages": {
-      "eyebrow": "Pricing",
-      "title": "Choose a package",
-      "subtitle": "Pick the option that matches where you are. You can change or upgrade later.",
-      "mostPopular": "Most Popular",
-      "selected": "Selected",
-      "select": "Select this package"
-    },
-    "order": {
-      "title": "Place your order",
-      "subtitle": "Tell us about your project. We'll review it and get back within one business day.",
-      "requirementsLabel": "Requirements (optional)",
-      "requirementsPlaceholder": "Tell us about your project, timeline, and any specific needs.",
-      "preferredDateLabel": "Preferred start date (optional)",
-      "signinHint": "You'll be asked to sign in before the order is placed.",
-      "submitButton": "Place order",
-      "submitting": "Placing order…"
-    },
-    "reviews": {
-      "eyebrow": "Client reviews",
-      "title": "What clients say",
-      "subtitle": "Reviews from completed engagements with this service. Verified clients can leave a review from the page below; reviews from non-clients are queued for moderation."
-    },
-    "related": {
-      "eyebrow": "More to explore",
-      "title": "Related services",
-      "viewAll": "View all"
     }
   },
   "checkout": {
@@ -232,5 +95,93 @@
     "deleteTitle": "Delete review",
     "awaitingModeration": "Awaiting moderation, only you can see this for now",
     "replyFrom": "Reply from"
+  },
+  "funnel": {
+    "overview": {
+      "eyebrow": "Four service lines",
+      "title": "Four ways to work together",
+      "subtitle": "Twenty-one services grouped into four lines. Every one of them starts the same way: a free 30-minute call."
+    },
+    "cta": "Book a 30-min call",
+    "ctaAria": "Book a free 30-minute call",
+    "viewCategory": "See all details",
+    "stickyTitle": "Not sure which service fits?",
+    "stickyBody": "30 minutes, free, and you leave with a clear next step.",
+    "durationLabel": "Typical duration",
+    "pricingLabel": "Pricing model",
+    "pricing": {
+      "fixed": "Fixed price",
+      "retainer": "Monthly retainer",
+      "quote": "From quote"
+    },
+    "how": {
+      "eyebrow": "How it works",
+      "title": "Call, proposal, delivery",
+      "subtitle": "The same three steps for every service line. Fixed-price packages skip straight to checkout."
+    },
+    "packages": {
+      "eyebrow": "Fixed-price packages",
+      "title": "Prefer a package with a price on it?",
+      "subtitle": "Audience-tailored plans with a fixed monthly price. Checkout directly, or book a call first if you would rather talk.",
+      "popular": "Popular"
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Questions before the call",
+      "subtitle": "Short answers to what most clients ask first.",
+      "items": [
+        {
+          "id": "start",
+          "question": "Where do I start if I'm not sure which service I need?",
+          "answer": "Book the 30-minute call. The first job is a clear diagnosis, even if we do not end up working together."
+        },
+        {
+          "id": "pricing",
+          "question": "How is pricing structured?",
+          "answer": "Audits and the wireframing sprint are fixed price. Bespoke builds and migrations are quoted after the call; retainers are monthly."
+        },
+        {
+          "id": "nda",
+          "question": "Do you sign NDAs?",
+          "answer": "Yes, before scoping. Bring your template or use mine."
+        },
+        {
+          "id": "geo",
+          "question": "Do you work outside Mexico?",
+          "answer": "Yes. Operation is 100 % remote, with on-site sessions in CDMX or Estado de México when they add value."
+        },
+        {
+          "id": "direct",
+          "question": "Will I work directly with you?",
+          "answer": "Yes, on every engagement. No junior handoffs, no account managers."
+        }
+      ]
+    },
+    "final": {
+      "eyebrow": "Take the first step",
+      "title": "One call to find the right service line",
+      "body": "30 minutes. No commitment. You leave with a clear next step, whether or not we end up working together."
+    },
+    "detail": {
+      "eyebrow": "Service line",
+      "freeCall": "Free · 30 minutes · no commitment",
+      "categoryLabel": "Service line",
+      "point1": "{{count}} services in this line",
+      "point2": "Independent advice — no vendor commissions",
+      "point3": "Written proposal within 3 business days of the call",
+      "offeringsEyebrow": "What's included",
+      "offeringsTitle": "Services in {{name}}",
+      "offeringsSubtitle": "Pick the closest match; the call refines the scope.",
+      "finalTitle": "Ready to talk about {{name}}?",
+      "otherCategories": "Other service lines:"
+    }
+  },
+  "booking": {
+    "title": "Book a 30-minute call",
+    "unknownService": "We couldn't match that service, so this will be a general discovery call.",
+    "context": {
+      "label": "You're booking about",
+      "change": "Change"
+    }
   }
 }
