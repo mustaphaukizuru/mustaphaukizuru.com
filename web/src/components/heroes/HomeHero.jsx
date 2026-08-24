@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import Image from "../ui/Image"
 import { Link } from "react-router-dom"
 import { motion, useReducedMotion } from "framer-motion"
 import {
@@ -516,13 +517,18 @@ function PortraitCard() {
       aria-label={t("hero.portraitAria", { defaultValue: "Mustapha Ukizuru — full-stack engineer and STEM educator, open to work. Read the full story." })}
     >
       <div className="flex items-center gap-3">
-        <img
+        <Image
           src="/images/profile/Ukizuru_Mustapha_Photo.jpg"
           alt=""
           aria-hidden="true"
           width={56}
           height={56}
-          className="h-14 w-14 shrink-0 rounded-xl object-cover ring-2 ring-violet-pale"
+          widths={[112, 224, 448]}
+          sizes="56px"
+          loading="eager"
+          fetchPriority="high"
+          className="h-14 w-14 shrink-0"
+          imgClassName="h-14 w-14 rounded-xl object-cover ring-2 ring-violet-pale"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[14px] font-bold text-charcoal">

@@ -116,6 +116,11 @@ export function setStoredAuth({ token, user } = {}) {
 export function clearAuth() {
   clearStoredAuth()
   if (typeof window !== "undefined") {
+    // Drop any service-worker cached API responses so nothing from this
+    // session can be replayed to the next user of the device.
+    if ("caches" in window) {
+      caches.delete("api-cache").catch(() => {})
+    }
     window.dispatchEvent(new CustomEvent("auth:cleared"))
   }
 }

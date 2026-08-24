@@ -288,7 +288,7 @@ export default function AdminCouponsPage() {
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                try { navigator.clipboard?.writeText(row.code) } catch {}
+                try { navigator.clipboard?.writeText(row.code) } catch { /* clipboard unavailable */ }
               }}
               aria-label={`Copy code ${row.code}`}
               title="Copy code"

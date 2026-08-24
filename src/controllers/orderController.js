@@ -61,6 +61,12 @@ const createOrder = asyncHandler(async (req, res) => {
         fullName: customerName,
         email:    customerEmail,
       })
+      if (result.requiresLogin) {
+        return res.status(401).json({
+          success: false, code: "ACCOUNT_EXISTS",
+          message: "An account already exists for this email. Please sign in to complete your purchase.",
+        })
+      }
       userId       = result.user.id
       isNewUser    = result.isNew
       claimToken   = result.claimToken || null

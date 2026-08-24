@@ -304,6 +304,9 @@ async function orderByTier({
   if (!resolvedUserId) {
     const { findOrCreateUserForCheckout } = require("./authService")
     const result = await findOrCreateUserForCheckout({ fullName: customerName, email: customerEmail })
+    if (result.requiresLogin) {
+      throw buildError("ACCOUNT_EXISTS", "An account already exists for this email. Please sign in to complete your purchase.", 401)
+    }
     resolvedUserId = result.user.id
   }
 
@@ -432,7 +435,7 @@ async function adminUpdateServiceOrder(id, patch = {}, ctx = {}) {
           afterJson:   pickServiceOrderAuditFields(row),
           ipAddress:   ctx.ipAddress || null,
         },
-      }).catch(() => null)
+      })
     }
 
     return row

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 // ════════════════════════════════════════════════════════════════════════════
 // ui · Master barrel · v2.0 · 2026-spec design system
 // ────────────────────────────────────────────────────────────────────────────

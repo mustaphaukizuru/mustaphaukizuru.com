@@ -71,7 +71,7 @@ export default function AdminRefundsPage() {
       setLoading(false)
     }
   }
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [gateway, status])
+  useEffect(() => { load()   }, [gateway, status])
 
   const filtered = useMemo(() => {
     if (!search) return refunds

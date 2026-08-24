@@ -23,6 +23,7 @@ export function stripAnsi(input = "") {
   return input
     .replace(ANSI_RE, "")
     .replace(STRAY_BRACKET_CODE_RE, "")
+  // eslint-disable-next-line no-control-regex
     .replace(//g, "")
     .replace(/ⓢ|�/g, "") // mojibake leftovers from broken UTF-8 decoders
     .trim()
@@ -46,6 +47,7 @@ export function looksLikeEngineSpew(input = "") {
   if (PRISMA_INVALID_RE.test(input)) return true
   if (input.includes("PrismaClient")) return true
   if (input.length > 600) return true // ridiculous error length
+  // eslint-disable-next-line no-control-regex
   if (/|\[3\dm|\[1m|\[22m/.test(input)) return true
   return false
 }

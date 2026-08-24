@@ -329,6 +329,7 @@ export default function DashboardLayout() {
 
   // Close mobile menu on route change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- close menu on route change
     setMobileMenuOpen(false)
   }, [location.pathname])
 

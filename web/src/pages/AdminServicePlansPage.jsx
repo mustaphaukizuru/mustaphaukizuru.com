@@ -995,7 +995,7 @@ export default function AdminServicePlansPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [])
+  useEffect(() => { load()   }, [])
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()

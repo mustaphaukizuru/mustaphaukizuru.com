@@ -52,7 +52,7 @@ export default function DashboardAddressesPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
+  useEffect(() => { load()   }, [])
 
   async function handleSetDefault(address) {
     if (address.isDefault) return

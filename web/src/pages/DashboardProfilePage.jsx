@@ -29,7 +29,7 @@ function InfoRow({ label, value, icon: Icon }) {
 
 export default function DashboardProfilePage() {
   const { t, i18n } = useTranslation("dashboard")
-  const { user, login, updateUser } = useAuth()
+  const { user, updateUser } = useAuth()
   const { showSuccess, showError } = useToast()
 
   const [editing, setEditing] = useState(false)

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { useEffect, useMemo, useRef, useState } from "react"
 import {
   motion, AnimatePresence, useReducedMotion,

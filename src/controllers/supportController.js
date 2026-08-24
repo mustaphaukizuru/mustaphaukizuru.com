@@ -30,6 +30,7 @@ const getMyTickets = asyncHandler(async (req, res) => {
     where:   { userId },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { messages: true } } },
+    take:    200,
   }).catch(() => [])
 
   return res.status(200).json({ success: true, data: tickets })

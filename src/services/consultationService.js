@@ -706,7 +706,7 @@ async function adminUpdateConsultation(id, patch, ctx = {}) {
           afterJson:   pickAuditFields(row),
           ipAddress:   ctx.ipAddress || null,
         },
-      }).catch(() => null)
+      })
     }
 
     return row

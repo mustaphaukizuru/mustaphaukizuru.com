@@ -39,6 +39,7 @@ function AnimatedCount({ to, duration = 900, decimals = 0 }) {
     if (!ref.current) return
 
     if (reducedMotion.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- skip animation under reduced motion
       setN(to)
       return
     }

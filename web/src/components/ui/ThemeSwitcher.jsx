@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 // ════════════════════════════════════════════════════════════════════════════
 // ThemeSwitcher · ui composite · v1.0
 // ────────────────────────────────────────────────────────────────────────────
@@ -75,6 +76,7 @@ export function useTheme() {
   // Hydrate once on the client
   useEffect(() => {
     const stored = readStored()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
     setThemeState(stored)
     applyTheme(stored)
     setMounted(true)

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useParams, useNavigate } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import { ArrowLeft, Package, Loader2, AlertCircle, FileDown } from "lucide-react"
 import { fetchMyOrderById } from "../services/orderService"
 import { authFetch, API_BASE_URL } from "../lib/api"
@@ -40,7 +40,6 @@ function resolveImg(item) {
 export default function DashboardOrderDetailPage() {
   const { t } = useTranslation("dashboard")
   const { orderId } = useParams()
-  const navigate = useNavigate()
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")

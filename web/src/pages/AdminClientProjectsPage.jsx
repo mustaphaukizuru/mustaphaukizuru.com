@@ -31,7 +31,7 @@ export default function AdminClientProjectsPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [])
+  useEffect(() => { load()   }, [])
 
   async function onDelete(row) {
     if (!window.confirm(`Delete project "${row.projectName}"?\n\nThis cannot be undone, all milestones and files will be removed.`)) return

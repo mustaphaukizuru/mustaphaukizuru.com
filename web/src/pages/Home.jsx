@@ -24,6 +24,7 @@ import BlogCoverGradient from "../components/BlogCoverGradient"
 import HomeStatsStrip from "../components/HomeStatsStrip"
 import TechStackShowcase from "../components/TechStackShowcase"
 import SpotlightCard from "../components/motion/SpotlightCard"
+import Image from "../components/ui/Image"
 import MagneticButton from "../components/motion/MagneticButton"
 import Meteors from "../components/motion/Meteors"
 import AnimatedBeam from "../components/motion/AnimatedBeam"
@@ -760,14 +761,17 @@ function CTA() {
               {/* Human signature (reference audit 2026-07): a personal brand
                   closes with the person, not just buttons. */}
               <motion.div variants={itemUp} className="mt-6 flex items-center gap-3">
-                <img
+                <Image
                   src="/images/profile/Ukizuru_Mustapha_Photo.jpg"
                   alt=""
                   aria-hidden="true"
                   width={44}
                   height={44}
+                  widths={[112, 224, 448]}
+                  sizes="44px"
                   loading="lazy"
-                  className="h-11 w-11 rounded-full object-cover ring-2 ring-white/30"
+                  className="h-11 w-11 shrink-0"
+                  imgClassName="h-11 w-11 rounded-full object-cover ring-2 ring-white/30"
                 />
                 <div>
                   <p className="text-[13px] font-bold leading-tight text-white">Mustapha Ukizuru</p>

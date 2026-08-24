@@ -58,6 +58,7 @@ async function getAdminProducts() {
       },
     },
     orderBy: { createdAt: "desc" },
+    take: 200,
   })
 }
 

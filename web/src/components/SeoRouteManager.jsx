@@ -118,12 +118,7 @@ export default function SeoRouteManager() {
       };
     }
 
-    return { ...(staticSeoByRoute[cleanPath] || {}), ...(esOverride || {}) } || {
-      title: "Professional Technology Platform",
-      description: siteConfig.defaultDescription,
-      image: DEFAULT_OG_IMAGE,
-      type: "website",
-    };
+    return { ...(staticSeoByRoute[cleanPath] || {}), ...(esOverride || {}) };
   }, [pathname, productMatch, productSeo, projectMatch]);
 
   const robots = shouldNoindex(pathname)

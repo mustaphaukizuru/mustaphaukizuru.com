@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 import { useTranslation, Trans } from "react-i18next"
 import { Link, Navigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
@@ -54,6 +54,7 @@ function computeProfileCompletion(user) {
 
 /* ── Sparkline · tiny SVG line chart (matches AdminDashboard aesthetic) ── */
 function Sparkline({ data, color = "var(--color-violet, #5D3FD3)", width = 88, height = 28 }) {
+  const gradId = `mspark-${useId()}`
   if (!data || data.length < 2) {
     return (
       <svg width={width} height={height} aria-hidden="true">
@@ -73,7 +74,6 @@ function Sparkline({ data, color = "var(--color-violet, #5D3FD3)", width = 88, h
   })
   const pathD = points.map(([x, y], i) => (i === 0 ? `M${x},${y}` : `L${x},${y}`)).join(" ")
   const fillD = `${pathD} L${width},${height} L0,${height} Z`
-  const gradId = `mspark-${Math.random().toString(36).slice(2, 8)}`
 
   return (
     <svg width={width} height={height} aria-hidden="true">

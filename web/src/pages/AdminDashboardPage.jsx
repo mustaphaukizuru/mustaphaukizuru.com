@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -80,6 +80,7 @@ function timeAgo(date) {
 /* Sparkline */
 /* ──────────────────────────────────────────────────────────────────── */
 function Sparkline({ data, color = "var(--color-violet, #5D3FD3)", width = 88, height = 28 }) {
+  const gradId = `spark-grad-${useId().replace(/:/g, "")}`
   if (!data || data.length < 2) {
     return (
       <svg width={width} height={height} aria-hidden="true">
@@ -99,7 +100,6 @@ function Sparkline({ data, color = "var(--color-violet, #5D3FD3)", width = 88, h
   })
   const pathD = points.map(([x, y], i) => (i === 0 ? `M${x},${y}` : `L${x},${y}`)).join(" ")
   const fillD = `${pathD} L${width},${height} L0,${height} Z`
-  const gradId = `spark-grad-${Math.random().toString(36).slice(2, 8)}`
 
   return (
     <svg width={width} height={height} aria-hidden="true">
@@ -517,7 +517,6 @@ export default function AdminDashboardPage() {
   const activeProducts = safeNum(stats.activeProducts)
   const totalProducts = safeNum(stats.totalProducts)
   const totalUsers = safeNum(stats.totalUsers)
-  const totalDownloads = safeNum(stats.totalDownloads)
   const paidOrders = safeNum(stats.paidOrders)
   const pendingOrders = safeNum(stats.pendingOrders)
   const failedOrders = safeNum(stats.failedOrders)

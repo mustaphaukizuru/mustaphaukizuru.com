@@ -45,6 +45,7 @@ async function listRoles() {
       _count:          { select: { userRoles: true } },
       rolePermissions: { include: { permission: true } },
     },
+    take: 200,
   })
   return rows.map(serializeRole)
 }
@@ -52,6 +53,7 @@ async function listRoles() {
 async function listPermissions() {
   return prisma.adminPermission.findMany({
     orderBy: [{ key: "asc" }],
+    take: 500,
   })
 }
 

@@ -21,6 +21,7 @@ import {
   computeSectionScores, computeOverall, computeTopPriorities, matchBundle,
 } from "../../data/auditData"
 import { trackEvent } from "../../lib/analytics"
+import { apiPost } from "../../lib/api"
 
 /* ─── localStorage key ─────────────────────────────────────────────── */
 const LS_KEY = "mu_audit_v2"
@@ -56,6 +57,7 @@ function ScoreRing({ pct, tier, size = 200 }) {
   const dash = circumference * (pct / 100)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- skip animation under reduced motion
     if (reduce) { setDisplayed(pct); return }
     let frame
     const start = performance.now()
@@ -117,6 +119,7 @@ export default function AuditModal({ open, onClose }) {
     if (!open) return
     const saved = loadState()
     if (saved?.audience && saved?.step && Object.keys(saved.scores || {}).length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage when the modal opens
       setResumePrompt(true)
     }
   }, [open])
@@ -223,10 +226,7 @@ export default function AuditModal({ open, onClose }) {
     if (!emailForm.email) return
     setEmailStatus("sending")
     try {
-      const res = await fetch("/api/v1/diagnostic-submission", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await apiPost("/api/v1/diagnostic-submission", {
           name:          emailForm.name || null,
           email:         emailForm.email,
           organization:  emailForm.org || null,
@@ -238,15 +238,10 @@ export default function AuditModal({ open, onClose }) {
           matchedBundle: bundle,
           prequal,
           submittedAt:   new Date().toISOString(),
-        }),
       })
-      if (res.ok) {
-        setEmailStatus("sent")
-        clearState()
-        try { trackEvent("self_audit_email_submitted", { audience, score: overall.pct, tier: tier?.name }) } catch { /* ok */ }
-      } else {
-        setEmailStatus("error")
-      }
+      setEmailStatus("sent")
+      clearState()
+      try { trackEvent("self_audit_email_submitted", { audience, score: overall.pct, tier: tier?.name }) } catch { /* ok */ }
     } catch {
       setEmailStatus("error")
     }
@@ -583,10 +578,8 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
 /* ══════════════════════════════════════════════════════════════════════
    AUDIT SECTION STEP
 ════════════════════════════════════════════════════════════════════════ */
-function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, sectionScores, overall, audience, tooltip, setTooltip, onScore, onPrev, onNext }) {
+function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, sectionScores, overall, tooltip, setTooltip, onScore, onPrev, onNext }) {
   const isLast = sectionIdx === totalSections - 1
-  const secScore = sectionScores[section.letter]
-  const tc = TIER_COLOR[tierForScore(secScore?.pct || 0)?.name] || TIER_COLOR.Foundation
 
   return (
     <div className="flex flex-col lg:flex-row min-h-full">

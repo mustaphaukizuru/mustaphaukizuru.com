@@ -162,19 +162,27 @@ export default function ServicesCheckoutPage() {
 
   async function ensureOrder() {
     if (orderIdRef.current) return orderIdRef.current
-    const result = await orderServiceTier({
-      audience: plan.audienceCode,
-      tier: plan.tierKey,
-      planName: `${plan.audienceName} · ${plan.tierName}`,
-      // `price` is the canonical, currency-agnostic field — paired with
-      // `currency` below it tells the backend exactly what we promised
-      // the customer at the moment they clicked Pay.
-      price: plan.price,
-      currency: plan.currency,
-      customerName: form.customerName,
-      customerEmail: form.customerEmail,
-      requirements: form.requirements,
-    })
+    let result
+    try {
+      result = await orderServiceTier({
+        audience: plan.audienceCode,
+        tier: plan.tierKey,
+        planName: `${plan.audienceName} · ${plan.tierName}`,
+        price: plan.price,
+        currency: plan.currency,
+        customerName: form.customerName,
+        customerEmail: form.customerEmail,
+        requirements: form.requirements,
+      })
+    } catch (err) {
+      // Email belongs to a claimed account → sign in, then come back here.
+      if (err?.code === "ACCOUNT_EXISTS" || err?.status === 401) {
+        navigate("/login", {
+          state: { from: window.location.pathname + window.location.search, email: form.customerEmail },
+        })
+      }
+      throw err
+    }
     if (!result?.orderId) throw new Error("Order creation failed, no order id returned")
     orderIdRef.current = result.orderId
     return result.orderId

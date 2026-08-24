@@ -12,7 +12,6 @@ import StatusPill from "../components/admin/StatusPill"
 import { API_BASE_URL } from "../lib/api"
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : ","
-const fmtFileSize = (path) => path ? path.split("/").pop() : "file"
 
 const MILESTONE_ICON = {
   pending: Hourglass,

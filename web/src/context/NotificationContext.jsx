@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 import { authFetch } from "../lib/api"
 import { getStoredToken } from "../services/authService"
@@ -44,7 +45,7 @@ export function NotificationProvider({ children }) {
       // We swallow them so a missing endpoint never breaks the dashboard
       // shell — the badge just stays at zero until the endpoint comes back.
       if (err?.status !== 404) {
-        // eslint-disable-next-line no-console
+         
         console.warn("[notifications] fetch failed:", err?.message)
       }
       setNotifications([])

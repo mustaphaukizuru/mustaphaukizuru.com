@@ -347,7 +347,7 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
   const tz = c.timezone || getBrowserTimezone()
   const isActive = ACTIVE.includes(c.status)
   const startMs = new Date(c.scheduledAt).getTime()
-  const now = Date.now()
+  const [now] = useState(() => Date.now())
   const within15Min = startMs - now < 15 * 60 * 1000 && startMs - now > -60 * 60 * 1000
   const canJoin = isActive && c.meetingLink && within15Min
   const hoursUntil = (startMs - now) / (1000 * 60 * 60)
@@ -457,7 +457,7 @@ export default function DashboardConsultationsPage() {
       setError(e?.message || t("consultations.errors.load"))
     } finally { setLoading(false) }
   }
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
+  useEffect(() => { load()   }, [])
 
   const { upcoming, past } = useMemo(() => {
     const now = Date.now()

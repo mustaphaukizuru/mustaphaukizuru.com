@@ -126,6 +126,7 @@ const getAudiencePlans = asyncHandler(async (req, res) => {
   const services = await prisma.service.findMany({
     where:  { audienceCode: { not: null }, status: "published" },
     orderBy: { createdAt: "asc" },
+    take:    100,
     include: {
       features: { orderBy: { sortOrder: "asc" } },
       packages: {

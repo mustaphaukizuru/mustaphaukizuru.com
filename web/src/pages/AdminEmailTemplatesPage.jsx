@@ -168,7 +168,7 @@ function EditModal({ template, onClose, onSaved }) {
     }
     loadForLocale()
     return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [locale, template.key])
 
   const isDirty = useMemo(() => computeIsDirty(form, savedSnapshot), [form, savedSnapshot])

@@ -665,7 +665,7 @@ function PdfUploader({ value, onChange, disabled = false }) {
             const parsed = JSON.parse(xhr.responseText || "{}")
             if (xhr.status >= 200 && xhr.status < 300 && parsed?.success) resolve(parsed.data)
             else reject(new Error(parsed?.error || `Upload failed (HTTP ${xhr.status})`))
-          } catch (e) { reject(new Error("Upload returned an invalid response.")) }
+          } catch { reject(new Error("Upload returned an invalid response.")) }
         }
         xhr.onerror = () => reject(new Error("Network error during upload."))
         xhr.send(fd)

@@ -358,7 +358,7 @@ export default function AdminServicesPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [filterStatus])
+  useEffect(() => { load()   }, [filterStatus])
 
   function handleOrderUpdate(id, updates) {
     setOrders((prev) => prev.map((o) => o.id === id ? { ...o, ...updates } : o))

@@ -32,6 +32,21 @@ try {
 
 const { aggregateDailyMetrics } = require("./aggregateDailyMetrics")
 const { runReminderPass } = require("./bookingReminderJob")
+const { cancelStaleOrders } = require("./cancelStaleOrders")
+
+// In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
+// be joined by the next tick.
+const running = new Set()
+async function guarded(name, fn) {
+  if (running.has(name)) {
+    logger.warn(`[scheduler] ${name} still running — skipping this tick`)
+    return
+  }
+  running.add(name)
+  try { await fn() }
+  catch (err) { logger.error(`[scheduler] ${name} failed`, err) }
+  finally { running.delete(name) }
+}
 
 function startScheduler() {
   if (process.env.DISABLE_CRON === "1") {
@@ -44,35 +59,33 @@ function startScheduler() {
   // Runs at 00:15 every day to roll up the previous day. The 15-minute
   // offset ensures any straggling 23:59 requests have committed before
   // we count them.
+  // The aggregation window is computed in UTC (aggregateDailyMetrics.js),
+  // so the trigger must be UTC too — with TZ set the job would otherwise
+  // fire at 00:15 local and roll up a UTC day that hasn't finished.
   try {
-    cron.schedule("15 0 * * *", async () => {
-      try {
-        await aggregateDailyMetrics()
-      } catch (err) {
-        logger.error("[scheduler] aggregateDailyMetrics failed", err)
-      }
-    }, { timezone: process.env.TZ || "UTC" })
-
+    cron.schedule("15 0 * * *", () => guarded("aggregateDailyMetrics", aggregateDailyMetrics), { timezone: "UTC" })
     logger.info("[scheduler] registered daily analytics aggregation · 00:15 UTC")
   } catch (err) {
     logger.error("[scheduler] failed to register aggregateDailyMetrics", err)
   }
 
   // ── Booking reminders · every 5 minutes ─────────────────────────────
-  // Idempotent — Consultation.reminderSentAt prevents duplicate sends even
-  // across overlapping cron ticks. Fires the 24h and 1h reminder windows.
+  // Idempotent — Consultation.reminderSentAt prevents duplicate sends; the
+  // overlap guard prevents two passes from racing on the same rows.
   try {
-    cron.schedule("*/5 * * * *", async () => {
-      try {
-        await runReminderPass()
-      } catch (err) {
-        logger.error("[scheduler] bookingReminderJob failed", err)
-      }
-    })
-
+    cron.schedule("*/5 * * * *", () => guarded("bookingReminders", runReminderPass))
     logger.info("[scheduler] registered booking reminder pass · every 5 min")
   } catch (err) {
     logger.error("[scheduler] failed to register bookingReminderJob", err)
+  }
+
+  // ── Stale pending orders · hourly ───────────────────────────────────
+  // Cancels checkouts abandoned > 24h and releases their coupons.
+  try {
+    cron.schedule("7 * * * *", () => guarded("cancelStaleOrders", () => cancelStaleOrders()))
+    logger.info("[scheduler] registered stale-order janitor · hourly")
+  } catch (err) {
+    logger.error("[scheduler] failed to register cancelStaleOrders", err)
   }
 }
 

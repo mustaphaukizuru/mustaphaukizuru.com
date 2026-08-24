@@ -55,6 +55,11 @@ export default defineConfig([
   },
   // The API wrapper itself MUST use raw fetch — that's literally the only
   // place where it lives. Per-file rules override the global ban above.
+  // Vite config runs under Node - `process` etc. are real globals there.
+  {
+    files: ['vite.config.js'],
+    languageOptions: { globals: globals.node },
+  },
   {
     files: ['src/lib/api.js'],
     rules: {

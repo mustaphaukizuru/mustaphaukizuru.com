@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
+import Image from "../ui/Image"
 import { Link } from "react-router-dom"
 import {
   ArrowRight,
@@ -254,11 +255,17 @@ export default function AboutHero() {
               className="ukz-about-float relative z-10 overflow-hidden rounded-full shadow-[0_20px_60px_-10px_rgba(93,63,211,0.30)]"
               style={{ width: "min(320px, 80vw)", height: "min(380px, 95vw)" }}
             >
-              <img
+              <Image
                 src={profilePhoto}
                 alt={t("hero.portraitAlt")}
+                width={1080}
+                height={1080}
+                widths={[448, 1080]}
+                sizes="(max-width: 640px) 80vw, 320px"
                 loading="eager"
-                className="h-full w-full object-cover object-top"
+                fetchPriority="high"
+                className="block h-full w-full"
+                imgClassName="h-full w-full object-cover object-top"
               />
             </div>
           </motion.div>
@@ -417,6 +424,7 @@ function CvPicker({ t }) {
     const rect = trigger.getBoundingClientRect()
     const spaceBelow = window.innerHeight - rect.bottom
     const MENU_HEIGHT_ESTIMATE = 240 // header row + 3 items + padding
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- placement depends on DOM measurement after open
     setPlacement(spaceBelow < MENU_HEIGHT_ESTIMATE + 16 ? "top" : "bottom")
   }, [open])
 

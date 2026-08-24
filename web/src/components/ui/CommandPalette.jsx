@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 // ════════════════════════════════════════════════════════════════════════════
 // CommandPalette · ui composite · v1.0
 // ────────────────────────────────────────────────────────────────────────────
@@ -101,6 +102,7 @@ export default function CommandPalette({
   // Reset on open
   useEffect(() => {
     if (!open) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset palette state when opened
     setQuery("")
     setActive(0)
     const t = setTimeout(() => inputRef.current?.focus(), 30)
@@ -146,6 +148,7 @@ export default function CommandPalette({
 
   // Keep active in bounds
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clamp active index when results shrink
     if (active >= flat.length) setActive(0)
   }, [active, flat.length])
 

@@ -116,7 +116,7 @@ function OrderItem({ item }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Payment method selector card · F08.B · 3px Royal Violet border on selected
 // ─────────────────────────────────────────────────────────────────────────────
-function PaymentOption({ id, active, onClick, title, subtitle, badge, logo }) {
+function PaymentOption({ active, onClick, title, subtitle, badge, logo }) {
   return (
     <button
       type="button"
@@ -353,7 +353,7 @@ export default function CheckoutPage() {
           onError: (err) => setError(err?.message || "PayPal encountered an error."),
         }).render(paypalRef.current)
         paypalRendered.current = true
-      } catch (err) {
+      } catch {
         setError("Unable to render PayPal button. Please refresh and try again.")
       }
     }
@@ -429,6 +429,14 @@ export default function CheckoutPage() {
         return
       }
     } catch (err) {
+      // The email belongs to a claimed account — the buyer must sign in so
+      // the order lands in THEIR dashboard, not a stranger's. Send them to
+      // login and bring them straight back here afterwards.
+      if (err?.code === "ACCOUNT_EXISTS" || err?.status === 401) {
+        setError(err.message || "Please sign in to complete your purchase.")
+        navigate("/login", { state: { from: "/checkout", email: form.customerEmail } })
+        return
+      }
       setError(err.message || "Failed to start checkout. Please try again.")
     } finally {
       setLoading(false)

@@ -277,8 +277,19 @@ app.use(express.static(frontendPath, {
   },
 }))
 
-// React Router SPA fallback
+// SEO · server-side OG/Twitter meta injection for shareable detail pages
+// (/store/:slug, /blog/:slug, /services/:slug, /projects/:slug + /es/ mirror).
+// Falls through to the SPA fallback below when the entity is not found.
+const { createOgInjector } = require("./middleware/ogInjector")
+const { matchesSpaRoute }  = require("./utils/spaRoutes")
+app.get(/^\/(?!api).*/, createOgInjector({ indexPath: path.join(frontendPath, "index.html") }))
+
+// React Router SPA fallback — known SPA routes get 200; anything else still
+// renders the SPA (so its ErrorPage shows) but with a real 404 for crawlers.
 app.get(/^\/(?!api).*/, (req, res) => {
+  const known = matchesSpaRoute(req.path)
+  res.status(known ? 200 : 404)
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
   res.sendFile(path.join(frontendPath, "index.html"))
 })
 

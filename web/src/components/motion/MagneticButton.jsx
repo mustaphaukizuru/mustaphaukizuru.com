@@ -1,5 +1,5 @@
 import { useRef, useCallback } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { useReducedMotion } from "framer-motion"
 
 /**
  * MagneticButton · cursor-following magnetic hover — 21st.dev pattern

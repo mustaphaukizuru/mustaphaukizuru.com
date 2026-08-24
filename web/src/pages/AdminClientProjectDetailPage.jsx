@@ -66,7 +66,7 @@ export default function AdminClientProjectDetailPage() {
       setError(err.message || "Could not load project")
     } finally { setLoading(false) }
   }
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [id])
+  useEffect(() => { load()   }, [id])
 
   async function handleSave() {
     setSaving(true)

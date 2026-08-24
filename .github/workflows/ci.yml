@@ -1,15 +1,13 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # mustaphaukizuru.com — Continuous Integration
-# v2.0 · 2026-05-10 · Green-by-construction rewrite
+# v2.1 · 2026-08-24 · backend tests · frontend lint + build · Lighthouse CI
 #
-# Philosophy: only block on what would break production.
-#   - Frontend build must succeed (this is what Hostinger serves)
-#   - Backend tests must pass (refund service suite — 21 tests, money-critical)
-#   - Backend deps must install (this is what Hostinger runs)
-#
-# Everything else (lint, audit, structural gates, E2E, Lighthouse) was removed.
-# Re-add gates one at a time only after the relevant backlog item lands and
-# the gate would pass on the current codebase.
+# Gates:
+#   - Backend: npm ci → prisma generate → npm audit (moderate+) → npm test
+#   - Frontend: npm ci → npm run lint → npm run build (emits to repo-root public/)
+#   - Lighthouse: `lhci autorun` against the built public/ dir, desktop
+#     (lighthouserc.json, perf ≥ 0.95) and mobile (lighthouserc.mobile.json,
+#     perf ≥ 0.85). No secrets required — uses temporary-public-storage.
 #
 # Legacy v1 workflow preserved at .github/workflows/ci.yml.legacy-2026-05-10
 # ──────────────────────────────────────────────────────────────────────────────
@@ -51,11 +49,8 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      # Phase 9 · CI hardening — re-introduce the npm audit gate that the
-      # green-by-construction rewrite (commit d33faa0) removed. We block
-      # only on `moderate` and above so we don't fail on noisy low-CVSS
-      # advisories that don't affect the runtime, while still catching
-      # the kind of issue that bit us with multer 1.x earlier.
+      # Block only on `moderate` and above so noisy low-CVSS advisories don't
+      # fail the build while the multer-1.x class of issue is still caught.
       - name: Audit backend dependencies
         run: npm audit --omit=dev --audit-level=moderate
 
@@ -65,10 +60,10 @@ jobs:
           NODE_ENV: test
 
   # ────────────────────────────────────────────────────────────────────────────
-  # Frontend — install + production build (Vite)
+  # Frontend — install + lint + production build (Vite)
   # ────────────────────────────────────────────────────────────────────────────
   frontend:
-    name: Frontend (install + build)
+    name: Frontend (install + lint + build)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -84,6 +79,10 @@ jobs:
         working-directory: web
         run: npm ci
 
+      - name: Lint
+        working-directory: web
+        run: npm run lint
+
       - name: Build (production parity gate — MUST PASS)
         working-directory: web
         run: npm run build
@@ -92,10 +91,50 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
-          # NOTE · Vite is configured (web/vite.config.js · outDir: "../public")
-          # to emit the production bundle into the repo-root `public/` dir
-          # so Express can serve it directly. The pre-fix path `web/dist`
-          # never existed → upload-artifact failed → the entire frontend job
-          # failed → red CI on every PR. Pointing at the actual emit dir.
+          # Vite (web/vite.config.js · outDir: "../public") emits the bundle
+          # into the repo-root `public/` dir so Express can serve it directly.
           path: public
+          retention-days: 7
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Lighthouse CI — desktop + mobile budgets against the built public/ dir
+  # ────────────────────────────────────────────────────────────────────────────
+  lighthouse:
+    name: Lighthouse CI (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    needs: frontend
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: desktop
+            config: lighthouserc.json
+          - name: mobile
+            config: lighthouserc.mobile.json
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: public
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.14.x
+
+      - name: Run Lighthouse CI (${{ matrix.name }})
+        run: lhci autorun --config=${{ matrix.config }}
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lhci-${{ matrix.name }}
+          path: .lighthouseci
           retention-days: 7

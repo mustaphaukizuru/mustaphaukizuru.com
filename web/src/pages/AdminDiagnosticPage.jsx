@@ -22,7 +22,7 @@ const AUD_ICON = { EDU: GraduationCap, SMB: Building2, IND: User }
 const AUD_LABEL = { EDU: "School", SMB: "Business", IND: "Individual" }
 
 export default function AdminDiagnosticPage() {
-  const { t } = useTranslation("common")
+  useTranslation("common")
   const [rows,    setRows]    = useState([])
   const [meta,    setMeta]    = useState({ total: 0, page: 1, pages: 1 })
   const [loading, setLoading] = useState(true)

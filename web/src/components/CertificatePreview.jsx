@@ -111,7 +111,7 @@ async function loadPdfjs() {
 // pdfjs.getDocument rejected (worker MIME mismatch, fetch 404, etc).
 function logDev(...args) {
   if (import.meta?.env?.DEV) {
-    // eslint-disable-next-line no-console
+     
     console.warn("[CertificatePreview]", ...args)
   }
 }

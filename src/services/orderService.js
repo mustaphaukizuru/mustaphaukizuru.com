@@ -215,20 +215,30 @@ async function createOrder(payload) {
     })
 
     if (appliedCoupon) {
-      // Track usage for analytics + per-user limit enforcement on next purchase.
-      await tx.couponUsage.create({
-        data: {
-          couponId:       appliedCoupon.id,
-          userId:         userId || null,
-          orderId:        created.id,
-          discountAmount,
-        },
-      }).catch(() => null)
-      // Increment global usedCount.
-      await tx.coupon.update({
-        where: { id: appliedCoupon.id },
+      // Race-safe consumption · optimistic lock on usedCount. validateCoupon
+      // checked `usedCount < usageLimit` against the value it read; if any
+      // other order consumed the coupon in between, usedCount has moved and
+      // this conditional update touches 0 rows → we abort the whole
+      // transaction instead of over-redeeming. Never swallow errors inside
+      // a transaction — a failed write must roll the order back.
+      const consumed = await tx.coupon.updateMany({
+        where: { id: appliedCoupon.id, usedCount: appliedCoupon.usedCount },
         data:  { usedCount: { increment: 1 } },
-      }).catch(() => null)
+      })
+      if (consumed.count !== 1) {
+        const err = new Error("This coupon was just used by another order — please re-apply it")
+        err.code = "COUPON_RACE"
+        err.statusCode = 409
+        throw err
+      }
+      // Per-user usage row (drives maxUsesPerUser). CouponUsage.userId is
+      // required, so guest orders (userId null) cannot record usage — that
+      // is why checkout requires an account.
+      if (userId) {
+        await tx.couponUsage.create({
+          data: { couponId: appliedCoupon.id, userId, orderId: created.id },
+        })
+      }
     }
 
     return created

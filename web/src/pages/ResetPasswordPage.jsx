@@ -74,7 +74,7 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false)
   // error: null | string | { kind, title, body, action }
   const [error, setError] = useState(null)
-  const [tokenExpired, setTokenExpired] = useState(false)
+  const [, setTokenExpired] = useState(false)
 
   const score = useMemo(() => scorePassword(password), [password])
   const meta = STRENGTH_META[score] || STRENGTH_META[0]

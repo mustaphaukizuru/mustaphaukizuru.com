@@ -232,6 +232,7 @@ export default function DataTable({
   const [selected, setSelected] = useState(() => new Set())
 
   // Reset page if rows shrink below current page
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination when query inputs change
   useEffect(() => { setPage(1) }, [search, sortKey, sortDir, pageSize])
 
   // Build CSS grid template from column widths

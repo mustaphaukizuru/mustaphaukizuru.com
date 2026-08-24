@@ -199,6 +199,7 @@ function UserMenu() {
   const user = auth && auth.user
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- close menu on route change
     setOpen(false)
   }, [location.pathname])
 
@@ -1013,7 +1014,7 @@ function HeaderInner() {
   // Menu state lifted to MenuContext (see web/src/context/MenuContext.jsx).
   // Other components (e.g., a future "Open menu" inline CTA on a 404 page)
   // can now call openMobileMenu() without prop-drilling through Header.
-  const { mobileOpen, openMobileMenu, closeMobileMenu, toggleMobileMenu } = useMenu()
+  const { mobileOpen, openMobileMenu, closeMobileMenu } = useMenu()
 
   useEffect(() => {
     function onScroll() {

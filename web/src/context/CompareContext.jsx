@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 
 /**
@@ -95,6 +96,7 @@ export function CompareProvider({ children }) {
 
   // Hydrate from storage once on mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
     setItems(readStorage())
   }, [])
 

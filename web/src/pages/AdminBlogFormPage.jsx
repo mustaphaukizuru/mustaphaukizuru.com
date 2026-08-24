@@ -491,7 +491,7 @@ function Field({ label, hint, required, children }) {
   )
 }
 
-function BlockEditor({ index, block, onChange, onMove, onRemove, isFirst, isLast }) {
+function BlockEditor({ block, onChange, onMove, onRemove, isFirst, isLast }) {
   return (
     <div className="rounded-xl border border-charcoal-80/12 bg-charcoal-80/[0.02] p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -514,7 +514,7 @@ function BlockEditor({ index, block, onChange, onMove, onRemove, isFirst, isLast
           </button>
         </div>
       </div>
-      {renderBlockField(block, onChange, index)}
+      {renderBlockField(block, onChange)}
     </div>
   )
 }
@@ -532,7 +532,7 @@ function blockTypeChange(prev, nextType) {
   return { type: nextType, text: prev.text || (prev.items?.[0] ?? "") }
 }
 
-function renderBlockField(block, onChange, index) {
+function renderBlockField(block, onChange) {
   if (block.type === "list" || block.type === "ordered") {
     return (
       <div className="flex flex-col gap-1.5">

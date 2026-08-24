@@ -51,7 +51,22 @@ export default defineConfig({
         "fonts/JetBrainsMono-Variable.woff2",
       ],
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png,svg,webp,woff2}"],
+        // PERF · precache only what the shell needs. Raster images (portfolio
+        // screenshots, profile photos, certificates) and admin-only route
+        // chunks are fetched on demand and cached by the runtime rules
+        // below — they must NOT be downloaded by every anonymous visitor.
+        // Before this change the precache was 215 entries / 18.8 MB.
+        globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        globIgnores: [
+          "**/node_modules/**",
+          "assets/Admin*",          // admin route chunks — admins only
+          "assets/SelfAudit*",
+          "assets/pdf*",            // pdfjs + worker, lazy on cert preview
+          "images/**",
+          "documents/**",
+          "og/**",
+          "cv/**",
+        ],
         // Default 2 MiB precache cap. The previous 3 MiB override was a
         // workaround for the 2.38 MB avatar-master.png; that source PNG
         // (and its 5 colour siblings) have since been compressed via
@@ -61,16 +76,24 @@ export default defineConfig({
         // should be optimised before raising this ceiling again.
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
         runtimeCaching: [
-          // ── API: network-first, fall back to short-lived cache for offline reads ──
+          // ── API: network-first for PUBLIC catalogue reads only ──
+          // SECURITY · never cache authenticated responses (/auth/me, orders,
+          // dashboard, admin). A shared device going offline after logout
+          // must not replay the previous user's data from Cache Storage.
+          // The allowlist is public GET catalogue data only; lib/api.js
+          // also deletes this cache on logout.
           {
-            urlPattern: ({ url }) =>
-              url.origin === self.location.origin && url.pathname.startsWith("/api/"),
+            urlPattern: ({ url, request }) =>
+              request.method === "GET" &&
+              url.origin === self.location.origin &&
+              /^\/api\/(v1\/)?(products|services|portfolio|blog|bio|recommendations|reviews)(\/|$)/.test(url.pathname) &&
+              !request.headers.has("Authorization"),
             handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",
               networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 50, maxAgeSeconds: 10 * 60 },
+              cacheableResponse: { statuses: [200] },
             },
           },
           // ── Images: cache-first, 30 days ──

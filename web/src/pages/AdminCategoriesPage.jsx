@@ -58,7 +58,7 @@ export default function AdminCategoriesPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [])
+  useEffect(() => { load()   }, [])
 
   async function onSave(form) {
     try {

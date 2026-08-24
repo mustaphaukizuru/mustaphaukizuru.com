@@ -5,7 +5,7 @@
    chrome (back link, share/tags labels, related posts, meta line).
    ════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link, useParams, Navigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { motion, useReducedMotion } from "framer-motion"
@@ -231,14 +231,12 @@ export default function BlogPostPage() {
   const post = apiPost || staticPost
   const related = staticRelated
 
-  if (!post) return <Navigate to="/blog" replace />
-
-  const category = categoryByValue(post.category)
-  const url = `${SITE_URL}/blog/${post.slug}`
-  const toc = useMemo(() => extractTOC(post.body), [post.body])
+  const url = post ? `${SITE_URL}/blog/${post.slug}` : ""
+  const toc = useMemo(() => (post ? extractTOC(post.body) : []), [post])
 
   // BlogPosting JSON-LD — injected per-article for Google rich results
   useEffect(() => {
+    if (!post) return undefined
     const id = "blog-post-jsonld"
     document.getElementById(id)?.remove()
     const script = document.createElement("script")
@@ -267,6 +265,10 @@ export default function BlogPostPage() {
     document.head.appendChild(script)
     return () => document.getElementById(id)?.remove()
   }, [post, url])
+
+  if (!post) return <Navigate to="/blog" replace />
+
+  const category = categoryByValue(post.category)
 
   function formatDate(iso) {
     return new Date(iso).toLocaleDateString(localeTag, {
@@ -407,6 +409,11 @@ export default function BlogPostPage() {
             <img
               src={post.cover}
               alt=""
+              width={1600}
+              height={900}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="h-full w-full object-cover object-center"
             />
           </div>

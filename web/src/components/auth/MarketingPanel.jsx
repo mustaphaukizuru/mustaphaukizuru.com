@@ -78,7 +78,7 @@ function AudienceDonut({ reduce }) {
   const { t } = useTranslation("common")
   const radius = 38
   const circumference = 2 * Math.PI * radius
-  let cursor = 0
+  const starts = AUDIENCES.reduce((acc, s, i) => { acc.push(i === 0 ? 0 : acc[i - 1] + AUDIENCES[i - 1].pct); return acc }, [])
 
   return (
     <div className="relative h-32 w-32 shrink-0">
@@ -87,8 +87,7 @@ function AudienceDonut({ reduce }) {
         {AUDIENCES.map((s, i) => {
           const dash = s.pct * circumference
           const gap = circumference - dash
-          const offset = -cursor * circumference
-          cursor += s.pct
+          const offset = -starts[i] * circumference
           return (
             <motion.circle
               key={s.labelKey}

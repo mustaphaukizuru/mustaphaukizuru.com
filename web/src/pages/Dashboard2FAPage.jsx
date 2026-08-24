@@ -55,7 +55,7 @@ export default function Dashboard2FAPage() {
     }
   }
 
-  useEffect(() => { loadStatus() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
+  useEffect(() => { loadStatus()   }, [])
 
   async function handleStartSetup() {
     setSetupBusy(true)
@@ -88,27 +88,19 @@ export default function Dashboard2FAPage() {
   }
 
   async function handleDisable(password) {
-    try {
-      await apiDisableTwoFactor(password)
-      setDisableModalOpen(false)
-      setSetupData(null)
-      await loadStatus()
-      showSuccess(t("twoFactor.toast.disabled"))
-    } catch (err) {
-      throw err
-    }
+    await apiDisableTwoFactor(password)
+    setDisableModalOpen(false)
+    setSetupData(null)
+    await loadStatus()
+    showSuccess(t("twoFactor.toast.disabled"))
   }
 
   async function handleRegenerate(password) {
-    try {
-      const data = await apiRegenerateBackupCodes(password)
-      setBackupCodes(data?.backupCodes || [])
-      setRegenerateModalOpen(false)
-      await loadStatus()
-      showSuccess(t("twoFactor.toast.regenerated"))
-    } catch (err) {
-      throw err
-    }
+    const data = await apiRegenerateBackupCodes(password)
+    setBackupCodes(data?.backupCodes || [])
+    setRegenerateModalOpen(false)
+    await loadStatus()
+    showSuccess(t("twoFactor.toast.regenerated"))
   }
 
   if (loading) {

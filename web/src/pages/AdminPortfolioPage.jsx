@@ -73,7 +73,7 @@ export default function AdminPortfolioPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [statusFilter])
+  useEffect(() => { load()   }, [statusFilter])
 
   const visible = useMemo(() => items.filter((it) => {
     if (!query.trim()) return true

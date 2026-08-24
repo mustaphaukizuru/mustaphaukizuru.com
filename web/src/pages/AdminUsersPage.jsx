@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [])
+  useEffect(() => { load()   }, [])
 
   async function handleStatus(user, nextStatus) {
     if (!user?.id) return

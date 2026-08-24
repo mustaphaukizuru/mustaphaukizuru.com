@@ -51,7 +51,7 @@ export default class ErrorBoundary extends Component {
 
     // Always log in development.
     if (import.meta?.env?.DEV) {
-      // eslint-disable-next-line no-console
+       
       console.error("[ErrorBoundary]", error, info)
     }
   }

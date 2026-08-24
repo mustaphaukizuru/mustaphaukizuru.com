@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { useEffect, useState, useMemo } from "react"
 import { NavLink, useNavigate, Link } from "react-router-dom"
 import ThemeSwitcher from "../ui/ThemeSwitcher"
@@ -276,7 +277,7 @@ export default function AdminSidebar() {
       const next = new Set(prev)
       if (next.has(section)) next.delete(section)
       else next.add(section)
-      try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...next])) } catch {}
+      try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...next])) } catch { /* ignore */ }
       return next
     })
   }

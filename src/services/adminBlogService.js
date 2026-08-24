@@ -36,7 +36,7 @@ async function uniqueSlug(base, ignoreId = null) {
 
 /* ── Posts (full visibility — drafts + archived included) ─────────────── */
 
-async function listAllPosts({ status, q, limit = 200, offset = 0 } = {}) {
+async function listAllPosts({ status, q, limit = 100, offset = 0 } = {}) {
   const where = {}
   if (status) where.status = status
   if (q) {
@@ -52,7 +52,7 @@ async function listAllPosts({ status, q, limit = 200, offset = 0 } = {}) {
       where,
       orderBy: [{ updatedAt: "desc" }],
       include: { category: true, tags: { include: { tag: true } } },
-      take: Math.min(limit, 500),
+      take: Math.min(Math.max(1, limit), 100),
       skip: offset,
     }),
     prisma.blogPost.count({ where }),

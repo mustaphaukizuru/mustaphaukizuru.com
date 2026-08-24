@@ -17,7 +17,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Link } from "react-router-dom"
 import {
   ArrowRight, ArrowDown, Sparkles, Calendar, Plus, Minus, Check, X, Star, Zap,
@@ -33,7 +33,7 @@ import { pageSeo } from "../seo/pageSeo"
 import { seamlessProcess } from "../data/sitePagesData"
 import {
   CATEGORIES, CATEGORY_PLANS, PLAN_TIERS,
-  servicesByCategory, CREDENTIALS, SERVICES_FAQ_ITEMS,
+  CREDENTIALS, SERVICES_FAQ_ITEMS,
   CATALOG_STATS, BENEFITS_COMPARISON, CATEGORY_TILE_TONES,
   AUDIENCE_PRICING_PLANS as STATIC_AUDIENCE_PRICING_PLANS,
   AUDIENCE_PRICING_ORDER as STATIC_AUDIENCE_PRICING_ORDER,
@@ -125,11 +125,6 @@ function mergeAudiencePlans(staticPlans, livePlans) {
 }
 
 /* ── Local helpers ──────────────────────────────────────────────────────── */
-// MXN is the platform's local currency. Pricing throughout the public site
-// is denominated in Mexican Pesos so customers can pay in their own currency.
-const formatMxn = (n) => `$${Number(n).toLocaleString("es-MX")} MXN`
-// Kept for any legacy callsite that still pipes USD through (none should remain).
-const formatUsd = (n) => `$${Number(n).toLocaleString("en-US")} USD`
 
 /* ── Motion variants ─────────────────────────────────────────────────────── */
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } }
@@ -184,8 +179,6 @@ function SectionHeader({ eyebrow, title, subtitle, align = "center", invert }) {
    ════════════════════════════════════════════════════════════════════════ */
 export default function ServicesPage() {
   const { t } = useTranslation("services")
-  const reduce = useReducedMotion()
-
   /* §§ 03 · benefits toggle state */
   const [benefitView, setBenefitView] = useState("with")
 

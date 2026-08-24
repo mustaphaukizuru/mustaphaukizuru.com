@@ -73,7 +73,7 @@ export default function AdminEmailLogsPage() {
     } catch { /* non-critical */ }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [statusFilter, templateFilter])
+  useEffect(() => { load()   }, [statusFilter, templateFilter])
   useEffect(() => { loadStats() }, [])
 
   // Unique template keys from loaded rows for the filter dropdown

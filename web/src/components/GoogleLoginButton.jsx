@@ -72,6 +72,7 @@ export default function GoogleLoginButton({
   const errorKey = googleErrorReason && !dismissedError ? SERVER_ERROR_KEYS[googleErrorReason] : null
   const serverError = errorKey ? t(errorKey) : null
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset dismissal when the URL error param changes
   useEffect(() => { setDismissedError(false) }, [googleErrorReason])
 
   const returnTo = redirectTo

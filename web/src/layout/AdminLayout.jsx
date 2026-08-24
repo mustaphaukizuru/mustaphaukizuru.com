@@ -111,7 +111,7 @@ function resolveMeta(pathname) {
 /* ──────────────────────────────────────────────────────────────────────────
  *  Mobile slide-out menu — re-uses AdminSidebar's navigation array
  *  ──────────────────────────────────────────────────────────────────── */
-function AdminMobileMenu({ open, onClose, user, initials, onLogout }) {
+function AdminMobileMenu({ open, onClose, user, initials }) {
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden"
     else document.body.style.overflow = ""
@@ -232,6 +232,7 @@ export default function AdminLayout() {
     navigate("/", { replace: true })
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- close menu on route change
   useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
 
   return (

@@ -264,9 +264,18 @@ async function findOrCreateUserForCheckout({ fullName, email }) {
 
   const existing = await prisma.user.findUnique({
     where: { email: normalizedEmail },
-    select: { id: true, fullName: true, email: true, role: true, status: true, authProvider: true },
+    select: { id: true, fullName: true, email: true, role: true, status: true, authProvider: true, passwordHash: true },
   })
-  if (existing) return { user: existing, isNew: false }
+  if (existing) {
+    // Security · an email that belongs to a CLAIMED account (has a password,
+    // or signs in via OAuth) must authenticate before an order is attached
+    // to it. Otherwise anyone could push orders and emails into a stranger's
+    // dashboard. Only "checkout"-created accounts that were never claimed
+    // (no password) may keep buying by email — they'll get another claim link.
+    const requiresLogin = Boolean(existing.passwordHash) || existing.authProvider !== "checkout"
+    const { passwordHash: _ph, ...user } = existing
+    return { user, isNew: false, requiresLogin }
+  }
 
   // Create a passwordless account so the buyer can immediately access
   // /dashboard/downloads via the email claim link.

@@ -70,7 +70,7 @@ export default function KineticHeadline({
   if (reduced) {
     return (
       <Tag className={className} {...rest}>
-        {tokens.map((tk, i) => (
+        {tokens.map((tk) => (
           <span key={tk.key}>
             {tk.leadingSpace ? " " : ""}
             <span

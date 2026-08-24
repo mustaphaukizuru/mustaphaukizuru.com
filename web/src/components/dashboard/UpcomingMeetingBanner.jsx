@@ -52,7 +52,7 @@ function pickActiveMeeting(items, now) {
 export default function UpcomingMeetingBanner() {
   const { t } = useTranslation("dashboard")
   const [meeting, setMeeting] = useState(null)
-  const [, setTick] = useState(0) // re-render for countdown
+  const [now, setNow] = useState(() => Date.now()) // re-render for countdown
 
   // Poll the API on mount + every POLL_MS
   useEffect(() => {
@@ -79,14 +79,13 @@ export default function UpcomingMeetingBanner() {
   // updates without re-fetching. Stops when there's nothing to count.
   useEffect(() => {
     if (!meeting) return undefined
-    const id = setInterval(() => setTick((t) => t + 1), TICK_MS)
+    const id = setInterval(() => setNow(Date.now()), TICK_MS)
     return () => clearInterval(id)
   }, [meeting])
 
   if (!meeting) return null
 
   const start  = new Date(meeting.scheduledAt).getTime()
-  const now    = Date.now()
   const diffMs = start - now
   const isLive = diffMs <= 0
 

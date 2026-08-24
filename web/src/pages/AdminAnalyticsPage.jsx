@@ -63,6 +63,7 @@ export default function AdminAnalyticsPage() {
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets fetch state before syncing with the analytics API
     setLoading(true); setError("")
     Promise.all([
       adminFetchAnalyticsDashboard({ days }),

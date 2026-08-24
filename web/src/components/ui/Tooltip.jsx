@@ -141,6 +141,7 @@ export default function Tooltip({
       triggerRef.current = node
       const orig = children.ref
       if (typeof orig === "function") orig(node)
+      // eslint-disable-next-line react-hooks/immutability -- forwarding the node to the child's own ref object inside a ref callback (not during render)
       else if (orig && typeof orig === "object") orig.current = node
     },
     onMouseEnter: (...args) => {

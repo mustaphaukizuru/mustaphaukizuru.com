@@ -53,6 +53,19 @@ function extractImages(project) {
   return Array.from(new Set(out))
 }
 
+/**
+ * Build a srcset from the `<name>-<w>.webp` siblings that
+ * scripts/convert-images.mjs emits for bundled /images/** assets. Runtime
+ * uploads (anything outside /images/) have no siblings, so return undefined
+ * and let the browser use the plain src.
+ */
+function responsiveSrcSet(src) {
+  if (typeof src !== "string" || !src.startsWith("/images/")) return undefined
+  const m = src.match(/^(.*).(jpe?g|png)$/i)
+  if (!m) return undefined
+  return [400, 800, 1200].map((w) => `${m[1]}-${w}.webp ${w}w`).join(", ")
+}
+
 function extractTools(project) {
   if (Array.isArray(project?.tools) && project.tools.length > 0) return project.tools.slice(0, 4)
   if (Array.isArray(project?.tags) && project.tags.length > 0) return project.tags.slice(0, 4)
@@ -123,8 +136,11 @@ export default function PortfolioCard({
             <img
               key={src + "-" + i}
               src={src}
+              srcSet={responsiveSrcSet(src)}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
               alt={i === 0 ? (project?.title || "Project") : (project?.title || "Project") + ", image " + (i + 1)}
               loading="lazy"
+              decoding="async"
               className={
                 "absolute inset-0 h-full w-full object-cover transition-all duration-700 " +
                 (i === currentIdx

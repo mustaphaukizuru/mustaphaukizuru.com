@@ -50,6 +50,7 @@ export default function FacebookLoginButton({
   const errorKey = errorReason && !dismissedError ? SERVER_ERROR_KEYS[errorReason] : null
   const serverError = errorKey ? t(errorKey) : null
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset dismissal when the URL error param changes
   useEffect(() => { setDismissedError(false) }, [errorReason])
 
   const returnTo = redirectTo

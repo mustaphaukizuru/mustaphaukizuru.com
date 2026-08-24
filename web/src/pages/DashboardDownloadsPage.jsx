@@ -233,7 +233,7 @@ export default function DashboardDownloadsPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
+  useEffect(() => { load()   }, [])
 
   // Group entitlements by product (for grid view) AND flatten (for list view)
   const { productGroups, flatItems } = useMemo(() => {

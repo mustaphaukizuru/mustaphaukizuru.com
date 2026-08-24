@@ -176,7 +176,6 @@ export default function CheckoutSuccessPage() {
     return () => { cancelled = true }
   }, [orderId, orderStatus])
 
-  const isPaid = orderStatus === "paid"
   const isFailed = orderStatus === "failed"
 
   const orderRef = formatOrderRef(order, orderId)

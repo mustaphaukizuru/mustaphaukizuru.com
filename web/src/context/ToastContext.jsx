@@ -1,7 +1,7 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 import { CheckCircle2, AlertCircle, Info, TriangleAlert, X } from "lucide-react"
 
-import { useTranslation } from "react-i18next"
 const ToastContext = createContext(null)
 
 const TOAST_ICONS = {

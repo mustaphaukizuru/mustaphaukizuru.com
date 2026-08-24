@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import {
   clearStoredAuth, fetchMe, getStoredToken, getStoredUser,
@@ -117,7 +118,7 @@ export function AuthProvider({ children }) {
       // localStorage unavailable (Safari private browsing, quota, etc.) —
       // surface a clean error instead of leaving the user in a half-
       // authenticated state where the redirect fires but the session is gone.
-      // eslint-disable-next-line no-console
+       
       console.error("[auth] storeAuth failed:", err)
       throw new Error("Could not save your session. Disable private browsing and try again.")
     }
@@ -162,7 +163,7 @@ export function AuthProvider({ children }) {
         if (stored) {
           localStorage.setItem("auth-user", JSON.stringify({ ...stored, ...updates }))
         }
-      } catch {}
+      } catch { /* ignore */ }
       return updated
     })
   }, [])

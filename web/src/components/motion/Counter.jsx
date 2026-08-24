@@ -62,6 +62,7 @@ export default function Counter({
   // When reduced motion is requested, skip the animation entirely and
   // show the target value immediately on mount.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- skip animation under reduced motion
     if (reduced) setDisplay(formatValue(to, format))
   }, [reduced, to, format])
 

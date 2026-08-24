@@ -93,9 +93,8 @@ function categoryByValue(slug) {
    ════════════════════════════════════════════════════════════════════════ */
 
 export default function BlogPage() {
-  const { t, i18n } = useTranslation("blog")
+  const { t } = useTranslation("blog")
   const reduce = useReducedMotion()
-  const locale = i18n.language === "es" ? "es-MX" : "en-US"
 
   /* URL-driven state — search/category/tag/page sync to the address bar
    * so visitors can deep-link, share, and use browser back/forward. */
@@ -103,7 +102,6 @@ export default function BlogPage() {
   const queryParam = searchParams.get("q") || ""
   const categoryParam = searchParams.get("category") || ""
   const tagParam = searchParams.get("tag") || ""
-  const pageParam = parseInt(searchParams.get("page") || "1", 10) || 1
 
   // Local input state — committed to URL only on submit, so we don't
   // re-render the whole grid on every keystroke.

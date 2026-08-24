@@ -54,7 +54,7 @@ i18n
 
 // Surface the locale in the dev console so language-switching is debuggable.
 if (import.meta.env.DEV) {
-  // eslint-disable-next-line no-console
+   
   console.info(`[i18n] initialised • language=${i18n.language} • enabled=${I18N_ENABLED}`)
 }
 

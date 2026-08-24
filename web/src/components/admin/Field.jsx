@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { useId } from "react"
 import { AlertCircle } from "lucide-react"
 

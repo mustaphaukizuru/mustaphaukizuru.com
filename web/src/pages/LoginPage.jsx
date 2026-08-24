@@ -20,7 +20,7 @@
    (matches reference designs).
    ════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { motion, useReducedMotion } from "framer-motion"
@@ -102,9 +102,13 @@ export default function LoginPage() {
     window.history.replaceState(null, "", window.location.pathname + window.location.search)
   }, [])
 
-  // Restore saved email if remember-me was previously set.
+  // Restore saved email if remember-me was previously set. A checkout that
+  // bounced here with ACCOUNT_EXISTS passes the typed email in router state
+  // so the buyer only has to enter their password.
   useEffect(() => {
     try {
+      const fromCheckout = location.state?.email
+      if (fromCheckout) { setEmail(String(fromCheckout)); return }
       const saved = localStorage.getItem(REMEMBER_KEY)
       if (saved) {
         setEmail(saved)
@@ -122,8 +126,6 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, navigate, location])
 
-  // Email validity (presentational only — server is the source of truth).
-  const emailValid = useMemo(() => EMAIL_RE.test(email.trim()), [email])
   // Only disable for transient/security states. Empty-field validation
   // happens inside handleSubmit so a user who clicks Submit with empty
   // fields gets a clear "Please enter your email and password" message
@@ -143,7 +145,7 @@ export default function LoginPage() {
       // Most likely browser autofill on a real user, not a bot. Clear
       // silently and continue with the real submission below — no
       // second click required. Logged for diagnostics only.
-      // eslint-disable-next-line no-console
+       
       console.warn("[login] honeypot was filled — assuming autofill, proceeding")
       setHoneypot("")
     }
@@ -193,7 +195,7 @@ export default function LoginPage() {
       // Surface in devtools — without this the user reports "nothing happened"
       // because some hosts compress error text to one greyed-out line and the
       // network failure mode (CORS preflight, DNS) leaves no visible feedback.
-      // eslint-disable-next-line no-console
+       
       console.error("[login] failed:", err)
 
       const code = err?.code || ""

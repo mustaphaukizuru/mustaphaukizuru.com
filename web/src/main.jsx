@@ -34,12 +34,12 @@ if (typeof window !== "undefined" && "serviceWorker" in navigator) {
           // existing toast system. Reload skips the prompt for now to keep
           // the rollout simple; swap to a toast when CTA copy is finalized.
           if (typeof window !== "undefined") {
-            // eslint-disable-next-line no-console
+             
             console.info("[PWA] new content available, refresh to update");
           }
         },
         onOfflineReady() {
-          // eslint-disable-next-line no-console
+           
           console.info("[PWA] app ready to work offline");
         },
       });
@@ -49,6 +49,21 @@ if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       // Silent fail — app continues to work without the SW.
     });
 }
+
+// A deploy replaces hashed chunk filenames. A tab opened before the deploy
+// that lazily imports a route afterwards gets a 404 for the old chunk. Vite
+// surfaces that as `vite:preloadError`; the correct recovery is one reload
+// (guarded so a genuinely broken build can't loop forever).
+window.addEventListener("vite:preloadError", (event) => {
+  event.preventDefault()
+  try {
+    const key = "chunk-reload-at"
+    const last = Number(sessionStorage.getItem(key) || 0)
+    if (Date.now() - last < 10_000) return
+    sessionStorage.setItem(key, String(Date.now()))
+  } catch { /* storage unavailable — still reload once */ }
+  window.location.reload()
+})
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

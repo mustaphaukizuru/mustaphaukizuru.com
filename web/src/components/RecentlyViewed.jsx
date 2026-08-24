@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { Clock, ArrowRight } from "lucide-react"
@@ -80,6 +81,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
   const [items, setItems] = useState([])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
     setItems(readStorage())
   }, [])
 

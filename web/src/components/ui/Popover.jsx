@@ -142,7 +142,7 @@ export default function Popover({
   // Wire trigger
   if (!isValidElement(trigger)) {
     if (typeof console !== "undefined") {
-      // eslint-disable-next-line no-console
+       
       console.warn("<Popover> requires a single React element as `trigger`.")
     }
     return null

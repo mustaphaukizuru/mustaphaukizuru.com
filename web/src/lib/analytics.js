@@ -63,7 +63,7 @@ function injectGtagOnce() {
   // Bootstrap the dataLayer + gtag shim BEFORE the script loads so any
   // event we queue immediately survives the round-trip.
   window.dataLayer = window.dataLayer || []
-  // eslint-disable-next-line prefer-rest-params
+   
   window.gtag = function gtag() { window.dataLayer.push(arguments) }
   window.gtag("js", new Date())
   window.gtag("config", gaId, { send_page_view: false })

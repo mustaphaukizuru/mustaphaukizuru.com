@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { API_BASE_URL } from "../lib/api"
 import { useAuth } from "../context/AuthContext"
@@ -116,7 +117,7 @@ export function CartProvider({ children }) {
   /* Guest-cart persistence */
   useEffect(() => {
     if (isAuthenticated) return
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(guestItems)) } catch {}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(guestItems)) } catch { /* ignore */ }
   }, [guestItems, isAuthenticated])
 
   /* Hydrate from server + merge guest cart on login */
@@ -141,7 +142,7 @@ export function CartProvider({ children }) {
           if (cancelled) return
           setServerCart(cart)
           setGuestItems([])
-          try { localStorage.removeItem(STORAGE_KEY) } catch {}
+          try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
         } else {
           const cart = await apiFetchCart()
           if (cancelled) return
@@ -271,7 +272,7 @@ export function CartProvider({ children }) {
       return
     }
     setGuestItems([])
-    try { localStorage.removeItem(STORAGE_KEY) } catch {}
+    try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
   }
 
   /* Coupon */
@@ -305,20 +306,6 @@ export function CartProvider({ children }) {
       setError(null)
     } catch (err) {
       setError(err?.message || "Could not remove coupon")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const refreshCart = async () => {
-    if (!isAuthenticated) return
-    setLoading(true)
-    try {
-      const cart = await apiFetchCart()
-      setServerCart(cart)
-      setError(null)
-    } catch (err) {
-      setError(err?.message || "Could not refresh cart")
     } finally {
       setLoading(false)
     }

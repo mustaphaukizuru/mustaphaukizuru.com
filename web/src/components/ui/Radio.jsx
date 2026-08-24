@@ -56,7 +56,7 @@ const Radio = forwardRef(function Radio(
   const ctx = useContext(RadioContext)
   if (!ctx) {
     if (typeof console !== "undefined") {
-      // eslint-disable-next-line no-console
+       
       console.warn("<Radio> must be rendered inside <Radio.Group>.")
     }
   }

@@ -107,7 +107,6 @@ export default function TestimonialsMarquee({ testimonials = [], eyebrow, title,
 
 /* ── Single marquee row ──────────────────────────────────────────────── */
 function MarqueeRow({ items, tints, direction, speed }) {
-  const styleId = `ukz-tm-${direction}`
   const keyframes = `
     @keyframes ukz-testimonial-left  { from { transform: translateX(0); }    to { transform: translateX(-33.333%); } }
     @keyframes ukz-testimonial-right { from { transform: translateX(-33.333%); } to { transform: translateX(0); }   }

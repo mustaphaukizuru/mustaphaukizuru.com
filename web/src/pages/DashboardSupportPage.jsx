@@ -314,7 +314,7 @@ export default function DashboardSupportPage() {
     }
   }
 
-  useEffect(() => { loadTickets() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
+  useEffect(() => { loadTickets()   }, [])
 
   function handleCreated(ticket) {
     setShowCreate(false)

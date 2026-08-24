@@ -71,7 +71,7 @@ export default function AdminCampaignsPage() {
       setLoading(false)
     }
   }
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [status])
+  useEffect(() => { load()   }, [status])
 
   async function confirmDelete() {
     if (!pendingDelete) return

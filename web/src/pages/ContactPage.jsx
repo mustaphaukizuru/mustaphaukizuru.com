@@ -23,7 +23,7 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
 import {
   Send, CheckCircle2, Mail, MapPin, Sparkles,
   GraduationCap, Briefcase, User, Layers, Clock as ClockIcon, Tag,
@@ -213,7 +213,6 @@ function ContactSection() {
   // page-level useTranslation in ContactPage doesn't reach across the
   // component boundary. Was missing → ReferenceError on every render.
   const { t } = useTranslation("contact")
-  const reduce = useReducedMotion()
 
   // `website` is a honeypot — bots autofill it; real users never see it.
   const [form, setForm] = useState(INITIAL_FORM)
@@ -271,7 +270,7 @@ function ContactSection() {
   /* Live per-field validation — errors only surface after the user
    * has interacted with that field (touched=true) or attempted submit.
    * I18N · the messageMin/messageMax keys interpolate {{min}}/{{max}}. */
-  function validateField(field, value, allValues = form) {
+  function validateField(field, value) {
     switch (field) {
       case "firstName":
         return value.trim() ? "" : t("form.errors.firstName")

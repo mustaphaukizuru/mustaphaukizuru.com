@@ -46,7 +46,7 @@ function Avatar({ user, size = "md" }) {
   )
 }
 
-export default function UserMenu({ variant = "header" }) {
+export default function UserMenu() {
   const { t } = useTranslation("common")
   const { user, logout, isAuthenticated, loading } = useAuth()
   const navigate = useNavigate()

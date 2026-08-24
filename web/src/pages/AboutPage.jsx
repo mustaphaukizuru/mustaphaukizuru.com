@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
+import Image from "../components/ui/Image"
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion"
 import { Link } from "react-router-dom"
 import Seo from "../components/seo/Seo"
@@ -256,11 +257,16 @@ function CoreCompetenciesSection() {
             className="absolute -bottom-3 -right-3 -z-10 h-full w-full rounded-3xl border border-terracotta/40"
           />
           <div className="relative overflow-hidden rounded-3xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_-20px_rgba(93,63,211,0.30)]">
-            <img
+            <Image
               src="/images/profile/Ukizuru_Mustapha_Photo.jpg"
               alt={t("core.photoAlt")}
-              className="aspect-square w-full object-cover object-center"
+              width={1080}
+              height={1080}
+              widths={[448, 1080]}
+              sizes="(max-width: 1024px) 100vw, 480px"
               loading="lazy"
+              className="block"
+              imgClassName="aspect-square w-full object-cover object-center"
             />
           </div>
         </motion.figure>
@@ -907,13 +913,6 @@ export default function AboutPage() {
   }, [])
 
   const displayProjects = apiProjects.length > 0 ? apiProjects : aboutProjects.slice(0, 6)
-
-  // Top row of skill cards (preserved from existing data)
-  const skillTabs = {
-    technical:    { label: t("skills.tabs.technical"),    data: displayedSkills.technical },
-    professional: { label: t("skills.tabs.professional"), data: displayedSkills.professional },
-    language:     { label: t("skills.tabs.language"),     data: displayedSkills.language },
-  }
 
   /* Social rendering lives in <AboutHero /> via the shared SocialLinks
    * component; no page-local SOCIALS array is needed here. */

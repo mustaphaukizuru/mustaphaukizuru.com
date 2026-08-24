@@ -35,6 +35,7 @@ const listPages = asyncHandler(async (req, res) => {
     where,
     orderBy: { updatedAt: "desc" },
     select: { id: true, title: true, slug: true, pageType: true, status: true, publishedAt: true, updatedAt: true },
+    take:   200,
   })
   return res.status(200).json({ success: true, data: pages })
 })
