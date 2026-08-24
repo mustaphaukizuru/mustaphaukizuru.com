@@ -42,11 +42,27 @@ export const processSteps = [
  * `data-placeholder` attribute; the owner replaces name/role/company/quote
  * in home.json (EN + ES, under testimonials.items.<key>) and flips the flag
  * to false. Never ship these as real social proof. */
-export const testimonials = [
+/**
+ * Testimonials · home:testimonials.items.<key> holds the quote, name, role
+ * and company for each entry.
+ *
+ * Entries marked `placeholder: true` are INVENTED examples showing the shape
+ * of the data. They are filtered out of `testimonials` below so the site
+ * never publishes social proof that no real client gave — a fake endorsement
+ * on a live page is a lie to buyers, not a styling detail.
+ *
+ * To go live with a testimonial: replace the copy in BOTH
+ * web/src/i18n/locales/en/home.json and es/home.json, then delete
+ * `placeholder: true` from its entry here. The section renders as soon as at
+ * least one real entry exists, and stays hidden while there are none.
+ */
+export const testimonialEntries = [
   { key: "a", initials: "AM", rating: 5, placeholder: true },
   { key: "b", initials: "JN", rating: 5, placeholder: true },
   { key: "c", initials: "CK", rating: 5, placeholder: true },
 ]
+
+export const testimonials = testimonialEntries.filter((entry) => !entry.placeholder)
 
 /* Proof-strip numbers (HomeStatsStrip). Labels via home:stats.<key>Label */
 export const stats = [
