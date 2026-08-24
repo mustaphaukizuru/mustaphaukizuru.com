@@ -117,19 +117,29 @@ Run with `npx @lhci/cli autorun --config=lighthouserc.mobile.json` (3 runs ×
 7 URLs, simulated slow-4G + 4× CPU throttling). These are real numbers from
 this branch, not estimates.
 
-| URL | perf | a11y | best-pr | SEO | LCP | TBT |
-|---|---|---|---|---|---|---|
-| / | 40 | **100** | 100 | 100 | 6.6 s | 1211 ms |
-| /about | 46 | **100** | 96 | 100¹ | 5.7 s | 1050 ms |
-| /services | 58 | **100** | 100 | 100 | 4.8 s | 655 ms |
-| /store | 59 | **100** | 100 | 100 | 4.9 s | 597 ms |
-| /contact | 62 | **100** | 100 | 100 | 4.8 s | 432 ms |
-| /privacy | 72 | **100** | 100 | 100 | 4.7 s | 153 ms |
-| /terms | 64 | **100** | 100 | 100 | 5.0 s | 364 ms |
+| URL | perf (median of 3) | a11y | best-pr | SEO |
+|---|---|---|---|---|
+| / | 40 | **100** | 100 | 100 |
+| /about | 37 | **100** | 96 | **100** |
+| /services | 59 | **100** | 100 | 100 |
+| /store | 52 | **100** | 100 | 100 |
+| /contact | see note² | **100** | 100 | 100 |
+| /privacy | 68 | **100** | 100 | 100 |
+| /terms | 69 | **100** | 100 | 100 |
 
-¹ /about measured SEO 92 during the run because its portfolio grid repeated
-"Learn More" as link text; that is fixed (the project name is now appended
-for assistive tech). CLS is **0.000** on every page.
+LCP ranged 4.7–6.6 s and TBT 153–1211 ms. CLS is **0.000** on every page.
+`/about` SEO was 92 before the "Learn More" link-text fix; it is 100 now.
+
+² **The Lighthouse job is flaky and you should fix this before trusting it in
+CI.** Individual runs returned a performance score of 0 — `/contact` scored
+0, 64, 0 and `/privacy` 69, 0, 68 across three runs. A 0 means the page failed
+to load, not that it loaded slowly. The cause is almost certainly that
+`lighthouserc.mobile.json` boots the real Express server, which talks to the
+**remote Hostinger database** (~450 ms per query from outside their network);
+under simulated 4× CPU throttling some requests exceed Lighthouse's patience
+and the run errors out. Point the Lighthouse job at a local or stubbed API
+before relying on it — otherwise it is partly measuring your latency to
+Hostinger, and it will fail builds at random.
 
 **Accessibility went 86–97 → 100 across the board** and is a hard CI gate.
 

@@ -1,150 +1,85 @@
 [
   {
-    "name": "minScore",
-    "expected": 0.85,
-    "actual": 0.58,
-    "values": [
-      0.4,
-      0.58,
-      0.58
-    ],
-    "operator": ">=",
-    "passed": false,
-    "auditProperty": "performance",
-    "auditId": "categories",
-    "level": "error",
-    "url": "http://localhost:5097/"
-  },
-  {
     "name": "maxNumericValue",
     "expected": 4000,
-    "actual": 4988.567899999998,
+    "actual": 5261.125,
     "values": [
-      6555.015999999999,
-      5162.689200000001,
-      4988.567899999998
+      5261.125,
+      5435.364000000001,
+      5348.2045
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "largest-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/",
     "auditTitle": "Largest Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/"
   },
   {
     "name": "maxNumericValue",
-    "expected": 5000,
-    "actual": 5632.348235,
-    "values": [
-      6825.592559999998,
-      5709.787120000001,
-      5632.348235
-    ],
-    "operator": "<=",
-    "passed": false,
-    "auditId": "interactive",
-    "level": "error",
-    "url": "http://localhost:5097/",
-    "auditTitle": "Time to Interactive",
-    "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/interactive/"
-  },
-  {
-    "name": "maxNumericValue",
     "expected": 3000,
-    "actual": 3413.5104,
+    "actual": 3619.157,
     "values": [
-      3749.8056,
-      3413.5104,
-      3490.0291
+      3669.875,
+      3630.273,
+      3619.157
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "first-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/",
     "auditTitle": "First Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/"
   },
   {
-    "name": "minScore",
-    "expected": 0.85,
-    "actual": 0.48,
+    "name": "maxNumericValue",
+    "expected": 600,
+    "actual": 1618.8905,
     "values": [
-      0.46,
-      0.48,
-      0.38
+      1743,
+      1809.0000000000007,
+      1618.8905
     ],
-    "operator": ">=",
+    "operator": "<=",
     "passed": false,
-    "auditProperty": "performance",
-    "auditId": "categories",
-    "level": "error",
-    "url": "http://localhost:5097/about"
-  },
-  {
-    "name": "minScore",
-    "expected": 0.95,
-    "actual": 0.92,
-    "values": [
-      0.92,
-      0.92,
-      0.92
-    ],
-    "operator": ">=",
-    "passed": false,
-    "auditProperty": "seo",
-    "auditId": "categories",
-    "level": "error",
-    "url": "http://localhost:5097/about"
+    "auditId": "total-blocking-time",
+    "level": "warn",
+    "url": "http://localhost:5097/",
+    "auditTitle": "Total Blocking Time",
+    "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-total-blocking-time/"
   },
   {
     "name": "maxNumericValue",
     "expected": 4000,
-    "actual": 5600.0892,
+    "actual": 5685.987399999998,
     "values": [
-      5650.374800000001,
-      5645.022000000001,
-      5600.0892
+      5800.8158,
+      5685.987399999998,
+      6425.1121
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "largest-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/about",
     "auditTitle": "Largest Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/"
   },
   {
     "name": "maxNumericValue",
-    "expected": 5000,
-    "actual": 6078.9189750000005,
-    "values": [
-      6130.2857650000005,
-      6078.9189750000005,
-      6795.5612
-    ],
-    "operator": "<=",
-    "passed": false,
-    "auditId": "interactive",
-    "level": "error",
-    "url": "http://localhost:5097/about",
-    "auditTitle": "Time to Interactive",
-    "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/interactive/"
-  },
-  {
-    "name": "maxNumericValue",
     "expected": 3000,
-    "actual": 3308.5164999999997,
+    "actual": 3383.24055,
     "values": [
-      3320.0311,
-      3308.5164999999997,
-      3460.9668
+      3453.86185,
+      3383.24055,
+      3546.6277999999998
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "first-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/about",
     "auditTitle": "First Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/"
@@ -152,49 +87,33 @@
   {
     "name": "maxNumericValue",
     "expected": 600,
-    "actual": 921.4972500000006,
+    "actual": 2402.876575,
     "values": [
-      1050.328149999999,
-      921.4972500000006,
-      2521.3444
+      2446.0230250000004,
+      2402.876575,
+      2563.9573999999993
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "total-blocking-time",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/about",
     "auditTitle": "Total Blocking Time",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-total-blocking-time/"
   },
   {
-    "name": "minScore",
-    "expected": 0.85,
-    "actual": 0.66,
-    "values": [
-      0.58,
-      0.54,
-      0.66
-    ],
-    "operator": ">=",
-    "passed": false,
-    "auditProperty": "performance",
-    "auditId": "categories",
-    "level": "error",
-    "url": "http://localhost:5097/services"
-  },
-  {
     "name": "maxNumericValue",
     "expected": 4000,
-    "actual": 4683.206,
+    "actual": 4690.649,
     "values": [
-      4776.166424999999,
-      4814.957999999999,
-      4683.206
+      4690.649,
+      4827.885750000001,
+      4696.612499999999
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "largest-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/services",
     "auditTitle": "Largest Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/"
@@ -202,49 +121,33 @@
   {
     "name": "maxNumericValue",
     "expected": 3000,
-    "actual": 3125.4236,
+    "actual": 3225.1195,
     "values": [
-      3171.81805,
-      3210.068,
-      3125.4236
+      3272.3894,
+      3225.1195,
+      3276.4674999999997
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "first-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/services",
     "auditTitle": "First Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/"
   },
   {
-    "name": "minScore",
-    "expected": 0.85,
-    "actual": 0.59,
-    "values": [
-      0.59,
-      0.53,
-      0.45
-    ],
-    "operator": ">=",
-    "passed": false,
-    "auditProperty": "performance",
-    "auditId": "categories",
-    "level": "error",
-    "url": "http://localhost:5097/store"
-  },
-  {
     "name": "maxNumericValue",
     "expected": 4000,
-    "actual": 4932.81105,
+    "actual": 4843.287,
     "values": [
-      4932.81105,
-      5127.30955,
-      5227.107000000001
+      5146.111999999999,
+      4843.287,
+      4986.881249999999
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "largest-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/store",
     "auditTitle": "Largest Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/"
@@ -252,49 +155,48 @@
   {
     "name": "maxNumericValue",
     "expected": 3000,
-    "actual": 3256.0333,
+    "actual": 3272.1625,
     "values": [
-      3256.0333,
-      3365.2143,
-      3450.4219999999996
+      3499.0560000000005,
+      3395.4722,
+      3272.1625
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "first-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/store",
     "auditTitle": "First Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/"
   },
   {
-    "name": "minScore",
-    "expected": 0.85,
-    "actual": 0.62,
+    "name": "maxNumericValue",
+    "expected": 600,
+    "actual": 628.3426,
     "values": [
-      0.62,
-      0.52,
-      0.6
+      1279.6479999999997,
+      628.3426,
+      878.0562500000001
     ],
-    "operator": ">=",
+    "operator": "<=",
     "passed": false,
-    "auditProperty": "performance",
-    "auditId": "categories",
-    "level": "error",
-    "url": "http://localhost:5097/contact"
+    "auditId": "total-blocking-time",
+    "level": "warn",
+    "url": "http://localhost:5097/store",
+    "auditTitle": "Total Blocking Time",
+    "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-total-blocking-time/"
   },
   {
     "name": "maxNumericValue",
     "expected": 4000,
-    "actual": 4765.513999999999,
+    "actual": 4781.75175,
     "values": [
-      4765.513999999999,
-      5204.619924999999,
-      4908.65675
+      4781.75175
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "largest-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/contact",
     "auditTitle": "Largest Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/"
@@ -302,49 +204,32 @@
   {
     "name": "maxNumericValue",
     "expected": 3000,
-    "actual": 3353.3084,
+    "actual": 3273.19315,
     "values": [
-      3353.3084,
-      3398.9290499999997,
-      3436.19405
+      3398.4084,
+      3355.55105,
+      3273.19315
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "first-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/contact",
     "auditTitle": "First Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/"
   },
   {
-    "name": "minScore",
-    "expected": 0.85,
-    "actual": 0.72,
-    "values": [
-      0.72,
-      0.69,
-      0.57
-    ],
-    "operator": ">=",
-    "passed": false,
-    "auditProperty": "performance",
-    "auditId": "categories",
-    "level": "error",
-    "url": "http://localhost:5097/privacy"
-  },
-  {
     "name": "maxNumericValue",
     "expected": 4000,
-    "actual": 4699.492749999999,
+    "actual": 4746.297,
     "values": [
-      4699.492749999999,
-      4741.4235,
-      5022.720499999999
+      4746.297,
+      4903.528250000001
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "largest-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/privacy",
     "auditTitle": "Largest Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/"
@@ -352,49 +237,33 @@
   {
     "name": "maxNumericValue",
     "expected": 3000,
-    "actual": 3301.8541,
+    "actual": 3159.2782,
     "values": [
-      3350.69565,
-      3301.8541,
-      3339.893
+      3159.2782,
+      3167.1925,
+      3185.4245
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "first-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/privacy",
     "auditTitle": "First Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/"
   },
   {
-    "name": "minScore",
-    "expected": 0.85,
-    "actual": 0.73,
-    "values": [
-      0.64,
-      0.73,
-      0.71
-    ],
-    "operator": ">=",
-    "passed": false,
-    "auditProperty": "performance",
-    "auditId": "categories",
-    "level": "error",
-    "url": "http://localhost:5097/terms"
-  },
-  {
     "name": "maxNumericValue",
     "expected": 4000,
-    "actual": 4670.025499999999,
+    "actual": 4720.341,
     "values": [
-      4960.081249999999,
-      4670.025499999999,
-      4676.703500000001
+      5063.387000000001,
+      4751.406499999999,
+      4720.341
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "largest-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/terms",
     "auditTitle": "Largest Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/"
@@ -402,16 +271,16 @@
   {
     "name": "maxNumericValue",
     "expected": 3000,
-    "actual": 3268.0153,
+    "actual": 3289.7046,
     "values": [
-      3439.54875,
-      3268.0153,
-      3302.0221000000006
+      3376.8019999999997,
+      3313.3439,
+      3289.7046
     ],
     "operator": "<=",
     "passed": false,
     "auditId": "first-contentful-paint",
-    "level": "error",
+    "level": "warn",
     "url": "http://localhost:5097/terms",
     "auditTitle": "First Contentful Paint",
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/"
