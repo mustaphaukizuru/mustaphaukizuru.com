@@ -85,15 +85,71 @@ real sandbox credentials and a browser:
 
 ## 6. Known debts (documented, not hidden)
 
-- **9 colour pairs below 4.5:1 contrast**, all pre-existing, listed in
-  `docs/DESIGN_SYSTEM.md`. `azure` on white (4.10) is the most visible.
-  Fixing them is a design decision, so it was left to you.
-- **Coverage gate is 30% lines** — set to the measured value so it ratchets
-  instead of lying. Raise it as you add tests.
-- `web/src/components/ui/legacy.jsx` still has one hand-rolled skeleton used by
-  ~14 admin pages; migrating them to the unified shimmer is a tidy follow-up.
-- Two newsletter endpoints exist (`/newsletter/subscribe` and the legacy
-  `/newsletter`). Both now enforce double opt-in; the legacy one can be
-  retired once nothing calls it.
+Resolved since the first draft of this document:
+
+- ~~9 colour pairs below 4.5:1~~ — **fixed**, at the usage site rather than by
+  retuning brand anchors. A `lint:contrast` gate (74 pairs) now blocks
+  regressions. Two deliberate exceptions are in §7.
+- ~~Coverage gate at 30%~~ — now **44% lines / 41% statements**, 560 tests.
+  `availabilityService` went 4% → 100% lines, `cartService` → 100%,
+  `twoFactorService` → 98%. The old gate was silently failing.
+- ~~Hand-rolled skeleton in `ui/legacy.jsx`~~ — **fixed**, delegates to the
+  canonical shimmer (16 importers verified unchanged).
+- ~~Two newsletter subscribe paths~~ — **consolidated**; the legacy
+  `POST /newsletter` now delegates to the one implementation. An
+  unauthenticated unsubscribe-by-email handler was deleted (it let anyone
+  unsubscribe any address and doubled as a subscriber-list oracle).
+
+Still open:
+
+- **Performance / prerendering** — see §7. This is the largest remaining item.
+- **Four bugs the new tests exposed are fixed**, but they are worth knowing
+  about because they were all silently live: a cart discount survived items
+  being removed (revenue leak), an expired coupon kept discounting, a TOTP code
+  was replayable for ~90 s, and a DST fall-back day showed two identical
+  "1:00 AM" slots.
 - MercadoPago + PayPal remain the only gateways. Stripe is still deliberately
   absent.
+
+## 7. Measured Lighthouse results (mobile, 2026-08-24)
+
+Run with `npx @lhci/cli autorun --config=lighthouserc.mobile.json` (3 runs ×
+7 URLs, simulated slow-4G + 4× CPU throttling). These are real numbers from
+this branch, not estimates.
+
+| URL | perf | a11y | best-pr | SEO | LCP | TBT |
+|---|---|---|---|---|---|---|
+| / | 40 | **100** | 100 | 100 | 6.6 s | 1211 ms |
+| /about | 46 | **100** | 96 | 100¹ | 5.7 s | 1050 ms |
+| /services | 58 | **100** | 100 | 100 | 4.8 s | 655 ms |
+| /store | 59 | **100** | 100 | 100 | 4.9 s | 597 ms |
+| /contact | 62 | **100** | 100 | 100 | 4.8 s | 432 ms |
+| /privacy | 72 | **100** | 100 | 100 | 4.7 s | 153 ms |
+| /terms | 64 | **100** | 100 | 100 | 5.0 s | 364 ms |
+
+¹ /about measured SEO 92 during the run because its portfolio grid repeated
+"Learn More" as link text; that is fixed (the project name is now appended
+for assistive tech). CLS is **0.000** on every page.
+
+**Accessibility went 86–97 → 100 across the board** and is a hard CI gate.
+
+**Performance does not meet the 0.85 target and cannot without an
+architectural change.** LCP is ~4.7 s even on `/terms`, a near-static page —
+the cost is the SPA shell itself (download → parse → hydrate before anything
+paints), not page content. The i18n split already removed 100 kB from that
+critical path. Closing the remaining gap means **prerendering or SSR for the
+public routes**, which the original audit also flagged.
+
+So the gate is honest rather than aspirational: `categories:performance` is an
+**error floor at 0.35** (catches regressions), the CWV timings are **warnings**
+(keep the gap visible), and a11y/best-practices/SEO stay hard gates at 0.95.
+Desktop budgets are marked WARN and unverified — nobody has run
+`lighthouserc.json` on this branch.
+
+Two things left deliberately, both design decisions:
+- `--text-micro` is 10 px and is ~34 % of the text on /about. Lighthouse wants
+  ≥ 12 px for mobile legibility. Raising it shifts layout site-wide, so it is
+  yours to make.
+- The terracotta accent on light-ground display headings is 1.9:1. Fixing it
+  means picking a different accent hue for light heroes (see
+  `docs/DESIGN_SYSTEM.md`).

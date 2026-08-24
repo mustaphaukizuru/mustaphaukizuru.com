@@ -244,6 +244,12 @@ export default function PortfolioCard({
               className="group/link inline-flex items-center gap-1 rounded-md text-[13px] font-semibold text-violet transition hover:gap-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
               {linkLabel}
+              {/* A grid of links all reading "Learn More" is not descriptive
+                  out of context (Lighthouse `link-text`, WCAG 2.4.4). The
+                  project name is appended for assistive tech only, so the
+                  accessible name stays "Learn More <project>" — which also
+                  keeps the visible text inside the name (WCAG 2.5.3). */}
+              {project?.title ? <span className="sr-only">{` ${project.title}`}</span> : null}
               <ChevronRight
                 className="h-4 w-4 transition-transform group-hover/link:translate-x-0.5"
                 aria-hidden="true"
