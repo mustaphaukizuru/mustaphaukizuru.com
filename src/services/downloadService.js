@@ -93,12 +93,19 @@ async function checkFileEntitlement(userId, productFileId) {
   }
 
   // Check per-file per-user cap (ProductFile.maxDownloadsPerUser).
-  // Counts against DownloadLog rows for this user+product. Close enough
-  // for our use case — logs record every completed stream.
+  // Counts DownloadLog rows for this user + THIS file. Legacy rows written
+  // before productFileId existed have productFileId = null — for those we
+  // fall back to matching on productId so old downloads still count.
   let downloadsRemaining = null
   if (file.maxDownloadsPerUser != null) {
     const consumed = await prisma.downloadLog.count({
-      where: { userId, productId: file.product.id },
+      where: {
+        userId,
+        OR: [
+          { productFileId: file.id },
+          { productFileId: null, productId: file.product.id },
+        ],
+      },
     })
     if (consumed >= file.maxDownloadsPerUser) {
       return {
@@ -126,12 +133,13 @@ async function checkFileEntitlement(userId, productFileId) {
  * here shouldn't bubble up to the user).
  * ──────────────────────────────────────────────────────────────────────────── */
 
-async function recordDownload({ userId, productId, orderId, userDownloadId, ipAddress, userAgent }) {
+async function recordDownload({ userId, productId, productFileId, orderId, userDownloadId, ipAddress, userAgent }) {
   await prisma.$transaction([
     prisma.downloadLog.create({
       data: {
         userId,
         productId,
+        productFileId:  productFileId || null,
         orderId,
         userDownloadId: userDownloadId || null,
         ipAddress:      ipAddress || null,

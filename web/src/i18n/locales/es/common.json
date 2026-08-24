@@ -7,8 +7,7 @@
     "store": "Tienda",
     "portfolio": "Portafolio",
     "blog": "Blog",
-    "contact": "Contacto",
-    "recommendations": "Recomendaciones"
+    "contact": "Contacto"
   },
   "button": {
     "submit": "Enviar",
@@ -102,7 +101,6 @@
     "navSolutions": "Soluciones",
     "navStore": "Tienda",
     "navBlog": "Blog",
-    "navRecs": "Recomendaciones",
     "navContact": "Contacto",
     "legalTerms": "Términos y condiciones",
     "legalPrivacy": "Política de privacidad",
@@ -130,6 +128,13 @@
     "support": "Contactar a soporte",
     "trailer": "Si sigues recibiendo correos, escríbenos directamente a"
   },
+  "newsletterConfirmed": {
+    "title": "Suscripción confirmada",
+    "body": "Gracias por confirmar — ya estás en la lista. Recibirás la próxima edición en tu bandeja de entrada; puedes darte de baja con un clic desde cualquier correo.",
+    "back": "Volver al sitio",
+    "support": "Contactar a soporte",
+    "trailer": "¿Dudas sobre el newsletter? Escríbenos directamente a"
+  },
   "header": {
     "siteNav": "Navegación del sitio",
     "homeAria": "Mustapha Ukizuru, inicio",
@@ -148,7 +153,6 @@
     "dashboard": "Panel",
     "myOrders": "Mis pedidos",
     "downloads": "Descargas",
-    "wishlist": "Favoritos",
     "profile": "Perfil",
     "adminPanel": "Panel admin",
     "account": "Cuenta",
@@ -192,8 +196,8 @@
     "clear": "Limpiar búsqueda",
     "errorTitle": "La búsqueda no pudo ejecutarse",
     "errorBody": "Inténtalo de nuevo",
-    "placeholder2":      "Escribe un comando o busca…",
-    "placeholderShort":  "Buscar productos…"
+    "placeholder2": "Escribe un comando o busca…",
+    "placeholderShort": "Buscar productos…"
   },
   "cart": {
     "drawer": {
@@ -318,12 +322,6 @@
       "attachFile": "Adjuntar archivo",
       "sendShortcut": "Cmd/Ctrl + ↵ para enviar",
       "stopGenerating": "Detener generación"
-    },
-    "compare": {
-      "trayAria": "Bandeja de comparación de productos",
-      "clearAria": "Limpiar comparación",
-      "clearAll": "Limpiar todo",
-      "viewComparison": "Ver comparación"
     },
     "pricing": {
       "mostPopular": "Más popular",

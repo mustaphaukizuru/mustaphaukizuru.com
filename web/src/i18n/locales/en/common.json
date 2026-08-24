@@ -7,8 +7,7 @@
     "store": "Store",
     "portfolio": "Portfolio",
     "blog": "Blog",
-    "contact": "Contact",
-    "recommendations": "Recommendations"
+    "contact": "Contact"
   },
   "button": {
     "submit": "Submit",
@@ -102,7 +101,6 @@
     "navSolutions": "Solutions",
     "navStore": "Store",
     "navBlog": "Blog",
-    "navRecs": "Recs",
     "navContact": "Contact",
     "legalTerms": "Terms & Conditions",
     "legalPrivacy": "Privacy Policy",
@@ -130,6 +128,13 @@
     "support": "Contact support",
     "trailer": "If you continue to receive emails, please email us directly at"
   },
+  "newsletterConfirmed": {
+    "title": "You're subscribed",
+    "body": "Thanks for confirming — you're on the list. Expect the next issue in your inbox; you can unsubscribe with one click from any email.",
+    "back": "Back to website",
+    "support": "Contact support",
+    "trailer": "Questions about the newsletter? Email us directly at"
+  },
   "header": {
     "siteNav": "Site navigation",
     "homeAria": "Mustapha Ukizuru, home",
@@ -148,7 +153,6 @@
     "dashboard": "Dashboard",
     "myOrders": "My orders",
     "downloads": "Downloads",
-    "wishlist": "Wishlist",
     "profile": "Profile",
     "adminPanel": "Admin Panel",
     "account": "Account",
@@ -192,8 +196,8 @@
     "clear": "Clear search",
     "errorTitle": "Search couldn't run",
     "errorBody": "Try again",
-    "placeholder2":      "Type a command or search…",
-    "placeholderShort":  "Search products…"
+    "placeholder2": "Type a command or search…",
+    "placeholderShort": "Search products…"
   },
   "cart": {
     "drawer": {
@@ -318,12 +322,6 @@
       "attachFile": "Attach a file",
       "sendShortcut": "Cmd/Ctrl + ↵ to send",
       "stopGenerating": "Stop generating"
-    },
-    "compare": {
-      "trayAria": "Product comparison tray",
-      "clearAria": "Clear comparison",
-      "clearAll": "Clear all",
-      "viewComparison": "View comparison"
     },
     "pricing": {
       "mostPopular": "Most Popular",

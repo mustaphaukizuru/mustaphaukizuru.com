@@ -37,9 +37,28 @@ function buildUnsubscribeUrl(token) {
 }
 
 /**
- * Subscribe or re-subscribe an email. Returns the row plus a flag indicating
- * whether this is a new signup (the controller uses the flag to decide
- * whether to send the welcome email).
+ * Confirmation link for double opt-in. NewsletterSubscriber has no dedicated
+ * confirm-token column, so `unsubscribeToken` doubles as the confirm token
+ * while the row is "pending" (it is rotated on confirmation so the link in
+ * the confirmation email can never be replayed as an unsubscribe link).
+ */
+function buildConfirmUrl(token) {
+  return `${backendBaseUrl()}/api/v1/newsletter/confirm/${encodeURIComponent(token)}`
+}
+
+const RESEND_COOLDOWN_MS = 10 * 60 * 1000
+
+/**
+ * Subscribe (double opt-in). Creates or updates the row with status
+ * "pending" and tells the controller whether to send the confirmation email:
+ *
+ *   - new address / previously unsubscribed → pending + sendConfirmation
+ *   - pending, last touched > 10 min ago    → resend confirmation
+ *   - pending, touched within 10 min        → no-op (rate limited)
+ *   - already "subscribed"                  → no-op success
+ *
+ * The model has no updatedAt column, so `subscribedAt` is refreshed on every
+ * pending write and used as the resend timestamp.
  */
 async function subscribe({ email, name, source }) {
   const normEmail = String(email || "").trim().toLowerCase()
@@ -51,23 +70,29 @@ async function subscribe({ email, name, source }) {
   const existing = await prisma.newsletterSubscriber.findUnique({ where: { email: normEmail } })
 
   if (existing) {
-    // Already subscribed — refresh token if missing, flag as existing.
-    const updates = {}
-    if (!existing.unsubscribeToken) updates.unsubscribeToken = randomToken()
-    if (existing.status === "unsubscribed") {
-      updates.status = "subscribed"
-      updates.subscribedAt = new Date()
-      updates.unsubscribedAt = null
+    if (existing.status === "subscribed") {
+      return { subscriber: existing, sendConfirmation: false, alreadySubscribed: true }
     }
+
+    const updates = { status: "pending" }
+    if (!existing.unsubscribeToken) updates.unsubscribeToken = randomToken()
     if (source && !existing.source) updates.source = source
     if (name && !existing.name)     updates.name = name
 
-    const row = Object.keys(updates).length > 0
-      ? await prisma.newsletterSubscriber.update({ where: { id: existing.id }, data: updates })
-      : existing
+    if (existing.status === "pending") {
+      const last = existing.subscribedAt ? new Date(existing.subscribedAt).getTime() : 0
+      if (Date.now() - last < RESEND_COOLDOWN_MS) {
+        return { subscriber: existing, sendConfirmation: false, rateLimited: true }
+      }
+    } else {
+      // Re-subscribing an unsubscribed address → fresh token, clear tombstone.
+      updates.unsubscribeToken = randomToken()
+      updates.unsubscribedAt = null
+    }
+    updates.subscribedAt = new Date()
 
-    const isNew = existing.status === "unsubscribed"   // re-subscribe → treat as new for welcome email
-    return { subscriber: row, isNew, unsubscribeUrl: buildUnsubscribeUrl(row.unsubscribeToken) }
+    const row = await prisma.newsletterSubscriber.update({ where: { id: existing.id }, data: updates })
+    return { subscriber: row, sendConfirmation: true, confirmUrl: buildConfirmUrl(row.unsubscribeToken) }
   }
 
   const row = await prisma.newsletterSubscriber.create({
@@ -75,11 +100,36 @@ async function subscribe({ email, name, source }) {
       email:            normEmail,
       name:             name || null,
       source:           source || null,
-      status:           "subscribed",
+      status:           "pending",
       unsubscribeToken: randomToken(),
     },
   })
-  return { subscriber: row, isNew: true, unsubscribeUrl: buildUnsubscribeUrl(row.unsubscribeToken) }
+  return { subscriber: row, sendConfirmation: true, confirmUrl: buildConfirmUrl(row.unsubscribeToken) }
+}
+
+/**
+ * Confirm by token (double opt-in). Returns the subscriber or null when the
+ * token is unknown. Already-confirmed rows are returned untouched.
+ */
+async function confirmByToken(token) {
+  if (!token) return null
+  const row = await prisma.newsletterSubscriber.findUnique({ where: { unsubscribeToken: token } })
+  if (!row) return null
+  if (row.status === "subscribed") return row
+
+  return prisma.newsletterSubscriber.update({
+    where: { id: row.id },
+    data:  {
+      status:           "subscribed",
+      subscribedAt:     new Date(),
+      unsubscribedAt:   null,
+      unsubscribeToken: randomToken(),   // rotate: confirm link ≠ unsubscribe link
+    },
+  })
+}
+
+function subscribeConfirmedUrl() {
+  return `${frontendBaseUrl()}/unsubscribed?state=confirmed`
 }
 
 /**
@@ -187,8 +237,11 @@ function buildError(code, message, statusCode = 400) {
 
 module.exports = {
   subscribe,
+  confirmByToken,
   unsubscribeByToken,
   buildUnsubscribeUrl,
+  buildConfirmUrl,
+  subscribeConfirmedUrl,
   unsubscribeConfirmedUrl,
   listSubscribers,
   deleteSubscriber,

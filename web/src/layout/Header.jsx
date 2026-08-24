@@ -15,7 +15,6 @@ import {
   UserCog,
   LogOut,
   Shield,
-  Heart,
   Home as HomeIcon,
   User,
   Layers,
@@ -55,7 +54,7 @@ import { Loader2 } from "lucide-react"
  */
 
 /* Primary navbar links — kept short and audience-facing. Editorial
- * surfaces (Blog, Recommendations) live in the Footer instead, so the
+ * surfaces (Blog) live in the Footer instead, so the
  * header stays focused on what visitors hire Mustapha for.
  *
  * Each link carries a Lucide icon — used by the mobile menu cascade
@@ -76,7 +75,6 @@ const USER_MENU_ITEMS = [
   { nameKey: "header.dashboard", to: "/dashboard", icon: LayoutDashboard },
   { nameKey: "header.myOrders", to: "/dashboard/orders", icon: ShoppingBag },
   { nameKey: "header.downloads", to: "/dashboard/downloads", icon: ShoppingBag },
-  { nameKey: "header.wishlist", to: "/dashboard/wishlist", icon: Heart },
   { nameKey: "header.profile", to: "/dashboard/profile", icon: UserCog },
 ]
 

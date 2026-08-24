@@ -40,8 +40,6 @@ const PAGE_META = {
   "/admin/services": { title: "Services", sub: "Consulting and service delivery" },
   "/admin/portfolio": { title: "Portfolio", sub: "Case studies and featured projects" },
   "/admin/support": { title: "Support Tickets", sub: "Member requests, replies, and resolution" },
-  "/admin/pages": { title: "CMS Pages", sub: "Content, legal, and published pages" },
-  "/admin/media": { title: "Media Library", sub: "Images, documents, and digital assets" },
   "/admin/email-templates": { title: "Email Templates", sub: "Transactional email configuration" },
   "/admin/email-logs": { title: "Email Logs", sub: "Delivery history and debugging" },
   "/admin/users": { title: "Users", sub: "Members, roles, and account state" },

@@ -13,7 +13,6 @@ import { DEFAULT_OG_IMAGE, absoluteUrl } from "./siteSeo"
  *   /          consultoría tecnológica México
  *   /services  consultoría IT México · EdTech · transformación digital escuelas
  *   /store     productos digitales México · plantillas IT · recursos STEM
- *   /solutions soluciones tecnológicas escuelas México
  *
  * Title budget 55–60 chars, description 150–160 chars (after the brand
  * suffix Seo.jsx appends).
@@ -137,11 +136,6 @@ export const staticSeoEsByRoute = {
       "Explicación clara de cómo mustaphaukizuru.com utiliza cookies, qué categorías existen y cómo gestionar tus preferencias en cualquier momento.",
   },
 
-  "/recommendations": {
-    title: "Recomendaciones · Herramientas y Recursos que Uso",
-    description:
-      "Herramientas, libros, cursos, plantillas y servicios seleccionados a mano que he usado personalmente y respaldo.",
-  },
 }
 
 /**

@@ -6,7 +6,6 @@
     "orders": "Pedidos",
     "consultations": "Consultas",
     "support": "Soporte",
-    "wishlist": "Lista de deseos",
     "addresses": "Direcciones",
     "twoFactor": "Verificación en dos pasos",
     "profile": "Perfil",
@@ -61,39 +60,6 @@
       "files_other": "{{count}} archivos",
       "noFiles": "Aún no se han compartido archivos.",
       "fileFallback": "archivo"
-    }
-  },
-  "wishlist": {
-    "errors": {
-      "load": "No pudimos cargar tu lista de deseos.",
-      "remove": "No pudimos quitarlo de la lista de deseos",
-      "moveCart": "No pudimos moverlo al carrito"
-    },
-    "toast": {
-      "removed": "Quitado de la lista de deseos",
-      "movedGeneric": "Movido al carrito",
-      "movedNamed": "{{title}} se movió al carrito"
-    },
-    "intro": {
-      "savedForLater": "Guardado para después",
-      "title": "Mi lista de deseos",
-      "subtitleEmpty": "Guarda productos para volver a ellos más tarde.",
-      "subtitle_one": "{{total}} producto guardado · {{active}} disponible para comprar",
-      "subtitle_other": "{{total}} productos guardados · {{active}} disponibles para comprar",
-      "browseStore": "Ver tienda"
-    },
-    "empty": {
-      "title": "Nada guardado aún",
-      "body": "Toca el corazón en cualquier producto para guardarlo en tu lista de deseos."
-    },
-    "card": {
-      "unavailable": "No disponible",
-      "untitled": "Producto sin título",
-      "noDescription": "Sin descripción disponible.",
-      "savedOn": "Guardado el {{date}}",
-      "moveToCart": "Mover al carrito",
-      "remove": "Quitar de la lista de deseos",
-      "busy": "…"
     }
   },
   "serviceOrders": {

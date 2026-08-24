@@ -15,7 +15,6 @@ import {
   X,
   Menu,
   Globe,
-  Heart,
   MapPin, Briefcase, Calendar} from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
@@ -93,7 +92,6 @@ const navigation = [
       { label: "Downloads", to: "/dashboard/downloads", icon: Download, description: "File history and logs" },
       { label: "Order History", to: "/dashboard/orders", icon: ShoppingBag, description: "Purchases and status" },
       { label: "Service Orders", to: "/dashboard/service-orders", icon: Briefcase, description: "Consulting services" },
-      { label: "Wishlist", to: "/dashboard/wishlist", icon: Heart, description: "Saved for later" },
     ],
   },
   {
@@ -134,7 +132,6 @@ const pageMeta = {
   "/dashboard/orders": { title: "Order History", subtitle: "Review your purchases, payment state, and order records." },
   "/dashboard/consultations": { title: "Consultations", subtitle: "Manage upcoming bookings, reschedule, or cancel calls." },
   "/dashboard/service-orders": { title: "Service Orders", subtitle: "Track your consulting services, consultations, and project milestones." },
-  "/dashboard/wishlist": { title: "Wishlist", subtitle: "Products you've saved for later." },
   "/dashboard/addresses": { title: "Addresses", subtitle: "Manage saved billing and invoicing addresses." },
   "/dashboard/2fa": { title: "Security · Two-Factor Auth", subtitle: "Add an extra layer of protection to your account." },
   "/dashboard/support": { title: "Support", subtitle: "Open tickets, get help, and track your support requests." },

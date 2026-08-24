@@ -8,12 +8,11 @@ const prisma = require("../lib/prisma")
  *  for 1 hour to keep search-engine traffic from hammering the DB.
  *
  *  Pages included:
- *    Static       — Home, About, Services, Solutions, Store, Contact, Book,
+ *    Static       — Home, About, Services, Store, Contact, Book,
  *                   Privacy, Terms, Refund
  *    Products     — every active Product, by /store/:slug
  *    Services     — every active Service, by /services/:slug
  *    Portfolio    — every published PortfolioProject, by /projects/:slug
- *    CMS pages    — every published Page (legal/content), by /:slug
  *
  *  Frequency / priority hints follow Google's modern guidance — most signals
  *  are now ignored except <lastmod>, but we set the others for older crawlers
@@ -133,26 +132,6 @@ async function buildSitemapXml() {
     }
   } catch (e) {
     console.warn("[sitemap] portfolio query failed:", e.message)
-  }
-
-  // CMS pages — published only. Excludes the legal pages already listed in STATIC_PAGES.
-  try {
-    const staticSlugs = new Set(STATIC_PAGES.map((p) => p.path.slice(1)))
-    const pages = await prisma.page.findMany({
-      where:  { status: "published" },
-      select: { slug: true, updatedAt: true },
-    })
-    pages.forEach((p) => {
-      if (!p.slug || staticSlugs.has(p.slug)) return
-      entries.push(urlEntry({
-        loc:        `${SITE_URL}/${encodeURIComponent(p.slug)}`,
-        lastmod:    p.updatedAt,
-        changefreq: "monthly",
-        priority:   0.4,
-      }))
-    })
-  } catch (e) {
-    console.warn("[sitemap] CMS page query failed:", e.message)
   }
 
   return [

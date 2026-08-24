@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, Users,
-  RefreshCw, Download, FileText, Plus, ArrowRight, ArrowUpRight,
+  RefreshCw, Download, Plus, ArrowRight, ArrowUpRight,
   CheckCircle2, Clock, XCircle, RotateCcw, AlertCircle, Eye,
   Activity, Zap, Calendar, Headphones, UserPlus, FolderOpen,
   Briefcase, ClipboardList, Receipt, MessageSquare,
@@ -1095,13 +1095,12 @@ export default function AdminDashboardPage() {
             Quick Actions
           </h2>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {[
             { label: "Add Product", to: "/admin/products/new", icon: Plus, primary: true },
             { label: "View Orders", to: "/admin/orders", icon: ShoppingCart },
             { label: "Downloads", to: "/admin/downloads", icon: Download },
             { label: "Support", to: "/admin/support", icon: AlertCircle },
-            { label: "Pages", to: "/admin/pages", icon: FileText },
             { label: "Users", to: "/admin/users", icon: Users },
           ].map(({ label, to, icon: Icon, primary }) => (
             <Link

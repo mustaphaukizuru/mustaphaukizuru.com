@@ -5,7 +5,6 @@ import en_common from "./locales/en/common.json"
 import en_home from "./locales/en/home.json"
 import en_about from "./locales/en/about.json"
 import en_services from "./locales/en/services.json"
-import en_solutions from "./locales/en/solutions.json"
 import en_store from "./locales/en/store.json"
 import en_product from "./locales/en/product.json"
 import en_cart from "./locales/en/cart.json"
@@ -18,13 +17,11 @@ import en_portfolio from "./locales/en/portfolio.json"
 import en_legal from "./locales/en/legal.json"
 import en_errors from "./locales/en/errors.json"
 import en_blog from "./locales/en/blog.json"
-import en_recommendations from "./locales/en/recommendations.json"
 
 import es_common from "./locales/es/common.json"
 import es_home from "./locales/es/home.json"
 import es_about from "./locales/es/about.json"
 import es_services from "./locales/es/services.json"
-import es_solutions from "./locales/es/solutions.json"
 import es_store from "./locales/es/store.json"
 import es_product from "./locales/es/product.json"
 import es_cart from "./locales/es/cart.json"
@@ -37,7 +34,6 @@ import es_portfolio from "./locales/es/portfolio.json"
 import es_legal from "./locales/es/legal.json"
 import es_errors from "./locales/es/errors.json"
 import es_blog from "./locales/es/blog.json"
-import es_recommendations from "./locales/es/recommendations.json"
 
 const resources = {
   en: {
@@ -45,7 +41,6 @@ const resources = {
     home: en_home,
     about: en_about,
     services: en_services,
-    solutions: en_solutions,
     store: en_store,
     product: en_product,
     cart: en_cart,
@@ -58,14 +53,12 @@ const resources = {
     legal: en_legal,
     errors: en_errors,
     blog: en_blog,
-    recommendations: en_recommendations,
   },
   es: {
     common: es_common,
     home: es_home,
     about: es_about,
     services: es_services,
-    solutions: es_solutions,
     store: es_store,
     product: es_product,
     cart: es_cart,
@@ -78,7 +71,6 @@ const resources = {
     legal: es_legal,
     errors: es_errors,
     blog: es_blog,
-    recommendations: es_recommendations,
   },
 }
 

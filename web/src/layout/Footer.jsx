@@ -31,7 +31,7 @@ const paypalLogo = "/images/brand/pp-logo-150px.png"
  *  every interactive accent.
  *  ──────────────────────────────────────────────────────────────────────── */
 
-/* Footer quick links — includes the editorial surfaces (Blog + Recommendations)
+/* Footer quick links — includes the editorial surfaces (Blog)
  * that we deliberately keep OUT of the primary navbar so the header stays
  * focused on what visitors hire Mustapha for. */
 const QUICK_LINKS = [
@@ -40,7 +40,6 @@ const QUICK_LINKS = [
   { nameKey: "footer.navServices", path: "/services" },
   { nameKey: "footer.navStore", path: "/store" },
   { nameKey: "footer.navBlog", path: "/blog" },
-  { nameKey: "footer.navRecs", path: "/recommendations" },
   { nameKey: "footer.navContact", path: "/contact" },
 ]
 

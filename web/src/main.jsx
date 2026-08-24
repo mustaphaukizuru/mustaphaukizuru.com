@@ -13,7 +13,6 @@ import "./index.css";
 import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./store/CartContext";
-import { CompareProvider } from "./context/CompareContext"; // #3
 import { NotificationProvider } from "./context/NotificationContext";
 import { MenuProvider } from "./context/MenuContext";
 import OfflineBanner from "./components/OfflineBanner";
@@ -73,7 +72,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <AuthProvider>
             <NotificationProvider>
               <CartProvider>
-                <CompareProvider>
                   <MenuProvider>
                     <SmoothScrollProvider>
                       <SeoRouteManager />
@@ -81,7 +79,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                       <OfflineBanner />
                     </SmoothScrollProvider>
                   </MenuProvider>
-                </CompareProvider>
               </CartProvider>
             </NotificationProvider>
           </AuthProvider>

@@ -14,8 +14,6 @@ import {
   ChevronDown,
   ShieldCheck,
   Headphones,
-  FileText,
-  Image,
   Mail,
   MailOpen,
   ClipboardList,
@@ -31,7 +29,6 @@ import {
   Star,
   Receipt,
   Activity,
-  Bookmark,
   Newspaper,
   Megaphone,
 } from "lucide-react"
@@ -114,7 +111,6 @@ const navigation = [
       { label: "Blog", to: "/admin/blog", icon: Newspaper, description: "Posts, categories, tags" },
       { label: "Portfolio", to: "/admin/portfolio", icon: FolderOpen, description: "Case studies & gallery" },
       { label: "Bio CMS", to: "/admin/bio", icon: BookUser, description: "Experience · certificates · skills" },
-      { label: "Recommendations", to: "/admin/recommendations", icon: Bookmark, description: "Curated tools, books & partners" },
     ],
   },
   {
@@ -131,8 +127,6 @@ const navigation = [
     section: "Content",
     collapsible: false,
     items: [
-      { label: "Pages", to: "/admin/pages", icon: FileText, description: "CMS & legal" },
-      { label: "Media Library", to: "/admin/media", icon: Image, description: "Uploads & assets" },
     ],
   },
   {
@@ -149,7 +143,6 @@ const navigation = [
     collapsible: false,
     items: [
       { label: "Users", to: "/admin/users", icon: Users, description: "Accounts & roles" },
-      { label: "Roles", to: "/admin/roles", icon: ShieldCheck, description: "Permissions & access control" },
       { label: "Sessions", to: "/admin/sessions", icon: Activity, description: "Active sign-ins & security" },
       { label: "Analytics", to: "/admin/analytics", icon: TrendingUp, description: "Privacy-first traffic & events" },
       { label: "Audit Log",       to: "/admin/audit",       icon: ClipboardList, description: "Action history" },

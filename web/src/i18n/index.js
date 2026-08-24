@@ -34,10 +34,10 @@ i18n
     supportedLngs: ["en", "es"],
     defaultNS: "common",
     ns: [
-      "common", "home", "about", "services", "solutions",
+      "common", "home", "about", "services",
       "store", "product", "cart", "checkout", "auth",
       "dashboard", "admin", "contact", "portfolio", "legal", "errors",
-      "blog", "recommendations",
+      "blog",
     ],
     interpolation: { escapeValue: false }, // React already escapes
     detection: I18N_ENABLED

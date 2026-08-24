@@ -2,11 +2,6 @@ import {
   Building2,
   BriefcaseBusiness,
   GraduationCap,
-  BookOpen,
-  MonitorSmartphone,
-  Wrench,
-  BrainCircuit,
-  Server,
   Search,
   Lightbulb,
   Settings2,
@@ -45,15 +40,6 @@ export const audiences = [
     descriptionKey: "home:audiences.schools.description",
     icon:           GraduationCap,
   },
-]
-
-export const solutions = [
-  { titleKey: "home:solutionsList.digitalProducts",          icon: BookOpen },
-  { titleKey: "home:solutionsList.professionalTraining",     icon: GraduationCap },
-  { titleKey: "home:solutionsList.websiteAndDigitalSystems", icon: MonitorSmartphone },
-  { titleKey: "home:solutionsList.technologyConsulting",     icon: BrainCircuit },
-  { titleKey: "home:solutionsList.stemCodingRobotics",       icon: Wrench },
-  { titleKey: "home:solutionsList.itInfrastructure",         icon: Server },
 ]
 
 /* featuredProducts is reference seed data only — actual featured products

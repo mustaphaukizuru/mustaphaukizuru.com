@@ -165,7 +165,7 @@
     "inputAriaLabel": "Tu dirección de correo electrónico",
     "cta": "Suscribirme gratis",
     "submitting": "Suscribiendo…",
-    "successMessage": "¡Ya estás dentro! Revisa tu bandeja de entrada.",
+    "successMessage": "Casi listo — revisa tu bandeja de entrada para confirmar tu suscripción.",
     "validationError": "Por favor ingresa un correo electrónico válido.",
     "serverError": "Algo salió mal. Por favor inténtalo de nuevo.",
     "trust1": "4 países",

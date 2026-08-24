@@ -33,6 +33,7 @@ try {
 const { aggregateDailyMetrics } = require("./aggregateDailyMetrics")
 const { runReminderPass } = require("./bookingReminderJob")
 const { cancelStaleOrders } = require("./cancelStaleOrders")
+const { runCampaignSenderPass } = require("./campaignSenderJob")
 
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
@@ -86,6 +87,17 @@ function startScheduler() {
     logger.info("[scheduler] registered stale-order janitor · hourly")
   } catch (err) {
     logger.error("[scheduler] failed to register cancelStaleOrders", err)
+  }
+
+  // ── Campaign sender · every minute ──────────────────────────────────
+  // Drains queued EmailCampaignRecipient rows (50 per campaign per tick)
+  // for campaigns in status "sending". The overlap guard keeps two passes
+  // from racing on the same rows.
+  try {
+    cron.schedule("* * * * *", () => guarded("campaignSender", runCampaignSenderPass))
+    logger.info("[scheduler] registered campaign sender · every minute")
+  } catch (err) {
+    logger.error("[scheduler] failed to register campaignSenderJob", err)
   }
 }
 

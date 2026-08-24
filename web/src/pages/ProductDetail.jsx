@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next"
-import { Link, useParams, useNavigate, useSearchParams} from "react-router-dom";
+import { Link, useParams, useSearchParams} from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -33,8 +33,6 @@ import Seo from "../components/seo/Seo";
 import ProductReviews from "../components/ProductReviews";
 import { fetchProductBySlug } from "../services/productService";
 import { useCart } from "../store/CartContext";
-import { useAuth } from "../context/AuthContext";
-import { fetchWishlist, addToWishlist, removeFromWishlist } from "../services/wishlistService";
 import { API_BASE_URL, apiRequest } from "../lib/api";
 import { formatPrice } from "../lib/format";
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons";
@@ -1036,18 +1034,11 @@ export default function ProductDetail() {
   const { t } = useTranslation("product")
   const { slug } = useParams();
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-
-  // B08 · wishlist state
-  const [wishlisted, setWishlisted] = useState(false);
-  const [wishlistItemId, setWishlistItemId] = useState(null);
-  const [wishlistBusy, setWishlistBusy] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -1115,59 +1106,6 @@ export default function ProductDetail() {
       cancelled = true;
     };
   }, [slug]);
-
-  // B08 · load wishlist state once product + auth are resolved
-  useEffect(() => {
-    if (!isAuthenticated || !product?.id) {
-      setWishlisted(false);
-      setWishlistItemId(null);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const items = await fetchWishlist();
-        if (cancelled) return;
-        const match = items.find((it) => it.productId === product.id || it.product?.id === product.id);
-        setWishlisted(Boolean(match));
-        setWishlistItemId(match?.id || null);
-      } catch {
-        /* non-blocking */
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [isAuthenticated, product?.id]);
-
-  async function handleWishlistToggle() {
-    if (!isAuthenticated) {
-      const returnTo = slug ? `/store/${slug}` : window.location.pathname;
-      navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
-      return;
-    }
-    if (wishlistBusy || !product?.id) return;
-    setWishlistBusy(true);
-
-    const wasWishlisted = wishlisted;
-    const prevItemId = wishlistItemId;
-
-    // Optimistic
-    setWishlisted(!wasWishlisted);
-    if (wasWishlisted) setWishlistItemId(null);
-
-    try {
-      if (wasWishlisted && prevItemId) {
-        await removeFromWishlist(prevItemId);
-      } else {
-        const item = await addToWishlist(product.id);
-        setWishlistItemId(item?.id || null);
-      }
-    } catch {
-      setWishlisted(wasWishlisted);
-      setWishlistItemId(prevItemId);
-    } finally {
-      setWishlistBusy(false);
-    }
-  }
 
   const images = useMemo(() => normalizeImages(product), [product]);
   const highlights = useMemo(() => normalizeHighlights(product), [product]);
@@ -1687,23 +1625,6 @@ export default function ProductDetail() {
                   </div>
 
                   <div className="mt-4 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={handleWishlistToggle}
-                      disabled={wishlistBusy}
-                      aria-pressed={wishlisted}
-                      className={`flex flex-1 items-center justify-center gap-2 rounded-xl border py-2.5 text-micro font-semibold transition ${
-                        wishlisted
-                          ? "border-rose/20 bg-rose/10 text-rose-700"
-                          : "border-charcoal-80/12 text-charcoal-80/60 hover:border-rose/20 hover:text-red-500"
-                      } disabled:cursor-not-allowed disabled:opacity-60`}
-                    >
-                      <Heart
-                        className={`h-4 w-4 ${wishlisted ? "fill-current" : ""}`}
-                      />
-                      {wishlistBusy ? "…" : wishlisted ? "Wishlisted" : "Wishlist"}
-                    </button>
-
                     <button
                       type="button"
                       onClick={handleShare}

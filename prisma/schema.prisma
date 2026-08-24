@@ -324,6 +324,9 @@ model Session {
   @@index([userId])
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model Role {
   id          String   @id @default(cuid())
   name        String   @unique
@@ -334,6 +337,9 @@ model Role {
   rolePermissions RolePermission[]
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model UserRole {
   id        String   @id @default(cuid())
   userId    String
@@ -348,6 +354,9 @@ model UserRole {
   @@index([roleId])
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model AdminPermission {
   id        String   @id @default(cuid())
   key       String   @unique
@@ -357,6 +366,9 @@ model AdminPermission {
   rolePermissions RolePermission[]
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model RolePermission {
   id           String @id @default(cuid())
   roleId       String
@@ -475,7 +487,8 @@ model ProductFile {
   maxDownloadsPerUser Int?
   uploadedAt          DateTime @default(now())
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  downloadLogs DownloadLog[]
 
   @@index([productId])
 }
@@ -495,6 +508,9 @@ model ProductImage {
   @@index([productId])
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model ProductTag {
   id   String @id @default(cuid())
   name String @unique
@@ -503,6 +519,9 @@ model ProductTag {
   products ProductTagMap[]
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model ProductTagMap {
   id        String @id @default(cuid())
   productId String
@@ -613,6 +632,9 @@ enum RecommendationStatus {
   archived
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model Recommendation {
   id       String  @id @default(cuid())
   title    String
@@ -763,6 +785,9 @@ model ServicePackage {
 
 /// Join row mapping which Service Features are included in a given Package.
 /// Drives the ✓/✗ matrix shown on the public Choose-Your-Plan page.
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model PackageFeatureSlot {
   id        String @id @default(cuid())
   packageId String
@@ -1050,6 +1075,9 @@ model DownloadLog {
   productId      String
   orderId        String
   userDownloadId String?
+  /// Per-file download cap tracking. Nullable so legacy rows (pre per-file cap)
+  /// stay valid; downloadService falls back to productId for those.
+  productFileId  String?
   userAgent      String?  @db.Text
   ipAddress      String?
   createdAt      DateTime @default(now())
@@ -1058,11 +1086,13 @@ model DownloadLog {
   product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
   userDownload UserDownload? @relation(fields: [userDownloadId], references: [id], onDelete: SetNull)
+  productFile  ProductFile?  @relation(fields: [productFileId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([productId])
   @@index([orderId])
   @@index([userDownloadId])
+  @@index([productFileId])
 }
 
 /// =============================================================
@@ -1427,6 +1457,9 @@ model EmailLog {
 /// CMS AND MEDIA
 /// =============================================================
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model Page {
   id              String     @id @default(cuid())
   title           String
@@ -1557,6 +1590,9 @@ model Portfolio {
 // B08 · Wishlist + Saved Addresses
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model Wishlist {
   id        String         @id @default(cuid())
   userId    String         @unique
@@ -1566,6 +1602,9 @@ model Wishlist {
   updatedAt DateTime       @updatedAt
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model WishlistItem {
   id         String   @id @default(cuid())
   wishlistId String

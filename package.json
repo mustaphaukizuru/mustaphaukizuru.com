@@ -18,7 +18,6 @@
     "seed:audience-plans": "node prisma/seed-audience-plans.js",
     "janitor:orders": "node scripts/cancel-stale-orders.js",
     "optimize:images": "bash scripts/optimize-images.sh",
-    "seed:permissions": "node prisma/seed-permissions.js",
     "seed:products": "node prisma/seed/products-seed.js",
     "seed:blog": "node prisma/seed-blog.js",
     "google:bootstrap": "node scripts/google-oauth-bootstrap.js",

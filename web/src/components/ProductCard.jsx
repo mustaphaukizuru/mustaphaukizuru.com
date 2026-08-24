@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ShoppingCart,
@@ -8,14 +8,10 @@ import {
   Check,
   Star,
   Download,
-  Heart,
   Sparkles,
-  Scale} from "lucide-react"
+} from "lucide-react"
 import { useCart } from "../store/CartContext"
-import { useCompare } from "../context/CompareContext" // #3
-import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
-import { addToWishlist, removeFromWishlist } from "../services/wishlistService"
 import { getFileTypeStyles } from "../lib/fileTypeIcons"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -34,7 +30,6 @@ import { getFileTypeStyles } from "../lib/fileTypeIcons"
  *    - Rating row below title: "⭐ 4.8 (127)" only when reviewCount > 0
  *
  *  Preserved verbatim:
- *    - B08 wishlist toggle (optimistic) + auth redirect
  *    - Image preview thumbnail strip + hover auto-rotation
  *    - Add-to-cart success flash
  *    - All callable props and behavior
@@ -93,32 +88,14 @@ function isCreatedRecently(createdAt) {
   return now - created <= threshold
 }
 
-export default function ProductCard({
-  product,
-  initialWishlisted = false,
-  wishlistItemId: initialItemId = null,
-  onWishlistChange,
-}) {
+export default function ProductCard({ product }) {
   const { t } = useTranslation("store")
-  const { t: tProd } = useTranslation("product")
   const { addToCart } = useCart()
-  const compare = useCompare() // #3 · compare-products toggle
-  const inCompare = compare.has(product?.slug)
-  const { isAuthenticated } = useAuth()
-  const navigate = useNavigate()
 
   const [hovered, setHovered] = useState(false)
   const [previewIndex, setPreviewIndex] = useState(0)
   const [added, setAdded] = useState(false)
   const [pausedByUser, setPausedByUser] = useState(false)
-
-  // Wishlist state — optimistic
-  const [wishlisted, setWishlisted] = useState(Boolean(initialWishlisted))
-  const [wishlistItemId, setWishlistItemId] = useState(initialItemId)
-  const [wishlistBusy, setWishlistBusy] = useState(false)
-
-  useEffect(() => { setWishlisted(Boolean(initialWishlisted)) }, [initialWishlisted])
-  useEffect(() => { setWishlistItemId(initialItemId) }, [initialItemId])
 
   const images = useMemo(() => normalizeImages(product), [product])
   const activeImage = images[previewIndex] || images[0] || null
@@ -149,6 +126,7 @@ export default function ProductCard({
   }, [hovered, pausedByUser, images.length])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clamp after the image list shrinks (external data)
     if (previewIndex > images.length - 1) setPreviewIndex(0)
   }, [previewIndex, images.length])
 
@@ -165,42 +143,6 @@ export default function ProductCard({
     addToCart(product, 1)
     setAdded(true)
     window.setTimeout(() => setAdded(false), 1200)
-  }
-
-  async function handleWishlistToggle(e) {
-    e.preventDefault()
-    e.stopPropagation()
-
-    if (!isAuthenticated) {
-      const returnTo = product?.slug ? `/store/${product.slug}` : window.location.pathname
-      navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`)
-      return
-    }
-
-    if (wishlistBusy || !product?.id) return
-    setWishlistBusy(true)
-
-    const wasWishlisted = wishlisted
-    const previousItemId = wishlistItemId
-
-    setWishlisted(!wasWishlisted)
-    if (wasWishlisted) setWishlistItemId(null)
-
-    try {
-      if (wasWishlisted && previousItemId) {
-        await removeFromWishlist(previousItemId)
-        onWishlistChange?.(product.id, false, null)
-      } else {
-        const item = await addToWishlist(product.id)
-        setWishlistItemId(item?.id || null)
-        onWishlistChange?.(product.id, true, item?.id || null)
-      }
-    } catch {
-      setWishlisted(wasWishlisted)
-      setWishlistItemId(previousItemId)
-    } finally {
-      setWishlistBusy(false)
-    }
   }
 
   const resetInteraction = () => {
@@ -262,49 +204,6 @@ export default function ProductCard({
             </div>
           )}
 
-          {/* B08 · Wishlist heart button, top right */}
-          <button
-            type="button"
-            onClick={handleWishlistToggle}
-            disabled={wishlistBusy}
-            aria-label={wishlisted ? tProd("actions.wishlistRemove") : tProd("actions.wishlistAdd")}
-            aria-pressed={wishlisted}
-            title={wishlisted ? tProd("actions.wishlistRemove") : tProd("actions.wishlistAdd")}
-            className={`group/heart absolute right-2.5 top-2.5 flex h-9 w-9 items-center justify-center rounded-full shadow-sm backdrop-blur-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${
-              wishlisted
-                ? "bg-white text-red-500"
-                : "bg-white/90 text-charcoal-80/60 hover:text-red-500"
-            }`}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={wishlisted ? "on" : "off"}
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.6, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 420, damping: 16 }}
-                className="inline-flex"
-              >
-                <Heart className={`h-[18px] w-[18px] ${wishlisted ? "fill-current" : ""}`} aria-hidden="true" />
-              </motion.span>
-            </AnimatePresence>
-          </button>
-
-          {/* #3 · Compare toggle, sits below the wishlist heart */}
-          <button
-            type="button"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); compare.toggle(product) }}
-            aria-label={inCompare ? tProd("actions.compare") + " ✓" : tProd("actions.compare")}
-            aria-pressed={inCompare}
-            title={inCompare ? tProd("actions.compare") + " ✓" : tProd("actions.compare")}
-            className={`absolute right-2.5 top-[3.25rem] flex h-9 w-9 items-center justify-center rounded-full shadow-sm backdrop-blur-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${
-              inCompare
-                ? "bg-violet text-white"
-                : "bg-white/90 text-charcoal-80/60 hover:text-violet"
-            }`}
-          >
-            <Scale className="h-[16px] w-[16px]" aria-hidden="true" />
-          </button>
 
           {/* F05.A · file-type chips bottom-left (first 3 distinct) */}
           {fileChips.length > 0 && (

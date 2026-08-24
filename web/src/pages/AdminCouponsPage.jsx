@@ -93,11 +93,8 @@ const EMPTY_FORM = {
   description: "",
   discountType: "percentage",
   discountValue: "10",
-  minOrderAmount: "",
-  usageLimit: "",
-  maxUsesPerUser: "",
-  stackable: true,
-  startsAt: "",
+  usageLimit: "1",
+  maxUsesPerUser: "1",
   expiresAt: "",
   isActive: true,
 }
@@ -109,11 +106,8 @@ function formStateFromCoupon(coupon) {
     description: coupon.description || "",
     discountType: coupon.discountType || "percentage",
     discountValue: coupon.discountValue != null ? String(coupon.discountValue) : "",
-    minOrderAmount: coupon.minOrderAmount != null ? String(coupon.minOrderAmount) : "",
     usageLimit: coupon.usageLimit != null ? String(coupon.usageLimit) : "",
     maxUsesPerUser: coupon.maxUsesPerUser != null ? String(coupon.maxUsesPerUser) : "",
-    stackable: coupon.stackable !== false,
-    startsAt: coupon.startsAt ? coupon.startsAt.slice(0, 10) : "",
     expiresAt: coupon.expiresAt ? coupon.expiresAt.slice(0, 10) : "",
     isActive: coupon.isActive !== false,
   }
@@ -125,13 +119,10 @@ function buildPayload(form) {
     description: form.description.trim() || null,
     discountType: form.discountType,
     discountValue: Number(form.discountValue),
-    stackable: Boolean(form.stackable),
     isActive: Boolean(form.isActive),
   }
-  payload.minOrderAmount = form.minOrderAmount !== "" ? Number(form.minOrderAmount) : null
   payload.usageLimit = form.usageLimit !== "" ? Number(form.usageLimit) : null
   payload.maxUsesPerUser = form.maxUsesPerUser !== "" ? Number(form.maxUsesPerUser) : null
-  payload.startsAt = form.startsAt || null
   payload.expiresAt = form.expiresAt || null
   return payload
 }
@@ -210,8 +201,10 @@ export default function AdminCouponsPage() {
       if (payload.discountType === "percentage" && payload.discountValue > 100) {
         throw new Error("Percentage cannot exceed 100")
       }
-      if (payload.startsAt && payload.expiresAt && new Date(payload.startsAt) > new Date(payload.expiresAt)) {
-        throw new Error("Start date must be before expiry date")
+      for (const [key, label] of [["usageLimit", "Total usage limit"], ["maxUsesPerUser", "Max uses per user"]]) {
+        if (payload[key] != null && (!Number.isInteger(payload[key]) || payload[key] < 1)) {
+          throw new Error(`${label} must be a whole number of at least 1 (or blank for unlimited)`)
+        }
       }
       if (modalMode === "create") await createCoupon(payload)
       else await updateCoupon(editing.id, payload)
@@ -322,19 +315,6 @@ export default function AdminCouponsPage() {
               {Number(row.discountValue).toFixed(2)}
             </>
           )}
-        </span>
-      ),
-    },
-    {
-      key: "minOrder",
-      label: "Min. order",
-      sortable: true,
-      width: "0.7fr",
-      align: "right",
-      getValue: (row) => row.minOrderAmount != null ? Number(row.minOrderAmount) : -1,
-      render: (row) => (
-        <span className="font-mono text-meta tabular-nums text-charcoal-80/85">
-          {row.minOrderAmount != null ? `$${Number(row.minOrderAmount).toFixed(2)}` : "-"}
         </span>
       ),
     },
@@ -563,7 +543,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
             hint="Optional"
             value={form.description}
             onChange={(e) => set({ description: e.target.value })}
-            placeholder="Launch promo, 10% off orders over $20"
+            placeholder="Launch promo, 10% off"
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -589,62 +569,32 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
 
           <div className="grid grid-cols-2 gap-4">
             <FormInput
-              label="Min. order amount"
-              hint="Leave blank for no minimum"
-              type="number"
-              min="0" step="0.01"
-              value={form.minOrderAmount}
-              onChange={(e) => set({ minOrderAmount: e.target.value })}
-              placeholder="e.g. 20"
-            />
-            <FormInput
               label="Total usage limit"
-              hint="Blank = unlimited"
+              hint="Default 1 (single-use). Blank = unlimited"
               type="number"
-              min="0" step="1"
+              min="1" step="1"
               value={form.usageLimit}
               onChange={(e) => set({ usageLimit: e.target.value })}
-              placeholder="e.g. 100"
+              placeholder="1"
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <FormInput
               label="Max uses per user"
-              hint="Blank = unlimited"
+              hint="Default 1. Blank = unlimited"
               type="number"
-              min="0" step="1"
+              min="1" step="1"
               value={form.maxUsesPerUser}
               onChange={(e) => set({ maxUsesPerUser: e.target.value })}
-              placeholder="e.g. 1"
+              placeholder="1"
             />
-            <Field label="Stackable" hint="Allows combining with other coupons">
-              <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-mist px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">
-                <input
-                  type="checkbox"
-                  checked={form.stackable}
-                  onChange={(e) => set({ stackable: e.target.checked })}
-                  className="h-4 w-4 rounded border-charcoal-80/30 text-violet accent-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
-                />
-                <span>Yes, can be stacked</span>
-              </label>
-            </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormInput
-              label="Starts at"
-              type="date"
-              value={form.startsAt}
-              onChange={(e) => set({ startsAt: e.target.value })}
-            />
-            <FormInput
-              label="Expires at"
-              type="date"
-              value={form.expiresAt}
-              onChange={(e) => set({ expiresAt: e.target.value })}
-            />
-          </div>
+          <FormInput
+            label="Expires at"
+            hint="Blank = never expires"
+            type="date"
+            value={form.expiresAt}
+            onChange={(e) => set({ expiresAt: e.target.value })}
+          />
 
           <Field label="Active">
             <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-mist px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">

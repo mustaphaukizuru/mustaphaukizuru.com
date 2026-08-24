@@ -21,8 +21,8 @@ const STATUS_OPTIONS = ["pending", "paid", "failed", "cancelled", "refunded"]
  *  Adds:
  *    • Refund history card (most recent first, with provider + amount).
  *    • Refund button — disabled unless eligibility says ANY item is refundable.
- *    • Refund modal — partial vs full toggle, per-item ineligibility warning,
- *      override confirmation when admin chooses to refund a downloaded item.
+ *    • Refund modal — full-order refund only (reason + confirm), per-item
+ *      ineligibility warning, override confirmation for downloaded items.
  *
  *  Aesthetic preserved exactly:
  *    Primary #5D3FD3 (`text-violet`) · violet-pale tints · rounded-xl cards
@@ -144,11 +144,7 @@ export default function AdminOrderDetailPage() {
   }
 
   async function handleRefundSubmitted(result) {
-    showSuccess(
-      result.isFull
-        ? `Full refund of ${formatMoney(result.amount, order?.currency)} issued`
-        : `Partial refund of ${formatMoney(result.amount, order?.currency)} issued`,
-    )
+    showSuccess(`Full refund of ${formatMoney(result.amount, order?.currency)} issued`)
     setRefundModalOpen(false)
     setEligibility(null)
     await loadOrder()
@@ -481,13 +477,9 @@ function RefundHistoryCard({ refunds, currency }) {
 /* ─────────────────────────── Refund modal ──────────────────────────────── */
 
 function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
-  const [scope, setScope] = useState("full") // 'full' | 'partial'
   const [reason, setReason] = useState("")
-  const [partialAmount, setPartialAmount] = useState("")
-  const [selectedItems, setSelectedItems] = useState(() =>
-    eligibility.items.filter((i) => i.eligible).map((i) => i.orderItemId),
-  )
   const [force, setForce] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
 
@@ -496,58 +488,20 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
     [eligibility.items],
   )
 
-  // The set of items currently chosen for the refund — used in partial mode.
-  const itemMap = useMemo(() => {
-    const map = new Map()
-    for (const i of eligibility.items) map.set(i.orderItemId, i)
-    return map
-  }, [eligibility.items])
-
-  // Auto-disable partial mode when admin overrides — easier to reason about.
-  function toggleItem(orderItemId) {
-    setSelectedItems((prev) =>
-      prev.includes(orderItemId)
-        ? prev.filter((id) => id !== orderItemId)
-        : [...prev, orderItemId],
-    )
-  }
-
-  // For partial scope, sum up the selected eligible (or force-included) items
-  // to suggest a default partialAmount when the admin hasn't overridden.
-  const suggestedPartialAmount = useMemo(() => {
-    return selectedItems.reduce((sum, id) => {
-      const item = itemMap.get(id)
-      return sum + Number(item?.lineTotal || 0)
-    }, 0)
-  }, [selectedItems, itemMap])
-
-  function effectiveAmount() {
-    if (scope === "full") return null // service computes refundable balance
-    const raw = String(partialAmount).trim()
-    if (!raw) return suggestedPartialAmount
-    const n = Number(raw)
-    return Number.isFinite(n) ? n : 0
-  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setErrorMsg("")
     setSubmitting(true)
     try {
-      const payload = {
-        amount: effectiveAmount(),
+      // Full refund only — the service always refunds the remaining balance.
+      const result = await issueAdminRefund(orderId, {
         reason: reason.trim() || null,
         force,
-      }
-      // Only attach orderItemIds in partial mode.
-      if (scope === "partial") {
-        payload.orderItemIds = selectedItems
-      }
-
-      const result = await issueAdminRefund(orderId, payload)
+      })
       onSubmitted({
         ...result,
-        amount: result.amount || effectiveAmount() || eligibility.refundableAmount,
+        amount: result.amount || eligibility.refundableAmount,
       })
     } catch (err) {
       setErrorMsg(err.message || "Refund failed")
@@ -559,8 +513,8 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
   const submitDisabled =
     submitting ||
     !!eligibility.reason ||
-    (scope === "partial" && (selectedItems.length === 0 || (effectiveAmount() ?? 0) <= 0)) ||
-    (hasBlocked && !force && scope === "full")
+    !confirmed ||
+    (hasBlocked && !force)
 
   return (
     <motion.div
@@ -662,111 +616,28 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
           </div>
         </dl>
 
-        {/* Scope selector */}
-        <fieldset className="mt-5">
-          <legend className="text-meta font-semibold text-violet">Refund scope</legend>
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            <label className={`rounded-xl border p-4 cursor-pointer transition ${
-              scope === "full"
-                ? "border-violet bg-violet-pale"
-                : "border-charcoal-80/15 bg-white hover:bg-violet-pale/40"
-            }`}>
-              <input
-                type="radio"
-                name="scope"
-                value="full"
-                checked={scope === "full"}
-                onChange={() => setScope("full")}
-                className="sr-only"
-              />
-              <div className="text-meta font-semibold text-violet">Full refund</div>
-              <div className="mt-1 text-micro text-charcoal-80/65">
-                {formatMoney(eligibility.refundableAmount, currency)} · all eligible items revoked
-              </div>
-            </label>
-            <label className={`rounded-xl border p-4 cursor-pointer transition ${
-              scope === "partial"
-                ? "border-violet bg-violet-pale"
-                : "border-charcoal-80/15 bg-white hover:bg-violet-pale/40"
-            }`}>
-              <input
-                type="radio"
-                name="scope"
-                value="partial"
-                checked={scope === "partial"}
-                onChange={() => setScope("partial")}
-                className="sr-only"
-              />
-              <div className="text-meta font-semibold text-violet">Partial refund</div>
-              <div className="mt-1 text-micro text-charcoal-80/65">
-                Choose specific items / custom amount
-              </div>
-            </label>
+        {/* Full refund summary */}
+        <div className="mt-5 rounded-xl border border-violet/20 bg-violet-pale/40 p-4">
+          <div className="text-meta font-semibold text-violet">Refund order (full)</div>
+          <div className="mt-1 text-micro text-charcoal-80/65">
+            {formatMoney(eligibility.refundableAmount, currency)} will be returned to the customer.
+            All download access for this order will be revoked. Partial refunds are not supported.
           </div>
-        </fieldset>
-
-        {scope === "partial" ? (
-          <div className="mt-5 space-y-4">
-            <div>
-              <div className="text-meta font-semibold text-violet">Items</div>
-              <ul className="mt-2 space-y-2">
-                {eligibility.items.map((item) => {
-                  const checked = selectedItems.includes(item.orderItemId)
-                  const disabled = !item.eligible && !force
-                  return (
-                    <li key={item.orderItemId} className={`rounded-xl border p-3 ${
-                      disabled
-                        ? "border-charcoal-80/10 bg-mist opacity-60"
-                        : "border-charcoal-80/15 bg-white"
-                    }`}>
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={disabled}
-                          onChange={() => toggleItem(item.orderItemId)}
-                          className="mt-1 h-4 w-4 rounded border-charcoal-80/30 text-violet focus:ring-violet"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="text-meta font-semibold text-violet">{item.title}</div>
-                          <div className="mt-0.5 text-micro text-charcoal-80/70">
-                            Qty {item.quantity} · {formatMoney(item.lineTotal, currency)}
-                            {item.itemType !== "product" ? " · service" : ""}
-                          </div>
-                          {!item.eligible ? (
-                            <div className="mt-1 text-micro font-semibold text-amber-700">
-                              ⚠ {item.reason}
-                            </div>
-                          ) : null}
-                        </div>
-                      </label>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-
-            <div>
-              <label htmlFor="partial-amount" className="text-meta font-semibold text-violet">
-                Refund amount ({eligibility.currency || currency || "MXN"})
-              </label>
-              <input
-                id="partial-amount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={partialAmount}
-                placeholder={String(suggestedPartialAmount.toFixed(2))}
-                onChange={(e) => setPartialAmount(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-charcoal-80/15 bg-white px-4 py-3 text-meta text-violet outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
-              />
-              <p className="mt-1 text-micro text-charcoal-80/60">
-                Leave empty to refund the line total of the selected items
-                ({formatMoney(suggestedPartialAmount, currency)}).
-              </p>
-            </div>
-          </div>
-        ) : null}
+          {eligibility.items.length ? (
+            <ul className="mt-3 space-y-1 text-micro text-charcoal-80/80">
+              {eligibility.items.map((item) => (
+                <li key={item.orderItemId} className="flex items-center justify-between gap-3">
+                  <span className="truncate">
+                    {item.title}
+                    {item.itemType !== "product" ? " · service" : ""}
+                    {!item.eligible ? <span className="ml-1 font-semibold text-amber-700">⚠ {item.reason}</span> : null}
+                  </span>
+                  <span className="font-mono tabular-nums">Qty {item.quantity} · {formatMoney(item.lineTotal, currency)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
 
         {/* Reason */}
         <div className="mt-5">
@@ -801,6 +672,19 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
           </label>
         ) : null}
 
+        {/* Confirmation */}
+        <label className="mt-5 flex items-start gap-3 rounded-xl border border-charcoal-80/15 bg-white p-4">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            onChange={(e) => setConfirmed(e.target.checked)}
+            className="mt-1 h-4 w-4 rounded border-charcoal-80/30 text-violet focus:ring-violet"
+          />
+          <span className="text-meta text-charcoal-80">
+            I confirm a <span className="font-semibold">full refund of {formatMoney(eligibility.refundableAmount, currency)}</span> for this order. This cannot be undone.
+          </span>
+        </label>
+
         {errorMsg ? (
           <div className="mt-4 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700">
             {errorMsg}
@@ -821,7 +705,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
             className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-400/40"
           >
             <CheckCircle2 className="h-4 w-4" />
-            {submitting ? "Processing…" : (scope === "full" ? "Issue full refund" : "Issue partial refund")}
+            {submitting ? "Processing…" : "Refund order (full)"}
           </button>
         </div>
 
@@ -832,7 +716,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
             <span className="font-semibold capitalize">
               {(eligibility.payments[0]?.gateway) || "the original gateway"}
             </span>
-            . Customer downloads on refunded items will be revoked immediately.
+            . All customer downloads for this order will be revoked immediately.
           </p>
         </div>
       </motion.form>

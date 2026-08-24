@@ -113,9 +113,10 @@ const downloadProductLegacy = asyncHandler(async (req, res) => {
 
   await prisma.downloadLog.create({
     data: {
-      user:    { connect: { id: userId } },
-      product: { connect: { id: productId } },
-      order:   { connect: { id: entitledItem.orderId } },
+      user:        { connect: { id: userId } },
+      product:     { connect: { id: productId } },
+      order:       { connect: { id: entitledItem.orderId } },
+      productFile: { connect: { id: fileRecord.id } },
       ipAddress: req.ip || null,
       userAgent: req.get("user-agent") || null,
     },
@@ -211,6 +212,7 @@ const downloadByFileId = asyncHandler(async (req, res) => {
     recordDownload({
       userId,
       productId:      file.product.id,
+      productFileId:  file.id,
       orderId:        entitlement.orderId,
       userDownloadId: entitlement.id,
       ipAddress:      req.ip || null,

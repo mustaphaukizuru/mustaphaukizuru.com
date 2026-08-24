@@ -162,14 +162,6 @@ export const staticSeoByRoute = {
     schemaType: "WebPage",
   },
 
-  "/recommendations": {
-    title: "Recommendations · Tools, Books & Resources I Use",
-    description:
-      "Hand-picked tools, books, courses, templates, services, and partners I have personally used and stand behind.",
-    type: "article",
-    image: DEFAULT_OG_IMAGE,
-    schemaType: "ItemList",
-  },
 }
 
 /* ─────────────────────────────────────────────
@@ -186,7 +178,6 @@ export const pageSeo = {
   privacy: staticSeoByRoute["/privacy"],
   refund: staticSeoByRoute["/refund"],
   cookies: staticSeoByRoute["/cookies"],
-  recommendations: staticSeoByRoute["/recommendations"],
   blog: staticSeoByRoute["/blog"],
   book: staticSeoByRoute["/book"],
 }

@@ -21,10 +21,16 @@ web/node_modules/
 .pnp.js
 
 # ── Build artefacts ─────────────────────────────────────────────────────────
-# NOTE: /public/ is intentionally NOT ignored — Vite emits the SPA bundle
-# there (see vite.config.js outDir: '../public') and Express serves it.
-# If your deploy pipeline rebuilds on the server, uncomment the line below.
-# /public/
+# Vite emits the SPA bundle into /public (web/vite.config.js outDir) and
+# scripts/deploy.sh rebuilds it on the server, so the generated files are not
+# tracked. Everything else under /public (images, fonts, cv, documents, flags,
+# favicons, .htaccess, static error pages) is source and stays in git.
+/public/assets/
+/public/index.html
+/public/sw.js
+/public/workbox-*.js
+/public/registerSW.js
+/public/manifest.webmanifest
 dist/
 build/
 web/dist/

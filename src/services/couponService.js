@@ -113,6 +113,12 @@ async function validateCoupon(code, context = {}) {
     }
   }
 
+  // Per-user cap requires an identity — guests cannot use per-user-capped
+  // coupons (closes the guest bypass; checkout requires claimed accounts).
+  if (!userId && coupon.maxUsesPerUser != null) {
+    return { valid: false, discount: 0, message: "Sign in to use this coupon", coupon: null }
+  }
+
   if (userId && coupon.maxUsesPerUser != null) {
     const userUsageCount = await prisma.couponUsage.count({
       where: { couponId: coupon.id, userId },

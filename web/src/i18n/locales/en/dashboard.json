@@ -6,7 +6,6 @@
     "orders": "Orders",
     "consultations": "Consultations",
     "support": "Support",
-    "wishlist": "Wishlist",
     "addresses": "Addresses",
     "twoFactor": "Two-step verification",
     "profile": "Profile",
@@ -61,39 +60,6 @@
       "files_other": "{{count}} files",
       "noFiles": "No files shared yet.",
       "fileFallback": "file"
-    }
-  },
-  "wishlist": {
-    "errors": {
-      "load": "Could not load wishlist.",
-      "remove": "Could not remove from wishlist",
-      "moveCart": "Could not move to cart"
-    },
-    "toast": {
-      "removed": "Removed from wishlist",
-      "movedGeneric": "Moved to cart",
-      "movedNamed": "{{title}} moved to cart"
-    },
-    "intro": {
-      "savedForLater": "Saved for later",
-      "title": "My Wishlist",
-      "subtitleEmpty": "Save products to come back to them later.",
-      "subtitle_one": "{{total}} product saved · {{active}} available for purchase",
-      "subtitle_other": "{{total}} products saved · {{active}} available for purchase",
-      "browseStore": "Browse Store"
-    },
-    "empty": {
-      "title": "Nothing saved yet",
-      "body": "Tap the heart icon on any product to save it to your wishlist for later."
-    },
-    "card": {
-      "unavailable": "Unavailable",
-      "untitled": "Untitled product",
-      "noDescription": "No description available.",
-      "savedOn": "Saved {{date}}",
-      "moveToCart": "Move to Cart",
-      "remove": "Remove from wishlist",
-      "busy": "…"
     }
   },
   "serviceOrders": {

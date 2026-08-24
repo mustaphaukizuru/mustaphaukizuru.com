@@ -165,7 +165,7 @@
     "inputAriaLabel": "Your email address",
     "cta": "Subscribe free",
     "submitting": "Subscribing…",
-    "successMessage": "You’re in! Check your inbox.",
+    "successMessage": "Almost there — check your inbox to confirm your subscription.",
     "validationError": "Please enter a valid email address.",
     "serverError": "Something went wrong. Please try again.",
     "trust1": "4 countries",
