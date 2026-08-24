@@ -38,7 +38,7 @@ const fadeUp = {
  *  ──────────────────────────────────────────────────────────────────── */
 
 const STATUS_VISUAL = {
-  paid:      { bg: "bg-mint/15",         text: "text-mint",         ring: "ring-mint/25" },
+  paid:      { bg: "bg-mint/15",         text: "text-mint-700",         ring: "ring-mint/25" },
   pending:   { bg: "bg-amber/10",        text: "text-amber-700",    ring: "ring-amber-300/40" },
   refunded:  { bg: "bg-rose-50",         text: "text-rose-600",     ring: "ring-rose-300/40" },
   cancelled: { bg: "bg-charcoal-80/10",  text: "text-charcoal-80",  ring: "ring-charcoal-80/15" },
@@ -339,7 +339,7 @@ export default function DashboardOrdersPage() {
                             disabled={busyInvoiceId === order.id}
                             aria-label={t("orders.row.invoiceAria", { number: orderRef })}
                             title={t("orders.row.invoiceTitle")}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-mint/30 bg-mint/8 px-3 py-1.5 text-micro font-semibold text-mint transition hover:bg-mint/15 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-mint/40 focus-visible:ring-offset-2"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-mint/30 bg-mint/8 px-3 py-1.5 text-micro font-semibold text-mint-700 transition hover:bg-mint/15 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-mint/40 focus-visible:ring-offset-2"
                           >
                             <FileDown className="h-3.5 w-3.5" aria-hidden="true" />
                             {busyInvoiceId === order.id ? t("orders.row.invoiceBusy") : t("orders.row.invoice")}

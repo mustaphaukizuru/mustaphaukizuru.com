@@ -249,7 +249,7 @@ export default function SelfAuditPage() {
                 </div>
                 <div>
                   <div className="text-[22px] font-bold text-charcoal leading-none">58 / 100</div>
-                  <div className="mt-1 inline-block rounded-full bg-amber/15 px-2.5 py-0.5 text-[12px] font-bold text-amber">Stabilizing</div>
+                  <div className="mt-1 inline-block rounded-full bg-amber/15 px-2.5 py-0.5 text-[12px] font-bold text-amber-700">Stabilizing</div>
                   <div className="mt-1 text-[12px] text-charcoal/50">vs. avg 44 for businesses</div>
                 </div>
               </div>

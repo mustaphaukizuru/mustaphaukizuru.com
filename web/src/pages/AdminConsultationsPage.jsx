@@ -208,7 +208,7 @@ export default function AdminConsultationsPage() {
                     <td className="px-5 py-3 align-top">
                       <div className="font-semibold text-violet">{c.user?.fullName || c.user?.email || "-"}</div>
                       {c.user?.email && (
-                        <a href={`mailto:${c.user.email}`} className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-azure hover:underline">
+                        <a href={`mailto:${c.user.email}`} className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-azure-deep hover:underline">
                           <Mail className="h-3 w-3" aria-hidden="true" /> {c.user.email}
                         </a>
                       )}
@@ -279,7 +279,7 @@ function RowActions({ consultation, updating, onPatch, onRegenerateLink }) {
           href={meetingLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-azure transition hover:bg-azure-pale"
+          className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-azure-deep transition hover:bg-azure-pale"
         >
           <ExternalLink className="h-3 w-3" aria-hidden="true" />
           Meeting

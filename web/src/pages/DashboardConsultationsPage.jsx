@@ -43,14 +43,14 @@ const STATUS_CLS = {
   confirmed:   "bg-mint/12 text-emerald-700",
   scheduled:   "bg-mint/12 text-emerald-700",
   completed:   "bg-violet-pale text-violet-deep",
-  cancelled:   "bg-slate-100 text-steel",
-  rescheduled: "bg-slate-100 text-steel",
+  cancelled:   "bg-slate-100 text-steel-700",
+  rescheduled: "bg-slate-100 text-steel-700",
   no_show:     "bg-rose/10 text-rose-700",
 }
 
 function StatusBadge({ status }) {
   const { t } = useTranslation("dashboard")
-  const cls = STATUS_CLS[status] || "bg-slate-100 text-steel"
+  const cls = STATUS_CLS[status] || "bg-slate-100 text-steel-700"
   const label = t(`consultations.status.${status}`, { defaultValue: status })
   return <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${cls}`}>{label}</span>
 }
@@ -407,7 +407,7 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
             // chip so the customer doesn't quietly assume something is broken,
             // and the admin sees the same indicator on the admin list.
             <span
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-terracotta/30 bg-terracotta/5 px-3.5 py-2 text-[12px] font-semibold text-terracotta"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-terracotta/30 bg-terracotta/5 px-3.5 py-2 text-[12px] font-semibold text-terracotta-800"
               title={t("consultations.row.linkPendingTitle")}
             >
               <Video className="h-3.5 w-3.5" /> {t("consultations.row.linkPending")}

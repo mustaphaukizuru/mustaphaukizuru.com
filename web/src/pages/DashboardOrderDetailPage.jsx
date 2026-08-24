@@ -15,7 +15,7 @@ import useApiQuery from "../hooks/useApiQuery"
  *  ────────────────────────────────────────────────────────────────────── */
 
 function statusPillClass(status) {
-  if (status === "paid") return "bg-mint/15 text-mint"
+  if (status === "paid") return "bg-mint/15 text-mint-700"
   if (status === "pending") return "bg-amber/15 text-amber-700"
   if (status === "failed" || status === "cancelled") return "bg-rose/15 text-rose-700"
   return "bg-charcoal-80/10 text-charcoal-80/65"
@@ -179,7 +179,7 @@ export default function DashboardOrderDetailPage() {
             <span className="font-mono font-semibold tabular-nums text-violet">{formatPrice(subtotal, order.currency || "MXN")}</span>
           </div>
           {discount > 0 && (
-            <div className="flex justify-between text-meta text-mint">
+            <div className="flex justify-between text-meta text-mint-700">
               <span>{t("orderDetail.discount", "Discount")}</span>
               <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount, order.currency || "MXN")}</span>
             </div>

@@ -14,7 +14,7 @@ export default function TimelineColumn({ title, items = [] }) {
               <div className="absolute -left-[1.9rem] top-6 h-4 w-4 rounded-full border-4 border-mist bg-violet" />
 
               <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-sm">
-                <div className="text-sm font-semibold tracking-wide text-[var(--color-coral)]">
+                <div className="text-sm font-semibold tracking-wide text-[var(--color-terracotta-800)]">
                   {item.period}
                 </div>
 

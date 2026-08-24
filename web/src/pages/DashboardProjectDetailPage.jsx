@@ -107,7 +107,7 @@ export default function DashboardProjectDetailPage() {
             </div>
           ) : project.milestones.map((m, idx) => {
             const Icon = MILESTONE_ICON[m.status] || Hourglass
-            const tone = m.status === "completed" ? "bg-mint/15 text-mint border-mint/30"
+            const tone = m.status === "completed" ? "bg-mint/15 text-mint-700 border-mint/30"
                        : m.status === "in_progress" ? "bg-amber/10 text-amber-700 border-amber/20"
                        : "bg-charcoal-80/5 text-charcoal-80/65 border-charcoal-80/10"
             return (

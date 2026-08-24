@@ -24,10 +24,10 @@ import useApiQuery from "../hooks/useApiQuery"
  */
 
 const STATUS_VISUAL = {
-  new:       { Icon: Clock,        fg: "text-azure",  bg: "bg-azure/10",   ring: "ring-azure/20" },
+  new:       { Icon: Clock,        fg: "text-azure-deep",  bg: "bg-azure/10",   ring: "ring-azure/20" },
   active:    { Icon: Briefcase,    fg: "text-violet", bg: "bg-violet-pale", ring: "ring-violet/20" },
-  on_hold:   { Icon: Pause,        fg: "text-amber",  bg: "bg-amber/10",   ring: "ring-amber/20" },
-  completed: { Icon: CheckCircle2, fg: "text-mint",   bg: "bg-mint/15",    ring: "ring-mint/25" },
+  on_hold:   { Icon: Pause,        fg: "text-amber-700",  bg: "bg-amber/10",   ring: "ring-amber/20" },
+  completed: { Icon: CheckCircle2, fg: "text-mint-700",   bg: "bg-mint/15",    ring: "ring-mint/25" },
   cancelled: { Icon: XCircle,      fg: "text-rose",   bg: "bg-rose/10",    ring: "ring-rose/20" },
 }
 

@@ -29,6 +29,7 @@
   --color-cyan:              #7DD3FC;  /* Electric Cyan — accent only */
   --color-terracotta:        #E9C46A;  /* Soft Terracotta — humanity */
   --color-terracotta-deep:   #D4A847;  /* Hover terracotta */
+  --color-terracotta-800:    #856212;  /* NEW v1.2 — terracotta's body-text companion. Terracotta and terracotta-deep are both light hues (1.9:1 on white); this is the only warm-accent step that clears AA as text on a light ground. */
   --color-charcoal-80:       #1A1B23;  /* Midnight Charcoal — alias */
   --color-charcoal-deep:     #0E0F14;  /* NEW v1.1 — deepest dark canvas (auth panel, dark dashboard page bg) */
   --color-violet-mid:        #7B5FE0;  /* NEW v1.1 — gradient mid-stop between violet and violet-light */

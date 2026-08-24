@@ -17,6 +17,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import { ArrowUp, ArrowDown, X } from "lucide-react"
+import SkeletonBlock from "./SkeletonPrimitives"
 
 // Re-export new primitives for ergonomic single-import access
 export { SearchInput } from "./SearchInput"
@@ -30,11 +31,11 @@ export {
  *  ──────────────────────────────────────────────────────────────────── */
 const TONE_MAP = {
   purple: "bg-violet-pale text-violet",
-  green: "bg-mint/15 text-mint",
+  green: "bg-mint/15 text-mint-700",
   amber: "bg-amber/10 text-amber-700",
-  blue: "bg-azure/10 text-azure",
+  blue: "bg-azure/10 text-azure-deep",
   red: "bg-rose/10 text-rose-700",
-  peach: "bg-terracotta/20 text-terracotta",
+  peach: "bg-terracotta/20 text-terracotta-800",
 }
 
 export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple", trend }) {
@@ -53,7 +54,7 @@ export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple"
           )}
           {trend !== undefined && (
             <div className={`mt-1 inline-flex items-center gap-1 text-micro font-semibold ${
-              trend >= 0 ? "text-mint" : "text-rose-600"
+              trend >= 0 ? "text-mint-700" : "text-rose-600"
             }`}>
               {trend >= 0
                 ? <ArrowUp className="h-3 w-3" aria-hidden="true" />
@@ -78,23 +79,23 @@ export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple"
  *  Prefer <Badge status="..." /> from ./Badge
  *  ──────────────────────────────────────────────────────────────────── */
 const STATUS_STYLE = {
-  paid: "bg-mint/15 text-mint",
+  paid: "bg-mint/15 text-mint-700",
   pending: "bg-amber/10 text-amber-700",
   failed: "bg-rose/10 text-rose-700",
   cancelled: "bg-charcoal-80/10 text-charcoal-80",
   refunded: "bg-rose/10 text-rose-700",
-  active: "bg-mint/15 text-mint",
+  active: "bg-mint/15 text-mint-700",
   inactive: "bg-charcoal-80/10 text-charcoal-80",
   suspended: "bg-rose/10 text-rose-700",
-  open: "bg-azure/10 text-azure",
+  open: "bg-azure/10 text-azure-deep",
   closed: "bg-charcoal-80/10 text-charcoal-80",
-  resolved: "bg-mint/15 text-mint",
+  resolved: "bg-mint/15 text-mint-700",
   draft: "bg-charcoal-80/10 text-charcoal-80",
-  published: "bg-mint/15 text-mint",
-  in_progress: "bg-azure/10 text-azure",
-  approved: "bg-mint/15 text-mint",
+  published: "bg-mint/15 text-mint-700",
+  in_progress: "bg-azure/10 text-azure-deep",
+  approved: "bg-mint/15 text-mint-700",
   rejected: "bg-rose/10 text-rose-700",
-  member: "bg-azure/10 text-azure",
+  member: "bg-azure/10 text-azure-deep",
   admin: "bg-violet-pale text-violet",
 }
 
@@ -132,7 +133,12 @@ export function EmptyState({ icon: Icon, title, description, action }) {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
- *  SkeletonCard — preserved for backwards compatibility
+ *  SkeletonCard — preserved for backwards compatibility.
+ *  Prop signature (`height`) and export name are frozen: ~17 admin/dashboard
+ *  pages import it via ui/index.jsx. The hand-rolled `animate-pulse` bars are
+ *  gone — every bar now renders through the canonical Skeleton block in
+ *  ./SkeletonPrimitives.jsx, so this shares the one reduced-motion-aware
+ *  `ukz-shimmer` recipe with the rest of the app.
  *  ──────────────────────────────────────────────────────────────────── */
 export function SkeletonCard({ height = "h-[132px]" }) {
   return (
@@ -140,12 +146,12 @@ export function SkeletonCard({ height = "h-[132px]" }) {
       role="status"
       aria-busy="true"
       aria-label="Loading"
-      className={`animate-pulse rounded-xl border border-charcoal-80/8 bg-white ${height}`}
+      className={`rounded-xl border border-charcoal-80/8 bg-white ${height}`}
     >
       <div className="flex flex-col gap-3 p-5">
-        <div className="h-3 w-1/3 rounded-full bg-violet-pale" />
-        <div className="h-8 w-1/2 rounded-xl bg-violet-pale" />
-        <div className="h-2 w-2/3 rounded-full bg-charcoal-80/10" />
+        <SkeletonBlock h="h-3" w="w-1/3" rounded="full" />
+        <SkeletonBlock h="h-8" w="w-1/2" rounded="rounded-xl" />
+        <SkeletonBlock h="h-2" w="w-2/3" rounded="full" tone="muted" />
       </div>
     </div>
   )
@@ -243,8 +249,8 @@ export function PrimaryBtn({
 export function AlertBanner({ type = "error", message, onDismiss }) {
   const styles = {
     error: "border-rose/20 bg-rose/5 text-rose-700",
-    success: "border-mint/30 bg-mint/8 text-mint",
-    info: "border-azure/30 bg-azure/10 text-azure",
+    success: "border-mint/30 bg-mint/8 text-mint-700",
+    info: "border-azure/30 bg-azure/10 text-azure-deep",
     warning: "border-amber/20 bg-amber/10 text-amber-700",
   }
   if (!message) return null

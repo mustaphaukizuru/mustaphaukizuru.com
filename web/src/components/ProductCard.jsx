@@ -312,8 +312,8 @@ export default function ProductCard({ product }) {
             <button
               type="button"
               onClick={handleAddToCart}
-              className={`inline-flex items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 text-micro font-medium text-white transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
-                added ? "bg-mint" : "bg-violet hover:bg-violet-deep"
+              className={`inline-flex items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 text-micro font-medium transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
+                added ? "bg-mint text-charcoal" : "bg-violet text-white hover:bg-violet-deep"
               }`}
             >
               {added ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />}

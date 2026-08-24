@@ -53,14 +53,36 @@ const CART_INCLUDE = {
  * @param {object|null} coupon applied coupon row or null
  * @returns {{ subtotal: number, discount: number, tax: number, total: number }}
  */
+/**
+ * Is this coupon still valid for this cart, right now?
+ *
+ * Mirrors the time/threshold rules couponService.validateCoupon enforces at
+ * apply time. Usage limits are deliberately NOT re-checked here: they are
+ * consumed atomically when the order is created (orderService), and counting
+ * them on a cart read would reject the buyer's own in-flight redemption.
+ */
+function couponStillApplies(coupon, subtotal) {
+  if (!coupon.isActive) return false
+  const now = new Date()
+  if (coupon.startsAt && new Date(coupon.startsAt) > now) return false
+  if (coupon.expiresAt && new Date(coupon.expiresAt) < now) return false
+  if (coupon.minOrderAmount != null && subtotal < toNumber(coupon.minOrderAmount)) return false
+  return true
+}
+
 function computeTotals(items, coupon) {
   const subtotal = items.reduce((sum, item) => {
     return sum + toNumber(item.priceSnapshot) * (item.quantity || 1)
   }, 0)
 
+  // Re-validate the coupon on EVERY read, not just re-compute the amount.
+  // The cart changes after a coupon is applied: items get removed (dropping
+  // the subtotal under minOrderAmount) and time passes (expiresAt). Checking
+  // only `isActive` let a stale discount ride through serializeCart into
+  // checkout — a customer could apply a coupon to a large cart, delete items,
+  // and keep the discount.
   let discount = 0
-  if (coupon && coupon.isActive) {
-    // Re-compute discount in case subtotal has changed since coupon was applied.
+  if (coupon && couponStillApplies(coupon, subtotal)) {
     discount = calculateDiscount(coupon, subtotal)
   }
 

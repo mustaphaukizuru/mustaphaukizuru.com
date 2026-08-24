@@ -88,7 +88,7 @@ function statusTone(status) {
   switch (status) {
     case "published": return "bg-mint-100 text-mint-800"
     case "draft": return "bg-amber/15 text-amber-700"
-    case "archived": return "bg-slate-100 text-steel"
+    case "archived": return "bg-slate-100 text-steel-700"
     default: return "bg-violet-pale text-violet"
   }
 }
@@ -547,7 +547,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
             </span>
           )}
           {!pkg.isActive && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-steel">Hidden</span>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-steel-700">Hidden</span>
           )}
           {features.length > 0 && (
             <span className="font-mono text-[10px] tabular-nums text-charcoal/55">

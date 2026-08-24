@@ -274,11 +274,11 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
           </div>
 
           {discount > 0 && (
-            <div className="flex justify-between text-mint">
+            <div className="flex justify-between text-mint-700">
               <span>
                 {t("summary.discount")}
                 {appliedCoupon?.code && (
-                  <span className="ml-1 text-micro text-mint/80">({appliedCoupon.code})</span>
+                  <span className="ml-1 text-micro text-mint-700/80">({appliedCoupon.code})</span>
                 )}
               </span>
               <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount)}</span>
@@ -287,7 +287,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
 
           <div className="flex justify-between text-charcoal-80/65">
             <span>{t("summary.taxLabel")}</span>
-            <span className="font-semibold text-mint">{formatPrice(0)}</span>
+            <span className="font-semibold text-mint-700">{formatPrice(0)}</span>
           </div>
 
           {/* Total, F08.A · large JetBrains Mono bold */}
@@ -451,12 +451,12 @@ export default function CartPage() {
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-mint text-white">
                         <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />
                       </span>
-                      <span className="text-meta font-semibold text-mint">
+                      <span className="text-meta font-semibold text-mint-700">
                         {t("summary.discountApplied")}{" "}
                         <span className="font-mono tabular-nums">−{formatPrice(discount)}</span>
                       </span>
                       {appliedCoupon.code && (
-                        <code className="ml-1 rounded-md bg-white/60 px-2 py-0.5 font-mono text-micro font-semibold text-mint">
+                        <code className="ml-1 rounded-md bg-white/60 px-2 py-0.5 font-mono text-micro font-semibold text-mint-700">
                           {appliedCoupon.code}
                         </code>
                       )}

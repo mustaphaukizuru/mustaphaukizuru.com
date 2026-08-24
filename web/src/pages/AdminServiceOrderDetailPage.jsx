@@ -181,7 +181,7 @@ export default function AdminServiceOrderDetailPage() {
               {order.user?.fullName || order.user?.email || order.contactEmail || "—"}
             </div>
             {order.user?.email && (
-              <a href={`mailto:${order.user.email}`} className="inline-flex items-center gap-1 text-[12px] text-azure hover:underline">
+              <a href={`mailto:${order.user.email}`} className="inline-flex items-center gap-1 text-[12px] text-azure-deep hover:underline">
                 <Mail className="h-3 w-3" aria-hidden="true" /> {order.user.email}
               </a>
             )}
@@ -243,7 +243,7 @@ export default function AdminServiceOrderDetailPage() {
             href={`/dashboard/projects/${order.projectId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-azure transition hover:bg-azure-pale"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-azure-deep transition hover:bg-azure-pale"
           >
             <ExternalLink className="h-3 w-3" aria-hidden="true" />
             Open project

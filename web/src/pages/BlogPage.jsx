@@ -674,7 +674,7 @@ function BlogSidebar({
             </form>
             <div className="min-h-[16px] mt-2" aria-live="polite">
               {newsletterStatus.kind === "success" ? (
-                <p className="text-[11.5px] font-medium text-terracotta">
+                <p className="text-[11.5px] font-medium text-white">
                   ✓ {newsletterStatus.message}
                 </p>
               ) : null}
@@ -819,7 +819,7 @@ function FeaturedCard({ post, reduce }) {
           {/* Badge row + read-time */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/12 px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.18em] text-terracotta-deep">
+              <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/12 px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.18em] text-terracotta-800">
                 <Sparkles className="h-3 w-3" aria-hidden="true" />
                 {t("list.featured")}
               </span>

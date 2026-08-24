@@ -13,7 +13,7 @@ export default function ServiceCta({ serviceSlug }) {
       <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-azure/30 blur-3xl" />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-micro font-semibold uppercase tracking-[0.18em] text-terracotta">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-deep px-3 py-1 text-micro font-semibold uppercase tracking-[0.18em] text-terracotta">
             <CalendarCheck className="h-3 w-3" aria-hidden="true" /> {t("serviceCta.eyebrow")}
           </span>
           <h2 className="mt-3 text-subsection font-bold">{t("serviceCta.title")}</h2>

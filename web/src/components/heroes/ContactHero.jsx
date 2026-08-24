@@ -83,7 +83,7 @@ const DAY_STYLE = {
   empty: { wrap: "invisible", num: "" },
   weekend: { wrap: "bg-violet-ghost/70", num: "!text-charcoal/45" },
   available:{ wrap: "bg-white ring-1 ring-mint-400/45", num: "!text-violet" },
-  today: { wrap: "bg-terracotta shadow-[0_6px_18px_rgb(var(--color-terracotta-rgb)/0.55)]", num: "!text-violet font-extrabold" },
+  today: { wrap: "bg-terracotta shadow-[0_6px_18px_rgb(var(--color-terracotta-rgb)/0.55)]", num: "!text-violet-deep font-extrabold" },
   booked: { wrap: "bg-violet", num: "!text-white" },
   kickoff: { wrap: "bg-violet-pale ring-1 ring-violet/55", num: "!text-violet" },
   progress: { wrap: "bg-[#fed978]", num: "!text-[#5a4506]" },
@@ -642,7 +642,7 @@ export default function ContactHero() {
               >
                 <Link
                   to="/book"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-terracotta px-7 py-3.5 text-[13.5px] font-bold !text-violet shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.25)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal sm:text-[14px]"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-terracotta px-7 py-3.5 text-[13.5px] font-bold !text-violet-deep shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.25)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal sm:text-[14px]"
                 >
                   <Calendar className="h-4 w-4" aria-hidden="true" />
                   {t("hero.bookDiscovery")}

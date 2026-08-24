@@ -24,6 +24,7 @@ import {
   bookConsultation,
   getBrowserTimezone,
   formatTime,
+  labelSlots,
   formatLongDate,
   localDateKey,
 } from "../../services/bookingService"
@@ -658,14 +659,14 @@ export default function BookingCalendar({
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-              {slots.map((s) => (
+              {labelSlots(slots, timezone).map((labelled, i) => (
                 <button
-                  key={s.startUtc}
+                  key={labelled.startUtc}
                   type="button"
-                  onClick={() => handleSlotClick(s)}
+                  onClick={() => handleSlotClick(slots[i])}
                   className="cursor-pointer rounded-xl border border-violet/15 bg-white px-3 py-3 text-[13px] font-semibold text-violet transition hover:border-transparent hover:bg-violet hover:text-white hover:shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)]"
                 >
-                  {formatTime(s.startUtc, timezone)}
+                  {labelled.label}
                 </button>
               ))}
             </div>

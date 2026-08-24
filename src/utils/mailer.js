@@ -122,8 +122,14 @@ const sendSupportTicketEmail = (ticket, user) =>
   send("support.created", user?.email || ticket?.email, ticketVars(ticket, user), { userId: user?.id })
 const sendSupportReplyEmail = (ticket, user, replyMessage) =>
   send("support.reply", user?.email || ticket?.email, { ...ticketVars(ticket, user), message: String(replyMessage || "").replace(/\n/g, "<br/>") }, { userId: user?.id })
-const sendNewsletterConfirmationEmail = (email) => {
-  const unsubscribeUrl = `${base()}/api/newsletter/unsubscribe?email=${encodeURIComponent(email)}`
+// The unsubscribe link must carry the subscriber's token — the old
+// `?email=` form let anyone unsubscribe any address and its route is gone.
+const sendNewsletterConfirmationEmail = async (email) => {
+  const prisma = require("../lib/prisma")
+  const newsletterService = require("../services/newsletterService")
+  const row = await prisma.newsletterSubscriber.findUnique({ where: { email } }).catch(() => null)
+  if (!row?.unsubscribeToken) return { ok: false, error: "No unsubscribe token for this subscriber" }
+  const unsubscribeUrl = newsletterService.buildUnsubscribeUrl(row.unsubscribeToken)
   return send("newsletter.welcome", email, { unsubscribeUrl, storeUrl: `${base()}/store` }, { headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` } })
 }
 

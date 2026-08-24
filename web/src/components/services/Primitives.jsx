@@ -5,8 +5,8 @@ export function Container({ children, className = "" }) {
 export function EyebrowChip({ children, tone = "violet" }) {
   const tones = {
     violet: "bg-violet-pale text-violet",
-    terracotta: "bg-terracotta/10 text-terracotta",
-    azure: "bg-azure/10 text-azure",
+    terracotta: "bg-terracotta/10 text-terracotta-800",
+    azure: "bg-azure/10 text-azure-deep",
     white: "bg-white/15 text-white",
   }
   return (

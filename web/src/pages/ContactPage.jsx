@@ -541,9 +541,9 @@ function ContactSection() {
                     transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                     className="flex items-start gap-3 rounded-xl border border-terracotta/25 bg-terracotta/[0.08] px-4 py-3"
                   >
-                    <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-terracotta-deep" aria-hidden="true" />
+                    <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-terracotta-800" aria-hidden="true" />
                     <div className="flex flex-col gap-1 text-[12.5px] sm:text-[13px]">
-                      <span className="font-bold text-terracotta-deep">
+                      <span className="font-bold text-terracotta-800">
                         {t("form.context.title")}
                       </span>
                       <span className="text-charcoal-80/70">

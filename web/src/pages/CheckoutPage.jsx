@@ -57,7 +57,7 @@ function CheckoutProgress({ step }) {
       {steps.map((s, i) => (
         <div key={s} className="flex items-center gap-2">
           <div className={`flex h-7 w-7 items-center justify-center rounded-xl text-micro font-bold transition-all ${
-            i < step ? "bg-mint text-white" :
+            i < step ? "bg-mint text-charcoal" :
             i === step ? "bg-violet text-white" :
                          "bg-charcoal-80/12 text-charcoal-80/50"
           }`}>
@@ -721,7 +721,7 @@ export default function CheckoutPage() {
               </div>
             )}
             {info && (
-              <div className="flex items-start gap-3 rounded-xl border border-azure/20 bg-azure-pale px-4 py-3 text-meta text-azure">
+              <div className="flex items-start gap-3 rounded-xl border border-azure/20 bg-azure-pale px-4 py-3 text-meta text-azure-800">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" aria-hidden="true" />{info}
               </div>
             )}
@@ -841,10 +841,10 @@ export default function CheckoutPage() {
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-mint text-white">
                         <Check className="h-3 w-3" strokeWidth={3} aria-hidden="true" />
                       </span>
-                      <code className="truncate font-mono text-micro font-semibold text-mint">
+                      <code className="truncate font-mono text-micro font-semibold text-mint-700">
                         {appliedCoupon.code}
                       </code>
-                      <span className="font-mono text-micro tabular-nums text-mint/85">
+                      <span className="font-mono text-micro tabular-nums text-mint-700/85">
                         −{formatPrice(discount)}
                       </span>
                     </div>
@@ -893,14 +893,14 @@ export default function CheckoutPage() {
                   <span className="font-mono font-semibold tabular-nums text-violet">{formatPrice(subtotal)}</span>
                 </div>
                 {discount > 0 && (
-                  <div className="flex justify-between text-meta text-mint">
+                  <div className="flex justify-between text-meta text-mint-700">
                     <span>{tCart("summary.discount")}</span>
                     <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-meta text-charcoal-80/70">
                   <span>{tCart("summary.taxLabel")}</span>
-                  <span className="font-semibold text-mint">$0.00</span>
+                  <span className="font-semibold text-mint-700">$0.00</span>
                 </div>
                 <div className="flex items-baseline justify-between border-t border-charcoal-80/10 pt-3">
                   <span className="text-body font-bold text-violet">{tCart("summary.total")}</span>

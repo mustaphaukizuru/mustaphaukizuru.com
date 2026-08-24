@@ -1725,6 +1725,12 @@ model TwoFactorAuth {
   // Codes are bcrypt-hashed; one-time-use; replaced en bloc on regenerate.
   backupCodes Json
 
+  /// Highest TOTP time-step already accepted for this user. RFC 6238 §5.2
+  /// requires a one-time-password to be usable exactly once: without this,
+  /// an observed code stays replayable for the whole verification window.
+  /// Nullable so `db push` is additive; null means "nothing consumed yet".
+  lastUsedStep BigInt?
+
   enabledAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

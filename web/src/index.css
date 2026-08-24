@@ -72,6 +72,7 @@
   /* ── Tier 3 · Warm Accent ───────────────────────────────────────────── */
   --color-terracotta:      #E9C46A;
   --color-terracotta-deep: #D4A847;
+  --color-terracotta-800:  #856212;  /* v1.2 — warm accent as body text on light grounds (5.60:1 on white) */
 
   /* ── Tier 4 · Neutrals ──────────────────────────────────────────────── */
   --color-steel:           #64748B;

@@ -153,7 +153,7 @@ export default function FormShell({
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
             role="status"
-            className="flex items-start gap-2 rounded-xl border border-mint/30 bg-mint/8 px-4 py-3 text-meta text-mint"
+            className="flex items-start gap-2 rounded-xl border border-mint/30 bg-mint/8 px-4 py-3 text-meta text-mint-700"
           >
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="flex-1">{success}</span>

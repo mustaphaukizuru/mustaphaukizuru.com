@@ -223,7 +223,7 @@ function ServiceOrderCard({ order, onUpdate }) {
                         href={c.meetingLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-micro font-semibold text-azure transition hover:underline focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-azure/40"
+                        className="text-micro font-semibold text-azure-deep transition hover:underline focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-azure/40"
                       >
                         Join
                       </a>

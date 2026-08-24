@@ -19,7 +19,7 @@ import useApiQuery from "../hooks/useApiQuery"
 // map to the canonical info/warning/error tiers using azure-pale + amber
 // + rose tokens instead of ad-hoc Tailwind hex values.
 const PRIORITY_COLORS = {
-  low: "bg-azure-pale text-azure",
+  low: "bg-azure-pale text-azure-800",
   medium: "bg-amber/12 text-amber-700",
   high: "bg-rose/10 text-rose-700",
 }

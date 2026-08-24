@@ -13,9 +13,9 @@ import { authGet } from "../lib/api"
 
 const TIER_COLORS = {
   Foundation:  "bg-rose/10 text-rose",
-  Stabilizing: "bg-amber/10 text-amber",
-  Optimizing:  "bg-azure/10 text-azure",
-  Mature:      "bg-mint/10 text-mint",
+  Stabilizing: "bg-amber/10 text-amber-700",
+  Optimizing:  "bg-azure/10 text-azure-deep",
+  Mature:      "bg-mint/10 text-mint-700",
 }
 
 const AUD_ICON = { EDU: GraduationCap, SMB: Building2, IND: User }
@@ -144,7 +144,7 @@ export default function AdminDiagnosticPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         {row.emailSent
-                          ? <span className="inline-flex items-center gap-1 text-[11px] text-mint font-semibold"><Mail className="h-3 w-3" /> Sent</span>
+                          ? <span className="inline-flex items-center gap-1 text-[11px] text-mint-700 font-semibold"><Mail className="h-3 w-3" /> Sent</span>
                           : <span className="text-[11px] text-charcoal/30">—</span>
                         }
                         <a

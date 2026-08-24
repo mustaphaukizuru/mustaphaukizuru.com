@@ -86,7 +86,7 @@ function FlagsCell({ featured, isNew }) {
         </span>
       )}
       {isNew && (
-        <span className="rounded-md bg-mint/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-mint">
+        <span className="rounded-md bg-mint/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-mint-700">
           New
         </span>
       )}

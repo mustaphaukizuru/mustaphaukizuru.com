@@ -303,7 +303,7 @@ function RowActions({ user, isMe, busy, onStatus, onRole }) {
           type="button"
           disabled={busy}
           onClick={() => onStatus(user, "active")}
-          className="inline-flex items-center gap-1 rounded-md border border-mint/30 bg-mint/15 px-2 py-1 text-[11px] font-semibold text-mint transition hover:bg-mint/25 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+          className="inline-flex items-center gap-1 rounded-md border border-mint/30 bg-mint/15 px-2 py-1 text-[11px] font-semibold text-mint-700 transition hover:bg-mint/25 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
           aria-label={`Reactivate ${user.fullName || user.email}`}
         >
           <UserCheck className="h-3 w-3" aria-hidden="true" /> Activate

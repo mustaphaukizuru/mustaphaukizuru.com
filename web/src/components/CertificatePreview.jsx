@@ -476,7 +476,7 @@ function CertificateViewer({ src, title, issuer, onClose }) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <p className="truncate text-[14px] font-bold text-charcoal">{title}</p>
-              <span className="hidden shrink-0 items-center gap-1 rounded-full bg-mint/12 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-mint sm:inline-flex">
+              <span className="hidden shrink-0 items-center gap-1 rounded-full bg-mint/12 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-mint-700 sm:inline-flex">
                 <ShieldCheck className="h-2.5 w-2.5" strokeWidth={2.4} aria-hidden="true" />
                 {t("certificate.verifiedBadge", { defaultValue: "Verified" })}
               </span>

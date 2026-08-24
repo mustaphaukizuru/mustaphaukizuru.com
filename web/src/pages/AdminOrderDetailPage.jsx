@@ -332,7 +332,7 @@ export default function AdminOrderDetailPage() {
 
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-azure-pale p-3 text-azure">
+              <div className="rounded-xl bg-azure-pale p-3 text-azure-800">
                 <CreditCard className="h-4 w-4" />
               </div>
               <h3 className="text-card font-semibold text-violet">Payments</h3>
@@ -451,7 +451,7 @@ function RefundHistoryCard({ refunds, currency }) {
                 {formatMoney(r.amount, currency || "MXN")}
               </div>
               <span className={`rounded-full px-3 py-1 text-micro font-semibold capitalize ${
-                r.refundStatus === "succeeded" ? "bg-mint/15 text-mint" :
+                r.refundStatus === "succeeded" ? "bg-mint/15 text-mint-700" :
                 r.refundStatus === "failed" ? "bg-rose-50 text-rose-600" :
                                                   "bg-amber/10 text-amber-700"
               }`}>
@@ -612,7 +612,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
           </div>
           <div className="rounded-xl bg-mint/10 p-4">
             <dt className="text-micro text-charcoal-80/65">Refundable</dt>
-            <dd className="mt-1 font-bold text-mint">{formatMoney(eligibility.refundableAmount, currency)}</dd>
+            <dd className="mt-1 font-bold text-mint-700">{formatMoney(eligibility.refundableAmount, currency)}</dd>
           </div>
         </dl>
 

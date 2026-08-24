@@ -381,14 +381,14 @@ function SkillBar({ name, value }) {
 
 function TimelineEntry({ item, index, total, accent }) {
   // Royal Violet accent for Education, Soft Terracotta accent for Experience
-  const dotClass = accent === "violet" ? "bg-violet text-white" : "bg-terracotta text-violet"
+  const dotClass = accent === "violet" ? "bg-violet text-white" : "bg-terracotta text-violet-deep"
   const ringClass = "ring-4 ring-mist"
   const xFrom = accent === "violet" ? -20 : 20
 
   // Light-theme period chip — high contrast on white card
   const chipClass = accent === "violet"
     ? "bg-violet/10 text-violet"
-    : "bg-terracotta/15 text-terracotta-deep"
+    : "bg-terracotta/15 text-terracotta-800"
 
   return (
     <m.div
@@ -712,7 +712,7 @@ function AboutStatsStrip() {
             </p>
             <Link
               to="/about#certifications"
-              className="link-underline inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-azure transition-colors hover:text-violet"
+              className="link-underline inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-azure-deep transition-colors hover:text-violet"
             >
               {t("stats.verifyCta", { defaultValue: "Verify the credentials" })}
               <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />

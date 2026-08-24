@@ -356,8 +356,8 @@ function StoreProductCard({ product }) {
             <button
               type="button"
               onClick={handleAdd}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-micro font-semibold text-white transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
-                added ? "bg-mint" : "bg-violet hover:bg-violet-deep"
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-micro font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
+                added ? "bg-mint text-charcoal" : "bg-violet text-white hover:bg-violet-deep"
               }`}
             >
               {added ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -415,7 +415,7 @@ function StoreListItem({ product }) {
             <button
               type="button"
               onClick={() => { addToCart(product, 1); setAdded(true); setTimeout(() => setAdded(false), 1400) }}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-micro font-semibold text-white transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${added ? "bg-mint" : "bg-violet hover:bg-violet-deep"}`}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-micro font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${added ? "bg-mint text-charcoal" : "bg-violet text-white hover:bg-violet-deep"}`}
             >
               {added ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />}
               {added ? t("card.added") : t("card.addToCart")}

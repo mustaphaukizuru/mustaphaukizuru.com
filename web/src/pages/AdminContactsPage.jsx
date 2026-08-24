@@ -349,7 +349,7 @@ export default function AdminContactsPage() {
                       <Mail className="h-3.5 w-3.5 text-charcoal-80/45" aria-hidden="true" />
                       <a
                         href={`mailto:${selected.email}?subject=Re: ${encodeURIComponent(selected.subject || "Your message")}`}
-                        className="font-mono text-azure hover:underline"
+                        className="font-mono text-azure-deep hover:underline"
                       >
                         {selected.email}
                       </a>
@@ -357,7 +357,7 @@ export default function AdminContactsPage() {
                     {selected.phone && (
                       <p className="flex items-center gap-2 text-meta">
                         <Phone className="h-3.5 w-3.5 text-charcoal-80/45" aria-hidden="true" />
-                        <a href={`tel:${selected.phone}`} className="font-mono text-azure hover:underline">
+                        <a href={`tel:${selected.phone}`} className="font-mono text-azure-deep hover:underline">
                           {selected.phone}
                         </a>
                       </p>

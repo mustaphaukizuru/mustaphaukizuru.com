@@ -170,7 +170,7 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[11px] font-bold tabular-nums ${
               isUp ? "bg-mint/15 text-emerald-700" :
               isDown ? "bg-rose/10 text-rose-700" :
-                       "bg-slate-100 text-steel"
+                       "bg-slate-100 text-steel-700"
             }`}
           >
             {TrendIcon && <TrendIcon className="h-2.5 w-2.5" aria-hidden="true" />}
@@ -396,17 +396,17 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
 /* ──────────────────────────────────────────────────────────────────── */
 function StatusPill({ status }) {
   const config = {
-    paid: { bg: "bg-mint/15", text: "text-mint", label: "Paid" },
+    paid: { bg: "bg-mint/15", text: "text-mint-700", label: "Paid" },
     pending: { bg: "bg-amber/10", text: "text-amber-700", label: "Pending" },
     failed: { bg: "bg-rose-50", text: "text-rose-600", label: "Failed" },
     cancelled: { bg: "bg-charcoal-80/10", text: "text-charcoal-80", label: "Cancelled" },
     refunded: { bg: "bg-rose-50", text: "text-rose-600", label: "Refunded" },
-    open: { bg: "bg-azure/10", text: "text-azure", label: "Open" },
-    in_progress: { bg: "bg-azure/10", text: "text-azure", label: "In Progress" },
-    resolved: { bg: "bg-mint/15", text: "text-mint", label: "Resolved" },
-    active: { bg: "bg-mint/15", text: "text-mint", label: "Active" },
-    completed: { bg: "bg-mint/15", text: "text-mint", label: "Completed" },
-    new: { bg: "bg-azure/10", text: "text-azure", label: "New" },
+    open: { bg: "bg-azure/10", text: "text-azure-deep", label: "Open" },
+    in_progress: { bg: "bg-azure/10", text: "text-azure-deep", label: "In Progress" },
+    resolved: { bg: "bg-mint/15", text: "text-mint-700", label: "Resolved" },
+    active: { bg: "bg-mint/15", text: "text-mint-700", label: "Active" },
+    completed: { bg: "bg-mint/15", text: "text-mint-700", label: "Completed" },
+    new: { bg: "bg-azure/10", text: "text-azure-deep", label: "New" },
     on_hold: { bg: "bg-amber/10", text: "text-amber-700", label: "On Hold" },
   }
   const cfg = config[status] || config.cancelled
@@ -595,7 +595,7 @@ export default function AdminDashboardPage() {
       {/* ── 1 · Top action strip ───────────────────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-mint">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-mint-700">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint" aria-hidden="true" />
             Live
           </span>
@@ -1054,9 +1054,9 @@ export default function AdminDashboardPage() {
                     login: "violet",
                   }[entry.action] || "violet"
                   const toneStyle = {
-                    mint: "bg-mint/15 text-mint",
+                    mint: "bg-mint/15 text-mint-700",
                     rose: "bg-rose-50 text-rose-600",
-                    azure: "bg-azure/10 text-azure",
+                    azure: "bg-azure/10 text-azure-deep",
                     amber: "bg-amber/10 text-amber-700",
                     violet: "bg-violet-pale text-violet",
                   }[actionTone]

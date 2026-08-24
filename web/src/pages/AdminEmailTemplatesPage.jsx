@@ -310,7 +310,7 @@ function TestModal({ template, onClose }) {
         <TextField form={form} name="to" label="Recipient" required type="email" placeholder="you@example.com" />
         <FormErrorBanner message={form.formError} />
         {successMsg && (
-          <div className="flex items-start gap-2 rounded-lg border border-mint/30 bg-mint/8 px-3 py-2 text-meta text-mint" role="status">
+          <div className="flex items-start gap-2 rounded-lg border border-mint/30 bg-mint/8 px-3 py-2 text-meta text-mint-700" role="status">
             <FileCheck2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {successMsg}
           </div>

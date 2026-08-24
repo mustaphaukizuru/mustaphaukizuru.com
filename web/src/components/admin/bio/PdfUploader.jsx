@@ -122,7 +122,7 @@ export default function PdfUploader({ value, onChange, disabled = false }) {
               href={value.startsWith("http") ? value : `${API_BASE_URL}${value}`}
               target="_blank"
               rel="noreferrer"
-              className="mt-0.5 block truncate font-mono text-xs text-azure hover:underline"
+              className="mt-0.5 block truncate font-mono text-xs text-azure-deep hover:underline"
               title={value}
             >
               {value}

@@ -395,7 +395,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
             className="flex flex-col gap-6"
           >
             {/* Eyebrow */}
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro font-semibold uppercase tracking-[0.2em] text-terracotta ring-1 ring-white/10 backdrop-blur-sm">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-violet-deep px-4 py-1.5 text-micro font-semibold uppercase tracking-[0.2em] text-terracotta ring-1 ring-white/10 backdrop-blur-sm">
               <Sparkles className="h-3.5 w-3.5" /> {t("hero.premiumDigital")}
             </span>
 
@@ -432,7 +432,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
             <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 to="/store#products"
-                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.30)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet-deep shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.30)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
               >
                 {t("hero.shopNow")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />

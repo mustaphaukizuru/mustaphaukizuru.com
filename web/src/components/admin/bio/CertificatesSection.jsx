@@ -29,8 +29,8 @@ const toForm = (c = {}) => ({
 })
 
 function sourceModeFor(v) {
-  if (v.pdfUrl) return { label: "PDF preview", tone: "bg-mint/15 text-mint", hint: "Hosted PDF will render inline as a thumbnail." }
-  if (v.credentialUrl) return { label: "Credential card", tone: "bg-azure/10 text-azure", hint: "External link only, tile shows issuer logo + Verify button." }
+  if (v.pdfUrl) return { label: "PDF preview", tone: "bg-mint/15 text-mint-700", hint: "Hosted PDF will render inline as a thumbnail." }
+  if (v.credentialUrl) return { label: "Credential card", tone: "bg-azure/10 text-azure-deep", hint: "External link only, tile shows issuer logo + Verify button." }
   return { label: "Initial card", tone: "bg-charcoal-80/8 text-charcoal-80", hint: "No source, tile shows issuer initial only. Add a PDF or credential URL." }
 }
 
@@ -132,7 +132,7 @@ export default function CertificatesSection() {
                     <span className="font-semibold text-charcoal">{c.title}</span>
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] ${
-                        isPdf ? "bg-mint/15 text-mint" : c.credentialUrl ? "bg-azure/10 text-azure" : "bg-charcoal-80/8 text-charcoal-80"
+                        isPdf ? "bg-mint/15 text-mint-700" : c.credentialUrl ? "bg-azure/10 text-azure-deep" : "bg-charcoal-80/8 text-charcoal-80"
                       }`}
                       title={isPdf ? "Hosted PDF" : c.credentialUrl ? "External credential URL" : "No source, tile will fall back to initial"}
                     >
@@ -149,8 +149,8 @@ export default function CertificatesSection() {
                     {c.issuer} · {fmtDate(c.issueDate)}{c.category ? ` · ${c.category}` : ""}
                   </div>
                   <div className="mt-1 flex flex-wrap gap-3 text-xs">
-                    {c.pdfUrl && <a href={c.pdfUrl} target="_blank" rel="noreferrer" className="text-azure hover:underline">Open PDF →</a>}
-                    {c.credentialUrl && <a href={c.credentialUrl} target="_blank" rel="noreferrer" className="text-azure hover:underline">Verify credential →</a>}
+                    {c.pdfUrl && <a href={c.pdfUrl} target="_blank" rel="noreferrer" className="text-azure-deep hover:underline">Open PDF →</a>}
+                    {c.credentialUrl && <a href={c.credentialUrl} target="_blank" rel="noreferrer" className="text-azure-deep hover:underline">Verify credential →</a>}
                   </div>
                 </div>
                 <RowActions onEdit={() => s.setEditing(c)} onDelete={() => s.setPendingDelete(c)} />
@@ -235,7 +235,7 @@ export default function CertificatesSection() {
                         placeholder="https://www.coursera.org/account/accomplishments/verify/…"
                       />
                       {form.values.credentialUrl && (
-                        <a href={form.values.credentialUrl} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-azure/20 bg-white px-3 text-xs font-semibold text-azure hover:bg-azure/5" title="Open in new tab">
+                        <a href={form.values.credentialUrl} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-azure/20 bg-white px-3 text-xs font-semibold text-azure-deep hover:bg-azure/5" title="Open in new tab">
                           <ExternalLink className="h-3.5 w-3.5" /> Test
                         </a>
                       )}

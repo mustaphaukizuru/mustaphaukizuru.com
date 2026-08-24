@@ -34,19 +34,19 @@ function clearState() { try { localStorage.removeItem(LS_KEY) } catch { /* ok */
 /* ─── Tier colors ───────────────────────────────────────────────────── */
 const TIER_COLOR = {
   Foundation:  { bg: "bg-rose/10",   text: "text-rose",  ring: "ring-rose/30",   hex: "var(--color-rose)" },
-  Stabilizing: { bg: "bg-amber/10",  text: "text-amber", ring: "ring-amber/30",  hex: "var(--color-amber)" },
-  Optimizing:  { bg: "bg-azure/10",  text: "text-azure", ring: "ring-azure/30",  hex: "var(--color-azure)" },
-  Mature:      { bg: "bg-mint/10",   text: "text-mint",  ring: "ring-mint/30",   hex: "var(--color-mint)" },
+  Stabilizing: { bg: "bg-amber/10",  text: "text-amber-700", ring: "ring-amber/30",  hex: "var(--color-amber)" },
+  Optimizing:  { bg: "bg-azure/10",  text: "text-azure-deep", ring: "ring-azure/30",  hex: "var(--color-azure)" },
+  Mature:      { bg: "bg-mint/10",   text: "text-mint-700",  ring: "ring-mint/30",   hex: "var(--color-mint)" },
 }
 
 /* ─── Score button colors ───────────────────────────────────────────── */
 const SCORE_LABELS = ["None","Aware","Partial","In place","Optimized"]
 const SCORE_COLORS = [
   "border-rose/40 hover:border-rose hover:bg-rose/5 data-[sel=true]:bg-rose data-[sel=true]:border-rose data-[sel=true]:text-white",
-  "border-amber/40 hover:border-amber hover:bg-amber/5 data-[sel=true]:bg-amber data-[sel=true]:border-amber data-[sel=true]:text-white",
+  "border-amber/40 hover:border-amber hover:bg-amber/5 data-[sel=true]:bg-amber data-[sel=true]:border-amber data-[sel=true]:text-charcoal",
   "border-steel/30 hover:border-steel hover:bg-charcoal/5 data-[sel=true]:bg-steel data-[sel=true]:border-steel data-[sel=true]:text-white",
-  "border-azure/40 hover:border-azure hover:bg-azure/5 data-[sel=true]:bg-azure data-[sel=true]:border-azure data-[sel=true]:text-white",
-  "border-mint/40 hover:border-mint hover:bg-mint/5 data-[sel=true]:bg-mint data-[sel=true]:border-mint data-[sel=true]:text-white",
+  "border-azure/40 hover:border-azure hover:bg-azure/5 data-[sel=true]:bg-azure-deep data-[sel=true]:border-azure-deep data-[sel=true]:text-white",
+  "border-mint/40 hover:border-mint hover:bg-mint/5 data-[sel=true]:bg-mint data-[sel=true]:border-mint data-[sel=true]:text-charcoal",
 ]
 
 /* ─── Animated score ring ────────────────────────────────────────────── */
@@ -610,9 +610,9 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
         <div className="sm:hidden mb-4 flex items-center gap-2 text-[11px] text-charcoal/50">
           <span className="font-mono font-bold text-rose">0</span><span>None</span>
           <span className="mx-1 text-charcoal/20">·</span>
-          <span className="font-mono font-bold text-amber">1–2</span><span>Aware/Partial</span>
+          <span className="font-mono font-bold text-amber-700">1–2</span><span>Aware/Partial</span>
           <span className="mx-1 text-charcoal/20">·</span>
-          <span className="font-mono font-bold text-mint">3–4</span><span>In place/Optimized</span>
+          <span className="font-mono font-bold text-mint-700">3–4</span><span>In place/Optimized</span>
         </div>
 
         {/* Items */}
@@ -663,7 +663,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
 
                   {/* Service tag — shown when score is low */}
                   {sel !== undefined && sel <= 2 && (
-                    <span className="inline-flex items-center gap-1 text-[12px] text-azure font-medium">
+                    <span className="inline-flex items-center gap-1 text-[12px] text-azure-deep font-medium">
                       <ArrowRight className="h-3 w-3 shrink-0" />
                       If 0–2: <span className="font-mono font-bold text-violet">{svc}</span>
                       <span className="text-charcoal/40 hidden sm:inline">· {tier}</span>
@@ -766,7 +766,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
         <div className="inline-flex items-center gap-2 rounded-full border border-charcoal/10 bg-white px-4 py-2 text-[13px] mt-2">
           <TrendingUp className="h-4 w-4 text-charcoal/40" />
           <span className="text-charcoal/60">vs. avg <strong className="text-charcoal">{avg}/100</strong> for {audienceLabel}</span>
-          <span className={`font-mono font-bold ${vsAvg >= 0 ? "text-mint" : "text-rose"}`}>
+          <span className={`font-mono font-bold ${vsAvg >= 0 ? "text-mint-700" : "text-rose"}`}>
             {vsAvg >= 0 ? "+" : ""}{vsAvg}
           </span>
         </div>

@@ -78,10 +78,10 @@
     "verbose": true,
     "coverageThreshold": {
       "global": {
-        "lines": 30,
-        "statements": 27,
-        "branches": 22,
-        "functions": 23
+        "lines": 44,
+        "statements": 41,
+        "branches": 26,
+        "functions": 27
       }
     }
   },

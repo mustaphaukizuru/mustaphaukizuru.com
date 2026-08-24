@@ -17,10 +17,10 @@
 
 const STATUS_MAP = {
   // Order / payment status taxonomy
-  paid: { bg: "bg-mint/15", text: "text-mint", label: "Paid" },
-  completed: { bg: "bg-mint/15", text: "text-mint", label: "Completed" },
-  active: { bg: "bg-mint/15", text: "text-mint", label: "Active" },
-  delivered: { bg: "bg-mint/15", text: "text-mint", label: "Delivered" },
+  paid: { bg: "bg-mint/15", text: "text-mint-700", label: "Paid" },
+  completed: { bg: "bg-mint/15", text: "text-mint-700", label: "Completed" },
+  active: { bg: "bg-mint/15", text: "text-mint-700", label: "Active" },
+  delivered: { bg: "bg-mint/15", text: "text-mint-700", label: "Delivered" },
   pending: { bg: "bg-amber/10", text: "text-amber-700", label: "Pending" },
   processing:{ bg: "bg-amber/10", text: "text-amber-700", label: "Processing" },
   draft: { bg: "bg-charcoal-80/10", text: "text-charcoal-80", label: "Draft" },
@@ -30,16 +30,16 @@ const STATUS_MAP = {
   refunded: { bg: "bg-rose-50", text: "text-rose-600", label: "Refunded" },
   rejected: { bg: "bg-rose-50", text: "text-rose-600", label: "Rejected" },
   suspended: { bg: "bg-rose-50", text: "text-rose-600", label: "Suspended" },
-  open: { bg: "bg-azure/10", text: "text-azure", label: "Open" },
+  open: { bg: "bg-azure/10", text: "text-azure-deep", label: "Open" },
   closed: { bg: "bg-charcoal-80/10", text: "text-charcoal-80", label: "Closed" },
 
   // Role taxonomy
   admin: { bg: "bg-violet-pale", text: "text-violet", label: "Admin" },
-  member: { bg: "bg-azure/10", text: "text-azure", label: "Member" },
+  member: { bg: "bg-azure/10", text: "text-azure-deep", label: "Member" },
   guest: { bg: "bg-charcoal-80/10", text: "text-charcoal-80", label: "Guest" },
 
   // Gateway taxonomy
-  mercadopago: { bg: "bg-azure/10", text: "text-azure", label: "MercadoPago" },
+  mercadopago: { bg: "bg-azure/10", text: "text-azure-deep", label: "MercadoPago" },
   paypal: { bg: "bg-violet-pale", text: "text-violet", label: "PayPal" },
 }
 

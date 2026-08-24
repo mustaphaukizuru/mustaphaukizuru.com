@@ -103,11 +103,11 @@ export default function OutcomeStats({ outcomes = [], compact = false }) {
                 ) : (
                   o.value
                 )}
-                {o.placeholder ? <span aria-hidden="true" className="ml-0.5 text-azure">*</span> : null}
+                {o.placeholder ? <span aria-hidden="true" className="ml-0.5 text-azure-deep">*</span> : null}
               </dd>
               <dt className="mt-1 text-meta leading-5 text-charcoal-80/70">{o.label}</dt>
               {o.placeholder ? (
-                <span className="mt-2 inline-block rounded-full bg-white px-2 py-0.5 text-micro font-semibold uppercase tracking-[0.12em] text-azure">
+                <span className="mt-2 inline-block rounded-full bg-white px-2 py-0.5 text-micro font-semibold uppercase tracking-[0.12em] text-azure-deep">
                   {t("detail.placeholderBadge")}
                 </span>
               ) : null}

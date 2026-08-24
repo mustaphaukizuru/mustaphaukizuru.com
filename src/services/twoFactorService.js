@@ -24,6 +24,12 @@ const TWO_FACTOR_TOKEN_TTL_SECONDS = 5 * 60      // 5 minutes
 const TWO_FACTOR_TOKEN_PURPOSE = "2fa-pending"
 const BACKUP_CODE_COUNT = 8
 const TOTP_VERIFY_WINDOW = 1                      // ±1 step (≈ ±30s clock drift)
+const TOTP_STEP_SECONDS  = 30                     // speakeasy's default period
+
+/** The TOTP time-step the server is currently in. */
+function currentTotpStep() {
+  return Math.floor(Date.now() / 1000 / TOTP_STEP_SECONDS)
+}
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Setup / lifecycle
@@ -179,15 +185,30 @@ async function verifyLoginCode({ userId, code }) {
   const trimmed = String(code || "").trim()
   if (!trimmed) throw httpError(400, "Code is required")
 
-  // Path A: 6-digit TOTP
+  // Path A: 6-digit TOTP.
+  // `verifyDelta` returns which step matched so the step can be consumed —
+  // a one-time password must not be usable twice (RFC 6238 §5.2). Without
+  // this, an observed code (shoulder-surf, phishing proxy, replayed form
+  // post) mints fresh sessions for the whole ±window, ~90 s.
   if (/^\d{6}$/.test(trimmed)) {
-    const ok = speakeasy.totp.verify({
+    const result = speakeasy.totp.verifyDelta({
       secret:   row.secret,
       encoding: "base32",
       token:    trimmed,
       window:   TOTP_VERIFY_WINDOW,
     })
-    if (ok) return { ok: true, method: "totp" }
+    if (result) {
+      const step = currentTotpStep() + Number(result.delta || 0)
+      const lastUsed = row.lastUsedStep == null ? null : Number(row.lastUsedStep)
+      if (lastUsed !== null && step <= lastUsed) {
+        throw httpError(400, "That code was already used. Wait for your app to show the next one.")
+      }
+      await prisma.twoFactorAuth.update({
+        where: { userId },
+        data:  { lastUsedStep: BigInt(step) },
+      })
+      return { ok: true, method: "totp" }
+    }
   }
 
   // Path B: backup code (8-character hex / mixed). Iterate, bcrypt-compare.

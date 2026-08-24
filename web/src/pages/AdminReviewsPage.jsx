@@ -49,7 +49,7 @@ const STATUSES = [
   { key: "pending", label: "Pending", Icon: AlertTriangle, tone: "bg-amber/12 text-amber-700" },
   { key: "flagged", label: "Flagged", Icon: Flag, tone: "bg-rose/10 text-rose-700" },
   { key: "approved", label: "Approved", Icon: CheckCircle2, tone: "bg-mint/12 text-emerald-700" },
-  { key: "hidden", label: "Hidden", Icon: EyeOff, tone: "bg-slate-100 text-steel" },
+  { key: "hidden", label: "Hidden", Icon: EyeOff, tone: "bg-slate-100 text-steel-700" },
   { key: "rejected", label: "Rejected", Icon: X, tone: "bg-rose/15 text-rose-800" },
 ]
 

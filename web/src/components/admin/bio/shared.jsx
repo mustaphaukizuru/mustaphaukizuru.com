@@ -154,7 +154,7 @@ export function RowActions({ onEdit, onDelete }) {
 
 export function ViewOnAboutLink({ hash }) {
   return (
-    <a href={`/about#${hash}`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-azure hover:underline">
+    <a href={`/about#${hash}`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-azure-deep hover:underline">
       View on About page ↗
     </a>
   )

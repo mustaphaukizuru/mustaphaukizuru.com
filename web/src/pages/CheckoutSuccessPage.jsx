@@ -464,7 +464,7 @@ export default function CheckoutSuccessPage() {
                             <span className="font-mono font-semibold tabular-nums text-violet">{formatPrice(subtotal, currency)}</span>
                           </div>
                           {discount > 0 && (
-                            <div className="flex justify-between text-mint">
+                            <div className="flex justify-between text-mint-700">
                               <span>{t("success.discountLabel")}</span>
                               <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount, currency)}</span>
                             </div>

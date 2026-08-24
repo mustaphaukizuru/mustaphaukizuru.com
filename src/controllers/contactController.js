@@ -3,11 +3,8 @@ const logger = require("../utils/logger")
 const { notifyContactReceived } = require("../services/notificationService");
 const emailService = require("../services/emailService")
 const { resolveUserLocale } = require("../utils/resolveUserLocale");
-const newsletterService = require("../services/newsletterService");
-const {
-  createContactMessage,
-  subscribeNewsletter,
-} = require("../services/contactService");
+const newsletterController = require("./newsletterController");
+const { createContactMessage } = require("../services/contactService");
 
 /**
  * POST /api/contact
@@ -103,58 +100,23 @@ const sendContactMessage = asyncHandler(async (req, res) => {
 });
 
 /**
- * POST /api/newsletter   (kept for backward compatibility with existing Footer.jsx)
- * Prefer POST /api/newsletter/subscribe going forward.
+ * POST /api/newsletter   ·  legacy alias, kept alive for external forms and
+ * old cached SPA bundles that still post here.
+ *
+ * There is exactly ONE subscribe implementation:
+ * `newsletterController.subscribe`. This is a thin delegate rather than a
+ * 307/308 redirect because several HTTP clients (and every plain <form>)
+ * drop or downgrade the body on a cross-route redirect.
+ *
+ * The only behavioural difference is the default `source` attribution —
+ * historically everything hitting this path came from the footer form.
  */
-const addNewsletterSubscriber = asyncHandler(async (req, res) => {
-  const { email, name, source } = req.body || {};
-
-  if (!email) {
-    return res.status(400).json({
-      success: false,
-      message: "Email is required.",
-    });
+const addNewsletterSubscriber = (req, res, next) => {
+  if (req.body && typeof req.body === "object" && !req.body.source) {
+    req.body.source = "footer";
   }
-
-  try {
-    // Legacy alias for POST /newsletter/subscribe. It MUST use the same
-    // double-opt-in contract: newsletterService.subscribe now returns
-    // { subscriber, sendConfirmation, confirmUrl }. Reading the old
-    // { isNew, unsubscribeUrl } shape left every subscriber stuck in
-    // `pending` with no confirmation email ever sent.
-    const { subscriber, sendConfirmation, confirmUrl } = await newsletterService.subscribe({
-      email,
-      name:   name || null,
-      source: source || "footer",
-    });
-
-    if (sendConfirmation) {
-      emailService.sendTemplateEmail({
-        locale:      resolveUserLocale({ req }),
-        to:          subscriber.email,
-        templateKey: "newsletter.confirm",
-        variables: {
-          email:      subscriber.email,
-          name:       subscriber.name || "",
-          confirmUrl,
-        },
-      }).catch((err) => logger.error("[newsletter] confirmation email:", err.message));
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: subscriber.status === "subscribed"
-        ? "You're already subscribed."
-        : "Almost there — check your inbox to confirm your subscription.",
-    });
-  } catch (err) {
-    if (err.code === "VALIDATION_ERROR") {
-      return res.status(400).json({ success: false, message: err.message });
-    }
-    logger.error("[newsletter] subscribe:", err.message);
-    return res.status(200).json({ success: true, message: "Subscribed." });
-  }
-});
+  return newsletterController.subscribe(req, res, next);
+};
 
 module.exports = {
   sendContactMessage,
