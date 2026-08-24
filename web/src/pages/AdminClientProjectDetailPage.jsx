@@ -237,7 +237,7 @@ export default function AdminClientProjectDetailPage() {
                       <StatusPill status={m.status} />
                     </div>
                     {m.description && <p className="mt-1 text-micro text-charcoal-80/65">{m.description}</p>}
-                    <div className="mt-1.5 font-mono text-[11px] text-charcoal-80/45">
+                    <div className="mt-1.5 font-mono text-[11px] text-charcoal-80/65">
                       {m.dueDate && <>Due {new Date(m.dueDate).toLocaleDateString()} · </>}
                       {m.completedAt && <>Completed {new Date(m.completedAt).toLocaleDateString()}</>}
                     </div>
@@ -262,7 +262,7 @@ export default function AdminClientProjectDetailPage() {
               )
             })}
             {project.milestones.length === 0 && (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-4 text-center text-meta text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-4 text-center text-meta text-charcoal-80/65">
                 No milestones yet. Add the first one below.
               </div>
             )}
@@ -310,7 +310,7 @@ export default function AdminClientProjectDetailPage() {
 
           <div className="mt-4 space-y-2">
             {project.files.length === 0 && (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-4 text-center text-meta text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-4 text-center text-meta text-charcoal-80/65">
                 No files uploaded yet.
               </div>
             )}
@@ -322,7 +322,7 @@ export default function AdminClientProjectDetailPage() {
                   </div>
                   <div className="min-w-0">
                     <div className="truncate text-meta font-semibold text-charcoal-80">{f.fileName}</div>
-                    <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/55">
+                    <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
                       {f.fileType || "file"} · {new Date(f.createdAt).toLocaleDateString()}
                     </div>
                   </div>

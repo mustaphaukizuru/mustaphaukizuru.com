@@ -57,7 +57,7 @@ function HostCard() {
         </picture>
       </div>
       <div className="p-4 pt-2.5 text-center">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet/70">{t("book.host.eyebrow")}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet">{t("book.host.eyebrow")}</div>
         <div className="mt-1 text-[15px] font-bold text-violet">{t("book.host.name")}</div>
         <div className="mt-0.5 text-[12px] text-charcoal/70">{t("book.host.role")}</div>
         <p className="mt-2.5 border-t border-charcoal/8 pt-2.5 text-[12px] leading-5 text-charcoal/70">{t("book.host.line")}</p>
@@ -91,7 +91,7 @@ function ServiceContextCard({ category, offering, lang }) {
         {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
       </span>
       <div className="min-w-0">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet/70">{t("booking.context.label")}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet">{t("booking.context.label")}</div>
         <div className="text-[13px] font-bold text-violet">
           {pick(category, "name", lang)}
           {offering && <span className="font-medium text-charcoal/70"> · {pick(offering, "name", lang)}</span>}

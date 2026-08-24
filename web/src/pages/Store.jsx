@@ -154,7 +154,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
 
       {/* Category list (vertical) */}
       <div>
-        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/55">
+        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/65">
           {t("toolbar.categoryHeader")}
         </h3>
         <div className="flex flex-col gap-1">
@@ -182,7 +182,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
 
       {/* Sort */}
       <div>
-        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/55">
+        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/65">
           {t("toolbar.sortHeader")}
         </h3>
         <select
@@ -199,7 +199,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
 
       {/* View toggle */}
       <div>
-        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/55">
+        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/65">
           {t("toolbar.viewHeader")}
         </h3>
         <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-charcoal-80/15">
@@ -328,7 +328,7 @@ function StoreProductCard({ product }) {
           <div className="mt-1.5 flex items-center gap-1.5 text-micro">
             <Star className="h-3.5 w-3.5 fill-current text-terracotta" aria-hidden="true" />
             <span className="font-mono font-semibold tabular-nums text-violet">{rating.toFixed(1)}</span>
-            <span className="font-mono tabular-nums text-charcoal-80/55">({reviewCount})</span>
+            <span className="font-mono tabular-nums text-charcoal-80/65">({reviewCount})</span>
           </div>
         )}
 
@@ -336,7 +336,7 @@ function StoreProductCard({ product }) {
           {product.shortDescription || product.description}
         </p>
 
-        <div className="mt-1.5 flex items-center gap-1.5 text-micro text-charcoal-80/45">
+        <div className="mt-1.5 flex items-center gap-1.5 text-micro text-charcoal-80/65">
           <Download className="h-3.5 w-3.5 text-violet" aria-hidden="true" /> {t("card.instantAccess")}
         </div>
 
@@ -348,7 +348,7 @@ function StoreProductCard({ product }) {
           <div className="flex items-center gap-2">
             <Link
               to={`/store/${product.slug}`}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-charcoal-80/12 text-charcoal-80/60 transition hover:border-violet/25 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-charcoal-80/12 text-charcoal-80/65 transition hover:border-violet/25 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
               aria-label={t("card.viewDetails")}
             >
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
@@ -517,7 +517,7 @@ function StorePagination({ page, totalPages, onChange }) {
 
       {getPageButtons().map((p, i) =>
         p === "…" ? (
-          <span key={`ellipsis-${i}`} className="px-1.5 font-mono tabular-nums text-charcoal-80/50">…</span>
+          <span key={`ellipsis-${i}`} className="px-1.5 font-mono tabular-nums text-charcoal-80/65">…</span>
         ) : (
           <button
             key={p}

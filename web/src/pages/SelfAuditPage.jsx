@@ -107,7 +107,7 @@ export default function SelfAuditPage() {
             </p>
 
             {/* Feature pills */}
-            <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2.5 text-[13px] text-charcoal/60">
+            <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2.5 text-[13px] text-charcoal/65">
               {[
                 { icon: Clock,       text: "~15 minutes" },
                 { icon: Layers,      text: "6 dimensions · 82 services" },
@@ -134,7 +134,7 @@ export default function SelfAuditPage() {
               </m.button>
               <a
                 href="#what-youll-get"
-                className="text-[14px] font-medium text-charcoal/55 underline underline-offset-2 hover:text-violet transition"
+                className="text-[14px] font-medium text-charcoal/65 underline underline-offset-2 hover:text-violet transition"
               >
                 See what you'll get
               </a>
@@ -150,7 +150,7 @@ export default function SelfAuditPage() {
             {TRUST_STATS.map(({ value, label }) => (
               <div key={label} className="rounded-xl bg-white/70 border border-charcoal/6 px-4 py-4 text-center backdrop-blur-sm">
                 <div className="font-mono text-[28px] font-bold text-violet leading-none">{value}</div>
-                <div className="mt-1 text-[12px] text-charcoal/55">{label}</div>
+                <div className="mt-1 text-[12px] text-charcoal/65">{label}</div>
               </div>
             ))}
           </m.div>
@@ -168,7 +168,7 @@ export default function SelfAuditPage() {
                 </div>
                 <div>
                   <div className="text-[14px] font-semibold text-charcoal">{label}</div>
-                  <div className="font-mono text-[11px] text-charcoal/50">{items}</div>
+                  <div className="font-mono text-[11px] text-charcoal/65">{items}</div>
                 </div>
               </div>
             ))}
@@ -199,7 +199,7 @@ export default function SelfAuditPage() {
                 </div>
                 <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet mb-2">{eyebrow}</p>
                 <h3 className="text-[17px] font-bold text-charcoal mb-2">{title}</h3>
-                <p className="text-[13.5px] leading-relaxed text-charcoal/60">{body}</p>
+                <p className="text-[13.5px] leading-relaxed text-charcoal/65">{body}</p>
               </m.div>
             ))}
           </div>
@@ -215,7 +215,7 @@ export default function SelfAuditPage() {
               <h2 className="text-[clamp(22px,3vw,34px)] font-extrabold tracking-tight text-charcoal mb-4">
                 A real picture of where you are. Not a sales deck.
               </h2>
-              <p className="text-[15px] leading-7 text-charcoal/60 mb-6">
+              <p className="text-[15px] leading-7 text-charcoal/65 mb-6">
                 Every score maps to a specific service, a realistic investment range, and what happens if the gap goes unfixed. No vague recommendations — just a prioritised list you can act on immediately.
               </p>
               <ul className="space-y-3">
@@ -250,7 +250,7 @@ export default function SelfAuditPage() {
                 <div>
                   <div className="text-[22px] font-bold text-charcoal leading-none">58 / 100</div>
                   <div className="mt-1 inline-block rounded-full bg-amber/15 px-2.5 py-0.5 text-[12px] font-bold text-amber-700">Stabilizing</div>
-                  <div className="mt-1 text-[12px] text-charcoal/50">vs. avg 44 for businesses</div>
+                  <div className="mt-1 text-[12px] text-charcoal/65">vs. avg 44 for businesses</div>
                 </div>
               </div>
               {/* Sample bars */}
@@ -265,7 +265,7 @@ export default function SelfAuditPage() {
                   <div className="flex-1 h-2 bg-charcoal/8 rounded-full overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
                   </div>
-                  <span className="font-mono text-[11px] font-bold text-charcoal/60 w-8 text-right">{pct}%</span>
+                  <span className="font-mono text-[11px] font-bold text-charcoal/65 w-8 text-right">{pct}%</span>
                 </div>
               ))}
               <p className="mt-4 text-center text-[11px] text-charcoal/35 italic">Sample only — your results will reflect your actual scores</p>
@@ -313,7 +313,7 @@ export default function SelfAuditPage() {
             >
               <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet">Browse the catalogue</span>
               <h3 className="text-[17px] font-bold text-charcoal">See the 82 services your shortlist comes from</h3>
-              <p className="text-[13px] leading-relaxed text-charcoal/55">Every audit item maps to an atomic service with a scope, timeline, and price band.</p>
+              <p className="text-[13px] leading-relaxed text-charcoal/65">Every audit item maps to an atomic service with a scope, timeline, and price band.</p>
               <span className="mt-auto pt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition group-hover:gap-2.5">
                 Open services <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
@@ -325,7 +325,7 @@ export default function SelfAuditPage() {
             >
               <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet">Talk it through</span>
               <h3 className="text-[17px] font-bold text-charcoal">Book a free 30-min discovery call</h3>
-              <p className="text-[13px] leading-relaxed text-charcoal/55">Walk through your results with me — no sales pitch, just an honest read on what to prioritise.</p>
+              <p className="text-[13px] leading-relaxed text-charcoal/65">Walk through your results with me — no sales pitch, just an honest read on what to prioritise.</p>
               <span className="mt-auto pt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition group-hover:gap-2.5">
                 Book a call <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </span>

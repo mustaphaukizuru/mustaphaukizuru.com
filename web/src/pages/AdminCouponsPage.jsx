@@ -291,7 +291,7 @@ export default function AdminCouponsPage() {
             </button>
           </div>
           {row.description && (
-            <div className="mt-0.5 truncate text-micro text-charcoal-80/60">{row.description}</div>
+            <div className="mt-0.5 truncate text-micro text-charcoal-80/65">{row.description}</div>
           )}
         </div>
       ),
@@ -516,7 +516,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-lg p-1.5 text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+            className="rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -675,7 +675,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
       >
         <div className="sticky top-0 flex items-center justify-between border-b border-charcoal-80/8 bg-white px-5 py-4">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">Usage history</div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">Usage history</div>
             <div className="mt-0.5 flex items-center gap-2">
               <Tag className="h-3.5 w-3.5 text-violet" aria-hidden="true" />
               <code className="font-mono text-meta font-semibold text-violet">{coupon.code}</code>
@@ -685,7 +685,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Close usage drawer"
-            className="rounded-lg p-1.5 text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+            className="rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -693,9 +693,9 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
 
         <div className="p-5">
           {loading ? (
-            <div className="py-10 text-center text-meta text-charcoal-80/60" role="status">Loading…</div>
+            <div className="py-10 text-center text-meta text-charcoal-80/65" role="status">Loading…</div>
           ) : rows.length === 0 ? (
-            <div className="py-10 text-center text-meta text-charcoal-80/60">No redemptions yet.</div>
+            <div className="py-10 text-center text-meta text-charcoal-80/65">No redemptions yet.</div>
           ) : (
             <ul className="space-y-3">
               {rows.map((row) => (
@@ -705,9 +705,9 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
                       <div className="truncate text-meta font-medium text-violet">
                         {row.user?.fullName || "Unknown user"}
                       </div>
-                      <div className="truncate font-mono text-micro text-charcoal-80/60">{row.user?.email || ""}</div>
+                      <div className="truncate font-mono text-micro text-charcoal-80/65">{row.user?.email || ""}</div>
                     </div>
-                    <div className="font-mono text-micro tabular-nums text-charcoal-80/60">{formatDate(row.usedAt)}</div>
+                    <div className="font-mono text-micro tabular-nums text-charcoal-80/65">{formatDate(row.usedAt)}</div>
                   </div>
                   {row.order && (
                     <div className="mt-2 flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-micro text-charcoal-80/85">

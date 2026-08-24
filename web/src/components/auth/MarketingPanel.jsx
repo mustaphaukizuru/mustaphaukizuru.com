@@ -341,7 +341,7 @@ export default function MarketingPanel({ reduce }) {
 
       {/* ── Bottom: dot nav + counter ─────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <div role="tablist" aria-label={t("auth.marketing.slidesAria")} className="flex items-center gap-2">
+        <div role="tablist" aria-label={t("auth.marketing.slidesAria")} className="-mx-1.5 flex items-center">
           {Array.from({ length: SLIDE_COUNT }).map((_, i) => (
             <button
               key={i}
@@ -350,10 +350,15 @@ export default function MarketingPanel({ reduce }) {
               aria-selected={active === i}
               aria-label={`Go to slide ${i + 1}`}
               onClick={() => setActive(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
-                active === i ? "w-7 bg-white/85" : "w-1.5 bg-white/25 hover:bg-white/45"
-              }`}
-            />
+              className="flex h-6 w-6 items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            >
+              <span
+                aria-hidden="true"
+                className={`block h-1.5 rounded-full transition-all duration-300 ${
+                  active === i ? "w-4 bg-white/85" : "w-1.5 bg-white/25"
+                }`}
+              />
+            </button>
           ))}
         </div>
 

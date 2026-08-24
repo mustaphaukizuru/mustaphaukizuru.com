@@ -50,7 +50,7 @@ const stagger = {
 }
 
 const STRENGTH_META = {
-  0: { label: "Too short", color: "bg-charcoal-80/15", text: "text-charcoal-80/45" },
+  0: { label: "Too short", color: "bg-charcoal-80/15", text: "text-charcoal-80/65" },
   1: { label: "Weak", color: "bg-rose", text: "text-rose-700" },
   2: { label: "Weak", color: "bg-rose", text: "text-rose-700" },
   3: { label: "Medium", color: "bg-amber", text: "text-amber-700" },
@@ -272,7 +272,7 @@ export default function ResetPasswordPage() {
                 onClick={() => setShowPw((v) => !v)}
                 aria-label={showPw ? "Hide password" : "Show password"}
                 aria-pressed={showPw}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
               >
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -308,7 +308,7 @@ export default function ResetPasswordPage() {
               className={`mt-1.5 text-[11px] ${
                 password.length > 0 && password.length < MIN_PW_LENGTH
                   ? "font-medium text-rose-700"
-                  : "text-charcoal-80/55"
+                  : "text-charcoal-80/65"
               }`}
             >
               {t("reset.mustBeAtLeast")} {MIN_PW_LENGTH} characters
@@ -366,7 +366,7 @@ export default function ResetPasswordPage() {
                 onClick={() => setShowCf((v) => !v)}
                 aria-label={showCf ? "Hide password" : "Show password"}
                 aria-pressed={showCf}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
               >
                 {showCf ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -421,7 +421,7 @@ export default function ResetPasswordPage() {
               id="reset-disabled-hint"
               role="status"
               aria-live="polite"
-              className="-mt-1 text-center text-[11.5px] text-charcoal-80/60"
+              className="-mt-1 text-center text-[11.5px] text-charcoal-80/65"
             >
               {password.length < MIN_PW_LENGTH ? `Password needs at least ${MIN_PW_LENGTH} characters (${password.length} so far).`
                 : !matches ? "Repeat your password — they need to match."

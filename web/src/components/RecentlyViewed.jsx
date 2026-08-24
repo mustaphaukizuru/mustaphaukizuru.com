@@ -125,7 +125,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
           <button
             type="button"
             onClick={clear}
-            className="text-micro font-semibold text-charcoal-80/55 hover:text-violet focus-visible:outline-none focus-visible:underline"
+            className="text-micro font-semibold text-charcoal-80/65 hover:text-violet focus-visible:outline-none focus-visible:underline"
           >
             {t("components.clearHistory")}
           </button>

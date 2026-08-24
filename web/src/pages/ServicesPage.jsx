@@ -101,7 +101,7 @@ export default function ServicesPage() {
       {/* § 06 · Final CTA */}
       <section className="bg-violet py-16 text-white sm:py-20">
         <Container className="text-center">
-          <p className="text-micro font-semibold uppercase tracking-[0.2em] text-white/70">{t("funnel.final.eyebrow")}</p>
+          <p className="text-micro font-semibold uppercase tracking-[0.2em] text-white/85">{t("funnel.final.eyebrow")}</p>
           <h2 className="mx-auto mt-3 max-w-2xl text-section font-bold">{t("funnel.final.title")}</h2>
           <p className="mx-auto mt-3 max-w-xl text-body text-white/80">{t("funnel.final.body")}</p>
           <div className="mt-8">

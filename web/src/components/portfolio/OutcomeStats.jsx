@@ -116,7 +116,7 @@ export default function OutcomeStats({ outcomes = [], compact = false }) {
         })}
       </dl>
       {anyPlaceholder ? (
-        <p className="mt-3 text-micro leading-5 text-charcoal-80/55">{t("detail.placeholderNote")}</p>
+        <p className="mt-3 text-micro leading-5 text-charcoal-80/65">{t("detail.placeholderNote")}</p>
       ) : null}
     </div>
   )

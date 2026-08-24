@@ -103,7 +103,7 @@ function PaginationControls({ page, totalPages, total, pageSize, pageSizeOptions
             {pageSizeOptions.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
         </label>
-        <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
           {range || `${start}\u2013${end} of ${total}`}
         </span>
       </div>
@@ -185,7 +185,7 @@ function BulkActionsToolbar({ selectedCount, actions, onClear, totalCount }) {
               type="button"
               onClick={onClear}
               aria-label="Clear selection"
-              className="ml-1 flex h-7 w-7 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-charcoal-80/10 hover:text-charcoal-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+              className="ml-1 flex h-7 w-7 items-center justify-center rounded-md text-charcoal-80/65 transition hover:bg-charcoal-80/10 hover:text-charcoal-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
             >
               <X className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
@@ -335,7 +335,7 @@ export default function DataTable({
       <div className="flex flex-col gap-3 border-b border-charcoal-80/8 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           {toolbar}
-          <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+          <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
             {sortedRows.length} {sortedRows.length === 1 ? "result" : "results"}
             {search && rows.length !== sortedRows.length && <span className="ml-1 text-charcoal-80/40">of {rows.length}</span>}
           </span>

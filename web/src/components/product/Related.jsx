@@ -65,7 +65,7 @@ function RelatedCard({ product }) {
       <div className="flex flex-1 flex-col gap-1.5 p-4">
         <h3 className="line-clamp-2 text-meta font-semibold text-charcoal transition group-hover:text-violet">{product.title}</h3>
         {product.shortDescription && (
-          <p className="line-clamp-2 text-micro leading-5 text-charcoal-80/60">{product.shortDescription}</p>
+          <p className="line-clamp-2 text-micro leading-5 text-charcoal-80/65">{product.shortDescription}</p>
         )}
         <div className="mt-auto flex items-baseline gap-1.5 pt-2">
           <span className="text-meta font-bold text-violet">{formatPrice(price, product.currency || "MXN")}</span>

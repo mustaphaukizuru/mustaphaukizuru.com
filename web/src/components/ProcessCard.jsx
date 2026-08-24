@@ -13,7 +13,7 @@ export default function ProcessCard({ item, index }) {
         <Icon className="h-8 w-8" strokeWidth={1.8} />
       </div>
 
-      <div className="mb-2 text-sm font-semibold tracking-[0.2em] text-charcoal-80/55">
+      <div className="mb-2 text-sm font-semibold tracking-[0.2em] text-charcoal-80/65">
         0{index + 1}
       </div>
 

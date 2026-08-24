@@ -67,7 +67,7 @@ export default function Counter({
   }, [reduced, to, format])
 
   return (
-    <m.span ref={ref} className={className} aria-label={`${prefix}${to}${suffix}`}>
+    <m.span ref={ref} role="img" className={className} aria-label={`${prefix}${to}${suffix}`}>
       <span aria-hidden="true">
         {prefix}{display}{suffix}
       </span>

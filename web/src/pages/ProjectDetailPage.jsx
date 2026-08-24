@@ -173,7 +173,7 @@ export default function ProjectDetailPage() {
       {/* HERO */}
       <section className="border-b border-charcoal-80/10 bg-white">
         <Container className="py-10 sm:py-14">
-          <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/55">
+          <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/65">
             <Link to="/" className="hover:text-violet">{t("detail.home")}</Link>
             <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
             <Link to="/portfolio" className="hover:text-violet">{t("detail.portfolio")}</Link>
@@ -308,7 +308,7 @@ export default function ProjectDetailPage() {
       {cs?.outcomes.length ? (
         <section className={displayImage ? "pb-10" : "py-10"}>
           <Container>
-            <h2 className="mb-4 text-micro font-semibold uppercase tracking-[0.2em] text-violet/70">{t("detail.outcome")}</h2>
+            <h2 className="mb-4 text-micro font-semibold uppercase tracking-[0.2em] text-violet">{t("detail.outcome")}</h2>
             <OutcomeStats outcomes={cs.outcomes} />
           </Container>
         </section>
@@ -440,7 +440,7 @@ export default function ProjectDetailPage() {
                     </div>
                   ) : null}
                   <div className="p-5">
-                    <div className="text-micro font-semibold uppercase tracking-[0.15em] text-violet/70">{r.category}</div>
+                    <div className="text-micro font-semibold uppercase tracking-[0.15em] text-violet">{r.category}</div>
                     <h3 className="mt-1.5 line-clamp-2 text-body font-bold text-violet">{r.title}</h3>
                     <p className="mt-2 line-clamp-2 text-micro leading-5 text-charcoal-80/70">
                       {r.outcomeLine || r.shortDescription}
@@ -488,7 +488,7 @@ function ResultsList({ title, items }) {
 function Fact({ label, value }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <dt className="text-charcoal-80/60">{label}</dt>
+      <dt className="text-charcoal-80/65">{label}</dt>
       <dd className="text-right font-semibold text-violet">{value}</dd>
     </div>
   )

@@ -4,8 +4,11 @@ import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 
 // I18N01 · initialise i18next BEFORE App so every component sees the
-// language detection result on first paint.
-import "./i18n"
+// language detection result on first paint. PERF · only the active
+// language's namespaces are bundled now, so init is async (one dynamic
+// import of the locale chunk); `i18nReady` gates the first render so no
+// frame can paint raw translation keys.
+import { i18nReady } from "./i18n"
 
 import App from "./App";
 import "./index.css";
@@ -65,28 +68,38 @@ window.addEventListener("vite:preloadError", (event) => {
   window.location.reload()
 })
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <HelmetProvider>
-      <BrowserRouter>
-        <ToastProvider>
-          <AuthProvider>
-            <NotificationProvider>
-              <CartProvider>
-                  <MenuProvider>
-                    <MotionProvider>
-                      <SmoothScrollProvider>
-                        <SeoRouteManager />
-                        <App />
-                        <OfflineBanner />
-                      </SmoothScrollProvider>
-                    </MotionProvider>
-                  </MenuProvider>
-              </CartProvider>
-            </NotificationProvider>
-          </AuthProvider>
-        </ToastProvider>
-      </BrowserRouter>
-    </HelmetProvider>
-  </React.StrictMode>,
-);
+function renderApp() {
+  ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+      <HelmetProvider>
+        <BrowserRouter>
+          <ToastProvider>
+            <AuthProvider>
+              <NotificationProvider>
+                <CartProvider>
+                    <MenuProvider>
+                      <MotionProvider>
+                        <SmoothScrollProvider>
+                          <SeoRouteManager />
+                          <App />
+                          <OfflineBanner />
+                        </SmoothScrollProvider>
+                      </MotionProvider>
+                    </MenuProvider>
+                </CartProvider>
+              </NotificationProvider>
+            </AuthProvider>
+          </ToastProvider>
+        </BrowserRouter>
+      </HelmetProvider>
+    </React.StrictMode>,
+  )
+}
+
+// Wait for the active locale bundle before the first paint. If the locale
+// chunk fails to load we still render — i18next falls back to the key text,
+// which is a far better outcome than a blank page.
+i18nReady.then(renderApp).catch((err) => {
+  console.error("[i18n] initialisation failed; rendering anyway", err);
+  renderApp();
+});

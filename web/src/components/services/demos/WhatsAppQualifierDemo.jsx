@@ -72,7 +72,7 @@ export default function WhatsAppQualifierDemo() {
   return (
     <section aria-labelledby="svc-demo-title" className="rounded-2xl border border-violet/15 bg-white p-5 sm:p-7">
       <div className="mb-5">
-        <p className="text-micro font-semibold uppercase tracking-[0.16em] text-violet/70">{t("demo.eyebrow")}</p>
+        <p className="text-micro font-semibold uppercase tracking-[0.16em] text-violet">{t("demo.eyebrow")}</p>
         <h3 id="svc-demo-title" className="mt-1 text-section font-bold text-violet">{t("demo.title")}</h3>
         <p className="mt-1 text-meta text-charcoal-80/70">{t("demo.subtitle")}</p>
       </div>
@@ -100,7 +100,7 @@ export default function WhatsAppQualifierDemo() {
                 </p>
               </div>
             ))}
-            {typing && <p className="text-micro text-charcoal-80/50" aria-hidden="true">{t("demo.chat.typing")}</p>}
+            {typing && <p className="text-micro text-charcoal-80/65" aria-hidden="true">{t("demo.chat.typing")}</p>}
           </div>
           <div className="border-t border-charcoal-80/10 p-3">
             {!done && (
@@ -142,7 +142,7 @@ export default function WhatsAppQualifierDemo() {
         {/* CRM card */}
         <div className="rounded-2xl border border-charcoal-80/10 bg-white p-5">
           <div className="flex items-center justify-between">
-            <span className="text-micro font-semibold uppercase tracking-[0.16em] text-charcoal-80/60">{t("demo.crm.title")}</span>
+            <span className="text-micro font-semibold uppercase tracking-[0.16em] text-charcoal-80/65">{t("demo.crm.title")}</span>
             <span className={`rounded-full px-2.5 py-0.5 text-micro font-semibold ${done ? "bg-feedback-success-bg text-feedback-success-text" : "bg-violet-pale text-violet"}`}>
               {t(done ? `demo.crm.status.${status}` : "demo.crm.status.open")}
             </span>
@@ -150,17 +150,17 @@ export default function WhatsAppQualifierDemo() {
           <dl className="mt-4 space-y-3">
             {fields.map(([key, val]) => (
               <div key={key} className="flex items-start justify-between gap-3 border-b border-charcoal-80/10 pb-2.5">
-                <dt className="text-meta text-charcoal-80/60">{t(`demo.crm.fields.${key}`)}</dt>
+                <dt className="text-meta text-charcoal-80/65">{t(`demo.crm.fields.${key}`)}</dt>
                 <dd className="text-right text-meta font-semibold text-charcoal-80">
                   {val
                     ? <span className="inline-block motion-safe:animate-[demo-in_.35s_ease-out]">{val}</span>
-                    : <span className="text-charcoal-80/30" aria-label={t("demo.crm.empty")}>—</span>}
+                    : <span role="img" className="text-charcoal-80/30" aria-label={t("demo.crm.empty")}>—</span>}
                 </dd>
               </div>
             ))}
           </dl>
           <div className="mt-4">
-            <div className="flex justify-between text-micro text-charcoal-80/60">
+            <div className="flex justify-between text-micro text-charcoal-80/65">
               <span>{t("demo.crm.fields.score")}</span>
               <span className="font-semibold text-charcoal-80">{pts}/100</span>
             </div>
@@ -175,7 +175,7 @@ export default function WhatsAppQualifierDemo() {
               <div className="h-full rounded-full bg-gradient-to-r from-violet to-azure motion-safe:transition-[width] motion-safe:duration-500" style={{ width: `${pts}%` }} />
             </div>
           </div>
-          <p className="mt-4 text-micro text-charcoal-80/50">{t("demo.crm.note")}</p>
+          <p className="mt-4 text-micro text-charcoal-80/65">{t("demo.crm.note")}</p>
         </div>
       </div>
       <style>{"@keyframes demo-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}"}</style>

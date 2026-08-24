@@ -46,7 +46,7 @@ export default function ApproachSteps({ steps = [] }) {
             {i + 1}
           </span>
           <div data-approach-body>
-            <div className="text-micro font-semibold uppercase tracking-[0.14em] text-violet/60">
+            <div className="text-micro font-semibold uppercase tracking-[0.14em] text-violet">
               {t("detail.stepLabel", { n: i + 1 })}
             </div>
             {s.title ? <h3 className="mt-0.5 text-body font-bold text-violet">{s.title}</h3> : null}

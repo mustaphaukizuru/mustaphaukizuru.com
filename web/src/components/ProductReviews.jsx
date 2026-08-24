@@ -63,7 +63,7 @@ function RatingBar({ label, count, total }) {
       <div className="h-2 flex-1 overflow-hidden rounded-full bg-charcoal-80/8">
         <div className="h-full rounded-full bg-terracotta transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <span className="w-6 text-right text-charcoal-80/50">{count}</span>
+      <span className="w-6 text-right text-charcoal-80/65">{count}</span>
     </div>
   )
 }
@@ -231,7 +231,7 @@ export default function ProductReviews({ slug, productTitle }) {
             {stats.averageRating.toFixed(1)}
           </div>
           <StarRating rating={Math.round(stats.averageRating)} size={18} />
-          <div className="mt-1 text-micro text-charcoal-80/50">
+          <div className="mt-1 text-micro text-charcoal-80/65">
             {stats.totalReviews} {stats.totalReviews === 1 ? "review" : "reviews"}
           </div>
         </div>
@@ -303,7 +303,7 @@ export default function ProductReviews({ slug, productTitle }) {
             </div>
           )}
 
-          <p className="text-micro text-charcoal-80/55">
+          <p className="text-micro text-charcoal-80/65">
             {t("reviews.moderationNote")}
           </p>
 
@@ -333,7 +333,7 @@ export default function ProductReviews({ slug, productTitle }) {
           ))}
         </div>
       ) : reviews.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist px-6 py-8 text-center text-sm text-charcoal-80/50">
+        <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist px-6 py-8 text-center text-sm text-charcoal-80/65">
           {t("reviews.noneYet")}
         </div>
       ) : (
@@ -414,7 +414,7 @@ export default function ProductReviews({ slug, productTitle }) {
                       <MessageSquare className="h-3 w-3" />
                       {t("reviews.replyFrom")} {review.adminReplyBy?.fullName || "the team"}
                       {review.adminReplyAt && (
-                        <span className="font-normal text-charcoal-80/50 normal-case tracking-normal">
+                        <span className="font-normal text-charcoal-80/65 normal-case tracking-normal">
                           · {timeAgo(review.adminReplyAt)}
                         </span>
                       )}

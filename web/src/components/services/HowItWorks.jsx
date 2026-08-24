@@ -27,7 +27,7 @@ export default function HowItWorks({ invert = false }) {
                 <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${invert ? "bg-white/15 text-white" : "bg-violet-pale text-violet"}`}>
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </span>
-                <span className={`text-[13px] font-bold tabular-nums ${invert ? "text-white/50" : "text-violet/40"}`}>{step.step}</span>
+                <span className={`text-[13px] font-bold tabular-nums ${invert ? "text-white/85" : "text-violet"}`}>{step.step}</span>
               </div>
               <h3 className={`mt-4 text-body font-bold ${invert ? "text-white" : "text-violet"}`}>{pick(step, "title", lang)}</h3>
               <p className={`mt-1.5 text-meta leading-6 ${invert ? "text-white/75" : "text-charcoal-80/70"}`}>{pick(step, "body", lang)}</p>

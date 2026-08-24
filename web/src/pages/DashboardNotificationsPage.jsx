@@ -113,7 +113,7 @@ function NotificationRow({ notification, onRead, t }) {
                 {notification.message}
               </p>
             )}
-            <p className="mt-1 font-mono text-[11px] tabular-nums text-charcoal-80/50">
+            <p className="mt-1 font-mono text-[11px] tabular-nums text-charcoal-80/65">
               {formatTimestamp(notification.createdAt, localeTag)}
             </p>
           </div>
@@ -242,7 +242,7 @@ export default function DashboardNotificationsPage() {
                   >
                     {t(f.labelKey)}
                     <span className={`rounded-full px-1.5 py-0.5 font-mono text-[10px] tabular-nums ${
-                      active ? "bg-white/15 text-white" : "bg-charcoal-80/8 text-charcoal-80/60"
+                      active ? "bg-white/15 text-white" : "bg-charcoal-80/8 text-charcoal-80/65"
                     }`}>
                       {f.count}
                     </span>
@@ -301,7 +301,7 @@ export default function DashboardNotificationsPage() {
               </Link>
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
+            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/65">
               {t("notificationsPage.empty.title")}
             </div>
           )

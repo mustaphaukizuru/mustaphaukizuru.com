@@ -425,7 +425,7 @@ export default function LoginPage() {
                 onClick={() => setShowPw((v) => !v)}
                 aria-label={showPw ? "Hide password" : "Show password"}
                 aria-pressed={showPw}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
               >
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -502,7 +502,7 @@ export default function LoginPage() {
 
         {/* Divider · {t("login.orLoginWith")} */}
         <m.div variants={fadeUp} className="mt-6">
-          <div className="flex items-center gap-3 text-[11.5px] text-charcoal-80/45">
+          <div className="flex items-center gap-3 text-[11.5px] text-charcoal-80/65">
             <span className="h-px flex-1 bg-charcoal-80/12" />
             <span className="font-semibold uppercase tracking-[0.16em]">
               {t("login.orLoginWith")}

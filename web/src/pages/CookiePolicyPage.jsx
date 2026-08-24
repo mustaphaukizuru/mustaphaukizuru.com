@@ -159,7 +159,7 @@ export default function CookiePolicyPage() {
           aria-label={t("cookies.tocAria", { defaultValue: "Table of contents" })}
           className="mb-8 rounded-xl border border-charcoal/10 bg-white p-5 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
         >
-          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
             {t("cookies.tocLabel", { defaultValue: "On this page" })}
           </p>
           <ol className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">

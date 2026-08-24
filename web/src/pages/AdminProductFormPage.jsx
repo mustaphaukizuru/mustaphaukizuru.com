@@ -551,7 +551,7 @@ export default function AdminProductFormPage() {
                 <div>
                   <label className="mb-1 block text-sm font-medium text-charcoal-80">
                     Short Description
-                    <span className="ml-2 text-xs font-normal text-charcoal-80/50">
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">
                       Shown on product cards and summaries
                     </span>
                   </label>
@@ -567,7 +567,7 @@ export default function AdminProductFormPage() {
                 <div>
                   <label className="mb-1 block text-sm font-medium text-charcoal-80">
                     Description
-                    <span className="ml-2 text-xs font-normal text-charcoal-80/50">
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">
                       Main product description shown on the detail page
                     </span>
                   </label>
@@ -584,7 +584,7 @@ export default function AdminProductFormPage() {
                 <div>
                   <label className="mb-1 block text-sm font-medium text-charcoal-80">
                     Full Description
-                    <span className="ml-2 text-xs font-normal text-charcoal-80/50">
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">
                       Extended content, implementation notes, or usage guide (optional)
                     </span>
                   </label>
@@ -623,7 +623,7 @@ export default function AdminProductFormPage() {
                         type="button"
                         onClick={() => moveFeature(index, -1)}
                         disabled={index === 0}
-                        className="rounded-lg px-2 py-1 text-xs text-charcoal-80/50 hover:bg-violet-pale disabled:opacity-30"
+                        className="rounded-lg px-2 py-1 text-xs text-charcoal-80/65 hover:bg-violet-pale disabled:opacity-30"
                         title="Move up"
                       >
                         Up
@@ -632,7 +632,7 @@ export default function AdminProductFormPage() {
                         type="button"
                         onClick={() => moveFeature(index, 1)}
                         disabled={index === form.features.length - 1}
-                        className="rounded-lg px-2 py-1 text-xs text-charcoal-80/50 hover:bg-violet-pale disabled:opacity-30"
+                        className="rounded-lg px-2 py-1 text-xs text-charcoal-80/65 hover:bg-violet-pale disabled:opacity-30"
                         title="Move down"
                       >
                         Down
@@ -650,7 +650,7 @@ export default function AdminProductFormPage() {
                 ))}
 
                 {form.features.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/50">
+                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/65">
                     No features added yet. Add features like "Instant digital download", "Ready-to-use template", etc.
                   </div>
                 )}
@@ -716,7 +716,7 @@ export default function AdminProductFormPage() {
                         type="button"
                         onClick={() => moveSpec(index, -1)}
                         disabled={index === 0}
-                        className="rounded-lg px-2 py-1 text-xs text-charcoal-80/50 hover:bg-violet-pale disabled:opacity-30"
+                        className="rounded-lg px-2 py-1 text-xs text-charcoal-80/65 hover:bg-violet-pale disabled:opacity-30"
                         title="Move up"
                       >
                         Up
@@ -725,7 +725,7 @@ export default function AdminProductFormPage() {
                         type="button"
                         onClick={() => moveSpec(index, 1)}
                         disabled={index === form.specifications.length - 1}
-                        className="rounded-lg px-2 py-1 text-xs text-charcoal-80/50 hover:bg-violet-pale disabled:opacity-30"
+                        className="rounded-lg px-2 py-1 text-xs text-charcoal-80/65 hover:bg-violet-pale disabled:opacity-30"
                         title="Move down"
                       >
                         Down
@@ -743,7 +743,7 @@ export default function AdminProductFormPage() {
                 ))}
 
                 {form.specifications.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/50">
+                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/65">
                     No highlights yet. Add metadata like "Delivery / Digital download", "Page size / 8.5x11", etc.
                   </div>
                 )}
@@ -784,7 +784,7 @@ export default function AdminProductFormPage() {
                           type="button"
                           onClick={() => moveFaq(index, -1)}
                           disabled={index === 0}
-                          className="rounded-lg px-2 py-1 text-xs text-charcoal-80/50 hover:bg-violet-pale disabled:opacity-30"
+                          className="rounded-lg px-2 py-1 text-xs text-charcoal-80/65 hover:bg-violet-pale disabled:opacity-30"
                           title="Move up"
                         >
                           Up
@@ -793,7 +793,7 @@ export default function AdminProductFormPage() {
                           type="button"
                           onClick={() => moveFaq(index, 1)}
                           disabled={index === form.productFaqs.length - 1}
-                          className="rounded-lg px-2 py-1 text-xs text-charcoal-80/50 hover:bg-violet-pale disabled:opacity-30"
+                          className="rounded-lg px-2 py-1 text-xs text-charcoal-80/65 hover:bg-violet-pale disabled:opacity-30"
                           title="Move down"
                         >
                           Down
@@ -829,7 +829,7 @@ export default function AdminProductFormPage() {
                 ))}
 
                 {form.productFaqs.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/50">
+                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/65">
                     No FAQs yet. Add common buyer questions and answers.
                   </div>
                 )}
@@ -895,7 +895,7 @@ export default function AdminProductFormPage() {
                 <div className="mt-5 space-y-4">
                   <div className="grid gap-4 md:grid-cols-3">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-charcoal-80/60">Display Name</label>
+                      <label className="mb-1 block text-xs font-medium text-charcoal-80/65">Display Name</label>
                       <input
                         type="text"
                         placeholder="e.g. Main Package v1.0"
@@ -906,7 +906,7 @@ export default function AdminProductFormPage() {
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-charcoal-80/60">Version</label>
+                      <label className="mb-1 block text-xs font-medium text-charcoal-80/65">Version</label>
                       <input
                         type="text"
                         placeholder="e.g. 1.0"
@@ -917,7 +917,7 @@ export default function AdminProductFormPage() {
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-charcoal-80/60">File</label>
+                      <label className="mb-1 block text-xs font-medium text-charcoal-80/65">File</label>
                       <input
                         type="file"
                         onChange={(e) => setFileUpload(e.target.files?.[0] || null)}
@@ -1027,7 +1027,7 @@ export default function AdminProductFormPage() {
                 <div className="mt-5 space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-charcoal-80/60">Alt Text</label>
+                      <label className="mb-1 block text-xs font-medium text-charcoal-80/65">Alt Text</label>
                       <input
                         type="text"
                         placeholder="Describe the image for accessibility"
@@ -1038,7 +1038,7 @@ export default function AdminProductFormPage() {
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-charcoal-80/60">Image File</label>
+                      <label className="mb-1 block text-xs font-medium text-charcoal-80/65">Image File</label>
                       <input
                         type="file"
                         accept="image/*"
@@ -1085,7 +1085,7 @@ export default function AdminProductFormPage() {
                                     Cover
                                   </span>
                                 )}
-                                <span className="truncate text-xs text-charcoal-80/50">
+                                <span className="truncate text-xs text-charcoal-80/65">
                                   {image.altText || "No alt text"}
                                 </span>
                               </div>

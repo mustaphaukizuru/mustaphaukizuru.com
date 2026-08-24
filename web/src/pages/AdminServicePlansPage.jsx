@@ -105,7 +105,7 @@ function Field({ label, required, hint, children }) {
         {label} {required && <span className="text-rose-500">*</span>}
       </span>
       {children}
-      {hint && <span className="mt-1 block text-[11px] text-charcoal/55">{hint}</span>}
+      {hint && <span className="mt-1 block text-[11px] text-charcoal/65">{hint}</span>}
     </label>
   )
 }
@@ -186,7 +186,7 @@ function ServiceForm({ initial, isEdit, onClose, onSaved, showSuccess, showError
   return (
     <form onSubmit={form.handleSubmit} noValidate className="flex flex-col">
       <div className="mb-5 flex items-center justify-between rounded-xl border border-charcoal/12 bg-violet-pale/40 px-3 py-2.5">
-        <div className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-charcoal/60">
+        <div className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-charcoal/65">
           <span aria-hidden="true">Locale</span>
         </div>
         <div role="tablist" aria-label="Edit locale" className="inline-flex items-center gap-1 rounded-lg bg-white p-1 shadow-[inset_0_0_0_1px_rgb(var(--color-charcoal-rgb)/0.08)]">
@@ -371,7 +371,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
             Pricing, tier, period, popular, save-label and inclusion matrix
             stay structural and shared across locales. */}
         <div className="mb-3 flex items-center justify-between rounded-lg border border-charcoal/10 bg-violet-pale/40 px-2.5 py-1.5">
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal/55">
+          <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal/65">
             Locale
           </span>
           <div role="tablist" aria-label="Edit package locale" className="inline-flex items-center gap-1 rounded-md bg-white p-0.5 shadow-[inset_0_0_0_1px_rgb(var(--color-charcoal-rgb)/0.08)]">
@@ -550,7 +550,7 @@ function PackageRow({ serviceId, pkg, features = [], onChanged }) {
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-steel-700">Hidden</span>
           )}
           {features.length > 0 && (
-            <span className="font-mono text-[10px] tabular-nums text-charcoal/55">
+            <span className="font-mono text-[10px] tabular-nums text-charcoal/65">
               {includedCount}/{features.length} features
             </span>
           )}
@@ -682,7 +682,7 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
           <p className="mt-1 max-w-2xl truncate text-[12.5px] text-charcoal/70">
             {service.shortDescription}
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-charcoal/60">
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-charcoal/65">
             <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" /> {service.deliveryType}</span>
             <span className="inline-flex items-center gap-1"><Layers className="h-3 w-3" /> {packageCount} plan{packageCount === 1 ? "" : "s"}</span>
             <span className="font-mono">{fmtMoney(service.basePrice, service.currency)} base</span>
@@ -720,7 +720,7 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
           >
             <div className="space-y-6 p-5">
               {loadingDetail ? (
-                <div className="flex items-center justify-center gap-2 py-6 text-[13px] text-charcoal/55">
+                <div className="flex items-center justify-center gap-2 py-6 text-[13px] text-charcoal/65">
                   <Loader2 className="h-4 w-4 animate-spin" /> Loading detail…
                 </div>
               ) : (
@@ -774,7 +774,7 @@ function ServiceCard({ service, onEdit, onDelete, onChanged }) {
 
                     <ul className="flex flex-col gap-1.5">
                       {(detail?.features || []).length === 0 ? (
-                        <li className="rounded-xl border border-dashed border-charcoal/20 bg-white px-4 py-4 text-center text-[12px] text-charcoal/60">
+                        <li className="rounded-xl border border-dashed border-charcoal/20 bg-white px-4 py-4 text-center text-[12px] text-charcoal/65">
                           No features defined.
                         </li>
                       ) : detail.features.map((f) => (
@@ -943,7 +943,7 @@ export default function AdminServicePlansPage() {
         <div className="rounded-2xl border border-dashed border-charcoal/20 bg-white p-10 text-center">
           <Briefcase className="mx-auto h-7 w-7 text-charcoal/40" />
           <h2 className="mt-3 text-[15px] font-bold text-violet">No services match your filters</h2>
-          <p className="mt-1 text-[12.5px] text-charcoal/60">
+          <p className="mt-1 text-[12.5px] text-charcoal/65">
             {items.length === 0 ? "Create your first service to get started." : "Try clearing the search or status filter."}
           </p>
           {items.length === 0 && (

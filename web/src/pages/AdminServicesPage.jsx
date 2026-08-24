@@ -110,7 +110,7 @@ function ServiceOrderCard({ order, onUpdate }) {
           <div className="text-card font-bold text-violet">
             {order.service?.title || "Service"}
             {order.servicePackage?.name && (
-              <span className="ml-2 font-mono text-micro font-normal text-charcoal-80/55">
+              <span className="ml-2 font-mono text-micro font-normal text-charcoal-80/65">
                 · {order.servicePackage.name}
               </span>
             )}
@@ -165,7 +165,7 @@ function ServiceOrderCard({ order, onUpdate }) {
               <h4 className="flex items-center gap-1.5 text-meta font-bold text-violet">
                 <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                 Consultations
-                <span className="font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                <span className="font-mono text-[11px] tabular-nums text-charcoal-80/65">
                   ({order.consultations?.length || 0})
                 </span>
               </h4>
@@ -235,7 +235,7 @@ function ServiceOrderCard({ order, onUpdate }) {
                 ))}
               </ul>
             ) : !showSched ? (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/65">
                 No consultations scheduled.
               </div>
             ) : null}
@@ -326,7 +326,7 @@ function ServiceOrderCard({ order, onUpdate }) {
                 )}
               </div>
             ) : !showProject ? (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/65">
                 No project created yet.
               </div>
             ) : null}

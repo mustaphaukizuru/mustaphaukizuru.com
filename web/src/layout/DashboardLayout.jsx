@@ -187,7 +187,7 @@ function SidebarItem({ item }) {
                 aria-hidden="true"
               />
             </div>
-            <div className={["mt-0.5 truncate text-micro", isActive ? "text-violet/70" : "text-charcoal-80/60"].join(" ")}>
+            <div className={["mt-0.5 truncate text-micro", isActive ? "text-violet/70" : "text-charcoal-80/65"].join(" ")}>
               {t(item.descKey)}
             </div>
           </div>
@@ -242,7 +242,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
               <UserAvatar src={user?.avatarUrl} initials={initials} size={10} />
               <div>
                 <div className="text-meta font-bold text-violet">{user?.fullName || "Member"}</div>
-                <div className="text-micro text-charcoal-80/60">{user?.email || ""}</div>
+                <div className="text-micro text-charcoal-80/65">{user?.email || ""}</div>
               </div>
             </div>
             <button
@@ -269,7 +269,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
           <div className="flex-1 overflow-y-auto px-4 pb-4">
             {navigation.map((group) => (
               <div key={group.sectionKey} className="mb-6">
-                <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/45">
+                <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
                   {td(group.sectionKey)}
                 </div>
                 <div className="space-y-1.5">
@@ -386,7 +386,7 @@ export default function DashboardLayout() {
               <div className="mt-4 flex-1 overflow-y-auto pr-1">
                 {navigation.map((group) => (
                   <div key={group.sectionKey} className="mb-6">
-                    <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/45">
+                    <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
                       {t(group.sectionKey)}
                     </div>
                     <div className="space-y-1.5">
@@ -438,7 +438,7 @@ export default function DashboardLayout() {
                 <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.22)]" />
                 <div>
                   <div className="text-body font-bold text-violet">{currentMeta.title}</div>
-                  <div className="text-micro text-charcoal-80/55">{t("layout.memberDashboard")}</div>
+                  <div className="text-micro text-charcoal-80/65">{t("layout.memberDashboard")}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -466,7 +466,7 @@ export default function DashboardLayout() {
             <header className="sticky top-4 z-20 hidden rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.05)] lg:block">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
-                  <div className="text-micro font-medium uppercase tracking-[0.12em] text-charcoal-80/50">
+                  <div className="text-micro font-medium uppercase tracking-[0.12em] text-charcoal-80/65">
                     Dashboard / {currentMeta.title}
                   </div>
                   <div className="mt-2">
@@ -479,12 +479,12 @@ export default function DashboardLayout() {
                 <div className="flex flex-wrap items-center gap-3">
                   <label htmlFor="dashboard-search" className="sr-only">{t("layout.searchDashboard")}</label>
                   <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-mist px-4 py-3 transition focus-within:border-violet/40 focus-within:ring-[3px] focus-within:ring-azure/20">
-                    <Search className="h-4 w-4 text-charcoal-80/45" aria-hidden="true" />
+                    <Search className="h-4 w-4 text-charcoal-80/65" aria-hidden="true" />
                     <input
                       id="dashboard-search"
                       type="text"
                       placeholder="Search orders, products..."
-                      className="w-[180px] bg-transparent text-meta text-violet outline-none placeholder:text-charcoal-80/45"
+                      className="w-[180px] bg-transparent text-meta text-violet outline-none placeholder:text-charcoal-80/65"
                     />
                   </div>
                   <button
@@ -503,7 +503,7 @@ export default function DashboardLayout() {
                       <div className="truncate text-meta font-semibold leading-none text-violet">
                         {user?.fullName?.split(" ")[0] || "Member"}
                       </div>
-                      <div className="mt-0.5 truncate text-micro leading-none text-charcoal-80/55">
+                      <div className="mt-0.5 truncate text-micro leading-none text-charcoal-80/65">
                         {user?.email || ""}
                       </div>
                     </div>
@@ -550,7 +550,7 @@ export default function DashboardLayout() {
                   [
                     "flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-center transition-all",
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
-                    (forced ?? navActive) ? "text-violet" : "text-charcoal-80/45 hover:text-violet",
+                    (forced ?? navActive) ? "text-violet" : "text-charcoal-80/65 hover:text-violet",
                   ].join(" ")
                 }
               >

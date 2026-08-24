@@ -75,7 +75,7 @@ function ReviewCard({ review }) {
             {review.user?.fullName || "Anonymous"}
           </div>
           {subject && (
-            <div className="mt-0.5 truncate text-micro text-charcoal-80/55">
+            <div className="mt-0.5 truncate text-micro text-charcoal-80/65">
               on{" "}
               {subjectHref ? (
                 <Link to={subjectHref} className="font-semibold text-violet hover:underline">

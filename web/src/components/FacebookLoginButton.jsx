@@ -144,7 +144,7 @@ function OAuthError({ message, onDismiss }) {
           type="button"
           onClick={onDismiss}
           aria-label={t("social.dismiss")}
-          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-charcoal-80/55 transition hover:bg-charcoal-80/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
         >
           <CloseIcon className="h-3.5 w-3.5" />
         </button>

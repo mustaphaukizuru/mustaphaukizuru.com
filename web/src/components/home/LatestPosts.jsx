@@ -63,7 +63,7 @@ export default function LatestPosts() {
                   <p className="line-clamp-3 flex-1 text-[13px] leading-6 text-charcoal-80/65">{post.excerpt}</p>
                   <div className="flex items-center justify-between border-t border-charcoal-80/8 pt-3">
                     {date ? (
-                      <span className="flex items-center gap-1.5 text-[11.5px] text-charcoal-80/45">
+                      <span className="flex items-center gap-1.5 text-[11.5px] text-charcoal-80/65">
                         <Calendar className="h-3 w-3" aria-hidden="true" />
                         {date}
                       </span>
@@ -79,10 +79,10 @@ export default function LatestPosts() {
           })}
         </div>
 
-        <p className="mt-8 text-center text-[12px] text-charcoal-80/45">
+        <p className="mt-8 text-center text-[12px] text-charcoal-80/65">
           <a
             href="/feed.xml"
-            className="font-mono text-violet/70 underline underline-offset-2 transition hover:text-violet"
+            className="font-mono text-violet underline underline-offset-2 transition hover:text-violet"
             target="_blank"
             rel="noopener noreferrer"
           >

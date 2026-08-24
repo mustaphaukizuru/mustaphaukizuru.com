@@ -23,7 +23,7 @@ const CREATOR = { name: "Mustapha Ukizuru", verified: true, storefrontUrl: "/abo
 function CreatorStrip() {
   const { t } = useTranslation("product")
   return (
-    <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-micro text-charcoal-80/60">
+    <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-micro text-charcoal-80/65">
       <span className="inline-flex items-center gap-1.5">
         <User className="h-3.5 w-3.5 shrink-0 text-charcoal-80/40" aria-hidden="true" />
         <span>
@@ -113,7 +113,7 @@ function TrustBadges() {
   const { t } = useTranslation("product")
   return (
     <ul
-      className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-micro text-charcoal-80/60 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
+      className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-micro text-charcoal-80/65 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
       aria-label={t("trust.ariaLabel")}
     >
       {TRUST_BADGES.map(({ icon: Icon, key }) => (
@@ -215,7 +215,7 @@ export default function BuyBox({
         <button
           type="button"
           onClick={onShare}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-charcoal-80/12 py-2.5 text-micro font-semibold text-charcoal-80/60 transition hover:border-violet/25 hover:text-violet"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-charcoal-80/12 py-2.5 text-micro font-semibold text-charcoal-80/65 transition hover:border-violet/25 hover:text-violet"
         >
           <Share2 className="h-4 w-4" />
           {t("misc.share")}
@@ -249,7 +249,7 @@ export function MobileBuyBar({ price, currency, onAddToCart, added, productTitle
     >
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-micro font-semibold text-charcoal-80/60">{productTitle}</div>
+          <div className="truncate text-micro font-semibold text-charcoal-80/65">{productTitle}</div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-meta font-bold text-violet">{formatPrice(Number(price), currency)}</span>
           </div>

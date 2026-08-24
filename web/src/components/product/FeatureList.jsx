@@ -131,7 +131,7 @@ export function SpecsTable({ specifications, product }) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-charcoal-80/15 bg-mist/40 px-6 py-10 text-center">
         <Package className="h-8 w-8 text-charcoal-80/30" aria-hidden="true" />
-        <p className="text-meta font-semibold text-charcoal-80/60">{t("detail.specsComing")}</p>
+        <p className="text-meta font-semibold text-charcoal-80/65">{t("detail.specsComing")}</p>
       </div>
     )
   }

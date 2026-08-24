@@ -249,7 +249,7 @@ function ScrollCue({ onDark }) {
     <div className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex justify-center">
       <span className={cn(
         "inline-flex flex-col items-center gap-1 text-[11px] font-medium uppercase tracking-[0.22em]",
-        onDark ? "text-white/55" : "text-charcoal-80/45",
+        onDark ? "text-white/85" : "text-charcoal-80/65",
       )}>
         Scroll
         <ChevronDown size={14} className="animate-[bob_1.6s_ease-in-out_infinite]" aria-hidden="true" />

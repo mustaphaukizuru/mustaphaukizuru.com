@@ -34,7 +34,7 @@ export default function PackagesStrip() {
                 )}
                 <div>
                   <div className="text-body font-bold text-violet">{plan.name}</div>
-                  <div className="text-micro text-charcoal-80/60">{plan.short}</div>
+                  <div className="text-micro text-charcoal-80/65">{plan.short}</div>
                 </div>
               </div>
               <ul className="mt-5 space-y-2">
@@ -54,7 +54,7 @@ export default function PackagesStrip() {
                       </span>
                       <span className="inline-flex items-center gap-1 whitespace-nowrap text-violet">
                         {fmt(tier.priceMxn)}
-                        <span className="text-micro text-charcoal-80/50">/{tier.period}</span>
+                        <span className="text-micro text-charcoal-80/65">/{tier.period}</span>
                         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                       </span>
                     </Link>

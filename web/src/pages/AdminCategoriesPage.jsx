@@ -153,22 +153,22 @@ export default function AdminCategoriesPage() {
             <Sparkles className="h-5 w-5" aria-hidden="true" />
           </div>
           <p className="text-card font-semibold text-violet">No categories yet</p>
-          <p className="max-w-xs text-meta text-charcoal-80/55">Add your first category so products have somewhere to live.</p>
+          <p className="max-w-xs text-meta text-charcoal-80/65">Add your first category so products have somewhere to live.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list" aria-label="Product categories">
+        <ul className="grid list-none gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Product categories">
           {items.map((row) => {
             const { icon: Icon, tint, border } = styleFor(row.name)
             const ratio = row.totalProducts > 0 ? (row.activeProducts / row.totalProducts) * 100 : 0
             return (
-              <article key={row.id || row.name} role="listitem"
+              <li key={row.id || row.name}
                 className={`flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgb(var(--color-violet-rgb)/0.10)] ${border}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${tint}`}>
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div className="text-right">
-                    <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-charcoal-80/55">Active / Total</div>
+                    <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-charcoal-80/65">Active / Total</div>
                     <div className="font-mono text-card font-bold tabular-nums text-violet">{row.activeProducts} / {row.totalProducts}</div>
                   </div>
                 </div>
@@ -181,7 +181,7 @@ export default function AdminCategoriesPage() {
                       <span className="rounded-md bg-charcoal-80/10 px-1.5 py-0.5 text-[10px] font-bold text-charcoal-80/65">Hidden</span>
                     )}
                   </div>
-                  {row.slug && <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">/{row.slug}</div>}
+                  {row.slug && <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">/{row.slug}</div>}
                   {row.description && <p className="mt-1.5 line-clamp-2 text-[12px] text-charcoal-80/70">{row.description}</p>}
                 </div>
 
@@ -193,7 +193,7 @@ export default function AdminCategoriesPage() {
 
                 <div className="flex items-center justify-end gap-1.5 pt-1">
                   {row.isLegacy ? (
-                    <span className="text-[11px] italic text-charcoal-80/50">Promote via product editor</span>
+                    <span className="text-[11px] italic text-charcoal-80/65">Promote via product editor</span>
                   ) : (
                     <>
                       <button type="button" onClick={() => setEditing(row)}
@@ -207,10 +207,10 @@ export default function AdminCategoriesPage() {
                     </>
                   )}
                 </div>
-              </article>
+              </li>
             )
           })}
-        </div>
+        </ul>
       )}
 
       {editing && (

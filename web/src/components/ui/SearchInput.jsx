@@ -109,7 +109,7 @@ export function SearchInput({
         {...rest}
       />
       {shortcut && !value && (
-        <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded border border-charcoal-80/12 bg-charcoal-80/5 px-1 font-mono text-[10px] font-bold text-charcoal-80/55 sm:inline-flex">
+        <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded border border-charcoal-80/12 bg-charcoal-80/5 px-1 font-mono text-[10px] font-bold text-charcoal-80/65 sm:inline-flex">
           {typeof navigator !== "undefined" && /Mac|iPhone|iPod|iPad/i.test(navigator.platform) ? "\u2318" : "Ctrl"}
           K
         </kbd>

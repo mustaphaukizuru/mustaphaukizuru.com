@@ -59,7 +59,14 @@ const over = (top, bottom, alpha) => {
     .toString(16).padStart(2, "0")).join("")
 }
 
-/** `"azure"` | `"azure/10 on white"` -> hex. */
+/** `"azure"` | `"azure/10 on white"` -> hex.
+ *
+ * The same `token/alpha on ground` form is valid on BOTH sides of a pair, so
+ * a Tailwind alpha TEXT utility (`text-charcoal-80/65`) is expressed exactly
+ * like an alpha FILL (`bg-mint/15`): the foreground is flattened against the
+ * surface it is painted on before the ratio is taken. That is what the
+ * browser does, and it is why `text-charcoal-80/55` reads as #818286 rather
+ * than as charcoal. */
 function resolve(spec) {
   const m = /^([a-z0-9-]+)(?:\/([\d.]+))?(?:\s+on\s+([a-z0-9-]+))?$/.exec(spec)
   if (!m) throw new Error(`unparseable colour spec: ${spec}`)
@@ -143,6 +150,30 @@ const PAIRS = [
   ["avatar-3-fg", "avatar-3-bg", "body", "deterministic initials avatar"],
   ["avatar-4-fg", "avatar-4-bg", "body", "deterministic initials avatar"],
   ["avatar-5-fg", "avatar-5-bg", "body", "deterministic initials avatar"],
+
+  /* ── Alpha TEXT utilities ────────────────────────────────────────────────
+   * `text-<token>/<alpha>` is flattened against its ground exactly like
+   * `bg-<token>/<alpha>`. These are the steps we actually ship as small copy;
+   * anything lighter than the step listed here failed a real Lighthouse
+   * mobile run and was raised at the usage site. Do not lower them.
+   *
+   * charcoal-80 needs /65 to clear 4.5:1 on BOTH white and mist (/60 is
+   * 4.52 on white but only 4.45 on mist, so /65 is the shipped floor).
+   * violet never clears 4.5:1 below /85, so violet body copy is solid.
+   * white on the violet band needs /85. */
+  ["charcoal-80/65 on white",     "white",       "body", "muted copy, meta rows, card captions (text-charcoal-80/65)"],
+  ["charcoal-80/65 on mist",      "mist",        "body", "muted copy on the page canvas"],
+  ["charcoal-80/65 on slate-100", "slate-100",   "body", "muted copy on dashboard fills"],
+  ["charcoal-80/65 on coral-pale","coral-pale",  "body", "services-hero float card caption (8px mono)"],
+  ["charcoal-80/70 on white",     "white",       "body", "secondary copy one step darker"],
+  ["charcoal-80/85 on white",     "white",       "body", "near-solid body copy"],
+  ["violet",                      "white",       "body", "step numerals, eyebrows, feed link (solid — /70 is 3.52)"],
+  ["violet",                      "mist",        "body", "eyebrows on the canvas"],
+  ["azure-deep",                  "azure-pale",  "body", "About stat-tile hints (solid — /75 on azure-pale is 3.32)"],
+  ["white/85 on violet",          "violet",      "body", "PageHero subtitle + eyebrows on the violet band"],
+  ["white",                       "white/10 on violet", "body", "Privacy/Terms hero badge — the bg-white/10 pill lifts the ground, so /85 (4.43) is not enough; solid white"],
+  ["white/85 on charcoal",        "charcoal",    "body", "muted copy on dark sections"],
+  ["mint-700",                    "mint/15 on coral-pale", "body", "delivery-trend chip inside the services-hero float card"],
 
   /* Large / display type — 3:1 applies. The brand anchors live here. */
   ["azure",      "white",  "large", "display headline accents"],

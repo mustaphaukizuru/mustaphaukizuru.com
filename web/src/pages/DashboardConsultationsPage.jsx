@@ -96,7 +96,7 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
                 <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-rose-700">{t("consultations.cancelModal.eyebrow")}</div>
                 <h3 className="mt-1 text-[18px] font-bold text-violet">{t("consultations.cancelModal.title")}</h3>
               </div>
-              <button onClick={onClose} aria-label={t("consultations.cancelModal.close")} className="text-charcoal/55 hover:text-violet">
+              <button onClick={onClose} aria-label={t("consultations.cancelModal.close")} className="text-charcoal/65 hover:text-violet">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -108,7 +108,7 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
             )}
 
             <label htmlFor="cx-reason" className="mt-4 block text-[12px] font-semibold text-violet">
-              {t("consultations.cancelModal.reasonLabel")} <span className="font-normal text-charcoal/55">{t("consultations.cancelModal.optional")}</span>
+              {t("consultations.cancelModal.reasonLabel")} <span className="font-normal text-charcoal/65">{t("consultations.cancelModal.optional")}</span>
             </label>
             <textarea
               id="cx-reason"
@@ -235,11 +235,11 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">{t("consultations.rescheduleDrawer.eyebrow")}</div>
                 <h3 className="mt-1 text-[16px] font-bold text-violet">{t("consultations.rescheduleDrawer.title")}</h3>
-                <p className="mt-0.5 text-[11px] text-charcoal/60">
+                <p className="mt-0.5 text-[11px] text-charcoal/65">
                   {t("consultations.rescheduleDrawer.currently", { when: formatDateTime(consultation.scheduledAt, tz) })}
                 </p>
               </div>
-              <button onClick={onClose} aria-label={t("consultations.rescheduleDrawer.close")} className="text-charcoal/55 hover:text-violet">
+              <button onClick={onClose} aria-label={t("consultations.rescheduleDrawer.close")} className="text-charcoal/65 hover:text-violet">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -277,7 +277,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                   {[1,2,3,4,5,6,7,8].map((i) => <div key={i} className="h-10 animate-pulse rounded-xl bg-violet-ghost" />)}
                 </div>
               ) : days.length === 0 ? (
-                <p className="text-center text-[12px] text-charcoal/60">{t("consultations.rescheduleDrawer.noDays")}</p>
+                <p className="text-center text-[12px] text-charcoal/65">{t("consultations.rescheduleDrawer.noDays")}</p>
               ) : (
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                   {days.map((d) => (
@@ -308,7 +308,7 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
                       {[1,2,3,4,5,6].map((i) => <div key={i} className="h-10 animate-pulse rounded-xl bg-violet-ghost" />)}
                     </div>
                   ) : slots.length === 0 ? (
-                    <p className="text-[12px] text-charcoal/60">{t("consultations.rescheduleDrawer.noTimes")}</p>
+                    <p className="text-[12px] text-charcoal/65">{t("consultations.rescheduleDrawer.noTimes")}</p>
                   ) : (
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                       {slots.map((s) => (
@@ -363,7 +363,7 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={c.status} />
-            <span className="text-[11px] text-charcoal/55">{serviceTitle}</span>
+            <span className="text-[11px] text-charcoal/65">{serviceTitle}</span>
           </div>
           <div className="mt-2 text-[15px] font-bold text-violet">
             {formatDateTime(c.scheduledAt, tz)}

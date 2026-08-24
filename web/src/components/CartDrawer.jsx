@@ -71,7 +71,7 @@ export default function CartDrawer() {
                 type="button"
                 onClick={closeDrawer}
                 aria-label={t("cart.drawer.closeAria")}
-                className="cursor-pointer rounded-lg p-1.5 text-charcoal-80/55 transition hover:bg-mist hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                className="cursor-pointer rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-mist hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -84,7 +84,7 @@ export default function CartDrawer() {
                   <ShoppingBag className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <h3 className="text-meta font-bold text-charcoal">{t("cart.drawer.emptyTitle")}</h3>
-                <p className="text-micro text-charcoal-80/55">
+                <p className="text-micro text-charcoal-80/65">
                   {t("cart.drawer.emptyBody")}
                 </p>
                 <Link
@@ -128,7 +128,7 @@ export default function CartDrawer() {
                       >
                         {item.title}
                       </Link>
-                      <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                      <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/65">
                         {fmt(item.price, item.currency)} each
                       </div>
 

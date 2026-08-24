@@ -115,7 +115,8 @@
     "english": "English",
     "spanish": "Spanish",
     "switchTo": "Switch to {{lang}}",
-    "ariaSelector": "Language selector"
+    "ariaSelector": "Language selector",
+    "switchToCode": "{{code}} — Switch to {{lang}}"
   },
   "meta": {
     "siteName": "Mustapha Ukizuru",

@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
       key: "createdAt", label: "Joined", sortable: true, width: "0.9fr", align: "right",
       getValue: (row) => row.createdAt,
       render: (row) => (
-        <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
           {new Date(row.createdAt).toLocaleDateString(undefined, {
             year: "numeric", month: "short", day: "numeric",
           })}

@@ -161,7 +161,7 @@ export default function AdminProductsPage() {
       render: (row) => (
         <div className="min-w-0">
           <div className="truncate text-meta font-semibold text-violet">{row.title}</div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             /store/{row.slug}
           </div>
         </div>

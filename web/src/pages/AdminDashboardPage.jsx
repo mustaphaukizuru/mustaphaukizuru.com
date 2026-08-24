@@ -138,7 +138,7 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
                 <Icon className="h-3 w-3" aria-hidden="true" />
               </div>
             )}
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
               {label}
             </p>
           </div>
@@ -148,7 +148,7 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
           </div>
 
           {subValue && (
-            <p className="mt-1.5 truncate font-mono text-micro tabular-nums text-charcoal-80/55">{subValue}</p>
+            <p className="mt-1.5 truncate font-mono text-micro tabular-nums text-charcoal-80/65">{subValue}</p>
           )}
         </div>
 
@@ -176,7 +176,7 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
             {TrendIcon && <TrendIcon className="h-2.5 w-2.5" aria-hidden="true" />}
             {isUp ? "+" : ""}{delta.toFixed(1)}%
           </span>
-          <span className="text-micro text-charcoal-80/55">{deltaLabel}</span>
+          <span className="text-micro text-charcoal-80/65">{deltaLabel}</span>
         </div>
       )}
     </m.div>
@@ -198,7 +198,7 @@ function RevenueAreaChart({ data, height = 220 }) {
       <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded-lg border border-dashed border-charcoal-80/15 bg-mist p-8 text-center" role="status">
         <Activity className="h-8 w-8 text-charcoal-80/30" aria-hidden="true" />
         <p className="mt-3 text-meta font-semibold text-charcoal-80/65">No revenue data yet</p>
-        <p className="mt-1 max-w-xs text-micro text-charcoal-80/45">
+        <p className="mt-1 max-w-xs text-micro text-charcoal-80/65">
           Once paid orders come in, daily revenue will appear here.
         </p>
       </div>
@@ -305,7 +305,7 @@ function RevenueAreaChart({ data, height = 220 }) {
             className="pointer-events-none absolute top-2 rounded-lg border border-violet/15 bg-white px-3 py-2 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.12)]"
             style={{ left: `${(points[hoverIdx].x / W) * 100}%`, transform: "translateX(-50%)" }}
           >
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">
               {points[hoverIdx].label}
             </div>
             <div className="mt-0.5 font-mono text-meta font-bold tabular-nums text-violet">
@@ -365,9 +365,9 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
           })}
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">Total</span>
+          <span className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">Total</span>
           <span className="font-mono text-[24px] font-bold leading-none tabular-nums text-violet">{total}</span>
-          <span className="mt-0.5 text-[10px] text-charcoal-80/55">orders</span>
+          <span className="mt-0.5 text-[10px] text-charcoal-80/65">orders</span>
         </div>
       </div>
       <div className="flex-1 space-y-2">
@@ -381,7 +381,7 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="font-mono text-meta font-bold tabular-nums text-violet">{seg.value}</span>
-                <span className="font-mono text-[10px] tabular-nums text-charcoal-80/45">{percentage}%</span>
+                <span className="font-mono text-[10px] tabular-nums text-charcoal-80/65">{percentage}%</span>
               </div>
             </div>
           )
@@ -599,7 +599,7 @@ export default function AdminDashboardPage() {
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint" aria-hidden="true" />
             Live
           </span>
-          <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+          <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
             <Calendar className="mr-1 inline h-3 w-3" aria-hidden="true" />
             Last refresh · {new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
           </span>
@@ -620,7 +620,7 @@ export default function AdminDashboardPage() {
             type="button"
             disabled
             title="Export coming soon"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-3 py-1.5 text-micro font-semibold text-charcoal-80/55 transition disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-3 py-1.5 text-micro font-semibold text-charcoal-80/65 transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
             Export
@@ -698,7 +698,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-baseline justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="text-card font-bold text-violet">Revenue Trend</h2>
-              <p className="mt-0.5 text-micro text-charcoal-80/55">
+              <p className="mt-0.5 text-micro text-charcoal-80/65">
                 Daily paid revenue
                 {!Array.isArray(stats.dailyRevenue) && (
                   <span className="ml-1 text-charcoal-80/40">(derived from recent orders)</span>
@@ -717,7 +717,7 @@ export default function AdminDashboardPage() {
         <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="border-b border-charcoal-80/8 px-5 py-4">
             <h2 className="text-card font-bold text-violet">Order Status</h2>
-            <p className="mt-0.5 text-micro text-charcoal-80/55">Live distribution</p>
+            <p className="mt-0.5 text-micro text-charcoal-80/65">Live distribution</p>
           </div>
           <div className="p-5">
             <StatusDonut paid={paidOrders} pending={pendingOrders} failed={failedOrders} refunded={refundedOrders} total={totalOrders} />
@@ -732,7 +732,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="text-card font-bold text-violet">Top Products</h2>
-              <p className="mt-0.5 text-micro text-charcoal-80/55">By revenue</p>
+              <p className="mt-0.5 text-micro text-charcoal-80/65">By revenue</p>
             </div>
             <Link to="/admin/products" className="inline-flex items-center gap-1 text-micro font-semibold text-violet transition hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1">
               All products <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
@@ -743,7 +743,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <Package className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No sales yet</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">Top sellers will appear here once orders complete.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">Top sellers will appear here once orders complete.</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -761,7 +761,7 @@ export default function AdminDashboardPage() {
                           </div>
                           <div className="min-w-0">
                             <div className="truncate text-meta font-semibold text-violet">{p.title || p.productTitle || "Product"}</div>
-                            <div className="font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                            <div className="font-mono text-[11px] tabular-nums text-charcoal-80/65">
                               {qty} unit{qty === 1 ? "" : "s"}
                             </div>
                           </div>
@@ -789,7 +789,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="text-card font-bold text-violet">Recent Orders</h2>
-              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/55">
+              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/65">
                 Last {recentOrders.length} order{recentOrders.length === 1 ? "" : "s"}
               </p>
             </div>
@@ -802,7 +802,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <ShoppingCart className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No orders yet</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">When customers buy, orders appear here.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">When customers buy, orders appear here.</p>
               </div>
             ) : (
               <div className="divide-y divide-charcoal-80/6">
@@ -822,7 +822,7 @@ export default function AdminDashboardPage() {
                       <div className="mt-1 flex items-center gap-2 text-micro text-charcoal-80/65">
                         <span className="truncate">{o.customerName || o.customerEmail || "Customer"}</span>
                         <span aria-hidden="true">·</span>
-                        <span className="font-mono tabular-nums text-charcoal-80/45">
+                        <span className="font-mono tabular-nums text-charcoal-80/65">
                           {new Date(o.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                         </span>
                       </div>
@@ -846,7 +846,7 @@ export default function AdminDashboardPage() {
                 <Headphones className="h-4 w-4" aria-hidden="true" />
                 Pending Support
               </h2>
-              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/55">
+              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/65">
                 {supportSummary.openCount} open ticket{supportSummary.openCount === 1 ? "" : "s"}
               </p>
             </div>
@@ -859,7 +859,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <CheckCircle2 className="h-7 w-7 text-mint/50" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">All caught up</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">No open support tickets right now.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">No open support tickets right now.</p>
               </div>
             ) : (
               <div className="divide-y divide-charcoal-80/6">
@@ -877,13 +877,13 @@ export default function AdminDashboardPage() {
                         <span className="truncate text-meta font-semibold text-violet">{t.subject || "Untitled"}</span>
                         <StatusPill status={t.status} />
                       </div>
-                      <div className="mt-0.5 flex items-center gap-2 font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                      <div className="mt-0.5 flex items-center gap-2 font-mono text-[11px] tabular-nums text-charcoal-80/65">
                         <span>#{t.ticketNumber || String(t.id).slice(0, 8)}</span>
                         <span aria-hidden="true">·</span>
                         <span>{t.user?.fullName || t.user?.email || "Customer"}</span>
                       </div>
                     </div>
-                    <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/45">
+                    <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/65">
                       {timeAgo(t.createdAt)}
                     </span>
                   </Link>
@@ -901,7 +901,7 @@ export default function AdminDashboardPage() {
                 <UserPlus className="h-4 w-4" aria-hidden="true" />
                 Recent Signups
               </h2>
-              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/55">
+              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/65">
                 Last {recentSignups.length} new user{recentSignups.length === 1 ? "" : "s"}
               </p>
             </div>
@@ -914,7 +914,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <Users className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No recent signups</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">New members will appear here as they register.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">New members will appear here as they register.</p>
               </div>
             ) : (
               <div className="divide-y divide-charcoal-80/6">
@@ -932,9 +932,9 @@ export default function AdminDashboardPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-meta font-semibold text-violet">{u.fullName || "Unnamed"}</div>
-                        <div className="truncate font-mono text-[11px] text-charcoal-80/55">{u.email}</div>
+                        <div className="truncate font-mono text-[11px] text-charcoal-80/65">{u.email}</div>
                       </div>
-                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/45">
+                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/65">
                         {timeAgo(u.createdAt)}
                       </span>
                     </div>
@@ -956,7 +956,7 @@ export default function AdminDashboardPage() {
                 <Briefcase className="h-4 w-4" aria-hidden="true" />
                 Active Projects
               </h2>
-              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/55">
+              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/65">
                 {activeProjects.length} in delivery
               </p>
             </div>
@@ -969,7 +969,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <FolderOpen className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No active projects</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">Service orders in delivery appear here.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">Service orders in delivery appear here.</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -995,13 +995,13 @@ export default function AdminDashboardPage() {
                             </span>
                             <StatusPill status={sp.status} />
                           </div>
-                          <div className="mt-0.5 truncate font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                          <div className="mt-0.5 truncate font-mono text-[11px] tabular-nums text-charcoal-80/65">
                             {sp.user?.fullName || "Customer"}
                           </div>
                           {milestones.length > 0 && (
                             <>
                               <div className="mt-2 flex items-center justify-between">
-                                <span className="font-mono text-[10px] tabular-nums text-charcoal-80/55">
+                                <span className="font-mono text-[10px] tabular-nums text-charcoal-80/65">
                                   {completed}/{total} milestones
                                 </span>
                                 <span className="font-mono text-[10px] font-bold tabular-nums text-violet">
@@ -1031,7 +1031,7 @@ export default function AdminDashboardPage() {
                 <ClipboardList className="h-4 w-4" aria-hidden="true" />
                 Recent Activity
               </h2>
-              <p className="mt-0.5 text-micro text-charcoal-80/55">Audit log preview</p>
+              <p className="mt-0.5 text-micro text-charcoal-80/65">Audit log preview</p>
             </div>
             <Link to="/admin/audit" className="inline-flex items-center gap-1 text-micro font-semibold text-violet transition hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1">
               View log <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
@@ -1042,7 +1042,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <Activity className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No recent activity</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">Admin actions and platform events appear here.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">Admin actions and platform events appear here.</p>
               </div>
             ) : (
               <div className="space-y-0.5">
@@ -1070,12 +1070,12 @@ export default function AdminDashboardPage() {
                           {entry.description || `${entry.action} on ${entry.entity}`}
                         </div>
                         {entry.performedBy && (
-                          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+                          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
                             by {entry.performedBy}
                           </div>
                         )}
                       </div>
-                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/45">
+                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/65">
                         {timeAgo(entry.createdAt)}
                       </span>
                     </div>

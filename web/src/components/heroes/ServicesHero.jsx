@@ -261,12 +261,12 @@ function ServicesHeroIllustration({ reduce }) {
           {...(!reduce && { transition: { y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.4 } } })}
           className="absolute right-[2%] top-[8%] z-30 rounded-2xl bg-[var(--color-coral-pale)] px-2.5 py-2 shadow-[0_10px_24px_rgb(var(--color-coral-rgb)/0.20)] sm:right-[4%] sm:px-3 sm:py-2.5"
         >
-          <div className="font-mono text-[8px] font-semibold uppercase tracking-[0.12em] text-charcoal-80/55 sm:text-[9px]">
+          <div className="font-mono text-[8px] font-semibold uppercase tracking-[0.12em] text-charcoal-80/65 sm:text-[9px]">
             {t("hero.onTimeDelivery")}
           </div>
           <div className="mt-1 flex items-center gap-1.5 sm:gap-2">
             <span className="text-base font-bold leading-none text-charcoal-80 sm:text-lg">94%</span>
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700 sm:text-[10px]">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-mint/15 px-1.5 py-0.5 text-[9px] font-semibold text-mint-700 sm:text-[10px]">
               <TrendingUp className="h-2.5 w-2.5" aria-hidden="true" />
               5.2%
             </span>
@@ -386,7 +386,6 @@ export default function ServicesHero() {
                   reserved for Book / Buy / Checkout / Contact CTAs). */}
               <Link
                 to="/book"
-                aria-label={t("hero.bookCallAria")}
                 className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-grad-innovation px-6 py-3.5 text-[14px] font-bold !text-white shadow-[0_16px_36px_-10px_rgb(var(--color-violet-rgb)/0.55),0_4px_10px_-2px_rgb(var(--color-azure-rgb)/0.25)] ring-1 ring-inset ring-white/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_48px_-10px_rgb(var(--color-violet-rgb)/0.65),0_6px_14px_-2px_rgb(var(--color-azure-rgb)/0.32)] focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/50 focus-visible:ring-offset-2"
               >
                 <span
@@ -428,7 +427,7 @@ export default function ServicesHero() {
                 <div className="font-mono text-[28px] font-extrabold leading-none tabular-nums !text-charcoal-80 sm:text-[32px]">
                   94<span className="!text-mint">%</span>
                 </div>
-                <div className="mt-1.5 text-[11.5px] text-charcoal-80/55 sm:text-[12px]">
+                <div className="mt-1.5 text-[11.5px] text-charcoal-80/65 sm:text-[12px]">
                   {t("hero.onTimeDelivery")}
                 </div>
               </div>
@@ -436,7 +435,7 @@ export default function ServicesHero() {
                 <div className="font-mono text-[28px] font-extrabold leading-none tabular-nums !text-charcoal-80 sm:text-[32px]">
                   82<span className="!text-mint">+</span>
                 </div>
-                <div className="mt-1.5 text-[11.5px] text-charcoal-80/55 sm:text-[12px]">
+                <div className="mt-1.5 text-[11.5px] text-charcoal-80/65 sm:text-[12px]">
                   {t("hero.atomicServices")}
                 </div>
               </div>

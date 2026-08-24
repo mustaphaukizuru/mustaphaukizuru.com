@@ -225,7 +225,7 @@ function AddressRow({ address, onEdit, onDelete, onSetDefault, isDeleting }) {
           </div>
           <div className="mt-0.5 text-meta font-medium text-charcoal">
             {address.fullName}
-            {address.company && <span className="text-charcoal-80/60"> · {address.company}</span>}
+            {address.company && <span className="text-charcoal-80/65"> · {address.company}</span>}
           </div>
           <div className="mt-1 text-micro leading-5 text-charcoal-80/70">
             {address.line1}{address.line2 ? `, ${address.line2}` : ""}<br />
@@ -307,11 +307,11 @@ function AddressFormModal({ address, onClose, onSaved }) {
             <h2 className="text-card font-bold text-violet">
               {isEdit ? t("addresses.form.titleEdit") : t("addresses.form.titleAdd")}
             </h2>
-            <p className="text-micro text-charcoal-80/60">
+            <p className="text-micro text-charcoal-80/65">
               {isEdit ? t("addresses.form.subtitleEdit") : t("addresses.form.subtitleAdd")}
             </p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/50 transition hover:bg-violet-pale/60">
+          <button type="button" onClick={onClose} className="rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/65 transition hover:bg-violet-pale/60">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -417,7 +417,7 @@ function Field({ label, value, onChange, placeholder, hint, className = "" }) {
         placeholder={placeholder}
         className="w-full rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
       />
-      {hint && <p className="mt-1 text-micro text-charcoal-80/55">{hint}</p>}
+      {hint && <p className="mt-1 text-micro text-charcoal-80/65">{hint}</p>}
     </div>
   )
 }

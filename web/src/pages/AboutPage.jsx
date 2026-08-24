@@ -285,7 +285,7 @@ function CoreCompetenciesSection() {
             >
               <span
                 aria-hidden="true"
-                className="mt-0.5 font-mono text-[11px] font-bold tabular-nums text-violet/40 transition-colors group-hover:text-violet/70"
+                className="mt-0.5 font-mono text-[11px] font-bold tabular-nums text-violet transition-colors group-hover:text-violet-deep"
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
@@ -364,7 +364,7 @@ function SkillBar({ name, value }) {
     <div className="flex flex-col gap-2">
       <div className="flex justify-between text-meta font-medium">
         <span className="text-violet">{name}</span>
-        <span className="font-mono tabular-nums text-charcoal-80/60">{value}%</span>
+        <span className="font-mono tabular-nums text-charcoal-80/65">{value}%</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-violet-pale">
         <m.div
@@ -525,7 +525,7 @@ function AboutStatsStrip() {
       ring:    "ring-violet/15",
       number:  "text-violet",
       icon:    "bg-violet/12 text-violet",
-      hint:    "text-violet/70",
+      hint:    "text-violet",
       accent:  "bg-violet",
       glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-violet-rgb)/0.18), transparent 70%)",
     },
@@ -534,7 +534,7 @@ function AboutStatsStrip() {
       ring:    "ring-azure/15",
       number:  "text-azure-deep",
       icon:    "bg-azure/12 text-azure",
-      hint:    "text-azure-deep/75",
+      hint:    "text-azure-deep",
       accent:  "bg-azure",
       glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-azure-rgb)/0.18), transparent 70%)",
     },
@@ -1059,7 +1059,7 @@ export default function AboutPage() {
                 </div>
                 <div>
                   <div className="text-card font-bold text-violet">{t("journey.education")}</div>
-                  <div className="text-micro text-charcoal-80/55">{t("journey.educationSubtitle")}</div>
+                  <div className="text-micro text-charcoal-80/65">{t("journey.educationSubtitle")}</div>
                 </div>
               </div>
               <Timeline items={displayedEducation} accent="violet" />
@@ -1079,7 +1079,7 @@ export default function AboutPage() {
                 </div>
                 <div>
                   <div className="text-card font-bold text-violet">{t("journey.experience")}</div>
-                  <div className="text-micro text-charcoal-80/55">{t("journey.experienceSubtitle")}</div>
+                  <div className="text-micro text-charcoal-80/65">{t("journey.experienceSubtitle")}</div>
                 </div>
               </div>
               <Timeline items={displayedExperience} accent="terracotta" />
@@ -1251,7 +1251,7 @@ export default function AboutPage() {
               ))}
             </div>
           ) : displayProjects.length === 0 ? (
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-10 text-center text-meta text-charcoal-80/50">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-10 text-center text-meta text-charcoal-80/65">
               {projectsError
                 ? t("portfolio.errorState")
                 : t("portfolio.emptyState")}

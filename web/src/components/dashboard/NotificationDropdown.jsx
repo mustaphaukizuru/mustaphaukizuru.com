@@ -104,7 +104,7 @@ function NotificationItem({ notification, onRead }) {
           </div>
         )}
 
-        <div className="mt-1 text-micro text-charcoal-80/50">
+        <div className="mt-1 text-micro text-charcoal-80/65">
           {timeAgo(notification.createdAt)}
         </div>
       </div>
@@ -171,7 +171,7 @@ export default function NotificationDropdown() {
             <div>
               <div className="text-body font-semibold text-violet">Notifications</div>
               {unreadCount > 0 && (
-                <div className="text-micro text-charcoal-80/60">{unreadCount} unread</div>
+                <div className="text-micro text-charcoal-80/65">{unreadCount} unread</div>
               )}
             </div>
 
@@ -189,7 +189,7 @@ export default function NotificationDropdown() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-xl text-charcoal-80/50 transition hover:bg-violet-pale/60 hover:text-violet"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-xl text-charcoal-80/65 transition hover:bg-violet-pale/60 hover:text-violet"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -212,7 +212,7 @@ export default function NotificationDropdown() {
                 <div className="mt-3 text-meta font-semibold text-violet">
                   {t("notifDropdown.allCaughtUp")}
                 </div>
-                <div className="mt-1 text-micro text-charcoal-80/60">
+                <div className="mt-1 text-micro text-charcoal-80/65">
                   {t("notifDropdown.noNotifs")}
                 </div>
               </div>

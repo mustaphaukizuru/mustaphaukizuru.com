@@ -177,7 +177,7 @@ function SidebarItem({ item }) {
     >
       {({ isActive }) => (
         <>
-          <Icon className={`h-[16px] w-[16px] shrink-0 ${isActive ? "text-violet" : "text-charcoal-80/55 group-hover:text-violet"}`} aria-hidden="true" />
+          <Icon className={`h-[16px] w-[16px] shrink-0 ${isActive ? "text-violet" : "text-charcoal-80/65 group-hover:text-violet"}`} aria-hidden="true" />
           <span className={`min-w-0 flex-1 truncate text-meta ${isActive ? "font-semibold" : "font-medium"}`}>
             {item.label}
           </span>
@@ -195,7 +195,7 @@ function CollapsibleGroup({ group, collapsed, onToggle, count }) {
   if (!group.collapsible) {
     return (
       <div className="mb-4">
-        <div className="mb-1.5 flex items-center gap-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45">
+        <div className="mb-1.5 flex items-center gap-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
           <span>{group.section}</span>
           {count > 0 && (
             <span className="rounded-full bg-violet px-1.5 font-mono text-[9px] font-bold tabular-nums text-white">
@@ -217,7 +217,7 @@ function CollapsibleGroup({ group, collapsed, onToggle, count }) {
         onClick={onToggle}
         aria-expanded={!collapsed}
         aria-controls={`group-${group.section}`}
-        className="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45 transition hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
+        className="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65 transition hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
       >
         <span className="flex items-center gap-2">
           {group.section}
@@ -317,7 +317,7 @@ export default function AdminSidebar() {
           </div>
           <div className="min-w-0">
             <div className="truncate text-card font-bold tracking-tight text-violet">Admin Console</div>
-            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-charcoal-80/55">v1.0 · Operations</div>
+            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-charcoal-80/65">v1.0 · Operations</div>
           </div>
         </div>
 

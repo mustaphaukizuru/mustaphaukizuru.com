@@ -72,7 +72,7 @@ function EmptyCart() {
       </m.div>
 
       <h2 className="mt-6 text-section font-bold text-violet">{t("empty.title")}</h2>
-      <p className="mx-auto mt-2 max-w-sm text-meta leading-6 text-charcoal-80/60">
+      <p className="mx-auto mt-2 max-w-sm text-meta leading-6 text-charcoal-80/65">
         {t("empty.subtitleLong")}
       </p>
 
@@ -215,7 +215,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
                 {formatPrice(item.price * item.quantity)}
               </div>
               {item.quantity > 1 && (
-                <div className="font-mono text-micro tabular-nums text-charcoal-80/45">
+                <div className="font-mono text-micro tabular-nums text-charcoal-80/65">
                   {formatPrice(item.price)} {t("item.each")}
                 </div>
               )}
@@ -241,7 +241,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
     <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)] lg:sticky lg:top-24">
       <div className="border-b border-charcoal-80/10 px-6 py-5">
         <h2 className="text-card font-bold text-violet">{t("summary.title")}</h2>
-        <p className="mt-1 text-micro text-charcoal-80/55">
+        <p className="mt-1 text-micro text-charcoal-80/65">
           {t("itemCount", { count: itemCount })}
         </p>
       </div>
@@ -254,7 +254,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
               <span className="min-w-0 flex-1 truncate text-charcoal-80/70">
                 {item.title}
                 {item.quantity > 1 && (
-                  <span className="ml-1.5 font-mono tabular-nums text-charcoal-80/45">×{item.quantity}</span>
+                  <span className="ml-1.5 font-mono tabular-nums text-charcoal-80/65">×{item.quantity}</span>
                 )}
               </span>
               <span className="shrink-0 font-mono font-semibold tabular-nums text-violet">
@@ -337,7 +337,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
             { icon: Zap,    key: "instant" },
             { icon: Check,  key: "dashboard" },
           ].map(({ icon: Icon, key }) => (
-            <div key={key} className="flex items-center gap-2.5 text-micro text-charcoal-80/50">
+            <div key={key} className="flex items-center gap-2.5 text-micro text-charcoal-80/65">
               <Icon className="h-3.5 w-3.5 shrink-0 text-violet" aria-hidden="true" />
               {t(`trust.${key}`)}
             </div>
@@ -394,7 +394,7 @@ export default function CartPage() {
         {/* Header */}
         <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <nav className="mb-2 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/50" aria-label="Breadcrumb">
+            <nav className="mb-2 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/65" aria-label="Breadcrumb">
               <Link to="/" className="hover:text-violet">{t("header.breadcrumb.home")}</Link>
               <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <Link to="/store" className="hover:text-violet">{t("header.breadcrumb.store")}</Link>
@@ -407,7 +407,7 @@ export default function CartPage() {
             </h1>
 
             {cartItems.length > 0 && (
-              <p className="mt-1 text-meta text-charcoal-80/60">
+              <p className="mt-1 text-meta text-charcoal-80/65">
                 {t("itemCount", { count: cartItems.reduce((s, i) => s + i.quantity, 0) })}
               </p>
             )}
@@ -417,7 +417,7 @@ export default function CartPage() {
             <button
               type="button"
               onClick={clearCart}
-              className="inline-flex w-fit items-center gap-1.5 self-start rounded-md text-meta font-medium text-charcoal-80/60 transition hover:text-red-500 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2 sm:self-auto"
+              className="inline-flex w-fit items-center gap-1.5 self-start rounded-md text-meta font-medium text-charcoal-80/65 transition hover:text-red-500 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2 sm:self-auto"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
               {t("header.clearCart")}

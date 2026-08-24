@@ -149,7 +149,7 @@ function AdminMobileMenu({ open, onClose, user, initials }) {
               <UserAvatar src={user?.avatarUrl} initials={initials} size={9} />
               <div>
                 <div className="text-meta font-bold text-violet">{user?.fullName || "Admin"}</div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">Administrator</div>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">Administrator</div>
               </div>
             </div>
             <button
@@ -176,7 +176,7 @@ function AdminMobileMenu({ open, onClose, user, initials }) {
           <nav className="flex-1 overflow-y-auto px-3 pb-3" aria-label="Admin sections">
             {navigation.map((group) => (
               <div key={group.section} className="mb-3">
-                <div className="mb-1 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45">
+                <div className="mb-1 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                   {group.section}
                 </div>
                 <div className="space-y-0.5">
@@ -263,7 +263,7 @@ export default function AdminLayout() {
                 </div>
                 <div>
                   <div className="text-body font-bold text-violet">{currentMeta.title}</div>
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">Admin Console</div>
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">Admin Console</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -326,7 +326,7 @@ export default function AdminLayout() {
                   [
                     "flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-center transition-all",
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
-                    isActive ? "text-violet" : "text-charcoal-80/45 hover:text-violet",
+                    isActive ? "text-violet" : "text-charcoal-80/65 hover:text-violet",
                   ].join(" ")
                 }
               >

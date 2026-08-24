@@ -173,14 +173,14 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
         </div>
 
         <p className="mt-2 line-clamp-3 text-[13px] leading-snug text-charcoal/85">
-          {review.reviewText || <span className="italic text-charcoal/55">, no body, stars only,</span>}
+          {review.reviewText || <span className="italic text-charcoal/65">, no body, stars only,</span>}
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-charcoal/60">
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-charcoal/65">
           <span className="inline-flex items-center gap-1">
             <UserIcon className="h-3 w-3" />
             <span className="font-semibold text-violet">{review.user?.fullName || "Anonymous"}</span>
-            {review.user?.email && <span className="text-charcoal/45">· {review.user.email}</span>}
+            {review.user?.email && <span className="text-charcoal/65">· {review.user.email}</span>}
           </span>
           <span className="text-charcoal/30">•</span>
           {subject && (
@@ -334,7 +334,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             </p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close"
-            className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-charcoal/55 transition hover:bg-white hover:text-violet"
+            className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-charcoal/65 transition hover:bg-white hover:text-violet"
           >
             <X className="h-5 w-5" />
           </button>
@@ -343,7 +343,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {subject && (
             <section className="mb-5 rounded-xl border border-charcoal/10 bg-mist p-4">
-              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">
+              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/65">
                 {review.subjectType === "service" ? "Service" : "Product"}
               </div>
               <a
@@ -357,7 +357,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
               {review.orderItem && (
-                <div className="mt-1 font-mono text-[10.5px] text-charcoal/55">
+                <div className="mt-1 font-mono text-[10.5px] text-charcoal/65">
                   Order line: {String(review.orderItem.id).slice(0, 12)}…
                 </div>
               )}
@@ -365,7 +365,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
           )}
 
           <section className="mb-5">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">Reviewer</div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/65">Reviewer</div>
             <div className="flex items-center gap-3 rounded-xl border border-charcoal/10 bg-white p-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-pale text-violet">
                 <UserIcon className="h-5 w-5" />
@@ -380,9 +380,9 @@ function DetailPanel({ review, onClose, onUpdated }) {
           </section>
 
           <section className="mb-5">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">Review body</div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/65">Review body</div>
             <div className="whitespace-pre-wrap rounded-xl border border-charcoal/10 bg-white p-4 text-[13.5px] leading-relaxed text-charcoal/85">
-              {review.reviewText || <span className="italic text-charcoal/45">No text, stars only.</span>}
+              {review.reviewText || <span className="italic text-charcoal/65">No text, stars only.</span>}
             </div>
             {review.flaggedReason && (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-[11px] font-semibold text-rose-700">
@@ -392,7 +392,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
           </section>
 
           <section className="mb-5">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/65">
               Public reply
               <span className="ml-2 text-charcoal/40">{reply.length}/2000</span>
             </div>
@@ -684,7 +684,7 @@ export default function AdminReviewsPage() {
         <div className="rounded-2xl border border-dashed border-charcoal/20 bg-white p-10 text-center">
           <CheckCircle2 className="mx-auto h-7 w-7 text-mint-800" />
           <h2 className="mt-3 text-[15px] font-bold text-violet">All clear</h2>
-          <p className="mt-1 text-[12.5px] text-charcoal/60">
+          <p className="mt-1 text-[12.5px] text-charcoal/65">
             Nothing in <strong>{activeStatus}</strong> right now.
           </p>
         </div>
@@ -715,7 +715,7 @@ export default function AdminReviewsPage() {
         onUpdated={handleUpdated}
       />
 
-      <p className="pt-2 text-center text-[10.5px] text-charcoal/50">
+      <p className="pt-2 text-center text-[10.5px] text-charcoal/65">
         Pro tips: shift-click checkboxes to range-select · J / K navigate · A approve · H hide
       </p>
     </div>

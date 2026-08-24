@@ -61,7 +61,7 @@ function FileRow({ file, product, state, onDownload }) {
             </span>
             {file.isPrimary && <span className="shrink-0 rounded-md bg-violet-pale px-1.5 py-0.5 text-[10px] font-bold uppercase text-violet">{t("downloads.file.primary")}</span>}
           </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/55">
+          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
             {sizeDisplay && <span>{sizeDisplay}</span>}
             {sizeDisplay && <span aria-hidden="true">·</span>}
             <span className={isLatest ? "text-mint-600" : ""}>
@@ -126,9 +126,9 @@ function OrderCard({ order, fileState, onDownload, onReceipt, receiptBusy }) {
         <div className="min-w-0">
           <div className="flex flex-wrap items-baseline gap-2">
             <h3 className="font-mono text-body font-bold tabular-nums text-violet">{t("downloads.order.title", { number: order.orderNumber })}</h3>
-            <span className="font-mono text-micro tabular-nums text-charcoal-80/55">· {t("downloads.card.files", { count: fileCount })}</span>
+            <span className="font-mono text-micro tabular-nums text-charcoal-80/65">· {t("downloads.card.files", { count: fileCount })}</span>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/60">
+          <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
             <Calendar className="h-3 w-3" aria-hidden="true" />
             {t("downloads.card.purchasedOn", { date: new Date(order.purchasedAt).toLocaleDateString(localeTag) })}
           </div>
@@ -170,7 +170,7 @@ function OrderCard({ order, fileState, onDownload, onReceipt, receiptBusy }) {
                       </span>
                     )}
                   </div>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/55">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
                     {updated && !Number.isNaN(updated.getTime()) && <span>{t("downloads.file.updatedOn", { date: updated.toLocaleDateString(localeTag) })}</span>}
                     {product.slug && (
                       <>
@@ -479,7 +479,7 @@ export default function DashboardDownloadsPage() {
             </Link>
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
+          <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/65">
             {t("downloads.empty.noProducts")}
           </div>
         ) : (

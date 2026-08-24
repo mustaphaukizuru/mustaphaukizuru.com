@@ -114,12 +114,12 @@ export default function UserMenu() {
           <span className="max-w-[120px] truncate text-meta font-semibold text-violet leading-none">
             {user?.fullName?.split(" ")[0] || "Account"}
           </span>
-          <span className="text-micro text-charcoal-80/50 leading-none mt-0.5 capitalize">
+          <span className="text-micro text-charcoal-80/65 leading-none mt-0.5 capitalize">
             {isAdmin ? "Admin" : "Member"}
           </span>
         </div>
         <ChevronDown
-          className={`h-3.5 w-3.5 shrink-0 text-charcoal-80/45 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`h-3.5 w-3.5 shrink-0 text-charcoal-80/65 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -133,7 +133,7 @@ export default function UserMenu() {
               <div className="truncate text-meta font-semibold text-violet">
                 {user?.fullName || "Member"}
               </div>
-              <div className="truncate text-micro text-charcoal-80/60">{user?.email}</div>
+              <div className="truncate text-micro text-charcoal-80/65">{user?.email}</div>
               {isAdmin && (
                 <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-violet px-2 py-0.5 text-micro font-bold uppercase tracking-wide text-white">
                   <Shield className="h-2.5 w-2.5" /> Admin
@@ -212,7 +212,7 @@ function DropItem({ to, icon: Icon, label, desc, accent, onClick }) {
       </div>
       <div className="min-w-0">
         <div className="text-meta font-semibold text-violet">{label}</div>
-        <div className="text-micro text-charcoal-80/55">{desc}</div>
+        <div className="text-micro text-charcoal-80/65">{desc}</div>
       </div>
     </Link>
   )

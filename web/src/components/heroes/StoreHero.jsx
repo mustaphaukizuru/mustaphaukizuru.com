@@ -150,7 +150,7 @@ function FeaturedCard({ product, position, total }) {
 
         {/* Counter badge · "1 of 5" */}
         {isFront && total > 1 && (
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal-80/45">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal-80/65">
             {t("hero.featuredLive")}
           </p>
         )}
@@ -176,7 +176,7 @@ function FeaturedSkeleton({ reduce }) {
           />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <Package className="h-12 w-12 text-violet/40" aria-hidden="true" />
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet/50">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet">
               {t("hero.comingSoon")}
             </p>
           </div>
@@ -412,9 +412,9 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
 
             {/* Social-proof line */}
             <div className="flex flex-wrap items-center gap-3 text-micro text-white/60">
-              <span className="inline-flex items-center gap-1 text-terracotta" aria-label="five star rating">
+              <span role="img" className="inline-flex items-center gap-1 text-terracotta" aria-label={t("hero.ratingAria", { defaultValue: "Rated five out of five stars" })}>
                 {[0, 1, 2, 3, 4].map((i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                  <Star key={i} className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
                 ))}
               </span>
               <span className="font-semibold text-white/85">{t("hero.trustCrafted")}</span>

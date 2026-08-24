@@ -223,7 +223,6 @@ export default function CertificatePreview({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={`${t("certificate.openLabel", { defaultValue: "Open certificate" })}: ${title}`}
         className={cn(
           "group relative flex w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-card-soft ring-1 ring-charcoal-80/8",
           "transition hover:-translate-y-1 hover:shadow-popover hover:ring-violet/25",
@@ -356,7 +355,7 @@ function PdfPageImage({ src, title, scale = 1.4 }) {
       />
       {state === "loading" && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-2 text-violet/70">
+          <div className="flex flex-col items-center gap-2 text-violet">
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
             <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em]">
               Rendering

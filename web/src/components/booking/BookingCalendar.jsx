@@ -223,7 +223,7 @@ function MonthYearPicker({
             </div>
 
             {/* Helper line */}
-            <div className="mt-2.5 border-t border-charcoal/8 pt-2 text-center text-[10.5px] text-charcoal/55">
+            <div className="mt-2.5 border-t border-charcoal/8 pt-2 text-center text-[10.5px] text-charcoal/65">
               {t("bookingCalendar.bookableHighlight")}
             </div>
           </m.div>
@@ -250,7 +250,7 @@ function StepBadge({ active, complete, n, label }) {
       >
         {complete ? <Check className="h-3.5 w-3.5" /> : n}
       </div>
-      <span className={`text-[13px] font-semibold ${active || complete ? "text-violet" : "text-charcoal/60"}`}>
+      <span className={`text-[13px] font-semibold ${active || complete ? "text-violet" : "text-charcoal/65"}`}>
         {label}
       </span>
     </div>
@@ -273,7 +273,7 @@ function StepperHeader({ step }) {
 function PolicyHint({ minNoticeHours, maxAdvanceDays }) {
   const { t } = useTranslation("common")
   return (
-    <p className="mt-2 text-[11px] text-charcoal/55">
+    <p className="mt-2 text-[11px] text-charcoal/65">
       {t("bookingCalendar.bookingNeeds")} {minNoticeHours ?? 24}{t("bookingCalendar.hNotice")} {maxAdvanceDays ?? 60} {t("bookingCalendar.daysAhead")}
     </p>
   )
@@ -451,7 +451,7 @@ export default function BookingCalendar({
         <p className="mt-2 text-[13px] text-charcoal/70 sm:text-[14px]">
           {formatLongDate(bookedRecord.scheduledAt, timezone)} · {formatTime(bookedRecord.scheduledAt, timezone)}
         </p>
-        <p className="mt-1 text-[12px] text-charcoal/55">
+        <p className="mt-1 text-[12px] text-charcoal/65">
           {t("bookingCalendar.confirmationOnWay")} {bookedRecord?.user?.email || "your inbox"}.
         </p>
 
@@ -488,7 +488,7 @@ export default function BookingCalendar({
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">
             <span className="rounded-full bg-violet-pale px-2 py-0.5">{t("bookingCalendar.bookingShort")}</span>
-            {serviceTitle ? <span className="text-charcoal/60">· {serviceTitle}</span> : null}
+            {serviceTitle ? <span className="text-charcoal/65">· {serviceTitle}</span> : null}
           </div>
           <h2 className="mt-1.5 text-[18px] font-bold tracking-tight text-violet sm:text-[20px]">
             {t("bookingCalendar.scheduleCall")}
@@ -560,7 +560,7 @@ export default function BookingCalendar({
                 maxYear={bounds.maxYear}
                 maxMonth={bounds.maxMonth}
               />
-              <div className="mt-0.5 text-[10px] text-charcoal/55">{t("bookingCalendar.tapHighlighted")}</div>
+              <div className="mt-0.5 text-[10px] text-charcoal/65">{t("bookingCalendar.tapHighlighted")}</div>
             </div>
             <button
               type="button"
@@ -574,7 +574,7 @@ export default function BookingCalendar({
           </div>
 
           {/* Weekday header */}
-          <div className="grid grid-cols-7 gap-1.5 px-1 pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal/50 sm:gap-2">
+          <div className="grid grid-cols-7 gap-1.5 px-1 pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal/65 sm:gap-2">
             {WEEKDAYS.map((w) => <div key={w}>{w}</div>)}
           </div>
 
@@ -616,7 +616,7 @@ export default function BookingCalendar({
 
           {/* Loading shimmer */}
           {daysLoading && (
-            <div className="mt-3 flex items-center justify-center gap-2 text-[12px] text-charcoal/50">
+            <div className="mt-3 flex items-center justify-center gap-2 text-[12px] text-charcoal/65">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               {t("bookingCalendar.checkingAvailability")}
             </div>
@@ -655,7 +655,7 @@ export default function BookingCalendar({
             <div className="rounded-xl border border-dashed border-charcoal/20 bg-violet-ghost p-6 text-center">
               <Clock className="mx-auto h-5 w-5 text-charcoal/40" />
               <p className="mt-2 text-[13px] font-semibold text-charcoal">{t("bookingCalendar.noTimes")}</p>
-              <p className="mt-1 text-[12px] text-charcoal/60">{t("bookingCalendar.tryDifferentDay")}</p>
+              <p className="mt-1 text-[12px] text-charcoal/65">{t("bookingCalendar.tryDifferentDay")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
@@ -672,7 +672,7 @@ export default function BookingCalendar({
             </div>
           )}
 
-          <p className="mt-4 text-[11px] text-charcoal/55">
+          <p className="mt-4 text-[11px] text-charcoal/65">
             {t("bookingCalendar.eachSlotIs")} {durationMin} {t("bookingCalendar.minutesLong")}
           </p>
         </m.div>
@@ -705,14 +705,14 @@ export default function BookingCalendar({
                 <div className="mt-0.5 text-[11px] text-charcoal/65">
                   {formatLongDate(selectedSlot.startUtc, timezone)}
                 </div>
-                <div className="mt-0.5 text-[10px] text-charcoal/50">{timezone}</div>
+                <div className="mt-0.5 text-[10px] text-charcoal/65">{timezone}</div>
               </div>
             </div>
           </div>
 
           {/* Notes */}
           <label htmlFor="bk-notes" className="mt-5 block text-[12px] font-semibold text-violet">
-            {t("bookingCalendar.discussLabel")} <span className="font-normal text-charcoal/55">{t("bookingCalendar.optionalTag")}</span>
+            {t("bookingCalendar.discussLabel")} <span className="font-normal text-charcoal/65">{t("bookingCalendar.optionalTag")}</span>
           </label>
           <textarea
             id="bk-notes"

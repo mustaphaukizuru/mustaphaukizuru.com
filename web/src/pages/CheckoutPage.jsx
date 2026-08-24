@@ -59,12 +59,12 @@ function CheckoutProgress({ step }) {
           <div className={`flex h-7 w-7 items-center justify-center rounded-xl text-micro font-bold transition-all ${
             i < step ? "bg-mint text-charcoal" :
             i === step ? "bg-violet text-white" :
-                         "bg-charcoal-80/12 text-charcoal-80/50"
+                         "bg-charcoal-80/12 text-charcoal-80/65"
           }`}>
             {i < step ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : i + 1}
           </div>
           <span className={`hidden text-micro font-semibold sm:block ${
-            i === step ? "text-violet" : "text-charcoal-80/50"
+            i === step ? "text-violet" : "text-charcoal-80/65"
           }`}>{s}</span>
           {i < steps.length - 1 && <ChevronRight className="h-4 w-4 text-charcoal-80/25" aria-hidden="true" />}
         </div>
@@ -101,7 +101,7 @@ function OrderItem({ item }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-meta font-semibold text-violet">{item.title}</div>
-        <div className="text-micro text-charcoal-80/55">
+        <div className="text-micro text-charcoal-80/65">
           {item.category || "Digital"} ·{" "}
           <span className="font-mono tabular-nums">{t("misc.qty")} {item.quantity}</span>
         </div>
@@ -134,7 +134,7 @@ function PaymentOption({ active, onClick, title, subtitle, badge, logo }) {
           <div className={`flex h-12 w-12 items-center justify-center rounded-xl border ${
             active ? "border-violet/20 bg-violet-pale" : "border-charcoal-80/10 bg-[var(--color-slate-50)]"
           }`}>
-            <CreditCard className={`h-5 w-5 ${active ? "text-violet" : "text-charcoal-80/50"}`} aria-hidden="true" />
+            <CreditCard className={`h-5 w-5 ${active ? "text-violet" : "text-charcoal-80/65"}`} aria-hidden="true" />
           </div>
         )}
       </div>
@@ -147,7 +147,7 @@ function PaymentOption({ active, onClick, title, subtitle, badge, logo }) {
             </span>
           )}
         </div>
-        <div className="text-micro text-charcoal-80/60">{subtitle}</div>
+        <div className="text-micro text-charcoal-80/65">{subtitle}</div>
       </div>
       <div className={`h-5 w-5 shrink-0 rounded-full border-2 transition-all ${
         active ? "border-violet bg-violet" : "border-charcoal-80/25"
@@ -479,11 +479,11 @@ export default function CheckoutPage() {
       {/* Header */}
       <div className="border-b border-charcoal-80/10 bg-white px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-          <Link to="/cart" className="flex items-center gap-2 text-meta font-medium text-charcoal-80/60 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">
+          <Link to="/cart" className="flex items-center gap-2 text-meta font-medium text-charcoal-80/65 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> <span className="hidden sm:inline">{t("actions.backToCart")}</span><span className="sm:hidden">{t("header.breadcrumb.cart")}</span>
           </Link>
           <div className="order-last w-full sm:order-none sm:w-auto"><CheckoutProgress step={2} /></div>
-          <div className="flex items-center gap-1.5 text-micro text-charcoal-80/50">
+          <div className="flex items-center gap-1.5 text-micro text-charcoal-80/65">
             <Lock className="h-3.5 w-3.5 text-mint" aria-hidden="true" /> <span className="hidden sm:inline">{t("trust.secure")}</span><span className="sm:hidden">{t("trust.secure")}</span>
           </div>
         </div>
@@ -588,7 +588,7 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <div className="text-meta font-bold text-violet">{t("delivery.label")}</div>
-                  <div className="text-micro text-charcoal-80/60">{t("delivery.subtitle")}</div>
+                  <div className="text-micro text-charcoal-80/65">{t("delivery.subtitle")}</div>
                 </div>
                 <CheckCircle2 className="ml-auto h-5 w-5 shrink-0 text-mint" aria-hidden="true" />
               </div>
@@ -599,7 +599,7 @@ export default function CheckoutPage() {
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-card font-bold text-violet">{t("misc.billingAddress")}</h2>
-                  <p className="mt-0.5 text-micro text-charcoal-80/60">
+                  <p className="mt-0.5 text-micro text-charcoal-80/65">
                     {t("misc.addressOptional")}
                   </p>
                 </div>
@@ -617,7 +617,7 @@ export default function CheckoutPage() {
                 <div className="h-14 animate-pulse rounded-xl bg-violet-pale" />
               ) : addresses.length === 0 ? (
                 <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4 text-micro text-charcoal-80/70">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-charcoal-80/50" aria-hidden="true" />
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-charcoal-80/65" aria-hidden="true" />
                   <div>
                     {t("misc.noSavedAddresses")}{" "}
                     <Link to="/dashboard/addresses" className="font-semibold text-violet hover:underline">
@@ -916,7 +916,7 @@ export default function CheckoutPage() {
                   { icon: Zap,          key: "instant" },
                   { icon: CheckCircle2, key: "dashboard" },
                 ].map(({ icon: Icon, key }) => (
-                  <div key={key} className="flex items-center gap-2.5 text-micro text-charcoal-80/55">
+                  <div key={key} className="flex items-center gap-2.5 text-micro text-charcoal-80/65">
                     <Icon className="h-4 w-4 shrink-0 text-violet" aria-hidden="true" />
                     <span>{t(`trust.${key}`)}</span>
                   </div>

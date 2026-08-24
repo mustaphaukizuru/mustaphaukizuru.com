@@ -51,9 +51,18 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
   const location = useLocation();
   const isDark = tone === "dark";
 
-  const switchTo = (next) => {
+  // I18N01/PERF · the target language's translations are a lazily-imported
+  // chunk. Await setLang (which awaits the bundle) BEFORE navigating, so the
+  // route change never paints a frame of raw translation keys.
+  const switchTo = async (next) => {
     if (next === lang) return;
-    setLang(next);
+    try {
+      await setLang(next);
+    } catch {
+      // Locale chunk failed to load — stay put rather than navigating into
+      // an untranslated page.
+      return;
+    }
     const target = pathWithLanguage(location.pathname, next) +
                    (location.search || "") + (location.hash || "");
     navigate(target, { replace: false });
@@ -112,13 +121,13 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
     return (
       <div role="group" aria-label={t("language.ariaSelector")} className={"inline-flex items-center gap-1.5 text-[12px] " + className}>
         <button type="button" onClick={() => switchTo("en")} aria-pressed={lang === "en"}
-          aria-label={t("language.switchTo", { lang: t("language.english") })}
+          aria-label={t("language.switchToCode", { code: "EN", lang: t("language.english") })}
           className={"inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 font-semibold transition " + (lang === "en" ? activeClass : inactiveClass)}>
           <FlagEN className="h-3 w-[18px]" />EN
         </button>
         <span className={dotClass}>|</span>
         <button type="button" onClick={() => switchTo("es")} aria-pressed={lang === "es"}
-          aria-label={t("language.switchTo", { lang: t("language.spanish") })}
+          aria-label={t("language.switchToCode", { code: "ES", lang: t("language.spanish") })}
           className={"inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 font-semibold transition " + (lang === "es" ? activeClass : inactiveClass)}>
           <FlagMX className="h-3 w-[18px]" />ES
         </button>
@@ -147,12 +156,12 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
     <div role="group" aria-label={t("language.ariaSelector")}
       className={"inline-flex items-center gap-0.5 rounded-full border border-slate-200 bg-white p-0.5 " + className}>
       <button type="button" onClick={() => switchTo("en")} aria-pressed={lang === "en"}
-        aria-label={t("language.switchTo", { lang: t("language.english") })}
+        aria-label={t("language.switchToCode", { code: "EN", lang: t("language.english") })}
         className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 " + (lang === "en" ? "bg-violet text-white shadow-[0_2px_6px_rgb(var(--color-violet-rgb)/0.18)]" : "text-charcoal/70 hover:bg-violet-pale hover:text-violet")}>
         <FlagEN className="h-3 w-[18px]" />EN
       </button>
       <button type="button" onClick={() => switchTo("es")} aria-pressed={lang === "es"}
-        aria-label={t("language.switchTo", { lang: t("language.spanish") })}
+        aria-label={t("language.switchToCode", { code: "ES", lang: t("language.spanish") })}
         className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 " + (lang === "es" ? "bg-violet text-white shadow-sm" : "text-charcoal/70 hover:text-violet")}>
         <FlagMX className="h-3 w-[18px]" />ES
       </button>

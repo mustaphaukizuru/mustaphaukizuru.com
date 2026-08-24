@@ -134,7 +134,7 @@ export default function AccountMenu() {
       >
         <UserAvatar user={user} size={36} />
         <ChevronDown
-          className={`h-3.5 w-3.5 text-charcoal-80/55 transition-transform duration-200 ${
+          className={`h-3.5 w-3.5 text-charcoal-80/65 transition-transform duration-200 ${
             open ? "rotate-180" : ""
           }`}
           aria-hidden="true"
@@ -153,7 +153,7 @@ export default function AccountMenu() {
                 <p className="truncate text-[14px] font-bold text-charcoal">
                   {(user && user.fullName) || "Member"}
                 </p>
-                <p className="mt-0.5 truncate text-[12px] text-charcoal-80/60">
+                <p className="mt-0.5 truncate text-[12px] text-charcoal-80/65">
                   {user && user.email}
                 </p>
               </div>

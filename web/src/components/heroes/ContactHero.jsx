@@ -81,7 +81,7 @@ const TRUST_PILLS = [
 /* ── Day-status visual tokens (brand-aligned) ─────────────────────── */
 const DAY_STYLE = {
   empty: { wrap: "invisible", num: "" },
-  weekend: { wrap: "bg-violet-ghost/70", num: "!text-charcoal/45" },
+  weekend: { wrap: "bg-violet-ghost/70", num: "!text-charcoal/65" },
   available:{ wrap: "bg-white ring-1 ring-mint-400/45", num: "!text-violet" },
   today: { wrap: "bg-terracotta shadow-[0_6px_18px_rgb(var(--color-terracotta-rgb)/0.55)]", num: "!text-violet-deep font-extrabold" },
   booked: { wrap: "bg-violet", num: "!text-white" },
@@ -292,9 +292,11 @@ function BookingCalendar({ reduce }) {
               <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.18em] !text-violet">
                 Booking <span aria-hidden="true">·</span> {t("hero.discoveryCall")}
               </span>
-              <h3 className="mt-1.5 text-[17px] font-bold leading-tight !text-violet">
+              {/* Decorative mock-UI title — styled like a heading but not part of
+                  the document outline (it would skip a level after the page h1). */}
+              <p className="mt-1.5 text-[17px] font-bold leading-tight !text-violet">
                 {t("hero.scheduleCall")}
-              </h3>
+              </p>
             </div>
             <ol className="flex shrink-0 items-center gap-1 pt-0.5 text-[10px] font-semibold !text-charcoal">
               {[
@@ -316,12 +318,12 @@ function BookingCalendar({ reduce }) {
                     transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                     className={[
                       "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold",
-                      active ? "bg-violet !text-white" : "bg-violet-pale !text-violet/55",
+                      active ? "bg-violet !text-white" : "bg-violet-pale !text-violet",
                     ].join(" ")}
                   >
                     {n}
                   </m.span>
-                  <span className={active ? "!text-violet" : "!text-charcoal/55"}>{label}</span>
+                  <span className={active ? "!text-violet" : "!text-charcoal/65"}>{label}</span>
                   {i < 2 && <span aria-hidden="true" className="h-px w-3 bg-violet/20" />}
                 </li>
               ))}
@@ -372,7 +374,7 @@ function BookingCalendar({ reduce }) {
             </div>
 
             {/* Day-of-week labels */}
-            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[9px] font-bold uppercase tracking-[0.12em] !text-charcoal/55">
+            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[9px] font-bold uppercase tracking-[0.12em] !text-charcoal/65">
               {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
                 <span key={d}>{d}</span>
               ))}

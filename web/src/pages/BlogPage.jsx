@@ -303,7 +303,7 @@ export default function BlogPage() {
               variants={fadeUp}
               className="mt-1 flex flex-wrap items-center justify-center gap-2 text-[12.5px]"
             >
-              <span className="text-charcoal-80/55">
+              <span className="text-charcoal-80/65">
                 {t("page.articleCount", { count: filtered.length })}
               </span>
               {hasActiveFilter ? (
@@ -370,7 +370,7 @@ export default function BlogPage() {
               {/* Section divider with sort control */}
               {pagePosts.length > 0 ? (
                 <div className="mt-10 mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 pb-3">
-                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                     <LayoutList className="h-3.5 w-3.5 text-violet" aria-hidden="true" />
                     {hasActiveFilter
                       ? `${sortedGridSource.length} result${sortedGridSource.length !== 1 ? "s" : ""}`
@@ -398,7 +398,7 @@ export default function BlogPage() {
                             "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30",
                             sort === opt.key
                               ? "bg-violet text-white shadow-sm"
-                              : "text-charcoal-80/55 hover:text-violet",
+                              : "text-charcoal-80/65 hover:text-violet",
                           ].join(" ")}
                         >
                           {opt.label}
@@ -596,7 +596,7 @@ function BlogSidebar({
                   <div className="line-clamp-2 text-[13px] font-semibold leading-snug text-charcoal-80 group-hover:text-violet">
                     {p.title}
                   </div>
-                  <div className="mt-1 flex items-center gap-2 text-[11px] text-charcoal-80/50">
+                  <div className="mt-1 flex items-center gap-2 text-[11px] text-charcoal-80/65">
                     <Calendar className="h-3 w-3" aria-hidden="true" />
                     {formatDate(p.publishedAt)}
                   </div>
@@ -619,7 +619,7 @@ function BlogSidebar({
                     <ChevronRight className="h-3 w-3 text-charcoal-80/30 group-hover:text-violet" aria-hidden="true" />
                     {entry.label}
                   </span>
-                  <span className="rounded-full bg-charcoal-80/[0.06] px-1.5 py-0.5 text-[10.5px] font-mono tabular-nums text-charcoal-80/55 group-hover:bg-violet/10 group-hover:text-violet">
+                  <span className="rounded-full bg-charcoal-80/[0.06] px-1.5 py-0.5 text-[10.5px] font-mono tabular-nums text-charcoal-80/65 group-hover:bg-violet/10 group-hover:text-violet">
                     {entry.count}
                   </span>
                 </Link>
@@ -696,7 +696,7 @@ function BlogSidebar({
 function SidebarBlock({ title, icon: Icon, children }) {
   return (
     <section>
-      <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+      <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
         {Icon ? <Icon className="h-3 w-3 text-violet" aria-hidden="true" /> : null}
         {title}
       </h3>
@@ -733,7 +733,7 @@ function SidebarRow({ label, count, accent, active, onClick }) {
         <span
           className={[
             "rounded-full px-1.5 py-0.5 text-[10.5px] font-mono tabular-nums",
-            active ? "bg-violet/15 text-violet" : "bg-charcoal-80/[0.06] text-charcoal-80/55",
+            active ? "bg-violet/15 text-violet" : "bg-charcoal-80/[0.06] text-charcoal-80/65",
           ].join(" ")}
         >
           {count}
@@ -825,7 +825,7 @@ function FeaturedCard({ post, reduce }) {
               </span>
               {cat ? <CategoryPill category={cat} /> : null}
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-charcoal-80/[0.06] px-2.5 py-1 font-mono text-[10.5px] text-charcoal-80/55">
+            <span className="inline-flex items-center gap-1 rounded-full bg-charcoal-80/[0.06] px-2.5 py-1 font-mono text-[10.5px] text-charcoal-80/65">
               <Clock className="h-3 w-3" aria-hidden="true" />
               {post.readMinutes} min
             </span>
@@ -848,7 +848,7 @@ function FeaturedCard({ post, reduce }) {
               <p className="text-[13px] font-semibold text-charcoal-80/85">
                 {post.author.name}
               </p>
-              <p className="text-[11.5px] text-charcoal-80/50">
+              <p className="text-[11.5px] text-charcoal-80/65">
                 {formatDate(post.publishedAt, locale)}
               </p>
             </div>
@@ -904,7 +904,7 @@ function PostCard({ post }) {
           </h3>
 
           {/* Excerpt — hidden on narrow screens */}
-          <p className="hidden line-clamp-2 text-[13px] leading-6 text-charcoal-80/60 sm:block">
+          <p className="hidden line-clamp-2 text-[13px] leading-6 text-charcoal-80/65 sm:block">
             {post.excerpt}
           </p>
 
@@ -914,7 +914,7 @@ function PostCard({ post }) {
               {displayTags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-charcoal-80/[0.05] px-2 py-0.5 font-mono text-[10px] tracking-wide text-charcoal-80/50"
+                  className="rounded-full bg-charcoal-80/[0.05] px-2 py-0.5 font-mono text-[10px] tracking-wide text-charcoal-80/65"
                 >
                   {tag}
                 </span>
@@ -1011,7 +1011,7 @@ function CategoryPill({ category }) {
 function PostMeta({ post, compact = false }) {
   const { t } = useTranslation("blog")
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-charcoal-80/55">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-charcoal-80/65">
       <span className="inline-flex items-center gap-1.5">
         <img
           src={post.author.avatar}

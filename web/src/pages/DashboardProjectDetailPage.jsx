@@ -76,7 +76,7 @@ export default function DashboardProjectDetailPage() {
             {project.description && (
               <p className="mt-2 max-w-2xl text-meta text-charcoal-80/75">{project.description}</p>
             )}
-            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/55">
+            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/65">
               <span><Calendar className="inline h-3 w-3 mr-1" />{t("projects.detail.started", { date: fmtDate(project.startDate) })}</span>
               <span><Calendar className="inline h-3 w-3 mr-1" />{t("projects.detail.due",     { date: fmtDate(project.dueDate)   })}</span>
               {project.assignedAdmin && (
@@ -85,7 +85,7 @@ export default function DashboardProjectDetailPage() {
             </div>
           </div>
           <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">{t("projects.detail.progress")}</div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
             <div className="font-mono text-display font-bold tabular-nums text-violet">{pct}%</div>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function DashboardProjectDetailPage() {
         </p>
         <div className="mt-4 space-y-3">
           {project.milestones.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/55">
+            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/65">
               {t("projects.detail.noMilestones")}
             </div>
           ) : project.milestones.map((m, idx) => {
@@ -127,7 +127,7 @@ export default function DashboardProjectDetailPage() {
                     <StatusPill status={m.status} />
                   </div>
                   {m.description && <p className="mt-1 text-micro text-charcoal-80/65">{m.description}</p>}
-                  <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/45">
+                  <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
                     {m.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDate(m.dueDate) })}</span>}
                     {m.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(m.completedAt) })}</span>}
                   </div>
@@ -146,7 +146,7 @@ export default function DashboardProjectDetailPage() {
         </p>
         <div className="mt-4 space-y-2">
           {project.files.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/55">
+            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/65">
               {t("projects.detail.noFiles")}
             </div>
           ) : project.files.map((f) => (
@@ -163,7 +163,7 @@ export default function DashboardProjectDetailPage() {
                 </div>
                 <div className="min-w-0">
                   <div className="truncate text-meta font-semibold text-charcoal-80">{f.fileName}</div>
-                  <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/55">
+                  <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
                     {f.fileType || t("projects.detail.fileFallback")} · {fmtDate(f.createdAt)}
                   </div>
                 </div>

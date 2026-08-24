@@ -231,6 +231,14 @@ export default defineConfig({
          *     in `vendor`, but flagged here for future tuning.
          */
         manualChunks(id) {
+          // PERF · I18N01 · one chunk per locale. src/i18n/resources.js only
+          // ever reaches resources.<lang>.js through import(), so these are
+          // pure lazy chunks: a visitor downloads the active language only,
+          // and the other one arrives on first language switch. Naming them
+          // explicitly keeps the split deterministic (and greppable in the
+          // build output) instead of relying on Rollup's default grouping.
+          if (/[\\/]src[\\/]i18n[\\/](locales[\\/]en[\\/]|resources\.en\.js)/.test(id)) return "locale-en"
+          if (/[\\/]src[\\/]i18n[\\/](locales[\\/]es[\\/]|resources\.es\.js)/.test(id)) return "locale-es"
           if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return "react-vendor"
           if (id.includes("node_modules/react-router"))               return "router"
           // framer-motion: no manual chunk — LazyMotion (src/components/motion/

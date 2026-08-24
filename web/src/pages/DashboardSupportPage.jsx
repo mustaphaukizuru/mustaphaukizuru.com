@@ -49,7 +49,7 @@ function TicketCard({ ticket, onSelect }) {
           </div>
         </div>
 
-        <div className="mt-1 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/60">
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/65">
           <span>{t("support.list.ticketNumber", { number: ticket.ticketNumber || ticket.id?.slice(0, 8) })}</span>
           <span>·</span>
           <span>{new Date(ticket.createdAt).toLocaleDateString(localeTag)}</span>
@@ -99,7 +99,7 @@ function CreateTicketModal({ onClose, onCreated }) {
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-charcoal-80/10 text-charcoal-80/60 transition hover:bg-violet-pale/60 hover:text-violet"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-charcoal-80/10 text-charcoal-80/65 transition hover:bg-violet-pale/60 hover:text-violet"
           >
             <X className="h-4 w-4" />
           </button>
@@ -220,7 +220,7 @@ function TicketThread({ ticket, onClose }) {
     <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
-          <div className="text-micro font-semibold uppercase tracking-[0.12em] text-charcoal-80/50">
+          <div className="text-micro font-semibold uppercase tracking-[0.12em] text-charcoal-80/65">
             {t("support.thread.ticketNumberLabel", { number: ticket.ticketNumber || ticket.id?.slice(0, 8) })}
           </div>
           <h3 className="mt-1 text-card font-semibold text-violet">{ticket.subject}</h3>
@@ -228,7 +228,7 @@ function TicketThread({ ticket, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="shrink-0 rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/50 transition hover:bg-violet-pale/60 hover:text-violet"
+          className="shrink-0 rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/65 transition hover:bg-violet-pale/60 hover:text-violet"
         >
           <X className="h-4 w-4" />
         </button>
@@ -243,7 +243,7 @@ function TicketThread({ ticket, onClose }) {
       {/* Messages */}
       <div className="space-y-4">
         {messages.length === 0 && (
-          <div className="rounded-xl border border-dashed border-violet/20 bg-violet-pale/30 p-4 text-micro text-charcoal-80/60">
+          <div className="rounded-xl border border-dashed border-violet/20 bg-violet-pale/30 p-4 text-micro text-charcoal-80/65">
             {t("support.thread.noMessages")}
           </div>
         )}
@@ -260,7 +260,7 @@ function TicketThread({ ticket, onClose }) {
               <span className="text-micro font-semibold">
                 {msg.isAdmin ? t("support.thread.supportTeam") : t("support.thread.you")}
               </span>
-              <span className="text-micro text-charcoal-80/50">
+              <span className="text-micro text-charcoal-80/65">
                 {new Date(msg.createdAt).toLocaleString(localeTag)}
               </span>
             </div>
@@ -344,17 +344,17 @@ export default function DashboardSupportPage() {
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
             <div className="text-micro font-medium text-charcoal-80/70">{t("support.metrics.totalTitle")}</div>
             <div className="mt-2 text-page font-bold text-violet">{tickets.length}</div>
-            <div className="mt-2 text-micro text-charcoal-80/60">{t("support.metrics.totalSubtitle")}</div>
+            <div className="mt-2 text-micro text-charcoal-80/65">{t("support.metrics.totalSubtitle")}</div>
           </div>
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
             <div className="text-micro font-medium text-charcoal-80/70">{t("support.metrics.openTitle")}</div>
             <div className="mt-2 text-page font-bold text-amber-700">{open}</div>
-            <div className="mt-2 text-micro text-charcoal-80/60">{t("support.metrics.openSubtitle")}</div>
+            <div className="mt-2 text-micro text-charcoal-80/65">{t("support.metrics.openSubtitle")}</div>
           </div>
           <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
             <div className="text-micro font-medium text-charcoal-80/70">{t("support.metrics.resolvedTitle")}</div>
             <div className="mt-2 text-page font-bold text-mint-800">{resolved}</div>
-            <div className="mt-2 text-micro text-charcoal-80/60">{t("support.metrics.resolvedSubtitle")}</div>
+            <div className="mt-2 text-micro text-charcoal-80/65">{t("support.metrics.resolvedSubtitle")}</div>
           </div>
         </div>
 

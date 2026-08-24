@@ -77,7 +77,7 @@ export default function AdminDownloadsPage() {
           <div className="truncate text-meta font-semibold text-violet">
             {row.user?.fullName || "Unnamed User"}
           </div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             {row.user?.email || "-"}
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function AdminDownloadsPage() {
           <div className="truncate text-meta font-semibold text-violet">
             {row.product?.title || "Product"}
           </div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             /store/{row.product?.slug || "-"}
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function AdminDownloadsPage() {
         <p className="text-meta text-charcoal-80/70">
           Monitor digital delivery, member access, and top downloaded products.
         </p>
-        <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
           Latest 100 download records
         </span>
       </div>
@@ -229,7 +229,7 @@ export default function AdminDownloadsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-meta font-semibold text-violet">{item.title}</div>
-                        <div className="mt-0.5 truncate font-mono text-[10px] text-charcoal-80/55">
+                        <div className="mt-0.5 truncate font-mono text-[10px] text-charcoal-80/65">
                           {item.productId?.slice(0, 12)}
                         </div>
                       </div>
@@ -237,7 +237,7 @@ export default function AdminDownloadsPage() {
                         <div className="font-mono text-meta font-bold tabular-nums text-violet">
                           {item.downloads}
                         </div>
-                        <div className="text-[10px] text-charcoal-80/55">downloads</div>
+                        <div className="text-[10px] text-charcoal-80/65">downloads</div>
                       </div>
                     </div>
                     {/* Bar */}

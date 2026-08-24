@@ -138,7 +138,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
     <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
             Ticket{" "}
             <span className="text-violet">
               #{ticket.ticketNumber || (ticket.id ? String(ticket.id).slice(0, 8) : "-")}
@@ -157,7 +157,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
           type="button"
           onClick={onClose}
           aria-label="Close thread"
-          className="shrink-0 rounded-lg border border-charcoal-80/12 bg-white p-2 text-charcoal-80/55 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          className="shrink-0 rounded-lg border border-charcoal-80/12 bg-white p-2 text-charcoal-80/65 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -232,7 +232,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
       {/* Messages */}
       <div className="space-y-3" role="log" aria-label="Conversation messages">
         {messages.length === 0 && (
-          <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist p-4 text-center text-micro text-charcoal-80/55">
+          <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist p-4 text-center text-micro text-charcoal-80/65">
             No messages yet.
           </div>
         )}
@@ -249,7 +249,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
               <span className="text-micro font-bold">
                 {msg.isAdmin ? "Support Team" : (ticket.user?.fullName || "User")}
               </span>
-              <span className="font-mono text-[10px] tabular-nums text-charcoal-80/55">
+              <span className="font-mono text-[10px] tabular-nums text-charcoal-80/65">
                 {new Date(msg.createdAt).toLocaleString(undefined, {
                   year: "numeric", month: "short", day: "numeric",
                   hour: "2-digit", minute: "2-digit",
@@ -378,7 +378,7 @@ export default function AdminSupportPage() {
               <div className="truncate text-meta font-semibold text-violet">{row.subject}</div>
               <CategoryBadge category={row.category} />
             </div>
-            <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+            <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
               #{row.ticketNumber || (row.id ? String(row.id).slice(0, 8) : "-")}
               {row.order ? ` · order ${row.order.orderNumber}` : ""}
             </div>
@@ -398,7 +398,7 @@ export default function AdminSupportPage() {
           <div className="truncate text-meta font-medium text-charcoal-80">
             {row.user?.fullName || "Unknown User"}
           </div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             {row.user?.email}
           </div>
         </div>
@@ -454,7 +454,7 @@ export default function AdminSupportPage() {
   const toolbar = (
     <div className="flex flex-wrap items-center gap-2">
       <label className="flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-2.5 py-1.5">
-        <Filter className="h-3 w-3 text-charcoal-80/45" aria-hidden="true" />
+        <Filter className="h-3 w-3 text-charcoal-80/65" aria-hidden="true" />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}

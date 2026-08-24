@@ -43,14 +43,14 @@ export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple"
     <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.08)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-micro font-semibold uppercase tracking-[0.12em] text-charcoal-80/55">
+          <div className="text-micro font-semibold uppercase tracking-[0.12em] text-charcoal-80/65">
             {title}
           </div>
           <div className="mt-1.5 text-section font-bold leading-none text-violet sm:mt-2 sm:text-page">
             {value ?? ","}
           </div>
           {subtitle && (
-            <div className="mt-1.5 text-micro text-charcoal-80/55 sm:mt-2">{subtitle}</div>
+            <div className="mt-1.5 text-micro text-charcoal-80/65 sm:mt-2">{subtitle}</div>
           )}
           {trend !== undefined && (
             <div className={`mt-1 inline-flex items-center gap-1 text-micro font-semibold ${
@@ -60,7 +60,7 @@ export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple"
                 ? <ArrowUp className="h-3 w-3" aria-hidden="true" />
                 : <ArrowDown className="h-3 w-3" aria-hidden="true" />}
               <span className="font-mono tabular-nums">{Math.abs(trend)}%</span>
-              <span className="text-charcoal-80/55 font-normal">from last month</span>
+              <span className="text-charcoal-80/65 font-normal">from last month</span>
             </div>
           )}
         </div>
@@ -167,7 +167,7 @@ export function SectionCard({ title, subtitle, action, children, className = "" 
         <div className="flex flex-col gap-2 border-b border-charcoal-80/8 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
           <div className="min-w-0">
             {title && <h3 className="text-body font-semibold text-violet">{title}</h3>}
-            {subtitle && <p className="mt-0.5 text-micro text-charcoal-80/60">{subtitle}</p>}
+            {subtitle && <p className="mt-0.5 text-micro text-charcoal-80/65">{subtitle}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
@@ -185,7 +185,7 @@ export function PageHeader({ title, subtitle, action, breadcrumb }) {
     <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
       <div className="min-w-0">
         {breadcrumb && (
-          <div className="mb-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+          <div className="mb-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
             {breadcrumb}
           </div>
         )}

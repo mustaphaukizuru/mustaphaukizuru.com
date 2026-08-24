@@ -413,13 +413,13 @@ export default function ErrorPage({
 
           {/* Reference id + support hint — single, calm line */}
           <m.div variants={fadeUp} className="mt-8 max-w-md space-y-2">
-            <p className="text-micro text-charcoal-80/55">
+            <p className="text-micro text-charcoal-80/65">
               {t("reference.label")}{" "}
               <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-steel-700">
                 {refId}
               </code>
             </p>
-            <p className="text-micro text-charcoal-80/45">
+            <p className="text-micro text-charcoal-80/65">
               {t("support.prefix")}{" "}
               <Link
                 to={`/contact?ref=${encodeURIComponent(refId)}`}

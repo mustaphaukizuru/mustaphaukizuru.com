@@ -261,7 +261,7 @@ export default function AuditModal({ open, onClose }) {
                 <div className="h-8 w-8 rounded-lg bg-violet flex items-center justify-center text-white font-bold text-[15px]">M</div>
                 <div className="hidden sm:block">
                   <div className="text-[13px] font-semibold text-charcoal leading-none">Mustapha Ukizuru</div>
-                  <div className="font-mono text-[10px] text-charcoal/45 mt-0.5">Self-Audit · v2.0</div>
+                  <div className="font-mono text-[10px] text-charcoal/65 mt-0.5">Self-Audit · v2.0</div>
                 </div>
               </div>
 
@@ -280,7 +280,7 @@ export default function AuditModal({ open, onClose }) {
               )}
 
               {/* Step label */}
-              <div className="font-mono text-[11px] text-charcoal/45 uppercase tracking-[0.1em] hidden sm:block">
+              <div className="font-mono text-[11px] text-charcoal/65 uppercase tracking-[0.1em] hidden sm:block">
                 {step === "audience" && "Step 1 of 3 · Audience"}
                 {step === "prequal"  && "Step 2 of 3 · Quick context"}
                 {step === "audit"    && `Section ${sectionIdx + 1} of ${sections.length} · ${currentSec?.letter}`}
@@ -291,7 +291,7 @@ export default function AuditModal({ open, onClose }) {
               {/* Close */}
               <button
                 onClick={handleClose}
-                className="cursor-pointer shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-charcoal/50 hover:bg-charcoal/8 hover:text-charcoal transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40"
+                className="cursor-pointer shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-charcoal/65 hover:bg-charcoal/8 hover:text-charcoal transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40"
                 aria-label="Close audit"
               >
                 <X className="h-4 w-4" />
@@ -323,7 +323,7 @@ export default function AuditModal({ open, onClose }) {
                       <CheckCircle2 className="h-6 w-6 text-violet" />
                     </div>
                     <h3 className="text-[18px] font-bold text-charcoal mb-2">Welcome back!</h3>
-                    <p className="text-[14px] text-charcoal/60 mb-6">You've started this audit before. Continue where you left off?</p>
+                    <p className="text-[14px] text-charcoal/65 mb-6">You've started this audit before. Continue where you left off?</p>
                     <div className="flex gap-3">
                       <button onClick={handleResume} className="cursor-pointer flex-1 rounded-xl bg-violet px-4 py-2.5 text-[14px] font-semibold text-white hover:bg-violet/90 transition">
                         Continue
@@ -441,7 +441,7 @@ function AudienceStep({ onSelect }) {
       <div className="text-center mb-10">
         <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-violet mb-3">STEP 1 OF 3</p>
         <h2 className="text-[clamp(22px,3.5vw,34px)] font-extrabold tracking-tight text-charcoal mb-3">Who is this audit for?</h2>
-        <p className="text-[15px] text-charcoal/55">Different audiences see different sections. We'll tailor your shortlist accordingly.</p>
+        <p className="text-[15px] text-charcoal/65">Different audiences see different sections. We'll tailor your shortlist accordingly.</p>
       </div>
       <div className="space-y-4">
         {CARDS.map(({ aud, icon: Icon, title, scope, body, color, iconBg }) => (
@@ -457,9 +457,9 @@ function AudienceStep({ onSelect }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-3 flex-wrap">
                   <span className="text-[16px] font-bold text-charcoal">{title}</span>
-                  <span className="font-mono text-[11px] font-bold text-violet/70 uppercase tracking-[0.08em]">{scope}</span>
+                  <span className="font-mono text-[11px] font-bold text-violet uppercase tracking-[0.08em]">{scope}</span>
                 </div>
-                <p className="mt-1 text-[13.5px] text-charcoal/55 leading-relaxed">{body}</p>
+                <p className="mt-1 text-[13.5px] text-charcoal/65 leading-relaxed">{body}</p>
               </div>
               <ChevronRight className="h-5 w-5 text-charcoal/25 shrink-0 mt-0.5" aria-hidden="true" />
             </div>
@@ -479,12 +479,12 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
       <div className="mb-8 sm:mb-10">
         <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-violet mb-3">STEP 2 OF 3 · QUICK CONTEXT</p>
         <h2 className="text-[clamp(22px,3vw,30px)] font-extrabold tracking-tight text-charcoal mb-2">Two quick questions</h2>
-        <p className="text-[14px] text-charcoal/55">This helps us contextualise your results. Takes 20 seconds.</p>
+        <p className="text-[14px] text-charcoal/65">This helps us contextualise your results. Takes 20 seconds.</p>
       </div>
 
       <div className="space-y-7 sm:space-y-8">
         <div>
-          <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60 mb-3">
+          <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/65 mb-3">
             What's your biggest technology challenge right now?
           </label>
           {/* 1 col on xs, 2 cols from sm — prevents cramped cards on narrow phones */}
@@ -506,7 +506,7 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
         </div>
 
         <div>
-          <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/60 mb-3">
+          <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/65 mb-3">
             What's your implementation timeline?
           </label>
           <div className="space-y-2">
@@ -532,7 +532,7 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
 
       {/* Nav — stacks on mobile (Next first, Back below), side-by-side on sm+ */}
       <div className="mt-8 flex flex-col-reverse gap-2 sm:mt-10 sm:flex-row sm:items-center sm:justify-between">
-        <button onClick={onBack} className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13px] text-charcoal/60 hover:bg-charcoal/5 transition sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:justify-start">
+        <button onClick={onBack} className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13px] text-charcoal/65 hover:bg-charcoal/5 transition sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:justify-start">
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
         <button
@@ -574,7 +574,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                   <div className="flex-1 h-1.5 bg-charcoal/10 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-300" style={{ width: `${d.pct}%`, background: c?.hex || "var(--color-violet)" }} />
                   </div>
-                  <span className="font-mono text-[10px] text-charcoal/50 w-6 text-right shrink-0">{d.pct}</span>
+                  <span className="font-mono text-[10px] text-charcoal/65 w-6 text-right shrink-0">{d.pct}</span>
                 </div>
               )
             })}
@@ -588,26 +588,26 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
           </div>
           <div className="min-w-0">
             <h2 className="text-[18px] sm:text-[22px] font-bold text-charcoal leading-tight">{section.title}</h2>
-            <p className="text-[12px] sm:text-[13px] text-charcoal/50 mt-0.5">{section.subtitle}</p>
+            <p className="text-[12px] sm:text-[13px] text-charcoal/65 mt-0.5">{section.subtitle}</p>
             <span className="mt-1.5 inline-block rounded-full bg-violet-pale px-2.5 py-0.5 font-mono text-[10px] font-bold text-violet uppercase tracking-[0.08em]">
               {items.length} items · Section {sectionIdx + 1} of {totalSections}
             </span>
           </div>
         </div>
 
-        <p className="text-[13.5px] sm:text-[14px] text-charcoal/60 leading-relaxed mb-5 sm:mb-6">{section.intro}</p>
+        <p className="text-[13.5px] sm:text-[14px] text-charcoal/65 leading-relaxed mb-5 sm:mb-6">{section.intro}</p>
 
         {/* Score key — hidden on xs (cramped), shown from sm */}
         <div className="hidden sm:flex mb-6 items-center gap-px rounded-xl overflow-hidden border border-charcoal/10">
           {SCORE_LABELS.map((label, n) => (
             <div key={n} className="flex-1 bg-white text-center py-2.5 px-1 border-r border-charcoal/8 last:border-0">
               <div className="font-mono text-[13px] font-bold text-violet">{n}</div>
-              <div className="text-[10px] text-charcoal/50 mt-0.5">{label}</div>
+              <div className="text-[10px] text-charcoal/65 mt-0.5">{label}</div>
             </div>
           ))}
         </div>
         {/* Compact score legend for xs */}
-        <div className="sm:hidden mb-4 flex items-center gap-2 text-[11px] text-charcoal/50">
+        <div className="sm:hidden mb-4 flex items-center gap-2 text-[11px] text-charcoal/65">
           <span className="font-mono font-bold text-rose">0</span><span>None</span>
           <span className="mx-1 text-charcoal/20">·</span>
           <span className="font-mono font-bold text-amber-700">1–2</span><span>Aware/Partial</span>
@@ -686,7 +686,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                         <div>
                           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-violet mb-1.5">TYPICAL INVESTMENT</p>
                           <p className="font-mono text-[14px] font-bold text-charcoal">{investRange}</p>
-                          <p className="text-[12px] text-charcoal/45 mt-0.5">{tier}</p>
+                          <p className="text-[12px] text-charcoal/65 mt-0.5">{tier}</p>
                         </div>
                       </div>
                     </m.div>
@@ -727,7 +727,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                 <div className="flex-1 h-1.5 bg-charcoal/10 rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-300" style={{ width: `${d.pct}%`, background: c?.hex || "var(--color-violet)" }} />
                 </div>
-                <span className="font-mono text-[11px] text-charcoal/50 w-7 text-right">{d.pct}</span>
+                <span className="font-mono text-[11px] text-charcoal/65 w-7 text-right">{d.pct}</span>
               </div>
             )
           })}
@@ -765,7 +765,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
         {/* Benchmark comparison */}
         <div className="inline-flex items-center gap-2 rounded-full border border-charcoal/10 bg-white px-4 py-2 text-[13px] mt-2">
           <TrendingUp className="h-4 w-4 text-charcoal/40" />
-          <span className="text-charcoal/60">vs. avg <strong className="text-charcoal">{avg}/100</strong> for {audienceLabel}</span>
+          <span className="text-charcoal/65">vs. avg <strong className="text-charcoal">{avg}/100</strong> for {audienceLabel}</span>
           <span className={`font-mono font-bold ${vsAvg >= 0 ? "text-mint-700" : "text-rose"}`}>
             {vsAvg >= 0 ? "+" : ""}{vsAvg}
           </span>
@@ -837,21 +837,21 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
                         <div key={n} className={`h-1.5 w-5 rounded-full ${n <= p.score ? "bg-rose" : "bg-charcoal/10"}`} />
                       ))}
                     </div>
-                    <span className="text-[11px] text-charcoal/50">You scored <strong className="text-rose">{p.score}/4</strong> — target is 3+</span>
+                    <span className="text-[11px] text-charcoal/65">You scored <strong className="text-rose">{p.score}/4</strong> — target is 3+</span>
                   </div>
                   {/* Risk */}
-                  <p className="text-[13px] text-charcoal/55 leading-relaxed mb-2">{p.risk}</p>
+                  <p className="text-[13px] text-charcoal/65 leading-relaxed mb-2">{p.risk}</p>
                   {/* Meta */}
                   <div className="flex flex-wrap gap-3 text-[11px] font-mono">
                     <span className="rounded-full bg-violet-pale px-2.5 py-1 text-violet font-bold">{p.tier}</span>
-                    <span className="rounded-full bg-charcoal/5 px-2.5 py-1 text-charcoal/60">{p.investRange}</span>
+                    <span className="rounded-full bg-charcoal/5 px-2.5 py-1 text-charcoal/65">{p.investRange}</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
           {topPriorities.length === 0 && (
-            <p className="text-[14px] text-charcoal/55">All items scored 3 or above — strong foundation across the board.</p>
+            <p className="text-[14px] text-charcoal/65">All items scored 3 or above — strong foundation across the board.</p>
           )}
         </div>
       )}
@@ -880,15 +880,15 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
         >
           <Mail className="h-5 w-5 text-violet" />
           <span className="text-[14px] font-bold text-charcoal">Get PDF report</span>
-          <span className="text-[12px] text-charcoal/55">Emailed to you · Optional</span>
+          <span className="text-[12px] text-charcoal/65">Emailed to you · Optional</span>
         </button>
         <a
           href="https://mustaphaukizuru.com/contact"
           className="cursor-pointer flex flex-col gap-2 rounded-xl border border-charcoal/10 bg-white px-5 py-4 text-left hover:border-violet/30 transition"
         >
-          <Clock className="h-5 w-5 text-charcoal/50" />
+          <Clock className="h-5 w-5 text-charcoal/65" />
           <span className="text-[14px] font-bold text-charcoal">Book a 30-min call</span>
-          <span className="text-[12px] text-charcoal/55">Free · No sales pitch</span>
+          <span className="text-[12px] text-charcoal/65">Free · No sales pitch</span>
         </a>
         <a
           href={whatsappUrl}
@@ -897,7 +897,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
         >
           <MessageCircle className="h-5 w-5 text-mint" />
           <span className="text-[14px] font-bold text-charcoal">Message on WhatsApp</span>
-          <span className="text-[12px] text-charcoal/55">Quick reply · EN/ES</span>
+          <span className="text-[12px] text-charcoal/65">Quick reply · EN/ES</span>
         </a>
       </div>
 
@@ -925,7 +925,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
           </div>
         </div>
         <h2 className="text-[22px] font-extrabold tracking-tight text-charcoal mb-2">Get your personalised PDF report</h2>
-        <p className="text-[14px] text-charcoal/55">
+        <p className="text-[14px] text-charcoal/65">
           A branded PDF with your full scores, top priorities, investment ranges, and recommended next steps — yours to keep and share.
         </p>
       </div>
@@ -938,7 +938,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
         </div>
         <div>
           <div className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase ${tc.bg} ${tc.text} mb-1`}>{tier?.name}</div>
-          <p className="text-[13px] text-charcoal/60 leading-snug">{tier?.action}</p>
+          <p className="text-[13px] text-charcoal/65 leading-snug">{tier?.action}</p>
         </div>
       </div>
 
@@ -946,7 +946,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
         <div className="text-center py-8">
           <CheckCircle2 className="h-14 w-14 text-mint mx-auto mb-4" />
           <h3 className="text-[20px] font-bold text-charcoal mb-2">Report on its way!</h3>
-          <p className="text-[14px] text-charcoal/55">Check your inbox — your PDF report will arrive within a few minutes.</p>
+          <p className="text-[14px] text-charcoal/65">Check your inbox — your PDF report will arrive within a few minutes.</p>
           <button onClick={onSkip} className="cursor-pointer mt-6 text-[13px] text-violet underline underline-offset-2">
             Back to results
           </button>
@@ -956,7 +956,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
           {/* Email — recommended */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="ae-email" className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-charcoal/60">
+              <label htmlFor="ae-email" className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-charcoal/65">
                 Email address
               </label>
               <span className="rounded-full bg-violet-pale px-2 py-0.5 font-mono text-[10px] font-bold text-violet">RECOMMENDED</span>
@@ -1025,7 +1025,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
             <p className="text-[11px] text-charcoal/35">
               <Shield className="h-3 w-3 inline mr-1" />
               One report, no newsletter.{" "}
-              <a href="/privacy" className="cursor-pointer underline hover:text-charcoal/60" target="_blank" rel="noopener noreferrer">Privacy policy</a>
+              <a href="/privacy" className="cursor-pointer underline hover:text-charcoal/65" target="_blank" rel="noopener noreferrer">Privacy policy</a>
             </p>
             <button
               type="button"

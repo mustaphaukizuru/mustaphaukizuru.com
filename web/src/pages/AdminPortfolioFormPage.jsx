@@ -372,7 +372,7 @@ export default function AdminPortfolioFormPage() {
                 category, role, client, year, duration, tags, tools, results,
                 URLs, status, featured, display order all stay shared. */}
             <div className="-mt-1 mb-3 flex items-center justify-between rounded-lg border border-charcoal-80/10 bg-violet-pale/40 px-3 py-2">
-              <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">
+              <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">
                 Edit locale
               </span>
               <div role="tablist" aria-label="Edit locale" className="inline-flex items-center gap-1 rounded-md bg-white p-0.5 shadow-[inset_0_0_0_1px_rgb(var(--color-charcoal-rgb)/0.08)]">
@@ -496,7 +496,7 @@ export default function AdminPortfolioFormPage() {
           </FormCard>
 
           <FormCard title="Case study · problem → approach → outcome">
-            <p className="-mt-1 mb-2 text-micro leading-5 text-charcoal-80/60">
+            <p className="-mt-1 mb-2 text-micro leading-5 text-charcoal-80/65">
               Rendered on the public project page and drives the outcome line on portfolio cards. Outcomes flagged
               <strong> illustrative</strong> show with an asterisk until you replace them with real numbers.
             </p>
@@ -789,7 +789,7 @@ export default function AdminPortfolioFormPage() {
                 {uploadingGallery ? "Uploading…" : "Add"}
               </button>
             </div>
-            <p className="mt-2 text-micro text-charcoal-80/55">
+            <p className="mt-2 text-micro text-charcoal-80/65">
               Removing images here only drops them from this project's list, the file stays on the server.
             </p>
             <input

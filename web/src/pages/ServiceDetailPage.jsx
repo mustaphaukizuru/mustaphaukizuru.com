@@ -95,7 +95,7 @@ export default function ServiceDetailPage() {
       {/* Outcome-first hero */}
       <section className="border-b border-charcoal-80/10 bg-white">
         <Container className="py-10 sm:py-14 lg:py-16">
-          <nav className="mb-6 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/55" aria-label="Breadcrumb">
+          <nav className="mb-6 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/65" aria-label="Breadcrumb">
             <Link to="/" className="hover:text-violet">{t("detail.breadcrumb.home")}</Link>
             <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
             <Link to="/services" className="hover:text-violet">{t("detail.breadcrumb.services")}</Link>
@@ -110,7 +110,7 @@ export default function ServiceDetailPage() {
               <p className="mt-4 max-w-2xl text-body leading-7 text-charcoal-80/75">{tagline}</p>
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 <BookCallButton slug={category.slug} size="lg" />
-                <span className="inline-flex items-center gap-1.5 text-micro text-charcoal-80/60">
+                <span className="inline-flex items-center gap-1.5 text-micro text-charcoal-80/65">
                   <Clock className="h-3.5 w-3.5" aria-hidden="true" /> {t("funnel.detail.freeCall")}
                 </span>
               </div>
@@ -121,7 +121,7 @@ export default function ServiceDetailPage() {
                   {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
                 </span>
                 <div>
-                  <div className="text-micro font-semibold uppercase tracking-[0.16em] text-violet/70">{t("funnel.detail.categoryLabel")}</div>
+                  <div className="text-micro font-semibold uppercase tracking-[0.16em] text-violet">{t("funnel.detail.categoryLabel")}</div>
                   <div className="text-body font-bold text-violet">{name}</div>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function ServiceDetailPage() {
       {/* Single CTA */}
       <section className="bg-violet py-16 text-white sm:py-20">
         <Container className="text-center">
-          <p className="text-micro font-semibold uppercase tracking-[0.2em] text-white/70">{t("funnel.final.eyebrow")}</p>
+          <p className="text-micro font-semibold uppercase tracking-[0.2em] text-white/85">{t("funnel.final.eyebrow")}</p>
           <h2 className="mx-auto mt-3 max-w-2xl text-section font-bold">{t("funnel.detail.finalTitle", { name })}</h2>
           <p className="mx-auto mt-3 max-w-xl text-body text-white/80">{t("funnel.final.body")}</p>
           <div className="mt-8"><BookCallButton slug={category.slug} tone="white" size="lg" /></div>

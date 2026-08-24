@@ -151,7 +151,7 @@ export default function AdminContactsPage() {
       render: (row) => (
         <div className="min-w-0">
           <div className="truncate font-semibold text-charcoal">{row.name}</div>
-          <div className="truncate font-mono text-[11px] text-charcoal-80/55">{row.email}</div>
+          <div className="truncate font-mono text-[11px] text-charcoal-80/65">{row.email}</div>
         </div>
       ),
     },
@@ -166,7 +166,7 @@ export default function AdminContactsPage() {
           <div className="truncate text-meta text-charcoal">
             {row.subject || <span className="italic text-charcoal-80/40">(no subject)</span>}
           </div>
-          <div className="line-clamp-1 text-micro text-charcoal-80/55">{row.message}</div>
+          <div className="line-clamp-1 text-micro text-charcoal-80/65">{row.message}</div>
         </div>
       ),
     },
@@ -204,7 +204,7 @@ export default function AdminContactsPage() {
           type="button"
           onClick={(e) => { e.stopPropagation(); handleOpen(row) }}
           aria-label="View message"
-          className="rounded-lg p-1.5 text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+          className="rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
         >
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
@@ -223,7 +223,7 @@ export default function AdminContactsPage() {
 
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal-80/10 bg-white px-4 py-3">
         <div className="flex items-center gap-1">
-          <Filter className="h-3.5 w-3.5 text-charcoal-80/45" aria-hidden="true" />
+          <Filter className="h-3.5 w-3.5 text-charcoal-80/65" aria-hidden="true" />
           {["all", "new", "read", "replied"].map((s) => {
             const active = statusFilter === s
             return (
@@ -322,7 +322,7 @@ export default function AdminContactsPage() {
                       return <StatusPill status={pill.status} label={pill.label} />
                     })()}
                   </div>
-                  <p className="mt-0.5 font-mono text-[11px] text-charcoal-80/55">
+                  <p className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
                     Received {fmtDate(selected.createdAt)}
                     {selected.repliedAt && ` · replied ${fmtDate(selected.repliedAt)}`}
                   </p>
@@ -331,7 +331,7 @@ export default function AdminContactsPage() {
                   type="button"
                   onClick={() => setSelected(null)}
                   aria-label="Close detail"
-                  className="rounded-lg p-1.5 text-charcoal-80/55 transition hover:bg-mist hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                  className="rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-mist hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -339,14 +339,14 @@ export default function AdminContactsPage() {
 
               <div className="flex-1 overflow-y-auto px-6 py-5">
                 <section className="mb-5 space-y-2">
-                  <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">From</h3>
+                  <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">From</h3>
                   <div className="space-y-1.5 rounded-xl border border-charcoal-80/10 bg-mist p-4">
                     <p className="flex items-center gap-2 text-meta text-charcoal">
-                      <UserIcon className="h-3.5 w-3.5 text-charcoal-80/45" aria-hidden="true" />
+                      <UserIcon className="h-3.5 w-3.5 text-charcoal-80/65" aria-hidden="true" />
                       <span className="font-semibold">{selected.name}</span>
                     </p>
                     <p className="flex items-center gap-2 text-meta">
-                      <Mail className="h-3.5 w-3.5 text-charcoal-80/45" aria-hidden="true" />
+                      <Mail className="h-3.5 w-3.5 text-charcoal-80/65" aria-hidden="true" />
                       <a
                         href={`mailto:${selected.email}?subject=Re: ${encodeURIComponent(selected.subject || "Your message")}`}
                         className="font-mono text-azure-deep hover:underline"
@@ -356,7 +356,7 @@ export default function AdminContactsPage() {
                     </p>
                     {selected.phone && (
                       <p className="flex items-center gap-2 text-meta">
-                        <Phone className="h-3.5 w-3.5 text-charcoal-80/45" aria-hidden="true" />
+                        <Phone className="h-3.5 w-3.5 text-charcoal-80/65" aria-hidden="true" />
                         <a href={`tel:${selected.phone}`} className="font-mono text-azure-deep hover:underline">
                           {selected.phone}
                         </a>
@@ -366,7 +366,7 @@ export default function AdminContactsPage() {
                 </section>
 
                 <section>
-                  <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">Message</h3>
+                  <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">Message</h3>
                   <div className="whitespace-pre-wrap rounded-xl border border-charcoal-80/10 bg-white p-4 text-meta leading-relaxed text-charcoal">
                     {selected.message}
                   </div>

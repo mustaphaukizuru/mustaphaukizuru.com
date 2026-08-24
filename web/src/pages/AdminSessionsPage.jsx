@@ -82,7 +82,7 @@ export default function AdminSessionsPage() {
           </div>
           <div>
             <div className="text-[20px] font-bold text-charcoal-80">{filtered.length} active session{filtered.length === 1 ? "" : "s"}</div>
-            <div className="text-[12.5px] text-charcoal-80/55">Live sign-ins across the platform.</div>
+            <div className="text-[12.5px] text-charcoal-80/65">Live sign-ins across the platform.</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export default function AdminSessionsPage() {
               className="w-72 rounded-lg border border-charcoal-80/15 bg-white py-2 pl-9 pr-9 text-[13px] outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-violet/15"
             />
             {search ? (
-              <button type="button" onClick={() => setSearch("")} aria-label="Clear" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-charcoal-80/45 hover:bg-charcoal-80/[0.06]">
+              <button type="button" onClick={() => setSearch("")} aria-label="Clear" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-charcoal-80/65 hover:bg-charcoal-80/[0.06]">
                 <X className="h-3.5 w-3.5" />
               </button>
             ) : null}
@@ -109,7 +109,7 @@ export default function AdminSessionsPage() {
 
       <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white">
         <table className="min-w-full divide-y divide-charcoal-80/10 text-left text-[13px]">
-          <thead className="bg-charcoal-80/[0.03] text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">
+          <thead className="bg-charcoal-80/[0.03] text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">
             <tr>
               <th scope="col" className="px-4 py-3">User</th>
               <th scope="col" className="hidden px-4 py-3 sm:table-cell">Device</th>
@@ -121,35 +121,35 @@ export default function AdminSessionsPage() {
           </thead>
           <tbody className="divide-y divide-charcoal-80/[0.06]">
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/55">Loading sessions…</td></tr>
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/65">Loading sessions…</td></tr>
             ) : error ? (
               <tr><td colSpan={6} className="px-4 py-10 text-center text-rose-700">{error}</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/55">No active sessions.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/65">No active sessions.</td></tr>
             ) : filtered.map((s) => {
               const DeviceIcon = pickDeviceIcon(s.userAgent)
               return (
                 <tr key={s.id} className="transition hover:bg-violet-pale/30">
                   <td className="px-4 py-3">
                     <div className="font-semibold text-charcoal-80">{s.user?.fullName || "Unknown"}</div>
-                    <div className="text-[12px] text-charcoal-80/55">{s.user?.email || s.userId}</div>
+                    <div className="text-[12px] text-charcoal-80/65">{s.user?.email || s.userId}</div>
                   </td>
                   <td className="hidden px-4 py-3 text-charcoal-80/70 sm:table-cell">
                     <div className="inline-flex items-center gap-1.5">
-                      <DeviceIcon className="h-3.5 w-3.5 text-charcoal-80/55" />
+                      <DeviceIcon className="h-3.5 w-3.5 text-charcoal-80/65" />
                       <span className="line-clamp-1 max-w-[200px]">{s.device || "-"}</span>
                     </div>
                   </td>
                   <td className="hidden px-4 py-3 text-charcoal-80/65 lg:table-cell">
                     <div className="font-mono text-[11.5px]">{s.ip || "-"}</div>
                     {s.location ? (
-                      <div className="inline-flex items-center gap-1 text-[11px] text-charcoal-80/45">
+                      <div className="inline-flex items-center gap-1 text-[11px] text-charcoal-80/65">
                         <Globe className="h-3 w-3" /> {s.location}
                       </div>
                     ) : null}
                   </td>
                   <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{formatRelative(s.lastSeenAt || s.createdAt)}</td>
-                  <td className="hidden px-4 py-3 text-charcoal-80/45 md:table-cell">{formatRelative(s.createdAt)}</td>
+                  <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{formatRelative(s.createdAt)}</td>
                   <td className="px-4 py-3 text-right">
                     <button
                       type="button"

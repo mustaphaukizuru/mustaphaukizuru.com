@@ -133,7 +133,7 @@ export default function AdminNewsletterPage() {
       render: (row) => (
         <div className="min-w-0">
           <div className="truncate font-mono text-meta text-charcoal">{row.email}</div>
-          {row.name && <div className="truncate text-micro text-charcoal-80/55">{row.name}</div>}
+          {row.name && <div className="truncate text-micro text-charcoal-80/65">{row.name}</div>}
         </div>
       ),
     },
@@ -184,7 +184,7 @@ export default function AdminNewsletterPage() {
             aria-label={`Copy ${row.email}`}
             title="Copy email"
             className={`rounded-lg p-1.5 transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${
-              copiedId === row.id ? "bg-mint/15 text-mint" : "text-charcoal-80/55 hover:bg-violet-pale hover:text-violet"
+              copiedId === row.id ? "bg-mint/15 text-mint" : "text-charcoal-80/65 hover:bg-violet-pale hover:text-violet"
             }`}
           >
             <Copy className="h-3.5 w-3.5" aria-hidden="true" />
@@ -194,7 +194,7 @@ export default function AdminNewsletterPage() {
             onClick={(e) => { e.stopPropagation(); handleDelete(row) }}
             aria-label={`Delete ${row.email}`}
             title="Delete (GDPR)"
-            className="rounded-lg p-1.5 text-charcoal-80/55 transition hover:bg-rose/10 hover:text-rose focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30"
+            className="rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-rose/10 hover:text-rose focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30"
           >
             <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
@@ -213,7 +213,7 @@ export default function AdminNewsletterPage() {
 
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal-80/10 bg-white px-4 py-3">
         <div className="flex items-center gap-1">
-          <Filter className="h-3.5 w-3.5 text-charcoal-80/45" aria-hidden="true" />
+          <Filter className="h-3.5 w-3.5 text-charcoal-80/65" aria-hidden="true" />
           {[
             { v: "all", label: "All" },
             { v: "subscribed", label: "Active" },

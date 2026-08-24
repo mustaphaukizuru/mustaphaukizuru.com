@@ -421,12 +421,12 @@ function ContactSection() {
               </span>
             </div>
             <div>
-              <h3 className="text-[18px] font-bold !text-white sm:text-[19px]">{t("callout.bookTitle")}</h3>
+              <h2 className="text-[18px] font-bold !text-white sm:text-[19px]">{t("callout.bookTitle")}</h2>
               <p className="mt-1 text-[13px] leading-6 !text-white/85">
                 {t("callout.bookBody")}
               </p>
             </div>
-            <span className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-bold !text-terracotta">
+            <span className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-bold !text-white">
               {t("callout.bookCta")}
               <span className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">→</span>
             </span>
@@ -445,7 +445,7 @@ function ContactSection() {
               </span>
             </div>
             <div>
-              <h3 className="text-[18px] font-bold text-violet sm:text-[19px]">{t("callout.writeTitle")}</h3>
+              <h2 className="text-[18px] font-bold text-violet sm:text-[19px]">{t("callout.writeTitle")}</h2>
               <p className="mt-1 text-[13px] leading-6 text-charcoal-80/70">
                 {t("callout.writeBody")}
               </p>

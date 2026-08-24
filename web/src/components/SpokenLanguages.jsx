@@ -84,7 +84,7 @@ function CefrMeter({ name, level, value }) {
           )
         })}
       </div>
-      <div className="mt-1.5 flex justify-between font-mono text-[9px] tabular-nums tracking-wider text-charcoal-80/45" aria-hidden="true">
+      <div className="mt-1.5 flex justify-between font-mono text-[9px] tabular-nums tracking-wider text-charcoal-80/65" aria-hidden="true">
         {CEFR_ORDER.map((step) => <span key={step}>{step}</span>)}
       </div>
     </div>
@@ -101,7 +101,7 @@ function LanguageCard({ language }) {
   const flag = resolveFlag(language)
 
   return (
-    <m.article
+    <m.li
       variants={fadeUp}
       whileHover={reduce ? undefined : { y: -4 }}
       transition={{ type: "spring", stiffness: 240, damping: 24 }}
@@ -129,7 +129,7 @@ function LanguageCard({ language }) {
           </span>
           <div className="min-w-0">
             <div className="text-meta font-bold leading-tight text-violet truncate">{language.name}</div>
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">{language.code}</div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{language.code}</div>
           </div>
         </div>
         <span className="inline-flex shrink-0 items-center rounded-full bg-violet px-2.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums tracking-wider text-white shadow-[0_4px_10px_rgb(var(--color-violet-rgb)/0.20)]">
@@ -141,7 +141,7 @@ function LanguageCard({ language }) {
       <CefrMeter name={language.name} level={cefrLevel} value={meterValue} />
 
       {language.accent && (
-        <p className="mt-4 flex items-center gap-1.5 text-[11px] italic leading-4 text-charcoal-80/55">
+        <p className="mt-4 flex items-center gap-1.5 text-[11px] italic leading-4 text-charcoal-80/65">
           <MessageCircle className="h-3 w-3 shrink-0 text-violet/45" aria-hidden="true" />
           {language.accent}
         </p>
@@ -151,7 +151,7 @@ function LanguageCard({ language }) {
         aria-hidden="true"
         className="absolute inset-x-5 bottom-0 h-px origin-left scale-x-0 bg-gradient-to-r from-violet via-violet/40 to-transparent transition-transform duration-500 group-hover:scale-x-100"
       />
-    </m.article>
+    </m.li>
   )
 }
 
@@ -203,25 +203,24 @@ export default function SpokenLanguages({ languages = null }) {
           </m.p>
         </m.div>
 
-        <m.div
+        <m.ul
           variants={stagger}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-60px" }}
-          role="list"
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid list-none gap-4 sm:grid-cols-2 lg:grid-cols-4"
         >
           {data.map((lang) => (
             <LanguageCard key={lang.code + lang.name} language={lang} />
           ))}
-        </m.div>
+        </m.ul>
 
         <m.div
           variants={fadeUp}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-micro text-charcoal-80/55"
+          className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-micro text-charcoal-80/65"
         >
           <span className="flex items-center gap-1.5">
             <Languages className="h-3 w-3 text-violet/60" aria-hidden="true" />

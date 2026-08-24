@@ -186,7 +186,7 @@ export default function Dashboard2FAPage() {
                   <ShieldCheck className="h-3 w-3" /> {t("twoFactor.hero.enabledPill")}
                 </span>
                 {status?.enabledAt && (
-                  <span className="mt-1.5 text-micro text-charcoal-80/55">
+                  <span className="mt-1.5 text-micro text-charcoal-80/65">
                     {t("twoFactor.hero.since", { date: new Date(status.enabledAt).toLocaleDateString(localeTag) })}
                   </span>
                 )}
@@ -315,13 +315,13 @@ function SetupState({ data, code, setCode, onVerify, verifying, onCancel }) {
             {data.qrCodeDataUrl ? (
               <img src={data.qrCodeDataUrl} alt={t("twoFactor.setup.qrAlt")} width={220} height={220} className="block" />
             ) : (
-              <div className="flex h-[220px] w-[220px] items-center justify-center text-micro text-charcoal-80/50">
+              <div className="flex h-[220px] w-[220px] items-center justify-center text-micro text-charcoal-80/65">
                 {t("twoFactor.setup.qrUnavailable")}
               </div>
             )}
           </div>
           <div className="text-center">
-            <div className="text-micro font-semibold uppercase tracking-wider text-charcoal-80/55">{t("twoFactor.setup.manualLabel")}</div>
+            <div className="text-micro font-semibold uppercase tracking-wider text-charcoal-80/65">{t("twoFactor.setup.manualLabel")}</div>
             <button
               type="button"
               onClick={copyManual}
@@ -582,7 +582,7 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
       >
         <div className="flex items-center justify-between border-b border-charcoal-80/10 p-5">
           <h2 className="text-body font-bold text-violet">{t(titleKey)}</h2>
-          <button onClick={onClose} type="button" aria-label={t("twoFactor.passwordModal.close")} className="rounded-xl p-1.5 text-charcoal-80/50 hover:bg-violet-pale/60">
+          <button onClick={onClose} type="button" aria-label={t("twoFactor.passwordModal.close")} className="rounded-xl p-1.5 text-charcoal-80/65 hover:bg-violet-pale/60">
             <X className="h-4 w-4" />
           </button>
         </div>

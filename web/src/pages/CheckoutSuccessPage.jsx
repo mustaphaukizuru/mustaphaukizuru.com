@@ -69,7 +69,7 @@ function DownloadRow({ dl, state, onDownload }) {
             <span className="truncate font-mono text-meta font-semibold text-charcoal" title={dl.fileName}>{dl.fileName}</span>
             <span className={`shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase ${styles.chip}`}>{styles.label}</span>
           </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/55">
+          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
             {size && <span>{size}</span>}
             {dl.version && <><span aria-hidden="true">·</span><span>v{String(dl.version).replace(/^v/i, "")}</span></>}
             <span aria-hidden="true">·</span>
@@ -302,7 +302,7 @@ export default function CheckoutSuccessPage() {
             <m.div variants={fadeUp} className="max-w-sm rounded-xl border border-amber/20 bg-amber/8 p-6 text-meta text-amber-700">
               <Clock3 className="mx-auto mb-3 h-8 w-8 text-amber" aria-hidden="true" />
               {t("success.processingMP")}
-              {orderRef && <div className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/60">{orderRef}</div>}
+              {orderRef && <div className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/65">{orderRef}</div>}
             </m.div>
           </m.div>
         ) : isTimeout ? (
@@ -310,7 +310,7 @@ export default function CheckoutSuccessPage() {
             <m.div variants={fadeUp} className="max-w-md rounded-xl border border-charcoal-80/10 bg-white p-6 text-meta text-charcoal-80/75 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)]">
               <Mail className="mx-auto mb-3 h-8 w-8 text-violet" aria-hidden="true" />
               {t("success.pendingTimeoutBody")}
-              {orderRef && <div className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/60">{orderRef}</div>}
+              {orderRef && <div className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/65">{orderRef}</div>}
             </m.div>
             <m.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
               <button
@@ -338,7 +338,7 @@ export default function CheckoutSuccessPage() {
                   <div className="min-w-0">
                     <h2 className="text-body font-bold text-violet">{t("success.claimTitle")}</h2>
                     <p className="mt-1 text-meta leading-6 text-charcoal-80/70">{t("success.claimBody")}</p>
-                    <p className="mt-2 text-micro text-charcoal-80/55">{t("success.claimDownloads")}</p>
+                    <p className="mt-2 text-micro text-charcoal-80/65">{t("success.claimDownloads")}</p>
                     <Link to="/login" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-violet-deep">
                       <LogIn className="h-4 w-4" aria-hidden="true" /> {t("success.claimSignIn")}
                     </Link>
@@ -359,7 +359,7 @@ export default function CheckoutSuccessPage() {
               <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
                 <div className="flex items-center justify-between border-b border-charcoal-80/10 px-6 py-5">
                   <div>
-                    <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/50">{t("success.downloadsTitle")}</div>
+                    <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/65">{t("success.downloadsTitle")}</div>
                     <p className="mt-1 text-meta text-charcoal-80/65">{t("success.downloadsSubtitle")}</p>
                   </div>
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-mint/15 text-mint-600">
@@ -378,7 +378,7 @@ export default function CheckoutSuccessPage() {
                   ) : orderError ? (
                     <div className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">{orderError}</div>
                   ) : downloadGroups.length === 0 ? (
-                    <p className="text-meta text-charcoal-80/55">{t("success.noDownloads")}</p>
+                    <p className="text-meta text-charcoal-80/65">{t("success.noDownloads")}</p>
                   ) : (
                     <div className="space-y-5">
                       {downloadGroups.map((group) => (
@@ -399,7 +399,7 @@ export default function CheckoutSuccessPage() {
                     </div>
                   )}
 
-                  <p className="mt-5 flex items-center gap-2 text-micro text-charcoal-80/60">
+                  <p className="mt-5 flex items-center gap-2 text-micro text-charcoal-80/65">
                     <Shield className="h-3.5 w-3.5 shrink-0 text-violet/70" aria-hidden="true" />
                     <span>
                       {t("success.redownload")}{" "}
@@ -415,7 +415,7 @@ export default function CheckoutSuccessPage() {
               <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 px-6 py-5">
                   <div>
-                    <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/50">{t("success.orderSummary")}</div>
+                    <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/65">{t("success.orderSummary")}</div>
                     {orderRef && <div className="mt-1 font-mono text-body font-bold tabular-nums text-violet">{orderRef}</div>}
                   </div>
                   {order?.invoicePdfUrl ? (
@@ -429,7 +429,7 @@ export default function CheckoutSuccessPage() {
                       {t("success.receipt")}
                     </button>
                   ) : !orderLoading && (
-                    <span className="inline-flex items-center gap-2 text-micro text-charcoal-80/55">
+                    <span className="inline-flex items-center gap-2 text-micro text-charcoal-80/65">
                       <FileText className="h-3.5 w-3.5" aria-hidden="true" /> {t("success.receiptPreparing")}
                     </span>
                   )}
@@ -439,7 +439,7 @@ export default function CheckoutSuccessPage() {
                   {orderLoading ? (
                     <div className="h-16 animate-pulse rounded-xl bg-violet-pale" />
                   ) : items.length === 0 ? (
-                    <p className="text-meta text-charcoal-80/55">{t("success.orderPreparing")}</p>
+                    <p className="text-meta text-charcoal-80/65">{t("success.orderPreparing")}</p>
                   ) : (
                     <div className="space-y-3">
                       {items.map((item) => {
@@ -450,7 +450,7 @@ export default function CheckoutSuccessPage() {
                           <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4">
                             <div className="min-w-0 flex-1">
                               <div className="text-meta font-semibold text-violet">{item.title || item.product?.title}</div>
-                              <div className="font-mono text-micro tabular-nums text-charcoal-80/55">{t("misc.qty")} {qty}</div>
+                              <div className="font-mono text-micro tabular-nums text-charcoal-80/65">{t("misc.qty")} {qty}</div>
                             </div>
                             <div className="shrink-0 font-mono text-meta font-bold tabular-nums text-violet">{formatPrice(line, currency)}</div>
                           </div>
@@ -506,7 +506,7 @@ export default function CheckoutSuccessPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-meta font-semibold text-violet">{t(`success.next.${key}Title`)}</span>
                         {done && (
-                          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-mint text-white" aria-label={t("success.completeAria")}>
+                          <span role="img" className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-mint text-white" aria-label={t("success.completeAria")}>
                             <Check className="h-2.5 w-2.5" strokeWidth={3} aria-hidden="true" />
                           </span>
                         )}
@@ -531,7 +531,7 @@ export default function CheckoutSuccessPage() {
             </m.div>
 
             <m.div variants={fadeUp} className="flex items-center justify-center">
-              <Link to="/store" className="inline-flex items-center gap-1.5 rounded-md text-meta font-medium text-charcoal-80/55 hover:text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">
+              <Link to="/store" className="inline-flex items-center gap-1.5 rounded-md text-meta font-medium text-charcoal-80/65 hover:text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">
                 <ShoppingBag className="h-4 w-4" aria-hidden="true" /> {t("success.continueShopping")} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </m.div>

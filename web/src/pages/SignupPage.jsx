@@ -61,7 +61,7 @@ const stagger = {
 }
 
 const STRENGTH_META = {
-  0: { label: "Too short", color: "bg-charcoal-80/15", text: "text-charcoal-80/45" },
+  0: { label: "Too short", color: "bg-charcoal-80/15", text: "text-charcoal-80/65" },
   1: { label: "Weak", color: "bg-rose", text: "text-rose-700" },
   2: { label: "Weak", color: "bg-rose", text: "text-rose-700" },
   3: { label: "Medium", color: "bg-amber", text: "text-amber-700" },
@@ -328,7 +328,7 @@ export default function SignupPage() {
                   onClick={() => setShowPw((v) => !v)}
                   aria-label={showPw ? "Hide password" : "Show password"}
                   aria-pressed={showPw}
-                  className="rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                  className="rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
                 >
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -357,7 +357,7 @@ export default function SignupPage() {
                 {password ? meta.label : ","}
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] text-charcoal-80/55">
+            <p className="mt-1.5 text-[11px] text-charcoal-80/65">
               {t("signup.mustBeAtLeast")} {MIN_PW_LENGTH} {t("signup.pwHint")}
             </p>
 
@@ -394,7 +394,7 @@ export default function SignupPage() {
                   onClick={() => setShowCf((v) => !v)}
                   aria-label={showCf ? "Hide password" : "Show password"}
                   aria-pressed={showCf}
-                  className="rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                  className="rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
                 >
                   {showCf ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -467,7 +467,7 @@ export default function SignupPage() {
         <m.div variants={fadeUp} className="mt-6">
           <div className="relative flex items-center gap-3">
             <div className="h-px flex-1 bg-charcoal-80/10" />
-            <span className="text-[12px] font-medium text-charcoal-80/50">
+            <span className="text-[12px] font-medium text-charcoal-80/65">
               {t("signup.orSignupWith")}
             </span>
             <div className="h-px flex-1 bg-charcoal-80/10" />

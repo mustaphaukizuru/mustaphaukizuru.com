@@ -66,7 +66,7 @@ export default function LicenseUpdates({ product }) {
           <p className="mt-1 text-micro leading-5 text-charcoal-80/70">
             {product?.updatesPolicy || t("license.updates.body")}
           </p>
-          <p className="mt-1.5 text-micro text-charcoal-80/50">{t("license.updates.versionNote")}</p>
+          <p className="mt-1.5 text-micro text-charcoal-80/65">{t("license.updates.versionNote")}</p>
         </div>
       </div>
 

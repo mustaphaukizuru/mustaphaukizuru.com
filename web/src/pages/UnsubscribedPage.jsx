@@ -68,7 +68,7 @@ export default function UnsubscribedPage() {
             </Link>
           </div>
 
-          <p className="mt-6 text-micro text-charcoal-80/45">
+          <p className="mt-6 text-micro text-charcoal-80/65">
             {t(`${k}.trailer`)}{" "}
             <a href={`mailto:${SUPPORT_EMAIL}`} className="text-violet underline">
               {SUPPORT_EMAIL}

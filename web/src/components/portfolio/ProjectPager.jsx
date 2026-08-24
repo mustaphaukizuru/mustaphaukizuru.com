@@ -27,7 +27,7 @@ function PagerCell({ item, dir }) {
         ) : null}
       </div>
       <div className="min-w-0 flex-1">
-        <div className={`flex items-center gap-1 text-micro font-semibold uppercase tracking-[0.14em] text-violet/60 ${isNext ? "justify-end" : ""}`}>
+        <div className={`flex items-center gap-1 text-micro font-semibold uppercase tracking-[0.14em] text-violet ${isNext ? "justify-end" : ""}`}>
           {!isNext ? <ArrowLeft className="h-3 w-3" aria-hidden="true" /> : null}
           {isNext ? t("detail.nextProject") : t("detail.prevProject")}
           {isNext ? <ArrowRight className="h-3 w-3" aria-hidden="true" /> : null}

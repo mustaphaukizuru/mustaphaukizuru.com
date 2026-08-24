@@ -214,7 +214,7 @@ export default function ForgotPasswordPage() {
 
           <m.p
             variants={fadeUp}
-            className="mt-6 text-[12.5px] text-charcoal-80/55"
+            className="mt-6 text-[12.5px] text-charcoal-80/65"
           >
             {t("forgot.didntReceive")}{" "}
             <Link to="/contact" className="font-semibold text-violet hover:text-violet-deep">
@@ -353,7 +353,7 @@ export default function ForgotPasswordPage() {
               id="forgot-cooldown-hint"
               role="status"
               aria-live="polite"
-              className="-mt-1 text-center text-[11.5px] text-charcoal-80/60"
+              className="-mt-1 text-center text-[11.5px] text-charcoal-80/65"
             >
               Wait {cooldown.seconds}s before requesting another reset link.
             </p>

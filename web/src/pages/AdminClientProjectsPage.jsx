@@ -60,7 +60,7 @@ export default function AdminClientProjectsPage() {
           <Link to={`/admin/client-projects/${row.id}`} className="truncate text-meta font-semibold text-violet hover:underline">
             {row.projectName}
           </Link>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             <UserIcon className="inline h-3 w-3 mr-1" />{row.user?.fullName || "-"}
           </div>
         </div>
@@ -79,7 +79,7 @@ export default function AdminClientProjectsPage() {
         const pct = total > 0 ? Math.round((done / total) * 100) : 0
         return (
           <div className="font-mono text-[11px] tabular-nums text-charcoal-80/65">
-            {done}/{total} <span className="ml-1 text-charcoal-80/45">({pct}%)</span>
+            {done}/{total} <span className="ml-1 text-charcoal-80/65">({pct}%)</span>
           </div>
         )
       },
@@ -87,7 +87,7 @@ export default function AdminClientProjectsPage() {
     {
       key: "dueDate", label: "Due", sortable: true, width: "0.8fr",
       getValue: (row) => row.dueDate || "",
-      render: (row) => <span className="font-mono text-micro text-charcoal-80/55">{fmtDate(row.dueDate)}</span>,
+      render: (row) => <span className="font-mono text-micro text-charcoal-80/65">{fmtDate(row.dueDate)}</span>,
     },
     {
       key: "actions", label: "", width: "1fr", align: "right",

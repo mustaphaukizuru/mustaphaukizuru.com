@@ -34,11 +34,11 @@ export default function BlogAuthorByline({ author }) {
 
         {/* Body */}
         <div className="min-w-0 flex-1">
-          <p className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/45">
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/65">
             {t("author.writtenBy")}
           </p>
           <p className="mt-0.5 text-[17px] font-bold text-violet">{author.name}</p>
-          <p className="text-[12.5px] font-medium text-charcoal-80/55">{author.role}</p>
+          <p className="text-[12.5px] font-medium text-charcoal-80/65">{author.role}</p>
 
           {author.bio ? (
             <p className="mt-3 text-[13.5px] leading-6 text-charcoal-80/70">
@@ -70,7 +70,7 @@ export default function BlogAuthorByline({ author }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn profile"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-charcoal-80/12 bg-white text-charcoal-80/55 transition hover:border-azure/40 hover:text-azure focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-charcoal-80/12 bg-white text-charcoal-80/65 transition hover:border-azure/40 hover:text-azure focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
               >
                 <Linkedin className="h-4 w-4" aria-hidden="true" />
               </a>

@@ -78,7 +78,7 @@ export default function DashboardOrderDetailPage() {
       <section className="space-y-4">
         <Link
           to="/dashboard/orders"
-          className="inline-flex items-center gap-1.5 text-meta font-medium text-charcoal-80/60 transition hover:text-violet"
+          className="inline-flex items-center gap-1.5 text-meta font-medium text-charcoal-80/65 transition hover:text-violet"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           {t("orderDetail.backToOrders", "Back to Order History")}
@@ -102,7 +102,7 @@ export default function DashboardOrderDetailPage() {
     <section className="space-y-5">
       <Link
         to="/dashboard/orders"
-        className="inline-flex items-center gap-1.5 text-meta font-medium text-charcoal-80/60 transition hover:text-violet"
+        className="inline-flex items-center gap-1.5 text-meta font-medium text-charcoal-80/65 transition hover:text-violet"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         {t("orderDetail.backToOrders", "Back to Order History")}
@@ -112,12 +112,12 @@ export default function DashboardOrderDetailPage() {
       <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/45">
+            <p className="text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
               {t("orderDetail.title", "Order")}
             </p>
             <h1 className="mt-1 font-mono text-section font-bold text-violet">{orderRef}</h1>
             {createdAt && (
-              <p className="mt-1 text-meta text-charcoal-80/60">{createdAt}</p>
+              <p className="mt-1 text-meta text-charcoal-80/65">{createdAt}</p>
             )}
           </div>
           <div className="flex items-center gap-3">
@@ -160,7 +160,7 @@ export default function DashboardOrderDetailPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-meta font-semibold text-violet">{title}</div>
-                  <div className="text-micro text-charcoal-80/55">
+                  <div className="text-micro text-charcoal-80/65">
                     <span className="font-mono tabular-nums">×{qty}</span>
                   </div>
                 </div>

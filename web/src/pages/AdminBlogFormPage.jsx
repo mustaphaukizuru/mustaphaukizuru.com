@@ -238,7 +238,7 @@ export default function AdminBlogFormPage() {
   const removeBlock = (blockId) => setBody((body) => body.filter((b) => b.id !== blockId))
 
   if (loading) {
-    return <div className="rounded-2xl border border-charcoal-80/10 bg-white p-10 text-center text-charcoal-80/55">Loading post…</div>
+    return <div className="rounded-2xl border border-charcoal-80/10 bg-white p-10 text-center text-charcoal-80/65">Loading post…</div>
   }
 
   return (
@@ -400,7 +400,7 @@ export default function AdminBlogFormPage() {
                       <button
                         type="button"
                         onClick={() => setValue("cover", "")}
-                        className="inline-flex items-center justify-center rounded-lg border border-charcoal-80/15 px-3 py-2 text-[12.5px] font-medium text-charcoal-80/60 transition hover:bg-charcoal-80/[0.04]"
+                        className="inline-flex items-center justify-center rounded-lg border border-charcoal-80/15 px-3 py-2 text-[12.5px] font-medium text-charcoal-80/65 transition hover:bg-charcoal-80/[0.04]"
                       >
                         Clear
                       </button>
@@ -453,13 +453,13 @@ function BlockEditor({ block, onChange, onMove, onRemove, isFirst, isLast }) {
           {BLOCK_TYPES.map((bt) => <option key={bt.value} value={bt.value}>{bt.label}</option>)}
         </select>
         <div className="flex items-center gap-1">
-          <button type="button" onClick={() => onMove(-1)} disabled={isFirst} aria-label="Move up" className="rounded p-1 text-charcoal-80/55 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30">
+          <button type="button" onClick={() => onMove(-1)} disabled={isFirst} aria-label="Move up" className="rounded p-1 text-charcoal-80/65 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30">
             <ArrowUp className="h-3.5 w-3.5" />
           </button>
-          <button type="button" onClick={() => onMove(1)} disabled={isLast} aria-label="Move down" className="rounded p-1 text-charcoal-80/55 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30">
+          <button type="button" onClick={() => onMove(1)} disabled={isLast} aria-label="Move down" className="rounded p-1 text-charcoal-80/65 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30">
             <ArrowDown className="h-3.5 w-3.5" />
           </button>
-          <button type="button" onClick={onRemove} aria-label="Remove block" className="rounded p-1 text-charcoal-80/55 hover:bg-rose/10 hover:text-rose-700">
+          <button type="button" onClick={onRemove} aria-label="Remove block" className="rounded p-1 text-charcoal-80/65 hover:bg-rose/10 hover:text-rose-700">
             <Trash2 className="h-3.5 w-3.5" />
           </button>
         </div>
@@ -502,7 +502,7 @@ function ItemList({ block, onChange, marker, placeholder, addLabel }) {
     <div className="flex flex-col gap-1.5">
       {items.map((item, i) => (
         <div key={keys[i]} className="flex items-center gap-1.5">
-          <span className="font-mono text-[10.5px] text-charcoal-80/45">{marker(i)}</span>
+          <span className="font-mono text-[10.5px] text-charcoal-80/65">{marker(i)}</span>
           <input
             value={item}
             onChange={(e) => {
@@ -517,7 +517,7 @@ function ItemList({ block, onChange, marker, placeholder, addLabel }) {
             type="button"
             onClick={() => commit(items.filter((_, idx) => idx !== i), keys.filter((_, idx) => idx !== i))}
             aria-label="Remove item"
-            className="rounded p-1 text-charcoal-80/55 hover:bg-rose/10 hover:text-rose-700"
+            className="rounded p-1 text-charcoal-80/65 hover:bg-rose/10 hover:text-rose-700"
           >
             <Trash2 className="h-3 w-3" />
           </button>

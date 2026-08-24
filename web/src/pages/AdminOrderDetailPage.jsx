@@ -226,7 +226,7 @@ export default function AdminOrderDetailPage() {
         <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-micro uppercase tracking-[0.12em] text-charcoal-80/55">
+              <div className="text-micro uppercase tracking-[0.12em] text-charcoal-80/65">
                 Order Record
               </div>
               <h2 className="mt-2 text-page font-bold tracking-tight text-violet">
@@ -283,7 +283,7 @@ export default function AdminOrderDetailPage() {
                         Qty: {item.quantity}
                       </div>
                       {item.product?.slug ? (
-                        <div className="mt-1 text-micro text-charcoal-80/60">
+                        <div className="mt-1 text-micro text-charcoal-80/65">
                           /store/{item.product.slug}
                         </div>
                       ) : null}
@@ -310,19 +310,19 @@ export default function AdminOrderDetailPage() {
 
             <div className="mt-4 space-y-3 text-meta">
               <div>
-                <div className="text-charcoal-80/60">Name</div>
+                <div className="text-charcoal-80/65">Name</div>
                 <div className="mt-1 font-semibold text-violet">
                   {order.customerName || "-"}
                 </div>
               </div>
               <div>
-                <div className="text-charcoal-80/60">Email</div>
+                <div className="text-charcoal-80/65">Email</div>
                 <div className="mt-1 font-semibold text-violet break-all">
                   {order.customerEmail || "-"}
                 </div>
               </div>
               <div>
-                <div className="text-charcoal-80/60">User Account</div>
+                <div className="text-charcoal-80/65">User Account</div>
                 <div className="mt-1 font-semibold text-violet">
                   {order.user?.fullName || order.user?.email || "Guest / not linked"}
                 </div>
@@ -379,17 +379,17 @@ export default function AdminOrderDetailPage() {
 
             <div className="mt-4 space-y-3 text-meta">
               <div>
-                <div className="text-charcoal-80/60">Order ID</div>
+                <div className="text-charcoal-80/65">Order ID</div>
                 <div className="mt-1 font-semibold text-violet break-all">{order.id}</div>
               </div>
               <div>
-                <div className="text-charcoal-80/60">Created At</div>
+                <div className="text-charcoal-80/65">Created At</div>
                 <div className="mt-1 font-semibold text-violet">
                   {new Date(order.createdAt).toLocaleString()}
                 </div>
               </div>
               <div>
-                <div className="text-charcoal-80/60">Updated At</div>
+                <div className="text-charcoal-80/65">Updated At</div>
                 <div className="mt-1 font-semibold text-violet">
                   {new Date(order.updatedAt).toLocaleString()}
                 </div>
@@ -534,7 +534,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-charcoal-80/60 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
           aria-label="Close"
         >
           <X className="h-5 w-5" />
@@ -642,7 +642,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
         {/* Reason */}
         <div className="mt-5">
           <label htmlFor="refund-reason" className="text-meta font-semibold text-violet">
-            Reason <span className="text-charcoal-80/55 font-normal">(audit + customer email)</span>
+            Reason <span className="text-charcoal-80/65 font-normal">(audit + customer email)</span>
           </label>
           <textarea
             id="refund-reason"
@@ -709,7 +709,7 @@ function RefundModal({ eligibility, orderId, currency, onClose, onSubmitted }) {
           </button>
         </div>
 
-        <div className="mt-4 flex items-start gap-2 text-micro text-charcoal-80/55">
+        <div className="mt-4 flex items-start gap-2 text-micro text-charcoal-80/65">
           <FileText className="h-3.5 w-3.5 mt-0.5 shrink-0" />
           <p>
             Funds are returned to the original payment method via{" "}

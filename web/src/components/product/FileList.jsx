@@ -23,8 +23,8 @@ export default function FileList({ files = [], onDownload, downloadStates }) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-charcoal-80/15 bg-mist/40 px-6 py-10 text-center">
         <Files className="h-8 w-8 text-charcoal-80/30" />
-        <p className="text-meta font-semibold text-charcoal-80/60">{t("detail.noFiles")}</p>
-        <p className="text-micro text-charcoal-80/50">{t("detail.filesAfterPurchase")}</p>
+        <p className="text-meta font-semibold text-charcoal-80/65">{t("detail.noFiles")}</p>
+        <p className="text-micro text-charcoal-80/65">{t("detail.filesAfterPurchase")}</p>
       </div>
     )
   }
@@ -68,7 +68,7 @@ export function FileRow({ file, onDownload, state = "idle" }) {
           )}
         </div>
 
-        <div className="mt-0.5 flex items-center gap-2 text-micro text-charcoal-80/60">
+        <div className="mt-0.5 flex items-center gap-2 text-micro text-charcoal-80/65">
           {sizeDisplay && <span className="font-mono tabular-nums">{sizeDisplay}</span>}
           {sizeDisplay && file.version && <span aria-hidden="true">·</span>}
           {file.version && (
@@ -153,11 +153,11 @@ export function FileTypeStrip({ files }) {
   return (
     <div className="mt-4 border-t border-charcoal-80/8 pt-4">
       <div className="flex items-center gap-2">
-        <Files className="h-3.5 w-3.5 shrink-0 text-charcoal-80/45" aria-hidden="true" />
-        <span className="text-micro font-semibold uppercase tracking-[0.08em] text-charcoal-80/55">
+        <Files className="h-3.5 w-3.5 shrink-0 text-charcoal-80/65" aria-hidden="true" />
+        <span className="text-micro font-semibold uppercase tracking-[0.08em] text-charcoal-80/65">
           {t("misc.includes")}
         </span>
-        <span className="font-mono text-micro tabular-nums text-charcoal-80/45">
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
           {t("info.fileCount", { count: files.length })}
         </span>
       </div>
@@ -175,7 +175,7 @@ export function FileTypeStrip({ files }) {
           </span>
         ))}
         {overflow > 0 && (
-          <span className="text-micro font-medium text-charcoal-80/50">
+          <span className="text-micro font-medium text-charcoal-80/65">
             +{overflow} {t("misc.more")}
           </span>
         )}

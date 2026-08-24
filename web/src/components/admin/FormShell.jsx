@@ -77,7 +77,7 @@ export default function FormShell({
               {statusBadge}
             </div>
             {subtitle && (
-              <p className="mt-0.5 truncate font-mono text-micro text-charcoal-80/60">{subtitle}</p>
+              <p className="mt-0.5 truncate font-mono text-micro text-charcoal-80/65">{subtitle}</p>
             )}
           </div>
 
@@ -195,7 +195,7 @@ export function FormCard({ title, description, action, children, className = "" 
               </h2>
             )}
             {description && (
-              <p className="mt-1 text-micro text-charcoal-80/60">{description}</p>
+              <p className="mt-1 text-micro text-charcoal-80/65">{description}</p>
             )}
           </div>
           {action && <div className="shrink-0">{action}</div>}

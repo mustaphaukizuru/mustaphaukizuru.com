@@ -74,7 +74,7 @@ function TestimonialCard({ item, t }) {
         </span>
         <div className="min-w-0">
           <p className="truncate text-[13.5px] font-bold text-charcoal">{t(`${base}.name`)}</p>
-          <p className="truncate text-[12px] text-charcoal-80/60">
+          <p className="truncate text-[12px] text-charcoal-80/65">
             {t(`${base}.role`)} · {t(`${base}.company`)}
           </p>
         </div>

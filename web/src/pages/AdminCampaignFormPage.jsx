@@ -215,7 +215,7 @@ export default function AdminCampaignFormPage() {
   }
 
   if (loading) {
-    return <div className="rounded-2xl border border-charcoal-80/10 bg-white p-10 text-center text-charcoal-80/55">Loading campaign…</div>
+    return <div className="rounded-2xl border border-charcoal-80/10 bg-white p-10 text-center text-charcoal-80/65">Loading campaign…</div>
   }
 
   return (
@@ -309,13 +309,13 @@ export default function AdminCampaignFormPage() {
               </Field>
             ) : null}
             <div className="rounded-xl border border-charcoal-80/12 bg-charcoal-80/[0.02] p-3">
-              <div className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-charcoal-80/55">
+              <div className="flex items-center gap-2 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-charcoal-80/65">
                 <UsersIcon className="h-3.5 w-3.5 text-violet" /> Estimated reach
               </div>
               <div className="mt-1 text-[20px] font-extrabold tabular-nums text-violet">
                 {audienceCount == null ? "-" : audienceCount}
               </div>
-              <div className="text-[11.5px] text-charcoal-80/55">people will receive this email when you send.</div>
+              <div className="text-[11.5px] text-charcoal-80/65">people will receive this email when you send.</div>
             </div>
           </Section>
 
@@ -362,7 +362,7 @@ function Section({ title, children, hint }) {
   return (
     <section className="rounded-2xl border border-charcoal-80/10 bg-white p-5">
       <h2 className="mb-1 text-[13px] font-bold uppercase tracking-[0.16em] text-violet">{title}</h2>
-      {hint ? <p className="mb-4 text-[12px] text-charcoal-80/55">{hint}</p> : <div className="mb-4" />}
+      {hint ? <p className="mb-4 text-[12px] text-charcoal-80/65">{hint}</p> : <div className="mb-4" />}
       <div className="flex flex-col gap-4">{children}</div>
     </section>
   )
@@ -376,9 +376,9 @@ function BlockEditor({ block, onChange, onMove, onRemove, isFirst, isLast }) {
           {BLOCK_TYPES.map((bt) => <option key={bt.value} value={bt.value}>{bt.label}</option>)}
         </select>
         <div className="flex items-center gap-1">
-          <button type="button" onClick={() => onMove(-1)} disabled={isFirst} aria-label="Move up" className="rounded p-1 text-charcoal-80/55 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30"><ArrowUp className="h-3.5 w-3.5" /></button>
-          <button type="button" onClick={() => onMove(1)} disabled={isLast} aria-label="Move down" className="rounded p-1 text-charcoal-80/55 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30"><ArrowDown className="h-3.5 w-3.5" /></button>
-          <button type="button" onClick={onRemove} aria-label="Remove block" className="rounded p-1 text-charcoal-80/55 hover:bg-rose/10 hover:text-rose-700"><Trash2 className="h-3.5 w-3.5" /></button>
+          <button type="button" onClick={() => onMove(-1)} disabled={isFirst} aria-label="Move up" className="rounded p-1 text-charcoal-80/65 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30"><ArrowUp className="h-3.5 w-3.5" /></button>
+          <button type="button" onClick={() => onMove(1)} disabled={isLast} aria-label="Move down" className="rounded p-1 text-charcoal-80/65 hover:bg-violet-pale/40 hover:text-violet disabled:opacity-30"><ArrowDown className="h-3.5 w-3.5" /></button>
+          <button type="button" onClick={onRemove} aria-label="Remove block" className="rounded p-1 text-charcoal-80/65 hover:bg-rose/10 hover:text-rose-700"><Trash2 className="h-3.5 w-3.5" /></button>
         </div>
       </div>
       {renderField(block, onChange)}
@@ -415,9 +415,9 @@ function renderField(block, onChange) {
       <div className="flex flex-col gap-1.5">
         {items.map((item, i) => (
           <div key={keys[i]} className="flex items-center gap-1.5">
-            <span className="font-mono text-[10.5px] text-charcoal-80/45">{block.type === "ordered" ? `${i + 1}.` : "•"}</span>
+            <span className="font-mono text-[10.5px] text-charcoal-80/65">{block.type === "ordered" ? `${i + 1}.` : "•"}</span>
             <input value={item} onChange={(e) => { const next = [...items]; next[i] = e.target.value; commit(next, keys) }} placeholder="List item, supports **bold**, *italic*, `code`, [text](url)" className="flex-1 rounded border border-charcoal-80/15 bg-white px-2 py-1 text-[13px] outline-none focus:border-violet/40" />
-            <button type="button" onClick={() => commit(items.filter((_, x) => x !== i), keys.filter((_, x) => x !== i))} aria-label="Remove item" className="rounded p-1 text-charcoal-80/55 hover:bg-rose/10 hover:text-rose-700"><Trash2 className="h-3 w-3" /></button>
+            <button type="button" onClick={() => commit(items.filter((_, x) => x !== i), keys.filter((_, x) => x !== i))} aria-label="Remove item" className="rounded p-1 text-charcoal-80/65 hover:bg-rose/10 hover:text-rose-700"><Trash2 className="h-3 w-3" /></button>
           </div>
         ))}
         <button type="button" onClick={() => commit([...items, ""], [...keys, newId()])} className="mt-1 inline-flex items-center gap-1 self-start text-[11.5px] font-semibold text-violet hover:underline"><Plus className="h-3 w-3" /> Add item</button>
@@ -444,7 +444,7 @@ function renderField(block, onChange) {
     )
   }
   if (block.type === "divider") {
-    return <div className="text-center text-[11px] text-charcoal-80/45">— Divider line —</div>
+    return <div className="text-center text-[11px] text-charcoal-80/65">— Divider line —</div>
   }
   return (
     <textarea value={block.text || ""} onChange={(e) => onChange({ text: e.target.value })} rows={block.type === "p" || block.type === "quote" ? 3 : 1}

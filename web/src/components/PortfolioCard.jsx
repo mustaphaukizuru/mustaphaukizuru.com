@@ -182,22 +182,29 @@ export default function PortfolioCard({
           </span>
         ) : null}
 
-        {/* Clickable dot indicator (bottom-right) */}
+        {/* Clickable dot indicator (bottom-right).
+            Each button carries a 24×24 hit area (WCAG 2.5.8 target size);
+            the visible dot is the inner span, so the artwork is unchanged. */}
         {images.length > 1 ? (
-          <div className="absolute bottom-3 right-3 flex gap-1.5">
+          <div className="absolute bottom-[3px] right-[3px] flex items-center">
             {images.map((_, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setCurrentIdx(i)}
                 aria-label={t("components.imageAria", { index: i + 1 })}
-                className={
-                  "h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white " +
-                  (i === currentIdx
-                    ? "w-6 bg-white"
-                    : "w-1.5 bg-white/55 hover:bg-white/85")
-                }
-              />
+                className="group/dot flex h-6 w-6 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <span
+                  aria-hidden="true"
+                  className={
+                    "block h-1.5 rounded-full transition-all " +
+                    (i === currentIdx
+                      ? "w-4 bg-white"
+                      : "w-1.5 bg-white/55 group-hover/dot:bg-white/85")
+                  }
+                />
+              </button>
             ))}
           </div>
         ) : null}
@@ -209,7 +216,7 @@ export default function PortfolioCard({
         {project?.role ? (
           /* Sentence-case caption — eyebrows are short labels; long role
              descriptions read as shouting if uppercased. */
-          <p className="mt-1 text-[12px] font-medium text-charcoal-80/60">
+          <p className="mt-1 text-[12px] font-medium text-charcoal-80/65">
             {project.role}
           </p>
         ) : null}

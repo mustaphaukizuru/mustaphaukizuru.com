@@ -330,7 +330,7 @@ function CapabilityCard({ capability, skills, index }) {
         <div className="min-w-0 pr-6">
           <h3 className="text-card font-bold leading-tight text-violet">{label}</h3>
           <p className="mt-1 text-meta font-medium leading-snug text-charcoal-80/80">{headline}</p>
-          <p className="mt-1 text-micro leading-5 text-charcoal-80/55">{sub}</p>
+          <p className="mt-1 text-micro leading-5 text-charcoal-80/65">{sub}</p>
         </div>
       </header>
 

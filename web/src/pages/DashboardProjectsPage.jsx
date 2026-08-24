@@ -69,7 +69,7 @@ export default function DashboardProjectsPage() {
             <Briefcase className="h-5 w-5" aria-hidden="true" />
           </div>
           <p className="text-card font-semibold text-violet">{t("projects.list.empty")}</p>
-          <p className="max-w-xs text-meta text-charcoal-80/55">
+          <p className="max-w-xs text-meta text-charcoal-80/65">
             {t("projects.list.emptyBody")}
           </p>
           <Link to="/services" className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-micro font-semibold text-white transition hover:bg-violet-deep">
@@ -95,7 +95,7 @@ export default function DashboardProjectsPage() {
                       <h3 className="truncate text-meta font-bold text-violet">{p.projectName}</h3>
                       <StatusPill status={p.projectStatus} />
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/55">
+                    <div className="mt-1 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
                       <span><Calendar className="inline h-3 w-3 mr-1" />{t("projects.card.due", { date: fmtDate(p.dueDate) })}</span>
                       <span><FileText className="inline h-3 w-3 mr-1" />{t("projects.card.files", { count: fileCount })}</span>
                     </div>
@@ -103,7 +103,7 @@ export default function DashboardProjectsPage() {
                 </div>
 
                 <div>
-                  <div className="mb-1 flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">
+                  <div className="mb-1 flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">
                     <span>{t("projects.card.milestones")}</span>
                     <span className="tabular-nums">
                       {p.milestones.filter((m) => m.status === "completed").length} / {p.milestones.length}

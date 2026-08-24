@@ -21,7 +21,7 @@ function InfoRow({ label, value, icon: Icon }) {
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <div className="text-micro font-medium text-charcoal-80/55">{label}</div>
+        <div className="text-micro font-medium text-charcoal-80/65">{label}</div>
         <div className="mt-0.5 text-meta font-semibold text-violet break-words">{value || ","}</div>
       </div>
     </div>
@@ -227,7 +227,7 @@ export default function DashboardProfilePage() {
 
             <div>
               <div className="text-subsection font-bold text-violet">{user?.fullName || t("profile.fallback.memberName")}</div>
-              <div className="mt-1 text-meta text-charcoal-80/60">{user?.email || "—"}</div>
+              <div className="mt-1 text-meta text-charcoal-80/65">{user?.email || "—"}</div>
               <span className="mt-3 inline-flex rounded-full bg-mint-100 px-4 py-1.5 text-micro font-semibold capitalize text-mint-800">
                 {user?.role || t("profile.fallback.role")}
               </span>
@@ -235,11 +235,11 @@ export default function DashboardProfilePage() {
 
             <div className="w-full space-y-2 text-micro">
               <div className="flex justify-between border-b border-charcoal-80/8 pb-2">
-                <span className="text-charcoal-80/55">{t("profile.card.memberSince")}</span>
+                <span className="text-charcoal-80/65">{t("profile.card.memberSince")}</span>
                 <span className="font-semibold text-violet">{joinDate}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-charcoal-80/55">{t("profile.card.status")}</span>
+                <span className="text-charcoal-80/65">{t("profile.card.status")}</span>
                 <span className="font-semibold text-mint-600">{t("profile.card.active")}</span>
               </div>
             </div>
@@ -252,7 +252,7 @@ export default function DashboardProfilePage() {
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <h3 className="text-card font-semibold text-violet">{t("profile.account.title")}</h3>
-                <p className="mt-1 text-micro text-charcoal-80/60">{t("profile.account.subtitle")}</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">{t("profile.account.subtitle")}</p>
               </div>
               {!editing ? (
                 <button type="button" onClick={() => setEditing(true)}
@@ -306,7 +306,7 @@ export default function DashboardProfilePage() {
                   <label className="mb-1.5 block text-micro font-semibold text-violet">{t("profile.account.fields.emailReadOnly")}</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/25" />
-                    <input readOnly value={user?.email||""} className="w-full cursor-not-allowed rounded-xl border border-charcoal-80/10 bg-slate-50 py-3 pl-10 pr-4 text-meta text-charcoal-80/50 outline-none" />
+                    <input readOnly value={user?.email||""} className="w-full cursor-not-allowed rounded-xl border border-charcoal-80/10 bg-slate-50 py-3 pl-10 pr-4 text-meta text-charcoal-80/65 outline-none" />
                   </div>
                 </div>
               </div>
@@ -330,7 +330,7 @@ export default function DashboardProfilePage() {
                   <div className="text-meta font-bold text-violet">
                     {hasPassword ? t("profile.password.title") : t("profile.password.setTitle")}
                   </div>
-                  <div className="text-micro text-charcoal-80/55">
+                  <div className="text-micro text-charcoal-80/65">
                     {hasPassword ? t("profile.password.subtitle") : t("profile.password.setSubtitle")}
                   </div>
                 </div>

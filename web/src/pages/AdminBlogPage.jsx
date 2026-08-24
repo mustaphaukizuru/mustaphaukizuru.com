@@ -112,7 +112,7 @@ export default function AdminBlogPage() {
                 type="button"
                 onClick={() => { setSearch(""); load() }}
                 aria-label="Clear search"
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-charcoal-80/45 hover:bg-charcoal-80/[0.06]"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-charcoal-80/65 hover:bg-charcoal-80/[0.06]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -152,7 +152,7 @@ export default function AdminBlogPage() {
       {/* Table */}
       <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white">
         <table className="min-w-full divide-y divide-charcoal-80/10 text-left text-[13px]">
-          <thead className="bg-charcoal-80/[0.03] text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">
+          <thead className="bg-charcoal-80/[0.03] text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">
             <tr>
               <th scope="col" className="px-4 py-3">Title</th>
               <th scope="col" className="hidden px-4 py-3 sm:table-cell">Category</th>
@@ -163,21 +163,21 @@ export default function AdminBlogPage() {
           </thead>
           <tbody className="divide-y divide-charcoal-80/[0.06]">
             {loading ? (
-              <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/55">Loading posts…</td></tr>
+              <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/65">Loading posts…</td></tr>
             ) : error ? (
               <tr><td colSpan={5} className="px-4 py-10 text-center text-rose-700">{error}</td></tr>
             ) : posts.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/55">
+              <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/65">
                 No posts match. <Link to="/admin/blog/new" className="font-semibold text-violet hover:underline">Create one</Link>.
               </td></tr>
             ) : posts.map((p) => (
               <tr key={p.id} className="transition hover:bg-violet-pale/30">
                 <td className="px-4 py-3">
                   <div className="flex items-start gap-2">
-                    {p.featured ? <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" aria-label="Featured" /> : null}
+                    {p.featured ? <Star role="img" className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" aria-label="Featured" /> : null}
                     <div>
                       <div className="font-semibold text-violet">{p.title}</div>
-                      <div className="font-mono text-[11px] text-charcoal-80/45">/{p.slug}</div>
+                      <div className="font-mono text-[11px] text-charcoal-80/65">/{p.slug}</div>
                     </div>
                   </div>
                 </td>
@@ -185,7 +185,7 @@ export default function AdminBlogPage() {
                   {p.category || "-"}
                 </td>
                 <td className="hidden px-4 py-3 lg:table-cell"><StatusPill status={p.status} /></td>
-                <td className="hidden px-4 py-3 text-charcoal-80/55 lg:table-cell">{formatDate(p.updatedAt)}</td>
+                <td className="hidden px-4 py-3 text-charcoal-80/65 lg:table-cell">{formatDate(p.updatedAt)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="inline-flex items-center gap-1">
                     {p.status === "published" ? (
@@ -194,7 +194,7 @@ export default function AdminBlogPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="View public"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet"
                       >
                         <Globe className="h-4 w-4" />
                       </a>
@@ -202,7 +202,7 @@ export default function AdminBlogPage() {
                     <Link
                       to={`/admin/blog/${p.id}/edit`}
                       aria-label="Edit post"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Link>
@@ -210,7 +210,7 @@ export default function AdminBlogPage() {
                       type="button"
                       onClick={() => setPendingDelete(p)}
                       aria-label="Delete post"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-rose/10 hover:text-rose-700"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/65 transition hover:bg-rose/10 hover:text-rose-700"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -274,7 +274,7 @@ function Metric({ icon: Icon, label, value, accent }) {
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">{label}</div>
+        <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">{label}</div>
         <div className="text-[20px] font-extrabold tabular-nums text-charcoal-80">{value}</div>
       </div>
     </div>

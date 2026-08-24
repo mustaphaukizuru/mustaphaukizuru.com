@@ -270,7 +270,7 @@ export default function DashboardOrdersPage() {
             </Link>
           </div>
         ) : filteredAndSorted.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
+          <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/65">
             {t("orders.empty.noMatch")}
           </div>
         ) : (
@@ -444,7 +444,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-charcoal-80/60 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
           aria-label={t("orders.refundModal.close")}
         >
           <X className="h-5 w-5" />
@@ -484,7 +484,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
 
         <div className="mt-5">
           <label htmlFor="refund-reason" className="text-meta font-semibold text-violet">
-            {t("orders.refundModal.reasonLabel")} <span className="text-charcoal-80/55 font-normal">{t("orders.refundModal.reasonRequired")}</span>
+            {t("orders.refundModal.reasonLabel")} <span className="text-charcoal-80/65 font-normal">{t("orders.refundModal.reasonRequired")}</span>
           </label>
           <textarea
             id="refund-reason"
@@ -495,7 +495,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
             maxLength={2000}
             className="mt-2 w-full rounded-xl border border-charcoal-80/15 bg-white px-4 py-3 text-meta text-violet outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
           />
-          <div className="mt-1 flex items-center justify-between text-micro text-charcoal-80/60">
+          <div className="mt-1 flex items-center justify-between text-micro text-charcoal-80/65">
             <span>{t("orders.refundModal.minHint")}</span>
             <span className={reasonChars > 2000 ? "text-rose-600 font-semibold" : ""}>
               {reasonChars}/2000

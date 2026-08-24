@@ -101,7 +101,7 @@ function EmptyBlock({ title, body, ctaLabel, ctaTo }) {
   return (
     <div className="flex h-full flex-col items-center justify-center py-6 text-center">
       <p className="text-meta font-semibold text-charcoal-80/65">{title}</p>
-      {body && <p className="mt-0.5 max-w-xs text-micro text-charcoal-80/45">{body}</p>}
+      {body && <p className="mt-0.5 max-w-xs text-micro text-charcoal-80/65">{body}</p>}
       <Link
         to={ctaTo}
         className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-violet px-3.5 py-2 text-micro font-semibold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                       <span className="font-mono text-meta font-semibold tabular-nums text-violet">#{order.orderNumber || String(order.id).slice(0, 8)}</span>
                       <StatusBadge status={order.status} />
                     </div>
-                    <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                    <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/65">
                       {new Date(order.createdAt).toLocaleDateString(localeTag, { year: "numeric", month: "short", day: "numeric" })}
                     </div>
                   </div>
@@ -300,7 +300,7 @@ export default function DashboardPage() {
               </div>
               <div className="min-w-0">
                 <div className="font-mono text-[28px] font-bold leading-none tabular-nums text-violet">{downloadsCount}</div>
-                <div className="mt-1.5 text-micro text-charcoal-80/60">{t("overview.blocks.downloads.count", { count: downloadsCount })}</div>
+                <div className="mt-1.5 text-micro text-charcoal-80/65">{t("overview.blocks.downloads.count", { count: downloadsCount })}</div>
               </div>
             </Link>
           </Block>
@@ -324,7 +324,7 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={nextConsultation.status} />
-                    <span className="text-[11px] text-charcoal-80/55">{nextConsultation.service?.title || t("overview.blocks.consultation.fallbackService")}</span>
+                    <span className="text-[11px] text-charcoal-80/65">{nextConsultation.service?.title || t("overview.blocks.consultation.fallbackService")}</span>
                   </div>
                   <div className="mt-2 text-[15px] font-bold text-violet">{formatDateTime(nextConsultation.scheduledAt, nextConsultation.timezone || tz)}</div>
                   {nextConsultation.assignedAdmin?.fullName && (
@@ -342,7 +342,7 @@ export default function DashboardPage() {
                     {t("overview.blocks.consultation.join")}
                   </a>
                 ) : (
-                  <p className="text-micro text-charcoal-80/50">{t("overview.blocks.consultation.linkPending")}</p>
+                  <p className="text-micro text-charcoal-80/65">{t("overview.blocks.consultation.linkPending")}</p>
                 )}
               </div>
             )}
@@ -369,14 +369,14 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center gap-4">
                   <div className="font-mono text-[28px] font-bold leading-none tabular-nums text-violet">{activeProjects.length}</div>
-                  <div className="text-micro text-charcoal-80/60">{t("overview.blocks.projects.active", { count: activeProjects.length })}</div>
+                  <div className="text-micro text-charcoal-80/65">{t("overview.blocks.projects.active", { count: activeProjects.length })}</div>
                 </div>
                 <div className="rounded-lg border border-charcoal-80/8 bg-mist px-3 py-2">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal-80/50">{t("overview.blocks.projects.latestMilestone")}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">{t("overview.blocks.projects.latestMilestone")}</div>
                   <div className="mt-0.5 truncate text-meta font-semibold text-violet">
                     {latestMilestone.milestone?.title || t("overview.blocks.projects.noMilestone")}
                   </div>
-                  <div className="mt-0.5 truncate text-micro text-charcoal-80/55">{latestMilestone.project.projectName}</div>
+                  <div className="mt-0.5 truncate text-micro text-charcoal-80/65">{latestMilestone.project.projectName}</div>
                 </div>
               </Link>
             )}
@@ -406,7 +406,7 @@ export default function DashboardPage() {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-meta font-medium text-violet">{tx.subject || t("overview.activity.ticketFallback")}</div>
-                    <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                    <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/65">
                       {new Date(tx.updatedAt || tx.createdAt).toLocaleDateString(localeTag, { month: "short", day: "numeric" })}
                     </div>
                   </div>
@@ -414,7 +414,7 @@ export default function DashboardPage() {
                 </Link>
               ))}
               {openTickets.length > 3 && (
-                <p className="px-2.5 pt-2 text-micro text-charcoal-80/55">{t("overview.blocks.support.more", { count: openTickets.length - 3 })}</p>
+                <p className="px-2.5 pt-2 text-micro text-charcoal-80/65">{t("overview.blocks.support.more", { count: openTickets.length - 3 })}</p>
               )}
             </div>
           </Block>

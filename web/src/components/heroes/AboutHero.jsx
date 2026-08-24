@@ -173,7 +173,7 @@ export default function AboutHero() {
                 <span className="text-[clamp(40px,5vw,52px)] font-extrabold leading-none text-violet">
                   8+
                 </span>
-                <div className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/55">
+                <div className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/65">
                   {t("hero.yearsExperience")}
                 </div>
               </div>
@@ -182,7 +182,7 @@ export default function AboutHero() {
                 <span className="text-[clamp(28px,3.5vw,38px)] font-extrabold leading-none text-violet">
                   10+
                 </span>
-                <div className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/55">
+                <div className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/65">
                   {t("hero.projectsDelivered")}
                 </div>
               </div>
@@ -194,7 +194,6 @@ export default function AboutHero() {
                   reserved for Book / Buy / Checkout / Contact CTAs). */}
               <Link
                 to="/contact"
-                aria-label={t("hero.contactAria")}
                 className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-grad-innovation px-6 py-3.5 text-[14px] font-bold !text-white shadow-[0_14px_34px_-8px_rgb(var(--color-violet-rgb)/0.55),0_4px_10px_-2px_rgb(var(--color-azure-rgb)/0.25)] ring-1 ring-inset ring-white/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-8px_rgb(var(--color-violet-rgb)/0.65),0_6px_14px_-2px_rgb(var(--color-azure-rgb)/0.32)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/50 focus-visible:ring-offset-2"
               >
                 <span
@@ -215,7 +214,7 @@ export default function AboutHero() {
                 Same SocialLinks component the Footer uses, rendered
                 directly on the hero's mist surface. */}
             <m.div variants={fadeUp} className="flex flex-wrap items-center gap-3">
-              <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45">
+              <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                 {t("hero.connectLabel")}
               </span>
               <div aria-hidden="true" className="h-px max-w-[40px] flex-1 bg-charcoal-80/15" />
@@ -292,7 +291,7 @@ export default function AboutHero() {
             <m.div variants={fadeUp} className="flex justify-end">
               <div className="rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_32px_-8px_rgb(var(--color-violet-rgb)/0.15)]">
                 <div className="flex items-center gap-3 text-[13px] font-semibold">
-                  <span className="text-[12px] font-normal text-charcoal-80/60">
+                  <span className="text-[12px] font-normal text-charcoal-80/65">
                     {t("hero.clientReviews")}
                   </span>
                   <div className="flex gap-0.5 text-terracotta">
@@ -316,7 +315,7 @@ export default function AboutHero() {
                     4.3
                   </span>
                 </div>
-                <div className="mt-1.5 text-[10px] text-charcoal-80/45">
+                <div className="mt-1.5 text-[10px] text-charcoal-80/65">
                   {t("hero.basedOnFeedback")}
                 </div>
               </div>
@@ -324,7 +323,7 @@ export default function AboutHero() {
 
             {/* Role */}
             <m.div variants={fadeUp} className="text-right">
-              <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-charcoal-80/50">
+              <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                 {t("hero.technologyKicker")}
               </p>
               <p
@@ -349,7 +348,7 @@ export default function AboutHero() {
                     </div>
                     <div>
                       <div className="font-semibold text-violet">{bullet.label}</div>
-                      <div className="text-[11px] text-charcoal-80/55">{bullet.desc}</div>
+                      <div className="text-[11px] text-charcoal-80/65">{bullet.desc}</div>
                     </div>
                   </div>
                 )
@@ -436,7 +435,6 @@ function CvPicker({ t }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={t("hero.openCvAria", "Open my professional profiles")}
         className="group inline-flex items-center gap-2 rounded-xl border border-violet/25 bg-white/60 px-6 py-3.5 text-[14px] font-semibold text-violet transition hover:-translate-y-0.5 hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 focus-visible:ring-offset-2"
       >
         <FileText className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" aria-hidden="true" />
@@ -475,7 +473,7 @@ function CvPicker({ t }) {
             ].join(" ")}
           >
             <div className="shrink-0 border-b border-charcoal-80/8 px-4 py-2.5">
-              <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+              <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
                 {t("hero.cvs.menuLabel", "Professional profiles")}
               </p>
             </div>
@@ -497,7 +495,7 @@ function CvPicker({ t }) {
                       <span className="block truncate text-[13.5px] font-semibold text-charcoal">
                         {t(cv.titleKey, cv.titleFallback)}
                       </span>
-                      <span className="block truncate text-[11.5px] text-charcoal-80/60">
+                      <span className="block truncate text-[11.5px] text-charcoal-80/65">
                         {t(cv.subtitleKey, cv.subtitleFallback)}
                       </span>
                     </span>

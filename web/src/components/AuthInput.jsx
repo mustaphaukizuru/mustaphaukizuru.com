@@ -147,7 +147,7 @@ export default function AuthInput({
         <p className="mt-1.5 text-micro font-medium text-mint-700">{hint}</p>
       )}
       {!hasError && !isOk && hint && (
-        <p className="mt-1.5 text-micro text-charcoal-80/55">{hint}</p>
+        <p className="mt-1.5 text-micro text-charcoal-80/65">{hint}</p>
       )}
 
       {/* Optional password strength meter */}

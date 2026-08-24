@@ -18,7 +18,7 @@ export default function CategoryCard({ category, index = 0 }) {
         <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl text-white ${category.tile}`}>
           {Icon && <Icon className="h-6 w-6" aria-hidden="true" />}
         </div>
-        <span className="text-[13px] font-bold tabular-nums text-violet/40">0{index + 1}</span>
+        <span className="text-[13px] font-bold tabular-nums text-violet">0{index + 1}</span>
       </div>
       <h3 className="mt-5 text-title font-bold text-violet">{pick(category, "name", lang)}</h3>
       <p className="mt-2 text-body leading-7 text-charcoal-80/75">{pick(category, "outcome", lang)}</p>

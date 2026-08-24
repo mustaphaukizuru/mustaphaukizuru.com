@@ -44,7 +44,7 @@ export default function AuthShell({ children }) {
         >
           <Link
             to="/"
-            className="group inline-flex w-fit items-center gap-2 rounded-md text-[12.5px] font-semibold text-charcoal-80/55 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+            className="group inline-flex w-fit items-center gap-2 rounded-md text-[12.5px] font-semibold text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             {t("auth.shell.backHome")}
@@ -55,7 +55,7 @@ export default function AuthShell({ children }) {
           </div>
 
           {/* Footer · privacy + © + language switcher */}
-          <footer className="mt-6 flex flex-col items-center justify-between gap-2 text-[11.5px] text-charcoal-80/55 sm:flex-row">
+          <footer className="mt-6 flex flex-col items-center justify-between gap-2 text-[11.5px] text-charcoal-80/65 sm:flex-row">
             <span>© {new Date().getFullYear()} {t("auth.shell.rights")}</span>
             <nav className="flex items-center gap-5">
               <Link to="/privacy" className="transition hover:text-violet">{t("auth.shell.privacy")}</Link>

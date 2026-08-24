@@ -140,7 +140,7 @@ export default function HomeHero() {
           />
           <div className="min-w-0">
             <p className="text-[14px] font-bold leading-tight text-charcoal">{t("hero.avatarName")}</p>
-            <p className="mt-0.5 text-[12.5px] leading-tight text-charcoal-80/60">{t("hero.avatarRole")}</p>
+            <p className="mt-0.5 text-[12.5px] leading-tight text-charcoal-80/65">{t("hero.avatarRole")}</p>
             <p className="mt-1 text-[12px] leading-tight text-violet">{t("hero.callNote")}</p>
           </div>
         </m.div>

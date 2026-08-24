@@ -48,7 +48,7 @@ export default function Toaster() {
           cancelButton:
             "!rounded-full !bg-charcoal-80/5 !px-3 !py-1 !text-[12px] !font-medium !text-charcoal-80",
           closeButton:
-            "!h-6 !w-6 !rounded-full !bg-charcoal-80/5 !text-charcoal-80/55 hover:!text-charcoal-80",
+            "!h-6 !w-6 !rounded-full !bg-charcoal-80/5 !text-charcoal-80/65 hover:!text-charcoal-80",
           success: "before:!absolute before:!inset-y-0 before:!left-0 before:!w-1 before:!rounded-l-2xl before:!bg-mint",
           error: "before:!absolute before:!inset-y-0 before:!left-0 before:!w-1 before:!rounded-l-2xl before:!bg-rose",
           info: "before:!absolute before:!inset-y-0 before:!left-0 before:!w-1 before:!rounded-l-2xl before:!bg-azure",

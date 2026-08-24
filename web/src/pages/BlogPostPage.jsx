@@ -112,7 +112,7 @@ function TableOfContents({ toc }) {
   if (toc.length < 2) return null
   return (
     <section>
-      <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+      <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
         <ArrowRight className="h-3 w-3 text-violet" aria-hidden="true" />
         Contents
       </h3>
@@ -130,7 +130,7 @@ function TableOfContents({ toc }) {
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30",
                     isActive
                       ? "font-semibold text-violet"
-                      : "text-charcoal-80/55 hover:text-violet",
+                      : "text-charcoal-80/65 hover:text-violet",
                   ].join(" ")}
                 >
                   {isActive && (
@@ -314,7 +314,7 @@ export default function BlogPostPage() {
               {t("post.rail.back")}
             </Link>
             <div className="flex items-center gap-3">
-              <span className="hidden text-[12px] text-charcoal-80/50 sm:block">
+              <span className="hidden text-[12px] text-charcoal-80/65 sm:block">
                 {category?.label || t("post.rail.fallbackKind")}
               </span>
               <CopyLinkButton url={url} />
@@ -354,7 +354,7 @@ export default function BlogPostPage() {
               {post.excerpt}
             </p>
 
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[12.5px] text-charcoal-80/55">
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[12.5px] text-charcoal-80/65">
               {/* Author — links to blog index (shows all their posts) */}
               <Link
                 to="/blog"
@@ -446,7 +446,7 @@ export default function BlogPostPage() {
                 <TableOfContents toc={toc} />
 
                 <section>
-                  <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+                  <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                     <Share2 className="h-3 w-3 text-violet" aria-hidden="true" />
                     {t("post.rail.share")}
                   </h3>
@@ -465,7 +465,7 @@ export default function BlogPostPage() {
                 </section>
 
                 <section>
-                  <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+                  <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                     <Tag className="h-3 w-3 text-violet" aria-hidden="true" />
                     {t("post.rail.tags")}
                   </h3>

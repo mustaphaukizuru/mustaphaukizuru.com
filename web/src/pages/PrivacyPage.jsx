@@ -55,10 +55,10 @@ export default function PrivacyPage() {
             <Shield className="h-7 w-7" />
           </div>
           <h1 className="mt-5 text-page font-bold text-white">{t("privacy.title", "Privacy Policy")}</h1>
-          <p className="mt-3 text-body text-white/55">
+          <p className="mt-3 text-body text-white/85">
             {t("privacy.subtitle")}
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white/50">
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white">
             <Calendar className="h-3.5 w-3.5" /> Last updated: {LAST_UPDATED}
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
           aria-label={t("privacy.tocAria", { defaultValue: "Table of contents" })}
           className="mb-8 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
         >
-          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
             {t("privacy.tocLabel", { defaultValue: "On this page" })}
           </p>
           <ol className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">

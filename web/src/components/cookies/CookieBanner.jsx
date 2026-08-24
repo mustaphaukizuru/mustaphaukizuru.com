@@ -71,7 +71,7 @@ function PreferencesModal({ open, onClose }) {
                 type="button"
                 onClick={onClose}
                 aria-label={t("cookies.closeAria")}
-                className="cursor-pointer -mt-1 -mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-charcoal/55 transition hover:bg-violet-ghost hover:text-violet"
+                className="cursor-pointer -mt-1 -mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-charcoal/65 transition hover:bg-violet-ghost hover:text-violet"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -97,7 +97,7 @@ function PreferencesModal({ open, onClose }) {
                             )}
                           </div>
                           <p className="mt-1 text-[12px] leading-5 text-charcoal/75">{cat.description}</p>
-                          <p className="mt-1.5 font-mono text-[10.5px] text-charcoal/55">
+                          <p className="mt-1.5 font-mono text-[10.5px] text-charcoal/65">
                             Examples: {cat.examples}
                           </p>
                         </div>

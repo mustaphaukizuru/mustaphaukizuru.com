@@ -10,6 +10,7 @@
     "lint": "eslint . && npm run lint:tokens && npm run lint:contrast",
     "lint:tokens": "node ./scripts/check-raw-hex.mjs",
     "lint:contrast": "node ./scripts/check-contrast.mjs",
+    "test:i18n": "node ./scripts/check-i18n.mjs",
     "clean": "rm -rf ../public/assets",
     "build:clean": "npm run clean && vite build",
     "seo:sitemap": "node ./scripts/generate-sitemap.mjs",

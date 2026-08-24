@@ -316,7 +316,7 @@ export default function MobileMenu({ open, onClose }) {
                 <span className="truncate text-[15.5px] font-bold leading-tight tracking-tight text-violet">
                   {t("header.brandName")}
                 </span>
-                <span className="truncate font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-charcoal-80/55">
+                <span className="truncate font-mono text-[10.5px] font-semibold uppercase tracking-[0.16em] text-charcoal-80/65">
                   {t("header.brandTagline", { defaultValue: "Complexity, simplified." })}
                 </span>
               </span>
@@ -361,10 +361,10 @@ export default function MobileMenu({ open, onClose }) {
             className="cursor-pointer group flex items-center gap-3 rounded-xl border border-charcoal-80/12 bg-charcoal-80/[0.03] px-3.5 py-3 text-left text-[14px] font-medium text-charcoal-80/65 transition-colors duration-200 hover:border-violet/30 hover:bg-violet-pale/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
           >
             <span aria-hidden="true" className="flex h-7 w-7 items-center justify-center rounded-md bg-white shadow-[0_2px_6px_-2px_rgb(var(--color-charcoal-rgb)/0.10)] transition-colors group-hover:bg-violet-pale">
-              <Search className="h-3.5 w-3.5 text-charcoal-80/55 transition-colors group-hover:text-violet" strokeWidth={2.2} />
+              <Search className="h-3.5 w-3.5 text-charcoal-80/65 transition-colors group-hover:text-violet" strokeWidth={2.2} />
             </span>
             <span className="flex-1 truncate">{t("header.searchPlaceholder")}</span>
-            <kbd aria-hidden="true" className="hidden h-5 select-none items-center rounded border border-charcoal-80/12 bg-white px-1.5 font-mono text-[10px] font-bold text-charcoal-80/55 shadow-[0_1px_0_rgb(var(--color-charcoal-rgb)/0.04)] sm:inline-flex">
+            <kbd aria-hidden="true" className="hidden h-5 select-none items-center rounded border border-charcoal-80/12 bg-white px-1.5 font-mono text-[10px] font-bold text-charcoal-80/65 shadow-[0_1px_0_rgb(var(--color-charcoal-rgb)/0.04)] sm:inline-flex">
               ⌘K
             </kbd>
           </m.button>
@@ -372,7 +372,7 @@ export default function MobileMenu({ open, onClose }) {
           {/* Section eyebrow — frames the nav list and gives the cascade
               a visual anchor at the top of the scroll region. */}
           <div className="mt-1 flex items-center gap-2 px-1">
-            <span className="font-mono text-[10.5px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45">
+            <span className="font-mono text-[10.5px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
               {t("header.navigateEyebrow", { defaultValue: "Navigate" })}
             </span>
             <div className="h-px flex-1 bg-gradient-to-r from-charcoal-80/12 via-charcoal-80/8 to-transparent" />
@@ -494,7 +494,7 @@ export default function MobileMenu({ open, onClose }) {
                 <p className="truncate text-[14px] font-bold text-charcoal">
                   {(user && user.fullName) || "Member"}
                 </p>
-                <p className="mt-0.5 truncate font-mono text-[11.5px] text-charcoal-80/60">
+                <p className="mt-0.5 truncate font-mono text-[11.5px] text-charcoal-80/65">
                   {user && user.email}
                 </p>
               </div>

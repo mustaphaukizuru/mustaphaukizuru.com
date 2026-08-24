@@ -113,7 +113,7 @@ export function CheckboxField({ form, name, label, hint, className = "", ...rest
         />
         <span>{label}</span>
       </label>
-      {hint && !error && <p className="mt-1 text-micro text-charcoal-80/55">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-micro text-charcoal-80/65">{hint}</p>}
       {error && <p className="mt-1 text-micro text-rose-600" role="alert">{error}</p>}
     </div>
   )

@@ -52,7 +52,7 @@ export function Field({ label, required, hint, error, children, className = "" }
       )}
       {rendered}
       {hint && !error && (
-        <p id={hintId} className="mt-1 text-micro text-charcoal-80/55">
+        <p id={hintId} className="mt-1 text-micro text-charcoal-80/65">
           {hint}
         </p>
       )}

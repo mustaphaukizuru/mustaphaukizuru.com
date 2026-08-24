@@ -67,9 +67,9 @@ function TemplateCard({ template, onEdit, onPreview, onTest }) {
         </div>
         <div className="min-w-0">
           <div className="truncate text-meta font-bold text-violet">{template.name || template.key}</div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/60">{template.key}</div>
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">{template.key}</div>
           {template.subject && (
-            <div className="mt-1 truncate text-micro text-charcoal-80/55" title={template.subject}>
+            <div className="mt-1 truncate text-micro text-charcoal-80/65" title={template.subject}>
               <span className="font-mono text-[10px] uppercase tracking-wider">Subject:</span>{" "}
               {template.subject}
             </div>
@@ -413,7 +413,7 @@ export default function AdminEmailTemplatesPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-card font-bold text-violet">Email Templates</h2>
-            <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/55">
+            <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/65">
               {filtered.length}{search && filtered.length !== templates.length && <span> of {templates.length}</span>} {filtered.length === 1 ? "template" : "templates"}
             </p>
           </div>

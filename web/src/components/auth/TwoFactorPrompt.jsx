@@ -112,7 +112,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
             {mode === "totp"
               ? "Enter the 6-digit code from your authenticator app"
               : "Enter one of your saved backup codes"}
-            {email ? <span className="ml-1 text-charcoal-80/45">· {email}</span> : null}
+            {email ? <span className="ml-1 text-charcoal-80/65">· {email}</span> : null}
           </p>
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
               />
             ))}
           </div>
-          <p className="mt-2 text-center text-micro text-charcoal-80/55">
+          <p className="mt-2 text-center text-micro text-charcoal-80/65">
             {t("auth.twofa.tipPaste")}
           </p>
         </div>
@@ -165,7 +165,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
             autoFocus
             className="w-full rounded-xl border-2 border-charcoal-80/15 bg-mist px-4 py-3.5 text-center text-body font-mono font-bold tracking-[0.2em] text-violet outline-none transition focus:border-violet focus:bg-white focus:ring-2 focus:ring-violet/15 disabled:opacity-50"
           />
-          <p className="mt-2 text-micro text-charcoal-80/55">
+          <p className="mt-2 text-micro text-charcoal-80/65">
             {t("auth.twofa.backupOnce")}
           </p>
         </div>

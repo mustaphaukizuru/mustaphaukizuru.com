@@ -126,7 +126,7 @@ function ServiceOrderCard({ order }) {
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 ${visual.bg} ${visual.fg} ${visual.ring}`}>
               <StatusIcon className="h-3 w-3" aria-hidden="true" /> {statusLabel}
             </span>
-            <span className="font-mono text-[11px] text-charcoal-80/45">
+            <span className="font-mono text-[11px] text-charcoal-80/65">
               #{(order.id || "").slice(-8).toUpperCase()}
             </span>
           </div>
@@ -161,7 +161,7 @@ function ServiceOrderCard({ order }) {
                     >
                       {idx + 1}
                     </div>
-                    <span className={`font-mono text-[10px] uppercase tracking-wider ${reached ? "text-charcoal" : "text-charcoal-80/45"}`}>
+                    <span className={`font-mono text-[10px] uppercase tracking-wider ${reached ? "text-charcoal" : "text-charcoal-80/65"}`}>
                       {t(`serviceOrders.status.${step}.label`)}
                     </span>
                   </li>
@@ -206,8 +206,8 @@ function ServiceOrderCard({ order }) {
 function Chip({ Icon, label, value }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/10 bg-mist px-2 py-1 text-[11px] text-charcoal-80/75">
-      <Icon className="h-3 w-3 text-charcoal-80/55" aria-hidden="true" />
-      <span className="font-mono uppercase tracking-wider text-charcoal-80/55">{label}:</span>
+      <Icon className="h-3 w-3 text-charcoal-80/65" aria-hidden="true" />
+      <span className="font-mono uppercase tracking-wider text-charcoal-80/65">{label}:</span>
       <span className="font-semibold text-charcoal">{value}</span>
     </span>
   )

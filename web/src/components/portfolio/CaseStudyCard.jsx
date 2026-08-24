@@ -57,7 +57,7 @@ export default function CaseStudyCard({ item }) {
 
         {/* Body */}
         <div className="flex flex-1 flex-col p-5">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-micro font-semibold uppercase tracking-[0.15em] text-violet/70">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-micro font-semibold uppercase tracking-[0.15em] text-violet">
             <span>{service ? t(`services.${service}`) : item.category}</span>
             {item.year ? <span className="text-charcoal-80/40">· {item.year}</span> : null}
           </div>
@@ -75,7 +75,7 @@ export default function CaseStudyCard({ item }) {
               <span>
                 <span className="sr-only">{t("card.outcome")}: </span>
                 {outcomeLine}
-                {placeholder ? <span className="ml-1 font-normal text-charcoal-80/50">({t("card.placeholderShort")})</span> : null}
+                {placeholder ? <span className="ml-1 font-normal text-charcoal-80/65">({t("card.placeholderShort")})</span> : null}
               </span>
             </p>
           ) : null}
@@ -89,7 +89,7 @@ export default function CaseStudyCard({ item }) {
               {t("card.caseStudy")} <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
             {item.liveUrl ? (
-              <span className="inline-flex items-center gap-1 text-micro text-charcoal-80/55">
+              <span className="inline-flex items-center gap-1 text-micro text-charcoal-80/65">
                 <ExternalLink className="h-3 w-3" aria-hidden="true" /> {t("card.live")}
               </span>
             ) : null}

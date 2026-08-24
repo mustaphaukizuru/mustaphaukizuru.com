@@ -149,6 +149,7 @@ export default function Stat({
                   ? "bg-[var(--color-feedback-success-bg)] text-[var(--color-feedback-success-text)]"
                   : "bg-[var(--color-feedback-danger-bg)] text-[var(--color-feedback-danger-text)]")
               }
+              role="img"
               aria-label={`${trend >= 0 ? "up" : "down"} ${Math.abs(trend)} percent`}
             >
               <span aria-hidden="true">{trend >= 0 ? "↑" : "↓"}</span>

@@ -275,7 +275,7 @@ export default function ProductCard({ product }) {
             <span className="font-mono font-semibold tabular-nums text-violet">
               {rating.toFixed(1)}
             </span>
-            <span className="font-mono tabular-nums text-charcoal-80/55">
+            <span className="font-mono tabular-nums text-charcoal-80/65">
               ({reviewCount})
             </span>
           </div>

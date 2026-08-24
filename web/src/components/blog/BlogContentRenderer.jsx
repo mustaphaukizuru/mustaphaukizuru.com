@@ -167,7 +167,7 @@ function renderBlock(block) {
             {renderInline(block.text)}
           </blockquote>
           {block.cite ? (
-            <figcaption className="mt-2 text-[12.5px] font-semibold text-charcoal-80/55">
+            <figcaption className="mt-2 text-[12.5px] font-semibold text-charcoal-80/65">
               — {block.cite}
             </figcaption>
           ) : null}
@@ -267,7 +267,7 @@ function ImageBlock({ block }) {
         />
       </div>
       {block.caption ? (
-        <figcaption className="mt-2 text-center text-[12.5px] italic text-charcoal-80/50">
+        <figcaption className="mt-2 text-center text-[12.5px] italic text-charcoal-80/65">
           {block.caption}
         </figcaption>
       ) : null}
@@ -309,7 +309,7 @@ function VideoBlock({ block }) {
         />
       </div>
       {block.caption ? (
-        <figcaption className="mt-2 flex items-center justify-center gap-1.5 text-[12.5px] italic text-charcoal-80/50">
+        <figcaption className="mt-2 flex items-center justify-center gap-1.5 text-[12.5px] italic text-charcoal-80/65">
           <PlayCircle className="h-3.5 w-3.5 text-violet/60" aria-hidden="true" />
           {block.caption}
         </figcaption>
