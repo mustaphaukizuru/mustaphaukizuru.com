@@ -130,16 +130,53 @@ this branch, not estimates.
 LCP ranged 4.7–6.6 s and TBT 153–1211 ms. CLS is **0.000** on every page.
 `/about` SEO was 92 before the "Learn More" link-text fix; it is 100 now.
 
-² **The Lighthouse job is flaky and you should fix this before trusting it in
-CI.** Individual runs returned a performance score of 0 — `/contact` scored
-0, 64, 0 and `/privacy` 69, 0, 68 across three runs. A 0 means the page failed
-to load, not that it loaded slowly. The cause is almost certainly that
-`lighthouserc.mobile.json` boots the real Express server, which talks to the
-**remote Hostinger database** (~450 ms per query from outside their network);
-under simulated 4× CPU throttling some requests exceed Lighthouse's patience
-and the run errors out. Point the Lighthouse job at a local or stubbed API
-before relying on it — otherwise it is partly measuring your latency to
-Hostinger, and it will fail builds at random.
+² **The flaky runs are fixed.** Individual runs used to return a performance
+score of 0 (`/contact` scored 0, 64, 0) because the config booted the real
+Express server, which queries the remote Hostinger DB at ~450 ms per call;
+under 4× CPU throttling some loads timed out. `scripts/lighthouse-server.js`
+now serves the same bundle with the same SPA/404 semantics and fixture API
+responses, with cache headers mirroring `src/app.js`. Measurement is stable
+and no longer partly measures your latency to Hostinger.
+
+### Why performance is where it is — and what actually moves it
+
+Prerendering the public routes was **built, measured, and reverted**. Headless
+Chrome snapshots served as a paint-first overlay, A/B'd on the same server with
+only the feature flag changing:
+
+| route | perf | LCP | FCP |
+|---|---|---|---|
+| /terms | 75 → 75 | 4.7 → 4.8 s | 3.1 → 3.1 s |
+| /about | 53 → 61 | 5.5 → 5.9 s | 3.3 → 3.3 s |
+| / | 72 → 71 | 5.1 → 5.3 s | 3.3 → 3.3 s |
+
+LCP got **worse** on all three and FCP did not move, so it did not justify
+~600 lines, a puppeteer dependency, and a deploy step that downloads Chrome
+onto a shared host. (The one perf gain, /about, has overlapping run ranges.)
+
+The unchanged FCP is the diagnosis. Lighthouse names the cause directly:
+**`assets/index-*.css` is render-blocking for 1055 ms** (est. saving 300 ms).
+The browser already has the markup — it will not paint until that stylesheet
+arrives. Putting content into the HTML cannot help while that is true.
+
+Ranked options, with honest expected value:
+
+1. **Render-blocking CSS** (~300 ms, medium effort). One 347 kB / 4245-rule
+   stylesheet (38 kB gzipped) loads on every route, including admin-only rules
+   on public pages. Inline the above-the-fold subset and load the rest async,
+   or split it per entry.
+2. **JS bootup** (~large, high effort). Home spends 4.5 s in bootup and 10.9 s
+   of main-thread work. The bundle has already been cut hard (framer split out,
+   i18n down to one locale, entry 457 → 264 kB). What remains is React
+   hydrating a big app.
+3. **SSR framework** (largest win, largest change). Options 1 and 2 improve the
+   numbers; only this changes the shape of the problem. It is a genuine
+   re-platform (Next.js / Remix), not a patch — worth costing before choosing.
+
+My recommendation: do (1), skip (2) beyond what is done, and treat (3) as a
+business decision rather than a task. Note that CLS is already 0.000 and
+accessibility is 100 — the two things that most affect real users and SEO are
+in good shape.
 
 **Accessibility went 86–97 → 100 across the board** and is a hard CI gate.
 
