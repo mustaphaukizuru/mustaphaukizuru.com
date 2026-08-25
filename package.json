@@ -83,7 +83,9 @@
         "branches": 26,
         "functions": 27
       }
-    }
+    },
+    "globalSetup": "<rootDir>/test/helpers/ensureIndexHtml.js",
+    "globalTeardown": "<rootDir>/test/helpers/globalTeardown.js"
   },
   "engines": {
     "node": ">=20.0.0 <23.0.0"
