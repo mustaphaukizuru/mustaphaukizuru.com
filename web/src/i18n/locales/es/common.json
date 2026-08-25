@@ -181,7 +181,9 @@
     "toggleNote": "Activa o desactiva cada categoría. Las cookies estrictamente necesarias son obligatorias para el funcionamiento del sitio — siempre están activas.",
     "savePrefs2": "Guardar preferencias",
     "yourPrivacy": "Cookies y tu privacidad",
-    "shortBody": "Usamos cookies estrictamente necesarias para mantener el sitio seguro, además de analíticas opcionales. Puedes cambiar tus preferencias en cualquier momento."
+    "shortBody": "Usamos cookies estrictamente necesarias para mantener el sitio seguro, además de analíticas opcionales. Puedes cambiar tus preferencias en cualquier momento.",
+    "orAdjust": "o ajusta tus preferencias cuando quieras.",
+    "manage": "Preferencias"
   },
   "search": {
     "placeholder": "Escribe un comando o busca...",

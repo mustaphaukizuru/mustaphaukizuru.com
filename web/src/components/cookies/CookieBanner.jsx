@@ -197,7 +197,7 @@ export default function CookieBanner() {
                   {t("cookies.shortBody")}<Link to="/cookies" className="cursor-pointer font-semibold text-violet underline-offset-2 hover:underline">
                     {t("cookies.policyLink")}
                   </Link>{" "}
-                  or adjust preferences any time.
+                  {" "}{t("cookies.orAdjust")}
                 </p>
               </div>
 
@@ -207,7 +207,7 @@ export default function CookieBanner() {
                   onClick={() => setPrefsOpen(true)}
                   className="cursor-pointer inline-flex items-center gap-1.5 rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
-                  <Settings className="h-4 w-4" /> Manage
+                  <Settings className="h-4 w-4" /> {t("cookies.manage")}
                 </button>
                 <button
                   type="button"
