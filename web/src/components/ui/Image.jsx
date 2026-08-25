@@ -30,6 +30,10 @@ import { useState } from "react"
  *   widths        — array of pixel widths; builds a WebP srcset from the
  *                   `<name>-<w>.webp` siblings emitted by scripts/convert-images.mjs
  *   srcSetWebp    — explicit WebP srcset override (takes precedence over `widths`)
+ *   srcSetAvif    — explicit AVIF srcset override. AVIF siblings are written by
+ *                   `node scripts/generate-avif.js --apply` (offline; the output
+ *                   is committed). The AVIF <source> is emitted BEFORE the WebP
+ *                   one because browsers pick the first type they support.
  *   srcSetJpg     — explicit fallback srcset override
  *   webp          — set false to skip the WebP <source> (e.g. runtime uploads
  *                   that have no generated sibling). Default true.
@@ -56,6 +60,7 @@ export function Image({
   sizes = "100vw",
   widths,
   srcSetWebp,
+  srcSetAvif,
   srcSetJpg,
   webp = true,
   className = "",
@@ -85,6 +90,22 @@ export function Image({
       ? widths.map((w) => `${base}-${w}.webp ${w}w`).join(", ")
       : webpSrc)
 
+  // AVIF, built from the same base and widths as the WebP set above.
+  // scripts/generate-avif.js writes an .avif sibling for every responsive
+  // .webp under public/images, so the two sets are always in step — and it
+  // skips any image where AVIF came out larger, which is why this is a
+  // progressive enhancement rather than a guarantee.
+  //
+  // Order matters: the browser takes the FIRST <source> whose type it
+  // supports, so AVIF must precede WebP. Anything that understands neither
+  // falls through to the original <img src>, exactly as before.
+  const avifSrc = base ? `${base}.avif` : null
+  const avifSet =
+    srcSetAvif ||
+    (base && Array.isArray(widths) && widths.length
+      ? widths.map((w) => `${base}-${w}.avif ${w}w`).join(", ")
+      : avifSrc)
+
   function handleError(e) {
     setErrored(true)
     if (typeof onError === "function") onError(e)
@@ -92,6 +113,9 @@ export function Image({
 
   return (
     <picture className={className}>
+      {!errored && avifSet && (
+        <source srcSet={avifSet} type="image/avif" sizes={sizes} />
+      )}
       {!errored && webpSet && (
         <source srcSet={webpSet} type="image/webp" sizes={sizes} />
       )}

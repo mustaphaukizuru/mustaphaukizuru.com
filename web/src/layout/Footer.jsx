@@ -230,11 +230,30 @@ export default function Footer() {
               aria-label={t("footer.paymentsAria")}
             >
               <div className="flex items-center overflow-hidden rounded-md border border-white/10 bg-[#ffe600] px-3">
-                <img
-                  src={mercadoPagoLogo}
-                  alt={t("footer.mercadoPagoAcceptedAlt")}
-                  className="h-6 w-28 object-contain"
-                />
+                {/* Rendered at 112x24 but the PNG master is 1021px wide.
+                    AVIF and WebP siblings already exist in
+                    web/public/images/brand -- a plain <img src=".png">
+                    ignored all of them and shipped the master on every
+                    page. AVIF first, WebP next, PNG as the last resort. */}
+                <picture>
+                  <source
+                    type="image/avif"
+                    srcSet="/images/brand/MP_CMYK_HANDSHAKE_color_horizontal-400.avif"
+                  />
+                  <source
+                    type="image/webp"
+                    srcSet="/images/brand/MP_CMYK_HANDSHAKE_color_horizontal-400.webp"
+                  />
+                  <img
+                    src={mercadoPagoLogo}
+                    alt={t("footer.mercadoPagoAcceptedAlt")}
+                    width={112}
+                    height={24}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-6 w-28 object-contain"
+                  />
+                </picture>
               </div>
               <div className="flex items-center overflow-hidden rounded-md border border-white/10 bg-white px-3 py-2">
                 <img
