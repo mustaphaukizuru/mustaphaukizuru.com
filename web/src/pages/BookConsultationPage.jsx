@@ -42,7 +42,7 @@ function HeroBadge() {
 function HostCard() {
   const { t } = useTranslation("contact")
   return (
-    <div className="overflow-hidden rounded-xl border border-violet/15 bg-white shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.08)]">
+    <div className="overflow-hidden rounded-xl border border-violet/15 bg-white shadow-[var(--shadow-e6)]">
       <div className="h-16 bg-gradient-to-r from-violet via-violet-deep to-charcoal-80" aria-hidden="true" />
       <div className="-mt-12 flex justify-center">
         <picture>
@@ -52,7 +52,7 @@ function HostCard() {
             alt={t("book.host.photoAlt")}
             width="96"
             height="96"
-            className="h-24 w-24 rounded-full bg-white object-cover ring-4 ring-white shadow-[0_10px_28px_rgb(var(--color-charcoal-rgb)/0.18)]"
+            className="h-24 w-24 rounded-full bg-white object-cover ring-4 ring-white shadow-[var(--shadow-n3)]"
           />
         </picture>
       </div>
@@ -68,7 +68,7 @@ function HostCard() {
 
 function TrustItem({ icon: Icon, title, body }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+    <div className="flex items-start gap-3 rounded-xl border border-charcoal/10 bg-white p-4 shadow-[var(--shadow-e3)]">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
         <Icon className="h-[18px] w-[18px]" />
       </div>
@@ -200,7 +200,7 @@ export default function BookConsultationPage() {
         <div className="grid gap-6 lg:grid-cols-[1fr_360px] lg:gap-8">
           <div className="min-w-0">
             {loading ? (
-              <div className="h-[520px] animate-pulse rounded-xl border border-charcoal/10 bg-white shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.06)]" />
+              <div className="h-[520px] animate-pulse rounded-xl border border-charcoal/10 bg-white shadow-[var(--shadow-e6)]" />
             ) : (
               <BookingCalendar
                 serviceId={service?.id || null}

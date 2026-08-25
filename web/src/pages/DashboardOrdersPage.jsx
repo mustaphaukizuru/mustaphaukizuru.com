@@ -209,7 +209,7 @@ export default function DashboardOrdersPage() {
       </div>
 
       {/* Orders table */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h3 className="text-card font-semibold text-violet">{t("orders.table.title")}</h3>

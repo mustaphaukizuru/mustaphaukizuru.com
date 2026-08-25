@@ -51,9 +51,9 @@ const ICON_SIZE = {
 const VARIANT_CLASS = {
   primary:
     "bg-[var(--color-action-primary)] text-[var(--color-text-on-violet)] " +
-    "shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.18)] " +
-    "hover:bg-[var(--color-action-primary-hover)] hover:shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.24)] " +
-    "active:bg-[var(--color-action-primary-active)] active:shadow-[0_2px_8px_rgb(var(--color-violet-rgb)/0.20)]",
+    "shadow-[var(--shadow-lift-1)] " +
+    "hover:bg-[var(--color-action-primary-hover)] hover:shadow-[var(--shadow-lift-2)] " +
+    "active:bg-[var(--color-action-primary-active)] active:shadow-[var(--shadow-lift-1)]",
 
   secondary:
     "bg-[var(--color-action-secondary)] text-[var(--color-action-primary)] " +

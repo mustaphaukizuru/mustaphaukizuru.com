@@ -128,7 +128,7 @@ export default function DashboardAddressesPage() {
         )}
 
         {/* Intro */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[var(--shadow-e3)]">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.1em] text-violet">
@@ -142,7 +142,7 @@ export default function DashboardAddressesPage() {
             <button
               type="button"
               onClick={() => setEditing("new")}
-              className="inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-meta font-semibold text-white shadow-[0_6px_18px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+              className="inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-meta font-semibold text-white shadow-[var(--shadow-lift-1)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
             >
               <Plus className="h-4 w-4" /> {t("addresses.intro.addAddress")}
             </button>

@@ -25,7 +25,7 @@ export default function LicenseUpdates({ product }) {
     <section
       aria-labelledby="license-heading"
       data-placeholder="license-terms"
-      className="mt-8 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
+      className="mt-8 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]"
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">

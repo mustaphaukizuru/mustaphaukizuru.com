@@ -59,7 +59,7 @@ export default function FormShell({
   return (
     <section className="space-y-4 pb-6">
       {/* ── Sticky top action bar ──────────────────────────── */}
-      <div className="sticky top-[120px] z-20 -mx-3 rounded-xl border border-charcoal-80/10 bg-white/95 px-4 py-3 shadow-[0_4px_20px_rgb(var(--color-violet-rgb)/0.06)] backdrop-blur-md sm:-mx-5 sm:px-5 lg:top-[140px] lg:mx-0">
+      <div className="sticky top-[120px] z-20 -mx-3 rounded-xl border border-charcoal-80/10 bg-white/95 px-4 py-3 shadow-[var(--shadow-e3)] backdrop-blur-md sm:-mx-5 sm:px-5 lg:top-[140px] lg:mx-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Title cluster */}
           <div className="min-w-0 flex-1">
@@ -100,7 +100,7 @@ export default function FormShell({
                 onClick={onSave}
                 disabled={saving || !canSave}
                 aria-busy={saving ? "true" : "false"}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[var(--shadow-lift-4)] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
               >
                 {saving ? (
                   <>
@@ -185,7 +185,7 @@ export default function FormShell({
  *  ──────────────────────────────────────────────────────────────────── */
 export function FormCard({ title, description, action, children, className = "" }) {
   return (
-    <div className={`rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] ${className}`}>
+    <div className={`rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[var(--shadow-e3)] ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">

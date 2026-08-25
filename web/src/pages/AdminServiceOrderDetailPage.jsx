@@ -156,7 +156,7 @@ export default function AdminServiceOrderDetailPage() {
       </Link>
 
       {/* Header card */}
-      <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+      <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-[var(--shadow-e3)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-steel">Service order</p>
@@ -174,7 +174,7 @@ export default function AdminServiceOrderDetailPage() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Client */}
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[var(--shadow-e3)]">
           <h2 className="text-[14px] font-bold text-charcoal">Client</h2>
           <div className="mt-3 space-y-1.5 text-[13px] text-charcoal">
             <div className="font-semibold text-violet">
@@ -192,7 +192,7 @@ export default function AdminServiceOrderDetailPage() {
         </div>
 
         {/* Service */}
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[var(--shadow-e3)]">
           <h2 className="text-[14px] font-bold text-charcoal">Service</h2>
           <div className="mt-3 space-y-1.5 text-[13px]">
             <div className="font-semibold text-charcoal">{order.service?.title || order.serviceTitle || "—"}</div>
@@ -213,7 +213,7 @@ export default function AdminServiceOrderDetailPage() {
 
       {/* Status actions */}
       {!isFinal && (
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[var(--shadow-e3)]">
           <h2 className="text-[14px] font-bold text-charcoal">Update status</h2>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {STATUS_TRANSITIONS
@@ -236,7 +236,7 @@ export default function AdminServiceOrderDetailPage() {
       )}
 
       {/* Project link or placeholder */}
-      <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+      <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[var(--shadow-e3)]">
         <h2 className="text-[14px] font-bold text-charcoal">Project workspace</h2>
         {order.projectId ? (
           <a
@@ -257,7 +257,7 @@ export default function AdminServiceOrderDetailPage() {
 
       {/* Consultation summary (read-only here; scheduling lives in /admin/consultations) */}
       {order.consultations && order.consultations.length > 0 && (
-        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[var(--shadow-e3)]">
           <h2 className="text-[14px] font-bold text-charcoal">Consultations</h2>
           <ul className="mt-3 space-y-2 text-[12px] text-steel-700">
             {order.consultations.map((c) => (
@@ -272,7 +272,7 @@ export default function AdminServiceOrderDetailPage() {
       )}
 
       {/* Internal notes */}
-      <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+      <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-[var(--shadow-e3)]">
         <div className="flex items-center justify-between gap-3">
           <h2 className="inline-flex items-center gap-2 text-[14px] font-bold text-charcoal">
             <FileText className="h-4 w-4 text-violet" aria-hidden="true" />

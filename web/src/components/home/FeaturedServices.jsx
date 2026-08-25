@@ -29,7 +29,7 @@ export default function FeaturedServices() {
             <li key={key} className="h-full">
               <Link
                 to={to}
-                className="group flex h-full flex-col gap-5 rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.10)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                className="group flex h-full flex-col gap-5 rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e4)] transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.10)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
               >
                 <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet/10 text-violet transition group-hover:bg-violet group-hover:text-white">
                   <Icon className="h-6 w-6" aria-hidden="true" />

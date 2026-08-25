@@ -132,7 +132,7 @@ export default function BuyBox({
   const { t } = useTranslation("product")
 
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)]">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e4)]">
       <h1 className="text-section font-bold leading-tight tracking-tight text-violet">{product.title}</h1>
 
       <CreatorStrip />
@@ -183,7 +183,7 @@ export default function BuyBox({
         <button
           type="button"
           onClick={onAddToCart}
-          className={`flex w-full items-center justify-center gap-2 rounded-xl py-4 text-body font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.22)] transition-all hover:-translate-y-0.5 ${
+          className={`flex w-full items-center justify-center gap-2 rounded-xl py-4 text-body font-semibold text-white shadow-[var(--shadow-lift-3)] transition-all hover:-translate-y-0.5 ${
             added ? "bg-mint-600 shadow-[0_10px_28px_rgba(47,163,107,0.25)]" : "bg-violet hover:bg-violet-deep"
           }`}
         >
@@ -257,7 +257,7 @@ export function MobileBuyBar({ price, currency, onAddToCart, added, productTitle
         <button
           type="button"
           onClick={onAddToCart}
-          className={`flex shrink-0 items-center gap-2 rounded-xl px-5 py-3 text-meta font-semibold text-white shadow-[0_6px_16px_rgb(var(--color-violet-rgb)/0.18)] transition active:scale-95 ${
+          className={`flex shrink-0 items-center gap-2 rounded-xl px-5 py-3 text-meta font-semibold text-white shadow-[var(--shadow-lift-1)] transition active:scale-95 ${
             added ? "bg-mint-600" : "bg-violet hover:bg-violet-deep"
           }`}
         >

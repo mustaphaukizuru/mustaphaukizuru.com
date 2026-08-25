@@ -118,7 +118,7 @@ function ServiceOrderCard({ order }) {
   return (
     <m.article
       {...fadeUp}
-      className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_4px_18px_rgb(var(--color-violet-rgb)/0.04)]"
+      className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e3)]"
     >
       <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-start">
         <div className="min-w-0">

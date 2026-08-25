@@ -109,7 +109,7 @@ function AddRuleForm({ defaultTimezone, onCreated }) {
       <button
         type="submit"
         disabled={submitting}
-        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-[13px] font-semibold text-white shadow-[var(--shadow-lift-2)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         Add rule
@@ -243,7 +243,7 @@ function AddExceptionForm({ defaultTimezone, onCreated }) {
       <button
         type="submit"
         disabled={submitting}
-        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-[13px] font-semibold text-white shadow-[var(--shadow-lift-2)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         Add exception

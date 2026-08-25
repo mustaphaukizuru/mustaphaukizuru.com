@@ -93,7 +93,7 @@ export function Btn({
 
   const variants = {
     primary:
-      "bg-violet text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.22)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgb(var(--color-violet-rgb)/0.28)] hover:bg-violet-deep",
+      "bg-violet text-white shadow-[var(--shadow-lift-3)] hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgb(var(--color-violet-rgb)/0.28)] hover:bg-violet-deep",
     secondary:
       "border border-violet/25 text-violet hover:bg-violet-pale hover:-translate-y-0.5",
     ghost:
@@ -137,7 +137,7 @@ export const staggerFast = {
 export function Card({ children, className = "", hover = true }) {
   return (
     <div
-      className={`rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] ${
+      className={`rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e4)] ${
         hover ? "transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgb(var(--color-violet-rgb)/0.10)]" : ""
       } ${className}`}
     >

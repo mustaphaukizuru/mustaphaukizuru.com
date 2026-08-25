@@ -40,7 +40,7 @@ const TONE_MAP = {
 
 export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple", trend }) {
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.08)] sm:p-5">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[var(--shadow-e3)] transition hover:shadow-[var(--shadow-e4)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="text-micro font-semibold uppercase tracking-[0.12em] text-charcoal-80/65">
@@ -162,7 +162,7 @@ export function SkeletonCard({ height = "h-[132px]" }) {
  *  ──────────────────────────────────────────────────────────────────── */
 export function SectionCard({ title, subtitle, action, children, className = "" }) {
   return (
-    <div className={`rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] ${className}`}>
+    <div className={`rounded-xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e3)] ${className}`}>
       {(title || action) && (
         <div className="flex flex-col gap-2 border-b border-charcoal-80/8 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
           <div className="min-w-0">
@@ -217,7 +217,7 @@ export function PrimaryBtn({
     lg: "px-5 py-3 text-meta gap-2",
   }
   const variants = {
-    primary: "bg-violet text-white hover:bg-violet-deep shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.18)] focus-visible:ring-azure/40",
+    primary: "bg-violet text-white hover:bg-violet-deep shadow-[var(--shadow-lift-1)] focus-visible:ring-azure/40",
     secondary: "border border-violet/20 bg-white text-violet hover:bg-violet-pale focus-visible:ring-azure/30",
     danger: "bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-300/40",
     ghost: "text-charcoal-80/65 hover:bg-violet-pale hover:text-violet focus-visible:ring-azure/30",

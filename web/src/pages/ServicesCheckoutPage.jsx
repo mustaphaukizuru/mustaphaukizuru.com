@@ -324,7 +324,7 @@ export default function ServicesCheckoutPage() {
             className="space-y-6"
           >
             {/* Plan header */}
-            <div className="rounded-2xl border border-violet/20 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+            <div className="rounded-2xl border border-violet/20 bg-white p-6 shadow-[var(--shadow-e3)]">
               <div className="mb-2 flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-violet">
                   <Briefcase className="h-3 w-3" /> {plan.audienceName}
@@ -368,7 +368,7 @@ export default function ServicesCheckoutPage() {
             </div>
 
             {/* Customer info form */}
-            <div className="rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+            <div className="rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
               <h2 className="text-card font-bold text-violet">{t("checkout.form.title")}</h2>
               <p className="mt-1 text-meta text-charcoal-80/65">
                 {isAuthenticated ? t("checkout.form.prefilled") : t("checkout.form.guest")}
@@ -411,7 +411,7 @@ export default function ServicesCheckoutPage() {
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}
             className="lg:sticky lg:top-6 space-y-4 self-start"
           >
-            <div className="rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+            <div className="rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
               <h3 className="text-card font-bold text-violet">{t("checkout.payment.title")}</h3>
 
               {/* Method picker · brand names left untranslated by design. */}
@@ -468,7 +468,7 @@ export default function ServicesCheckoutPage() {
                 {paymentMethod === "mercadopago" ? (
                   <button
                     type="button" onClick={handleMercadoPago} disabled={busy}
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-violet px-4 py-3 text-sm font-semibold text-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.20)] transition hover:bg-violet-deep disabled:opacity-60"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-violet px-4 py-3 text-sm font-semibold text-white shadow-[var(--shadow-lift-1)] transition hover:bg-violet-deep disabled:opacity-60"
                   >
                     {busy
                       ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("checkout.payment.starting")}</>

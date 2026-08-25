@@ -330,7 +330,7 @@ export default function DataTable({
   const someOnPageSelected = pagedRows.some((r) => selected.has(rowKey(r))) && !allOnPageSelected
 
   return (
-    <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+    <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e3)]">
       {/* Toolbar */}
       <div className="flex flex-col gap-3 border-b border-charcoal-80/8 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">

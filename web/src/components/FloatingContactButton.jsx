@@ -147,7 +147,7 @@ export default function FloatingContactButton() {
                 exit={{ opacity: 0, scale: 0.8, y: 8 }}
                 transition={{ duration: 0.2 }}
                 whileHover={reduced ? undefined : { y: -2 }}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-charcoal-80/10 bg-white text-violet shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.18)] transition hover:border-violet/30 hover:text-violet-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-charcoal-80/10 bg-white text-violet shadow-[var(--shadow-lift-4)] transition hover:border-violet/30 hover:text-violet-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2"
               >
                 <ArrowUp className="h-5 w-5" strokeWidth={2.4} aria-hidden="true" />
               </m.button>

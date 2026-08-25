@@ -71,7 +71,7 @@ export default function PrivacyPage() {
             and CookiePolicyPage for consistency across the legal trio. */}
         <nav
           aria-label={t("privacy.tocAria", { defaultValue: "Table of contents" })}
-          className="mb-8 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
+          className="mb-8 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[var(--shadow-e2)]"
         >
           <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
             {t("privacy.tocLabel", { defaultValue: "On this page" })}
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
               id={slug}
               // scroll-mt offset accounts for the sticky Header so the
               // section title isn't hidden behind it on anchor jumps.
-              className="scroll-mt-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
+              className="scroll-mt-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e2)]"
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

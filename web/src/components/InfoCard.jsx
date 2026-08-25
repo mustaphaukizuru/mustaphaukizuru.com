@@ -10,7 +10,7 @@ export default function InfoCard({
     <m.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.2 }}
-      className={`rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_12px_30px_rgb(var(--color-violet-rgb)/0.06)] ${
+      className={`rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[var(--shadow-e6)] ${
         centered ? "text-center" : "text-left"
       }`}
     >

@@ -412,7 +412,7 @@ function BookingCalendar({ reduce }) {
           <div className="border-t border-violet/10 bg-white px-5 py-2.5">
             <Link
               to="/book"
-              className="group flex w-full items-center justify-center gap-2 rounded-full bg-violet px-4 py-2 text-[12px] font-extrabold uppercase tracking-[0.14em] !text-white shadow-[0_10px_22px_rgb(var(--color-violet-rgb)/0.30)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/45"
+              className="group flex w-full items-center justify-center gap-2 rounded-full bg-violet px-4 py-2 text-[12px] font-extrabold uppercase tracking-[0.14em] !text-white shadow-[var(--shadow-lift-2)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/45"
             >
               <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
               {t("hero.pickSlot")}

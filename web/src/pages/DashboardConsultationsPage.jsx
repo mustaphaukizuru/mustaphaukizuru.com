@@ -358,7 +358,7 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
   const serviceTitle = c.service?.title || t("consultations.row.fallbackService")
 
   return (
-    <div className="rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.08)] sm:p-5">
+    <div className="rounded-xl border border-charcoal/10 bg-white p-4 shadow-[var(--shadow-e3)] transition hover:shadow-[var(--shadow-e4)] sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -388,7 +388,7 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
             <a
               href={c.meetingLink}
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-violet px-3.5 py-2 text-[12px] font-semibold text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.22)] transition hover:bg-violet-deep"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-violet px-3.5 py-2 text-[12px] font-semibold text-white shadow-[var(--shadow-lift-4)] transition hover:bg-violet-deep"
             >
               <Video className="h-3.5 w-3.5" /> {t("consultations.row.joinMeeting")}
             </a>
@@ -508,7 +508,7 @@ export default function DashboardConsultationsPage() {
         action={
           <Link
             to="/book"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-3.5 py-2 text-[12px] font-semibold text-white shadow-[0_6px_16px_rgb(var(--color-violet-rgb)/0.2)] transition hover:bg-violet-deep"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-3.5 py-2 text-[12px] font-semibold text-white shadow-[var(--shadow-lift-4)] transition hover:bg-violet-deep"
           >
             <Calendar className="h-3.5 w-3.5" /> {t("consultations.section.bookCall")}
           </Link>

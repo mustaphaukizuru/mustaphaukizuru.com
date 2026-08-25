@@ -31,7 +31,7 @@ const VARIANT = {
     "hover:bg-[var(--color-violet-pale)]",
   solid:
     "bg-[var(--color-action-primary)] text-[var(--color-text-on-violet)] " +
-    "shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.18)] " +
+    "shadow-[var(--shadow-lift-1)] " +
     "hover:bg-[var(--color-action-primary-hover)]",
   destructive:
     "bg-transparent text-[var(--color-feedback-danger)] " +

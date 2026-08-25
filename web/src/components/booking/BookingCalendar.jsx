@@ -440,7 +440,7 @@ export default function BookingCalendar({
     return (
       <m.div
         variants={fadeUp} initial="hidden" animate="show"
-        className="rounded-xl border border-charcoal/10 bg-white p-6 text-center shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.06)] sm:p-10"
+        className="rounded-xl border border-charcoal/10 bg-white p-6 text-center shadow-[var(--shadow-e6)] sm:p-10"
       >
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-mint/12 text-emerald-700 sm:h-16 sm:w-16">
           <CheckCircle2 className="h-7 w-7 sm:h-8 sm:w-8" />
@@ -459,7 +459,7 @@ export default function BookingCalendar({
           <button
             type="button"
             onClick={() => navigate("/dashboard/consultations")}
-            className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
+            className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3 text-[13px] font-semibold text-white shadow-[var(--shadow-lift-2)] transition hover:bg-violet-deep"
           >
             {t("bookingCalendar.viewDashboard")}
           </button>
@@ -481,7 +481,7 @@ export default function BookingCalendar({
   return (
     <m.div
       variants={stagger} initial="hidden" animate="show"
-      className="rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.06)] sm:p-6"
+      className="rounded-xl border border-charcoal/10 bg-white p-4 shadow-[var(--shadow-e6)] sm:p-6"
     >
       {/* Header, title + stepper + timezone */}
       <m.div variants={fadeUp} className="mb-5 flex flex-col gap-3 border-b border-charcoal/10 pb-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
@@ -600,7 +600,7 @@ export default function BookingCalendar({
                     isPast
                       ? "cursor-not-allowed text-charcoal/25"
                       : isAvailable
-                        ? "bg-violet-ghost text-violet hover:bg-violet hover:text-white hover:shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.18)]"
+                        ? "bg-violet-ghost text-violet hover:bg-violet hover:text-white hover:shadow-[var(--shadow-lift-4)]"
                         : "cursor-not-allowed text-charcoal/30",
                     isToday && !isPast ? "ring-1 ring-violet/30" : "",
                   ].join(" ")}
@@ -664,7 +664,7 @@ export default function BookingCalendar({
                   key={labelled.startUtc}
                   type="button"
                   onClick={() => handleSlotClick(slots[i])}
-                  className="cursor-pointer rounded-xl border border-violet/15 bg-white px-3 py-3 text-[13px] font-semibold text-violet transition hover:border-transparent hover:bg-violet hover:text-white hover:shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)]"
+                  className="cursor-pointer rounded-xl border border-violet/15 bg-white px-3 py-3 text-[13px] font-semibold text-violet transition hover:border-transparent hover:bg-violet hover:text-white hover:shadow-[var(--shadow-lift-4)]"
                 >
                   {labelled.label}
                 </button>
@@ -737,7 +737,7 @@ export default function BookingCalendar({
             type="button"
             onClick={handleConfirm}
             disabled={submitting}
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3.5 text-[14px] font-semibold text-white shadow-[var(--shadow-lift-3)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
           >
             {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> {t("bookingCalendar.bookingEllipsis")}</>) : (<>{t("bookingCalendar.confirmBooking")} <Check className="h-4 w-4" /></>)}
           </button>

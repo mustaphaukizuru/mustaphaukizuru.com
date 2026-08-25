@@ -105,7 +105,7 @@ function LanguageCard({ language }) {
       variants={fadeUp}
       whileHover={reduce ? undefined : { y: -4 }}
       transition={{ type: "spring", stiffness: 240, damping: 24 }}
-      className="group relative overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_18px_rgb(var(--color-violet-rgb)/0.05)] transition-shadow hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.12)]"
+      className="group relative overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[var(--shadow-e3)] transition-shadow hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.12)]"
       aria-label={`${language.name}, ${displayLabel}`}
     >
       <header className="mb-5 flex items-start justify-between gap-3">
@@ -132,7 +132,7 @@ function LanguageCard({ language }) {
             <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{language.code}</div>
           </div>
         </div>
-        <span className="inline-flex shrink-0 items-center rounded-full bg-violet px-2.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums tracking-wider text-white shadow-[0_4px_10px_rgb(var(--color-violet-rgb)/0.20)]">
+        <span className="inline-flex shrink-0 items-center rounded-full bg-violet px-2.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums tracking-wider text-white shadow-[var(--shadow-lift-1)]">
           {displayLevel}
         </span>
       </header>

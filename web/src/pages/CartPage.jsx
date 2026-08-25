@@ -79,7 +79,7 @@ function EmptyCart() {
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link
           to="/store"
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[var(--shadow-lift-3)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
         >
           <ShoppingCart className="h-4 w-4" aria-hidden="true" /> {t("empty.browseStore")}
         </Link>
@@ -141,7 +141,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.22 }}
-      className="group overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-3 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)] sm:p-5"
+      className="group overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-3 shadow-[var(--shadow-e2)] sm:p-5"
     >
       <div className="flex gap-3 sm:gap-4">
         {/* Image */}
@@ -238,7 +238,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
   const itemCount = items.reduce((s, i) => s + i.quantity, 0)
 
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)] lg:sticky lg:top-24">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e4)] lg:sticky lg:top-24">
       <div className="border-b border-charcoal-80/10 px-6 py-5">
         <h2 className="text-card font-bold text-violet">{t("summary.title")}</h2>
         <p className="mt-1 text-micro text-charcoal-80/65">

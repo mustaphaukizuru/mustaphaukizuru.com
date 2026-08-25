@@ -235,8 +235,60 @@
   --radius-full: 9999px;
 
   /* ───────────────────────────────────────────────────────────────────────
-     5 · SHADOW (3 elevations only)
+     5 · SHADOW — elevation scale
+
+     This section used to read "3 elevations only". It was not enforced:
+     a sweep of web/src found 249 DISTINCT arbitrary shadow values across
+     497 usages, one of them repeated 69 times. The three tokens below
+     accounted for 7.
+
+     The scale is derived from what the codebase actually reaches for,
+     not invented, and it has three tracks because the usage has three
+     intents:
+
+       e1-e7      ambient elevation, violet-tinted, low alpha. The
+                  resting depth of cards, panels and popovers.
+       n1-n3      neutral elevation, charcoal-tinted. Used where a
+                  violet cast would fight a warm or photographic ground.
+       lift-1..4  emphasis, high alpha. CTAs and hover states that are
+                  meant to read as raised, not merely present.
+
+     255 of the 497 usages now resolve to these tokens: 147 are
+     pixel-identical (the token value IS the value they used) and 108
+     were within a tight tolerance (<=3px offset, <=6px blur, <=0.05
+     alpha). The remaining 227 are genuine one-offs -- negative spreads,
+     insets, multi-layer stacks, non-brand colours -- and were left
+     alone, because collapsing those would change designs rather than
+     de-duplicate them.
+
+     Tailwind emits one rule per distinct value, so this saves no bytes.
+     It is a consistency and maintenance change: a new card should pick
+     a step, not invent a 250th value.
      ─────────────────────────────────────────────────────────────────────── */
+
+  /* Ambient — violet-tinted resting elevation */
+  --shadow-e1:  0 1px  2px  rgb(var(--color-violet-rgb) / 0.04);
+  --shadow-e2:  0 2px  10px rgb(var(--color-violet-rgb) / 0.04);
+  --shadow-e3:  0 4px  16px rgb(var(--color-violet-rgb) / 0.04);
+  --shadow-e4:  0 8px  24px rgb(var(--color-violet-rgb) / 0.05);
+  --shadow-e5:  0 10px 24px rgb(var(--color-violet-rgb) / 0.04);
+  --shadow-e6:  0 12px 32px rgb(var(--color-violet-rgb) / 0.08);
+  --shadow-e7:  0 24px 60px rgb(var(--color-violet-rgb) / 0.20);
+
+  /* Neutral — charcoal-tinted, for grounds a violet cast would fight */
+  --shadow-n1:  0 1px  2px  rgb(var(--color-charcoal-rgb) / 0.04);
+  --shadow-n2:  0 4px  12px rgb(var(--color-charcoal-rgb) / 0.06);
+  --shadow-n3:  0 10px 30px rgb(var(--color-charcoal-rgb) / 0.18);
+
+  /* Lift — emphasis / raised states */
+  --shadow-lift-1: 0 4px  14px rgb(var(--color-violet-rgb) / 0.18);
+  --shadow-lift-2: 0 8px  22px rgb(var(--color-violet-rgb) / 0.25);
+  --shadow-lift-3: 0 10px 28px rgb(var(--color-violet-rgb) / 0.22);
+  --shadow-lift-4: 0 8px  20px rgb(var(--color-violet-rgb) / 0.20);
+
+  /* Semantic aliases — the original three names, kept so existing
+     `shadow-[var(--shadow-rest)]` call sites keep working. Values are
+     unchanged from before this refactor. */
   --shadow-rest:     0 4px 16px  rgba(93, 63, 211, 0.06);
   --shadow-hover:    0 12px 32px rgba(93, 63, 211, 0.12);
   --shadow-overlay:  0 24px 60px rgba(93, 63, 211, 0.20);
@@ -493,6 +545,30 @@
   --shadow-popover:               0 16px 40px rgba(0, 0, 0, 0.40);
   --shadow-card-soft:             0 8px 20px  rgba(0, 0, 0, 0.30);
   --shadow-card-md:               0 12px 28px rgba(0, 0, 0, 0.35);
+
+  /* The elevation scale needs the same treatment for the same reason:
+   * a violet shadow at 4% alpha is invisible against #0E0F14, so every
+   * card migrated onto e1-e7 would silently flatten in dark mode.
+   * Geometry is preserved step for step; only the colour and alpha
+   * change, so an element keeps its relative depth across themes. */
+  --shadow-e1:  0 1px  2px  rgba(0, 0, 0, 0.30);
+  --shadow-e2:  0 2px  10px rgba(0, 0, 0, 0.34);
+  --shadow-e3:  0 4px  16px rgba(0, 0, 0, 0.38);
+  --shadow-e4:  0 8px  24px rgba(0, 0, 0, 0.42);
+  --shadow-e5:  0 10px 24px rgba(0, 0, 0, 0.44);
+  --shadow-e6:  0 12px 32px rgba(0, 0, 0, 0.48);
+  --shadow-e7:  0 24px 60px rgba(0, 0, 0, 0.58);
+
+  --shadow-n1:  0 1px  2px  rgba(0, 0, 0, 0.30);
+  --shadow-n2:  0 4px  12px rgba(0, 0, 0, 0.36);
+  --shadow-n3:  0 10px 30px rgba(0, 0, 0, 0.48);
+
+  /* Lift keeps a violet cast on dark — these are emphasis states where
+   * the brand glow is the point, and at 0.30+ alpha it stays visible. */
+  --shadow-lift-1: 0 4px  14px rgb(var(--color-violet-rgb) / 0.34);
+  --shadow-lift-2: 0 8px  22px rgb(var(--color-violet-rgb) / 0.40);
+  --shadow-lift-3: 0 10px 28px rgb(var(--color-violet-rgb) / 0.38);
+  --shadow-lift-4: 0 8px  20px rgb(var(--color-violet-rgb) / 0.36);
 }
 
 

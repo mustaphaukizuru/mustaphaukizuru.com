@@ -121,7 +121,7 @@ function OrderCard({ order, fileState, onDownload, onReceipt, receiptBusy }) {
   const fileCount = order.products.reduce((n, p) => n + p.files.length, 0)
 
   return (
-    <article className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+    <article className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e3)]">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 px-5 py-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-baseline gap-2">
@@ -216,7 +216,7 @@ function OrderCard({ order, fileState, onDownload, onReceipt, receiptBusy }) {
 /* Mirrors <MetricCard> — border + p-4/sm:p-5, label · value · subtitle. */
 function MetricSkeleton() {
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:p-5">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[var(--shadow-e3)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <Skeleton w="w-2/3" h="h-3" rounded="full" />
@@ -266,7 +266,7 @@ function ProductSkeleton({ files = 2 }) {
 /* Mirrors <OrderCard> — header (order no · date · receipt) + product blocks. */
 function OrderCardSkeleton({ products = 1, files = 2 }) {
   return (
-    <article className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+    <article className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e3)]">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 px-5 py-4">
         <div className="min-w-0 flex-1">
           <Skeleton w="w-1/3" h="h-5" rounded="full" />

@@ -38,7 +38,7 @@ export default function AdminPlaceholderPage({
       </div>
 
       {/* Hero card */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] sm:p-8">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[var(--shadow-e3)] sm:p-8">
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
             <Icon className="h-6 w-6" aria-hidden="true" />

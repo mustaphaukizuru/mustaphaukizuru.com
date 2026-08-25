@@ -153,7 +153,7 @@ export default function AdminOrderDetailPage() {
   if (loading) {
     return (
       <section className="space-y-5">
-        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
           <p className="text-meta text-charcoal-80/70">Loading order details...</p>
         </div>
       </section>
@@ -163,7 +163,7 @@ export default function AdminOrderDetailPage() {
   if (!order) {
     return (
       <section className="space-y-5">
-        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
           <p className="text-meta text-charcoal-80/70">Order not found.</p>
         </div>
       </section>
@@ -223,7 +223,7 @@ export default function AdminOrderDetailPage() {
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-micro uppercase tracking-[0.12em] text-charcoal-80/65">
@@ -300,7 +300,7 @@ export default function AdminOrderDetailPage() {
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-violet-pale p-3 text-violet">
                 <User className="h-4 w-4" />
@@ -330,7 +330,7 @@ export default function AdminOrderDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-azure-pale p-3 text-azure-800">
                 <CreditCard className="h-4 w-4" />
@@ -369,7 +369,7 @@ export default function AdminOrderDetailPage() {
 
           <RefundHistoryCard refunds={refundHistory} currency={order.currency} />
 
-          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
             <div className="flex items-center gap-3">
               <div className="rounded-xl bg-mint/12 p-3 text-emerald-700">
                 <Package className="h-4 w-4" />
@@ -419,7 +419,7 @@ export default function AdminOrderDetailPage() {
 function RefundHistoryCard({ refunds, currency }) {
   if (!refunds || refunds.length === 0) {
     return (
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
         <div className="flex items-center gap-3">
           <div className="rounded-xl bg-rose-50 p-3 text-rose-600">
             <RotateCcw className="h-4 w-4" />
@@ -432,7 +432,7 @@ function RefundHistoryCard({ refunds, currency }) {
   }
 
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
       <div className="flex items-center gap-3">
         <div className="rounded-xl bg-rose-50 p-3 text-rose-600">
           <RotateCcw className="h-4 w-4" />

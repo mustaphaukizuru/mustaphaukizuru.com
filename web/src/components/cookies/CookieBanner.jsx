@@ -149,7 +149,7 @@ function PreferencesModal({ open, onClose }) {
               <button
                 type="button"
                 onClick={handleSave}
-                className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
+                className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[var(--shadow-lift-2)] transition hover:bg-violet-deep"
               >
                 <Check className="h-4 w-4" /> {t("cookies.savePrefs2")}
               </button>
@@ -219,7 +219,7 @@ export default function CookieBanner() {
                 <button
                   type="button"
                   onClick={acceptAll}
-                  className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
+                  className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[var(--shadow-lift-2)] transition hover:bg-violet-deep"
                 >
                   {t("cookies.acceptAll")}
                 </button>

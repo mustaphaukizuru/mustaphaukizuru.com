@@ -54,7 +54,7 @@ export default function UnsubscribedPage() {
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-3 text-meta font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+              className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-3 text-meta font-semibold text-white shadow-[var(--shadow-lift-3)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
             >
               <ArrowLeft className="h-4 w-4" />
               {t(`${k}.back`)}

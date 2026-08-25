@@ -22,7 +22,7 @@ export default function ProfileTabs({ className = "" }) {
   return (
     <nav
       aria-label={t("layout.profileTabsAria")}
-      className={`-mx-1 flex gap-1 overflow-x-auto rounded-xl border border-charcoal-80/10 bg-white p-1 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] ${className}`}
+      className={`-mx-1 flex gap-1 overflow-x-auto rounded-xl border border-charcoal-80/10 bg-white p-1 shadow-[var(--shadow-e3)] ${className}`}
     >
       {TABS.map(({ to, labelKey, icon: Icon, end }) => (
         <NavLink

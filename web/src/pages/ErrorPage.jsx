@@ -275,7 +275,7 @@ export default function ErrorPage({
           key="retry"
           type="button"
           onClick={handleRetry}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[var(--shadow-lift-4)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
         >
           <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("actions.tryAgain")}
         </button>
@@ -288,7 +288,7 @@ export default function ErrorPage({
           key="signIn"
           type="button"
           onClick={handleSignIn}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[var(--shadow-lift-4)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
         >
           <LogIn className="h-4 w-4" aria-hidden="true" /> {t("actions.signIn")}
         </button>

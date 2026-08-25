@@ -90,7 +90,7 @@ export default function UserMenu() {
       <Link
         to="/login"
         state={{ from: returnTo }}
-        className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white shadow-[0_6px_18px_rgb(var(--color-violet-rgb)/0.22)] transition-all hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.28)]"
+        className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white shadow-[var(--shadow-lift-4)] transition-all hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[var(--shadow-lift-2)]"
       >
         {t("userMenu.memberLogin")}
       </Link>

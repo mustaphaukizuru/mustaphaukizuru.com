@@ -84,7 +84,7 @@ export default function AdminHeader() {
 
   return (
     <header
-      className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_20px_rgb(var(--color-violet-rgb)/0.04)]"
+      className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e3)]"
       role="banner"
     >
       {/* Top row: breadcrumb + tools */}
