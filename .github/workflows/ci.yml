@@ -51,8 +51,13 @@ jobs:
 
       # Block only on `moderate` and above so noisy low-CVSS advisories don't
       # fail the build while the multer-1.x class of issue is still caught.
+      # Blocks on moderate+ EXCEPT a short, written allow-list of advisories
+      # judged unreachable here (see scripts/audit-gate.js and
+      # docs/LAUNCH_HANDOVER_2026-08.md section 8). Plain
+      # `npm audit --audit-level=moderate` fails on those permanently, and a
+      # permanently red gate stops catching the advisories that do matter.
       - name: Audit backend dependencies
-        run: npm audit --omit=dev --audit-level=moderate
+        run: node scripts/audit-gate.js
 
       - name: Run backend tests
         run: npm test
