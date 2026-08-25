@@ -151,7 +151,7 @@ export default function Dashboard2FAPage() {
         )}
 
         {/* Hero */}
-        <div className={`rounded-xl border p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] sm:p-6 ${
+        <div className={`rounded-xl border p-5 shadow-[var(--shadow-e3)] sm:p-6 ${
           currentState === "enabled"
             ? "border-mint/20 bg-gradient-to-br from-emerald-50 to-white"
             : "border-charcoal-80/10 bg-white"
@@ -161,7 +161,7 @@ export default function Dashboard2FAPage() {
               <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
                 currentState === "enabled"
                   ? "bg-emerald-500 text-white shadow-[0_8px_20px_rgb(var(--color-mint-rgb)/0.25)]"
-                  : "bg-violet text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)]"
+                  : "bg-violet text-white shadow-[var(--shadow-lift-4)]"
               }`}>
                 {currentState === "enabled" ? <ShieldCheck className="h-6 w-6" /> : <Shield className="h-6 w-6" />}
               </div>
@@ -218,7 +218,7 @@ export default function Dashboard2FAPage() {
         )}
 
         {currentState === "setup" && !setupData && (
-          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 text-center shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 text-center shadow-[var(--shadow-e3)]">
             <p className="text-meta text-charcoal-80/70">{t("twoFactor.stale.body")}</p>
             <button
               type="button"
@@ -280,7 +280,7 @@ function DisabledState({ onStart, starting }) {
           type="button"
           onClick={onStart}
           disabled={starting}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-3 text-meta font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-3 text-meta font-semibold text-white shadow-[var(--shadow-lift-2)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:opacity-60"
         >
           <Shield className="h-4 w-4" />
           {starting ? t("twoFactor.disabled.starting") : t("twoFactor.disabled.enable")}
@@ -311,7 +311,7 @@ function SetupState({ data, code, setCode, onVerify, verifying, onCancel }) {
     >
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         <div className="flex flex-col items-center gap-3">
-          <div className="rounded-xl border border-charcoal-80/15 bg-white p-3 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.06)]">
+          <div className="rounded-xl border border-charcoal-80/15 bg-white p-3 shadow-[var(--shadow-e3)]">
             {data.qrCodeDataUrl ? (
               <img src={data.qrCodeDataUrl} alt={t("twoFactor.setup.qrAlt")} width={220} height={220} className="block" />
             ) : (
@@ -568,7 +568,7 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
 
   const toneClasses = confirmTone === "red"
     ? "bg-red-600 hover:bg-red-700 shadow-[0_8px_20px_rgb(var(--color-rose-rgb)/0.25)]"
-    : "bg-violet hover:bg-violet-deep shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.22)]"
+    : "bg-violet hover:bg-violet-deep shadow-[var(--shadow-lift-4)]"
 
   return (
     <m.div

@@ -256,9 +256,9 @@ export default function AdminLayout() {
           <div className="min-w-0">
 
             {/* ── Mobile Header ── */}
-            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden">
+            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[var(--shadow-e2)] lg:hidden">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.18)]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet text-white shadow-[var(--shadow-lift-1)]">
                   <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <div>

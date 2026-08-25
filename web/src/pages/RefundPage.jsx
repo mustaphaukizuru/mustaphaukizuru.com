@@ -93,7 +93,7 @@ export default function RefundPage() {
           <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.05 }}
-            className="rounded-xl border border-mint-600/20 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
+            className="rounded-xl border border-mint-600/20 bg-white p-6 shadow-[var(--shadow-e3)]"
           >
             <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-violet">
               <CheckCircle2 className="h-5 w-5 text-mint-600" /> {t("refund.eligible.title")}
@@ -112,7 +112,7 @@ export default function RefundPage() {
           <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.1 }}
-            className="rounded-xl border border-rose/20/40 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
+            className="rounded-xl border border-rose/20/40 bg-white p-6 shadow-[var(--shadow-e3)]"
           >
             <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-violet">
               <XCircle className="h-5 w-5 text-red-500" /> {t("refund.ineligible.title")}
@@ -131,7 +131,7 @@ export default function RefundPage() {
           <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.15 }}
-            className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
+            className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]"
           >
             <h2 className="mb-4 flex items-center gap-2 text-body font-bold text-violet">
               <Clock className="h-5 w-5 text-azure" /> {t("refund.process.title")}
@@ -190,7 +190,7 @@ export default function RefundPage() {
           <m.div
             {...fadeUp}
             transition={{ ...fadeUp.transition, delay: 0.25 }}
-            className="rounded-xl border border-violet/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
+            className="rounded-xl border border-violet/10 bg-white p-6 shadow-[var(--shadow-e3)]"
             lang="es"
           >
             <h2 className="mb-3 flex items-center gap-2 text-body font-bold text-violet">

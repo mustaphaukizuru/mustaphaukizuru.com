@@ -166,7 +166,21 @@ const webhook = async (req, res) => {
       }
     })()
 
-    // Audit row goes in regardless of verification result so we can debug.
+    // Reject unverified events BEFORE touching the database. The audit insert
+    // below used to run first — the old comment said "regardless of
+    // verification result so we can debug" — which handed any unauthenticated
+    // caller a write primitive: every forged POST created a paymentWebhook
+    // row, so the table could be grown without limit. The event is parsed
+    // above, so the warning still carries the event type for debugging.
+    //
+    // Trade-off, deliberate: forged deliveries are no longer persisted. They
+    // remain logged, which is the right home for them — an attacker-controlled
+    // row in a payments table is worse than a log line.
+    if (!verified) {
+      logger.warn("[PayPal webhook] signature failed", { eventType: event?.event_type })
+      return res.status(401).json({ received: true, error: "signature" })
+    }
+
     // Duplicate deliveries (same event.id) are dropped at the unique-index
     // level so PayPal retries don't spam the audit log.
     let auditRow = null
@@ -186,11 +200,6 @@ const webhook = async (req, res) => {
         return res.status(200).json({ received: true, duplicate: true })
       }
       logger.warn("[PayPal webhook] audit insert failed:", e.message)
-    }
-
-    if (!verified) {
-      logger.warn("[PayPal webhook] signature failed", { eventType: event?.event_type })
-      return res.status(401).json({ received: true, error: "signature" })
     }
 
     // Handle the events that matter for our flow.

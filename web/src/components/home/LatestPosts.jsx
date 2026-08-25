@@ -47,7 +47,7 @@ export default function LatestPosts() {
               <Link
                 key={post.slug}
                 to={`/blog/${post.slug}`}
-                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_6px_20px_rgb(var(--color-violet-rgb)/0.06)] transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_16px_40px_-12px_rgb(var(--color-violet-rgb)/0.18)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e4)] transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_16px_40px_-12px_rgb(var(--color-violet-rgb)/0.18)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
               >
                 <BlogCoverGradient
                   title={post.title}

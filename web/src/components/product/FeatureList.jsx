@@ -86,7 +86,7 @@ export function HighlightsBlock({ specifications }) {
   if (rows.length === 0) return null
 
   return (
-    <div className="mb-6 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:p-6">
+    <div className="mb-6 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[var(--shadow-e3)] sm:p-6">
       <h2 className="mb-3 inline-flex items-center gap-2 text-meta font-bold text-violet">
         <Star className="h-4 w-4 fill-current" aria-hidden="true" />
         {t("highlights.title")}
@@ -222,7 +222,7 @@ export function FAQSection({ faqs }) {
   return (
     <section
       aria-labelledby="faq-heading"
-      className="mt-8 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+      className="mt-8 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]"
     >
       <div className="mb-5 flex items-center gap-2">
         <HelpCircle className="h-5 w-5 text-violet" aria-hidden="true" />

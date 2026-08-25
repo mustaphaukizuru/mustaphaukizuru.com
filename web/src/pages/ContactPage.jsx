@@ -434,7 +434,7 @@ function ContactSection() {
 
           <a
             href="#contact-form"
-            className="group relative flex flex-col gap-3 rounded-2xl border-2 border-violet/15 bg-white p-5 text-charcoal-80 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.12)] sm:p-6"
+            className="group relative flex flex-col gap-3 rounded-2xl border-2 border-violet/15 bg-white p-5 text-charcoal-80 shadow-[var(--shadow-e4)] transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.12)] sm:p-6"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-pale text-violet">
@@ -712,7 +712,7 @@ function ContactChannelsSection() {
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <a
               href={`mailto:${EMAIL}`}
-              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.08)]"
+              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[var(--shadow-e6)]"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                 <Mail className="h-5 w-5" aria-hidden="true" />
@@ -726,7 +726,7 @@ function ContactChannelsSection() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.08)]"
+              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[var(--shadow-e6)]"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint-50 text-mint">
                 <CheckCircle2 className="h-5 w-5" aria-hidden="true" />

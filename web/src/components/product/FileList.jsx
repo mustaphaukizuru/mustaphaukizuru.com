@@ -51,7 +51,7 @@ export function FileRow({ file, onDownload, state = "idle" }) {
   const displayName = (file.fileName || t("files.untitled")).split(/[\\/]/).pop()
 
   return (
-    <li className="group flex items-center gap-3 rounded-xl border border-charcoal-80/8 bg-white p-3 transition hover:border-violet/20 hover:shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+    <li className="group flex items-center gap-3 rounded-xl border border-charcoal-80/8 bg-white p-3 transition hover:border-violet/20 hover:shadow-[var(--shadow-e3)]">
       <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${styles.chip}`} aria-hidden="true">
         <Icon className="h-5 w-5" />
       </div>

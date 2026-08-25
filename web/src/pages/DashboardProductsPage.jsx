@@ -214,7 +214,7 @@ export default function DashboardProductsPage() {
       </div>
 
       {myProducts.length === 0 ? (
-        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
           <div className="rounded-xl border border-dashed border-violet/20 bg-violet-pale/30 p-6 text-meta text-charcoal-80/70">
             {t("products.list.empty")}
           </div>
@@ -248,7 +248,7 @@ function ProductRow({ product, localeTag, t, downloadingKey, onDownload }) {
   const showImage = coverUrl && !imgBroken
 
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e5)]">
       <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row">
         <div className="aspect-[4/3] w-full shrink-0 overflow-hidden rounded-xl bg-violet-pale lg:h-44 lg:w-60">
           {showImage ? (

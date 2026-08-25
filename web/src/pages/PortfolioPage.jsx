@@ -226,7 +226,7 @@ export default function PortfolioPage() {
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-busy="true">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-96 animate-pulse rounded-2xl bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.04)]" />
+                <div key={i} className="h-96 animate-pulse rounded-2xl bg-white shadow-[var(--shadow-e4)]" />
               ))}
             </div>
           ) : error ? (

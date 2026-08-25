@@ -18,7 +18,7 @@ export function BookCallButton({ slug = null, size = "md", tone = "violet", labe
   return (
     <Link
       to={bookHref(slug)}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.18)] transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${sizes[size] || sizes.md} ${tones[tone] || tones.violet} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold shadow-[var(--shadow-lift-4)] transition-all hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${sizes[size] || sizes.md} ${tones[tone] || tones.violet} ${className}`}
     >
       <Calendar className="h-4 w-4" aria-hidden="true" />
       {label || t("funnel.cta")}

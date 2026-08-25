@@ -127,7 +127,7 @@ export default function PortfolioCard({
       onMouseLeave={() => setPaused(false)}
     >
     <SpotlightCard
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition-all hover:-translate-y-1 hover:border-l-[4px] hover:border-l-violet hover:shadow-[0_20px_48px_rgb(var(--color-violet-rgb)/0.10)]"
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e4)] transition-all hover:-translate-y-1 hover:border-l-[4px] hover:border-l-violet hover:shadow-[0_20px_48px_rgb(var(--color-violet-rgb)/0.10)]"
     >
       {/* Image area, crossfade carousel */}
       <m.div

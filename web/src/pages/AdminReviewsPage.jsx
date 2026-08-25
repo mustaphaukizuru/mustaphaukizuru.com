@@ -106,7 +106,7 @@ function FilterChips({ active, onSelect, stats }) {
             onClick={() => onSelect(s.key)}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${
               isActive
-                ? "bg-violet text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.20)]"
+                ? "bg-violet text-white shadow-[var(--shadow-lift-4)]"
                 : "bg-violet-pale text-violet hover:bg-violet-pale"
             }`}
           >
@@ -133,7 +133,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
   return (
     <m.article
       variants={fadeUp}
-      className={`group relative flex items-start gap-3 rounded-2xl border bg-white p-4 transition hover:border-violet/30 hover:shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.06)] ${
+      className={`group relative flex items-start gap-3 rounded-2xl border bg-white p-4 transition hover:border-violet/30 hover:shadow-[var(--shadow-e4)] ${
         selected ? "border-violet shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.10)]" : "border-charcoal/12"
       }`}
     >
@@ -406,7 +406,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             />
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <button type="button" onClick={saveReply} disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.20)] transition hover:bg-violet-deep disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-[12px] font-semibold text-white shadow-[var(--shadow-lift-4)] transition hover:bg-violet-deep disabled:opacity-60"
               >
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 {review.adminReply ? "Update reply" : "Post reply"}
@@ -651,7 +651,7 @@ export default function AdminReviewsPage() {
       </header>
 
       {stats && (
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[var(--shadow-e2)]">
           <FilterChips active={activeStatus} onSelect={(s) => { clearSelection(); setActive(s) }} stats={stats} />
           <div className="ml-auto flex items-center gap-2 text-[12px] text-charcoal/65">
             <Star className="h-3.5 w-3.5 fill-terracotta text-terracotta" />

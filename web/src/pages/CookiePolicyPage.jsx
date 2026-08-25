@@ -109,7 +109,7 @@ export default function CookiePolicyPage() {
             return (
               <div
                 key={cat.key}
-                className="flex items-start gap-3 rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
+                className="flex items-start gap-3 rounded-xl border border-charcoal/10 bg-white p-4 shadow-[var(--shadow-e2)]"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Icon className="h-5 w-5" />
@@ -131,7 +131,7 @@ export default function CookiePolicyPage() {
         </div>
 
         {/* ── Manage preferences callout ──────────────────────────────────── */}
-        <div className="mb-8 flex flex-col items-start gap-4 rounded-xl border border-violet/15 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="mb-8 flex flex-col items-start gap-4 rounded-xl border border-violet/15 bg-white p-5 shadow-[var(--shadow-e3)] sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="min-w-0">
             <h2 className="text-[15px] font-bold text-violet">{t("cookies.changePrefs")}</h2>
             <p className="mt-1 text-[12.5px] leading-5 text-charcoal/70">
@@ -144,7 +144,7 @@ export default function CookiePolicyPage() {
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
+            className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[var(--shadow-lift-2)] transition hover:bg-violet-deep"
           >
             <Settings2 className="h-4 w-4" /> {t("cookies.managePrefs")}
           </button>
@@ -157,7 +157,7 @@ export default function CookiePolicyPage() {
             on sm+ keeps the TOC tight without scrolling. */}
         <nav
           aria-label={t("cookies.tocAria", { defaultValue: "Table of contents" })}
-          className="mb-8 rounded-xl border border-charcoal/10 bg-white p-5 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
+          className="mb-8 rounded-xl border border-charcoal/10 bg-white p-5 shadow-[var(--shadow-e2)]"
         >
           <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
             {t("cookies.tocLabel", { defaultValue: "On this page" })}
@@ -182,7 +182,7 @@ export default function CookiePolicyPage() {
             <m.section
               key={slug}
               id={slug}
-              className="scroll-mt-24 rounded-xl border border-charcoal/10 bg-white p-6 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
+              className="scroll-mt-24 rounded-xl border border-charcoal/10 bg-white p-6 shadow-[var(--shadow-e2)]"
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

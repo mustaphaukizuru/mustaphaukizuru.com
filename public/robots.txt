@@ -1,15 +1,53 @@
+# =============================================================================
+# robots.txt · https://mustaphaukizuru.com
+#
+# Strategy: index public marketing + commerce + content surfaces; keep
+# authenticated, transactional, and machine-only endpoints out of search
+# results. The sitemap index lists every public URL we want crawled.
+# =============================================================================
+
 User-agent: *
 Allow: /
 
-# Protected and utility routes should not be indexed
+# ── Authenticated app shells ────────────────────────────────────────────────
 Disallow: /admin/
 Disallow: /dashboard/
+
+# ── Transactional flows (per-session, not a public page) ────────────────────
 Disallow: /checkout/
+Disallow: /checkout-success
 Disallow: /cart/
+Disallow: /refund/request
+
+# ── Auth & account routes (no SEO value, often noindex on the page too) ─────
 Disallow: /login
 Disallow: /signup
 Disallow: /forgot-password
 Disallow: /reset-password/
+Disallow: /2fa
+Disallow: /unsubscribed
+
+# ── Machine endpoints ───────────────────────────────────────────────────────
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /storage/
+
+# ── Search-result and filter URLs (avoid duplicate-content dilution) ────────
+Disallow: /*?search=
+Disallow: /*?q=
+Disallow: /*?sort=
+Disallow: /*&search=
+Disallow: /*&q=
+
+# Allow crawling of static assets explicitly (overrides the broad blocks above
+# for genuine asset URLs that share a prefix with /storage etc.)
+Allow: /images/
+Allow: /og/
+Allow: /fonts/
+Allow: /favicon.ico
+Allow: /favicon.svg
+Allow: /apple-touch-icon.png
+Allow: /site.webmanifest
 
 Sitemap: https://mustaphaukizuru.com/sitemap.xml
 Host: mustaphaukizuru.com

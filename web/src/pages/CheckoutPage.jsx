@@ -496,7 +496,7 @@ export default function CheckoutPage() {
           <div className="flex flex-col gap-5">
 
             {/* Contact info, name + email */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
               <h2 className="mb-5 text-card font-bold text-violet">{t("sections.billing")}</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
@@ -580,7 +580,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Delivery */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
               <h2 className="mb-4 text-card font-bold text-violet">{t("delivery.label")}</h2>
               <div className="flex items-center gap-3 rounded-xl border border-mint/30 bg-mint/8 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint text-white">
@@ -595,7 +595,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* B08 · Billing address (preserved) */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-card font-bold text-violet">{t("misc.billingAddress")}</h2>
@@ -638,7 +638,7 @@ export default function CheckoutPage() {
                         onClick={() => setSelectedAddressId(isSelected ? "" : addr.id)}
                         className={`flex w-full items-start gap-3 rounded-xl p-3 text-left transition-all sm:gap-4 sm:p-4 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                           isSelected
-                            ? "border-2 border-violet bg-violet-ghost shadow-[0_6px_18px_rgb(var(--color-violet-rgb)/0.08)]"
+                            ? "border-2 border-violet bg-violet-ghost shadow-[var(--shadow-e4)]"
                             : "border-2 border-charcoal-80/10 hover:border-violet/30"
                         }`}
                       >
@@ -677,7 +677,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Payment method · F08.B · 3px violet border on selected */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
               <h2 className="mb-4 text-card font-bold text-violet">{t("sections.payment")}</h2>
               <div role="radiogroup" aria-label={t("payment.ariaLabel")} className="flex flex-col gap-3">
                 <PaymentOption
@@ -789,7 +789,7 @@ export default function CheckoutPage() {
 
             {/* PayPal buttons render target */}
             {paymentMethod === "paypal" && orderCreated?.id && (
-              <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
+              <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[var(--shadow-e3)]">
                 <div className="mb-3 text-meta font-semibold text-violet">{t("misc.completePayPal")}</div>
                 <div ref={paypalRef} className="min-h-[50px]" />
               </div>
@@ -820,7 +820,7 @@ export default function CheckoutPage() {
 
           {/* ── RIGHT · Order summary sidebar ────────────────────────────── */}
           <div>
-            <div className="sticky top-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)]">
+            <div className="sticky top-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e4)]">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-card font-bold text-violet">{t("sections.summary")}</h2>
                 <span className="rounded-xl bg-violet-pale px-3 py-1 font-mono text-micro font-semibold tabular-nums text-violet">

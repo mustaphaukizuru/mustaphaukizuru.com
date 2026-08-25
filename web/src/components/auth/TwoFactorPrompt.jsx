@@ -103,7 +103,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
       className="flex flex-col gap-5"
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)]">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet text-white shadow-[var(--shadow-lift-4)]">
           <ShieldCheck className="h-5 w-5" />
         </div>
         <div className="min-w-0">
@@ -175,7 +175,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
         type="button"
         onClick={() => handleSubmit()}
         disabled={loading || (mode === "totp" ? !totpComplete : !backupCode.trim())}
-        className="w-full rounded-xl bg-violet py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:translate-y-0 disabled:opacity-60"
+        className="w-full rounded-xl bg-violet py-3.5 text-meta font-semibold text-white shadow-[var(--shadow-lift-4)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:translate-y-0 disabled:opacity-60"
       >
         {loading ? (
           <span className="flex items-center justify-center gap-2">

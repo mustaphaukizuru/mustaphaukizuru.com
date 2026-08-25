@@ -142,7 +142,7 @@ export default function AdminCategoriesPage() {
           </p>
         </div>
         <button type="button" onClick={() => setEditing({})}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3.5 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40">
+          className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3.5 py-2 text-sm font-semibold text-white shadow-[var(--shadow-lift-1)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40">
           <Plus className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" /> Add category
         </button>
       </div>
@@ -162,7 +162,7 @@ export default function AdminCategoriesPage() {
             const ratio = row.totalProducts > 0 ? (row.activeProducts / row.totalProducts) * 100 : 0
             return (
               <li key={row.id || row.name}
-                className={`flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgb(var(--color-violet-rgb)/0.10)] ${border}`}>
+                className={`flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-[var(--shadow-e3)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-e6)] ${border}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${tint}`}>
                     <Icon className="h-5 w-5" aria-hidden="true" />

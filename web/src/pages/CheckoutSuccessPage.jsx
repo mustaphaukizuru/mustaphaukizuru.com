@@ -307,7 +307,7 @@ export default function CheckoutSuccessPage() {
           </m.div>
         ) : isTimeout ? (
           <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
-            <m.div variants={fadeUp} className="max-w-md rounded-xl border border-charcoal-80/10 bg-white p-6 text-meta text-charcoal-80/75 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)]">
+            <m.div variants={fadeUp} className="max-w-md rounded-xl border border-charcoal-80/10 bg-white p-6 text-meta text-charcoal-80/75 shadow-[var(--shadow-e3)]">
               <Mail className="mx-auto mb-3 h-8 w-8 text-violet" aria-hidden="true" />
               {t("success.pendingTimeoutBody")}
               {orderRef && <div className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/65">{orderRef}</div>}
@@ -330,7 +330,7 @@ export default function CheckoutSuccessPage() {
 
             {/* Guest / claim-link buyer — downloads stay behind sign-in */}
             {!signedIn && (
-              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-violet/20 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)]">
+              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-violet/20 bg-white shadow-[var(--shadow-e4)]">
                 <div className="flex items-start gap-4 p-6">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                     <KeyRound className="h-6 w-6" aria-hidden="true" />
@@ -356,7 +356,7 @@ export default function CheckoutSuccessPage() {
 
             {/* Your downloads — instant */}
             {signedIn && !orderForbidden && (
-              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
+              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e4)]">
                 <div className="flex items-center justify-between border-b border-charcoal-80/10 px-6 py-5">
                   <div>
                     <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/65">{t("success.downloadsTitle")}</div>
@@ -412,7 +412,7 @@ export default function CheckoutSuccessPage() {
 
             {/* Order summary + receipt */}
             {signedIn && !orderForbidden && (
-              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
+              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e4)]">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 px-6 py-5">
                   <div>
                     <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/65">{t("success.orderSummary")}</div>
@@ -482,7 +482,7 @@ export default function CheckoutSuccessPage() {
             )}
 
             {/* Email chip */}
-            <m.div variants={fadeUp} className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)]">
+            <m.div variants={fadeUp} className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[var(--shadow-e3)]">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint/15 text-mint">
                 <Mail className="h-5 w-5" aria-hidden="true" />
               </div>
@@ -490,7 +490,7 @@ export default function CheckoutSuccessPage() {
             </m.div>
 
             {/* What happens next */}
-            <m.div variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)]">
+            <m.div variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
               <h3 className="mb-4 text-body font-bold text-violet">{t("success.whatNext")}</h3>
               <div className="space-y-4">
                 {[
@@ -520,7 +520,7 @@ export default function CheckoutSuccessPage() {
 
             {/* Actions */}
             <m.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
-              <Link to="/dashboard/downloads" className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet py-4 text-meta font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
+              <Link to="/dashboard/downloads" className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet py-4 text-meta font-semibold text-white shadow-[var(--shadow-lift-3)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
                 <Download className="h-5 w-5" aria-hidden="true" />
                 {t("success.downloadResources")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />

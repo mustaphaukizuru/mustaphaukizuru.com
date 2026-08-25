@@ -60,7 +60,7 @@ const testSendSchema = z.object({ to: emailField("Recipient") })
 
 function TemplateCard({ template, onEdit, onPreview, onTest }) {
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:border-violet/20 hover:shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.08)] md:flex-row md:items-center md:justify-between">
+    <article className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[var(--shadow-e3)] transition hover:border-violet/20 hover:shadow-[var(--shadow-e4)] md:flex-row md:items-center md:justify-between">
       <div className="flex min-w-0 items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
           <Mail className="h-5 w-5" aria-hidden="true" />

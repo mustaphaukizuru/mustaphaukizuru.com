@@ -169,7 +169,7 @@ function SidebarItem({ item }) {
           <div
             className={[
               "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
-              isActive ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.18)]" : "bg-violet-pale/60 text-violet group-hover:bg-white",
+              isActive ? "bg-violet text-white shadow-[var(--shadow-lift-1)]" : "bg-violet-pale/60 text-violet group-hover:bg-white",
             ].join(" ")}
           >
             <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -363,7 +363,7 @@ export default function DashboardLayout() {
               {/* Brand */}
               <div className="border-b border-charcoal-80/10 px-2 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet text-white shadow-[0_10px_22px_rgb(var(--color-violet-rgb)/0.18)]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet text-white shadow-[var(--shadow-lift-4)]">
                     <ShieldCheck className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -433,9 +433,9 @@ export default function DashboardLayout() {
           <div className="min-w-0">
 
             {/* ── Mobile Header ── */}
-            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden">
+            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[var(--shadow-e2)] lg:hidden">
               <div className="flex items-center gap-3">
-                <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.22)]" />
+                <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[var(--shadow-lift-1)]" />
                 <div>
                   <div className="text-body font-bold text-violet">{currentMeta.title}</div>
                   <div className="text-micro text-charcoal-80/65">{t("layout.memberDashboard")}</div>
@@ -463,7 +463,7 @@ export default function DashboardLayout() {
             </header>
 
             {/* ── Desktop Header ── */}
-            <header className="sticky top-4 z-20 hidden rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.05)] lg:block">
+            <header className="sticky top-4 z-20 hidden rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[var(--shadow-e6)] lg:block">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
                   <div className="text-micro font-medium uppercase tracking-[0.12em] text-charcoal-80/65">
@@ -498,7 +498,7 @@ export default function DashboardLayout() {
                   </button>
                   <NotificationDropdown />
                   <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3.5 py-2">
-                    <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_10px_rgb(var(--color-violet-rgb)/0.22)]" />
+                    <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[var(--shadow-lift-1)]" />
                     <div className="min-w-0">
                       <div className="truncate text-meta font-semibold leading-none text-violet">
                         {user?.fullName?.split(" ")[0] || "Member"}

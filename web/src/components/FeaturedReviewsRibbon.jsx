@@ -46,7 +46,7 @@ function ReviewCard({ review }) {
   return (
     <m.article
       variants={fadeUp}
-      className="relative flex h-full flex-col rounded-2xl border border-violet/15 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgb(var(--color-violet-rgb)/0.10)]"
+      className="relative flex h-full flex-col rounded-2xl border border-violet/15 bg-white p-6 shadow-[var(--shadow-e4)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-e6)]"
     >
       <Quote className="absolute right-5 top-5 h-7 w-7 text-violet/15" aria-hidden="true" />
 

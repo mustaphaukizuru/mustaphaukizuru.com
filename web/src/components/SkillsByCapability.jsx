@@ -303,7 +303,7 @@ function CapabilityCard({ capability, skills, index }) {
       variants={fadeUp}
       whileHover={reduce ? undefined : { y: -4 }}
       transition={{ type: "spring", stiffness: 240, damping: 24 }}
-      className="group relative overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_18px_rgb(var(--color-violet-rgb)/0.05)] transition-shadow hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.12)]"
+      className="group relative overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)] transition-shadow hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.12)]"
     >
       {/* Decorative gradient blob, appears on hover, fades cleanly */}
       <m.div
@@ -322,7 +322,7 @@ function CapabilityCard({ capability, skills, index }) {
 
       <header className="mb-5 flex items-start gap-3">
         <span
-          className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet shadow-[inset_0_-1px_0_rgb(var(--color-violet-rgb)/0.12)] transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.30)]"
+          className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet shadow-[inset_0_-1px_0_rgb(var(--color-violet-rgb)/0.12)] transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[var(--shadow-lift-2)]"
           aria-hidden="true"
         >
           <Icon className="h-5 w-5" strokeWidth={1.75} />
@@ -370,7 +370,7 @@ function FilterPill({ active, label, count, onClick, layoutGroup }) {
         // shared element morph — the violet pill slides between filters
         <m.span
           layoutId={`pill-${layoutGroup}`}
-          className="absolute inset-0 -z-10 rounded-full bg-violet shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.28)]"
+          className="absolute inset-0 -z-10 rounded-full bg-violet shadow-[var(--shadow-lift-2)]"
           transition={{ type: "spring", stiffness: 380, damping: 32 }}
         />
       )}

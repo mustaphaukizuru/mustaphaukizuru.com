@@ -312,7 +312,7 @@ export default function AdminSidebar() {
       {/* Brand · sticky top */}
       <div className="border-b border-charcoal-80/10 px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet text-white shadow-[var(--shadow-lift-4)]">
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
           </div>
           <div className="min-w-0">

@@ -291,7 +291,7 @@ function CoreCompetenciesSection() {
               </span>
               <span
                 aria-hidden="true"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-pale text-violet transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.30)]"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-pale text-violet transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[var(--shadow-lift-2)]"
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={1.85} />
               </span>
@@ -398,10 +398,10 @@ function TimelineEntry({ item, index, total, accent }) {
       transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
       className="relative flex gap-5 pl-12"
     >
-      <div className={`absolute left-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-micro font-bold tabular-nums shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.20)] ${dotClass} ${ringClass}`}>
+      <div className={`absolute left-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-micro font-bold tabular-nums shadow-[var(--shadow-lift-1)] ${dotClass} ${ringClass}`}>
         {String(total - index).padStart(2, "0")}
       </div>
-      <div className="flex-1 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.08)]">
+      <div className="flex-1 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[var(--shadow-e3)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-e6)]">
         <div className={`mb-2 inline-flex rounded-full px-2.5 py-0.5 font-mono text-micro font-semibold tabular-nums tracking-[0.05em] ${chipClass}`}>
           {item.period}
         </div>
@@ -964,7 +964,7 @@ export default function AboutPage() {
                 <m.div
                   key={title}
                   variants={fadeUp}
-                  className="group rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgb(var(--color-violet-rgb)/0.10)]"
+                  className="group rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[var(--shadow-e4)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgb(var(--color-violet-rgb)/0.10)]"
                 >
                   <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet transition group-hover:bg-violet group-hover:text-white">
                     {Icon && <Icon className="h-6 w-6" aria-hidden="true" />}
@@ -1054,7 +1054,7 @@ export default function AboutPage() {
               className="lg:sticky lg:top-28 lg:self-start"
             >
               <div className="mb-8 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.30)]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet text-white shadow-[var(--shadow-lift-2)]">
                   <GraduationCap className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
@@ -1466,7 +1466,7 @@ function CtaPhoneMockup() {
             <div className="relative z-10 px-4 pt-2">
 
               {/* Welcome card */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet via-[var(--color-violet-mid)] to-[var(--color-violet-mid)] p-3.5 text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.28)]">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet via-[var(--color-violet-mid)] to-[var(--color-violet-mid)] p-3.5 text-white shadow-[var(--shadow-lift-2)]">
                 {/* Subtle inner sheen */}
                 <div
                   className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/15 blur-xl"
@@ -1520,7 +1520,7 @@ function CtaPhoneMockup() {
               </div>
 
               {/* Recent clients */}
-              <div className="mt-3.5 rounded-2xl bg-white p-3 shadow-[0_2px_6px_rgb(var(--color-violet-rgb)/0.06)] ring-1 ring-charcoal/5">
+              <div className="mt-3.5 rounded-2xl bg-white p-3 shadow-[var(--shadow-e2)] ring-1 ring-charcoal/5">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-bold text-charcoal">{t("dashboardWidget.recentClients")}</p>
                   <span className="text-[9px] font-semibold text-violet">{t("dashboardWidget.viewAll")}</span>

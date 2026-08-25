@@ -198,7 +198,7 @@ export default function ResetPasswordPage() {
           <m.div variants={fadeUp} className="mt-7">
             <Link
               to="/login"
-              className="inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-charcoal-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[var(--shadow-n3)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
             >
               {t("reset.backToLogin")}
             </Link>
@@ -400,7 +400,7 @@ export default function ResetPasswordPage() {
             disabled={submitDisabled}
             aria-busy={loading || undefined}
             aria-describedby={submitDisabled && !loading ? "reset-disabled-hint" : undefined}
-            className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-charcoal-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[var(--shadow-n3)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">

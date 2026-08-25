@@ -556,7 +556,7 @@ function CertificateViewer({ src, title, issuer, onClose }) {
                 <a
                   href={src}
                   download={filename}
-                  className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+                  className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[var(--shadow-lift-4)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
                 >
                   <Download className="h-3.5 w-3.5" />
                   {t("certificate.downloadShort", { defaultValue: "Download" })}
