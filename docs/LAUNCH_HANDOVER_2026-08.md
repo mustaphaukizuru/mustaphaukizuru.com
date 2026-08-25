@@ -130,6 +130,21 @@ this branch, not estimates.
 LCP ranged 4.7–6.6 s and TBT 153–1211 ms. CLS is **0.000** on every page.
 `/about` SEO was 92 before the "Learn More" link-text fix; it is 100 now.
 
+⚠️ **Read the perf column with its context.** Those figures were collected
+against the *old* configuration, which booted the real API and waited on the
+remote Hostinger DB — so they include network latency that has nothing to do
+with the frontend. Against the current `scripts/lighthouse-server.js` the same
+pages score materially higher. Measured there, 3 runs each:
+
+| URL | perf | LCP |
+|---|---|---|
+| /terms | **78** | 4.6 s |
+| / | 72 | 5.1 s |
+| /about | 53 | 5.5 s |
+
+Treat the fixture-server numbers as the baseline to compare against in future;
+the a11y / best-practices / SEO columns are unaffected by which server is used.
+
 ² **The flaky runs are fixed.** Individual runs used to return a performance
 score of 0 (`/contact` scored 0, 64, 0) because the config booted the real
 Express server, which queries the remote Hostinger DB at ~450 ms per call;
