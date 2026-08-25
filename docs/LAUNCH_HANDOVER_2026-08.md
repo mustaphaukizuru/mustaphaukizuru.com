@@ -103,7 +103,16 @@ Resolved since the first draft of this document:
 
 Still open:
 
-- **Performance / prerendering** — see §7. This is the largest remaining item.
+- **Performance** — desktop is in good shape (**95-98 on all 7 routes**,
+  FCP ~0.63 s, CLS 0.000, a11y/best-practices/SEO 100, and the desktop suite
+  now runs with zero warnings). **Mobile is the open item**: 52-75, with FCP
+  pinned at ~3.1 s on every route including near-static ones. That is React
+  parse+execute under 4x CPU throttling — an architectural property of the SPA
+  shell, not a bug. See §7 for what was tried and rejected, and read that
+  before proposing a fix: prerendering and the `App.jsx` splash-gate change
+  were both built, measured and reverted.
+- **Actionable without re-platforming:** ~113 KB of image savings on `/about`
+  (responsive sizes + WebP/AVIF) and 48 KB of unused JS there.
 - **Four bugs the new tests exposed are fixed**, but they are worth knowing
   about because they were all silently live: a cart discount survived items
   being removed (revenue leak), an expired coupon kept discounting, a TOTP code
@@ -112,145 +121,193 @@ Still open:
 - MercadoPago + PayPal remain the only gateways. Stripe is still deliberately
   absent.
 
-## 7. Measured Lighthouse results (mobile, 2026-08-24)
+## 7. Measured Lighthouse results (2026-08-25)
 
-Run with `npx @lhci/cli autorun --config=lighthouserc.mobile.json` (3 runs ×
-7 URLs, simulated slow-4G + 4× CPU throttling). These are real numbers from
-this branch, not estimates.
+> **Read the "rejected" subsection before proposing a performance fix.** Two
+> plausible-sounding diagnoses have now been built, measured and thrown away
+> on this project. Both looked obviously correct in advance. The measurement
+> discipline that killed them — A/B on the same server, same build, change one
+> thing, 3 runs per arm, compare spreads not single runs — is the useful
+> artefact here, more than any individual number.
 
-| URL | perf (median of 3) | a11y | best-pr | SEO |
-|---|---|---|---|---|
-| / | 40 | **100** | 100 | 100 |
-| /about | 37 | **100** | 96 | **100** |
-| /services | 59 | **100** | 100 | 100 |
-| /store | 52 | **100** | 100 | 100 |
-| /contact | see note² | **100** | 100 | 100 |
-| /privacy | 68 | **100** | 100 | 100 |
-| /terms | 69 | **100** | 100 | 100 |
+### Where the current numbers actually come from
 
-LCP ranged 4.7–6.6 s and TBT 153–1211 ms. CLS is **0.000** on every page.
-`/about` SEO was 92 before the "Learn More" link-text fix; it is 100 now.
+The public routes score well on desktop. That is the result of two earlier
+pieces of work, **not** of any front-end rewrite:
 
-⚠️ **Read the perf column with its context.** Those figures were collected
-against the *old* configuration, which booted the real API and waited on the
-remote Hostinger DB — so they include network latency that has nothing to do
-with the frontend. Against the current `scripts/lighthouse-server.js` the same
-pages score materially higher. Measured there, 3 runs each:
+1. **A deterministic fixture server** (`scripts/lighthouse-server.js`). The old
+   config booted the real Express app, which queries the remote Hostinger DB at
+   ~450 ms per call. Under CPU throttling some loads timed out, producing
+   performance scores of **0** and `NO_FCP` ("the page did not paint any
+   content") results that looked like catastrophic front-end bugs and were
+   actually measurement noise. Chasing those artefacts is what produced both
+   of the dead ends below.
+2. **Chunk splitting.** `manualChunks` in `web/vite.config.js` ends with
+   `node_modules -> "vendor"`, which swept route-only and even
+   dynamically-imported libraries into the global shell. Returning `undefined`
+   **before** that catch-all hands placement back to Rollup. Fixed this way:
+   react-icons (24 kB, 96 % unused on /terms), zod (admin-only, ~52 kB), lenis
+   (reduced-motion-guarded, 17 kB), plus the earlier framer LazyMotion and
+   i18n one-locale splits. Unused JS on /terms fell 114 kB -> 53 kB.
 
-| URL | perf | LCP |
+### Desktop — `lighthouserc.json`, 3 runs x 7 URLs, medians
+
+| route | perf | a11y | best-pr | SEO | FCP | LCP | TBT | CLS |
+|---|---|---|---|---|---|---|---|---|
+| `/` | 95 | 100 | 100 | 100 | 0.66 s | 1.05 s | 18 ms | 0.000 |
+| `/about` | 95 | 100 | 100 | 100 | 0.65 s | 0.97 s | 95 ms | 0.000 |
+| `/contact` | 97 | 100 | 100 | 100 | 0.63 s | 0.91 s | 17 ms | 0.000 |
+| `/privacy` | 97 | 100 | 100 | 100 | 0.61 s | 0.89 s | 0 ms | 0.000 |
+| `/services` | 97 | 100 | 100 | 100 | 0.61 s | 0.89 s | 28 ms | 0.000 |
+| `/store` | 97 | 100 | 100 | 100 | 0.63 s | 0.90 s | 4 ms | 0.000 |
+| `/terms` | 98 | 100 | 100 | 100 | 0.61 s | 0.88 s | 0 ms | 0.000 |
+
+This run produced **no assertion failures and no warnings at all**. Note
+`/about` scores **95** here; in an earlier suite run with the splash gate
+removed it scored **71** (TBT 430 ms vs 95 ms) — one more datum against that
+change.
+
+### Mobile — `lighthouserc.mobile.json`, 3 runs x 7 URLs, medians
+
+| route | perf | a11y | best-pr | SEO | FCP | LCP | TBT | CLS |
+|---|---|---|---|---|---|---|---|---|
+| `/` | 52 | 100 | 100 | 100 | 3.24 s | 5.95 s | 688 ms | 0.000 |
+| `/about` | 57 | 100 | 96 | 100 | 3.25 s | 5.80 s | 502 ms | 0.000 |
+| `/contact` | 62 | 100 | 100 | 100 | 3.12 s | 4.95 s | 486 ms | 0.000 |
+| `/privacy` | 66 | 100 | 100 | 100 | 3.14 s | 4.83 s | 362 ms | 0.000 |
+| `/services` | 58 | 100 | 100 | 100 | 3.14 s | 4.83 s | 675 ms | 0.000 |
+| `/store` | 64 | 100 | 100 | 100 | 3.13 s | 4.86 s | 436 ms | 0.000 |
+| `/terms` | 75 | 100 | 100 | 100 | 3.06 s | 4.73 s | 152 ms | 0.000 |
+
+No assertion errors on either form factor. Accessibility is **100 on every
+route on both**, and CLS is **0.000 everywhere**.
+
+> ⚠️ **Suite runs are pessimistic on a busy machine.** `/` measured **52** in
+> the 7-URL mobile suite but **70** when collected alone on the same build and
+> server. Seven URLs x 3 runs contend for CPU, and CPU contention is exactly
+> what a throttled Lighthouse run is measuring. **Never compare a suite number
+> against an isolated number** — that mistake is what made the home page look
+> like it had regressed. Compare suite-to-suite, or isolated-to-isolated.
+
+### Mobile is JS-bound, and that is the real remaining constraint
+
+Mobile FCP sits at ~3.1 s on every route, including `/terms`, which is nearly
+static. Under 4x CPU throttling the cost is React parse + execute before
+anything of the app can render. Page *content* is not the driver — the SPA
+shell is. That is a genuine architectural limit, and it is the honest argument
+for SSR if you ever want mobile scores in the 90s. It is not a bug to fix.
+
+Named, measured opportunities that do **not** require re-platforming:
+
+| where | opportunity | savings |
 |---|---|---|
-| /terms | **78** | 4.6 s |
-| / | 72 | 5.1 s |
-| /about | 53 | 5.5 s |
+| `/about` | `uses-responsive-images` | 70 KB |
+| `/about` | `modern-image-formats` (WebP/AVIF) | 43 KB |
+| `/about` | `unused-javascript` | 48 KB |
 
-Treat the fixture-server numbers as the baseline to compare against in future;
-the a11y / best-practices / SEO columns are unaffected by which server is used.
+The two image items are ~113 KB together. They need an image-pipeline decision
+(which formats, which breakpoints, whether to add a build step) rather than a
+code tweak, so they are left for you rather than half-done.
 
-² **The flaky runs are fixed.** Individual runs used to return a performance
-score of 0 (`/contact` scored 0, 64, 0) because the config booted the real
-Express server, which queries the remote Hostinger DB at ~450 ms per call;
-under 4× CPU throttling some loads timed out. `scripts/lighthouse-server.js`
-now serves the same bundle with the same SPA/404 semantics and fixture API
-responses, with cache headers mirroring `src/app.js`. Measurement is stable
-and no longer partly measures your latency to Hostinger.
+### Rejected — do not re-litigate these
 
-### Why performance is where it is — and what actually moves it
-
-Prerendering the public routes was **built, measured, and reverted**. Headless
+**1. Prerendering the public routes.** Built, measured, reverted. Headless
 Chrome snapshots served as a paint-first overlay, A/B'd on the same server with
 only the feature flag changing:
 
 | route | perf | LCP | FCP |
 |---|---|---|---|
-| /terms | 75 → 75 | 4.7 → 4.8 s | 3.1 → 3.1 s |
-| /about | 53 → 61 | 5.5 → 5.9 s | 3.3 → 3.3 s |
-| / | 72 → 71 | 5.1 → 5.3 s | 3.3 → 3.3 s |
+| /terms | 75 to 75 | 4.7 to 4.8 s | 3.1 to 3.1 s |
+| /about | 53 to 61 | 5.5 to 5.9 s | 3.3 to 3.3 s |
+| / | 72 to 71 | 5.1 to 5.3 s | 3.3 to 3.3 s |
 
-LCP got **worse** on all three and FCP did not move, so it did not justify
-~600 lines, a puppeteer dependency, and a deploy step that downloads Chrome
-onto a shared host. (The one perf gain, /about, has overlapping run ranges.)
+LCP got **worse** on all three and FCP did not move — not worth ~600 lines, a
+puppeteer dependency, and a deploy step that downloads Chrome onto a shared
+host.
 
-The unchanged FCP is the diagnosis. Lighthouse names the cause directly:
-**`assets/index-*.css` is render-blocking for 1055 ms** (est. saving 300 ms).
-The browser already has the markup — it will not paint until that stylesheet
-arrives. Putting content into the HTML cannot help while that is true.
+**2. Removing the `opacity: 0` splash gate in `App.jsx`.** This one is
+instructive, because the reasoning was clean and the conclusion was still
+wrong. `App.jsx` wraps the routed app in
+`opacity: appReady ? 1 : 0`, so the theory was that the browser had nothing
+contentful to paint for the ~1.6 s the splash runs, explaining a ~3 s FCP.
 
-Ranked options, with honest expected value:
+A/B, same server, same build, only the wrapper changing, 3 runs per arm:
 
-1. ~~**Render-blocking CSS**~~ — **investigated and ruled out.** Lighthouse
-   reports the stylesheet as render-blocking for 1055 ms with ~300 ms of
-   theoretical savings, but the network trace shows every resource finishing
-   by ~51 ms while FCP lands at **2959 ms**. The ~2.9 s gap is JS parse,
-   execute and render — the CSS is not on the critical path, and an empty
-   SPA shell has no above-the-fold content to inline anyway. Two related dead
-   ends: unused-css-rules scores **1.00** (nothing to purge, so per-route
-   splitting gains little), and tokenising repeated arbitrary shadows saves
-   **zero bytes** because Tailwind emits one rule per *distinct* value, not
-   per usage.
+| | perf | FCP | LCP | TBT |
+|---|---|---|---|---|
+| **desktop `/about`** with gate | 95 (94/95/95) | 655 ms | **968 ms** | 99 ms |
+| **desktop `/about`** gate removed | 95 (95/94/95) | 654 ms | 1119 ms | 109 ms |
+| **mobile `/`** with gate | **70** (69/70/70) | 3185 ms | **5039 ms** | 209 ms |
+| **mobile `/`** gate removed | 68 (68/69/67) | 3204 ms | 5254 ms | 246 ms |
 
-   Still worth doing for design reasons, not performance: there are **250
-   distinct arbitrary shadow values** across 499 usages (one appears 69 times)
-   where an elevation scale would have ~8. That is a design call.
-2. **JS bootup** — the real cost, and now largely mined out. Home spends
-   4.5 s in bootup and 10.9 s of main-thread work. The pattern behind every
-   win in this pass: `manualChunks` in `web/vite.config.js` ends with
-   `node_modules -> "vendor"`, which swept route-only and even
-   dynamically-imported libraries into the global shell. Returning
-   `undefined` BEFORE that catch-all hands placement back to Rollup.
+FCP is **identical** (655 vs 654 ms desktop; 3185 vs 3204 ms mobile) and LCP is
+**worse** with the gate removed, on both form factors. The change was reverted.
 
-   Fixed this way: react-icons (24 kB, 96% unused on /terms), zod
-   (admin-only validation, ~52 kB), lenis (guarded by reduced-motion,
-   17 kB) — plus the earlier framer LazyMotion and i18n one-locale splits.
+Why the theory failed: `LoadingScreen` is `fixed inset-0 z-[9999]` on an
+**opaque** violet background with progress UI. That *is* contentful — the
+splash itself is the first contentful paint. FCP was never waiting on the
+routed app. Removing the gate only adds main-thread work rendering content
+nobody can see, which is free on desktop and measurably costly at 4x throttle.
 
-   **/terms, fixture server, 3 runs each:**
+There is also no robustness argument for removing it: the splash is rendered
+as `{!appReady && <LoadingScreen />}`, so if `onFinish` never fired the overlay
+would stay mounted and cover the content regardless of its opacity.
 
-   | | perf | LCP | unused JS |
-   |---|---|---|---|
-   | original | 75 | 4.7 s | 114 kB |
-   | + react-icons | 78 | 4.6 s | 68 kB |
-   | + zod | 78 | 4.5 s | 56 kB |
-   | + lenis | 77 | 4.6 s | 53 kB |
+**3. Render-blocking CSS.** Lighthouse reported the stylesheet as
+render-blocking for 1055 ms with ~300 ms of theoretical savings, but the
+network trace showed every resource finishing by ~51 ms. Two related dead ends:
+`unused-css-rules` scores **1.00** (nothing to purge), and tokenising repeated
+arbitrary shadows saves **zero bytes**, because Tailwind emits one rule per
+*distinct* value, not per usage.
 
-   Unused JS is down 54%. Note lenis was perf-NEUTRAL — kept for
-   correctness (never shipping a library to users whose settings prevent
-   using it), not for score.
+Still worth doing for design reasons, not performance: there are **250
+distinct arbitrary shadow values** across 499 usages (one appears 69 times)
+where an elevation scale would have ~8. That is a design call.
 
-   To hunt the next one, use sourcemap attribution: build with
-   `--sourcemap` to a scratch dir, then for each chunk read its `.map` and
-   group `sources` by node_modules package to see what is actually inside.
-   `vendor` is now 148 kB and is mostly framer motion-dom,
-   react-helmet-async and sonner — all genuinely global.
-3. **SSR framework** (largest win, largest change). Options 1 and 2 improve the
-   numbers; only this changes the shape of the problem. It is a genuine
-   re-platform (Next.js / Remix), not a patch — worth costing before choosing.
+### How to investigate the next one
 
-My recommendation: do (1), skip (2) beyond what is done, and treat (3) as a
-business decision rather than a task. Note that CLS is already 0.000 and
-accessibility is 100 — the two things that most affect real users and SEO are
-in good shape.
+- Build with `--sourcemap` to a scratch dir, then for each chunk read its
+  `.map` and group `sources` by node_modules package to see what is actually
+  inside it. `vendor` is now 148 kB, mostly framer motion-dom,
+  react-helmet-async and sonner — all genuinely global.
+- A/B on the same server and build, change exactly one thing, 3 runs per arm,
+  and compare **spreads**. Two of the three rejected items above survived a
+  single-run comparison and died under this one.
 
-**Accessibility went 86–97 → 100 across the board** and is a hard CI gate.
+### Gates
 
-**Performance does not meet the 0.85 target and cannot without an
-architectural change.** LCP is ~4.7 s even on `/terms`, a near-static page —
-the cost is the SPA shell itself (download → parse → hydrate before anything
-paints), not page content. The i18n split already removed 100 kB from that
-critical path. Closing the remaining gap means **prerendering or SSR for the
-public routes**, which the original audit also flagged.
-
-So the gate is honest rather than aspirational: `categories:performance` is an
-**error floor at 0.35** (catches regressions), the CWV timings are **warnings**
-(keep the gap visible), and a11y/best-practices/SEO stay hard gates at 0.95.
-Desktop budgets are marked WARN and unverified — nobody has run
-`lighthouserc.json` on this branch.
+`categories:performance` is an **error floor at 0.35** with the CWV timings as
+**warnings**; a11y / best-practices / SEO are hard gates at **0.95**. The floor
+sits far below current scores deliberately: it catches regressions without
+failing builds on run-to-run noise.
 
 Two things left deliberately, both design decisions:
+
 - `--text-micro` is 10 px and is ~34 % of the text on /about. Lighthouse wants
-  ≥ 12 px for mobile legibility. Raising it shifts layout site-wide, so it is
+  >= 12 px for mobile legibility. Raising it shifts layout site-wide, so it is
   yours to make.
 - The terracotta accent on light-ground display headings is 1.9:1. Fixing it
   means picking a different accent hue for light heroes (see
   `docs/DESIGN_SYSTEM.md`).
+
+### Contrast: the gate had a hole, now closed
+
+A desktop run failed `color-contrast` on `text-mint-700/75` at 10.5 px —
+**3.86:1** on white. `lint:contrast` passed it because that gate checks a table
+of *declared* colour pairs and nobody had declared that one: a gate that only
+sees what someone remembered to list.
+
+Worse, **`lint:contrast` was never wired into CI at all** — the script and npm
+entry existed but no job called it, which is why a two-second lint error
+surfaced as a failure in the Lighthouse job instead. It now runs in the
+frontend job alongside the design-token gate.
+
+Eleven diluted tokens existed across nine files. They are fixed, and
+`web/scripts/check-contrast.mjs` carries a second rule that needs no
+declaration: an alpha on a `-600/-700/-800` **text** token is a defect by
+pattern, since those darker steps exist precisely to clear AA. (Alpha on
+`bg-*` / `ring-*` is fine and is not flagged.) Verified in both directions —
+injecting `text-rose-600/75` makes the gate exit 1 and name the file.
 
 ## 8. Dependency vulnerabilities (2026-08-24)
 
