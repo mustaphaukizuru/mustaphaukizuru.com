@@ -46,7 +46,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.0",
     "node-cron": "^3.0.3",
-    "nodemailer": "^8.0.4",
+    "nodemailer": "^9.0.5",
     "pdfkit": "^0.18.0",
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",

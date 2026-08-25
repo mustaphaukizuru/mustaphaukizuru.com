@@ -224,6 +224,4 @@ export default function CookiePolicyPage() {
       </div>
     </div>
   )
-  // TODO: file was truncated by an OneDrive sync issue; verify the JSX above
-  // matches the pre-corruption design (top-level <div className="bg-mist">).
 }

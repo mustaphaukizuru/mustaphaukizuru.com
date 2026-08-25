@@ -87,6 +87,9 @@
     "changePrefs": "Cambia tus preferencias",
     "resetClick": "Haz clic abajo para restablecer y elegir de nuevo.",
     "managePrefs": "Administrar preferencias de cookies",
-    "questions": "¿Preguntas sobre cookies o privacidad?"
+    "questions": "¿Preguntas sobre cookies o privacidad?",
+    "tocAria": "Tabla de contenidos",
+    "tocLabel": "En esta página",
+    "anchorAria": "Enlace directo a"
   }
 }

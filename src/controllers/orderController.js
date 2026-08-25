@@ -1,5 +1,11 @@
 const asyncHandler = require("../utils/asyncHandler")
 const logger = require("../utils/logger")
+// getOrderStatus reads the order directly (a deliberately minimal, public
+// payload). This import was missing, so that endpoint threw
+// `ReferenceError: prisma is not defined` on every call — the checkout
+// success page polls it after a Mercado Pago redirect, so buyers sat on
+// "confirming payment" until it timed out.
+const prisma = require("../lib/prisma")
 const {
   createOrder: createOrderService,
   getEnrichedOrderById,

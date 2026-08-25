@@ -234,10 +234,11 @@ describe("order → paid → refund → webhook replay", () => {
     expect(res.status).toBe(401)
   })
 
-  // BUG · src/controllers/orderController.js:207 — getOrderStatus references
-  // `prisma` but the module never requires it, so every hit is a
-  // ReferenceError → 500. Flip to a plain `test` once the require is added.
-  test.failing("GET /api/v1/orders/:id/status returns the public status (src bug: prisma not required in orderController)", async () => {
+  // Regression guard: getOrderStatus used `prisma` without requiring it, so
+  // every call was a ReferenceError → 500. The checkout success page polls
+  // this after a Mercado Pago redirect, so buyers were stuck on "confirming
+  // payment" until the poll timed out.
+  test("GET /api/v1/orders/:id/status returns the public status", async () => {
     const res = await request(ctx.app).get(`/api/v1/orders/${orderId}/status`)
     expect(res.status).toBe(200)
     expect(res.body.data).toMatchObject({ id: orderId, status: "refunded", hasAccount: true, canViewOrder: false })

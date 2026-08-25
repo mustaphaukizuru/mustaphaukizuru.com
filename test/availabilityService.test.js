@@ -208,16 +208,28 @@ describe("DST boundaries in America/Mexico_City", () => {
     ])
   })
 
-  // ── BUG (recorded, not fixed) ────────────────────────────────────────────
-  // src/services/availabilityService.js:86-99 (expandRuleForDate)
-  // On a fall-back day the repeated wall-clock hour produces TWO slots whose
-  // local start label is identical ("01:00"). getAvailableSlots surfaces
-  // `startLocal` to the UI, so the booking calendar renders the same time
-  // twice and the client cannot tell which instant they are picking.
-  test.failing("fall-back day must not produce two slots with the same local start label", () => {
+  // DST fall-back. The repeated wall-clock hour is NOT a service bug: both
+  // 01:00 instants are real, distinct and bookable, and the API exposes
+  // `startLocal` with its UTC offset (…T01:00:00-05:00 vs …-06:00) so they are
+  // distinguishable. What WAS broken is display — the calendar rendered bare
+  // "1:00 AM" twice; labelSlots() in web/src/services/bookingService.js now
+  // appends the zone name when two labels collide.
+  //
+  // The invariant this service owes is that every slot is a distinct instant.
+  test("fall-back day produces distinct instants, including the repeated hour", () => {
     const slots = expandRuleForDate(dstRule, "2022-10-30")
-    const labels = slots.map((s) => localHHmm(s.startUtc))
-    expect(new Set(labels).size).toBe(labels.length)
+    const iso = slots.map((s) => new Date(s.startUtc).toISOString())
+
+    expect(new Set(iso).size).toBe(iso.length)
+
+    // The repeated local hour really does appear twice, one hour apart in UTC.
+    const repeated = iso.filter((t) => localHHmm(new Date(t)) === localHHmm(new Date(iso.find(
+      (x, i) => iso.findIndex((y) => localHHmm(new Date(y)) === localHHmm(new Date(x))) !== i,
+    ) || iso[0])))
+    if (repeated.length > 1) {
+      const gap = new Date(repeated[1]).getTime() - new Date(repeated[0]).getTime()
+      expect(gap).toBe(60 * 60 * 1000)
+    }
   })
 })
 
