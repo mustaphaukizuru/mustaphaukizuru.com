@@ -66,6 +66,7 @@ Until then the XSS hardening is only partial for clients on the old path.
 |---|---|---|
 | `web/src/data/homeData.js` | **Testimonials** | The three entries are invented examples and are now **filtered out** — the section stays hidden rather than publishing social proof nobody gave. Add a real quote/name/role/company to `home.json` (en + es) and delete `placeholder: true` to publish it. |
 | Admin → Portfolio → Case study | **Outcome metrics** | Six of nine figures are estimates. They render with an asterisk and the note "illustrative targets, not audited results", so they are honest as-is — replace them with measured numbers when you have them. |
+| `web/src/components/heroes/ServicesHero.jsx` | **Unverified performance claims** | The services hero states **"94% on-time delivery"** (with a "+5.2%" badge) and **"82+ engagements"**. I cannot verify either, so I left them rather than invent or delete. Confirm them, soften them, or remove them before selling — an unsupportable number beside a price is the kind of thing a buyer checks. The service COUNT on the same hero is now derived from the catalogue (21) and can no longer drift. |
 | `web/src/i18n/locales/{en,es}/product.json` → `license.*` | **Licence & updates terms** | Sensible default terms (single-buyer licence, one site per licence, lifetime updates for the purchased major version). This is legal text — read it and adjust before selling. |
 
 ## 5. What still needs a human with credentials

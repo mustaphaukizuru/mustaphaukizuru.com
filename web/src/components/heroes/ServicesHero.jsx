@@ -26,6 +26,11 @@ import {
   Briefcase, PieChart, TrendingUp, Package, Check,
 } from "lucide-react"
 import KineticHeadline from "../motion/KineticHeadline"
+// The service count is DERIVED, never typed. The hero used to hard-code "96"
+// while the section directly below it read "Twenty-one services grouped into
+// four lines" — a contradiction a visitor could spot on one screen. Reading
+// the catalogue means the two can never disagree again.
+import { CATALOG_STATS } from "../../data/servicesCatalogue"
 
 /* ── Animation variants ─────────────────────────────────────────────────── */
 const fadeUp = {
@@ -195,7 +200,7 @@ function ServicesHeroIllustration({ reduce }) {
               {t("hero.servicesLabel")}
             </div>
             <div className="mt-1 text-3xl font-bold leading-none tracking-tight text-white sm:text-4xl lg:text-5xl">
-              96
+              {CATALOG_STATS.totalServices}
             </div>
           </div>
         </m.div>
@@ -433,7 +438,7 @@ export default function ServicesHero() {
               </div>
               <div>
                 <div className="font-mono text-[28px] font-extrabold leading-none tabular-nums !text-charcoal-80 sm:text-[32px]">
-                  82<span className="!text-mint">+</span>
+                  {CATALOG_STATS.totalServices}
                 </div>
                 <div className="mt-1.5 text-[11.5px] text-charcoal-80/65 sm:text-[12px]">
                   {t("hero.atomicServices")}
