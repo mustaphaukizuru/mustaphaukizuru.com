@@ -8,7 +8,8 @@ import PrimaryButton from "../ui/PrimaryButton"
 import { useCart } from "../store/CartContext"
 import { useAuth } from "../context/AuthContext"
 import { useMenu } from "../context/MenuContext"
-import profilePhoto from "../assets/avatar/avatar-master.png"
+import profilePhoto96 from "../assets/avatar/avatar-master-96.webp"
+import profilePhoto192 from "../assets/avatar/avatar-master-192.webp"
 import LanguageSwitcher from "../components/LanguageSwitcher"
 import ErrorBoundary from "../components/ErrorBoundary"
 import { NAV_LINKS } from "./header/navLinks"
@@ -126,8 +127,17 @@ function HeaderInner() {
           className="flex shrink-0 items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
         >
           <span className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-charcoal-80/15 bg-white shadow-sm">
+            {/* The container is 44px (h-11). The old import was the 400x400
+                PNG master at 36 KB, shipped at full size on EVERY page --
+                Lighthouse counted ~35 KB of it as waste on /about alone.
+                96w covers 2x, 192w covers 3x; both are WebP, which every
+                browser this app supports can decode. */}
             <img
-              src={profilePhoto}
+              src={profilePhoto96}
+              srcSet={`${profilePhoto96} 96w, ${profilePhoto192} 192w`}
+              sizes="44px"
+              width={44}
+              height={44}
               alt=""
               aria-hidden="true"
               className="h-full w-full object-cover"
