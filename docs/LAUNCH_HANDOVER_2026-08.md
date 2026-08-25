@@ -190,11 +190,35 @@ Ranked options, with honest expected value:
    Still worth doing for design reasons, not performance: there are **250
    distinct arbitrary shadow values** across 499 usages (one appears 69 times)
    where an elevation scale would have ~8. That is a design call.
-2. **JS bootup** (~large, high effort). Home spends 4.5 s in bootup and 10.9 s
-   of main-thread work. The bundle has been cut hard: framer split out, i18n
-   down to one locale (entry 457 → 258 kB), and react-icons removed from the
-   global path (/terms unused JS 114 → 68 kB, perf 75 → 78). What remains is
-   React hydrating a big app — further gains here are incremental.
+2. **JS bootup** — the real cost, and now largely mined out. Home spends
+   4.5 s in bootup and 10.9 s of main-thread work. The pattern behind every
+   win in this pass: `manualChunks` in `web/vite.config.js` ends with
+   `node_modules -> "vendor"`, which swept route-only and even
+   dynamically-imported libraries into the global shell. Returning
+   `undefined` BEFORE that catch-all hands placement back to Rollup.
+
+   Fixed this way: react-icons (24 kB, 96% unused on /terms), zod
+   (admin-only validation, ~52 kB), lenis (guarded by reduced-motion,
+   17 kB) — plus the earlier framer LazyMotion and i18n one-locale splits.
+
+   **/terms, fixture server, 3 runs each:**
+
+   | | perf | LCP | unused JS |
+   |---|---|---|---|
+   | original | 75 | 4.7 s | 114 kB |
+   | + react-icons | 78 | 4.6 s | 68 kB |
+   | + zod | 78 | 4.5 s | 56 kB |
+   | + lenis | 77 | 4.6 s | 53 kB |
+
+   Unused JS is down 54%. Note lenis was perf-NEUTRAL — kept for
+   correctness (never shipping a library to users whose settings prevent
+   using it), not for score.
+
+   To hunt the next one, use sourcemap attribution: build with
+   `--sourcemap` to a scratch dir, then for each chunk read its `.map` and
+   group `sources` by node_modules package to see what is actually inside.
+   `vendor` is now 148 kB and is mostly framer motion-dom,
+   react-helmet-async and sonner — all genuinely global.
 3. **SSR framework** (largest win, largest change). Options 1 and 2 improve the
    numbers; only this changes the shape of the problem. It is a genuine
    re-platform (Next.js / Remix), not a patch — worth costing before choosing.
