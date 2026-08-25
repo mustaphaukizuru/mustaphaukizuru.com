@@ -176,19 +176,20 @@ arrives. Putting content into the HTML cannot help while that is true.
 
 Ranked options, with honest expected value:
 
-1. **Render-blocking CSS** (~300 ms, medium effort). One 347 kB / 4245-rule
-   stylesheet (38 kB gzipped) blocks first paint for 1055 ms. Two things I
-   checked so you do not repeat them: Lighthouse scores **unused-css-rules at
-   1.00** — nothing is dead, so splitting per route gains almost nothing; and
-   tokenising the repeated arbitrary shadows saves **zero bytes**, because
-   Tailwind emits one rule per *distinct* value, not per usage. The only real
-   lever is inlining the above-the-fold subset and loading the rest async.
+1. ~~**Render-blocking CSS**~~ — **investigated and ruled out.** Lighthouse
+   reports the stylesheet as render-blocking for 1055 ms with ~300 ms of
+   theoretical savings, but the network trace shows every resource finishing
+   by ~51 ms while FCP lands at **2959 ms**. The ~2.9 s gap is JS parse,
+   execute and render — the CSS is not on the critical path, and an empty
+   SPA shell has no above-the-fold content to inline anyway. Two related dead
+   ends: unused-css-rules scores **1.00** (nothing to purge, so per-route
+   splitting gains little), and tokenising repeated arbitrary shadows saves
+   **zero bytes** because Tailwind emits one rule per *distinct* value, not
+   per usage.
 
-   Related design debt: there are **250 distinct arbitrary shadow values**
-   across 499 usages (one appears 69 times) where an elevation scale would
-   have ~8. Collapsing them would cut ~40 kB and make elevation consistent,
-   but it changes shadows site-wide, so it is a design call rather than a
-   refactor.
+   Still worth doing for design reasons, not performance: there are **250
+   distinct arbitrary shadow values** across 499 usages (one appears 69 times)
+   where an elevation scale would have ~8. That is a design call.
 2. **JS bootup** (~large, high effort). Home spends 4.5 s in bootup and 10.9 s
    of main-thread work. The bundle has been cut hard: framer split out, i18n
    down to one locale (entry 457 → 258 kB), and react-icons removed from the

@@ -259,6 +259,13 @@ export default defineConfig({
           // just as global) hands placement back to Rollup, which puts the
           // glyphs in the route chunks that actually render them.
           if (id.includes("node_modules/react-icons"))                return undefined
+          // zod is used ONLY by the admin form schemas (lib/validation/**) and
+          // hooks/useForm, and every admin page is React.lazy'd. The
+          // node_modules catch-all below was pinning it into "vendor", so a
+          // visitor reading /terms downloaded and parsed the whole validation
+          // library for nothing. Same treatment: let Rollup put it in the
+          // admin chunks that import it.
+          if (id.includes("node_modules/zod"))                        return undefined
           if (id.includes("node_modules/pdfjs-dist"))                 return "pdfjs"
           if (id.includes("node_modules/i18next") ||
               id.includes("node_modules/react-i18next"))              return "i18n"
