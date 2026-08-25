@@ -124,11 +124,11 @@ const TONE_STYLES = {
   // v3.0 brand tokens
   violet: { chip: "bg-violet-pale text-violet", iconColor: "text-violet" },
   charcoal: { chip: "bg-charcoal-80/8 text-charcoal-80", iconColor: "text-charcoal-80" },
-  terracotta: { chip: "bg-orange-50 text-terracotta", iconColor: "text-terracotta" },
+  terracotta: { chip: "bg-orange-50 text-terracotta-800", iconColor: "text-terracotta" },
 
   // Document-color conventions (Tailwind defaults)
   rose: { chip: "bg-rose-50 text-rose-700", iconColor: "text-rose-600" },
-  azure: { chip: "bg-azure-pale text-azure", iconColor: "text-azure" },
+  azure: { chip: "bg-azure-pale text-azure-800", iconColor: "text-azure" },
   mint: { chip: "bg-mint/10 text-emerald-700", iconColor: "text-emerald-700" },
   amber: { chip: "bg-amber/10 text-amber-700", iconColor: "text-amber-700" },
   cyan: { chip: "bg-sky-50 text-sky-700", iconColor: "text-sky-600" },

@@ -2,10 +2,15 @@ const express = require("express");
 const {
   signup,
   login,
+  logout,
   me,
   googleLogin,
   startGoogleOAuth,
   googleOAuthCallback,
+  startMicrosoftOAuth,
+  microsoftOAuthCallback,
+  startFacebookOAuth,
+  facebookOAuthCallback,
   forgotPassword,
   resetPassword,
 } = require("../controllers/authController");
@@ -28,9 +33,20 @@ const router = express.Router();
 //   forgot-password  → 3 / 1 hour / email
 router.post("/signup",                signupRateLimiter,         signup);
 router.post("/login",                 loginRateLimiter,          login);
+// Step 40 · sign-out. Unauthenticated on purpose — the handler decodes the
+// session token leniently to find whose sessions to revoke, then clears the
+// mu_session / mu_csrf cookie pair and always answers 200. Wrapping it in
+// `protect` would make sign-out fail exactly when it is most needed (expired
+// or already-revoked token) and leave the httpOnly cookie stuck in the
+// browser, since only the server can delete it.
+router.post("/logout",                                             logout);
 router.post("/google",                                            googleLogin);            // legacy One-Tap endpoint (kept for backwards compat)
 router.get ("/google/start",                                      startGoogleOAuth);       // OAuth redirect flow — primary path
 router.get ("/google/callback",                                   googleOAuthCallback);    // OAuth redirect flow — Google calls back here
+router.get ("/microsoft/start",                                   startMicrosoftOAuth);    // Microsoft OAuth start
+router.get ("/microsoft/callback",                                microsoftOAuthCallback); // Microsoft OAuth callback
+router.get ("/facebook/start",                                    startFacebookOAuth);     // Facebook OAuth start
+router.get ("/facebook/callback",                                 facebookOAuthCallback);  // Facebook OAuth callback
 router.post("/forgot-password",       forgotPasswordRateLimiter, forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 router.get ("/me",                    protect, me);

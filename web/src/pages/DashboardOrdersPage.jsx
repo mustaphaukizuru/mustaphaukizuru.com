@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation, Trans } from "react-i18next"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   CreditCard, Receipt, Clock3, CheckCircle2, ChevronUp, ChevronDown,
   Eye, FileDown, Search, X, RotateCcw, ShieldCheck, AlertTriangle,
@@ -12,6 +12,7 @@ import { formatPrice } from "../lib/format"
 import { triggerBrowserDownload } from "../services/downloadService"
 import { MetricCard } from "../components/ui/index"
 import { useToast } from "../context/ToastContext"
+import useApiQuery from "../hooks/useApiQuery"
 
 /* ── Refund-window constant — must match REFUND_WINDOW_DAYS in src/services/refundService.js ── */
 const REFUND_WINDOW_DAYS = 14
@@ -37,7 +38,7 @@ const fadeUp = {
  *  ──────────────────────────────────────────────────────────────────── */
 
 const STATUS_VISUAL = {
-  paid:      { bg: "bg-mint/15",         text: "text-mint",         ring: "ring-mint/25" },
+  paid:      { bg: "bg-mint/15",         text: "text-mint-700",         ring: "ring-mint/25" },
   pending:   { bg: "bg-amber/10",        text: "text-amber-700",    ring: "ring-amber-300/40" },
   refunded:  { bg: "bg-rose-50",         text: "text-rose-600",     ring: "ring-rose-300/40" },
   cancelled: { bg: "bg-charcoal-80/10",  text: "text-charcoal-80",  ring: "ring-charcoal-80/15" },
@@ -100,33 +101,15 @@ export default function DashboardOrdersPage() {
   const { t, i18n } = useTranslation("dashboard")
   const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
   const { showSuccess, showError } = useToast()
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [errorMessage, setError] = useState("")
+  const { data: orders = [], loading, error: errorMessage } = useApiQuery("orders", () => fetchMyOrders(), {
+    select: (data) => (Array.isArray(data) ? data : []),
+  })
   const [search, setSearch] = useState("")
   const [sortKey, setSortKey] = useState("createdAt")
   const [sortDir, setSortDir] = useState("desc")
   const [busyInvoiceId, setBusyId] = useState("")
   const [invoiceError, setInvErr] = useState("")
   const [refundOrder, setRefundOrder] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-    async function loadOrders() {
-      try {
-        setLoading(true); setError("")
-        const data = await fetchMyOrders()
-        if (!cancelled) setOrders(Array.isArray(data) ? data : [])
-      } catch (error) {
-        if (!cancelled) setError(error.message || t("orders.errors.load"))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    loadOrders()
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   function handleSort(field) {
     if (field === sortKey) {
@@ -226,7 +209,7 @@ export default function DashboardOrdersPage() {
       </div>
 
       {/* Orders table */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgba(93,63,211,0.04)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_10px_24px_rgb(var(--color-violet-rgb)/0.04)]">
         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h3 className="text-card font-semibold text-violet">{t("orders.table.title")}</h3>
@@ -287,7 +270,7 @@ export default function DashboardOrdersPage() {
             </Link>
           </div>
         ) : filteredAndSorted.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
+          <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/65">
             {t("orders.empty.noMatch")}
           </div>
         ) : (
@@ -356,7 +339,7 @@ export default function DashboardOrdersPage() {
                             disabled={busyInvoiceId === order.id}
                             aria-label={t("orders.row.invoiceAria", { number: orderRef })}
                             title={t("orders.row.invoiceTitle")}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-mint/30 bg-mint/8 px-3 py-1.5 text-micro font-semibold text-mint transition hover:bg-mint/15 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-mint/40 focus-visible:ring-offset-2"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-mint/30 bg-mint/8 px-3 py-1.5 text-micro font-semibold text-mint-700 transition hover:bg-mint/15 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-mint/40 focus-visible:ring-offset-2"
                           >
                             <FileDown className="h-3.5 w-3.5" aria-hidden="true" />
                             {busyInvoiceId === order.id ? t("orders.row.invoiceBusy") : t("orders.row.invoice")}
@@ -444,7 +427,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
   }
 
   return (
-    <motion.div
+    <m.div
       className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal-80/55 px-4 py-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -453,15 +436,15 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
       aria-modal="true"
       aria-label={t("orders.refundModal.ariaLabel")}
     >
-      <motion.form
+      <m.form
         onSubmit={handleSubmit}
-        className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-[0_24px_48px_rgba(93,63,211,0.18)]"
+        className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-[0_24px_48px_rgb(var(--color-violet-rgb)/0.18)]"
         {...fadeUp}
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-charcoal-80/60 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
           aria-label={t("orders.refundModal.close")}
         >
           <X className="h-5 w-5" />
@@ -501,7 +484,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
 
         <div className="mt-5">
           <label htmlFor="refund-reason" className="text-meta font-semibold text-violet">
-            {t("orders.refundModal.reasonLabel")} <span className="text-charcoal-80/55 font-normal">{t("orders.refundModal.reasonRequired")}</span>
+            {t("orders.refundModal.reasonLabel")} <span className="text-charcoal-80/65 font-normal">{t("orders.refundModal.reasonRequired")}</span>
           </label>
           <textarea
             id="refund-reason"
@@ -512,7 +495,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
             maxLength={2000}
             className="mt-2 w-full rounded-xl border border-charcoal-80/15 bg-white px-4 py-3 text-meta text-violet outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
           />
-          <div className="mt-1 flex items-center justify-between text-micro text-charcoal-80/60">
+          <div className="mt-1 flex items-center justify-between text-micro text-charcoal-80/65">
             <span>{t("orders.refundModal.minHint")}</span>
             <span className={reasonChars > 2000 ? "text-rose-600 font-semibold" : ""}>
               {reasonChars}/2000
@@ -539,8 +522,8 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
             type="submit"
             disabled={submitDisabled}
             // Brand v3 §04: hover state for Royal Violet is `violet-deep`,
-            // never the retired legacy palette #5a0d80 (which was a darker
-            // version of the also-retired #420060). Aligns with all other
+            // never the retired legacy v2 purple (which was a darker
+            // version of the also-retired v1 aubergine). Aligns with all other
             // primary-action buttons across the codebase.
             className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-violet-deep disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
           >
@@ -548,7 +531,7 @@ function RefundRequestModal({ order, onClose, onSubmitted, onError }) {
             {submitting ? t("orders.refundModal.submitting") : t("orders.refundModal.submit")}
           </button>
         </div>
-      </motion.form>
-    </motion.div>
+      </m.form>
+    </m.div>
   )
 }

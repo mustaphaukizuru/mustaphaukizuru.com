@@ -28,6 +28,7 @@
  *   **bold**     · *italic*     · `code`     · [text](url)
  */
 
+import postAiCodingAgents2026 from "./blogPosts/aiCodingAgents2026"
 import postSaasJourney from "./blogPosts/saasJourney"
 import postSchoolStrategy from "./blogPosts/schoolStrategy"
 import postReactDjango from "./blogPosts/reactDjango"
@@ -37,14 +38,15 @@ import postPaymentsLatam from "./blogPosts/paymentsLatam"
 import postHostingerVps from "./blogPosts/hostingerVps"
 import postRwandaMexico from "./blogPosts/rwandaMexico"
 import postWcagWins from "./blogPosts/wcagWins"
+import { TOKENS } from "../styles/tokens.js"
 
 export const BLOG_CATEGORIES = [
-  { slug: "it-strategy", label: "IT Strategy", accent: "#5D3FD3" },
-  { slug: "web-development", label: "Web Development", accent: "#7C3AED" },
-  { slug: "edtech", label: "EdTech", accent: "#0284C7" },
-  { slug: "stem-education", label: "STEM Education", accent: "#E9C46A" },
-  { slug: "career", label: "Career & Mindset", accent: "#1A1B23" },
-  { slug: "product-updates", label: "Product Updates", accent: "#10B981" },
+  { slug: "it-strategy", label: "IT Strategy", accent: TOKENS.violet },
+  { slug: "web-development", label: "Web Development", accent: TOKENS.violetMid },
+  { slug: "edtech", label: "EdTech", accent: TOKENS.azure },
+  { slug: "stem-education", label: "STEM Education", accent: TOKENS.terracotta },
+  { slug: "career", label: "Career & Mindset", accent: TOKENS.charcoal },
+  { slug: "product-updates", label: "Product Updates", accent: TOKENS.mint },
 ]
 
 export const BLOG_TAGS = [
@@ -55,6 +57,7 @@ export const BLOG_TAGS = [
 ]
 
 export const BLOG_POSTS = [
+  postAiCodingAgents2026,
   postSaasJourney,
   postSchoolStrategy,
   postReactDjango,

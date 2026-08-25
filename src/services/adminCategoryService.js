@@ -24,12 +24,14 @@ async function getAdminCategories() {
     include: {
       _count: { select: { products: true } },
     },
+    take: 200,
   })
 
   // 2) Legacy string-based categories (Product.category) not yet linked
   const products = await prisma.product.findMany({
     where: { categoryId: null },
     select: { id: true, category: true, isActive: true },
+    take:   500,
   })
 
   const legacyBucket = new Map()

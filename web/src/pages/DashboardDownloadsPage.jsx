@@ -1,208 +1,311 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Link } from "react-router-dom"
 import {
   Download, Package, Clock3, FileArchive, RefreshCw, AlertCircle, CheckCircle2,
-  Search, X, LayoutGrid, Rows3, Calendar,
+  Search, X, Calendar, FileText, Loader2, ShoppingBag, Sparkles, ExternalLink,
 } from "lucide-react"
-import { Link } from "react-router-dom"
-import { MetricCard, EmptyState, SkeletonCard, SectionCard } from "../components/ui/index"
-import { fetchMyOrders } from "../services/orderService"
-import { API_BASE_URL } from "../lib/api"
-import { getStoredToken } from "../services/authService"
-import { streamFileDownload, triggerBrowserDownload } from "../services/downloadService"
+import { MetricCard, SectionCard } from "../components/ui/index"
+import Skeleton from "../components/ui/SkeletonPrimitives"
+import { authFetch, API_BASE_URL, hasStoredSession } from "../lib/api"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
+import { downloadFileById, downloadInvoice, downloadErrorKey } from "../components/product/downloadHelpers"
+import SuccessCheck from "../components/motion/SuccessCheck"
 
 /* ──────────────────────────────────────────────────────────────────────────
- *  DashboardDownloadsPage · F10.D · Batch 6 · I18N · Phase 119E
- *  Strings keyed under `dashboard.downloads.*`. Sub-components scope
- *  their own useTranslation hooks. Plural rules use i18next suffix
- *  (`_one`/`_other`) for "{N} files" and "{N} downloads left".
- *  ──────────────────────────────────────────────────────────────────── */
+ *  DashboardDownloadsPage · roadmap 26 · grouped by order
+ *
+ *  Data: GET /api/downloads/my/library → { orders: [{ orderNumber, purchasedAt,
+ *  invoicePdfUrl, products: [{ title, latestVersion, updatedAt, files: [{
+ *  fileId, fileName, fileType, fileSize, version, downloadsRemaining,
+ *  maxDownloadsPerUser, downloadsUsed }] }] }] }
+ *
+ *  Downloads stream through GET /api/downloads/:productFileId which enforces
+ *  the entitlement + per-file cap (DownloadLog.productFileId).
+ *  ────────────────────────────────────────────────────────────────────────── */
 
 function resolveImageUrl(url = "") {
   if (!url) return null
   return url.startsWith("http") ? url : `${API_BASE_URL}${url}`
 }
 
-function ProductDownloadCard({ product, onDownload, downloadingKey }) {
+async function fetchDownloadLibrary() {
+  const res = await authFetch("/api/v1/downloads/my/library", { method: "GET" })
+  const orders = res?.data?.orders
+  return Array.isArray(orders) ? orders : []
+}
+
+function FileRow({ file, product, state, onDownload }) {
   const { t, i18n } = useTranslation("dashboard")
   const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
-  const cover = product.images?.find((i) => i.imageRole === "cover") || product.images?.[0]
-  const coverUrl = resolveImageUrl(cover?.url)
+  const styles = getFileTypeStyles(file.fileType || file.fileName || "")
+  const TypeIcon = styles.icon
+  const sizeDisplay = file.fileSize ? formatFileSize(file.fileSize) : ""
+  const remaining = state.remaining
+  const exhausted = remaining !== null && remaining <= 0
+  const revoked = product.entitlementStatus && product.entitlementStatus !== "active"
+  const isLatest = !file.version || !product.latestVersion || String(file.version) === String(product.latestVersion)
+  const uploaded = file.uploadedAt ? new Date(file.uploadedAt) : null
 
   return (
-    <article className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:border-violet/20 hover:shadow-[0_18px_40px_rgba(93,63,211,0.08)]">
-      <div className="flex flex-col gap-4 p-5 md:flex-row md:items-start">
-        <div className="aspect-[4/3] w-full shrink-0 overflow-hidden rounded-xl bg-violet-pale md:h-[120px] md:w-[160px]">
-          {coverUrl ? (
-            <img src={coverUrl} alt={product.title} className="h-full w-full object-cover" loading="lazy" />
-          ) : (
-            <div className="flex h-full items-center justify-center text-violet/30">
-              <Package className="h-10 w-10" aria-hidden="true" />
-            </div>
-          )}
+    <div className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: styles.background, color: styles.color }} aria-hidden="true">
+          <TypeIcon className="h-4 w-4" />
         </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-2">
-            <h3 className="text-body font-bold text-violet">{product.title}</h3>
-            <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
-              · {t("downloads.card.files", { count: product.files.length })}
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-meta font-semibold text-violet" title={file.fileName}>{file.fileName || styles.label}</span>
+            <span className="shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase" style={{ background: styles.background, color: styles.color, borderColor: styles.borderColor }}>
+              {styles.label}
             </span>
+            {file.isPrimary && <span className="shrink-0 rounded-md bg-violet-pale px-1.5 py-0.5 text-[10px] font-bold uppercase text-violet">{t("downloads.file.primary")}</span>}
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/60">
-            <Calendar className="h-3 w-3" aria-hidden="true" />
-            {t("downloads.card.purchasedOn", { date: new Date(product.purchasedAt).toLocaleDateString(localeTag) })}
-            <span>·</span>
-            <span>{t("downloads.card.orderNumber", { number: product.orderNumber })}</span>
+          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
+            {sizeDisplay && <span>{sizeDisplay}</span>}
+            {sizeDisplay && <span aria-hidden="true">·</span>}
+            <span className={isLatest ? "text-mint-600" : ""}>
+              {file.version ? t("downloads.file.version", { version: String(file.version).replace(/^v/i, "") }) : t("downloads.file.latest")}
+              {file.version && isLatest ? ` · ${t("downloads.file.latest")}` : ""}
+            </span>
+            {uploaded && !Number.isNaN(uploaded.getTime()) && (
+              <><span aria-hidden="true">·</span><span>{t("downloads.file.updatedOn", { date: uploaded.toLocaleDateString(localeTag) })}</span></>
+            )}
+            <span aria-hidden="true">·</span>
+            <span className={exhausted ? "text-rose-600" : ""}>
+              {remaining === null
+                ? t("downloads.file.unlimited")
+                : file.maxDownloadsPerUser != null
+                  ? t("downloads.file.used", { used: Math.max(0, file.maxDownloadsPerUser - remaining), max: file.maxDownloadsPerUser })
+                  : t("downloads.file.remaining", { count: remaining })}
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-charcoal-80/8 bg-mist p-4">
-        <div className="space-y-2">
-          {product.files.map((file) => {
-            const styles = getFileTypeStyles(file.fileType || file.fileName || "")
-            const TypeIcon = styles.icon
-            const sizeDisplay = file.fileSize ? formatFileSize(file.fileSize) : ""
-            const key = `${product.productId}:${file.fileId}`
-            const isDownloading = downloadingKey === key
-            const remaining = typeof file.downloadsRemaining === "number" ? file.downloadsRemaining : null
-            const exhausted = remaining !== null && remaining <= 0
+      <button
+        type="button"
+        onClick={() => onDownload(file)}
+        disabled={state.busy || exhausted || revoked}
+        aria-label={t("downloads.file.downloadAria", { name: file.fileName || styles.label })}
+        className={`group inline-flex items-center justify-center gap-2 self-start rounded-xl px-4 py-2 text-meta font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 sm:self-center ${
+          exhausted || revoked
+            ? "cursor-not-allowed bg-charcoal-80/25 text-white"
+            : state.done
+              ? "border border-mint/40 bg-mint/10 text-mint-600 hover:bg-mint/15"
+              : "bg-violet text-white hover:-translate-y-0.5 hover:bg-violet-deep disabled:opacity-60"
+        }`}
+      >
+        {/* Fixed 16px slot: idle → busy → done never changes the icon box, so
+            the button never reflows as the download state advances. */}
+        <span className="flex h-4 w-4 shrink-0 items-center justify-center" aria-hidden="true">
+          {state.busy
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : state.done
+              ? <SuccessCheck size={16} tone="inline" />
+              : <Download className="h-4 w-4 transition group-hover:translate-y-0.5" />}
+        </span>
+        {revoked ? t("downloads.file.revoked")
+          : exhausted ? t("downloads.file.limitReached")
+          : state.busy ? t("downloads.file.preparing")
+          : state.done ? t("downloads.file.redownload")
+          : t("downloads.file.download")}
+      </button>
+    </div>
+  )
+}
 
-            return (
-              <div
-                key={key}
-                className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex min-w-0 items-start gap-3">
-                  <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-                    style={{ background: styles.background, color: styles.color }}
-                    aria-hidden="true"
-                  >
-                    <TypeIcon className="h-4 w-4" />
+function OrderCard({ order, fileState, onDownload, onReceipt, receiptBusy }) {
+  const { t, i18n } = useTranslation("dashboard")
+  const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
+  const fileCount = order.products.reduce((n, p) => n + p.files.length, 0)
+
+  return (
+    <article className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 px-5 py-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-baseline gap-2">
+            <h3 className="font-mono text-body font-bold tabular-nums text-violet">{t("downloads.order.title", { number: order.orderNumber })}</h3>
+            <span className="font-mono text-micro tabular-nums text-charcoal-80/65">· {t("downloads.card.files", { count: fileCount })}</span>
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
+            <Calendar className="h-3 w-3" aria-hidden="true" />
+            {t("downloads.card.purchasedOn", { date: new Date(order.purchasedAt).toLocaleDateString(localeTag) })}
+          </div>
+        </div>
+        {order.invoicePdfUrl && (
+          <button
+            type="button"
+            onClick={() => onReceipt(order)}
+            disabled={receiptBusy === order.orderId}
+            className="inline-flex items-center gap-2 rounded-xl border border-violet/20 px-3 py-2 text-micro font-semibold text-violet transition hover:bg-violet-pale disabled:opacity-60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          >
+            {receiptBusy === order.orderId ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <FileText className="h-3.5 w-3.5" aria-hidden="true" />}
+            {t("downloads.order.receipt")}
+          </button>
+        )}
+      </header>
+
+      <div className="divide-y divide-charcoal-80/8 bg-mist">
+        {order.products.map((product) => {
+          const coverUrl = resolveImageUrl(product.imageUrl)
+          const updated = product.updatedAt ? new Date(product.updatedAt) : null
+          return (
+            <div key={product.productId} className="p-4">
+              <div className="mb-3 flex items-start gap-3">
+                <div className="h-14 w-[72px] shrink-0 overflow-hidden rounded-lg bg-violet-pale">
+                  {coverUrl ? (
+                    <img src={coverUrl} alt={product.imageAlt || product.title} className="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-violet/30"><Package className="h-6 w-6" aria-hidden="true" /></div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-meta font-bold text-violet">{product.title}</h4>
+                    {product.latestVersion && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-mint/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-mint-600 ring-1 ring-mint/25">
+                        <Sparkles className="h-3 w-3" aria-hidden="true" />
+                        {t("downloads.file.latestVersion")} v{String(product.latestVersion).replace(/^v/i, "")}
+                      </span>
+                    )}
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate text-meta font-semibold text-violet" title={file.fileName}>
-                        {file.fileName || styles.label}
-                      </span>
-                      <span
-                        className="shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase"
-                        style={{ background: styles.background, color: styles.color, borderColor: styles.borderColor }}
-                      >
-                        {styles.label}
-                      </span>
-                    </div>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/55">
-                      {sizeDisplay && <span>{sizeDisplay}</span>}
-                      {sizeDisplay && (file.version || file.isPrimary) && <span aria-hidden="true">·</span>}
-                      <span>{file.version ? `v${file.version}` : t("downloads.file.latest")}</span>
-                      {file.isPrimary && (
-                        <>
-                          <span aria-hidden="true">·</span>
-                          <span className="text-violet">{t("downloads.file.primary")}</span>
-                        </>
-                      )}
-                      {remaining !== null && (
-                        <>
-                          <span aria-hidden="true">·</span>
-                          <span className={exhausted ? "text-rose-600" : "text-charcoal-80/55"}>
-                            {t("downloads.file.remaining", { count: remaining })}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
+                    {updated && !Number.isNaN(updated.getTime()) && <span>{t("downloads.file.updatedOn", { date: updated.toLocaleDateString(localeTag) })}</span>}
+                    {product.slug && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <Link to={`/store/${product.slug}`} className="inline-flex items-center gap-1 text-violet hover:underline">
+                          {t("downloads.order.viewProduct")} <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                        </Link>
+                      </>
+                    )}
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => onDownload(file)}
-                  disabled={isDownloading || exhausted}
-                  aria-label={t("downloads.file.downloadAria", { name: file.fileName || styles.label })}
-                  className={`group inline-flex items-center justify-center gap-2 self-start rounded-xl px-4 py-2 text-meta font-semibold text-white transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 sm:self-center ${
-                    exhausted
-                      ? "bg-charcoal-80/30 cursor-not-allowed"
-                      : "bg-violet hover:-translate-y-0.5 hover:bg-violet-deep disabled:opacity-60"
-                  }`}
-                >
-                  <Download className="h-4 w-4 transition group-hover:translate-y-0.5" aria-hidden="true" />
-                  {exhausted ? t("downloads.file.limitReached") : isDownloading ? t("downloads.file.preparing") : t("downloads.file.download")}
-                </button>
               </div>
-            )
-          })}
-        </div>
+
+              <div className="space-y-2">
+                {product.files.map((file) => (
+                  <FileRow
+                    key={file.fileId}
+                    file={file}
+                    product={product}
+                    state={fileState[file.fileId] || { busy: false, done: false, remaining: file.downloadsRemaining ?? null }}
+                    onDownload={onDownload}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </article>
   )
 }
 
-function ListRow({ item, onDownload, downloadingKey }) {
-  const { t } = useTranslation("dashboard")
-  const key = `${item.productId}:${item.fileId}`
-  const isDownloading = downloadingKey === key
-  const styles = getFileTypeStyles(item.fileType || item.fileName || "")
-  const TypeIcon = styles.icon
-  const sizeDisplay = item.fileSize ? formatFileSize(item.fileSize) : ""
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Loading state · roadmap step 35 — skeletons, not spinners
+ *
+ *  Every block below mirrors the *exact* box model of the real component it
+ *  stands in for (MetricCard · SectionCard header · OrderCard header ·
+ *  product row · FileRow), so nothing reflows when the library resolves.
+ *  Shimmer comes from the canonical <Skeleton> block — one CSS-only sweep,
+ *  static under `prefers-reduced-motion`, no JS.
+ *  ────────────────────────────────────────────────────────────────────────── */
 
+/* Mirrors <MetricCard> — border + p-4/sm:p-5, label · value · subtitle. */
+function MetricSkeleton() {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 transition hover:border-violet/20 md:flex-row md:items-center md:justify-between">
-      <div className="flex min-w-0 items-start gap-3">
-        <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: styles.background, color: styles.color }}
-          aria-hidden="true"
-        >
-          <TypeIcon className="h-5 w-5" />
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <Skeleton w="w-2/3" h="h-3" rounded="full" />
+          <Skeleton w="w-1/2" h="h-7" rounded="md" className="mt-1.5 sm:mt-2" />
+          <Skeleton w="w-3/4" h="h-2.5" rounded="full" tone="muted" className="mt-1.5 sm:mt-2" />
         </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-meta font-semibold text-violet" title={item.fileName}>
-              {item.fileName}
-            </span>
-            <span
-              className="shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase"
-              style={{ background: styles.background, color: styles.color, borderColor: styles.borderColor }}
-            >
-              {styles.label}
-            </span>
-          </div>
-          <div className="mt-0.5 text-micro text-charcoal-80/70">{item.productTitle}</div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/55">
-            <span>{t("downloads.card.orderNumber", { number: item.orderNumber })}</span>
-            <span aria-hidden="true">·</span>
-            <span>{item.version ? `v${item.version}` : t("downloads.file.latest")}</span>
-            {sizeDisplay && (
-              <>
-                <span aria-hidden="true">·</span>
-                <span>{sizeDisplay}</span>
-              </>
-            )}
-            <span aria-hidden="true">·</span>
-            <span>{item.isPrimary ? t("downloads.file.primaryFile") : t("downloads.file.additional")}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-3">
-        <span className="rounded-full bg-mint/15 px-3 py-1 text-micro font-bold uppercase tracking-wider text-mint ring-1 ring-mint/25 ring-inset">
-          {t("downloads.file.paid")}
-        </span>
-        <button
-          type="button"
-          onClick={() => onDownload(item)}
-          disabled={isDownloading}
-          aria-label={t("downloads.file.downloadAria", { name: item.fileName })}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-meta font-semibold text-white transition hover:bg-violet-deep disabled:opacity-60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
-        >
-          <Download className="h-4 w-4" aria-hidden="true" />
-          {isDownloading ? t("downloads.file.preparing") : t("downloads.file.download")}
-        </button>
+        <Skeleton w="w-10" h="h-10" rounded="lg" className="shrink-0" />
       </div>
     </div>
+  )
+}
+
+/* Mirrors <FileRow> — icon chip · two meta lines · download button. */
+function FileRowSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <Skeleton w="w-9" h="h-9" rounded="lg" className="shrink-0" />
+        <div className="min-w-0 flex-1">
+          <Skeleton w="w-1/2" h="h-4" rounded="full" />
+          <Skeleton w="w-3/4" h="h-3" rounded="full" tone="muted" className="mt-1.5" />
+        </div>
+      </div>
+      <Skeleton w="w-[132px]" h="h-[38px]" rounded="lg" className="shrink-0 self-start sm:self-center" />
+    </div>
+  )
+}
+
+/* Mirrors one product block inside <OrderCard> — cover · title · file rows. */
+function ProductSkeleton({ files = 2 }) {
+  return (
+    <div className="p-4">
+      <div className="mb-3 flex items-start gap-3">
+        <Skeleton w="w-[72px]" h="h-14" rounded="lg" className="shrink-0" />
+        <div className="min-w-0 flex-1">
+          <Skeleton w="w-2/5" h="h-4" rounded="full" />
+          <Skeleton w="w-1/3" h="h-3" rounded="full" tone="muted" className="mt-1.5" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        {Array.from({ length: files }).map((_, i) => <FileRowSkeleton key={i} />)}
+      </div>
+    </div>
+  )
+}
+
+/* Mirrors <OrderCard> — header (order no · date · receipt) + product blocks. */
+function OrderCardSkeleton({ products = 1, files = 2 }) {
+  return (
+    <article className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 px-5 py-4">
+        <div className="min-w-0 flex-1">
+          <Skeleton w="w-1/3" h="h-5" rounded="full" />
+          <Skeleton w="w-1/4" h="h-3" rounded="full" tone="muted" className="mt-1" />
+        </div>
+        <Skeleton w="w-[112px]" h="h-[38px]" rounded="lg" className="shrink-0" />
+      </header>
+      <div className="divide-y divide-charcoal-80/8 bg-mist">
+        {Array.from({ length: products }).map((_, i) => <ProductSkeleton key={i} files={files} />)}
+      </div>
+    </article>
+  )
+}
+
+/* Full-page placeholder. Reuses the real <SectionCard> shell so the header,
+ * borders and padding are pixel-identical to the loaded view. */
+function LibrarySkeleton({ title, subtitle, label }) {
+  return (
+    <section className="space-y-5" role="status" aria-busy="true" aria-label={label}>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => <MetricSkeleton key={i} />)}
+      </div>
+
+      <SectionCard
+        title={title}
+        subtitle={subtitle}
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <Skeleton w="w-[200px]" h="h-[36px]" rounded="lg" />
+            <Skeleton w="w-[104px]" h="h-[36px]" rounded="lg" />
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <OrderCardSkeleton products={1} files={2} />
+          <OrderCardSkeleton products={1} files={1} />
+        </div>
+      </SectionCard>
+    </section>
   )
 }
 
@@ -214,160 +317,95 @@ export default function DashboardDownloadsPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
-  const [downloadingKey, setDownloadingKey] = useState("")
   const [search, setSearch] = useState("")
-  const [viewMode, setViewMode] = useState("grid")
+  const [fileState, setFileState] = useState({})
+  const [receiptBusy, setReceiptBusy] = useState("")
 
   async function load(silent = false) {
     if (!silent) setLoading(true)
     else setRefreshing(true)
     setError("")
     try {
-      const data = await fetchMyOrders()
-      setOrders(Array.isArray(data) ? data : [])
+      const data = await fetchDownloadLibrary()
+      setOrders(data)
+      const next = {}
+      for (const o of data) for (const p of o.products) for (const f of p.files) {
+        next[f.fileId] = { busy: false, done: false, remaining: f.downloadsRemaining ?? null }
+      }
+      setFileState(next)
     } catch (err) {
-      setError(err.message || t("downloads.errors.load"))
+      setError(err?.message || t("downloads.errors.load"))
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Group entitlements by product (for grid view) AND flatten (for list view)
-  const { productGroups, flatItems } = useMemo(() => {
-    const paidOrders = orders.filter((o) => o.status === "paid")
-    const groups = new Map()
-    const flat = []
-
-    for (const order of paidOrders) {
-      for (const item of order.items || []) {
-        const product = item.product
-        if (!product?.files?.length) continue
-
-        const productKey = product.id
-        if (!groups.has(productKey)) {
-          groups.set(productKey, {
-            productId: product.id,
-            title: product.title || item.title || t("downloads.card.fallbackTitle"),
-            images: product.images || [],
-            orderNumber: order.orderNumber || order.id,
-            purchasedAt: order.createdAt,
-            files: [],
-          })
-        }
-        const group = groups.get(productKey)
-
-        for (const file of product.files) {
-          if (group.files.some((f) => f.fileId === file.id)) continue
-
-          const fileEntry = {
-            fileId: file.id,
-            fileName: file.fileName || "download",
-            fileType: file.fileType,
-            fileSize: file.fileSize,
-            version: file.version,
-            isPrimary: file.isPrimary,
-            downloadsRemaining: file.downloadsRemaining,
-            productId: product.id,
-            productTitle: product.title || item.title || t("downloads.card.fallbackTitle"),
-            orderNumber: order.orderNumber || order.id,
-            purchasedAt: order.createdAt,
-            key: `${product.id}:${file.id}`,
-          }
-          group.files.push(fileEntry)
-          flat.push(fileEntry)
-        }
-      }
-    }
-
-    return {
-      productGroups: Array.from(groups.values()),
-      flatItems: flat,
-    }
-  }, [orders, t])
-
-  const filteredProducts = useMemo(() => {
-    if (!search.trim()) return productGroups
-    const q = search.toLowerCase().trim()
-    return productGroups.filter((p) =>
-      p.title.toLowerCase().includes(q) ||
-      p.files.some((f) => (f.fileName || "").toLowerCase().includes(q))
-    )
-  }, [productGroups, search])
-
-  const filteredFlat = useMemo(() => {
-    if (!search.trim()) return flatItems
-    const q = search.toLowerCase().trim()
-    return flatItems.filter((f) =>
-      (f.fileName || "").toLowerCase().includes(q) ||
-      (f.productTitle || "").toLowerCase().includes(q)
-    )
-  }, [flatItems, search])
-
-  const paidCount = useMemo(
-    () => orders.filter((o) => o.status === "paid").length,
-    [orders]
+  const allFiles = useMemo(
+    () => orders.flatMap((o) => o.products.flatMap((p) => p.files)),
+    [orders],
   )
 
-  const newestDate = useMemo(() => {
-    if (!flatItems.length) return ","
-    const sorted = [...flatItems].sort(
-      (a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt)
-    )
-    return new Date(sorted[0].purchasedAt).toLocaleDateString(localeTag)
-  }, [flatItems, localeTag])
+  const filteredOrders = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return orders
+    return orders
+      .map((o) => ({
+        ...o,
+        products: o.products.filter((p) =>
+          (p.title || "").toLowerCase().includes(q) ||
+          p.files.some((f) => (f.fileName || "").toLowerCase().includes(q)),
+        ),
+      }))
+      .filter((o) => o.products.length > 0 || String(o.orderNumber || "").toLowerCase().includes(q))
+  }, [orders, search])
 
-  async function handleDownload(item) {
+  const readyCount = useMemo(
+    () => allFiles.filter((f) => f.downloadsRemaining === null || f.downloadsRemaining > 0).length,
+    [allFiles],
+  )
+  const newestDate = orders.length ? new Date(orders[0].purchasedAt).toLocaleDateString(localeTag) : "—"
+
+  async function handleDownload(file) {
     setError("")
     setSuccess("")
-    const key = `${item.productId}:${item.fileId}`
-    setDownloadingKey(key)
-
+    const id = file.fileId
+    setFileState((s) => ({ ...s, [id]: { ...s[id], busy: true } }))
     try {
-      // Cheap pre-flight — avoids a needless network round-trip if the user
-      // was logged out between page load and click.
-      if (!getStoredToken()) {
-        throw new Error(t("downloads.errors.loginRequired"))
-      }
-
-      const { blob, filename } = await streamFileDownload(item.productId, item.fileId)
-      triggerBrowserDownload(blob, filename || item.fileName)
-
-      setSuccess(t("downloads.toast.downloadStarted", { filename: filename || item.fileName }))
+      if (!hasStoredSession()) throw new Error(t("downloads.errors.loginRequired"))
+      const filename = await downloadFileById(id, file.fileName)
+      setFileState((s) => {
+        const prev = s[id] || {}
+        const remaining = prev.remaining == null ? null : Math.max(0, prev.remaining - 1)
+        return { ...s, [id]: { busy: false, done: true, remaining } }
+      })
+      setSuccess(t("downloads.toast.downloadStarted", { filename: filename || file.fileName }))
     } catch (err) {
-      // Map structured backend codes to specific i18n messages so the user
-      // gets actionable feedback instead of a generic toast.
-      const code = err?.code || ""
-      const messageKey = (
-        code === "FORBIDDEN"        ? "downloads.errors.notEntitled" :
-        code === "NOT_FOUND"        ? "downloads.errors.fileMissing" :
-        code === "FILE_MISSING"     ? "downloads.errors.fileMissing" :
-        code === "LIMIT_EXCEEDED"   ? "downloads.errors.limitExceeded" :
-        code === "AUTH_MISSING"     ? "downloads.errors.loginRequired" :
-        code === "VALIDATION_ERROR" ? "downloads.errors.downloadFailed" :
-        ""
-      )
-
+      const key = downloadErrorKey(err?.code)
       const fallback = (typeof err?.toUserMessage === "function" ? err.toUserMessage() : null)
-                    || err?.message
-                    || t("downloads.errors.downloadUnavailable")
-
-      setError(messageKey ? t(messageKey, fallback) : fallback)
-    } finally {
-      setDownloadingKey("")
+                    || err?.message || t("downloads.errors.downloadUnavailable")
+      setError(key ? t(key, fallback) : fallback)
+      setFileState((s) => ({ ...s, [id]: { ...s[id], busy: false } }))
     }
+  }
+
+  async function handleReceipt(order) {
+    setError("")
+    setReceiptBusy(order.orderId)
+    try { await downloadInvoice(order.invoicePdfUrl, order.orderNumber) }
+    catch (err) { setError(err?.message || t("downloads.errors.downloadFailed")) }
+    finally { setReceiptBusy("") }
   }
 
   if (loading) {
     return (
-      <section className="space-y-5" role="status" aria-busy="true" aria-label={t("downloads.loading")}>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
-        </div>
-        <SkeletonCard height="h-[320px]" />
-      </section>
+      <LibrarySkeleton
+        title={t("downloads.library.title")}
+        subtitle={t("downloads.library.subtitle")}
+        label={t("downloads.loading")}
+      />
     )
   }
 
@@ -375,27 +413,22 @@ export default function DashboardDownloadsPage() {
     <section className="space-y-5">
       {error && (
         <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700" role="alert">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          {error}
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{error}
         </div>
       )}
-
       {success && (
-        <div className="flex items-start gap-3 rounded-xl border border-mint/30 bg-mint/8 px-4 py-3 text-meta text-mint" role="status">
-          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-          {success}
+        <div className="flex items-start gap-3 rounded-xl border border-mint/30 bg-mint/8 px-4 py-3 text-meta text-mint-700" role="status">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{success}
         </div>
       )}
 
-      {/* Metrics */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title={t("downloads.metrics.paid")}   value={paidCount}        subtitle={t("downloads.metrics.paidSubtitle")}   icon={Package}      tone="purple" />
-        <MetricCard title={t("downloads.metrics.files")}  value={flatItems.length} subtitle={t("downloads.metrics.filesSubtitle")}  icon={FileArchive}  tone="green" />
-        <MetricCard title={t("downloads.metrics.latest")} value={newestDate}       subtitle={t("downloads.metrics.latestSubtitle")} icon={Clock3}       tone="amber" />
-        <MetricCard title={t("downloads.metrics.ready")}  value={flatItems.length} subtitle={t("downloads.metrics.readySubtitle")}  icon={Download}     tone="blue" />
+        <MetricCard title={t("downloads.metrics.paid")}   value={orders.length}   subtitle={t("downloads.metrics.paidSubtitle")}   icon={ShoppingBag} tone="purple" />
+        <MetricCard title={t("downloads.metrics.files")}  value={allFiles.length} subtitle={t("downloads.metrics.filesSubtitle")}  icon={FileArchive} tone="green" />
+        <MetricCard title={t("downloads.metrics.latest")} value={newestDate}      subtitle={t("downloads.metrics.latestSubtitle")} icon={Clock3}      tone="amber" />
+        <MetricCard title={t("downloads.metrics.ready")}  value={readyCount}      subtitle={t("downloads.metrics.readySubtitle")}  icon={Download}    tone="blue" />
       </div>
 
-      {/* Download library */}
       <SectionCard
         title={t("downloads.library.title")}
         subtitle={t("downloads.library.subtitle")}
@@ -413,38 +446,11 @@ export default function DashboardDownloadsPage() {
                 className="h-[36px] w-[200px] rounded-xl border border-charcoal-80/15 bg-white pl-8 pr-7 text-micro text-violet outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-azure/20"
               />
               {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  aria-label={t("downloads.library.clearSearch")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-charcoal-80/40 hover:text-violet"
-                >
+                <button type="button" onClick={() => setSearch("")} aria-label={t("downloads.library.clearSearch")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-charcoal-80/40 hover:text-violet">
                   <X className="h-3 w-3" aria-hidden="true" />
                 </button>
               )}
             </div>
-
-            {/* View mode toggle */}
-            <div className="flex shrink-0 overflow-hidden rounded-xl border border-charcoal-80/12 bg-white">
-              {[
-                { mode: "grid", Icon: LayoutGrid, labelKey: "downloads.library.gridView" },
-                { mode: "list", Icon: Rows3,      labelKey: "downloads.library.listView" },
-              ].map(({ mode, Icon, labelKey }) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setViewMode(mode)}
-                  aria-label={t(labelKey)}
-                  aria-pressed={viewMode === mode}
-                  className={`flex h-[36px] w-9 items-center justify-center transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-inset ${
-                    viewMode === mode ? "bg-violet text-white" : "text-charcoal-80/55 hover:text-violet"
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              ))}
-            </div>
-
             <button
               type="button"
               onClick={() => load(true)}
@@ -458,7 +464,7 @@ export default function DashboardDownloadsPage() {
           </div>
         }
       >
-        {productGroups.length === 0 ? (
+        {orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="relative">
               <div className="absolute inset-0 -z-10 rounded-full bg-violet/10 blur-2xl" aria-hidden="true" />
@@ -467,50 +473,28 @@ export default function DashboardDownloadsPage() {
               </div>
             </div>
             <h3 className="mt-6 text-card font-bold text-violet">{t("downloads.empty.title")}</h3>
-            <p className="mt-2 max-w-sm text-meta leading-6 text-charcoal-80/65">
-              {t("downloads.empty.body")}
-            </p>
-            <Link
-              to="/store"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
-            >
+            <p className="mt-2 max-w-sm text-meta leading-6 text-charcoal-80/65">{t("downloads.empty.body")}</p>
+            <Link to="/store" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
               {t("downloads.empty.browseStore")}
             </Link>
           </div>
-        ) : viewMode === "grid" ? (
-          filteredProducts.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
-              {t("downloads.empty.noProducts")}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredProducts.map((product) => (
-                <ProductDownloadCard
-                  key={product.productId}
-                  product={product}
-                  onDownload={handleDownload}
-                  downloadingKey={downloadingKey}
-                />
-              ))}
-            </div>
-          )
+        ) : filteredOrders.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/65">
+            {t("downloads.empty.noProducts")}
+          </div>
         ) : (
-          filteredFlat.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist p-6 text-center text-meta text-charcoal-80/60">
-              {t("downloads.empty.noFiles")}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredFlat.map((item) => (
-                <ListRow
-                  key={item.key}
-                  item={item}
-                  onDownload={handleDownload}
-                  downloadingKey={downloadingKey}
-                />
-              ))}
-            </div>
-          )
+          <div className="space-y-4">
+            {filteredOrders.map((order) => (
+              <OrderCard
+                key={order.orderId}
+                order={order}
+                fileState={fileState}
+                onDownload={handleDownload}
+                onReceipt={handleReceipt}
+                receiptBusy={receiptBusy}
+              />
+            ))}
+          </div>
         )}
       </SectionCard>
     </section>

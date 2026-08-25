@@ -15,6 +15,18 @@
 //   apiGet/Post/Put/Patch/Delete, authGet/Post/Put/Patch/Delete,
 //   getStoredToken, getStoredUser, setStoredAuth, clearAuth,
 //   downloadFile, buildApiUrl
+//
+// Step 40 — session auth moved from a localStorage JWT to an httpOnly
+// cookie:
+//   • The session token is NEVER written to localStorage any more. The
+//     server sets `mu_session` (httpOnly) at login; the browser attaches
+//     it automatically because every request already uses
+//     `credentials: "include"`.
+//   • `auth-user` stays — it holds non-sensitive display data (name,
+//     avatar, role) so the shell can paint before /auth/me resolves.
+//   • State-changing requests echo the readable `mu_csrf` cookie back in
+//     an `X-CSRF-Token` header (double-submit; see src/middleware/csrf.js).
+//   • `getStoredToken()` is a compatibility shim that now returns null.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { friendlyMessage, statusLabel } from "./sanitize"
@@ -37,6 +49,15 @@ const WEBHOOK_PATH_RE = /^\/api\/(paypal|mercadopago)\/webhook(\/|$|\?)/
 
 export const AUTH_TOKEN_KEY = "auth-token"
 export const AUTH_USER_KEY = "auth-user"
+
+/** Readable half of the double-submit CSRF pair, set by the server. */
+export const CSRF_COOKIE_NAME = "mu_csrf"
+
+/** Methods that mutate state and therefore need the CSRF header. */
+const CSRF_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"])
+
+/** Server endpoint that clears the httpOnly cookies and revokes the JWT. */
+export const LOGOUT_ENDPOINT = "/api/v1/auth/logout"
 
 /* ─────────────────────────────── AppError ──────────────────────────────── */
 
@@ -87,16 +108,58 @@ function isJsonContentType(contentType = "") {
   return contentType.toLowerCase().includes("application/json")
 }
 
-function clearStoredAuth() {
+/**
+ * Read a non-httpOnly cookie by name. Used for `mu_csrf` only — the session
+ * cookie is httpOnly and is deliberately invisible here.
+ */
+export function readCookie(name) {
+  if (typeof document === "undefined") return null
+  const prefix = `${name}=`
+  for (const part of document.cookie.split(";")) {
+    const trimmed = part.trim()
+    if (trimmed.startsWith(prefix)) {
+      const raw = trimmed.slice(prefix.length)
+      try { return decodeURIComponent(raw) } catch { return raw }
+    }
+  }
+  return null
+}
+
+export function getCsrfToken() {
+  return readCookie(CSRF_COOKIE_NAME)
+}
+
+export function clearStoredAuth() {
   try {
+    // AUTH_TOKEN_KEY is no longer written (step 40) but is still removed so a
+    // token left behind by a pre-step-40 build does not outlive a sign-out.
     localStorage.removeItem(AUTH_TOKEN_KEY)
     localStorage.removeItem(AUTH_USER_KEY)
   } catch { /* ignore */ }
 }
 
+/**
+ * COMPATIBILITY SHIM (step 40) — always null.
+ *
+ * The session token lives in the httpOnly `mu_session` cookie, which JS
+ * cannot read; that is the whole point of the migration. Kept as an export so
+ * existing call sites keep compiling during the rollout, but nothing should
+ * depend on its value. Callers that want "is someone signed in?" should use
+ * `getStoredUser()` / `hasStoredSession()`; callers that were attaching an
+ * Authorization header no longer need to — the cookie travels on its own.
+ */
 export function getStoredToken() {
-  try { return localStorage.getItem(AUTH_TOKEN_KEY) }
-  catch { return null }
+  return null
+}
+
+/**
+ * Best-effort "does this browser look signed in?" — used to skip a
+ * guaranteed-401 round trip. Either signal is enough: the cached display
+ * user, or the CSRF cookie the server sets alongside the session cookie.
+ * The server remains the only authority; this is just a fast path.
+ */
+export function hasStoredSession() {
+  return Boolean(getStoredUser()) || Boolean(getCsrfToken())
 }
 
 export function getStoredUser() {
@@ -106,9 +169,16 @@ export function getStoredUser() {
   } catch { return null }
 }
 
-export function setStoredAuth({ token, user } = {}) {
+/**
+ * Persist the non-sensitive half of the session. The `token` field is
+ * accepted and IGNORED (step 40) so callers that still destructure a login
+ * response `{ user, token }` need no change — the session itself arrived as
+ * an httpOnly cookie on that same response.
+ */
+export function setStoredAuth({ user } = {}) {
   try {
-    if (token) localStorage.setItem(AUTH_TOKEN_KEY, token)
+    // Evict any token persisted by a pre-step-40 build of the SPA.
+    localStorage.removeItem(AUTH_TOKEN_KEY)
     if (user !== undefined) localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user))
   } catch { /* ignore */ }
 }
@@ -116,8 +186,29 @@ export function setStoredAuth({ token, user } = {}) {
 export function clearAuth() {
   clearStoredAuth()
   if (typeof window !== "undefined") {
+    // Drop any service-worker cached API responses so nothing from this
+    // session can be replayed to the next user of the device.
+    if ("caches" in window) {
+      caches.delete("api-cache").catch(() => {})
+    }
     window.dispatchEvent(new CustomEvent("auth:cleared"))
   }
+}
+
+/**
+ * Sign out for real.
+ *
+ * The session cookie is httpOnly, so the browser cannot delete it — only the
+ * server can, and only the server can revoke the JWT inside it. So we always
+ * call the logout endpoint first, then clear local state regardless of the
+ * outcome: a failed network call must never leave the UI claiming the user is
+ * still signed in.
+ */
+export async function signOut() {
+  try {
+    await apiRequest(LOGOUT_ENDPOINT, { method: "POST" })
+  } catch { /* offline / already expired — local cleanup still runs */ }
+  clearAuth()
 }
 
 function dispatchSessionExpired(detail = {}) {
@@ -133,12 +224,12 @@ async function parseResponseBody(response) {
     try { return await response.json() } catch { return {} }
   }
 
-  if (
-    contentType.includes("application/octet-stream") ||
-    contentType.includes("application/pdf") ||
-    contentType.includes("application/zip") ||
-    contentType.startsWith("image/")
-  ) {
+  // Anything that is not JSON and not a human-readable text/HTML body is a
+  // file (product downloads carry their own MIME — zip variants, docx,
+  // audio, fonts…). Reading those as text corrupts the bytes.
+  const isTextual = contentType.startsWith("text/") || contentType === ""
+  const hasAttachment = /attachment/i.test(response.headers.get("content-disposition") || "")
+  if (!isTextual || hasAttachment) {
     try { return await response.blob() } catch { return null }
   }
 
@@ -184,30 +275,59 @@ function shouldAutoHandleUnauthorized(status, code) {
   )
 }
 
-function createRequestHeaders(options = {}, requireAuth = false) {
+// Step 40 · no `requireAuth` parameter any more. There is nothing auth-shaped
+// left to attach conditionally: the session travels as a cookie, the CSRF
+// header depends only on the HTTP method, and an Authorization header appears
+// only when the caller passes an explicit token.
+function createRequestHeaders(options = {}) {
   const headers = new Headers(options.headers || {})
   const body = options.body
-  const token = requireAuth ? getStoredToken() : null
 
-  if (requireAuth && token) headers.set("Authorization", `Bearer ${token}`)
+  // Step 40 · the session rides on the httpOnly `mu_session` cookie, which the
+  // browser attaches by itself (see `credentials: "include"` below). An
+  // Authorization header is only sent when a caller explicitly hands us a
+  // token — e.g. a one-off integration or a test. We never dig one out of
+  // storage, because nothing is stored there any more.
+  const explicitToken = options.token
+  if (explicitToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${explicitToken}`)
+  }
+
+  // CSRF double-submit: mirror the readable `mu_csrf` cookie into the header
+  // on every state-changing request. A cross-origin attacker can make the
+  // browser SEND our cookies but cannot READ them, so it cannot forge this.
+  const method = String(options.method || "GET").toUpperCase()
+  if (CSRF_METHODS.has(method) && !headers.has("X-CSRF-Token")) {
+    const csrfToken = getCsrfToken()
+    if (csrfToken) headers.set("X-CSRF-Token", csrfToken)
+  }
+
   if (!isFormData(body) && !headers.has("Content-Type") && body != null) {
     headers.set("Content-Type", "application/json")
   }
   return headers
 }
 
-function prepareRequestOptions(options = {}, requireAuth = false) {
+function prepareRequestOptions(options = {}) {
+  const { token: _explicitToken, ...fetchOptions } = options
   return {
+    ...fetchOptions,
+    // Non-negotiable since step 40: without it the browser withholds the
+    // `mu_session` cookie on cross-origin dev requests and every authenticated
+    // call 401s.
     credentials: options.credentials || "include",
-    ...options,
-    headers: createRequestHeaders(options, requireAuth),
+    headers: createRequestHeaders(options),
   }
 }
 
 /* ─────────────────────────────── core ──────────────────────────────────── */
 
 async function request(endpoint, options = {}, { requireAuth = false } = {}) {
-  if (requireAuth && !getStoredToken()) {
+  // Cheap local pre-flight so obviously-signed-out callers skip a round trip.
+  // Step 40 · the old check read the localStorage token, which no longer
+  // exists; the cached `auth-user` plus the `mu_csrf` cookie are the visible
+  // traces of a live session. The server still decides for real.
+  if (requireAuth && !options.token && !hasStoredSession()) {
     throw new AppError(
       "Authentication required. Please sign in.",
       "AUTH_MISSING",
@@ -216,7 +336,7 @@ async function request(endpoint, options = {}, { requireAuth = false } = {}) {
   }
 
   const url = buildApiUrl(endpoint)
-  const requestOptions = prepareRequestOptions(options, requireAuth)
+  const requestOptions = prepareRequestOptions(options)
 
   let response
   try {

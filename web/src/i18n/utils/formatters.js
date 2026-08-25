@@ -11,7 +11,7 @@
 
 const LOCALE_MAP = { en: "en-US", es: "es-MX" }
 
-export function formatCurrency(amount, currency = "MXN", _lang = "en") {
+export function formatCurrency(amount, currency = "MXN") {
   // Phase 2 · MXN unification — currency formatting is locale-pinned to
   // en-US so the "MX$" disambiguator always shows, even on Spanish pages.
   // The `lang` arg is preserved for backwards compatibility but ignored;

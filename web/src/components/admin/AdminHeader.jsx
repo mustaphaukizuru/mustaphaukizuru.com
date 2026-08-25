@@ -40,8 +40,6 @@ const PAGE_META = {
   "/admin/services": { title: "Services", sub: "Consulting and service delivery" },
   "/admin/portfolio": { title: "Portfolio", sub: "Case studies and featured projects" },
   "/admin/support": { title: "Support Tickets", sub: "Member requests, replies, and resolution" },
-  "/admin/pages": { title: "CMS Pages", sub: "Content, legal, and published pages" },
-  "/admin/media": { title: "Media Library", sub: "Images, documents, and digital assets" },
   "/admin/email-templates": { title: "Email Templates", sub: "Transactional email configuration" },
   "/admin/email-logs": { title: "Email Logs", sub: "Delivery history and debugging" },
   "/admin/users": { title: "Users", sub: "Members, roles, and account state" },
@@ -86,14 +84,14 @@ export default function AdminHeader() {
 
   return (
     <header
-      className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_20px_rgba(93,63,211,0.04)]"
+      className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_20px_rgb(var(--color-violet-rgb)/0.04)]"
       role="banner"
     >
       {/* Top row: breadcrumb + tools */}
       <div className="flex items-center justify-between gap-4 border-b border-charcoal-80/8 px-5 py-2.5">
         {/* Breadcrumb */}
         <nav className="min-w-0 flex-1" aria-label="Breadcrumb">
-          <ol className="flex items-center gap-1.5 font-mono text-[11px] tabular-nums text-charcoal-80/55">
+          <ol className="flex items-center gap-1.5 font-mono text-[11px] tabular-nums text-charcoal-80/65">
             <li>
               <Link
                 to="/admin"
@@ -112,7 +110,7 @@ export default function AdminHeader() {
         </nav>
 
         {/* Operations clock, subtle */}
-        <div className="hidden font-mono text-[11px] tabular-nums text-charcoal-80/45 md:block">
+        <div className="hidden font-mono text-[11px] tabular-nums text-charcoal-80/65 md:block">
           {now.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })} ·{" "}
           {now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
         </div>
@@ -123,7 +121,7 @@ export default function AdminHeader() {
         {/* Title */}
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-section font-bold tracking-tight text-violet">{meta.title}</h1>
-          <p className="mt-0.5 truncate text-micro text-charcoal-80/60">{meta.sub}</p>
+          <p className="mt-0.5 truncate text-micro text-charcoal-80/65">{meta.sub}</p>
         </div>
 
         {/* Actions cluster */}
@@ -138,7 +136,7 @@ export default function AdminHeader() {
               placeholder="Search orders, products, users…"
               className="w-[220px] bg-transparent text-meta text-violet outline-none placeholder:text-charcoal-80/40"
             />
-            <kbd className="ml-1 hidden items-center gap-0.5 rounded border border-charcoal-80/15 bg-white px-1.5 py-0.5 font-mono text-[10px] font-bold text-charcoal-80/55 lg:inline-flex">
+            <kbd className="ml-1 hidden items-center gap-0.5 rounded border border-charcoal-80/15 bg-white px-1.5 py-0.5 font-mono text-[10px] font-bold text-charcoal-80/65 lg:inline-flex">
               <Command className="h-2.5 w-2.5" aria-hidden="true" />K
             </kbd>
           </div>
@@ -150,7 +148,7 @@ export default function AdminHeader() {
             rel="noopener noreferrer"
             aria-label="Open live website in a new tab"
             title="View live site"
-            className="hidden h-9 w-9 items-center justify-center rounded-lg border border-charcoal-80/10 bg-white text-charcoal-80/55 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 lg:flex"
+            className="hidden h-9 w-9 items-center justify-center rounded-lg border border-charcoal-80/10 bg-white text-charcoal-80/65 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 lg:flex"
           >
             <Home className="h-4 w-4" aria-hidden="true" />
           </Link>
@@ -161,7 +159,7 @@ export default function AdminHeader() {
             onClick={() => navigate("/admin/support")}
             aria-label="Go to Support tickets"
             title="Support"
-            className="hidden h-9 w-9 items-center justify-center rounded-lg border border-charcoal-80/10 bg-white text-charcoal-80/55 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 lg:flex"
+            className="hidden h-9 w-9 items-center justify-center rounded-lg border border-charcoal-80/10 bg-white text-charcoal-80/65 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 lg:flex"
           >
             <HelpCircle className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -183,7 +181,7 @@ export default function AdminHeader() {
               <span className="text-micro font-semibold leading-none text-violet">
                 {user?.fullName?.split(" ")[0] || "Admin"}
               </span>
-              <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider leading-none text-charcoal-80/55">
+              <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider leading-none text-charcoal-80/65">
                 Administrator
               </span>
             </div>
@@ -195,7 +193,7 @@ export default function AdminHeader() {
             onClick={handleLogout}
             aria-label="Sign out"
             title="Sign out"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-charcoal-80/10 bg-white text-charcoal-80/55 transition hover:border-rose-300/50 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-300/40 focus-visible:ring-offset-2"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-charcoal-80/10 bg-white text-charcoal-80/65 transition hover:border-rose-300/50 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-300/40 focus-visible:ring-offset-2"
           >
             <LogOut className="h-4 w-4" aria-hidden="true" />
           </button>

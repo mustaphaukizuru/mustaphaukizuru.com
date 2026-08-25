@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { Save, ArrowLeft, AlertCircle, CheckCircle2, X } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  FormShell · F10.I · Batch 6B-3
@@ -59,7 +59,7 @@ export default function FormShell({
   return (
     <section className="space-y-4 pb-6">
       {/* ── Sticky top action bar ──────────────────────────── */}
-      <div className="sticky top-[120px] z-20 -mx-3 rounded-xl border border-charcoal-80/10 bg-white/95 px-4 py-3 shadow-[0_4px_20px_rgba(93,63,211,0.06)] backdrop-blur-md sm:-mx-5 sm:px-5 lg:top-[140px] lg:mx-0">
+      <div className="sticky top-[120px] z-20 -mx-3 rounded-xl border border-charcoal-80/10 bg-white/95 px-4 py-3 shadow-[0_4px_20px_rgb(var(--color-violet-rgb)/0.06)] backdrop-blur-md sm:-mx-5 sm:px-5 lg:top-[140px] lg:mx-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Title cluster */}
           <div className="min-w-0 flex-1">
@@ -77,7 +77,7 @@ export default function FormShell({
               {statusBadge}
             </div>
             {subtitle && (
-              <p className="mt-0.5 truncate font-mono text-micro text-charcoal-80/60">{subtitle}</p>
+              <p className="mt-0.5 truncate font-mono text-micro text-charcoal-80/65">{subtitle}</p>
             )}
           </div>
 
@@ -100,7 +100,7 @@ export default function FormShell({
                 onClick={onSave}
                 disabled={saving || !canSave}
                 aria-busy={saving ? "true" : "false"}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgba(93,63,211,0.22)] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
               >
                 {saving ? (
                   <>
@@ -122,7 +122,7 @@ export default function FormShell({
       {/* ── Alerts ──────────────────────────────────────────── */}
       <AnimatePresence mode="popLayout">
         {error && (
-          <motion.div
+          <m.div
             key="error"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -138,22 +138,22 @@ export default function FormShell({
                 type="button"
                 onClick={onClearError}
                 aria-label="Dismiss error"
-                className="rounded p-0.5 text-rose-600/60 transition hover:text-rose-800 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-rose-300/40"
+                className="rounded p-0.5 text-rose-600 transition hover:text-rose-800 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-rose-300/40"
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             )}
-          </motion.div>
+          </m.div>
         )}
         {success && (
-          <motion.div
+          <m.div
             key="success"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
             role="status"
-            className="flex items-start gap-2 rounded-xl border border-mint/30 bg-mint/8 px-4 py-3 text-meta text-mint"
+            className="flex items-start gap-2 rounded-xl border border-mint/30 bg-mint/8 px-4 py-3 text-meta text-mint-700"
           >
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="flex-1">{success}</span>
@@ -167,7 +167,7 @@ export default function FormShell({
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             )}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -185,7 +185,7 @@ export default function FormShell({
  *  ──────────────────────────────────────────────────────────────────── */
 export function FormCard({ title, description, action, children, className = "" }) {
   return (
-    <div className={`rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] ${className}`}>
+    <div className={`rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -195,7 +195,7 @@ export function FormCard({ title, description, action, children, className = "" 
               </h2>
             )}
             {description && (
-              <p className="mt-1 text-micro text-charcoal-80/60">{description}</p>
+              <p className="mt-1 text-micro text-charcoal-80/65">{description}</p>
             )}
           </div>
           {action && <div className="shrink-0">{action}</div>}

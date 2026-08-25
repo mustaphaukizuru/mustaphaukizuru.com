@@ -22,7 +22,7 @@ import {
   Children,
   isValidElement,
 } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 
 const AccordionContext = createContext(null)
@@ -175,10 +175,10 @@ function AccordionTrigger({ children, icon: ExtraIcon, className = "" }) {
         aria-controls={panelId}
         onClick={() => ctx?.toggle(value)}
         className={[
-          "group flex w-full items-center justify-between gap-4 px-4 py-4 text-left",
+          "cursor-pointer group flex w-full items-center justify-between gap-4 px-4 py-4 text-left",
           "transition-colors duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
           "hover:bg-[var(--color-violet-ghost)] focus:outline-none",
-          "focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)]",
+          "focus-visible:ring-[3px] focus-visible:ring-[rgb(var(--color-violet-rgb)/0.18)]",
           className,
         ].join(" ")}
       >
@@ -217,7 +217,7 @@ function AccordionContent({ children, className = "" }) {
   return (
     <AnimatePresence initial={false}>
       {open && (
-        <motion.section
+        <m.section
           key="content"
           id={panelId}
           role="region"
@@ -236,7 +236,7 @@ function AccordionContent({ children, className = "" }) {
           >
             {children}
           </div>
-        </motion.section>
+        </m.section>
       )}
     </AnimatePresence>
   )

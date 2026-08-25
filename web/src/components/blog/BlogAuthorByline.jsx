@@ -12,13 +12,13 @@ export default function BlogAuthorByline({ author }) {
   return (
     <aside
       aria-label={t("author.aria")}
-      className="mt-14 overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_8px_32px_-12px_rgba(93,63,211,0.15)]"
+      className="mt-14 overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_8px_32px_-12px_rgb(var(--color-violet-rgb)/0.15)]"
     >
       {/* Accent strip */}
       <div
         aria-hidden="true"
         className="h-1 w-full"
-        style={{ background: "linear-gradient(90deg, #5D3FD3, #0284C7)" }}
+        style={{ background: "linear-gradient(90deg, var(--color-violet), var(--color-azure))" }}
       />
 
       <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:gap-6 sm:p-7">
@@ -34,11 +34,11 @@ export default function BlogAuthorByline({ author }) {
 
         {/* Body */}
         <div className="min-w-0 flex-1">
-          <p className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/45">
+          <p className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/65">
             {t("author.writtenBy")}
           </p>
           <p className="mt-0.5 text-[17px] font-bold text-violet">{author.name}</p>
-          <p className="text-[12.5px] font-medium text-charcoal-80/55">{author.role}</p>
+          <p className="text-[12.5px] font-medium text-charcoal-80/65">{author.role}</p>
 
           {author.bio ? (
             <p className="mt-3 text-[13.5px] leading-6 text-charcoal-80/70">
@@ -50,7 +50,7 @@ export default function BlogAuthorByline({ author }) {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Link
               to="/contact"
-              className="inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(93,63,211,0.55)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+              className="inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_6px_18px_-6px_rgb(var(--color-violet-rgb)/0.55)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
             >
               {t("author.getInTouch")}
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -70,7 +70,7 @@ export default function BlogAuthorByline({ author }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn profile"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-charcoal-80/12 bg-white text-charcoal-80/55 transition hover:border-azure/40 hover:text-azure focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-charcoal-80/12 bg-white text-charcoal-80/65 transition hover:border-azure/40 hover:text-azure focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
               >
                 <Linkedin className="h-4 w-4" aria-hidden="true" />
               </a>

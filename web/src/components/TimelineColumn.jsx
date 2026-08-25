@@ -1,7 +1,7 @@
 export default function TimelineColumn({ title, items = [] }) {
   return (
     <div>
-      <h3 className="font-['Sora'] text-3xl font-bold text-violet">
+      <h3 className="font-display text-3xl font-bold text-violet">
         {title}
       </h3>
 
@@ -14,11 +14,11 @@ export default function TimelineColumn({ title, items = [] }) {
               <div className="absolute -left-[1.9rem] top-6 h-4 w-4 rounded-full border-4 border-mist bg-violet" />
 
               <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-sm">
-                <div className="text-sm font-semibold tracking-wide text-[#d68054]">
+                <div className="text-sm font-semibold tracking-wide text-[var(--color-terracotta-800)]">
                   {item.period}
                 </div>
 
-                <h4 className="mt-2 font-['Sora'] text-2xl font-semibold text-violet">
+                <h4 className="mt-2 font-display text-2xl font-semibold text-violet">
                   {item.title}
                 </h4>
 

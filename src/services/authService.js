@@ -140,16 +140,9 @@ async function loginUser({ email, password, rememberMe = false }) {
     isMatch = false;
   }
 
-  // legacy fallback: plain-text password stored in DB
-  if (!isMatch && user.passwordHash === password) {
-    isMatch = true;
-
-    const upgradedHash = await bcrypt.hash(password, 12);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { passwordHash: upgradedHash },
-    });
-  }
+  // Security · no plaintext fallback. Rows that are not bcrypt hashes are
+  // invalidated by scripts/invalidate-plaintext-passwords.js; those users
+  // must use "forgot password".
 
   if (!isMatch) {
     const err = new Error("Invalid email or password");
@@ -271,9 +264,18 @@ async function findOrCreateUserForCheckout({ fullName, email }) {
 
   const existing = await prisma.user.findUnique({
     where: { email: normalizedEmail },
-    select: { id: true, fullName: true, email: true, role: true, status: true, authProvider: true },
+    select: { id: true, fullName: true, email: true, role: true, status: true, authProvider: true, passwordHash: true },
   })
-  if (existing) return { user: existing, isNew: false }
+  if (existing) {
+    // Security · an email that belongs to a CLAIMED account (has a password,
+    // or signs in via OAuth) must authenticate before an order is attached
+    // to it. Otherwise anyone could push orders and emails into a stranger's
+    // dashboard. Only "checkout"-created accounts that were never claimed
+    // (no password) may keep buying by email — they'll get another claim link.
+    const requiresLogin = Boolean(existing.passwordHash) || existing.authProvider !== "checkout"
+    const { passwordHash: _ph, ...user } = existing
+    return { user, isNew: false, requiresLogin }
+  }
 
   // Create a passwordless account so the buyer can immediately access
   // /dashboard/downloads via the email claim link.
@@ -329,9 +331,38 @@ async function createAccountClaim(userId) {
   return rawToken
 }
 
+/**
+ * Step 40 · server-side session revocation.
+ *
+ * Bumps the user's `tokensValidFrom` watermark to now, which authMiddleware
+ * compares against every JWT's `iat`. Because the watermark is per-user this
+ * invalidates EVERY outstanding session for that account — the cookie we
+ * just cleared, any Bearer token still cached by an old SPA build, and any
+ * long-lived rememberMe token on another device. That is the behaviour we
+ * want from an explicit sign-out: a session that lives in an httpOnly cookie
+ * cannot be deleted by the client itself, so the server has to be the one
+ * that makes it unusable.
+ *
+ * Never throws — sign-out must succeed even if the write fails, otherwise a
+ * DB hiccup would leave the user apparently signed in.
+ */
+async function revokeUserSessions(userId) {
+  if (!userId) return false
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data:  { tokensValidFrom: new Date() },
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
 module.exports = {
   registerUser,
   loginUser,
+  revokeUserSessions,
   completeLoginAfter2FA,
   getUserProfile,
   findOrCreateUserForCheckout,

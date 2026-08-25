@@ -1,47 +1,50 @@
 import {
   apiRequest,
   authFetch,
-  AUTH_TOKEN_KEY,
-  AUTH_USER_KEY,
+  clearStoredAuth as clearStoredAuthFromApi,
+  getStoredToken as getStoredTokenFromApi,
+  getStoredUser as getStoredUserFromApi,
+  hasStoredSession as hasStoredSessionFromApi,
+  setStoredAuth,
+  signOut as signOutFromApi,
 } from "../lib/api"
 
-export function getStoredToken() {
-  try {
-    return localStorage.getItem(AUTH_TOKEN_KEY)
-  } catch {
-    return null
-  }
-}
+/* ────────────────────────────────────────────────────────────────────────────
+ * Storage helpers
+ *
+ * Audit M1 · these used to be a second, hand-rolled copy of the localStorage
+ * helpers in lib/api.js — two implementations of the same thing that drifted
+ * apart. They are now thin re-exports of the lib/api.js originals, so there is
+ * exactly ONE place that knows how the session is persisted. That single point
+ * mattered for step 40: switching the session to an httpOnly cookie needed one
+ * edit, not a hunt through parallel copies.
+ * ──────────────────────────────────────────────────────────────────────────── */
 
-export function getStoredUser() {
-  try {
-    const raw = localStorage.getItem(AUTH_USER_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
+/** @deprecated Step 40 — always null; the session token is httpOnly. */
+export const getStoredToken = getStoredTokenFromApi
+export const getStoredUser = getStoredUserFromApi
+export const clearStoredAuth = clearStoredAuthFromApi
+export const hasStoredSession = hasStoredSessionFromApi
 
-export function clearStoredAuth() {
-  try {
-    localStorage.removeItem(AUTH_TOKEN_KEY)
-    localStorage.removeItem(AUTH_USER_KEY)
-  } catch {
-    // ignore storage errors
-  }
-}
+/**
+ * Full sign-out: asks the server to clear the httpOnly cookies and revoke the
+ * JWT, then wipes the cached display user. Prefer this over clearStoredAuth()
+ * — local-only cleanup cannot end a cookie session.
+ */
+export const signOut = signOutFromApi
 
+/**
+ * Persist the post-login state.
+ *
+ * Step 40 · only `user` is stored; the session itself arrived on the same
+ * response as an httpOnly `mu_session` cookie. `data.token` may still be
+ * present (rollout shim) and is deliberately ignored.
+ */
 export function storeAuth(data) {
-  if (!data?.token || !data?.user) {
+  if (!data?.user) {
     throw new Error("Invalid authentication payload")
   }
-
-  try {
-    localStorage.setItem(AUTH_TOKEN_KEY, data.token)
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user))
-  } catch {
-    throw new Error("Failed to store authentication data")
-  }
+  setStoredAuth({ user: data.user })
 }
 
 export async function signup(payload) {

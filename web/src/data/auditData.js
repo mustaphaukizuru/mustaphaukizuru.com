@@ -563,28 +563,28 @@ export const SOLUTIONS = [
 
 export const TIERS = [
   {
-    min: 0, max: 30, name: "Foundation", color: "#E11D48",
+    min: 0, max: 30, name: "Foundation", color: "var(--color-rose)",
     headline: "Significant gaps across core dimensions.",
     desc: "You're starting from near-zero on key dimensions. The highest-ROI move is a structured foundational build — not optimization. Strong upside from your first investment.",
     action: "Start with a Technology Assessment to map exactly what to fix first.",
     urgency: "Every month without a roadmap costs an estimated 15–25% in operational efficiency.",
   },
   {
-    min: 31, max: 60, name: "Stabilizing", color: "#F59E0B",
+    min: 31, max: 60, name: "Stabilizing", color: "var(--color-amber)",
     headline: "Pieces exist but are inconsistent or unmonitored.",
     desc: "The basics are in place but discipline is missing. The next engagement consolidates what's there and adds monitoring and governance. Quick wins are realistic within 90 days.",
     action: "Prioritize the top 2–3 gaps identified in your shortlist to move into the Optimizing tier.",
     urgency: "Inconsistent systems create 2–3× the support burden of well-managed ones.",
   },
   {
-    min: 61, max: 85, name: "Optimizing", color: "#0284C7",
+    min: 61, max: 85, name: "Optimizing", color: "var(--color-azure)",
     headline: "The system works — now sharpen it.",
     desc: "Your systems are solid. The next engagement reduces cost, improves performance, or extends capabilities to new use cases. You're ready for advanced retainer-based partnerships.",
     action: "Focus on the AI and analytics gaps in your shortlist to differentiate from competitors.",
     urgency: "Organisations at your tier that invest in AI see 30–50% productivity gains within 12 months.",
   },
   {
-    min: 86, max: 100, name: "Mature", color: "#10B981",
+    min: 86, max: 100, name: "Mature", color: "var(--color-mint)",
     headline: "Best-in-class. Operate from strength.",
     desc: "You're ahead of 90% of your peer organisations. The next engagement is strategic — advisory, retainer, or scaling to new lines of business.",
     action: "Consider a retainer engagement to maintain your advantage as technology shifts.",

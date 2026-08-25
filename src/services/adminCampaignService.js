@@ -4,15 +4,16 @@
  *
  * Resolves audience to a recipient snapshot, renders the body through
  * BlogContentRenderer's email twin, wraps with the brand layout, then
- * fans out one email per recipient using the existing emailService
- * SMTP transport. Every send is recorded as an EmailCampaignRecipient
- * row so the admin can drill into per-recipient delivery state.
+ * snapshots one EmailCampaignRecipient row per recipient (status "queued").
+ * Actual delivery happens in src/jobs/campaignSenderJob.js, which drains
+ * the queue in batches so a large audience never blocks an admin request.
  */
 
 const prisma = require("../lib/prisma")
 const layout = require("./emailLayoutService")
 const { renderBlocks } = require("./emailContentRenderer")
 const emailService = require("./emailService")
+const newsletterService = require("./newsletterService")
 
 function serializeCampaign(c) {
   return {
@@ -107,17 +108,28 @@ async function deleteCampaign(id) {
 async function resolveAudience(audience, recipientEmails) {
   if (audience === "newsletter") {
     const subs = await prisma.newsletterSubscriber.findMany({
-      where: { status: { in: ["subscribed", "active", "confirmed"] } },
-      select: { email: true, id: true },
+      where: { status: "subscribed" },
+      select: { email: true, id: true, unsubscribeToken: true },
     })
-    return subs.map((s) => ({ email: s.email, userId: null }))
+    return subs.map((s) => ({ email: s.email, userId: null, unsubscribeToken: s.unsubscribeToken }))
   }
   if (audience === "members") {
     const users = await prisma.user.findMany({
       where: { email: { not: null } },
       select: { id: true, email: true },
     })
-    return users.map((u) => ({ email: u.email, userId: u.id }))
+    // Attach the subscriber token where one exists so the unsubscribe link
+    // in the footer is real for members who are also on the newsletter.
+    const subs = await prisma.newsletterSubscriber.findMany({
+      where: { email: { in: users.map((u) => u.email) } },
+      select: { email: true, unsubscribeToken: true },
+    })
+    const tokenByEmail = new Map(subs.map((s) => [s.email.toLowerCase(), s.unsubscribeToken]))
+    return users.map((u) => ({
+      email: u.email,
+      userId: u.id,
+      unsubscribeToken: tokenByEmail.get(u.email.toLowerCase()) || null,
+    }))
   }
   if (audience === "custom") {
     const list = (Array.isArray(recipientEmails) ? recipientEmails : [])
@@ -159,7 +171,7 @@ async function sendTestCampaign(id, toEmail) {
   return { ok: true }
 }
 
-/* ── Real send · resolves audience, snapshot recipients, fan-out ────── */
+/* ── Real send · resolves audience, snapshots recipients, enqueues ───── */
 
 async function sendCampaignNow(id) {
   const campaign = await prisma.emailCampaign.findUnique({ where: { id } })
@@ -195,42 +207,24 @@ async function sendCampaignNow(id) {
     }),
   ])
 
-  let sent = 0, failed = 0
-  for (const recipient of audience) {
-    const unsubscribeUrl = `${layout.SITE_URL}/unsubscribed?email=${encodeURIComponent(recipient.email)}`
-    const html = renderCampaignHtml(campaign, { unsubscribeUrl })
-    try {
-      const result = await emailService.sendRawEmail({
-        to:      recipient.email,
-        from:    `${campaign.fromName} <${campaign.fromEmail}>`,
-        replyTo: campaign.replyTo || campaign.fromEmail,
-        subject: campaign.subject,
-        html,
-      })
-      await prisma.emailCampaignRecipient.update({
-        where: { campaignId_email: { campaignId: id, email: recipient.email } },
-        data:  { status: "sent", sentAt: new Date(), providerId: result?.messageId || null },
-      })
-      sent += 1
-    } catch (err) {
-      await prisma.emailCampaignRecipient.update({
-        where: { campaignId_email: { campaignId: id, email: recipient.email } },
-        data:  { status: "failed", errorMessage: String(err?.message || err).slice(0, 600) },
-      })
-      failed += 1
-    }
-  }
-
-  const updated = await prisma.emailCampaign.update({
-    where: { id },
-    data: {
-      status:      failed > 0 && sent === 0 ? "failed" : "sent",
-      completedAt: new Date(),
-      sentCount:   sent,
-      failedCount: failed,
-    },
-  })
+  // Delivery is asynchronous: src/jobs/campaignSenderJob.js drains the
+  // "queued" recipient rows in batches every minute and flips the campaign
+  // to "sent" / "failed" once none remain. Returning here keeps the admin
+  // request fast regardless of audience size.
+  const updated = await prisma.emailCampaign.findUnique({ where: { id } })
   return serializeCampaign(updated)
+}
+
+/**
+ * Per-recipient unsubscribe URL. Compliance · the link must actually
+ * unsubscribe. Subscribers carry a per-row token (newsletterService);
+ * recipients without a subscriber row fall back to the contact page rather
+ * than a dead link.
+ */
+function unsubscribeUrlFor(unsubscribeToken) {
+  return unsubscribeToken
+    ? newsletterService.buildUnsubscribeUrl(unsubscribeToken)
+    : `${layout.SITE_URL}/contact?subject=unsubscribe`
 }
 
 /* ── Audience preview · used by the form to show estimated count ──── */
@@ -249,5 +243,6 @@ module.exports = {
   sendTestCampaign,
   sendCampaignNow,
   renderCampaignHtml,
+  unsubscribeUrlFor,
   getAudienceCount,
 }

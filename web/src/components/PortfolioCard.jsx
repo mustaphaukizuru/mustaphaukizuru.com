@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Sparkles, ChevronRight, ExternalLink } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
+import SpotlightCard from "./motion/SpotlightCard"
 /**
  * PortfolioCard · shared project card
  *
@@ -50,6 +51,19 @@ function extractImages(project) {
   pushArray(project.images)
 
   return Array.from(new Set(out))
+}
+
+/**
+ * Build a srcset from the `<name>-<w>.webp` siblings that
+ * scripts/convert-images.mjs emits for bundled /images/** assets. Runtime
+ * uploads (anything outside /images/) have no siblings, so return undefined
+ * and let the browser use the plain src.
+ */
+function responsiveSrcSet(src) {
+  if (typeof src !== "string" || !src.startsWith("/images/")) return undefined
+  const m = src.match(/^(.*).(jpe?g|png)$/i)
+  if (!m) return undefined
+  return [400, 800, 1200].map((w) => `${m[1]}-${w}.webp ${w}w`).join(", ")
 }
 
 function extractTools(project) {
@@ -107,21 +121,29 @@ export default function PortfolioCard({
   }, [paused, images.length, cardIndex])
 
   return (
-    <motion.article
+    <m.article
       variants={fadeUp}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      className="group flex flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:border-l-[4px] hover:border-l-violet hover:shadow-[0_20px_48px_rgba(93,63,211,0.10)]"
+    >
+    <SpotlightCard
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition-all hover:-translate-y-1 hover:border-l-[4px] hover:border-l-violet hover:shadow-[0_20px_48px_rgb(var(--color-violet-rgb)/0.10)]"
     >
       {/* Image area, crossfade carousel */}
-      <div className="relative aspect-video overflow-hidden bg-violet-pale">
+      <m.div
+        layoutId={project?.slug ? `project-cover-${project.slug}` : undefined}
+        className="relative aspect-video overflow-hidden bg-violet-pale"
+      >
         {images.length > 0 ? (
           images.map((src, i) => (
             <img
               key={src + "-" + i}
               src={src}
+              srcSet={responsiveSrcSet(src)}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
               alt={i === 0 ? (project?.title || "Project") : (project?.title || "Project") + ", image " + (i + 1)}
               loading="lazy"
+              decoding="async"
               className={
                 "absolute inset-0 h-full w-full object-cover transition-all duration-700 " +
                 (i === currentIdx
@@ -160,26 +182,33 @@ export default function PortfolioCard({
           </span>
         ) : null}
 
-        {/* Clickable dot indicator (bottom-right) */}
+        {/* Clickable dot indicator (bottom-right).
+            Each button carries a 24×24 hit area (WCAG 2.5.8 target size);
+            the visible dot is the inner span, so the artwork is unchanged. */}
         {images.length > 1 ? (
-          <div className="absolute bottom-3 right-3 flex gap-1.5">
+          <div className="absolute bottom-[3px] right-[3px] flex items-center">
             {images.map((_, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setCurrentIdx(i)}
-                aria-label={"Show image " + (i + 1)}
-                className={
-                  "h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white " +
-                  (i === currentIdx
-                    ? "w-6 bg-white"
-                    : "w-1.5 bg-white/55 hover:bg-white/85")
-                }
-              />
+                aria-label={t("components.imageAria", { index: i + 1 })}
+                className="group/dot flex h-6 w-6 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <span
+                  aria-hidden="true"
+                  className={
+                    "block h-1.5 rounded-full transition-all " +
+                    (i === currentIdx
+                      ? "w-4 bg-white"
+                      : "w-1.5 bg-white/55 group-hover/dot:bg-white/85")
+                  }
+                />
+              </button>
             ))}
           </div>
         ) : null}
-      </div>
+      </m.div>
 
       {/* Card body */}
       <div className="flex flex-1 flex-col p-6">
@@ -187,7 +216,7 @@ export default function PortfolioCard({
         {project?.role ? (
           /* Sentence-case caption — eyebrows are short labels; long role
              descriptions read as shouting if uppercased. */
-          <p className="mt-1 text-[12px] font-medium text-charcoal-80/60">
+          <p className="mt-1 text-[12px] font-medium text-charcoal-80/65">
             {project.role}
           </p>
         ) : null}
@@ -215,6 +244,12 @@ export default function PortfolioCard({
               className="group/link inline-flex items-center gap-1 rounded-md text-[13px] font-semibold text-violet transition hover:gap-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
               {linkLabel}
+              {/* A grid of links all reading "Learn More" is not descriptive
+                  out of context (Lighthouse `link-text`, WCAG 2.4.4). The
+                  project name is appended for assistive tech only, so the
+                  accessible name stays "Learn More <project>" — which also
+                  keeps the visible text inside the name (WCAG 2.5.3). */}
+              {project?.title ? <span className="sr-only">{` ${project.title}`}</span> : null}
               <ChevronRight
                 className="h-4 w-4 transition-transform group-hover/link:translate-x-0.5"
                 aria-hidden="true"
@@ -235,6 +270,7 @@ export default function PortfolioCard({
           ) : null}
         </div>
       </div>
-    </motion.article>
+    </SpotlightCard>
+    </m.article>
   )
 }

@@ -16,7 +16,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { Link } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { ArrowLeft } from "lucide-react"
 import MarketingPanel from "./MarketingPanel"
 import LanguageSwitcher from "../LanguageSwitcher"
@@ -44,7 +44,7 @@ export default function AuthShell({ children }) {
         >
           <Link
             to="/"
-            className="group inline-flex w-fit items-center gap-2 rounded-md text-[12.5px] font-semibold text-charcoal-80/55 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+            className="group inline-flex w-fit items-center gap-2 rounded-md text-[12.5px] font-semibold text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             {t("auth.shell.backHome")}
@@ -55,7 +55,7 @@ export default function AuthShell({ children }) {
           </div>
 
           {/* Footer · privacy + © + language switcher */}
-          <footer className="mt-6 flex flex-col items-center justify-between gap-2 text-[11.5px] text-charcoal-80/55 sm:flex-row">
+          <footer className="mt-6 flex flex-col items-center justify-between gap-2 text-[11.5px] text-charcoal-80/65 sm:flex-row">
             <span>© {new Date().getFullYear()} {t("auth.shell.rights")}</span>
             <nav className="flex items-center gap-5">
               <Link to="/privacy" className="transition hover:text-violet">{t("auth.shell.privacy")}</Link>
@@ -70,10 +70,10 @@ export default function AuthShell({ children }) {
         {/* ── RIGHT · Dark hero with marketing content ──────────────── */}
         <aside
           aria-label={t("auth.shell.aboutAria")}
-          className="relative hidden overflow-hidden bg-[#0E0F14] lg:flex lg:flex-col"
+          className="relative hidden overflow-hidden bg-[var(--color-charcoal-deep)] lg:flex lg:flex-col"
         >
           {/* Ambient brand-tinted glows */}
-          <motion.div
+          <m.div
             aria-hidden="true"
             animate={
               reduce
@@ -83,7 +83,7 @@ export default function AuthShell({ children }) {
             transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
             className="pointer-events-none absolute -right-32 -top-24 h-[26rem] w-[26rem] rounded-full bg-violet/25 blur-3xl"
           />
-          <motion.div
+          <m.div
             aria-hidden="true"
             animate={
               reduce

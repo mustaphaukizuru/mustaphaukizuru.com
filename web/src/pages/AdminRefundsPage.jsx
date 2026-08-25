@@ -71,7 +71,7 @@ export default function AdminRefundsPage() {
       setLoading(false)
     }
   }
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [gateway, status])
+  useEffect(() => { load()   }, [gateway, status])
 
   const filtered = useMemo(() => {
     if (!search) return refunds
@@ -119,7 +119,7 @@ export default function AdminRefundsPage() {
               className="w-full rounded-lg border border-charcoal-80/15 bg-white py-2 pl-9 pr-9 text-[13px] outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-violet/15"
             />
             {search ? (
-              <button type="button" onClick={() => setSearch("")} aria-label="Clear" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-charcoal-80/45 hover:bg-charcoal-80/[0.06]">
+              <button type="button" onClick={() => setSearch("")} aria-label="Clear" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-charcoal-80/65 hover:bg-charcoal-80/[0.06]">
                 <X className="h-3.5 w-3.5" />
               </button>
             ) : null}
@@ -147,7 +147,7 @@ export default function AdminRefundsPage() {
       {/* Table */}
       <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white">
         <table className="min-w-full divide-y divide-charcoal-80/10 text-left text-[13px]">
-          <thead className="bg-charcoal-80/[0.03] text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">
+          <thead className="bg-charcoal-80/[0.03] text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">
             <tr>
               <th scope="col" className="px-4 py-3">Order</th>
               <th scope="col" className="hidden px-4 py-3 sm:table-cell">Gateway</th>
@@ -159,11 +159,11 @@ export default function AdminRefundsPage() {
           </thead>
           <tbody className="divide-y divide-charcoal-80/[0.06]">
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/55">Loading refunds…</td></tr>
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/65">Loading refunds…</td></tr>
             ) : error ? (
               <tr><td colSpan={6} className="px-4 py-10 text-center text-rose-700">{error}</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/55">No refunds match.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-charcoal-80/65">No refunds match.</td></tr>
             ) : filtered.map((r) => {
               const orderId = r.order?.id || r.orderId
               return (
@@ -175,16 +175,16 @@ export default function AdminRefundsPage() {
                         <ExternalLink className="h-3 w-3" />
                       </Link>
                     ) : "-"}
-                    {r.user?.email ? <div className="text-[11.5px] text-charcoal-80/55">{r.user.email}</div> : null}
+                    {r.user?.email ? <div className="text-[11.5px] text-charcoal-80/65">{r.user.email}</div> : null}
                   </td>
                   <td className="hidden px-4 py-3 text-charcoal-80/70 sm:table-cell">
                     {GATEWAY_LABELS[r.gateway] || r.gateway || "-"}
-                    {r.gatewayRefundId ? <div className="font-mono text-[10.5px] text-charcoal-80/45">{r.gatewayRefundId}</div> : null}
+                    {r.gatewayRefundId ? <div className="font-mono text-[10.5px] text-charcoal-80/65">{r.gatewayRefundId}</div> : null}
                   </td>
                   <td className="px-4 py-3 font-mono tabular-nums">{formatCurrency(r.amount, r.currency || "USD")}</td>
                   <td className="hidden px-4 py-3 text-charcoal-80/70 lg:table-cell"><span className="line-clamp-1 max-w-[260px]">{r.reason || "-"}</span></td>
                   <td className="px-4 py-3"><StatusPill status={r.status} /></td>
-                  <td className="hidden px-4 py-3 text-charcoal-80/55 md:table-cell">{formatDate(r.createdAt)}</td>
+                  <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{formatDate(r.createdAt)}</td>
                 </tr>
               )
             })}
@@ -204,7 +204,7 @@ function Metric({ label, value, accent }) {
   }[accent] || "bg-violet-pale text-violet"
   return (
     <div className="rounded-2xl border border-charcoal-80/10 bg-white p-4">
-      <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">{label}</div>
+      <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">{label}</div>
       <div className="flex items-center gap-2">
         <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${ring}`}>
           <Receipt className="h-4 w-4" />

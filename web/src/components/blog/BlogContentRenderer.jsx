@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 /* ════════════════════════════════════════════════════════════════════════
    BlogContentRenderer · typed renderer for blog post body blocks.
    ────────────────────────────────────────────────────────────────────────
@@ -166,7 +167,7 @@ function renderBlock(block) {
             {renderInline(block.text)}
           </blockquote>
           {block.cite ? (
-            <figcaption className="mt-2 text-[12.5px] font-semibold text-charcoal-80/55">
+            <figcaption className="mt-2 text-[12.5px] font-semibold text-charcoal-80/65">
               — {block.cite}
             </figcaption>
           ) : null}
@@ -226,7 +227,7 @@ function CodeBlock({ block }) {
   }
 
   return (
-    <div className="mt-6 overflow-hidden rounded-2xl border border-charcoal-80/20 bg-[#1A1B23]">
+    <div className="mt-6 overflow-hidden rounded-2xl border border-charcoal-80/20 bg-[var(--color-charcoal)]">
       {/* Header bar: language label + copy button */}
       <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-2.5">
         <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-white/40">
@@ -244,7 +245,7 @@ function CodeBlock({ block }) {
       </div>
       {/* Code body — JetBrains Mono, scrollable */}
       <pre className="overflow-x-auto px-5 py-4">
-        <code className="font-mono text-[13.5px] leading-7 text-[#C8C8D0]">
+        <code className="font-mono text-[13.5px] leading-7 text-[var(--color-code-fg)]">
           {code}
         </code>
       </pre>
@@ -266,7 +267,7 @@ function ImageBlock({ block }) {
         />
       </div>
       {block.caption ? (
-        <figcaption className="mt-2 text-center text-[12.5px] italic text-charcoal-80/50">
+        <figcaption className="mt-2 text-center text-[12.5px] italic text-charcoal-80/65">
           {block.caption}
         </figcaption>
       ) : null}
@@ -308,7 +309,7 @@ function VideoBlock({ block }) {
         />
       </div>
       {block.caption ? (
-        <figcaption className="mt-2 flex items-center justify-center gap-1.5 text-[12.5px] italic text-charcoal-80/50">
+        <figcaption className="mt-2 flex items-center justify-center gap-1.5 text-[12.5px] italic text-charcoal-80/65">
           <PlayCircle className="h-3.5 w-3.5 text-violet/60" aria-hidden="true" />
           {block.caption}
         </figcaption>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
+import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
+import Image from "../ui/Image"
 import { Link } from "react-router-dom"
 import {
   ArrowRight,
@@ -75,16 +76,16 @@ const TRUST_BULLETS = [
 const REVIEW_INITIALS = ["AM", "JN", "CK", "TM"]
 
 const HERO_BG =
-  "radial-gradient(at 100% 0%, rgba(124,58,237,0.10) 0px, transparent 55%), " +
-  "radial-gradient(at 0% 100%, rgba(233,196,106,0.18) 0px, transparent 50%), " +
-  "linear-gradient(160deg, #F8FAFC 0%, #EFE7F8 40%, #EFF1F5 100%)"
+  "radial-gradient(at 100% 0%, rgb(var(--color-violet-rgb)/0.10) 0px, transparent 55%), " +
+  "radial-gradient(at 0% 100%, rgb(var(--color-terracotta-rgb)/0.18) 0px, transparent 50%), " +
+  "linear-gradient(160deg, var(--color-mist) 0%, var(--color-violet-pale) 40%, var(--color-slate-100) 100%)"
 
 // Conic ring around the portrait. Middle stop uses Violet Light
-// (#8B6FE8, brand v3 --u-violet-lt) instead of Tailwind's off-palette
-// #7c3aed — keeps the brightness arc while staying in the sanctioned
+// (var(--color-violet-light), brand v3 --u-violet-lt) instead of Tailwind's off-palette
+// Tailwind violet-600 — keeps the brightness arc while staying in the sanctioned
 // token system per Brand v3 §04 (no hex outside the five tiers).
 const RING_GRADIENT =
-  "conic-gradient(from 0deg, #E9C46A 0%, #5D3FD3 35%, #8B6FE8 50%, #5D3FD3 65%, #E9C46A 100%)"
+  "conic-gradient(from 0deg, var(--color-terracotta) 0%, var(--color-violet) 35%, var(--color-violet-light) 50%, var(--color-violet) 65%, var(--color-terracotta) 100%)"
 
 /* ─────────────────────────── component ───────────────────────────────── */
 
@@ -137,14 +138,14 @@ export default function AboutHero() {
         <div className="grid w-full items-center gap-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-0">
 
           {/* ═══ LEFT, greeting · stats · CTAs · socials ═══ */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             animate="show"
             className="flex flex-col gap-7 pr-0 lg:pr-8"
           >
             {/* Greeting + headline */}
-            <motion.div variants={fadeUp} className="flex flex-col gap-2">
+            <m.div variants={fadeUp} className="flex flex-col gap-2">
               <p className="text-[clamp(16px,1.4vw,20px)] font-semibold text-charcoal-80/65">
                 {t("hero.helloIAm")}
               </p>
@@ -164,15 +165,15 @@ export default function AboutHero() {
                 ]}
                 highlightClassName="text-terracotta"
               />
-            </motion.div>
+            </m.div>
 
             {/* Stats */}
-            <motion.div variants={fadeUp} className="flex items-center gap-4">
+            <m.div variants={fadeUp} className="flex items-center gap-4">
               <div>
                 <span className="text-[clamp(40px,5vw,52px)] font-extrabold leading-none text-violet">
                   8+
                 </span>
-                <div className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/55">
+                <div className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/65">
                   {t("hero.yearsExperience")}
                 </div>
               </div>
@@ -181,20 +182,19 @@ export default function AboutHero() {
                 <span className="text-[clamp(28px,3.5vw,38px)] font-extrabold leading-none text-violet">
                   10+
                 </span>
-                <div className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/55">
+                <div className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.2em] text-charcoal-80/65">
                   {t("hero.projectsDelivered")}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* CTAs, primary: Book Consultation · secondary: Download CV */}
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
+            <m.div variants={fadeUp} className="flex flex-wrap gap-3">
               {/* Primary conversion CTA — Innovation Gradient (Brand v3 sacred,
                   reserved for Book / Buy / Checkout / Contact CTAs). */}
               <Link
                 to="/contact"
-                aria-label={t("hero.contactAria")}
-                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-grad-innovation px-6 py-3.5 text-[14px] font-bold !text-white shadow-[0_14px_34px_-8px_rgba(93,63,211,0.55),0_4px_10px_-2px_rgba(2,132,199,0.25)] ring-1 ring-inset ring-white/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-8px_rgba(93,63,211,0.65),0_6px_14px_-2px_rgba(2,132,199,0.32)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/50 focus-visible:ring-offset-2"
+                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-grad-innovation px-6 py-3.5 text-[14px] font-bold !text-white shadow-[0_14px_34px_-8px_rgb(var(--color-violet-rgb)/0.55),0_4px_10px_-2px_rgb(var(--color-azure-rgb)/0.25)] ring-1 ring-inset ring-white/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-8px_rgb(var(--color-violet-rgb)/0.65),0_6px_14px_-2px_rgb(var(--color-azure-rgb)/0.32)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/50 focus-visible:ring-offset-2"
               >
                 <span
                   aria-hidden="true"
@@ -208,13 +208,13 @@ export default function AboutHero() {
               </Link>
 
               <CvPicker t={t} />
-            </motion.div>
+            </m.div>
 
             {/* Socials — filled brand chips, no surrounding panel.
                 Same SocialLinks component the Footer uses, rendered
                 directly on the hero's mist surface. */}
-            <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-3">
-              <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45">
+            <m.div variants={fadeUp} className="flex flex-wrap items-center gap-3">
+              <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                 {t("hero.connectLabel")}
               </span>
               <div aria-hidden="true" className="h-px max-w-[40px] flex-1 bg-charcoal-80/15" />
@@ -225,11 +225,11 @@ export default function AboutHero() {
                 align="start"
                 ariaLabel="Connect with Mustapha"
               />
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
 
           {/* ═══ CENTRE, circular portrait with rotating gradient ring ═══ */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
@@ -246,32 +246,38 @@ export default function AboutHero() {
             <div
               aria-hidden="true"
               className="absolute inset-[6px] rounded-full"
-              style={{ background: "#F8FAFC" }}
+              style={{ background: "var(--color-mist)" }}
             />
 
             {/* Portrait, gentle idle float */}
             <div
-              className="ukz-about-float relative z-10 overflow-hidden rounded-full shadow-[0_20px_60px_-10px_rgba(93,63,211,0.30)]"
+              className="ukz-about-float relative z-10 overflow-hidden rounded-full shadow-[0_20px_60px_-10px_rgb(var(--color-violet-rgb)/0.30)]"
               style={{ width: "min(320px, 80vw)", height: "min(380px, 95vw)" }}
             >
-              <img
+              <Image
                 src={profilePhoto}
                 alt={t("hero.portraitAlt")}
+                width={1080}
+                height={1080}
+                widths={[448, 1080]}
+                sizes="(max-width: 640px) 80vw, 320px"
                 loading="eager"
-                className="h-full w-full object-cover object-top"
+                fetchPriority="high"
+                className="block h-full w-full"
+                imgClassName="h-full w-full object-cover object-top"
               />
             </div>
-          </motion.div>
+          </m.div>
 
           {/* ═══ RIGHT, tagline · review · role · trust bullets (lg+ only) ═══ */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             animate="show"
             className="hidden flex-col gap-7 pl-0 lg:flex lg:pl-8"
           >
             {/* Tagline */}
-            <motion.div variants={fadeUp} className="text-right">
+            <m.div variants={fadeUp} className="text-right">
               <p className="text-[clamp(15px,1.1vw,17px)] italic leading-7 text-charcoal-80/65">
                 {t("hero.tagline1")}
                 <br />
@@ -279,13 +285,13 @@ export default function AboutHero() {
                   {t("hero.tagline2")}
                 </span>
               </p>
-            </motion.div>
+            </m.div>
 
             {/* Review card */}
-            <motion.div variants={fadeUp} className="flex justify-end">
-              <div className="rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_32px_-8px_rgba(93,63,211,0.15)]">
+            <m.div variants={fadeUp} className="flex justify-end">
+              <div className="rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_32px_-8px_rgb(var(--color-violet-rgb)/0.15)]">
                 <div className="flex items-center gap-3 text-[13px] font-semibold">
-                  <span className="text-[12px] font-normal text-charcoal-80/60">
+                  <span className="text-[12px] font-normal text-charcoal-80/65">
                     {t("hero.clientReviews")}
                   </span>
                   <div className="flex gap-0.5 text-terracotta">
@@ -309,15 +315,15 @@ export default function AboutHero() {
                     4.3
                   </span>
                 </div>
-                <div className="mt-1.5 text-[10px] text-charcoal-80/45">
+                <div className="mt-1.5 text-[10px] text-charcoal-80/65">
                   {t("hero.basedOnFeedback")}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Role */}
-            <motion.div variants={fadeUp} className="text-right">
-              <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-charcoal-80/50">
+            <m.div variants={fadeUp} className="text-right">
+              <p className="text-[12px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                 {t("hero.technologyKicker")}
               </p>
               <p
@@ -326,10 +332,10 @@ export default function AboutHero() {
               >
                 {t("hero.consultantWord")}
               </p>
-            </motion.div>
+            </m.div>
 
             {/* Trust bullets */}
-            <motion.div variants={fadeUp} className="flex flex-col gap-3">
+            <m.div variants={fadeUp} className="flex flex-col gap-3">
               {TRUST_BULLETS.map((bullet) => {
                 const Icon = bullet.icon
                 return (
@@ -342,13 +348,13 @@ export default function AboutHero() {
                     </div>
                     <div>
                       <div className="font-semibold text-violet">{bullet.label}</div>
-                      <div className="text-[11px] text-charcoal-80/55">{bullet.desc}</div>
+                      <div className="text-[11px] text-charcoal-80/65">{bullet.desc}</div>
                     </div>
                   </div>
                 )
               })}
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         </div>
       </Container>
     </section>
@@ -417,6 +423,7 @@ function CvPicker({ t }) {
     const rect = trigger.getBoundingClientRect()
     const spaceBelow = window.innerHeight - rect.bottom
     const MENU_HEIGHT_ESTIMATE = 240 // header row + 3 items + padding
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- placement depends on DOM measurement after open
     setPlacement(spaceBelow < MENU_HEIGHT_ESTIMATE + 16 ? "top" : "bottom")
   }, [open])
 
@@ -428,7 +435,6 @@ function CvPicker({ t }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={t("hero.openCvAria", "Open my professional profiles")}
         className="group inline-flex items-center gap-2 rounded-xl border border-violet/25 bg-white/60 px-6 py-3.5 text-[14px] font-semibold text-violet transition hover:-translate-y-0.5 hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 focus-visible:ring-offset-2"
       >
         <FileText className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" aria-hidden="true" />
@@ -441,7 +447,7 @@ function CvPicker({ t }) {
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             role="menu"
             aria-label={t("hero.cvs.menuLabel", "Professional profiles")}
             // Animate from a tiny offset in the direction the menu OPENS
@@ -461,13 +467,13 @@ function CvPicker({ t }) {
             // moved INSIDE the <ul> so the rounded corners + header stay
             // intact while the menu body scrolls.
             className={[
-              "absolute left-0 z-30 w-[min(20rem,90vw)] overflow-hidden rounded-xl border border-charcoal-80/8 bg-white shadow-[0_18px_44px_-12px_rgba(93,63,211,0.28)]",
+              "absolute left-0 z-30 w-[min(20rem,90vw)] overflow-hidden rounded-xl border border-charcoal-80/8 bg-white shadow-[0_18px_44px_-12px_rgb(var(--color-violet-rgb)/0.28)]",
               "max-h-[min(70vh,420px)] flex flex-col",
               placement === "top" ? "bottom-full mb-2" : "top-full mt-2",
             ].join(" ")}
           >
             <div className="shrink-0 border-b border-charcoal-80/8 px-4 py-2.5">
-              <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+              <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
                 {t("hero.cvs.menuLabel", "Professional profiles")}
               </p>
             </div>
@@ -489,7 +495,7 @@ function CvPicker({ t }) {
                       <span className="block truncate text-[13.5px] font-semibold text-charcoal">
                         {t(cv.titleKey, cv.titleFallback)}
                       </span>
-                      <span className="block truncate text-[11.5px] text-charcoal-80/60">
+                      <span className="block truncate text-[11.5px] text-charcoal-80/65">
                         {t(cv.subtitleKey, cv.subtitleFallback)}
                       </span>
                     </span>
@@ -501,7 +507,7 @@ function CvPicker({ t }) {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

@@ -1,7 +1,9 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import {
-  clearStoredAuth, fetchMe, getStoredToken, getStoredUser,
-  login as loginRequest, signup as signupRequest, storeAuth,
+  clearStoredAuth, fetchMe, getStoredUser, hasStoredSession,
+  login as loginRequest, signOut as signOutRequest,
+  signup as signupRequest, storeAuth,
   verifyLoginTwoFactor as verifyLoginTwoFactorRequest,
 } from "../services/authService"
 
@@ -26,16 +28,25 @@ function normalizeUser(raw) {
   return { ...raw, avatarUrl }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 40 · the session token is gone from this file.
+//
+// It now lives in the httpOnly `mu_session` cookie, which JS cannot read and
+// therefore cannot hold in state. What the provider tracks is the USER — the
+// display identity — and `isAuthenticated` is derived from that alone. The
+// cached `auth-user` entry is only a paint-fast hint; `fetchMe()` on mount is
+// what actually confirms the cookie is still valid, and a 401 from any request
+// tears the local state down through the "auth:session-expired" event that
+// lib/api.js dispatches.
+// ─────────────────────────────────────────────────────────────────────────────
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getStoredUser())
-  const [token, setToken] = useState(() => getStoredToken())
   const [loading, setLoading] = useState(true)
 
   // ── Session expired event listener ──────────────────────────────────────
   useEffect(() => {
     function handleExpiry() {
       setUser(null)
-      setToken(null)
     }
     window.addEventListener("auth:session-expired", handleExpiry)
     return () => window.removeEventListener("auth:session-expired", handleExpiry)
@@ -44,22 +55,20 @@ export function AuthProvider({ children }) {
   // ── Bootstrap: verify stored token on mount ──────────────────────────────
   useEffect(() => {
     async function bootstrap() {
-      const existingToken = getStoredToken()
-      if (!existingToken) {
+      // No local trace of a session (no cached user, no mu_csrf cookie) → skip
+      // the guaranteed-401 round trip. The session cookie itself is invisible
+      // to us, so these are the only signals available client-side.
+      if (!hasStoredSession()) {
         setLoading(false)
         return
       }
 
       const storedUser = getStoredUser()
-      if (storedUser) {
-        setUser(storedUser)
-        setToken(existingToken)
-      }
+      if (storedUser) setUser(storedUser)
 
       try {
         const me = await fetchMe()
         setUser(normalizeUser(me))
-        setToken(existingToken)
       } catch (err) {
         const isNetworkError = err?.code === "NETWORK_ERROR" || err?.message?.includes("ERR_CONNECTION_REFUSED")
 
@@ -68,7 +77,6 @@ export function AuthProvider({ children }) {
         } else {
           clearStoredAuth()
           setUser(null)
-          setToken(null)
         }
       } finally {
         setLoading(false)
@@ -83,7 +91,6 @@ export function AuthProvider({ children }) {
     const enriched = { ...data, user: normalizeUser(data.user) }
     storeAuth(enriched)
     setUser(enriched.user)
-    setToken(enriched.token)
     return enriched
   }, [])
 
@@ -114,15 +121,14 @@ export function AuthProvider({ children }) {
     try {
       storeAuth(enriched)
     } catch (err) {
-      // localStorage unavailable (Safari private browsing, quota, etc.) —
-      // surface a clean error instead of leaving the user in a half-
-      // authenticated state where the redirect fires but the session is gone.
-      // eslint-disable-next-line no-console
-      console.error("[auth] storeAuth failed:", err)
-      throw new Error("Could not save your session. Disable private browsing and try again.")
+      // Step 40 · this can no longer cost the user their session — that
+      // arrived as an httpOnly cookie on the login response and survives a
+      // storage failure. Only the cached display user is lost, so we warn and
+      // carry on rather than aborting a login that actually succeeded.
+
+      console.warn("[auth] storeAuth failed, continuing on the cookie session:", err)
     }
     setUser(enriched.user)
-    setToken(enriched.token)
     return enriched
   }, [])
 
@@ -135,7 +141,6 @@ export function AuthProvider({ children }) {
     const enriched = { ...data, user: normalizeUser(data.user) }
     storeAuth(enriched)
     setUser(enriched.user)
-    setToken(enriched.token)
     return enriched
   }, [])
 
@@ -143,14 +148,23 @@ export function AuthProvider({ children }) {
     const enriched = { ...data, user: normalizeUser(data.user) }
     storeAuth(enriched)
     setUser(enriched.user)
-    setToken(enriched.token)
     return enriched
   }, [])
 
-  const logout = useCallback(() => {
-    clearStoredAuth()
-    setUser(null)
-    setToken(null)
+  /**
+   * Sign out. Step 40 · this MUST reach the server: the session cookie is
+   * httpOnly (only the server can delete it) and its JWT stays valid until
+   * the server bumps the user's revocation watermark. Clearing localStorage
+   * alone would look signed-out while the session stayed alive. Local state is
+   * cleared regardless of the network outcome.
+   */
+  const logout = useCallback(async () => {
+    try {
+      await signOutRequest()
+    } finally {
+      clearStoredAuth()
+      setUser(null)
+    }
   }, [])
 
   const updateUser = useCallback((updates) => {
@@ -162,16 +176,18 @@ export function AuthProvider({ children }) {
         if (stored) {
           localStorage.setItem("auth-user", JSON.stringify({ ...stored, ...updates }))
         }
-      } catch {}
+      } catch { /* ignore */ }
       return updated
     })
   }, [])
 
   const value = {
     user,
-    token,
     loading,
-    isAuthenticated: !!user && !!token,
+    // Step 40 · derived from the user alone — there is no client-visible token
+    // to check any more. The cookie's validity is proven by requests
+    // succeeding, and a 401 tears this down via "auth:session-expired".
+    isAuthenticated: !!user,
     signup,
     login,
     completeTwoFactorLogin,

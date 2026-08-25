@@ -35,7 +35,7 @@
    the calendar hides below `lg`.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { Link } from "react-router-dom"
 import {
   Sparkles, Clock, MapPin, MessageCircle, ArrowRight, Calendar,
@@ -81,9 +81,9 @@ const TRUST_PILLS = [
 /* ── Day-status visual tokens (brand-aligned) ─────────────────────── */
 const DAY_STYLE = {
   empty: { wrap: "invisible", num: "" },
-  weekend: { wrap: "bg-violet-ghost/70", num: "!text-charcoal/45" },
+  weekend: { wrap: "bg-violet-ghost/70", num: "!text-charcoal/65" },
   available:{ wrap: "bg-white ring-1 ring-mint-400/45", num: "!text-violet" },
-  today: { wrap: "bg-terracotta shadow-[0_6px_18px_rgba(233,196,106,0.55)]", num: "!text-violet font-extrabold" },
+  today: { wrap: "bg-terracotta shadow-[0_6px_18px_rgb(var(--color-terracotta-rgb)/0.55)]", num: "!text-violet-deep font-extrabold" },
   booked: { wrap: "bg-violet", num: "!text-white" },
   kickoff: { wrap: "bg-violet-pale ring-1 ring-violet/55", num: "!text-violet" },
   progress: { wrap: "bg-[#fed978]", num: "!text-[#5a4506]" },
@@ -136,7 +136,7 @@ function DayCell({ day, kind, idx, reduce }) {
   if (kind === "empty") return <div aria-hidden="true" className="h-9" />
 
   return (
-    <motion.div
+    <m.div
       variants={{
         hidden: { opacity: 0, scale: 0.7 },
         show: { opacity: 1, scale: 1, transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] } },
@@ -149,7 +149,7 @@ function DayCell({ day, kind, idx, reduce }) {
     >
       {/* TODAY, pulsing violet ring */}
       {kind === "today" && !reduce && (
-        <motion.span
+        <m.span
           aria-hidden="true"
           animate={{ scale: [1, 1.18, 1], opacity: [0.7, 0, 0.7] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
@@ -163,7 +163,7 @@ function DayCell({ day, kind, idx, reduce }) {
           <span aria-hidden="true" className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-mint-400" />
           {/* Light up day 4 (first available cell) as a "click me" hint */}
           {!reduce && day === 4 && (
-            <motion.span
+            <m.span
               aria-hidden="true"
               animate={{ scale: [1, 2.4, 1], opacity: [0.6, 0, 0.6] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1.4 }}
@@ -188,7 +188,7 @@ function DayCell({ day, kind, idx, reduce }) {
       {/* IN PROGRESS, left-to-right shimmer to convey activity */}
       {kind === "progress" && !reduce && (
         <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg">
-          <motion.span
+          <m.span
             animate={{ x: ["-110%", "210%"] }}
             transition={{ duration: 2.2, repeat: Infinity, ease: "linear", delay: (idx % 4) * 0.25 }}
             className="absolute inset-y-0 -left-1/2 w-1/2"
@@ -211,7 +211,7 @@ function DayCell({ day, kind, idx, reduce }) {
       )}
 
       <span className="relative">{day}</span>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -221,7 +221,7 @@ function DayCell({ day, kind, idx, reduce }) {
 function BookingCalendar({ reduce }) {
   const { t } = useTranslation("contact")
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 22, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.7, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -230,7 +230,7 @@ function BookingCalendar({ reduce }) {
       aria-label={t("hero.calendarAria")}
     >
       {/* Float wrapper, inherits the V3 idle-orb cadence */}
-      <motion.div
+      <m.div
         animate={reduce ? undefined : { y: [0, -10, 0] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
         className="relative"
@@ -241,19 +241,19 @@ function BookingCalendar({ reduce }) {
           viewBox="0 0 200 70"
           className="pointer-events-none absolute -left-3 -top-7 z-20 h-14 w-44"
         >
-          <text x="0" y="22" fontFamily="'Caveat','Brush Script MT',cursive" fontSize="22" fontWeight="700" fill="#E9C46A">
+          <text x="0" y="22" fontFamily="var(--font-script)" fontSize="22" fontWeight="700" fill="var(--color-terracotta)">
             {t("hero.letsBuild")}
           </text>
           <path
             d="M85 28 C 110 36, 135 46, 160 60"
-            stroke="#E9C46A" strokeWidth="1.6" fill="none"
+            stroke="var(--color-terracotta)" strokeWidth="1.6" fill="none"
             strokeLinecap="round" strokeDasharray="4 4" opacity="0.75"
           />
-          <polygon points="155,55 167,58 161,67" fill="#E9C46A" opacity="0.8" />
+          <polygon points="155,55 167,58 161,67" fill="var(--color-terracotta)" opacity="0.8" />
         </svg>
 
         {/* ── "{t("hero.repliesIn")}" yellow pill · top-right rotated ───── */}
-        <motion.div
+        <m.div
           aria-hidden="true"
           initial={{ rotate: -8 }}
           animate={reduce ? { rotate: -8 } : { y: [0, -3, 0], rotate: -8 }}
@@ -262,7 +262,7 @@ function BookingCalendar({ reduce }) {
         >
           <div className="inline-flex items-center gap-1.5 rounded-full bg-[#fed978] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] !text-[#5a4506] shadow-[0_10px_24px_rgba(0,0,0,0.30)]">
             <span className="relative flex h-1.5 w-1.5">
-              <motion.span
+              <m.span
                 animate={reduce ? undefined : { scale: [1, 2.6, 1], opacity: [0.6, 0, 0.6] }}
                 transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute inset-0 rounded-full bg-[#5a4506]"
@@ -271,7 +271,7 @@ function BookingCalendar({ reduce }) {
             </span>
             {t("hero.repliesIn")}
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ── Coral heart (kept from V4) ─────────────────────────── */}
         <svg aria-hidden="true" viewBox="0 0 24 24" className="pointer-events-none absolute -right-2 top-16 z-0 h-5 w-5">
@@ -292,9 +292,11 @@ function BookingCalendar({ reduce }) {
               <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.18em] !text-violet">
                 Booking <span aria-hidden="true">·</span> {t("hero.discoveryCall")}
               </span>
-              <h3 className="mt-1.5 text-[17px] font-bold leading-tight !text-violet">
+              {/* Decorative mock-UI title — styled like a heading but not part of
+                  the document outline (it would skip a level after the page h1). */}
+              <p className="mt-1.5 text-[17px] font-bold leading-tight !text-violet">
                 {t("hero.scheduleCall")}
-              </h3>
+              </p>
             </div>
             <ol className="flex shrink-0 items-center gap-1 pt-0.5 text-[10px] font-semibold !text-charcoal">
               {[
@@ -303,25 +305,25 @@ function BookingCalendar({ reduce }) {
                 { n: 3, label: "Confirm", active: false },
               ].map(({ n, label, active }, i) => (
                 <li key={n} className="flex items-center gap-1.5">
-                  <motion.span
+                  <m.span
                     animate={
                       reduce || !active
                         ? undefined
                         : { boxShadow: [
-                            "0 0 0 0 rgba(93,63,211,0.35)",
-                            "0 0 0 6px rgba(93,63,211,0)",
-                            "0 0 0 0 rgba(93,63,211,0)",
+                            "0 0 0 0 rgb(var(--color-violet-rgb)/0.35)",
+                            "0 0 0 6px rgb(var(--color-violet-rgb)/0)",
+                            "0 0 0 0 rgb(var(--color-violet-rgb)/0)",
                           ] }
                     }
                     transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                     className={[
                       "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold",
-                      active ? "bg-violet !text-white" : "bg-violet-pale !text-violet/55",
+                      active ? "bg-violet !text-white" : "bg-violet-pale !text-violet",
                     ].join(" ")}
                   >
                     {n}
-                  </motion.span>
-                  <span className={active ? "!text-violet" : "!text-charcoal/55"}>{label}</span>
+                  </m.span>
+                  <span className={active ? "!text-violet" : "!text-charcoal/65"}>{label}</span>
                   {i < 2 && <span aria-hidden="true" className="h-px w-3 bg-violet/20" />}
                 </li>
               ))}
@@ -334,9 +336,11 @@ function BookingCalendar({ reduce }) {
               <Globe className="h-3.5 w-3.5 !text-violet" aria-hidden="true" />
               America/Mexico_City
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold !text-mint-600 ring-1 ring-mint-600/25">
+            {/* mint-600 on white is 3.19:1 — fine for an icon (3:1 bar) but
+                this is 10px TEXT, which needs 4.5:1. mint-700 is 7.68:1. */}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold !text-mint-700 ring-1 ring-mint-600/25">
               <span className="relative flex h-1.5 w-1.5">
-                <motion.span
+                <m.span
                   aria-hidden="true"
                   animate={reduce ? undefined : { scale: [1, 2.4, 1], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
@@ -372,14 +376,14 @@ function BookingCalendar({ reduce }) {
             </div>
 
             {/* Day-of-week labels */}
-            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[9px] font-bold uppercase tracking-[0.12em] !text-charcoal/55">
+            <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[9px] font-bold uppercase tracking-[0.12em] !text-charcoal/65">
               {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
                 <span key={d}>{d}</span>
               ))}
             </div>
 
             {/* Animated day grid · staggered fade-in */}
-            <motion.div
+            <m.div
               variants={{
                 hidden: {},
                 show: { transition: { staggerChildren: 0.018, delayChildren: 0.55 } },
@@ -391,7 +395,7 @@ function BookingCalendar({ reduce }) {
               {DAYS.map((d, idx) => (
                 <DayCell key={idx} idx={idx} reduce={reduce} {...d} />
               ))}
-            </motion.div>
+            </m.div>
 
             {/* Status legend */}
             <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-violet/10 pt-2 text-[10px] font-semibold !text-charcoal">
@@ -408,7 +412,7 @@ function BookingCalendar({ reduce }) {
           <div className="border-t border-violet/10 bg-white px-5 py-2.5">
             <Link
               to="/book"
-              className="group flex w-full items-center justify-center gap-2 rounded-full bg-violet px-4 py-2 text-[12px] font-extrabold uppercase tracking-[0.14em] !text-white shadow-[0_10px_22px_rgba(93,63,211,0.30)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/45"
+              className="group flex w-full items-center justify-center gap-2 rounded-full bg-violet px-4 py-2 text-[12px] font-extrabold uppercase tracking-[0.14em] !text-white shadow-[0_10px_22px_rgb(var(--color-violet-rgb)/0.30)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/45"
             >
               <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
               {t("hero.pickSlot")}
@@ -418,7 +422,7 @@ function BookingCalendar({ reduce }) {
         </div>
 
         {/* ── Floating "Just shipped" toast · recurs every cycle ── */}
-        <motion.div
+        <m.div
           aria-hidden="true"
           initial={{ opacity: 0, y: 12, x: -8 }}
           animate={
@@ -455,10 +459,10 @@ function BookingCalendar({ reduce }) {
               {t("hero.shippedExample")}
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ── "{t("hero.letsBuildCheck")}" hand-stamp · bottom-right ─ */}
-        <motion.div
+        <m.div
           aria-hidden="true"
           initial={{ rotate: -12 }}
           animate={
@@ -471,25 +475,25 @@ function BookingCalendar({ reduce }) {
         >
           <div className="rounded-md border-[1.5px] border-[#1f2937] bg-white px-3 py-1 shadow-[0_10px_24px_rgba(0,0,0,0.30)]">
             <span
-              style={{ fontFamily: "'Caveat','Brush Script MT',cursive" }}
+              style={{ fontFamily: "var(--font-script)" }}
               className="text-[15px] font-extrabold !text-[#1f3508]"
             >
               {t("hero.letsBuildCheck")}
             </span>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ── Tiny "check" rosette top-right (kept from V4) ──────── */}
-        <motion.div
+        <m.div
           aria-hidden="true"
           animate={reduce ? undefined : { rotate: [0, 8, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           className="absolute right-6 top-20 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-1 ring-terracotta"
         >
           <CheckCircle2 className="h-3.5 w-3.5 !text-mint-600" />
-        </motion.div>
-      </motion.div>
-    </motion.div>
+        </m.div>
+      </m.div>
+    </m.div>
   )
 }
 
@@ -517,23 +521,23 @@ export default function ContactHero() {
         className="relative overflow-hidden py-12 sm:py-16 lg:py-20"
         style={{
           backgroundImage:
-            "radial-gradient(80% 70% at 80% 20%, #3B2487 0%, #1A1B23 45%, #0F1018 100%)",
+            "radial-gradient(80% 70% at 80% 20%, var(--color-action-primary-active) 0%, var(--color-charcoal) 45%, var(--color-charcoal-deep) 100%)",
         }}
       >
         {/* ── Drifting orbs (violet × 2 + terracotta) ────────────── */}
-        <motion.div
+        <m.div
           aria-hidden="true"
           animate={reduce ? undefined : { x: [0, 14, 0], y: [0, 10, 0] }}
           transition={orbTransition(12)}
           className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-violet/35 blur-[110px]"
         />
-        <motion.div
+        <m.div
           aria-hidden="true"
           animate={reduce ? undefined : { x: [0, -12, 0], y: [0, 14, 0] }}
           transition={orbTransition(14, 0.6)}
           className="pointer-events-none absolute -bottom-20 left-1/4 h-64 w-64 rounded-full bg-terracotta/15 blur-[100px]"
         />
-        <motion.div
+        <m.div
           aria-hidden="true"
           animate={reduce ? undefined : { x: [0, 10, 0], y: [0, -8, 0] }}
           transition={orbTransition(15, 1.2)}
@@ -566,7 +570,7 @@ export default function ContactHero() {
           <div className="grid items-center gap-12 lg:grid-cols-[1fr_1fr] lg:gap-12 xl:gap-16">
 
             {/* LEFT COLUMN · narrative + CTAs + trust pills */}
-            <motion.div
+            <m.div
               variants={stagger}
               initial="hidden"
               animate="show"
@@ -574,12 +578,12 @@ export default function ContactHero() {
             >
 
               {/* Live availability badge · NEW */}
-              <motion.div
+              <m.div
                 variants={fadeUp}
                 className="inline-flex items-center gap-2 rounded-full bg-mint/15 px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.18em] !text-mint ring-1 ring-mint/25 backdrop-blur-sm sm:text-[11px]"
               >
                 <span className="relative flex h-2 w-2">
-                  <motion.span
+                  <m.span
                     aria-hidden="true"
                     animate={reduce ? undefined : { scale: [1, 2.2, 1], opacity: [0.7, 0, 0.7] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
@@ -588,10 +592,10 @@ export default function ContactHero() {
                   <span className="relative h-2 w-2 rounded-full bg-mint" />
                 </span>
                 {t("hero.onlineReplies")}
-              </motion.div>
+              </m.div>
 
               {/* Eyebrow · soft inner glow (PRESERVED) */}
-              <motion.span
+              <m.span
                 variants={fadeUp}
                 className="relative inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] !text-terracotta ring-1 ring-white/15 backdrop-blur-sm sm:text-[11px]"
               >
@@ -599,16 +603,16 @@ export default function ContactHero() {
                   className="pointer-events-none absolute inset-0 rounded-full opacity-60"
                   style={{
                     background:
-                      "radial-gradient(60% 100% at 50% 0%, rgba(233,196,106,0.18), transparent 70%)",
+                      "radial-gradient(60% 100% at 50% 0%, rgb(var(--color-terracotta-rgb)/0.18), transparent 70%)",
                   }}
                   aria-hidden="true"
                 />
                 <Sparkles className="relative h-3.5 w-3.5" aria-hidden="true" />
                 <span className="relative">{t("hero.letsConnect")}</span>
-              </motion.span>
+              </m.span>
 
               {/* Headline · PRESERVED */}
-              <motion.h1
+              <m.h1
                 variants={fadeUp}
                 className="max-w-3xl text-display !text-white"
               >
@@ -617,7 +621,7 @@ export default function ContactHero() {
                   className="!text-terracotta"
                   style={{
                     background:
-                      "linear-gradient(180deg, #FFD9BB 0%, #E9C46A 50%, #F0B58C 100%)",
+                      "linear-gradient(180deg, #FFD9BB 0%, var(--color-terracotta) 50%, #F0B58C 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
@@ -625,24 +629,24 @@ export default function ContactHero() {
                 >
                   Transformation
                 </span>
-              </motion.h1>
+              </m.h1>
 
               {/* Subhead · PRESERVED */}
-              <motion.p
+              <m.p
                 variants={fadeUp}
                 className="max-w-xl text-[14px] leading-6 !text-white/65 sm:text-[15px] sm:leading-7 md:text-[16px]"
               >
                 {t("hero.longCta")}
-              </motion.p>
+              </m.p>
 
               {/* CTAs · NEW */}
-              <motion.div
+              <m.div
                 variants={fadeUp}
                 className="mt-2 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-3.5"
               >
                 <Link
                   to="/book"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-terracotta px-7 py-3.5 text-[13.5px] font-bold !text-violet shadow-[0_14px_36px_rgba(233,196,106,0.25)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal sm:text-[14px]"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-terracotta px-7 py-3.5 text-[13.5px] font-bold !text-violet-deep shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.25)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal sm:text-[14px]"
                 >
                   <Calendar className="h-4 w-4" aria-hidden="true" />
                   {t("hero.bookDiscovery")}
@@ -654,10 +658,10 @@ export default function ContactHero() {
                 >
                   {t("hero.sendMessage")}
                 </a>
-              </motion.div>
+              </m.div>
 
               {/* Trust pills · PRESERVED */}
-              <motion.ul
+              <m.ul
                 variants={fadeUp}
                 className="mt-2 flex w-full list-none flex-wrap justify-center gap-2.5 p-0 sm:gap-4 lg:justify-start"
               >
@@ -672,7 +676,7 @@ export default function ContactHero() {
                       className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                       style={{
                         background:
-                          "radial-gradient(80% 100% at 50% 100%, rgba(93,63,211,0.25), transparent 70%)",
+                          "radial-gradient(80% 100% at 50% 100%, rgb(var(--color-violet-rgb)/0.25), transparent 70%)",
                       }}
                     />
                     <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15 transition group-hover:bg-white/15 sm:h-9 sm:w-9">
@@ -691,8 +695,8 @@ export default function ContactHero() {
                     </span>
                   </li>
                 ))}
-              </motion.ul>
-            </motion.div>
+              </m.ul>
+            </m.div>
 
             {/* RIGHT COLUMN · animated booking calendar (lg+ only) */}
             <BookingCalendar reduce={reduce} />

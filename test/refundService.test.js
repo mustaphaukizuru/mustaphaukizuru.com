@@ -271,7 +271,7 @@ describe("processOrderRefund — happy paths", () => {
     })
   })
 
-  test("partial MercadoPago refund: only targeted item's downloads revoked, order stays paid", async () => {
+  test("full MercadoPago refund: MP helper called with full amount, order + payment flipped to refunded", async () => {
     prisma.order.findUnique.mockResolvedValueOnce(buildOrder({
       payments: [{
         id:                   "pay_1",
@@ -283,42 +283,37 @@ describe("processOrderRefund — happy paths", () => {
         createdAt:            new Date(),
       }],
     }))
-    prisma.__tx.userDownload.updateMany.mockResolvedValueOnce({ count: 1 })
 
     const result = await processOrderRefund({
-      orderId:      "order_1",
-      amount:       40,
-      orderItemIds: ["item_2"],
-      reason:       "One item defective",
-      adminUserId:  "admin_1",
+      orderId:     "order_1",
+      reason:      "Duplicate purchase",
+      adminUserId: "admin_1",
     })
 
-    // Provider called with the amount, MercadoPago helper used (not PayPal)
-    expect(refundMercadoPagoPayment).toHaveBeenCalledWith({ paymentId: "MP-PAY-1", amount: 40 })
+    expect(refundMercadoPagoPayment).toHaveBeenCalledWith({ paymentId: "MP-PAY-1", amount: 100 })
     expect(refundPaypalCapture).not.toHaveBeenCalled()
-
-    // Refund row records partial amount
-    expect(prisma.__tx.refund.create.mock.calls[0][0].data.amount).toBe(40)
-
-    // Payment NOT updated to refunded (partial)
-    expect(prisma.__tx.payment.update).not.toHaveBeenCalled()
-
-    // Order stays paid
-    expect(prisma.__tx.order.update).not.toHaveBeenCalled()
-
-    // ONLY the targeted UserDownload is revoked
-    expect(prisma.__tx.userDownload.updateMany).toHaveBeenCalledWith({
-      where: {
-        orderId: "order_1",
-        downloadAccessStatus: "active",
-        orderItemId: { in: ["item_2"] },
-      },
-      data: { downloadAccessStatus: "revoked" },
-    })
-
-    expect(result.isFull).toBe(false)
-    expect(result.orderStatus).toBe("paid")
+    expect(prisma.__tx.refund.create.mock.calls[0][0].data.amount).toBe(100)
+    expect(prisma.__tx.payment.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "pay_1" }, data: { paymentStatus: "refunded" } }),
+    )
+    expect(prisma.__tx.order.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "order_1" }, data: { status: "refunded" } }),
+    )
+    expect(result.isFull).toBe(true)
+    expect(result.orderStatus).toBe("refunded")
     expect(result.refund.provider).toBe("mercadopago")
+  })
+
+  test("refunds only the REMAINING balance when a prior refund exists", async () => {
+    prisma.order.findUnique.mockResolvedValueOnce(buildOrder({
+      refunds: [{ amount: 30, refundStatus: "succeeded" }],
+    }))
+
+    const result = await processOrderRefund({ orderId: "order_1", adminUserId: "admin_1" })
+
+    expect(refundPaypalCapture).toHaveBeenCalledWith("CAP-XYZ", expect.objectContaining({ amount: 70 }))
+    expect(result.refund.amount).toBe(70)
+    expect(result.isFull).toBe(true)
   })
 })
 
@@ -362,23 +357,19 @@ describe("processOrderRefund — Option A enforcement", () => {
     ])
   })
 
-  test("partial refund respects per-item gate — refunding only an undownloaded item works without force", async () => {
+  test("a downloaded item blocks the whole (full) refund — no per-item carve-out", async () => {
     prisma.order.findUnique.mockResolvedValueOnce(buildOrder({
       userDownloads: [
         { orderItemId: "item_1", downloadCount: 1, lastDownloadedAt: new Date(), downloadAccessStatus: "active" },
-        // item_2 has no UserDownload row yet — still pristine
       ],
     }))
 
-    const result = await processOrderRefund({
-      orderId:      "order_1",
-      amount:       40,
-      orderItemIds: ["item_2"],   // only target the undownloaded item
-      adminUserId:  "admin_1",
-    })
+    await expect(processOrderRefund({
+      orderId:     "order_1",
+      adminUserId: "admin_1",
+    })).rejects.toMatchObject({ code: "INELIGIBLE_DOWNLOADED", details: { blockedItems: [expect.objectContaining({ orderItemId: "item_1" })] } })
 
-    expect(result.isFull).toBe(false)
-    expect(refundPaypalCapture).toHaveBeenCalledWith("CAP-XYZ", expect.objectContaining({ amount: 40 }))
+    expect(refundPaypalCapture).not.toHaveBeenCalled()
   })
 })
 
@@ -405,24 +396,38 @@ describe("processOrderRefund — validation errors", () => {
     })).rejects.toMatchObject({ code: "ALREADY_REFUNDED" })
   })
 
-  test("INVALID_AMOUNT when amount > refundable balance", async () => {
-    prisma.order.findUnique.mockResolvedValueOnce(buildOrder())
-
+  test("INVALID_AMOUNT when a partial `amount` is supplied — no DB read, no provider call", async () => {
     await expect(processOrderRefund({
       orderId:     "order_1",
-      amount:      9999,
+      amount:      40,
       adminUserId: "admin_1",
-    })).rejects.toMatchObject({ code: "INVALID_AMOUNT" })
+    })).rejects.toMatchObject({ code: "INVALID_AMOUNT", status: 400 })
+
+    expect(prisma.order.findUnique).not.toHaveBeenCalled()
+    expect(refundPaypalCapture).not.toHaveBeenCalled()
+    expect(prisma.$transaction).not.toHaveBeenCalled()
   })
 
-  test("INVALID_AMOUNT when amount <= 0", async () => {
+  test("INVALID_AMOUNT when `orderItemIds` subset is supplied", async () => {
+    await expect(processOrderRefund({
+      orderId:      "order_1",
+      orderItemIds: ["item_2"],
+      adminUserId:  "admin_1",
+    })).rejects.toMatchObject({ code: "INVALID_AMOUNT" })
+
+    expect(refundPaypalCapture).not.toHaveBeenCalled()
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
+  test("an empty orderItemIds array is NOT treated as a partial request", async () => {
     prisma.order.findUnique.mockResolvedValueOnce(buildOrder())
 
-    await expect(processOrderRefund({
-      orderId:     "order_1",
-      amount:      0,
-      adminUserId: "admin_1",
-    })).rejects.toMatchObject({ code: "INVALID_AMOUNT" })
+    const result = await processOrderRefund({
+      orderId:      "order_1",
+      orderItemIds: [],
+      adminUserId:  "admin_1",
+    })
+    expect(result.isFull).toBe(true)
   })
 
   test("NOT_FOUND when order doesn't exist", async () => {

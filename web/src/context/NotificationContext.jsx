@@ -1,6 +1,7 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 import { authFetch } from "../lib/api"
-import { getStoredToken } from "../services/authService"
+import { hasStoredSession } from "../services/authService"
 
 const NotificationContext = createContext(null)
 
@@ -29,8 +30,8 @@ export function NotificationProvider({ children }) {
   // DashboardNotificationsPage refresh button so users can pull the latest
   // state on demand without waiting for the next debounced window.
   const fetchNotifications = useCallback(async (force = false) => {
-    const token = getStoredToken()
-    if (!token) return
+    const signedIn = hasStoredSession()
+    if (!signedIn) return
 
     // Debounce: skip if fetched within last 30 seconds (unless forced).
     if (!force && lastFetched && Date.now() - lastFetched < 30_000) return
@@ -44,7 +45,7 @@ export function NotificationProvider({ children }) {
       // We swallow them so a missing endpoint never breaks the dashboard
       // shell — the badge just stays at zero until the endpoint comes back.
       if (err?.status !== 404) {
-        // eslint-disable-next-line no-console
+         
         console.warn("[notifications] fetch failed:", err?.message)
       }
       setNotifications([])
@@ -56,14 +57,14 @@ export function NotificationProvider({ children }) {
 
   // ── Mark one as read ───────────────────────────────────────────────────────
   const markAsRead = useCallback(async (id) => {
-    const token = getStoredToken()
+    const signedIn = hasStoredSession()
 
     // Optimistic update
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
     )
 
-    if (!token) return
+    if (!signedIn) return
     try {
       await authFetch(`/api/v1/member/notifications/${encodeURIComponent(id)}/read`, {
         method: "PATCH",
@@ -75,11 +76,11 @@ export function NotificationProvider({ children }) {
 
   // ── Mark all as read ───────────────────────────────────────────────────────
   const markAllAsRead = useCallback(async () => {
-    const token = getStoredToken()
+    const signedIn = hasStoredSession()
 
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
 
-    if (!token) return
+    if (!signedIn) return
     try {
       await authFetch("/api/v1/member/notifications/read-all", { method: "PATCH" })
     } catch {

@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Star, Quote, ShieldCheck, Sparkles } from "lucide-react"
 import { fetchFeaturedReviews } from "../services/reviewService"
 
@@ -44,9 +44,9 @@ function ReviewCard({ review }) {
     : null
 
   return (
-    <motion.article
+    <m.article
       variants={fadeUp}
-      className="relative flex h-full flex-col rounded-2xl border border-violet/15 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(93,63,211,0.10)]"
+      className="relative flex h-full flex-col rounded-2xl border border-violet/15 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgb(var(--color-violet-rgb)/0.10)]"
     >
       <Quote className="absolute right-5 top-5 h-7 w-7 text-violet/15" aria-hidden="true" />
 
@@ -54,7 +54,7 @@ function ReviewCard({ review }) {
         <StarRow rating={review.rating} />
         <span className="text-meta font-bold text-violet">{review.rating}.0</span>
         {review.isVerifiedPurchase && (
-          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-mint-600/10 px-2 py-0.5 text-micro font-bold text-mint-600">
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-mint-600/10 px-2 py-0.5 text-micro font-bold text-mint-700">
             <ShieldCheck className="h-2.5 w-2.5" /> Verified
           </span>
         )}
@@ -75,7 +75,7 @@ function ReviewCard({ review }) {
             {review.user?.fullName || "Anonymous"}
           </div>
           {subject && (
-            <div className="mt-0.5 truncate text-micro text-charcoal-80/55">
+            <div className="mt-0.5 truncate text-micro text-charcoal-80/65">
               on{" "}
               {subjectHref ? (
                 <Link to={subjectHref} className="font-semibold text-violet hover:underline">
@@ -86,7 +86,7 @@ function ReviewCard({ review }) {
           )}
         </div>
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -142,32 +142,32 @@ export default function FeaturedReviewsRibbon({
   return (
     <section className={`py-14 sm:py-16 ${surface}`}>
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
+        <m.div
           variants={stagger}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-80px" }}
           className="mb-10 flex flex-col items-center gap-3 text-center"
         >
-          <motion.span
+          <m.span
             variants={fadeUp}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${eyebrowCls}`}
           >
             <Sparkles className="h-3 w-3" />
             {eyebrow}
-          </motion.span>
-          <motion.h2
+          </m.span>
+          <m.h2
             variants={fadeUp}
             className={`max-w-2xl text-[26px] font-bold leading-[1.15] tracking-tight sm:text-[32px] ${headingCls}`}
           >
             {title}
-          </motion.h2>
+          </m.h2>
           {subtitle && (
-            <motion.p variants={fadeUp} className={`max-w-2xl text-[14px] leading-6 ${subtitleCls}`}>
+            <m.p variants={fadeUp} className={`max-w-2xl text-[14px] leading-6 ${subtitleCls}`}>
               {subtitle}
-            </motion.p>
+            </m.p>
           )}
-        </motion.div>
+        </m.div>
 
         {loading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -176,7 +176,7 @@ export default function FeaturedReviewsRibbon({
             ))}
           </div>
         ) : (
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
@@ -184,7 +184,7 @@ export default function FeaturedReviewsRibbon({
             className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
           >
             {reviews.map((review) => <ReviewCard key={review.id} review={review} />)}
-          </motion.div>
+          </m.div>
         )}
       </div>
     </section>

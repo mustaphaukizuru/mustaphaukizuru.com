@@ -22,6 +22,7 @@
 const fs     = require("fs")
 const path   = require("path")
 const logger = require("../utils/logger")
+const AppError = require("../utils/AppError")
 
 BigInt.prototype.toJSON = function () { return this.toString() }
 
@@ -195,7 +196,24 @@ function errorHandler(err, req, res, next) {
     ))
   }
 
-  // ── Application errors ────────────────────────────────────────────────
+  // ── AppError (canonical application error) ────────────────────────────
+  // statusCode + code + details are authoritative; same dual-shape body as
+  // the legacy {statusCode, code} errors below.
+  if (AppError.isAppError(err)) {
+    const appStatus = err.statusCode || 500
+    if (appStatus >= 500) {
+      logger.error("[AppError]", appStatus, err.code, err.message, isProd ? "" : err.stack?.split("\n")[1])
+      if (sendHtmlError(req, res, appStatus === 503 ? 503 : 500)) return
+    }
+    return res.status(appStatus).json(buildErrorBody(
+      err.code || mapStatusToCode(appStatus),
+      err.message || "Internal server error",
+      err.details || null,
+      !isProd && appStatus >= 500 ? { stack: err.stack?.split("\n").slice(0, 5) } : null,
+    ))
+  }
+
+  // ── Application errors (legacy {statusCode, code} shape) ──────────────
   const status   = err.statusCode || err.status || 500
   const message  = err.message || "Internal server error"
 

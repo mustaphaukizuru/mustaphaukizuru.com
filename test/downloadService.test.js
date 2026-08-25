@@ -17,6 +17,7 @@ jest.mock("../src/lib/prisma", () => ({
   },
   userDownload: {
     findFirst: jest.fn(),
+    update:    jest.fn(),
   },
   downloadLog: {
     count:  jest.fn(),
@@ -28,7 +29,7 @@ jest.mock("../src/lib/prisma", () => ({
 /* ───────────────────────── system-under-test ───────────────────────────── */
 
 const prisma = require("../src/lib/prisma")
-const { checkFileEntitlement } = require("../src/services/downloadService")
+const { checkFileEntitlement, recordDownload } = require("../src/services/downloadService")
 
 /* ─────────────────────────── fixtures ──────────────────────────────────── */
 
@@ -148,6 +149,64 @@ describe("checkFileEntitlement — download caps", () => {
     expect(result.allowed).toBe(false)
     expect(result.code).toBe("LIMIT_EXCEEDED")
     expect(result.message).toMatch(/2-download limit/)
+  })
+
+  test("per-file cap counts DownloadLog rows by (userId, productFileId), with legacy productId fallback", async () => {
+    prisma.productFile.findUnique.mockResolvedValue({ ...baseFile, maxDownloadsPerUser: 3 })
+    prisma.userDownload.findFirst.mockResolvedValue(baseEntitlement)
+    prisma.downloadLog.count.mockResolvedValue(0)
+    await checkFileEntitlement("user_1", "file_1")
+    expect(prisma.downloadLog.count).toHaveBeenCalledWith({
+      where: {
+        userId: "user_1",
+        OR: [
+          { productFileId: "file_1" },
+          { productFileId: null, productId: "prod_1" },
+        ],
+      },
+    })
+  })
+
+  test("per-file cap is independent per file — a second file of the same product is not blocked", async () => {
+    prisma.productFile.findUnique.mockResolvedValue({ ...baseFile, id: "file_2", maxDownloadsPerUser: 1 })
+    prisma.userDownload.findFirst.mockResolvedValue(baseEntitlement)
+    prisma.downloadLog.count.mockImplementation(async ({ where }) => (
+      where.OR[0].productFileId === "file_1" ? 1 : 0
+    ))
+    const result = await checkFileEntitlement("user_1", "file_2")
+    expect(result.allowed).toBe(true)
+    expect(result.downloadsRemaining).toBe(1)
+  })
+
+  test("does not query DownloadLog when no per-file cap is configured", async () => {
+    prisma.productFile.findUnique.mockResolvedValue(baseFile)
+    prisma.userDownload.findFirst.mockResolvedValue(baseEntitlement)
+    await checkFileEntitlement("user_1", "file_1")
+    expect(prisma.downloadLog.count).not.toHaveBeenCalled()
+  })
+})
+
+describe("recordDownload", () => {
+  test("writes productFileId on every new DownloadLog row and increments the entitlement", async () => {
+    prisma.downloadLog.create.mockResolvedValue({})
+    prisma.userDownload.update.mockResolvedValue({})
+    await recordDownload({
+      userId: "user_1", productId: "prod_1", productFileId: "file_1",
+      orderId: "order_1", userDownloadId: "ent_1", ipAddress: "1.2.3.4", userAgent: "jest",
+    })
+    expect(prisma.downloadLog.create).toHaveBeenCalledWith({
+      data: {
+        userId: "user_1", productId: "prod_1", productFileId: "file_1", orderId: "order_1",
+        userDownloadId: "ent_1", ipAddress: "1.2.3.4", userAgent: "jest",
+      },
+    })
+    expect(prisma.userDownload.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "ent_1" } }))
+  })
+
+  test("stores productFileId as null when not provided (legacy callers)", async () => {
+    prisma.downloadLog.create.mockResolvedValue({})
+    await recordDownload({ userId: "user_1", productId: "prod_1", orderId: "order_1" })
+    expect(prisma.downloadLog.create.mock.calls[0][0].data.productFileId).toBeNull()
   })
 })
 

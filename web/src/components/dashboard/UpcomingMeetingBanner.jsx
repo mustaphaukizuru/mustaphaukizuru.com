@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { Video, Clock, ExternalLink } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
@@ -52,7 +52,7 @@ function pickActiveMeeting(items, now) {
 export default function UpcomingMeetingBanner() {
   const { t } = useTranslation("dashboard")
   const [meeting, setMeeting] = useState(null)
-  const [, setTick] = useState(0) // re-render for countdown
+  const [now, setNow] = useState(() => Date.now()) // re-render for countdown
 
   // Poll the API on mount + every POLL_MS
   useEffect(() => {
@@ -79,14 +79,13 @@ export default function UpcomingMeetingBanner() {
   // updates without re-fetching. Stops when there's nothing to count.
   useEffect(() => {
     if (!meeting) return undefined
-    const id = setInterval(() => setTick((t) => t + 1), TICK_MS)
+    const id = setInterval(() => setNow(Date.now()), TICK_MS)
     return () => clearInterval(id)
   }, [meeting])
 
   if (!meeting) return null
 
   const start  = new Date(meeting.scheduledAt).getTime()
-  const now    = Date.now()
   const diffMs = start - now
   const isLive = diffMs <= 0
 
@@ -115,13 +114,13 @@ export default function UpcomingMeetingBanner() {
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         layout
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{    opacity: 0, y: -10 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="mb-4 overflow-hidden rounded-2xl bg-gradient-to-r from-violet to-violet-deep p-4 shadow-[0_12px_36px_rgba(93,63,211,0.20)] sm:p-5"
+        className="mb-4 overflow-hidden rounded-2xl bg-gradient-to-r from-violet to-violet-deep p-4 shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.20)] sm:p-5"
         role="region"
         aria-live="polite"
         aria-label={t("meetingBanner.regionLabel", { defaultValue: "Upcoming meeting" })}
@@ -166,7 +165,7 @@ export default function UpcomingMeetingBanner() {
             <ExternalLink className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
           </a>
         </div>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   )
 }

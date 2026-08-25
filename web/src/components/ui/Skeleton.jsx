@@ -1,28 +1,38 @@
 import { useTranslation } from "react-i18next"
+import Block, {
+  SkeletonCard as PrimitiveCard,
+  SkeletonStat as PrimitiveStat,
+  SkeletonTableRow as PrimitiveTableRow,
+} from "./SkeletonPrimitives"
+
 /* ──────────────────────────────────────────────────────────────────────────
- *  Skeleton primitives · Batch 6C · Component consolidation
+ *  Skeleton primitives · legacy surface · roadmap step 35
  *
- *  Unified skeleton variants for loading states. Replaces the patchwork
- *  of `<div className="h-X animate-pulse...">` snippets scattered across
- *  the codebase with named primitives that match the v3 visual language.
+ *  These are the *original* skeleton exports (wide `width`/`height`/`rounded`
+ *  props, i18n'd `role="status"` labels). ~50 pages import them through
+ *  `ui/legacy.jsx` → `ui/index.jsx`, so every export name and prop below is
+ *  frozen.
  *
- *  All skeletons use:
- *    - Tailwind's animate-pulse
- *    - violet-pale and charcoal-80/8 for the muted shimmer
- *    - rounded-xl by default (matches v3 shape language)
+ *  What changed in step 35: they no longer hand-roll `animate-pulse` divs.
+ *  Every bar now renders through the canonical `Skeleton` block in
+ *  ./SkeletonPrimitives.jsx, so the whole app shares ONE shimmer:
+ *  a CSS-only `ukz-shimmer` gradient sweep + `motion-safe:animate-pulse`,
+ *  both of which go static under `prefers-reduced-motion`. No JS involved.
  *
  *  ── Variants ───────────────────────────────────────────────────────────
  *
- *  <Skeleton />                       Plain rectangle, customizable
+ *  <Skeleton />                       Plain block, customizable
  *  <SkeletonText lines={3} />         N stacked text lines (varying width)
  *  <SkeletonAvatar size="md" />       Circular avatar placeholder
  *  <SkeletonRow />                    Avatar + 2 text lines (list row)
+ *  <SkeletonCard />                   Card-shaped placeholder
+ *  <SkeletonStat />                   KPI tile shape
  *  <SkeletonMetricCard />             Mirrors MetricCard's layout
- *  <SkeletonTable rows={5} />         Stacked rows for table loading
+ *  <SkeletonTableRow cols={4} />      A single table row of cells
+ *  <SkeletonTable rows={5} />         Header + stacked rows
  *
- *  Note: The original `SkeletonCard` from components/ui/index.jsx is kept
- *  unchanged for backwards compatibility — existing callers continue to
- *  work. New code should prefer these named variants.
+ *  Note: the separate `SkeletonCard` in components/ui/legacy.jsx (the one
+ *  taking a `height` prop) is a different, older component and is untouched.
  *  ──────────────────────────────────────────────────────────────────── */
 
 /* ── Plain Skeleton · base building block ────────────────────────────── */
@@ -33,12 +43,7 @@ export function Skeleton({
   height = "h-4",
 }) {
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      aria-label="Loading"
-      className={`animate-pulse bg-violet-pale/60 ${rounded} ${width} ${height} ${className}`}
-    />
+    <Block as="div" w={width} h={height} rounded={rounded} className={className} label="Loading" />
   )
 }
 
@@ -50,10 +55,7 @@ export function SkeletonText({ lines = 3, className = "" }) {
   return (
     <div className={`space-y-2 ${className}`} role="status" aria-busy="true" aria-label={t("ui.skeleton.loadingText")}>
       {Array.from({ length: lines }).map((_, i) => (
-        <div
-          key={i}
-          className={`h-3 animate-pulse rounded-full bg-violet-pale/60 ${widths[i % widths.length]}`}
-        />
+        <Block key={i} h="h-3" w={widths[i % widths.length]} rounded="full" />
       ))}
     </div>
   )
@@ -69,12 +71,15 @@ const AVATAR_SIZES = {
 
 export function SkeletonAvatar({ size = "md", className = "" }) {
   const sizeCls = AVATAR_SIZES[size] || AVATAR_SIZES.md
+  const [h, w] = sizeCls.split(" ")
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      aria-label="Loading"
-      className={`shrink-0 animate-pulse rounded-full bg-violet-pale/60 ${sizeCls} ${className}`}
+    <Block
+      as="div"
+      w={w}
+      h={h}
+      rounded="full"
+      label="Loading"
+      className={`shrink-0 ${className}`}
     />
   )
 }
@@ -91,11 +96,21 @@ export function SkeletonRow({ avatarSize = "md", className = "" }) {
     >
       <SkeletonAvatar size={avatarSize} />
       <div className="flex-1 space-y-2">
-        <div className="h-3.5 w-1/3 animate-pulse rounded-full bg-violet-pale/60" />
-        <div className="h-3 w-1/2 animate-pulse rounded-full bg-charcoal-80/10" />
+        <Block h="h-3.5" w="w-1/3" rounded="full" />
+        <Block h="h-3" w="w-1/2" rounded="full" tone="muted" />
       </div>
     </div>
   )
+}
+
+/* ── SkeletonCard · card-shaped placeholder ──────────────────────────── */
+export function SkeletonCard({ className = "" }) {
+  return <PrimitiveCard className={className} />
+}
+
+/* ── SkeletonStat · KPI tile shape ───────────────────────────────────── */
+export function SkeletonStat({ className = "" }) {
+  return <PrimitiveStat className={className} />
 }
 
 /* ── SkeletonMetricCard · mirrors the actual MetricCard shape ────────── */
@@ -110,14 +125,19 @@ export function SkeletonMetricCard({ className = "" }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-3">
-          <div className="h-3 w-2/3 animate-pulse rounded-full bg-violet-pale/60" />
-          <div className="h-7 w-1/2 animate-pulse rounded-lg bg-violet-pale/60" />
-          <div className="h-3 w-3/4 animate-pulse rounded-full bg-charcoal-80/10" />
+          <Block h="h-3" w="w-2/3" rounded="full" />
+          <Block h="h-7" w="w-1/2" rounded="lg" />
+          <Block h="h-3" w="w-3/4" rounded="full" tone="muted" />
         </div>
-        <div className="h-10 w-10 shrink-0 animate-pulse rounded-xl bg-violet-pale/60" />
+        <Block h="h-10" w="w-10" rounded="rounded-xl" className="shrink-0" />
       </div>
     </div>
   )
+}
+
+/* ── SkeletonTableRow · a single row of cells ────────────────────────── */
+export function SkeletonTableRow({ cols = 4, className = "" }) {
+  return <PrimitiveTableRow cols={cols} className={className} />
 }
 
 /* ── SkeletonTable · stacked rows for table loading ──────────────────── */
@@ -133,16 +153,16 @@ export function SkeletonTable({ rows = 5, className = "" }) {
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-charcoal-80/8 bg-violet-pale/20 px-4 py-2.5">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-2.5 flex-1 animate-pulse rounded-full bg-violet-pale/60" />
+          <Block key={i} h="h-2.5" w="flex-1" rounded="full" />
         ))}
       </div>
       {/* Rows */}
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 border-b border-charcoal-80/6 px-4 py-3 last:border-b-0">
-          {Array.from({ length: 4 }).map((_, j) => (
-            <div key={j} className="h-3 flex-1 animate-pulse rounded-full bg-charcoal-80/8" />
-          ))}
-        </div>
+        <SkeletonTableRow
+          key={i}
+          cols={4}
+          className="border-b border-charcoal-80/6 px-4 py-3 last:border-b-0"
+        />
       ))}
     </div>
   )

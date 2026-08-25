@@ -31,35 +31,33 @@ const paypalLogo = "/images/brand/pp-logo-150px.png"
  *  every interactive accent.
  *  ──────────────────────────────────────────────────────────────────────── */
 
-/* Footer quick links — includes the editorial surfaces (Blog + Recommendations)
+/* Footer quick links — includes the editorial surfaces (Blog)
  * that we deliberately keep OUT of the primary navbar so the header stays
  * focused on what visitors hire Mustapha for. */
 const QUICK_LINKS = [
   { nameKey: "footer.navHome", path: "/" },
   { nameKey: "footer.navAbout", path: "/about" },
   { nameKey: "footer.navServices", path: "/services" },
-  { nameKey: "footer.navSolutions", path: "/solutions" },
   { nameKey: "footer.navStore", path: "/store" },
   { nameKey: "footer.navBlog", path: "/blog" },
-  { nameKey: "footer.navRecs", path: "/recommendations" },
   { nameKey: "footer.navContact", path: "/contact" },
 ]
 
 const LEGAL_LINKS = [
-  { nameKey: "footer.legalTerms", path: "/terms" },
-  { nameKey: "footer.legalPrivacy", path: "/privacy" },
-  { nameKey: "footer.legalCookies", path: "/cookies" },
-  { nameKey: "footer.legalRefund", path: "/refund" },
+  { nameKey: "footer.legalTerms",   shortKey: "footer.legalTermsShort",   path: "/terms" },
+  { nameKey: "footer.legalPrivacy", shortKey: "footer.legalPrivacyShort", path: "/privacy" },
+  { nameKey: "footer.legalCookies", shortKey: "footer.legalCookiesShort", path: "/cookies" },
+  { nameKey: "footer.legalRefund",  shortKey: "footer.legalRefundShort",  path: "/refund" },
 ]
 
 /* Mesh gradient — three radial glows on a deep charcoal base.
  * Pre-built as a string so the JSX `style` attribute stays simple. Same
  * language as the V2 hero and loading screen for visual unity. */
 const FOOTER_GRADIENT =
-  "radial-gradient(at 18% 20%, rgba(93, 63, 211, 0.55) 0px, transparent 55%), " +
-  "radial-gradient(at 82% 0%, rgba(2, 132, 199, 0.30) 0px, transparent 50%), " +
-  "radial-gradient(at 50% 100%, rgba(233, 196, 106, 0.18) 0px, transparent 55%), " +
-  "linear-gradient(180deg, #14151B 0%, #1A1B23 100%)"
+  "radial-gradient(at 18% 20%, rgb(var(--color-violet-rgb)/0.55) 0px, transparent 55%), " +
+  "radial-gradient(at 82% 0%, rgb(var(--color-azure-rgb)/0.30) 0px, transparent 50%), " +
+  "radial-gradient(at 50% 100%, rgb(var(--color-terracotta-rgb)/0.18) 0px, transparent 55%), " +
+  "linear-gradient(180deg, var(--color-charcoal-deep) 0%, var(--color-charcoal) 100%)"
 
 export default function Footer() {
   const { t } = useTranslation("common")
@@ -115,7 +113,7 @@ export default function Footer() {
           <Link
             to="/"
             aria-label={t("footer.homeAria")}
-            className="group relative inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-[0_18px_50px_rgba(93,63,211,0.45)] ring-1 ring-white/15 transition hover:-translate-y-[2px] hover:shadow-[0_22px_60px_rgba(93,63,211,0.55)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-terracotta/40 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
+            className="group relative inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-[0_18px_50px_rgb(var(--color-violet-rgb)/0.45)] ring-1 ring-white/15 transition hover:-translate-y-[2px] hover:shadow-[0_22px_60px_rgb(var(--color-violet-rgb)/0.55)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-terracotta/40 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
           >
             {/* Soft halo, picks up the mesh hue on hover */}
             <span
@@ -167,7 +165,7 @@ export default function Footer() {
             <button
               type="submit"
               disabled={loading}
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-7 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(93,63,211,0.45)] transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_14px_36px_rgba(93,63,211,0.55)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal disabled:opacity-60 disabled:hover:translate-y-0"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-7 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-violet-rgb)/0.45)] transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_14px_36px_rgb(var(--color-violet-rgb)/0.55)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal disabled:opacity-60 disabled:hover:translate-y-0"
             >
               {loading ? "Joining…" : "Subscribe"}
               <ArrowRight
@@ -274,7 +272,9 @@ export default function Footer() {
                     to={link.path}
                     className="rounded-md px-2 py-0.5 text-[12px] text-white/40 transition hover:text-white/75 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-terracotta/40 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
                   >
-                    {t(link.nameKey)}
+                    {/* Brief labels on small screens, full labels from sm up */}
+                    <span className="sm:hidden">{t(link.shortKey)}</span>
+                    <span className="hidden sm:inline">{t(link.nameKey)}</span>
                   </Link>
                   {i < LEGAL_LINKS.length - 1 ? (
                     <span className="text-white/15" aria-hidden="true">|</span>

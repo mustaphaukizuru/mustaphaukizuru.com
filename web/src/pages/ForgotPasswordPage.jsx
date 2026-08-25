@@ -18,7 +18,7 @@
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Mail,
   ArrowLeft,
@@ -132,40 +132,40 @@ export default function ForgotPasswordPage() {
   if (sent) {
     return (
       <AuthShell>
-        <motion.div
+        <m.div
           initial="hidden"
           animate="show"
           variants={reduce ? undefined : stagger}
           className="text-center"
         >
-          <motion.div
+          <m.div
             variants={fadeUp}
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet to-violet-deep shadow-[0_12px_36px_rgba(93,63,211,0.40)] ring-4 ring-violet-pale"
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet to-violet-deep shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.40)] ring-4 ring-violet-pale"
           >
             <Inbox className="h-7 w-7 text-white" />
-          </motion.div>
+          </m.div>
 
-          <motion.h1
+          <m.h1
             variants={fadeUp}
             className="mt-6 font-display text-[1.75rem] font-bold tracking-tight text-charcoal"
           >
             {t("forgot.checkEmail")}
-          </motion.h1>
-          <motion.p
+          </m.h1>
+          <m.p
             variants={fadeUp}
             className="mt-2 text-[14px] leading-6 text-charcoal-80/65"
           >
             {t("forgot.weSent")}{" "}
             <span className="font-semibold text-charcoal">{email.trim().toLowerCase()}</span>{t("forgot.checkInbox")}
-          </motion.p>
+          </m.p>
 
-          <motion.div variants={fadeUp} className="mt-7 flex flex-col gap-3">
+          <m.div variants={fadeUp} className="mt-7 flex flex-col gap-3">
             {inbox && (
               <a
                 href={inbox.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-charcoal-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
               >
                 {inbox.label}
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -189,10 +189,10 @@ export default function ForgotPasswordPage() {
                 "Resend email"
               )}
             </button>
-          </motion.div>
+          </m.div>
 
           {devResetUrl && (
-            <motion.div
+            <m.div
               variants={fadeUp}
               role="status"
               className="mt-5 rounded-xl border border-amber-300 bg-amber/10 px-4 py-3 text-left text-[12px] text-amber-700"
@@ -209,21 +209,21 @@ export default function ForgotPasswordPage() {
               >
                 {devResetUrl}
               </a>
-            </motion.div>
+            </m.div>
           )}
 
-          <motion.p
+          <m.p
             variants={fadeUp}
-            className="mt-6 text-[12.5px] text-charcoal-80/55"
+            className="mt-6 text-[12.5px] text-charcoal-80/65"
           >
             {t("forgot.didntReceive")}{" "}
             <Link to="/contact" className="font-semibold text-violet hover:text-violet-deep">
               {t("forgot.contactSupport")}
             </Link>
             .
-          </motion.p>
+          </m.p>
 
-          <motion.div variants={fadeUp} className="mt-8">
+          <m.div variants={fadeUp} className="mt-8">
             <Link
               to="/login"
               className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-charcoal-80/65 transition hover:text-violet"
@@ -231,20 +231,20 @@ export default function ForgotPasswordPage() {
               <ArrowLeft className="h-3.5 w-3.5" />
               {t("forgot.backToSignin")}
             </Link>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </AuthShell>
     )
   }
 
   return (
     <AuthShell>
-      <motion.div
+      <m.div
         initial="hidden"
         animate="show"
         variants={reduce ? undefined : stagger}
       >
-        <motion.div variants={fadeUp}>
+        <m.div variants={fadeUp}>
           <Link
             to="/login"
             className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-charcoal-80/65 transition hover:text-violet"
@@ -252,24 +252,24 @@ export default function ForgotPasswordPage() {
             <ArrowLeft className="h-3.5 w-3.5" />
             Back
           </Link>
-        </motion.div>
+        </m.div>
 
-        <motion.div variants={fadeUp} className="mt-6 text-center">
+        <m.div variants={fadeUp} className="mt-6 text-center">
           <h1 className="font-display text-[1.75rem] font-bold tracking-tight text-charcoal">
             {t("forgot.title")}
           </h1>
           <p className="mt-2 text-[14px] leading-6 text-charcoal-80/65">
             {t("forgot.subtitle")}
           </p>
-        </motion.div>
+        </m.div>
 
         {error && (
-          <motion.div variants={fadeUp} className="mt-6">
+          <m.div variants={fadeUp} className="mt-6">
             <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
-          </motion.div>
+          </m.div>
         )}
 
-        <motion.form
+        <m.form
           variants={reduce ? undefined : stagger}
           onSubmit={submitRequest}
           noValidate
@@ -286,7 +286,7 @@ export default function ForgotPasswordPage() {
             className="absolute left-[-9999px] h-0 w-0 opacity-0"
           />
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="forgot-email" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               Email
             </label>
@@ -311,15 +311,15 @@ export default function ForgotPasswordPage() {
                 className="block w-full rounded-xl border border-charcoal-80/15 bg-white py-3.5 pl-11 pr-4 text-[14px] text-charcoal outline-none transition placeholder:text-charcoal-80/35 focus:border-violet focus:ring-[3px] focus:ring-violet/15 disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
-          </motion.div>
+          </m.div>
 
-          <motion.button
+          <m.button
             variants={fadeUp}
             type="submit"
             disabled={loading || cooldown.isRunning}
             aria-busy={loading || undefined}
             aria-describedby={!emailValid && email.length > 0 ? "forgot-email-hint" : (cooldown.isRunning ? "forgot-cooldown-hint" : undefined)}
-            className="mt-1 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-1 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-charcoal-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">
@@ -331,7 +331,7 @@ export default function ForgotPasswordPage() {
             ) : (
               "Submit"
             )}
-          </motion.button>
+          </m.button>
 
           {/* Surfacing why the user might not see what they expect:
               · empty form → submit fires validation, shows error inline
@@ -353,13 +353,13 @@ export default function ForgotPasswordPage() {
               id="forgot-cooldown-hint"
               role="status"
               aria-live="polite"
-              className="-mt-1 text-center text-[11.5px] text-charcoal-80/60"
+              className="-mt-1 text-center text-[11.5px] text-charcoal-80/65"
             >
               Wait {cooldown.seconds}s before requesting another reset link.
             </p>
           )}
-        </motion.form>
-      </motion.div>
+        </m.form>
+      </m.div>
     </AuthShell>
   )
 }

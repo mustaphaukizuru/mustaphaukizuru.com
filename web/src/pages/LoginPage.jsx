@@ -20,10 +20,10 @@
    (matches reference designs).
    ════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Eye,
   EyeOff,
@@ -37,6 +37,8 @@ import AuthShell from "../components/auth/AuthShell"
 import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 import BrandMark from "../components/auth/BrandMark"
 import GoogleLoginButton from "../components/GoogleLoginButton"
+import MicrosoftLoginButton from "../components/MicrosoftLoginButton"
+import FacebookLoginButton from "../components/FacebookLoginButton"
 import TwoFactorPrompt from "../components/auth/TwoFactorPrompt"
 import { useAuth } from "../context/AuthContext"
 import useCapsLock from "../hooks/useCapsLock"
@@ -88,9 +90,25 @@ export default function LoginPage() {
   const capsOn = useCapsLock()
   const lockout = useCountdown()
 
-  // Restore saved email if remember-me was previously set.
+  // OAuth + 2FA: the backend redirects here with a 2FA-pending token in the
+  // URL fragment (never the query string, so it stays out of server logs).
+  // Consume it once, scrub the URL, and open the code prompt.
+  useEffect(() => {
+    const hash = window.location.hash || ""
+    if (!hash.includes("twoFactorToken=")) return
+    const params = new URLSearchParams(hash.replace(/^#/, ""))
+    const token = params.get("twoFactorToken")
+    if (token) setTwoFactorToken(token)
+    window.history.replaceState(null, "", window.location.pathname + window.location.search)
+  }, [])
+
+  // Restore saved email if remember-me was previously set. A checkout that
+  // bounced here with ACCOUNT_EXISTS passes the typed email in router state
+  // so the buyer only has to enter their password.
   useEffect(() => {
     try {
+      const fromCheckout = location.state?.email
+      if (fromCheckout) { setEmail(String(fromCheckout)); return }
       const saved = localStorage.getItem(REMEMBER_KEY)
       if (saved) {
         setEmail(saved)
@@ -108,8 +126,6 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, navigate, location])
 
-  // Email validity (presentational only — server is the source of truth).
-  const emailValid = useMemo(() => EMAIL_RE.test(email.trim()), [email])
   // Only disable for transient/security states. Empty-field validation
   // happens inside handleSubmit so a user who clicks Submit with empty
   // fields gets a clear "Please enter your email and password" message
@@ -129,7 +145,7 @@ export default function LoginPage() {
       // Most likely browser autofill on a real user, not a bot. Clear
       // silently and continue with the real submission below — no
       // second click required. Logged for diagnostics only.
-      // eslint-disable-next-line no-console
+       
       console.warn("[login] honeypot was filled — assuming autofill, proceeding")
       setHoneypot("")
     }
@@ -179,7 +195,7 @@ export default function LoginPage() {
       // Surface in devtools — without this the user reports "nothing happened"
       // because some hosts compress error text to one greyed-out line and the
       // network failure mode (CORS preflight, DNS) leaves no visible feedback.
-      // eslint-disable-next-line no-console
+       
       console.error("[login] failed:", err)
 
       const code = err?.code || ""
@@ -297,13 +313,13 @@ export default function LoginPage() {
 
   return (
     <AuthShell>
-      <motion.div
+      <m.div
         initial="hidden"
         animate="show"
         variants={reduce ? undefined : stagger}
       >
         {/* Brand mark + headline */}
-        <motion.div variants={fadeUp} className="text-center">
+        <m.div variants={fadeUp} className="text-center">
           <BrandMark />
           <h1 className="mt-5 font-display text-[1.75rem] font-bold tracking-tight text-charcoal">
             {t("login.welcomeBack")}
@@ -311,18 +327,18 @@ export default function LoginPage() {
           <p className="mt-2 text-[14px] leading-6 text-charcoal-80/65">
             {t("login.subtitle")}
           </p>
-        </motion.div>
+        </m.div>
 
         {/* Error banner · shared brand v3 surface (AuthErrorBanner).
             Accepts both legacy strings and the richer { title, body, action }
             shape produced by the catch-block branches above. */}
         {error && (
-          <motion.div variants={fadeUp} className="mt-6">
+          <m.div variants={fadeUp} className="mt-6">
             <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
-          </motion.div>
+          </m.div>
         )}
 
-        <motion.form
+        <m.form
           variants={reduce ? undefined : stagger}
           onSubmit={handleSubmit}
           noValidate
@@ -348,7 +364,7 @@ export default function LoginPage() {
           />
 
           {/* Email */}
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label
               htmlFor="login-email"
               className="mb-1.5 block text-[12px] font-semibold text-charcoal"
@@ -377,10 +393,10 @@ export default function LoginPage() {
                 className="block w-full rounded-xl border border-charcoal-80/15 bg-white py-3.5 pl-11 pr-4 text-[14px] text-charcoal outline-none transition placeholder:text-charcoal-80/35 focus:border-violet focus:ring-[3px] focus:ring-violet/15 disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Password */}
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label
               htmlFor="login-password"
               className="mb-1.5 block text-[12px] font-semibold text-charcoal"
@@ -409,7 +425,7 @@ export default function LoginPage() {
                 onClick={() => setShowPw((v) => !v)}
                 aria-label={showPw ? "Hide password" : "Show password"}
                 aria-pressed={showPw}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
               >
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -425,10 +441,10 @@ export default function LoginPage() {
                 <ShieldAlert className="h-3 w-3" /> {t("login.capsLockOn")}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
           {/* Remember + Forgot */}
-          <motion.div
+          <m.div
             variants={fadeUp}
             className="flex items-center justify-between"
           >
@@ -447,10 +463,10 @@ export default function LoginPage() {
             >
               {t("login.forgot")}
             </Link>
-          </motion.div>
+          </m.div>
 
           {/* Submit · dark CTA matches reference */}
-          <motion.button
+          <m.button
             variants={fadeUp}
             type="submit"
             disabled={submitDisabled}
@@ -468,7 +484,7 @@ export default function LoginPage() {
             ) : (
               "Sign In"
             )}
-          </motion.button>
+          </m.button>
 
           {/* Surface the lockout reason when active so the user knows the
               button is disabled by the rate-limiter, not by validation. */}
@@ -482,24 +498,26 @@ export default function LoginPage() {
               {t("login.tooMany")}
             </p>
           )}
-        </motion.form>
+        </m.form>
 
         {/* Divider · {t("login.orLoginWith")} */}
-        <motion.div variants={fadeUp} className="mt-6">
-          <div className="flex items-center gap-3 text-[11.5px] text-charcoal-80/45">
+        <m.div variants={fadeUp} className="mt-6">
+          <div className="flex items-center gap-3 text-[11.5px] text-charcoal-80/65">
             <span className="h-px flex-1 bg-charcoal-80/12" />
             <span className="font-semibold uppercase tracking-[0.16em]">
               {t("login.orLoginWith")}
             </span>
             <span className="h-px flex-1 bg-charcoal-80/12" />
           </div>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-col gap-3">
             <GoogleLoginButton />
+            <MicrosoftLoginButton />
+            <FacebookLoginButton />
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Footer link */}
-        <motion.p
+        <m.p
           variants={fadeUp}
           className="mt-7 text-center text-[13px] text-charcoal-80/65"
         >
@@ -510,8 +528,8 @@ export default function LoginPage() {
           >
             {t("login.signUp")}
           </Link>
-        </motion.p>
-      </motion.div>
+        </m.p>
+      </m.div>
     </AuthShell>
   )
 }

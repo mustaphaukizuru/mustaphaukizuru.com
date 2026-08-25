@@ -131,11 +131,94 @@ const SERVICES = [
 ]
 
 /* ────────────────────────────────────────────────────────────────────────────
+ * Funnel categories · roadmap step 25 (docs/SERVICE_CATALOGUE_2026-08.md)
+ *
+ * One `Service` row per catalogue category. Slugs are stable and match
+ * web/src/data/servicesCatalogue.js CATEGORIES[].slug — they back
+ * /services/:slug and the booking flow (/book?service=<slug> → serviceId).
+ * Upserted by slug; older rows above are left untouched. No packages: the
+ * bespoke work is call → proposal → invoice.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+const FUNNEL_CATEGORIES = [
+  {
+    slug: "it-strategy-consulting",
+    title: "IT Strategy Consulting",
+    titleEs: "Consultoría Estratégica de TI",
+    shortDescription: "Cut wasted software spend and get a clear, sequenced technology roadmap your team can execute.",
+    shortDescriptionEs: "Reduce el gasto desperdiciado en software y obtén una hoja de ruta tecnológica clara y secuenciada que tu equipo pueda ejecutar.",
+    fullDescription: "Software stack audit, fractional CTO engagement, vendor evaluation and RFP, digital transformation roadmap, compliance and risk assessment (LFPDPPP).",
+    features: ["Software Stack Audit", "Fractional CTO Engagement", "Vendor Evaluation & RFP", "Digital Transformation Roadmap", "Compliance & Risk Assessment"],
+  },
+  {
+    slug: "ai-automation",
+    title: "AI Integration & Workflow Automation",
+    titleEs: "Integración con IA y Automatización de Flujos de Trabajo",
+    shortDescription: "Answer customers faster, sync leads automatically, and turn documents into clean data without adding headcount.",
+    shortDescriptionEs: "Responde a clientes más rápido, sincroniza prospectos automáticamente y convierte documentos en datos limpios sin contratar más personal.",
+    fullDescription: "Custom persona bots, WhatsApp lead qualifiers, cross-platform API pipelines (Make / Zapier), internal RAG knowledge base, data extraction workflows.",
+    features: ["Custom Persona Bots", "WhatsApp Lead Qualifiers", "Cross-Platform API Pipelines", "Internal RAG Knowledge Base", "Data Extraction Workflows"],
+  },
+  {
+    slug: "cloud-architecture-migration",
+    title: "Cloud Architecture & Infrastructure Migration",
+    titleEs: "Arquitectura en la Nube y Migración de Infraestructura",
+    shortDescription: "Retire the office server, cut cloud bills by up to 40 %, and know your backups actually restore.",
+    shortDescriptionEs: "Retira el servidor de la oficina, reduce la factura en la nube hasta 40 % y confirma que tus respaldos realmente restauran.",
+    fullDescription: "On-premise to cloud migration (AWS, Azure, GCP), cloud bill optimisation, disaster recovery planning, Docker and containerisation, zero-trust security hardening.",
+    features: ["On-Premise to Cloud Migration", "Cloud Bill Optimisation", "Disaster Recovery Planning", "Docker & Containerisation", "Zero-Trust Security Hardening"],
+  },
+  {
+    slug: "digital-product-engineering",
+    title: "End-to-End Digital Product Engineering",
+    titleEs: "Ingeniería de Producto Digital de Extremo a Extremo",
+    shortDescription: "Validate before you build, ship an MVP in weeks, and keep it patched and improving every month.",
+    shortDescriptionEs: "Valida antes de construir, publica un MVP en semanas y mantenlo parchado y mejorando cada mes.",
+    fullDescription: "Interactive UI/UX wireframing, MVP web app development, cross-platform mobile apps, secure API design, CI/CD pipeline automation, managed maintenance.",
+    features: ["Interactive UI/UX Wireframing", "MVP Web App Development", "Cross-Platform Mobile Apps", "Secure API Design", "CI/CD Pipeline Automation", "Managed Maintenance"],
+  },
+]
+
+async function seedFunnelCategories() {
+  for (const c of FUNNEL_CATEGORIES) {
+    console.log(`  → ${c.slug} (funnel category)`)
+    const data = {
+      title:              c.title,
+      titleEs:            c.titleEs,
+      slug:               c.slug,
+      shortDescription:   c.shortDescription,
+      shortDescriptionEs: c.shortDescriptionEs,
+      fullDescription:    c.fullDescription,
+      basePrice:          0,
+      currency:           "MXN",
+      deliveryType:       "Scheduled consulting",
+      status:             "published",
+      isFeatured:         true,
+      isBookable:         true,
+      bookingDurationMin: 30,
+      metaTitle:          `${c.title} · Mustapha Ukizuru`,
+      metaDescription:    c.shortDescription,
+    }
+    const service = await prisma.service.upsert({
+      where:  { slug: c.slug },
+      update: data,
+      create: data,
+    })
+    await prisma.serviceFeature.deleteMany({ where: { serviceId: service.id } })
+    await prisma.serviceFeature.createMany({
+      data: c.features.map((text, idx) => ({ serviceId: service.id, featureText: text, sortOrder: idx })),
+    })
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
  * Seeder
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function seed() {
   console.log("[services-seed] Starting…")
+
+  await seedFunnelCategories()
 
   for (const s of SERVICES) {
     console.log(`  → ${s.slug}`)

@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Briefcase, Filter, RefreshCw, AlertCircle, Loader2, Mail, ExternalLink, Package, Eye,
 } from "lucide-react"
@@ -109,7 +109,7 @@ export default function AdminServiceOrdersPage() {
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <motion.div
+      <m.div
         variants={fadeUp}
         initial="hidden"
         animate="show"
@@ -137,7 +137,7 @@ export default function AdminServiceOrdersPage() {
             Refresh
           </button>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Error banner */}
       {error && (
@@ -148,7 +148,7 @@ export default function AdminServiceOrdersPage() {
       )}
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <div className="overflow-hidden rounded-xl border border-slate-100 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
         {loading ? (
           <div className="flex items-center justify-center px-6 py-16 text-violet">
             <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
@@ -187,7 +187,7 @@ export default function AdminServiceOrdersPage() {
                     <td className="px-5 py-3 align-top">
                       <div className="font-semibold text-violet">{o.user?.fullName || o.user?.email || o.contactEmail || "-"}</div>
                       {o.user?.email && (
-                        <a href={`mailto:${o.user.email}`} className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-azure hover:underline">
+                        <a href={`mailto:${o.user.email}`} className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-azure-deep hover:underline">
                           <Mail className="h-3 w-3" aria-hidden="true" /> {o.user.email}
                         </a>
                       )}
@@ -261,7 +261,7 @@ function RowActions({ order, updating, onPatch }) {
           href={`/dashboard/projects/${order.projectId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-azure transition hover:bg-azure-pale"
+          className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-azure-deep transition hover:bg-azure-pale"
         >
           <ExternalLink className="h-3 w-3" aria-hidden="true" /> Project
         </a>

@@ -13,16 +13,16 @@ import { authGet } from "../lib/api"
 
 const TIER_COLORS = {
   Foundation:  "bg-rose/10 text-rose",
-  Stabilizing: "bg-amber/10 text-amber",
-  Optimizing:  "bg-azure/10 text-azure",
-  Mature:      "bg-mint/10 text-mint",
+  Stabilizing: "bg-amber/10 text-amber-700",
+  Optimizing:  "bg-azure/10 text-azure-deep",
+  Mature:      "bg-mint/10 text-mint-700",
 }
 
 const AUD_ICON = { EDU: GraduationCap, SMB: Building2, IND: User }
 const AUD_LABEL = { EDU: "School", SMB: "Business", IND: "Individual" }
 
 export default function AdminDiagnosticPage() {
-  const { t } = useTranslation("common")
+  useTranslation("common")
   const [rows,    setRows]    = useState([])
   const [meta,    setMeta]    = useState({ total: 0, page: 1, pages: 1 })
   const [loading, setLoading] = useState(true)
@@ -54,7 +54,7 @@ export default function AdminDiagnosticPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-charcoal">Self-Audit Leads</h1>
-          <p className="mt-0.5 text-sm text-charcoal/55">Visitors who completed the digital maturity self-audit</p>
+          <p className="mt-0.5 text-sm text-charcoal/65">Visitors who completed the digital maturity self-audit</p>
         </div>
         <button
           onClick={() => load(page)}
@@ -76,7 +76,7 @@ export default function AdminDiagnosticPage() {
           <div key={label} className="rounded-xl bg-white border border-charcoal/8 p-4">
             <div className="flex items-center gap-2 mb-2">
               <Icon className={`h-4 w-4 ${color}`} />
-              <span className="text-xs text-charcoal/50 font-medium">{label}</span>
+              <span className="text-xs text-charcoal/65 font-medium">{label}</span>
             </div>
             <div className="font-mono text-2xl font-bold text-charcoal">{value}</div>
           </div>
@@ -117,12 +117,12 @@ export default function AdminDiagnosticPage() {
                 const tierCls = TIER_COLORS[row.tier] || "bg-charcoal/8 text-charcoal"
                 return (
                   <tr key={row.id} className="border-b border-charcoal/6 hover:bg-charcoal/[0.015] transition">
-                    <td className="px-4 py-3 font-mono text-[11px] text-charcoal/50 whitespace-nowrap">
+                    <td className="px-4 py-3 font-mono text-[11px] text-charcoal/65 whitespace-nowrap">
                       {new Date(row.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </td>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-charcoal text-[13px]">{row.name || <span className="italic text-charcoal/35">Anonymous</span>}</div>
-                      <div className="text-[12px] text-charcoal/50">{row.email}</div>
+                      <div className="text-[12px] text-charcoal/65">{row.email}</div>
                       {row.organization && <div className="text-[11px] text-charcoal/35 mt-0.5">{row.organization}</div>}
                     </td>
                     <td className="px-4 py-3">
@@ -139,12 +139,12 @@ export default function AdminDiagnosticPage() {
                       <span className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${tierCls}`}>{row.tier}</span>
                     </td>
                     <td className="px-4 py-3 max-w-[180px]">
-                      <span className="text-[12px] text-charcoal/60 line-clamp-1">{row.matchedBundle || "—"}</span>
+                      <span className="text-[12px] text-charcoal/65 line-clamp-1">{row.matchedBundle || "—"}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         {row.emailSent
-                          ? <span className="inline-flex items-center gap-1 text-[11px] text-mint font-semibold"><Mail className="h-3 w-3" /> Sent</span>
+                          ? <span className="inline-flex items-center gap-1 text-[11px] text-mint-700 font-semibold"><Mail className="h-3 w-3" /> Sent</span>
                           : <span className="text-[11px] text-charcoal/30">—</span>
                         }
                         <a
@@ -166,7 +166,7 @@ export default function AdminDiagnosticPage() {
         {/* Pagination */}
         {meta.pages > 1 && (
           <div className="flex items-center justify-between border-t border-charcoal/8 px-4 py-3">
-            <span className="text-[12px] text-charcoal/50">
+            <span className="text-[12px] text-charcoal/65">
               {meta.total} total · page {meta.page} of {meta.pages}
             </span>
             <div className="flex gap-2">

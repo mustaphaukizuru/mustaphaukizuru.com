@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useParams, useNavigate } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import { ArrowLeft, Package, Loader2, AlertCircle, FileDown } from "lucide-react"
 import { fetchMyOrderById } from "../services/orderService"
 import { authFetch, API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"
 import { triggerBrowserDownload } from "../services/downloadService"
+import useApiQuery from "../hooks/useApiQuery"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  DashboardOrderDetailPage · member-side single-order view.
@@ -14,7 +15,7 @@ import { triggerBrowserDownload } from "../services/downloadService"
  *  ────────────────────────────────────────────────────────────────────── */
 
 function statusPillClass(status) {
-  if (status === "paid") return "bg-mint/15 text-mint"
+  if (status === "paid") return "bg-mint/15 text-mint-700"
   if (status === "pending") return "bg-amber/15 text-amber-700"
   if (status === "failed" || status === "cancelled") return "bg-rose/15 text-rose-700"
   return "bg-charcoal-80/10 text-charcoal-80/65"
@@ -40,28 +41,13 @@ function resolveImg(item) {
 export default function DashboardOrderDetailPage() {
   const { t } = useTranslation("dashboard")
   const { orderId } = useParams()
-  const navigate = useNavigate()
-  const [order, setOrder] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    if (!orderId) return undefined
-    let cancelled = false
-    ;(async () => {
-      setLoading(true)
-      setError("")
-      try {
-        const data = await fetchMyOrderById(orderId)
-        if (!cancelled) setOrder(data || null)
-      } catch (err) {
-        if (!cancelled) setError(err?.message || t("orderDetail.errorLoading", "Could not load order details."))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
-  }, [orderId, t])
+  const { data: order = null, loading, error: loadError } = useApiQuery(
+    `orders:${orderId}`,
+    () => fetchMyOrderById(orderId),
+    { enabled: Boolean(orderId), select: (data) => data || null }
+  )
+  const [actionError, setError] = useState("")
+  const error = actionError || loadError
 
   async function handleInvoice() {
     if (!orderId) return
@@ -92,7 +78,7 @@ export default function DashboardOrderDetailPage() {
       <section className="space-y-4">
         <Link
           to="/dashboard/orders"
-          className="inline-flex items-center gap-1.5 text-meta font-medium text-charcoal-80/60 transition hover:text-violet"
+          className="inline-flex items-center gap-1.5 text-meta font-medium text-charcoal-80/65 transition hover:text-violet"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           {t("orderDetail.backToOrders", "Back to Order History")}
@@ -116,22 +102,22 @@ export default function DashboardOrderDetailPage() {
     <section className="space-y-5">
       <Link
         to="/dashboard/orders"
-        className="inline-flex items-center gap-1.5 text-meta font-medium text-charcoal-80/60 transition hover:text-violet"
+        className="inline-flex items-center gap-1.5 text-meta font-medium text-charcoal-80/65 transition hover:text-violet"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         {t("orderDetail.backToOrders", "Back to Order History")}
       </Link>
 
       {/* Header card */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/45">
+            <p className="text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
               {t("orderDetail.title", "Order")}
             </p>
             <h1 className="mt-1 font-mono text-section font-bold text-violet">{orderRef}</h1>
             {createdAt && (
-              <p className="mt-1 text-meta text-charcoal-80/60">{createdAt}</p>
+              <p className="mt-1 text-meta text-charcoal-80/65">{createdAt}</p>
             )}
           </div>
           <div className="flex items-center gap-3">
@@ -151,7 +137,7 @@ export default function DashboardOrderDetailPage() {
       </div>
 
       {/* Items */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
         <h2 className="text-card font-bold text-violet">
           {t("orderDetail.items", "Items")}
         </h2>
@@ -174,7 +160,7 @@ export default function DashboardOrderDetailPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-meta font-semibold text-violet">{title}</div>
-                  <div className="text-micro text-charcoal-80/55">
+                  <div className="text-micro text-charcoal-80/65">
                     <span className="font-mono tabular-nums">×{qty}</span>
                   </div>
                 </div>
@@ -193,7 +179,7 @@ export default function DashboardOrderDetailPage() {
             <span className="font-mono font-semibold tabular-nums text-violet">{formatPrice(subtotal, order.currency || "MXN")}</span>
           </div>
           {discount > 0 && (
-            <div className="flex justify-between text-meta text-mint">
+            <div className="flex justify-between text-meta text-mint-700">
               <span>{t("orderDetail.discount", "Discount")}</span>
               <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount, order.currency || "MXN")}</span>
             </div>

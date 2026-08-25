@@ -5,7 +5,7 @@
    for visual consistency across the legal cluster.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Cookie, Calendar, Mail, Settings2, ShieldCheck, BarChart3, Megaphone, Link as LinkIcon } from "lucide-react"
 import { useCookieConsent, COOKIE_CATEGORIES } from "../context/CookieConsentContext"
@@ -86,7 +86,7 @@ export default function CookiePolicyPage() {
   return (
     <div className="bg-mist">
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="bg-[#2E2F3A] py-16 text-center">
+      <section className="bg-[var(--color-charcoal-light)] py-16 text-center">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-terracotta">
             <Cookie className="h-7 w-7" />
@@ -109,7 +109,7 @@ export default function CookiePolicyPage() {
             return (
               <div
                 key={cat.key}
-                className="flex items-start gap-3 rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+                className="flex items-start gap-3 rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Icon className="h-5 w-5" />
@@ -131,7 +131,7 @@ export default function CookiePolicyPage() {
         </div>
 
         {/* ── Manage preferences callout ──────────────────────────────────── */}
-        <div className="mb-8 flex flex-col items-start gap-4 rounded-xl border border-violet/15 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="mb-8 flex flex-col items-start gap-4 rounded-xl border border-violet/15 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="min-w-0">
             <h2 className="text-[15px] font-bold text-violet">{t("cookies.changePrefs")}</h2>
             <p className="mt-1 text-[12.5px] leading-5 text-charcoal/70">
@@ -144,7 +144,7 @@ export default function CookiePolicyPage() {
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
+            className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
           >
             <Settings2 className="h-4 w-4" /> {t("cookies.managePrefs")}
           </button>
@@ -157,9 +157,9 @@ export default function CookiePolicyPage() {
             on sm+ keeps the TOC tight without scrolling. */}
         <nav
           aria-label={t("cookies.tocAria", { defaultValue: "Table of contents" })}
-          className="mb-8 rounded-xl border border-charcoal/10 bg-white p-5 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+          className="mb-8 rounded-xl border border-charcoal/10 bg-white p-5 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
         >
-          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
             {t("cookies.tocLabel", { defaultValue: "On this page" })}
           </p>
           <ol className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
@@ -179,10 +179,10 @@ export default function CookiePolicyPage() {
         {/* ── Sections ───────────────────────────────────────────────────── */}
         <article className="flex flex-col gap-4">
           {sections.map(({ slug, title, content }, i) => (
-            <motion.section
+            <m.section
               key={slug}
               id={slug}
-              className="scroll-mt-24 rounded-xl border border-charcoal/10 bg-white p-6 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+              className="scroll-mt-24 rounded-xl border border-charcoal/10 bg-white p-6 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -202,12 +202,12 @@ export default function CookiePolicyPage() {
                 </a>
               </h2>
               <p className="text-[14px] leading-7 text-charcoal/75">{content}</p>
-            </motion.section>
+            </m.section>
           ))}
         </article>
 
         {/* ── Contact strip ──────────────────────────────────────────────── */}
-        <div className="mt-8 flex items-center gap-4 rounded-xl bg-[#2E2F3A] p-6 text-white">
+        <div className="mt-8 flex items-center gap-4 rounded-xl bg-[var(--color-charcoal-light)] p-6 text-white">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
             <Mail className="h-6 w-6" />
           </div>
@@ -224,6 +224,4 @@ export default function CookiePolicyPage() {
       </div>
     </div>
   )
-  // TODO: file was truncated by an OneDrive sync issue; verify the JSX above
-  // matches the pre-corruption design (top-level <div className="bg-mist">).
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { motion, useInView, useMotionValue, useReducedMotion, useSpring } from "framer-motion"
+import { m, useInView, useMotionValue, useReducedMotion, useSpring } from "framer-motion"
 
 /**
  * Counter · animated number counter
@@ -62,15 +62,30 @@ export default function Counter({
   // When reduced motion is requested, skip the animation entirely and
   // show the target value immediately on mount.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- skip animation under reduced motion
     if (reduced) setDisplay(formatValue(to, format))
   }, [reduced, to, format])
 
+  // Safety net: the display starts at `from` (0) and only counts up once
+  // useInView fires. If IntersectionObserver is unavailable or never
+  // triggers, that leaves a real number rendered as "0" — and "0+ years"
+  // beside a credential is not a missing animation, it is a false statement.
+  // After a short grace period, show the truth whether or not the animation
+  // ever ran. Harmless when it did: the value is already `to` by then.
+  useEffect(() => {
+    if (reduced) return undefined
+    const timer = window.setTimeout(() => {
+      setDisplay((current) => (current === formatValue(to, format) ? current : formatValue(to, format)))
+    }, 3000)
+    return () => window.clearTimeout(timer)
+  }, [reduced, to, format])
+
   return (
-    <motion.span ref={ref} className={className} aria-label={`${prefix}${to}${suffix}`}>
+    <m.span ref={ref} role="img" className={className} aria-label={`${prefix}${to}${suffix}`}>
       <span aria-hidden="true">
         {prefix}{display}{suffix}
       </span>
-    </motion.span>
+    </m.span>
   )
 }
 

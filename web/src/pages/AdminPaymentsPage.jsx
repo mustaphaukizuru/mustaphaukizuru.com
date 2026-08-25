@@ -72,7 +72,7 @@ export default function AdminPaymentsPage() {
           <div className="truncate text-meta font-medium text-charcoal-80">
             {row.user?.fullName || "-"}
           </div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             {row.user?.email || ""}
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function AdminPaymentsPage() {
       sortable: true,
       width: "1.0fr",
       getValue: (row) => row.paymentGateway || "",
-      render: (row) => row.paymentGateway ? <StatusPill status={row.paymentGateway} /> : <span className="text-charcoal-80/45">-</span>,
+      render: (row) => row.paymentGateway ? <StatusPill status={row.paymentGateway} /> : <span className="text-charcoal-80/65">-</span>,
     },
     {
       key: "amount",
@@ -115,7 +115,7 @@ export default function AdminPaymentsPage() {
       align: "right",
       getValue: (row) => row.paidAt || row.createdAt,
       render: (row) => (
-        <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
           {new Date(row.paidAt || row.createdAt).toLocaleDateString(undefined, {
             year: "numeric", month: "short", day: "numeric",
           })}

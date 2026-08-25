@@ -5,6 +5,7 @@ const {
   createProduct,
   updateProduct,
   removeProduct,
+  restoreProduct,
   uploadProductFile,
   deleteProductFile,
   markPrimaryProductFile,
@@ -24,6 +25,7 @@ router.get("/:id", getSingleAdminProduct)
 router.post("/", createProduct)
 router.put("/:id", updateProduct)
 router.delete("/:id", removeProduct)
+router.patch("/:id/restore", restoreProduct)
 
 router.post("/:id/files", upload.single("file"), uploadProductFile)
 router.delete("/:id/files/:fileId", deleteProductFile)

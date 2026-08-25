@@ -36,7 +36,7 @@ async function uniqueSlug(base, ignoreId = null) {
 
 /* ── Posts (full visibility — drafts + archived included) ─────────────── */
 
-async function listAllPosts({ status, q, limit = 200, offset = 0 } = {}) {
+async function listAllPosts({ status, q, limit = 100, offset = 0 } = {}) {
   const where = {}
   if (status) where.status = status
   if (q) {
@@ -52,7 +52,7 @@ async function listAllPosts({ status, q, limit = 200, offset = 0 } = {}) {
       where,
       orderBy: [{ updatedAt: "desc" }],
       include: { category: true, tags: { include: { tag: true } } },
-      take: Math.min(limit, 500),
+      take: Math.min(Math.max(1, limit), 100),
       skip: offset,
     }),
     prisma.blogPost.count({ where }),
@@ -63,6 +63,8 @@ async function listAllPosts({ status, q, limit = 200, offset = 0 } = {}) {
       ...serializePost(r),
       id:        r.id,
       status:    r.status,
+      deletedAt: r.deletedAt?.toISOString?.() || null,
+      isDeleted: r.deletedAt != null,
       updatedAt: r.updatedAt?.toISOString?.() || null,
     })),
   }
@@ -78,6 +80,8 @@ async function getPostById(id) {
     ...serializePost(row),
     id:              row.id,
     status:          row.status,
+    deletedAt:       row.deletedAt?.toISOString?.() || null,
+    isDeleted:       row.deletedAt != null,
     metaTitle:       row.metaTitle,
     metaDescription: row.metaDescription,
     categoryId:      row.categoryId,
@@ -186,9 +190,26 @@ async function updatePost(id, input) {
   return getPostById(id)
 }
 
-async function deletePost(id) {
-  await prisma.blogPost.delete({ where: { id } })
+/* Step 42 · soft delete by default; { hard: true } keeps the destructive path. */
+async function deletePost(id, { hard = false } = {}) {
+  if (hard) {
+    await prisma.blogPost.delete({ where: { id } })
+    return { id }
+  }
+  const existing = await prisma.blogPost.findUnique({ where: { id }, select: { id: true } })
+  if (!existing) return null
+  await prisma.blogPost.update({
+    where: { id },
+    data:  { deletedAt: new Date(), isFeatured: false },
+  })
   return { id }
+}
+
+async function restorePost(id) {
+  const existing = await prisma.blogPost.findUnique({ where: { id }, select: { id: true } })
+  if (!existing) return null
+  await prisma.blogPost.update({ where: { id }, data: { deletedAt: null } })
+  return getPostById(id)
 }
 
 /* ── Categories (admin CRUD) ──────────────────────────────────────────── */
@@ -231,6 +252,7 @@ module.exports = {
   createPost,
   updatePost,
   deletePost,
+  restorePost,
   // Categories
   listCategoriesAdmin,
   createCategory,

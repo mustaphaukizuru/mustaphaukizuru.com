@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { ArrowUpRight } from "lucide-react"
 
 /**
@@ -48,21 +48,21 @@ const TONES = {
   mint: {
     bg:        "bg-mint-50",
     text:      "text-mint-700",
-    eyebrow:   "text-mint-700/75",
+    eyebrow:   "text-mint-700",
     accent:    "bg-mint/15",
     overlay:   "from-mint-50/0 to-mint-50/50",
   },
   amber: {
     bg:        "bg-amber/10",
     text:      "text-amber-700",
-    eyebrow:   "text-amber-700/75",
+    eyebrow:   "text-amber-700",
     accent:    "bg-amber/15",
     overlay:   "from-amber-50/0 to-amber-50/50",
   },
   rose: {
     bg:        "bg-rose-50",
     text:      "text-rose-700",
-    eyebrow:   "text-rose-700/75",
+    eyebrow:   "text-rose-700",
     accent:    "bg-rose/15",
     overlay:   "from-rose-50/0 to-rose-50/50",
   },
@@ -97,7 +97,7 @@ export default function BentoCell({
     <>
       {/* Soft gradient overlay only present on hover to keep the resting
           state calm; brightens slightly on hover for depth */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${palette.overlay}`}
         initial={{ opacity: 0 }}
@@ -136,7 +136,7 @@ export default function BentoCell({
         )}
 
         <div className="mt-auto flex items-center justify-between pt-6">
-          <motion.span
+          <m.span
             className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${palette.accent}`}
             initial={{ x: 0 }}
             animate={{ x: hovered && !reduced ? 4 : 0 }}
@@ -144,7 +144,7 @@ export default function BentoCell({
             aria-hidden="true"
           >
             <ArrowUpRight className="h-4 w-4" strokeWidth={1.8} />
-          </motion.span>
+          </m.span>
         </div>
       </div>
     </>
@@ -155,7 +155,7 @@ export default function BentoCell({
   const motionProps = reduced
     ? {}
     : {
-        whileHover: { y: -4, boxShadow: "0 18px 40px -16px rgba(15,23,42,0.18)" },
+        whileHover: { y: -4, boxShadow: "0 18px 40px -16px rgb(var(--color-charcoal-rgb)/0.18)" },
         transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
         onHoverStart: () => setHovered(true),
         onHoverEnd:   () => setHovered(false),
@@ -165,15 +165,15 @@ export default function BentoCell({
 
   if (to) {
     return (
-      <motion.div {...motionProps} className={baseClass}>
+      <m.div {...motionProps} className={baseClass}>
         <Link to={to} className="absolute inset-0 z-20" aria-label={title} />
         {inner}
-      </motion.div>
+      </m.div>
     )
   }
   if (href) {
     return (
-      <motion.div {...motionProps} className={baseClass}>
+      <m.div {...motionProps} className={baseClass}>
         <a
           href={href}
           target="_blank"
@@ -182,20 +182,20 @@ export default function BentoCell({
           aria-label={title}
         />
         {inner}
-      </motion.div>
+      </m.div>
     )
   }
   if (onClick) {
     return (
-      <motion.button
+      <m.button
         type="button"
         onClick={onClick}
         {...motionProps}
         className={`${baseClass} text-left`}
       >
         {inner}
-      </motion.button>
+      </m.button>
     )
   }
-  return <motion.div {...motionProps} className={baseClass}>{inner}</motion.div>
+  return <m.div {...motionProps} className={baseClass}>{inner}</m.div>
 }

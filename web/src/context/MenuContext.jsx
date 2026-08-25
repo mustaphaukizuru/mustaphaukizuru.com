@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 /* ════════════════════════════════════════════════════════════════════════
    MenuContext · v1.0 · lifts mobile menu state out of <Header>
    ────────────────────────────────────────────────────────────────────────
@@ -69,8 +70,8 @@ export function useMenu() {
   if (!ctx) {
     // Soft-fail in case a component mounts before the provider (early
     // boot). Returns a no-op shape so callers don't need null-checks.
-    if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
+    if (typeof window !== "undefined" && import.meta.env.DEV) {
+       
       console.warn("[MenuContext] useMenu called without MenuProvider. Returning no-op.")
     }
     return {

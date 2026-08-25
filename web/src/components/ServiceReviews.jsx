@@ -18,7 +18,7 @@ import {
   deleteServiceReview,
   markReviewHelpful,
 } from "../services/reviewService"
-import { getStoredUser, getStoredToken } from "../lib/api"
+import { getStoredUser } from "../lib/api"
 
 import { useTranslation } from "react-i18next"
 /* ─── atoms (identical to ProductReviews) ─────────────────────────────── */
@@ -60,7 +60,7 @@ function RatingBar({ label, count, total }) {
       <div className="h-2 flex-1 overflow-hidden rounded-full bg-charcoal-80/8">
         <div className="h-full rounded-full bg-terracotta transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <span className="w-6 text-right text-charcoal-80/50">{count}</span>
+      <span className="w-6 text-right text-charcoal-80/65">{count}</span>
     </div>
   )
 }
@@ -150,7 +150,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
   const [formSuccess, setFormSuccess] = useState("")
 
   const currentUser = getStoredUser()
-  const isLoggedIn = Boolean(getStoredToken())
+  const isLoggedIn = Boolean(getStoredUser())
 
   const loadReviews = useCallback(async () => {
     try {
@@ -212,7 +212,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
             {stats.averageRating.toFixed(1)}
           </div>
           <StarRating rating={Math.round(stats.averageRating)} size={18} />
-          <div className="mt-1 text-micro text-charcoal-80/50">
+          <div className="mt-1 text-micro text-charcoal-80/65">
             {stats.totalReviews} {stats.totalReviews === 1 ? "review" : "reviews"}
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-xl border border-violet/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+          className="space-y-4 rounded-xl border border-violet/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
         >
           <div>
             <label className="mb-2 block text-sm font-semibold text-violet">{t("reviews.yourRating")}</label>
@@ -278,7 +278,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
               {formError}
             </div>
           )}
-          <p className="text-micro text-charcoal-80/55">
+          <p className="text-micro text-charcoal-80/65">
             {t("reviews.moderationNote")}
           </p>
           <div className="flex gap-3">
@@ -306,7 +306,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
           ))}
         </div>
       ) : reviews.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist px-6 py-8 text-center text-sm text-charcoal-80/50">
+        <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist px-6 py-8 text-center text-sm text-charcoal-80/65">
           {t("reviews.noneYet")}
         </div>
       ) : (
@@ -317,7 +317,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
             return (
               <article
                 key={review.id}
-                className="rounded-xl border border-charcoal-80/8 bg-white p-5 shadow-[0_2px_8px_rgba(93,63,211,0.03)]"
+                className="rounded-xl border border-charcoal-80/8 bg-white p-5 shadow-[0_2px_8px_rgb(var(--color-violet-rgb)/0.03)]"
               >
                 <header className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -381,7 +381,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
                       <MessageSquare className="h-3 w-3" />
                       {t("reviews.replyFrom")} {review.adminReplyBy?.fullName || "Mustapha"}
                       {review.adminReplyAt && (
-                        <span className="font-normal text-charcoal-80/50 normal-case tracking-normal">
+                        <span className="font-normal text-charcoal-80/65 normal-case tracking-normal">
                           · {timeAgo(review.adminReplyAt)}
                         </span>
                       )}

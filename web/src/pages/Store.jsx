@@ -6,7 +6,7 @@ import {
   Sparkles, Download, BookOpen, Cpu, Wrench, Briefcase, FlaskConical,
 } from "lucide-react"
 import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useCart } from "../store/CartContext"
 import { fetchProducts, fetchFeaturedProducts } from "../services/productService"
 import StoreHero from "../components/heroes/StoreHero"
@@ -107,7 +107,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
       aria-label={t("toolbar.filtersAria")}
       // scroll-mt-24 offsets the sticky site header so the rail is visible
       // when StoreHero's "Browse categories" CTA jumps via the #categories hash.
-      className="scroll-mt-24 sticky top-[88px] flex flex-col gap-5 self-start rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_18px_rgba(93,63,211,0.04)]"
+      className="scroll-mt-24 sticky top-[88px] flex flex-col gap-5 self-start rounded-2xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_18px_rgb(var(--color-violet-rgb)/0.04)]"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -154,7 +154,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
 
       {/* Category list (vertical) */}
       <div>
-        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/55">
+        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/65">
           {t("toolbar.categoryHeader")}
         </h3>
         <div className="flex flex-col gap-1">
@@ -168,7 +168,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
                 aria-pressed={active}
                 className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-meta font-medium transition-all focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${
                   active
-                    ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.20)]"
+                    ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.20)]"
                     : "text-charcoal-80/75 hover:bg-violet-pale hover:text-violet"
                 }`}
               >
@@ -182,7 +182,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
 
       {/* Sort */}
       <div>
-        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/55">
+        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/65">
           {t("toolbar.sortHeader")}
         </h3>
         <select
@@ -199,7 +199,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
 
       {/* View toggle */}
       <div>
-        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/55">
+        <h3 className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-80/65">
           {t("toolbar.viewHeader")}
         </h3>
         <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-charcoal-80/15">
@@ -256,10 +256,10 @@ function StoreProductCard({ product }) {
   }
 
   return (
-    <motion.article
+    <m.article
       whileHover={{ y: -4 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition-shadow duration-200 hover:shadow-[0_18px_44px_rgba(93,63,211,0.10)]"
+      className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition-shadow duration-200 hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.10)]"
     >
       <Link
         to={`/store/${product.slug}`}
@@ -328,7 +328,7 @@ function StoreProductCard({ product }) {
           <div className="mt-1.5 flex items-center gap-1.5 text-micro">
             <Star className="h-3.5 w-3.5 fill-current text-terracotta" aria-hidden="true" />
             <span className="font-mono font-semibold tabular-nums text-violet">{rating.toFixed(1)}</span>
-            <span className="font-mono tabular-nums text-charcoal-80/55">({reviewCount})</span>
+            <span className="font-mono tabular-nums text-charcoal-80/65">({reviewCount})</span>
           </div>
         )}
 
@@ -336,7 +336,7 @@ function StoreProductCard({ product }) {
           {product.shortDescription || product.description}
         </p>
 
-        <div className="mt-1.5 flex items-center gap-1.5 text-micro text-charcoal-80/45">
+        <div className="mt-1.5 flex items-center gap-1.5 text-micro text-charcoal-80/65">
           <Download className="h-3.5 w-3.5 text-violet" aria-hidden="true" /> {t("card.instantAccess")}
         </div>
 
@@ -348,7 +348,7 @@ function StoreProductCard({ product }) {
           <div className="flex items-center gap-2">
             <Link
               to={`/store/${product.slug}`}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-charcoal-80/12 text-charcoal-80/60 transition hover:border-violet/25 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              className="flex h-8 w-8 items-center justify-center rounded-xl border border-charcoal-80/12 text-charcoal-80/65 transition hover:border-violet/25 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
               aria-label={t("card.viewDetails")}
             >
               <Eye className="h-3.5 w-3.5" aria-hidden="true" />
@@ -356,8 +356,8 @@ function StoreProductCard({ product }) {
             <button
               type="button"
               onClick={handleAdd}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-micro font-semibold text-white transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
-                added ? "bg-mint" : "bg-violet hover:bg-violet-deep"
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-micro font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
+                added ? "bg-mint text-charcoal" : "bg-violet text-white hover:bg-violet-deep"
               }`}
             >
               {added ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -366,7 +366,7 @@ function StoreProductCard({ product }) {
           </div>
         </div>
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -381,7 +381,7 @@ function StoreListItem({ product }) {
   const price = Number(product?.price || 0)
 
   return (
-    <div className="flex overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]">
+    <div className="flex overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.08)]">
       <div className="aspect-square w-[160px] shrink-0 overflow-hidden rounded-xl bg-violet-pale p-3 sm:w-[200px]">
         {imgUrl ? (
           <img src={imgUrl} alt={product.title} className="h-full w-full object-contain" loading="lazy" />
@@ -415,7 +415,7 @@ function StoreListItem({ product }) {
             <button
               type="button"
               onClick={() => { addToCart(product, 1); setAdded(true); setTimeout(() => setAdded(false), 1400) }}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-micro font-semibold text-white transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${added ? "bg-mint" : "bg-violet hover:bg-violet-deep"}`}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-micro font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${added ? "bg-mint text-charcoal" : "bg-violet text-white hover:bg-violet-deep"}`}
             >
               {added ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : <ShoppingCart className="h-3.5 w-3.5" aria-hidden="true" />}
               {added ? t("card.added") : t("card.addToCart")}
@@ -460,7 +460,7 @@ function EmptyState({ hasFilters, onReset }) {
 /* ── F05.C · skeleton card matching real card aspect ratio ─────────────── */
 function SkeletonCard() {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
       <div className="aspect-square w-full animate-pulse bg-violet-pale" />
       <div className="flex flex-col gap-3 p-4">
         <div className="h-3 w-16 animate-pulse rounded-full bg-violet-pale" />
@@ -517,7 +517,7 @@ function StorePagination({ page, totalPages, onChange }) {
 
       {getPageButtons().map((p, i) =>
         p === "…" ? (
-          <span key={`ellipsis-${i}`} className="px-1.5 font-mono tabular-nums text-charcoal-80/50">…</span>
+          <span key={`ellipsis-${i}`} className="px-1.5 font-mono tabular-nums text-charcoal-80/65">…</span>
         ) : (
           <button
             key={p}
@@ -527,7 +527,7 @@ function StorePagination({ page, totalPages, onChange }) {
             aria-current={p === page ? "page" : undefined}
             className={`flex h-10 w-10 items-center justify-center rounded-xl font-mono text-meta font-semibold tabular-nums transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
               p === page
-                ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.22)]"
+                ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.22)]"
                 : "border border-charcoal-80/12 bg-white text-violet hover:bg-violet-pale"
             }`}
           >

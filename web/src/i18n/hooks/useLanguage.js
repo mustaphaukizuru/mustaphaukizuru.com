@@ -21,15 +21,20 @@ export function useLanguage() {
   const urlLang = detectLanguageFromPath(location.pathname)
   const lang = urlLang || i18n.language || "en"
 
+  // PERF/I18N01 · locale bundles are split per language and loaded on
+  // demand, so `changeLanguage` is asynchronous the first time a language is
+  // used. setLang returns that promise; callers that navigate afterwards
+  // (LanguageSwitcher) must await it so no frame renders raw keys.
   function setLang(next) {
-    if (next !== "en" && next !== "es") return
+    if (next !== "en" && next !== "es") return Promise.resolve()
     if (typeof window !== "undefined") {
       try { window.localStorage.setItem("preferred-language", next) }
       catch { /* storage disabled / private mode */ }
     }
     if (i18n.language !== next) {
-      i18n.changeLanguage(next)
+      return Promise.resolve(i18n.changeLanguage(next))
     }
+    return Promise.resolve()
   }
 
   return { lang, setLang, isEs: lang === "es", isEn: lang === "en" }

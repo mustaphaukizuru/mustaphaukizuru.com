@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   MapPin, Plus, Pencil, Trash2, Star, X, AlertCircle,
   Home as HomeIcon, Building2, Check,
@@ -10,7 +10,9 @@ import {
   COUNTRY_OPTIONS,
 } from "../services/addressService"
 import { useToast } from "../context/ToastContext"
+import useApiQuery from "../hooks/useApiQuery"
 import { EmptyState, SectionCard, SkeletonCard } from "../components/ui/index"
+import ProfileTabs from "../components/dashboard/ProfileTabs"
 
 /* I18N · Phase 119C — strings keyed under `dashboard.addresses.*`. The
  * AddressFormModal scopes its own useTranslation hook so all field
@@ -34,25 +36,14 @@ const EMPTY_FORM = {
 
 export default function DashboardAddressesPage() {
   const { t } = useTranslation("dashboard")
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const { data: items = [], loading, error, setData: setItems } = useApiQuery(
+    "addresses",
+    () => fetchAddresses(),
+    { select: (data) => (Array.isArray(data) ? data : []) }
+  )
   const [editing, setEditing] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const { showSuccess, showError } = useToast()
-
-  async function load() {
-    setLoading(true); setError("")
-    try {
-      setItems(await fetchAddresses())
-    } catch (err) {
-      setError(err?.message || t("addresses.errors.load"))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
 
   async function handleSetDefault(address) {
     if (address.isDefault) return
@@ -128,6 +119,7 @@ export default function DashboardAddressesPage() {
       )}
 
       <section className="space-y-5">
+      <ProfileTabs />
         {error && (
           <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -136,7 +128,7 @@ export default function DashboardAddressesPage() {
         )}
 
         {/* Intro */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.1em] text-violet">
@@ -150,7 +142,7 @@ export default function DashboardAddressesPage() {
             <button
               type="button"
               onClick={() => setEditing("new")}
-              className="inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-meta font-semibold text-white shadow-[0_6px_18px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+              className="inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-meta font-semibold text-white shadow-[0_6px_18px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
             >
               <Plus className="h-4 w-4" /> {t("addresses.intro.addAddress")}
             </button>
@@ -180,7 +172,7 @@ export default function DashboardAddressesPage() {
             <div className="space-y-3">
               <AnimatePresence>
                 {items.map((address) => (
-                  <motion.div
+                  <m.div
                     key={address.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -194,7 +186,7 @@ export default function DashboardAddressesPage() {
                       onSetDefault={() => handleSetDefault(address)}
                       isDeleting={deletingId === address.id}
                     />
-                  </motion.div>
+                  </m.div>
                 ))}
               </AnimatePresence>
             </div>
@@ -233,7 +225,7 @@ function AddressRow({ address, onEdit, onDelete, onSetDefault, isDeleting }) {
           </div>
           <div className="mt-0.5 text-meta font-medium text-charcoal">
             {address.fullName}
-            {address.company && <span className="text-charcoal-80/60"> · {address.company}</span>}
+            {address.company && <span className="text-charcoal-80/65"> · {address.company}</span>}
           </div>
           <div className="mt-1 text-micro leading-5 text-charcoal-80/70">
             {address.line1}{address.line2 ? `, ${address.line2}` : ""}<br />
@@ -309,17 +301,17 @@ function AddressFormModal({ address, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="flex w-full max-w-[640px] flex-col rounded-xl border border-charcoal-80/10 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.18)]" style={{ maxHeight: "92vh" }}>
+      <div className="flex w-full max-w-[640px] flex-col rounded-xl border border-charcoal-80/10 bg-white shadow-[0_30px_80px_rgb(var(--color-violet-rgb)/0.18)]" style={{ maxHeight: "92vh" }}>
         <div className="flex items-center justify-between border-b border-charcoal-80/10 px-6 py-4">
           <div>
             <h2 className="text-card font-bold text-violet">
               {isEdit ? t("addresses.form.titleEdit") : t("addresses.form.titleAdd")}
             </h2>
-            <p className="text-micro text-charcoal-80/60">
+            <p className="text-micro text-charcoal-80/65">
               {isEdit ? t("addresses.form.subtitleEdit") : t("addresses.form.subtitleAdd")}
             </p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/50 transition hover:bg-violet-pale/60">
+          <button type="button" onClick={onClose} className="rounded-xl border border-charcoal-80/10 p-2 text-charcoal-80/65 transition hover:bg-violet-pale/60">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -425,7 +417,7 @@ function Field({ label, value, onChange, placeholder, hint, className = "" }) {
         placeholder={placeholder}
         className="w-full rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
       />
-      {hint && <p className="mt-1 text-micro text-charcoal-80/55">{hint}</p>}
+      {hint && <p className="mt-1 text-micro text-charcoal-80/65">{hint}</p>}
     </div>
   )
 }

@@ -1,7 +1,8 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { Clock, ArrowRight } from "lucide-react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 
 import { useTranslation } from "react-i18next"
 /**
@@ -80,6 +81,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
   const [items, setItems] = useState([])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
     setItems(readStorage())
   }, [])
 
@@ -123,7 +125,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
           <button
             type="button"
             onClick={clear}
-            className="text-micro font-semibold text-charcoal-80/55 hover:text-violet focus-visible:outline-none focus-visible:underline"
+            className="text-micro font-semibold text-charcoal-80/65 hover:text-violet focus-visible:outline-none focus-visible:underline"
           >
             {t("components.clearHistory")}
           </button>
@@ -131,7 +133,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
 
         <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 sm:gap-5">
           {filtered.map((p) => (
-            <motion.div
+            <m.div
               key={p.slug}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
@@ -140,7 +142,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
             >
               <Link
                 to={`/store/${p.slug}`}
-                className="group block overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_14px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(93,63,211,0.10)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+                className="group block overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_12px_28px_rgb(var(--color-violet-rgb)/0.10)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
               >
                 <div className="aspect-square w-full overflow-hidden bg-violet-pale">
                   {p.coverImage ? (
@@ -167,7 +169,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
                   )}
                 </div>
               </Link>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

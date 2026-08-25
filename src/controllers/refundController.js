@@ -12,7 +12,7 @@
 //     GET    /api/v1/admin/refunds                       — paginated list
 //     GET    /api/v1/admin/refunds/:id                    — single refund
 //     GET    /api/v1/admin/orders/:orderId/refund-eligibility
-//     POST   /api/v1/admin/orders/:orderId/refund        — issue refund
+//     POST   /api/v1/admin/orders/:orderId/refund        — issue FULL refund (partial inputs → 400)
 //
 //   Member:
 //     GET    /api/v1/member/orders/:orderId/refunds      — own-order history
@@ -76,10 +76,18 @@ const issueRefund = asyncHandler(async (req, res) => {
     force,
   } = req.body || {}
 
-  // Light input shaping — service does the heavy validation.
-  const normalisedItemIds = Array.isArray(orderItemIds)
-    ? orderItemIds.map((s) => String(s)).filter(Boolean)
-    : []
+  // Refunds are FULL only — reject any attempt at a partial refund up front.
+  const amountSupplied = amount !== undefined && amount !== null && amount !== ""
+  const itemsSupplied  = orderItemIds !== undefined && orderItemIds !== null &&
+    !(Array.isArray(orderItemIds) && orderItemIds.length === 0)
+  if (amountSupplied || itemsSupplied) {
+    return res.status(400).json({
+      success: false,
+      code:    "INVALID_AMOUNT",
+      message: "Partial refunds are not supported — omit 'amount' and 'orderItemIds'; the full remaining amount is always refunded",
+    })
+  }
+
   const normalisedReason = typeof reason === "string"
     ? reason.trim().slice(0, 1000) || null
     : null
@@ -87,15 +95,13 @@ const issueRefund = asyncHandler(async (req, res) => {
   try {
     const result = await processOrderRefund({
       orderId,
-      amount:       amount === "" || amount == null ? null : Number(amount),
-      orderItemIds: normalisedItemIds,
       reason:       normalisedReason,
       force:        Boolean(force),
       adminUserId:  req.user.id,
       ipAddress:    req.ip,
     })
 
-    logger.info(`[refund] admin=${req.user.id} order=${orderId} amount=${result.refund.amount} ${result.isFull ? "FULL" : "PARTIAL"} provider=${result.refund.provider}`)
+    logger.info(`[refund] admin=${req.user.id} order=${orderId} amount=${result.refund.amount} FULL provider=${result.refund.provider}`)
 
     return res.status(200).json({ success: true, data: result.refund })
   } catch (err) {

@@ -4,7 +4,9 @@
     "features": "Características",
     "files": "Archivos",
     "reviews": "Reseñas",
-    "faq": "Preguntas frecuentes"
+    "faq": "Preguntas frecuentes",
+    "included": "Qué incluye",
+    "specs": "Especificaciones"
   },
   "info": {
     "fileSize": "Tamaño del archivo",
@@ -15,17 +17,24 @@
     "license": "Licencia",
     "compatibility": "Compatibilidad",
     "category": "Categoría",
-    "delivery": "Entrega"
+    "delivery": "Entrega",
+    "files": "Archivos",
+    "fileCount_one": "{{count}} archivo",
+    "fileCount_other": "{{count}} archivos"
+  },
+  "dates": {
+    "today": "hoy",
+    "yesterday": "ayer",
+    "daysAgo_one": "hace {{count}} día",
+    "daysAgo_other": "hace {{count}} días",
+    "weeksAgo_one": "hace {{count}} semana",
+    "weeksAgo_other": "hace {{count}} semanas"
   },
   "actions": {
     "addToCart": "Agregar al carrito",
     "addingToCart": "Agregando…",
     "addedToCart": "¡Agregado!",
     "buyNow": "Comprar ahora",
-    "compare": "Comparar",
-    "wishlist": "Guardar para después",
-    "wishlistAdd": "Agregar a favoritos",
-    "wishlistRemove": "Quitar de favoritos",
     "share": "Compartir",
     "copyLink": "Copiar enlace",
     "linkCopied": "¡Enlace copiado!",
@@ -52,7 +61,8 @@
   },
   "description": {
     "showLess": "Mostrar menos",
-    "learnMore": "Conoce más sobre este artículo"
+    "learnMore": "Conoce más sobre este artículo",
+    "fallback": "Este producto digital está creado profesionalmente para ofrecer valor de implementación inmediato. Diseñado para ahorrar tiempo y reducir la fricción inicial."
   },
   "highlights": {
     "title": "Lo más destacado"
@@ -65,13 +75,15 @@
   },
   "carousel": {
     "thumbnailsAria": "Miniaturas del producto",
-    "imageAlt": "Imagen del producto"
+    "imageAlt": "Imagen del producto",
+    "showImage": "Mostrar imagen {{index}}: {{alt}}"
   },
   "mobileBar": {
     "ariaLabel": "Barra de compra del producto"
   },
   "files": {
-    "untitled": "Archivo sin título"
+    "untitled": "Archivo sin título",
+    "downloadAria": "Descargar {{name}}"
   },
   "errors": {
     "notFound": "Producto no encontrado"
@@ -92,7 +104,8 @@
     "verifiedPurchase": "Compra verificada",
     "deleteTitle": "Eliminar reseña",
     "awaitingModeration": "En moderación, por ahora solo tú la ves",
-    "replyFrom": "Respuesta de"
+    "replyFrom": "Respuesta de",
+    "verifiedIntro": "Las reseñas marcadas como verificadas provienen de clientes que compraron este producto en la tienda."
   },
   "detail": {
     "noFiles": "Aún sin lista de archivos",
@@ -121,6 +134,34 @@
     "featuredBadge": "Destacado",
     "newBadge": "Nuevo",
     "qty": "Cant.",
-    "share": "Compartir"
+    "share": "Compartir",
+    "product": "Producto"
+  },
+  "buyBox": {
+    "securePayment": "Pago seguro vía Mercado Pago o PayPal. Los datos de tu tarjeta nunca pasan por nuestros servidores.",
+    "decreaseQty": "Disminuir cantidad",
+    "increaseQty": "Aumentar cantidad"
+  },
+  "license": {
+    "title": "Licencia y actualizaciones",
+    "subtitle": "Cada compra incluye una licencia de un solo comprador. Esto es lo que puedes y no puedes hacer con los archivos.",
+    "personal": {
+      "title": "Uso personal",
+      "body": "Usa los archivos en proyectos personales ilimitados, para siempre."
+    },
+    "commercial": {
+      "title": "Uso comercial",
+      "body": "Úsalos en trabajos para clientes y productos que vendas, en un sitio web o marca por licencia."
+    },
+    "notAllowed": {
+      "title": "No permitido",
+      "body": "Revender, redistribuir, compartir los archivos fuente o incluirlos en plantillas o kits."
+    },
+    "updates": {
+      "title": "Actualizaciones incluidas",
+      "body": "Recibes actualizaciones gratuitas de por vida para la versión mayor que compraste. Cada nueva versión aparece en tu panel, lista para volver a descargar.",
+      "versionNote": "Una futura versión mayor podría ofrecerse como mejora de pago con descuento para clientes existentes."
+    },
+    "fullTerms": "Leer los términos completos"
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { useId } from "react"
 import { AlertCircle } from "lucide-react"
 
@@ -51,7 +52,7 @@ export function Field({ label, required, hint, error, children, className = "" }
       )}
       {rendered}
       {hint && !error && (
-        <p id={hintId} className="mt-1 text-micro text-charcoal-80/55">
+        <p id={hintId} className="mt-1 text-micro text-charcoal-80/65">
           {hint}
         </p>
       )}

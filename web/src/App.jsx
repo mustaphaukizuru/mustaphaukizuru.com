@@ -9,14 +9,13 @@ import ScrollToTopOnNavigate from "./components/ScrollToTopOnNavigate";
 import AnalyticsTracker from "./components/AnalyticsTracker";
 import SearchPalette from "./components/SearchPalette"; // #6
 import CartDrawer from "./components/CartDrawer"; // #2
-import CompareBar from "./components/CompareBar"; // #3
-import ScrollToTop from "./components/ScrollToTop";
 import ErrorBoundary from "./components/ErrorBoundary"; // V2, top-level safety net
 import Toaster from "./components/ui/Toaster"; // V2, sonner-based toasts
 import CookieBanner from "./components/cookies/CookieBanner";
 import LanguageWrapper from "./components/LanguageWrapper"; // I18N02 · URL→i18n sync + layout for /es routes
 import PageTransition from "./components/motion/PageTransition"; // Phase 10 · cross-fade between routes
 import { CookieConsentProvider } from "./context/CookieConsentContext";
+import FloatingContactButton from "./components/FloatingContactButton";
 
 import PublicShell from "./layout/PublicShell";
 import AuthLayout from "./layout/AuthLayout";
@@ -70,15 +69,11 @@ function PageLoader() {
 // LoadingScreen animation, so chunks are in the module cache before the
 // user can click anything — even on a cold visit with no prior hover.
 void import("./pages/ServicesPage")
-void import("./pages/SolutionsPage")
 void import("./data/servicesCatalogue")
-void import("./data/solutionsCatalogue")
 
 // Public pages
 const Home = lazy(() => import("./pages/Home"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
-const SolutionsPage = lazy(() => import("./pages/SolutionsPage"));
-const SolutionDetailPage = lazy(() => import("./pages/SolutionDetailPage"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
 const SelfAuditPage = lazy(() => import("./pages/SelfAuditPage"));
@@ -101,8 +96,6 @@ const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const RefundPage = lazy(() => import("./pages/RefundPage"));
 const CookiePolicyPage = lazy(() => import("./pages/CookiePolicyPage"));
-const RecommendationsPage = lazy(() => import("./pages/RecommendationsPage"));
-const RecommendationDetailPage = lazy(() => import("./pages/RecommendationDetailPage"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const UnsubscribedPage = lazy(() => import("./pages/UnsubscribedPage"));
@@ -120,7 +113,9 @@ const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 // OAuth redirect-flow landing page — receives token + user in URL fragment
 // from /api/auth/google/callback and hands off to AuthContext.
-const GoogleReturnPage = lazy(() => import("./pages/GoogleReturnPage"));
+const GoogleReturnPage    = lazy(() => import("./pages/GoogleReturnPage"));
+const MicrosoftReturnPage = lazy(() => import("./pages/MicrosoftReturnPage"));
+const FacebookReturnPage  = lazy(() => import("./pages/FacebookReturnPage"));
 
 // Member dashboard pages
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
@@ -131,10 +126,8 @@ const DashboardOrderDetailPage = lazy(() => import("./pages/DashboardOrderDetail
 const DashboardNotificationsPage = lazy(() => import("./pages/DashboardNotificationsPage"));
 const DashboardSupportPage = lazy(() => import("./pages/DashboardSupportPage"));
 const DashboardServiceOrdersPage = lazy(() => import("./pages/DashboardServiceOrdersPage")); // #5
-const ComparePage = lazy(() => import("./pages/ComparePage")); // #3
 const DashboardProfilePage = lazy(() => import("./pages/DashboardProfilePage"));
 const DashboardConsultationsPage = lazy(() => import("./pages/DashboardConsultationsPage"));
-const DashboardWishlistPage = lazy(() => import("./pages/DashboardWishlistPage"));
 const DashboardAddressesPage = lazy(() => import("./pages/DashboardAddressesPage"));
 const Dashboard2FAPage = lazy(() => import("./pages/Dashboard2FAPage"));
 const DashboardProjectsPage = lazy(() => import("./pages/DashboardProjectsPage")); // #8
@@ -156,8 +149,6 @@ const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage"));
 const AdminServicesPage = lazy(() => import("./pages/AdminServicesPage"));
 const AdminServicePlansPage = lazy(() => import("./pages/AdminServicePlansPage"));
 const AdminSupportPage = lazy(() => import("./pages/AdminSupportPage"));
-const AdminPagesPage = lazy(() => import("./pages/AdminPagesPage"));
-const AdminMediaPage = lazy(() => import("./pages/AdminMediaPage"));
 const AdminEmailTemplatesPage = lazy(() => import("./pages/AdminEmailTemplatesPage"));
 const AdminEmailLogsPage = lazy(() => import("./pages/AdminEmailLogsPage"));
 const AdminAuditPage       = lazy(() => import("./pages/AdminAuditPage"))
@@ -173,9 +164,7 @@ const AdminClientProjectDetailPage = lazy(() => import("./pages/AdminClientProje
 
 // Phase B · Placeholders (backend pending — see each page for the API plan)
 const AdminReviewsPage = lazy(() => import("./pages/AdminReviewsPage"));
-const AdminRecommendationsPage = lazy(() => import("./pages/AdminRecommendationsPage"));
 const AdminRefundsPage = lazy(() => import("./pages/AdminRefundsPage"));
-const AdminRolesPage = lazy(() => import("./pages/AdminRolesPage"));
 const AdminSessionsPage = lazy(() => import("./pages/AdminSessionsPage"));
 
 // M16 · Blog admin
@@ -197,6 +186,7 @@ export default function App() {
       <div style={{ opacity: appReady ? 1 : 0, pointerEvents: appReady ? "auto" : "none", transition: "opacity 0.3s ease" }}>
         <Toaster />
         <CookieBanner />
+        <FloatingContactButton />
         <Suspense fallback={<PageLoader />}>
           <LanguageWrapper>
           <SeoRouteManager />
@@ -204,8 +194,6 @@ export default function App() {
       <AnalyticsTracker />
       <SearchPalette />
       <CartDrawer />
-      <CompareBar />
-          <ScrollToTop />
 
           <PageTransition>
           <Routes>
@@ -213,18 +201,15 @@ export default function App() {
             <Route path="/" element={<PublicShell><Home /></PublicShell>} />
             <Route path="/home" element={<Navigate to="/" replace />} />
             <Route path="/about" element={<PublicShell><AboutPage /></PublicShell>} />
-            <Route path="/solutions" element={<PublicShell><SolutionsPage /></PublicShell>} />
-            <Route path="/solutions/:slug" element={<PublicShell><SolutionDetailPage /></PublicShell>} />
             <Route path="/services" element={<PublicShell><ServicesPage /></PublicShell>} />
             <Route path="/services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
-            <Route path="/self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
+            <Route path="/self-audit" element={<AdminRoute><PublicShell><SelfAuditPage /></PublicShell></AdminRoute>} />
             <Route path="/contact" element={<PublicShell><ContactPage /></PublicShell>} />
             <Route path="/portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />
             <Route path="/projects/:slug" element={<PublicShell><ProjectDetailPage /></PublicShell>} />
             <Route path="/store" element={<PublicShell><Store /></PublicShell>} />
             <Route path="/store/:slug" element={<PublicShell><ProductDetail /></PublicShell>} />
             <Route path="/cart" element={<PublicShell><CartPage /></PublicShell>} />
-            <Route path="/compare" element={<PublicShell><ComparePage /></PublicShell>} />
             <Route path="/unsubscribed" element={<PublicShell><UnsubscribedPage /></PublicShell>} />
 
             <Route
@@ -257,8 +242,6 @@ export default function App() {
             <Route path="/privacy" element={<PublicShell><PrivacyPage /></PublicShell>} />
             <Route path="/refund" element={<PublicShell><RefundPage /></PublicShell>} />
             <Route path="/cookies" element={<PublicShell><CookiePolicyPage /></PublicShell>} />
-            <Route path="/recommendations" element={<PublicShell><RecommendationsPage /></PublicShell>} />
-            <Route path="/recommendations/:slug" element={<PublicShell><RecommendationDetailPage /></PublicShell>} />
 
             {/* Blog · public list + article detail (frontend reads from
                 web/src/data/blogPostsData.js until /api/blog ships). */}
@@ -269,8 +252,8 @@ export default function App() {
             <Route path="/book" element={<PublicShell><BookConsultationPage /></PublicShell>} />
             <Route path="/book/:serviceSlug" element={<PublicShell><BookConsultationPage /></PublicShell>} />
 
-            {/* Internal · design-system preview catalogue */}
-            <Route path="/_system" element={<SystemPreviewPage />} />
+            {/* Internal · design-system preview catalogue — admin only */}
+            <Route path="/_system" element={<AdminRoute><SystemPreviewPage /></AdminRoute>} />
 
             {/* Auth */}
             <Route path="/login" element={<AuthLayout><LoginPage /></AuthLayout>} />
@@ -279,7 +262,9 @@ export default function App() {
             <Route path="/reset-password/:token" element={<AuthLayout><ResetPasswordPage /></AuthLayout>} />
             {/* OAuth redirect-flow landing — no AuthLayout shell, lifecycle is
                 ~200ms then nav-replace to /dashboard. */}
-            <Route path="/auth/google/return" element={<GoogleReturnPage />} />
+            <Route path="/auth/google/return"    element={<GoogleReturnPage />} />
+            <Route path="/auth/microsoft/return" element={<MicrosoftReturnPage />} />
+            <Route path="/auth/facebook/return"  element={<FacebookReturnPage />} />
 
             {/* Member dashboard */}
             <Route
@@ -297,7 +282,6 @@ export default function App() {
               <Route path="orders/:orderId" element={<DashboardOrderDetailPage />} />
               <Route path="notifications" element={<DashboardNotificationsPage />} />
               <Route path="consultations" element={<DashboardConsultationsPage />} />
-              <Route path="wishlist" element={<DashboardWishlistPage />} />
               <Route path="addresses" element={<DashboardAddressesPage />} />
               <Route path="2fa" element={<Dashboard2FAPage />} />
               <Route path="support" element={<DashboardSupportPage />} />
@@ -338,8 +322,6 @@ export default function App() {
               <Route path="bio" element={<AdminBioPage />} />
               <Route path="analytics" element={<AdminAnalyticsPage />} />
               <Route path="support" element={<AdminSupportPage />} />
-              <Route path="pages" element={<AdminPagesPage />} />
-              <Route path="media" element={<AdminMediaPage />} />
               <Route path="email-templates" element={<AdminEmailTemplatesPage />} />
               <Route path="email-logs" element={<AdminEmailLogsPage />} />
               <Route path="users" element={<AdminUsersPage />} />
@@ -357,9 +339,7 @@ export default function App() {
 
               {/* Phase B, placeholders (backend pending) */}
               <Route path="reviews" element={<AdminReviewsPage />} />
-              <Route path="recommendations" element={<AdminRecommendationsPage />} />
               <Route path="refunds" element={<AdminRefundsPage />} />
-              <Route path="roles" element={<AdminRolesPage />} />
               <Route path="sessions" element={<AdminSessionsPage />} />
 
               {/* M16 · Blog admin */}
@@ -386,8 +366,6 @@ export default function App() {
               {/* Public */}
               <Route index element={<PublicShell><Home /></PublicShell>} />
               <Route path="about" element={<PublicShell><AboutPage /></PublicShell>} />
-              <Route path="solutions" element={<PublicShell><SolutionsPage /></PublicShell>} />
-              <Route path="solutions/:slug" element={<PublicShell><SolutionDetailPage /></PublicShell>} />
               <Route path="services" element={<PublicShell><ServicesPage /></PublicShell>} />
               <Route path="services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
               <Route path="contact" element={<PublicShell><ContactPage /></PublicShell>} />
@@ -396,7 +374,6 @@ export default function App() {
               <Route path="store" element={<PublicShell><Store /></PublicShell>} />
               <Route path="store/:slug" element={<PublicShell><ProductDetail /></PublicShell>} />
               <Route path="cart" element={<PublicShell><CartPage /></PublicShell>} />
-              <Route path="compare" element={<PublicShell><ComparePage /></PublicShell>} />
               <Route path="unsubscribed" element={<PublicShell><UnsubscribedPage /></PublicShell>} />
 
               <Route
@@ -425,8 +402,6 @@ export default function App() {
               <Route path="privacy" element={<PublicShell><PrivacyPage /></PublicShell>} />
               <Route path="refund" element={<PublicShell><RefundPage /></PublicShell>} />
               <Route path="cookies" element={<PublicShell><CookiePolicyPage /></PublicShell>} />
-              <Route path="recommendations" element={<PublicShell><RecommendationsPage /></PublicShell>} />
-              <Route path="recommendations/:slug" element={<PublicShell><RecommendationDetailPage /></PublicShell>} />
 
               <Route path="blog" element={<PublicShell><BlogPage /></PublicShell>} />
               <Route path="blog/:slug" element={<PublicShell><BlogPostPage /></PublicShell>} />
@@ -439,7 +414,9 @@ export default function App() {
               <Route path="signup" element={<AuthLayout><SignupPage /></AuthLayout>} />
               <Route path="forgot-password" element={<AuthLayout><ForgotPasswordPage /></AuthLayout>} />
               <Route path="reset-password/:token" element={<AuthLayout><ResetPasswordPage /></AuthLayout>} />
-              <Route path="auth/google/return" element={<GoogleReturnPage />} />
+              <Route path="auth/google/return"    element={<GoogleReturnPage />} />
+              <Route path="auth/microsoft/return" element={<MicrosoftReturnPage />} />
+              <Route path="auth/facebook/return"  element={<FacebookReturnPage />} />
 
               {/* Admin and Dashboard intentionally NOT mirrored — operator UIs stay English. */}
             </Route>

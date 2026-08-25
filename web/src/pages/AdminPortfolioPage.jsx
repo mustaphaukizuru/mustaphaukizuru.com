@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Plus, Search, Edit2, Trash2, Star, StarOff, Eye, AlertCircle,
   Filter, Grid3x3, X, Globe, RefreshCw,
@@ -73,7 +73,7 @@ export default function AdminPortfolioPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [statusFilter])
+  useEffect(() => { load()   }, [statusFilter])
 
   const visible = useMemo(() => items.filter((it) => {
     if (!query.trim()) return true
@@ -138,7 +138,7 @@ export default function AdminPortfolioPage() {
         </p>
         <Link
           to="/admin/portfolio/new"
-          className="inline-flex items-center gap-1.5 self-start rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgba(93,63,211,0.22)] sm:self-auto focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-1.5 self-start rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)] sm:self-auto focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           New project
@@ -153,7 +153,7 @@ export default function AdminPortfolioPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-3 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-3 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-charcoal-80/40" aria-hidden="true" />
           <input
@@ -177,7 +177,7 @@ export default function AdminPortfolioPage() {
         </div>
         <div className="flex items-center gap-2">
           <label className="flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-2.5 py-1.5">
-            <Filter className="h-3 w-3 text-charcoal-80/45" aria-hidden="true" />
+            <Filter className="h-3 w-3 text-charcoal-80/65" aria-hidden="true" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -240,17 +240,17 @@ export default function AdminPortfolioPage() {
           )}
         </div>
       ) : (
-        <motion.div
+        <m.div
           initial="hidden"
           animate="show"
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
           {visible.map((item) => (
-            <motion.article
+            <m.article
               key={item.id}
               variants={fadeUp}
-              className="group overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:border-violet/20 hover:shadow-[0_12px_28px_rgba(93,63,211,0.10)]"
+              className="group overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:border-violet/20 hover:shadow-[0_12px_28px_rgb(var(--color-violet-rgb)/0.10)]"
             >
               {/* Cover */}
               <div className="relative aspect-[16/10] overflow-hidden bg-violet-pale">
@@ -331,15 +331,15 @@ export default function AdminPortfolioPage() {
                   </div>
                 </div>
               </div>
-            </motion.article>
+            </m.article>
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       {/* Delete confirmation modal */}
       <AnimatePresence>
         {confirmDelete && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
             onClick={() => setConfirmDelete(null)}
@@ -347,13 +347,13 @@ export default function AdminPortfolioPage() {
             aria-modal="true"
             aria-label="Confirm archive"
           >
-            <motion.div
+            <m.div
               initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.96, opacity: 0 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_24px_60px_rgba(93,63,211,0.18)]"
+              className="w-full max-w-md rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_24px_60px_rgb(var(--color-violet-rgb)/0.18)]"
             >
               <div className="mb-4 flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
@@ -384,8 +384,8 @@ export default function AdminPortfolioPage() {
                   {busyId === confirmDelete.id ? "Archiving…" : "Archive"}
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </section>

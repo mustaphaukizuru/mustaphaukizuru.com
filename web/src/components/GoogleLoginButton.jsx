@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom"
 import { AlertOctagon, X as CloseIcon, Mail as MailIcon } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { API_BASE_URL } from "../lib/api"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -40,58 +41,44 @@ import { API_BASE_URL } from "../lib/api"
  *  exchange_failed|unavailable`. Most users never see it.
  *  ──────────────────────────────────────────────────────────────────── */
 
-const LABEL_MAP = {
-  signin: "Sign in with Google",
-  signup: "Sign up with Google",
-  continue: "Continue with Google",
-}
-
-// Sources of failure surfaced by the backend on the redirect-back to
-// /login. Each maps to a short, calm message — no browser instructions.
-// `server_misconfigured` is distinct from `exchange_failed`: the former
-// means the server doesn't have GOOGLE_CLIENT_SECRET set at all (so we
-// refuse to start the flow), the latter means we started it and Google
-// rejected the token exchange (likely a redirect_uri or clock issue).
-const SERVER_ERROR_COPY = {
-  cancelled:           "Google sign-in was cancelled. You can try again or use email below.",
-  state_mismatch:      "Sign-in session expired. Please try again.",
-  exchange_failed:     "We could not complete Google sign-in. Please try again or use email below.",
-  server_misconfigured:"Google sign-in is not configured on this server yet. Please use email below.",
-  unavailable:         "Google sign-in is temporarily unavailable. Please use email below.",
-}
+// Label keys resolved at render time via i18n — no static map needed.
+// SERVER_ERROR_COPY moved to i18n "auth:social.*" keys.
 
 export default function GoogleLoginButton({
   label = "signin",
   redirectTo,
   className = "",
 }) {
+  const { t } = useTranslation("auth")
   const location = useLocation()
   const [dismissedError, setDismissedError] = useState(false)
 
-  // Read ?google=<reason> on initial mount — the backend uses this to
-  // surface OAuth failures after the redirect-back to /login. We only
-  // read it once; the user dismissing the toast clears it from view.
+  const LABEL_MAP = {
+    signin:   t("social.signinGoogle"),
+    signup:   t("social.signupGoogle"),
+    continue: t("social.continueGoogle"),
+  }
+
+  const SERVER_ERROR_KEYS = {
+    cancelled:            "social.cancelledGoogle",
+    state_mismatch:       "social.sessionExpired",
+    exchange_failed:      "social.failedGoogle",
+    server_misconfigured: "social.notConfiguredGoogle",
+    unavailable:          "social.unavailableGoogle",
+  }
+
   const searchParams = new URLSearchParams(location.search)
   const googleErrorReason = searchParams.get("google")
-  const serverError = googleErrorReason && !dismissedError ? SERVER_ERROR_COPY[googleErrorReason] : null
+  const errorKey = googleErrorReason && !dismissedError ? SERVER_ERROR_KEYS[googleErrorReason] : null
+  const serverError = errorKey ? t(errorKey) : null
 
-  // Reset dismissal when the param actually changes (e.g. user retries
-  // and gets a different failure reason).
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset dismissal when the URL error param changes
   useEffect(() => { setDismissedError(false) }, [googleErrorReason])
 
-  // Where to send the user after sign-in. We honor an explicit redirectTo
-  // prop, then react-router's location.state.from (set by ProtectedRoute
-  // when it bounced an unauth user to /login), then default to /dashboard.
-  // Only safe relative paths are accepted; absolute URLs are rejected
-  // server-side too (open-redirect defence in depth).
   const returnTo = redirectTo
     || (location.state?.from && typeof location.state.from === "string" ? location.state.from : null)
     || "/dashboard"
 
-  // Build the start URL. We point at the API origin (which may differ
-  // from the SPA origin in dev) so the OAuth state cookie is set on the
-  // API host. The browser does a full-page navigation here — no popup,
-  // no SDK, no SDK polling.
   const startHref = `${API_BASE_URL}/api/auth/google/start?return_to=${encodeURIComponent(returnTo)}`
 
   const labelText = LABEL_MAP[label] || LABEL_MAP.signin
@@ -107,16 +94,16 @@ export default function GoogleLoginButton({
           "min-h-[48px] px-5 py-3 sm:py-3.5",
           /* surface */
           "rounded-xl border border-charcoal-80/12 bg-white",
-          "shadow-[0_1px_2px_rgba(26,27,35,0.04)]",
+          "shadow-[0_1px_2px_rgb(var(--color-charcoal-rgb)/0.04)]",
           /* type */
           "font-display text-[14px] font-semibold text-charcoal-80/85 sm:text-[14.5px]",
           /* motion */
           "transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
           /* hover */
           "hover:-translate-y-0.5 hover:border-charcoal-80/22 hover:bg-mist",
-          "hover:shadow-[0_8px_20px_-6px_rgba(26,27,35,0.18)]",
+          "hover:shadow-[0_8px_20px_-6px_rgb(var(--color-charcoal-rgb)/0.18)]",
           /* active */
-          "active:translate-y-0 active:shadow-[0_1px_2px_rgba(26,27,35,0.04)]",
+          "active:translate-y-0 active:shadow-[0_1px_2px_rgb(var(--color-charcoal-rgb)/0.04)]",
           /* focus */
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2",
         ].join(" ")}
@@ -152,6 +139,7 @@ function focusEmailField() {
 }
 
 function GoogleSignInError({ message, onDismiss }) {
+  const { t } = useTranslation("auth")
   return (
     <div
       role="alert"
@@ -174,15 +162,15 @@ function GoogleSignInError({ message, onDismiss }) {
             className="mt-2 inline-flex items-center gap-1.5 rounded-md text-[12.5px] font-semibold text-violet transition hover:text-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30 focus-visible:ring-offset-2"
           >
             <MailIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="underline-offset-2 hover:underline">Use email instead</span>
+            <span className="underline-offset-2 hover:underline">{t("social.useEmailInstead")}</span>
           </button>
         </div>
 
         <button
           type="button"
           onClick={onDismiss}
-          aria-label="Dismiss"
-          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-charcoal-80/55 transition hover:bg-charcoal-80/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          aria-label={t("social.dismiss")}
+          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
         >
           <CloseIcon className="h-3.5 w-3.5" />
         </button>

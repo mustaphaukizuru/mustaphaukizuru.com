@@ -7,7 +7,7 @@
 // while we build out the missing endpoints.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Construction, ArrowRight, FileCode2 } from "lucide-react"
 
 export default function AdminPlaceholderPage({
@@ -19,7 +19,7 @@ export default function AdminPlaceholderPage({
   apiPlan = [],
 }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
@@ -38,7 +38,7 @@ export default function AdminPlaceholderPage({
       </div>
 
       {/* Hero card */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:p-8">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] sm:p-8">
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
             <Icon className="h-6 w-6" aria-hidden="true" />
@@ -103,6 +103,6 @@ export default function AdminPlaceholderPage({
           )}
         </div>
       )}
-    </motion.div>
+    </m.div>
   )
 }

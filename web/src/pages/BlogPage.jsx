@@ -28,7 +28,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Search, Tag, Calendar, Clock, ArrowRight, X, Mail, Filter,
   TrendingUp, Folder, Archive, ChevronRight, BookOpen, Sparkles,
@@ -51,6 +51,8 @@ import {
 } from "../data/blogPostsData"
 
 import { useTranslation } from "react-i18next"
+import BlogCoverGradient from "../components/BlogCoverGradient"
+import { TOKENS } from "../styles/tokens.js"
 /* ── Motion variants ──────────────────────────────────────────────────── */
 
 const fadeUp = {
@@ -68,15 +70,15 @@ const stagger = {
  * full screen at most viewport sizes before pagination kicks in. */
 const POSTS_PER_PAGE = 9
 const HERO_MESH =
-  "radial-gradient(at 18% 20%, rgba(124,58,237,0.20) 0px, transparent 55%), " +
-  "radial-gradient(at 82% 0%, rgba(2,132,199,0.14) 0px, transparent 50%), " +
-  "radial-gradient(at 50% 100%, rgba(233,196,106,0.18) 0px, transparent 55%), " +
-  "linear-gradient(160deg, #F8FAFC 0%, #EFE7F8 45%, #EFF1F5 100%)"
+  "radial-gradient(at 18% 20%, rgb(var(--color-violet-rgb)/0.20) 0px, transparent 55%), " +
+  "radial-gradient(at 82% 0%, rgb(var(--color-azure-rgb)/0.14) 0px, transparent 50%), " +
+  "radial-gradient(at 50% 100%, rgb(var(--color-terracotta-rgb)/0.18) 0px, transparent 55%), " +
+  "linear-gradient(160deg, var(--color-mist) 0%, var(--color-violet-pale) 45%, var(--color-slate-100) 100%)"
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(iso, locale = "en-US") {
+  return new Date(iso).toLocaleDateString(locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -101,7 +103,6 @@ export default function BlogPage() {
   const queryParam = searchParams.get("q") || ""
   const categoryParam = searchParams.get("category") || ""
   const tagParam = searchParams.get("tag") || ""
-  const pageParam = parseInt(searchParams.get("page") || "1", 10) || 1
 
   // Local input state — committed to URL only on submit, so we don't
   // re-render the whole grid on every keystroke.
@@ -150,7 +151,7 @@ export default function BlogPage() {
       // Merge API counts with the canonical category metadata so accents stay correct
       return apiData.categories.map((c) => {
         const local = (getCategoryCounts() || []).find((x) => x.slug === c.slug)
-        return { slug: c.slug, label: c.label, accent: c.accent || local?.accent || "#5D3FD3", count: c.count }
+        return { slug: c.slug, label: c.label, accent: c.accent || local?.accent || TOKENS.violet, count: c.count }
       })
     }
     return getCategoryCounts()
@@ -227,24 +228,24 @@ export default function BlogPage() {
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:radial-gradient(circle_at_1px_1px,rgba(93,63,211,0.55)_1px,transparent_0)] [background-size:32px_32px]"
+          className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:radial-gradient(circle_at_1px_1px,rgb(var(--color-violet-rgb)/0.55)_1px,transparent_0)] [background-size:32px_32px]"
         />
         <Container>
-          <motion.div
+          <m.div
             variants={reduce ? undefined : stagger}
             initial={reduce ? false : "hidden"}
             animate="show"
             className="flex flex-col items-center gap-5 py-16 text-center sm:py-20 lg:py-24"
           >
-            <motion.span
+            <m.span
               variants={fadeUp}
               className="inline-flex items-center gap-1.5 rounded-full border border-violet/20 bg-violet/[0.06] px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-violet backdrop-blur-sm"
             >
               <BookOpen className="h-3 w-3" aria-hidden="true" />
               {t("page.title")}
-            </motion.span>
+            </m.span>
 
-            <motion.h1
+            <m.h1
               variants={fadeUp}
               id="blog-hero-title"
               className="max-w-3xl text-display text-violet"
@@ -258,17 +259,17 @@ export default function BlogPage() {
                 />
               </span>
               .
-            </motion.h1>
+            </m.h1>
 
-            <motion.p
+            <m.p
               variants={fadeUp}
               className="max-w-2xl text-[15px] leading-7 text-charcoal-80/70 sm:text-[16px]"
             >
               {t("page.subtitle")}
-            </motion.p>
+            </m.p>
 
             {/* Hero search — primary discovery entry point */}
-            <motion.form
+            <m.form
               variants={fadeUp}
               onSubmit={(e) => {
                 e.preventDefault()
@@ -284,26 +285,26 @@ export default function BlogPage() {
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder={`Search ${allPosts.length} articles…`}
-                aria-label="Search articles"
+                placeholder={t("page.searchPlaceholder", { count: allPosts.length })}
+                aria-label={t("page.searchAria")}
                 title="Press / to search"
-                className="w-full rounded-2xl border border-charcoal-80/12 bg-white py-3.5 pl-11 pr-28 text-[14px] text-charcoal-80 shadow-[0_8px_32px_-8px_rgba(93,63,211,0.15)] placeholder-charcoal-80/40 outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-violet/20 sm:text-[15px]"
+                className="w-full rounded-2xl border border-charcoal-80/12 bg-white py-3.5 pl-11 pr-28 text-[14px] text-charcoal-80 shadow-[0_8px_32px_-8px_rgb(var(--color-violet-rgb)/0.15)] placeholder-charcoal-80/40 outline-none transition focus:border-violet/40 focus:ring-[3px] focus:ring-violet/20 sm:text-[15px]"
               />
               <button
                 type="submit"
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-violet px-4 py-2 text-[12.5px] font-bold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
               >
-                Search
+                {t("page.searchButton")}
               </button>
-            </motion.form>
+            </m.form>
 
             {/* Result meta — shows filter context when active */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               className="mt-1 flex flex-wrap items-center justify-center gap-2 text-[12.5px]"
             >
-              <span className="text-charcoal-80/55">
-                {filtered.length} article{filtered.length === 1 ? "" : "s"}
+              <span className="text-charcoal-80/65">
+                {t("page.articleCount", { count: filtered.length })}
               </span>
               {hasActiveFilter ? (
                 <button
@@ -315,8 +316,8 @@ export default function BlogPage() {
                   {t("page.clearFilters")}
                 </button>
               ) : null}
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         </Container>
       </section>
 
@@ -369,7 +370,7 @@ export default function BlogPage() {
               {/* Section divider with sort control */}
               {pagePosts.length > 0 ? (
                 <div className="mt-10 mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 pb-3">
-                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+                  <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                     <LayoutList className="h-3.5 w-3.5 text-violet" aria-hidden="true" />
                     {hasActiveFilter
                       ? `${sortedGridSource.length} result${sortedGridSource.length !== 1 ? "s" : ""}`
@@ -397,7 +398,7 @@ export default function BlogPage() {
                             "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30",
                             sort === opt.key
                               ? "bg-violet text-white shadow-sm"
-                              : "text-charcoal-80/55 hover:text-violet",
+                              : "text-charcoal-80/65 hover:text-violet",
                           ].join(" ")}
                         >
                           {opt.label}
@@ -571,7 +572,7 @@ function BlogSidebar({
                     "inline-flex items-center rounded-full border px-2.5 py-1 text-[11.5px] font-medium transition",
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30",
                     active
-                      ? "border-violet bg-violet text-white shadow-[0_4px_14px_-4px_rgba(93,63,211,0.5)]"
+                      ? "border-violet bg-violet text-white shadow-[0_4px_14px_-4px_rgb(var(--color-violet-rgb)/0.5)]"
                       : "border-charcoal-80/12 bg-white text-charcoal-80/75 hover:border-violet/40 hover:bg-violet-pale/40 hover:text-violet",
                   ].join(" ")}
                   aria-pressed={active}
@@ -595,7 +596,7 @@ function BlogSidebar({
                   <div className="line-clamp-2 text-[13px] font-semibold leading-snug text-charcoal-80 group-hover:text-violet">
                     {p.title}
                   </div>
-                  <div className="mt-1 flex items-center gap-2 text-[11px] text-charcoal-80/50">
+                  <div className="mt-1 flex items-center gap-2 text-[11px] text-charcoal-80/65">
                     <Calendar className="h-3 w-3" aria-hidden="true" />
                     {formatDate(p.publishedAt)}
                   </div>
@@ -618,7 +619,7 @@ function BlogSidebar({
                     <ChevronRight className="h-3 w-3 text-charcoal-80/30 group-hover:text-violet" aria-hidden="true" />
                     {entry.label}
                   </span>
-                  <span className="rounded-full bg-charcoal-80/[0.06] px-1.5 py-0.5 text-[10.5px] font-mono tabular-nums text-charcoal-80/55 group-hover:bg-violet/10 group-hover:text-violet">
+                  <span className="rounded-full bg-charcoal-80/[0.06] px-1.5 py-0.5 text-[10.5px] font-mono tabular-nums text-charcoal-80/65 group-hover:bg-violet/10 group-hover:text-violet">
                     {entry.count}
                   </span>
                 </Link>
@@ -673,7 +674,7 @@ function BlogSidebar({
             </form>
             <div className="min-h-[16px] mt-2" aria-live="polite">
               {newsletterStatus.kind === "success" ? (
-                <p className="text-[11.5px] font-medium text-terracotta">
+                <p className="text-[11.5px] font-medium text-white">
                   ✓ {newsletterStatus.message}
                 </p>
               ) : null}
@@ -695,7 +696,7 @@ function BlogSidebar({
 function SidebarBlock({ title, icon: Icon, children }) {
   return (
     <section>
-      <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+      <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
         {Icon ? <Icon className="h-3 w-3 text-violet" aria-hidden="true" /> : null}
         {title}
       </h3>
@@ -732,7 +733,7 @@ function SidebarRow({ label, count, accent, active, onClick }) {
         <span
           className={[
             "rounded-full px-1.5 py-0.5 text-[10.5px] font-mono tabular-nums",
-            active ? "bg-violet/15 text-violet" : "bg-charcoal-80/[0.06] text-charcoal-80/55",
+            active ? "bg-violet/15 text-violet" : "bg-charcoal-80/[0.06] text-charcoal-80/65",
           ].join(" ")}
         >
           {count}
@@ -796,14 +797,15 @@ function FilterChip({ children, onRemove }) {
    ════════════════════════════════════════════════════════════════════════ */
 
 function FeaturedCard({ post, reduce }) {
-  const { t } = useTranslation("blog")
+  const { t, i18n } = useTranslation("blog")
+  const locale = i18n.language === "es" ? "es-MX" : "en-US"
   const cat = categoryByValue(post.category)
   return (
-    <motion.article
+    <m.article
       initial={reduce ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative overflow-hidden rounded-3xl border border-charcoal-80/10 bg-white shadow-[0_18px_50px_-20px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-20px_rgba(93,63,211,0.30)]"
+      className="group relative overflow-hidden rounded-3xl border border-charcoal-80/10 bg-white shadow-[0_18px_50px_-20px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_-20px_rgb(var(--color-violet-rgb)/0.30)]"
     >
       <Link
         to={`/blog/${post.slug}`}
@@ -817,13 +819,13 @@ function FeaturedCard({ post, reduce }) {
           {/* Badge row + read-time */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/12 px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.18em] text-terracotta-deep">
+              <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/12 px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.18em] text-terracotta-800">
                 <Sparkles className="h-3 w-3" aria-hidden="true" />
-                Featured
+                {t("list.featured")}
               </span>
               {cat ? <CategoryPill category={cat} /> : null}
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-charcoal-80/[0.06] px-2.5 py-1 font-mono text-[10.5px] text-charcoal-80/55">
+            <span className="inline-flex items-center gap-1 rounded-full bg-charcoal-80/[0.06] px-2.5 py-1 font-mono text-[10.5px] text-charcoal-80/65">
               <Clock className="h-3 w-3" aria-hidden="true" />
               {post.readMinutes} min
             </span>
@@ -846,8 +848,8 @@ function FeaturedCard({ post, reduce }) {
               <p className="text-[13px] font-semibold text-charcoal-80/85">
                 {post.author.name}
               </p>
-              <p className="text-[11.5px] text-charcoal-80/50">
-                {new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+              <p className="text-[11.5px] text-charcoal-80/65">
+                {formatDate(post.publishedAt, locale)}
               </p>
             </div>
           </div>
@@ -865,7 +867,7 @@ function FeaturedCard({ post, reduce }) {
           </span>
         </div>
       </Link>
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -874,10 +876,12 @@ function FeaturedCard({ post, reduce }) {
    ════════════════════════════════════════════════════════════════════════ */
 
 function PostCard({ post }) {
+  const { i18n } = useTranslation("blog")
+  const locale = i18n.language === "es" ? "es-MX" : "en-US"
   const cat = categoryByValue(post.category)
   const displayTags = post.tags?.slice(0, 2) || []
   return (
-    <article className="group overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white transition hover:border-violet/25 hover:shadow-[0_12px_36px_-12px_rgba(93,63,211,0.18)]">
+    <article className="group overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white transition hover:border-violet/25 hover:shadow-[0_12px_36px_-12px_rgb(var(--color-violet-rgb)/0.18)]">
       <Link to={`/blog/${post.slug}`} className="flex h-full items-stretch">
         {/* Thumbnail — fixed width, full-height cover art */}
         <div className="w-28 shrink-0 sm:w-40">
@@ -890,7 +894,7 @@ function PostCard({ post }) {
           <div className="flex flex-wrap items-center gap-2">
             {cat ? <CategoryPill category={cat} /> : null}
             <span className="hidden font-mono text-[10.5px] text-charcoal-80/40 sm:block">
-              {new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+              {formatDate(post.publishedAt, locale)}
             </span>
           </div>
 
@@ -900,7 +904,7 @@ function PostCard({ post }) {
           </h3>
 
           {/* Excerpt — hidden on narrow screens */}
-          <p className="hidden line-clamp-2 text-[13px] leading-6 text-charcoal-80/60 sm:block">
+          <p className="hidden line-clamp-2 text-[13px] leading-6 text-charcoal-80/65 sm:block">
             {post.excerpt}
           </p>
 
@@ -910,7 +914,7 @@ function PostCard({ post }) {
               {displayTags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-charcoal-80/[0.05] px-2 py-0.5 font-mono text-[10px] tracking-wide text-charcoal-80/50"
+                  className="rounded-full bg-charcoal-80/[0.05] px-2 py-0.5 font-mono text-[10px] tracking-wide text-charcoal-80/65"
                 >
                   {tag}
                 </span>
@@ -954,33 +958,33 @@ function CoverArt({ post, className = "" }) {
   const cat = categoryByValue(post.category)
   if (post.cover) {
     return (
-      <div className={`relative overflow-hidden ${className}`}>
+      <div className={`relative overflow-hidden bg-violet-pale/40 ${className}`}>
+        {/* Full-bleed thumbnail — object-cover fills the card frame edge to
+            edge (the standard, clean grid look). Upload covers at 16:9 so the
+            center crop stays flattering. */}
         <img
           src={post.cover}
           alt=""
           loading="lazy"
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+          className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.04]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-violet/20 via-transparent to-terracotta/10"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-violet/15 via-transparent to-terracotta/8"
         />
       </div>
     )
   }
-  // Fallback: pale violet tile with category icon — clean, on-brand, never
-  // looks like a broken placeholder.
-  const CatIcon = CATEGORY_ICONS[cat?.slug] || FileText
+  // Fallback: brand-generated gradient cover — beautiful, unique per category.
   return (
-    <div
-      className={`relative flex items-center justify-center overflow-hidden bg-violet-pale ${className}`}
-    >
-      <CatIcon
-        className="h-9 w-9 text-violet/30 transition duration-300 group-hover:scale-110 group-hover:text-violet/50"
-        strokeWidth={1.5}
-        aria-hidden="true"
-      />
-    </div>
+    <BlogCoverGradient
+      title={post.title}
+      category={cat?.label || ""}
+      accent={cat?.accent || TOKENS.violet}
+      readMinutes={post.readMinutes}
+      aspectRatio={undefined}
+      className={`h-full ${className}`}
+    />
   )
 }
 
@@ -1007,7 +1011,7 @@ function CategoryPill({ category }) {
 function PostMeta({ post, compact = false }) {
   const { t } = useTranslation("blog")
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-charcoal-80/55">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-charcoal-80/65">
       <span className="inline-flex items-center gap-1.5">
         <img
           src={post.author.avatar}
@@ -1074,7 +1078,7 @@ function BlogInlineNewsletter() {
   return (
     <div
       className="mt-8 overflow-hidden rounded-2xl"
-      style={{ background: "linear-gradient(135deg, #5D3FD3, #0284C7)" }}
+      style={{ background: "linear-gradient(135deg, var(--color-violet), var(--color-azure))" }}
     >
       <div className="flex flex-col items-start gap-5 px-6 py-6 sm:flex-row sm:items-center sm:gap-8 sm:px-8">
         <div className="flex-1 min-w-0">

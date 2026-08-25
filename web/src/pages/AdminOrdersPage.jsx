@@ -91,7 +91,7 @@ export default function AdminOrdersPage() {
           <div className="font-mono text-meta font-semibold tabular-nums text-violet">
             #{row.orderNumber || String(row.id).slice(0, 8)}
           </div>
-          <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/55">
+          <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/65">
             {new Date(row.createdAt).toLocaleString(undefined, {
               year: "numeric", month: "short", day: "numeric",
               hour: "2-digit", minute: "2-digit",

@@ -25,107 +25,6 @@
     "headlinePremium": "Tecnología premium.",
     "headlineWebsitesApps": "Sitios web, apps, IA, estrategia TI —"
   },
-  "sections": {
-    "browseAll": "Ver todos los servicios",
-    "consulting": "Consultoría IT",
-    "websiteSystems": "Sistemas web",
-    "schoolIT": "Transformación IT escolar",
-    "stem": "Programas STEM"
-  },
-  "cta": {
-    "choosePlan": "Elegir plan",
-    "viewDetails": "Ver detalles",
-    "bookConsultation": "Agendar consulta"
-  },
-  "overview": {
-    "eyebrow": "Lo que ofrezco",
-    "title": "Servicios de tecnología",
-    "subtitle": "Servicios especializados diseñados para mejorar sistemas digitales, confiabilidad de infraestructura y estrategia tecnológica."
-  },
-  "value": {
-    "eyebrow": "Valor",
-    "title": "Cómo estos servicios benefician a tu organización",
-    "subtitle": "Mira cómo los sistemas tecnológicos correctos mejoran la productividad, la confiabilidad y la eficiencia operativa.",
-    "toggle": {
-      "with": "Con mis servicios",
-      "without": "Sin mis servicios",
-      "ariaLabel": "Alternar comparación de beneficios"
-    },
-    "footer": "Los resultados varían según el alcance · benchmarks compartidos en la llamada de alcance"
-  },
-  "why": {
-    "eyebrow": "Por qué elegirme",
-    "titlePart1": "Entrega senior en la que puedes",
-    "titlePart2": "confiar de principio a fin"
-  },
-  "social": {
-    "eyebrow": "Prueba social",
-    "title": "Certificado, acreditado, entregando hoy",
-    "subtitle": "Instituciones donde he trabajado y certificaciones activas. Cada afirmación es verificable.",
-    "credentialsAria": "Certificaciones e instituciones",
-    "testimonialQuote": "Una comunicación clara, una planeación cuidadosa y un pensamiento sistémico moderno hicieron que la implementación fluyera sin tropiezos.",
-    "testimonialName": "Theo M.",
-    "testimonialRole": "Líder de operaciones"
-  },
-  "process": {
-    "eyebrow": "Proceso",
-    "title": "Seis pasos del brief a la entrega",
-    "subtitle": "La misma estructura en cada familia de servicios. Solo cambia el contenido."
-  },
-  "pricing": {
-    "eyebrow": "Precios",
-    "title": "Elige tu plan",
-    "subtitle": "Programas adaptados por audiencia. Elige el camino que coincide con tu etapa y luego la profundidad del engagement que se ajuste a tu ambición.",
-    "audienceAria": "Audiencia de precios",
-    "mostPopular": "Más popular",
-    "getStarted": "Empieza aquí",
-    "serviceDetails": "Detalles del servicio",
-    "currency": "MXN",
-    "catalog": {
-      "title": "¿Necesitas el catálogo completo?",
-      "subtitleLeft": "Descarga el catálogo completo con los",
-      "subtitleRight": "servicios, sus resultados, entregables y tipos de engagement.",
-      "pdfLabel": "PDF · 110 KB",
-      "mdLabel": "Markdown · 57 KB"
-    },
-    "selfAudit": {
-      "title": "¿No sabes qué plan te conviene?",
-      "subtitle": "Haz la autoevaluación de 15 minutos y obtén una lista priorizada de nuestros",
-      "subtitleSuffix": "servicios atómicos.",
-      "cta": "Hacer la autoevaluación",
-      "ctaAria": "Abrir la autoevaluación digital y tecnológica (15 minutos)"
-    }
-  },
-  "faq": {
-    "eyebrow": "Preguntas frecuentes",
-    "title": "Preguntas comunes antes de la primera llamada",
-    "subtitle": "Busca, filtra por tema o revisa todo el listado. ¿Sigues con dudas? Agenda una consulta gratis de 30 minutos.",
-    "searchPlaceholder": "Buscar…",
-    "searchAria": "Buscar preguntas frecuentes",
-    "filterByTopic": "Filtrar por tema",
-    "filterAria": "Filtrar preguntas por categoría",
-    "countFormat": "{{count}} de {{total}} preguntas",
-    "emptyTitle": "Sin coincidencias",
-    "emptyBody": "Prueba con otra palabra clave o limpia el filtro.",
-    "emptyReset": "Limpiar filtros",
-    "stillHaveQuestions": "¿Todavía tienes dudas?",
-    "stillHaveBody": "Agenda una consulta gratis de 30 minutos y revisamos tu caso específico. Sin compromiso, solo un siguiente paso claro.",
-    "bookConsult": "Agendar consulta"
-  },
-  "finalCta": {
-    "eyebrow": "Da el primer paso",
-    "titlePart1": "Seis familias.",
-    "titlePart2": "Una llamada de descubrimiento para encontrar la tuya.",
-    "body": "30 minutos. Sin compromiso. La llamada te da un siguiente paso claro, trabajemos juntos o no.",
-    "ctaPrimary": "Agenda tu consulta",
-    "ctaSecondary": "Ver soluciones",
-    "stats": {
-      "yearsExperience": "Años de experiencia",
-      "catalogServices": "Servicios en catálogo",
-      "countriesServed": "Países atendidos",
-      "avgResponse": "Respuesta promedio"
-    }
-  },
   "detail": {
     "errors": {
       "notFound": "Servicio no encontrado",
@@ -135,42 +34,6 @@
     "breadcrumb": {
       "home": "Inicio",
       "services": "Servicios"
-    },
-    "hero": {
-      "featured": "Servicio destacado",
-      "packagesLabel": "paquete",
-      "packagesLabelPlural": "paquetes"
-    },
-    "features": {
-      "title": "Qué incluye"
-    },
-    "packages": {
-      "eyebrow": "Precios",
-      "title": "Elige un paquete",
-      "subtitle": "Elige la opción que se ajuste a tu etapa. Puedes cambiar o subir de nivel después.",
-      "mostPopular": "Más popular",
-      "selected": "Seleccionado",
-      "select": "Elegir este paquete"
-    },
-    "order": {
-      "title": "Confirma tu orden",
-      "subtitle": "Cuéntanos sobre tu proyecto. Lo revisamos y te respondemos en un día hábil.",
-      "requirementsLabel": "Requerimientos (opcional)",
-      "requirementsPlaceholder": "Cuéntanos sobre tu proyecto, plazos y cualquier necesidad específica.",
-      "preferredDateLabel": "Fecha de inicio preferida (opcional)",
-      "signinHint": "Te pediremos iniciar sesión antes de confirmar la orden.",
-      "submitButton": "Confirmar orden",
-      "submitting": "Confirmando orden…"
-    },
-    "reviews": {
-      "eyebrow": "Reseñas de clientes",
-      "title": "Lo que dicen los clientes",
-      "subtitle": "Reseñas de proyectos completados con este servicio. Los clientes verificados pueden dejar una reseña desde su panel; las reseñas de no clientes pasan a moderación."
-    },
-    "related": {
-      "eyebrow": "Más por explorar",
-      "title": "Servicios relacionados",
-      "viewAll": "Ver todos"
     }
   },
   "checkout": {
@@ -232,5 +95,163 @@
     "deleteTitle": "Eliminar reseña",
     "awaitingModeration": "En moderación, por ahora solo tú la ves",
     "replyFrom": "Respuesta de"
+  },
+  "funnel": {
+    "overview": {
+      "eyebrow": "Cuatro líneas de servicio",
+      "title": "Cuatro formas de trabajar juntos",
+      "subtitle": "Veintiún servicios agrupados en cuatro líneas. Todos empiezan igual: una llamada gratuita de 30 minutos."
+    },
+    "cta": "Agendar llamada de 30 min",
+    "ctaAria": "Agendar una llamada gratuita de 30 minutos",
+    "viewCategory": "Ver todos los detalles",
+    "stickyTitle": "¿No sabes qué servicio encaja?",
+    "stickyBody": "30 minutos, gratis, y sales con un siguiente paso claro.",
+    "durationLabel": "Duración típica",
+    "pricingLabel": "Modelo de precio",
+    "pricing": {
+      "fixed": "Precio fijo",
+      "retainer": "Retainer mensual",
+      "quote": "Con cotización"
+    },
+    "how": {
+      "eyebrow": "Cómo funciona",
+      "title": "Llamada, propuesta, entrega",
+      "subtitle": "Los mismos tres pasos para cada línea de servicio. Los paquetes de precio fijo van directo al checkout."
+    },
+    "packages": {
+      "eyebrow": "Paquetes de precio fijo",
+      "title": "¿Prefieres un paquete con precio?",
+      "subtitle": "Planes por audiencia con precio mensual fijo. Compra directo o agenda una llamada si prefieres hablar primero.",
+      "popular": "Popular"
+    },
+    "faq": {
+      "eyebrow": "Preguntas frecuentes",
+      "title": "Preguntas antes de la llamada",
+      "subtitle": "Respuestas breves a lo que la mayoría de los clientes pregunta primero.",
+      "items": [
+        {
+          "id": "start",
+          "question": "¿Por dónde empiezo si no sé qué servicio necesito?",
+          "answer": "Agenda la llamada de 30 minutos. Lo primero es un diagnóstico claro, aunque al final no trabajemos juntos."
+        },
+        {
+          "id": "pricing",
+          "question": "¿Cómo se estructura el precio?",
+          "answer": "Las auditorías y el sprint de wireframing son de precio fijo. Los desarrollos y migraciones a medida se cotizan después de la llamada; los retainers son mensuales."
+        },
+        {
+          "id": "nda",
+          "question": "¿Firmas acuerdos de confidencialidad (NDA)?",
+          "answer": "Sí, antes de definir el alcance. Trae tu plantilla o usa la mía."
+        },
+        {
+          "id": "geo",
+          "question": "¿Trabajas fuera de México?",
+          "answer": "Sí. La operación es 100 % remota, con sesiones presenciales en CDMX o Estado de México cuando aportan valor."
+        },
+        {
+          "id": "direct",
+          "question": "¿Trabajaré directamente contigo?",
+          "answer": "Sí, en cada proyecto. Sin traspasos a juniors ni gestores de cuenta."
+        }
+      ]
+    },
+    "final": {
+      "eyebrow": "Da el primer paso",
+      "title": "Una llamada para encontrar la línea de servicio correcta",
+      "body": "30 minutos. Sin compromiso. Sales con un siguiente paso claro, trabajemos juntos o no."
+    },
+    "detail": {
+      "eyebrow": "Línea de servicio",
+      "freeCall": "Gratis · 30 minutos · sin compromiso",
+      "categoryLabel": "Línea de servicio",
+      "point1": "{{count}} servicios en esta línea",
+      "point2": "Asesoría independiente, sin comisiones de proveedores",
+      "point3": "Propuesta escrita en 3 días hábiles tras la llamada",
+      "offeringsEyebrow": "Qué incluye",
+      "offeringsTitle": "Servicios en {{name}}",
+      "offeringsSubtitle": "Elige el más cercano; la llamada afina el alcance.",
+      "finalTitle": "¿Hablamos sobre {{name}}?",
+      "otherCategories": "Otras líneas de servicio:"
+    }
+  },
+  "booking": {
+    "title": "Agenda una llamada de 30 minutos",
+    "unknownService": "No encontramos ese servicio, así que será una llamada de descubrimiento general.",
+    "context": {
+      "label": "Vas a hablar sobre",
+      "change": "Cambiar"
+    }
+  },
+  "demo": {
+    "eyebrow": "Demo en vivo",
+    "title": "Calificador de leads por WhatsApp",
+    "subtitle": "Escribe como lo haría un prospecto. El bot califica el lead y llena tu ficha de CRM — ningún dato sale de esta página.",
+    "samples": [
+      "Hola, necesito un bot de WhatsApp para mi tienda",
+      "El presupuesto es de unos 3,000 USD",
+      "Lo necesitamos esta semana"
+    ],
+    "chat": {
+      "header": "WhatsApp Business",
+      "logLabel": "Conversación",
+      "typing": "escribiendo…",
+      "samplesLabel": "Prueba un mensaje de ejemplo",
+      "inputLabel": "Tu mensaje",
+      "placeholder": "Escribe un mensaje…",
+      "send": "Enviar",
+      "reset": "Empezar de nuevo"
+    },
+    "bot": {
+      "greeting": "¡Hola! Cuéntame qué necesitas y veo cómo podemos ayudarte.",
+      "ask": {
+        "need": "Entendido. ¿Qué te gustaría automatizar primero?",
+        "budget": "De acuerdo. ¿Con qué rango de presupuesto trabajas?",
+        "timeline": "Perfecto. ¿Para cuándo lo necesitas en marcha?"
+      },
+      "done": {
+        "hot": "Es todo lo que necesito. Un especialista te contactará hoy mismo.",
+        "warm": "Gracias — ya lo pasé al equipo. Tendrás respuesta en menos de 24 horas.",
+        "nurture": "Gracias. Te enviaré recursos y te doy seguimiento cuando sea buen momento."
+      }
+    },
+    "crm": {
+      "title": "Ficha de CRM",
+      "empty": "Aún sin capturar",
+      "note": "Creada automáticamente desde la conversación — sin captura manual.",
+      "status": {
+        "open": "Calificando",
+        "hot": "Lead caliente",
+        "warm": "Lead tibio",
+        "nurture": "Seguimiento"
+      },
+      "fields": {
+        "need": "Necesidad",
+        "budget": "Presupuesto",
+        "timeline": "Plazo",
+        "score": "Puntaje del lead"
+      }
+    },
+    "values": {
+      "need": {
+        "whatsappBot": "Bot de WhatsApp",
+        "invoicing": "Facturación",
+        "crmSync": "Sincronización con CRM",
+        "emailFlows": "Flujos de correo",
+        "reporting": "Reportes"
+      },
+      "budget": {
+        "none": "Sin presupuesto aún",
+        "low": "Menos de $1,000",
+        "mid": "$1,000 – $5,000",
+        "high": "Más de $5,000"
+      },
+      "timeline": {
+        "now": "De inmediato",
+        "soon": "En semanas",
+        "later": "Explorando"
+      }
+    }
   }
 }

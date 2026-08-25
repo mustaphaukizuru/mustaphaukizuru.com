@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Calendar, ChevronLeft, ChevronRight, ChevronDown, Clock, Globe2,
   Check, ArrowLeft, Loader2, AlertCircle, CheckCircle2,
@@ -24,6 +24,7 @@ import {
   bookConsultation,
   getBrowserTimezone,
   formatTime,
+  labelSlots,
   formatLongDate,
   localDateKey,
 } from "../../services/bookingService"
@@ -147,7 +148,7 @@ function MonthYearPicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={`Change month and year (currently ${MONTHS[month - 1]} ${year})`}
-        className="group inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-bold text-violet transition hover:bg-violet-ghost focus:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/20"
+        className="cursor-pointer group inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-bold text-violet transition hover:bg-violet-ghost focus:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/20"
       >
         <span>{MONTHS[month - 1]} {year}</span>
         <ChevronDown
@@ -158,14 +159,14 @@ function MonthYearPicker({
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             role="dialog"
             aria-label={t("bookingCalendar.monthYearAria")}
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute left-1/2 z-30 mt-2 w-[280px] -translate-x-1/2 overflow-hidden rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_18px_50px_-12px_rgba(93,63,211,0.22),0_2px_8px_rgba(0,0,0,0.04)]"
+            className="absolute left-1/2 z-30 mt-2 w-[280px] -translate-x-1/2 overflow-hidden rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_18px_50px_-12px_rgb(var(--color-violet-rgb)/0.22),0_2px_8px_rgba(0,0,0,0.04)]"
           >
             {/* Year row */}
             <div className="flex items-center justify-between gap-2 border-b border-charcoal/8 pb-2.5">
@@ -211,7 +212,7 @@ function MonthYearPicker({
                       !inRange
                         ? "cursor-not-allowed text-charcoal/25"
                         : isCurrent
-                          ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.25)]"
+                          ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.25)]"
                           : "bg-violet-ghost text-violet hover:bg-violet hover:text-white",
                     ].join(" ")}
                   >
@@ -222,10 +223,10 @@ function MonthYearPicker({
             </div>
 
             {/* Helper line */}
-            <div className="mt-2.5 border-t border-charcoal/8 pt-2 text-center text-[10.5px] text-charcoal/55">
+            <div className="mt-2.5 border-t border-charcoal/8 pt-2 text-center text-[10.5px] text-charcoal/65">
               {t("bookingCalendar.bookableHighlight")}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -243,13 +244,13 @@ function StepBadge({ active, complete, n, label }) {
         className={[
           "flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold transition",
           complete ? "bg-violet text-white"
-            : active ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.25)]"
+            : active ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.25)]"
             : "bg-violet-pale text-violet",
         ].join(" ")}
       >
         {complete ? <Check className="h-3.5 w-3.5" /> : n}
       </div>
-      <span className={`text-[13px] font-semibold ${active || complete ? "text-violet" : "text-charcoal/60"}`}>
+      <span className={`text-[13px] font-semibold ${active || complete ? "text-violet" : "text-charcoal/65"}`}>
         {label}
       </span>
     </div>
@@ -272,7 +273,7 @@ function StepperHeader({ step }) {
 function PolicyHint({ minNoticeHours, maxAdvanceDays }) {
   const { t } = useTranslation("common")
   return (
-    <p className="mt-2 text-[11px] text-charcoal/55">
+    <p className="mt-2 text-[11px] text-charcoal/65">
       {t("bookingCalendar.bookingNeeds")} {minNoticeHours ?? 24}{t("bookingCalendar.hNotice")} {maxAdvanceDays ?? 60} {t("bookingCalendar.daysAhead")}
     </p>
   )
@@ -437,9 +438,9 @@ export default function BookingCalendar({
   // ── SUCCESS STATE ──────────────────────────────────────────────────────────
   if (bookedRecord) {
     return (
-      <motion.div
+      <m.div
         variants={fadeUp} initial="hidden" animate="show"
-        className="rounded-xl border border-charcoal/10 bg-white p-6 text-center shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-10"
+        className="rounded-xl border border-charcoal/10 bg-white p-6 text-center shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.06)] sm:p-10"
       >
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-mint/12 text-emerald-700 sm:h-16 sm:w-16">
           <CheckCircle2 className="h-7 w-7 sm:h-8 sm:w-8" />
@@ -450,7 +451,7 @@ export default function BookingCalendar({
         <p className="mt-2 text-[13px] text-charcoal/70 sm:text-[14px]">
           {formatLongDate(bookedRecord.scheduledAt, timezone)} · {formatTime(bookedRecord.scheduledAt, timezone)}
         </p>
-        <p className="mt-1 text-[12px] text-charcoal/55">
+        <p className="mt-1 text-[12px] text-charcoal/65">
           {t("bookingCalendar.confirmationOnWay")} {bookedRecord?.user?.email || "your inbox"}.
         </p>
 
@@ -458,7 +459,7 @@ export default function BookingCalendar({
           <button
             type="button"
             onClick={() => navigate("/dashboard/consultations")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
+            className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
           >
             {t("bookingCalendar.viewDashboard")}
           </button>
@@ -467,37 +468,37 @@ export default function BookingCalendar({
             onClick={() => {
               setBookedRecord(null); setSelectedSlot(null); setSelectedDate(null); setStep(1); setClientNotes("")
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/15 bg-white px-5 py-3 text-[13px] font-semibold text-violet transition hover:bg-violet-ghost"
+            className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl border border-violet/15 bg-white px-5 py-3 text-[13px] font-semibold text-violet transition hover:bg-violet-ghost"
           >
             {t("bookingCalendar.bookAnother")}
           </button>
         </div>
-      </motion.div>
+      </m.div>
     )
   }
 
   // ── MAIN UI ────────────────────────────────────────────────────────────────
   return (
-    <motion.div
+    <m.div
       variants={stagger} initial="hidden" animate="show"
-      className="rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_12px_35px_rgba(93,63,211,0.06)] sm:p-6"
+      className="rounded-xl border border-charcoal/10 bg-white p-4 shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.06)] sm:p-6"
     >
       {/* Header, title + stepper + timezone */}
-      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-3 border-b border-charcoal/10 pb-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+      <m.div variants={fadeUp} className="mb-5 flex flex-col gap-3 border-b border-charcoal/10 pb-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">
             <span className="rounded-full bg-violet-pale px-2 py-0.5">{t("bookingCalendar.bookingShort")}</span>
-            {serviceTitle ? <span className="text-charcoal/60">· {serviceTitle}</span> : null}
+            {serviceTitle ? <span className="text-charcoal/65">· {serviceTitle}</span> : null}
           </div>
           <h2 className="mt-1.5 text-[18px] font-bold tracking-tight text-violet sm:text-[20px]">
             {t("bookingCalendar.scheduleCall")}
           </h2>
         </div>
         <StepperHeader step={step} />
-      </motion.div>
+      </m.div>
 
       {/* Timezone selector, always visible */}
-      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-2 rounded-xl bg-violet-ghost p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+      <m.div variants={fadeUp} className="mb-5 flex flex-col gap-2 rounded-xl bg-violet-ghost p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
         <div className="flex items-center gap-2 text-[12px] text-charcoal/75">
           <Globe2 className="h-4 w-4 text-violet" />
           <span>{t("bookingCalendar.timesShown")}</span>
@@ -512,12 +513,12 @@ export default function BookingCalendar({
             <option key={tz} value={tz}>{tz}</option>
           ))}
         </select>
-      </motion.div>
+      </m.div>
 
       {/* Error banner */}
       <AnimatePresence>
         {errorMessage && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -525,13 +526,13 @@ export default function BookingCalendar({
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{errorMessage}</span>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* ── STEP 1, DATE ───────────────────────────────────────────────────── */}
       {step === 1 && (
-        <motion.div variants={fadeUp}>
+        <m.div variants={fadeUp}>
           {/* Month nav, clickable label opens a month/year picker */}
           <div className="mb-4 flex items-center justify-between">
             <button
@@ -559,7 +560,7 @@ export default function BookingCalendar({
                 maxYear={bounds.maxYear}
                 maxMonth={bounds.maxMonth}
               />
-              <div className="mt-0.5 text-[10px] text-charcoal/55">{t("bookingCalendar.tapHighlighted")}</div>
+              <div className="mt-0.5 text-[10px] text-charcoal/65">{t("bookingCalendar.tapHighlighted")}</div>
             </div>
             <button
               type="button"
@@ -573,7 +574,7 @@ export default function BookingCalendar({
           </div>
 
           {/* Weekday header */}
-          <div className="grid grid-cols-7 gap-1.5 px-1 pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal/50 sm:gap-2">
+          <div className="grid grid-cols-7 gap-1.5 px-1 pb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal/65 sm:gap-2">
             {WEEKDAYS.map((w) => <div key={w}>{w}</div>)}
           </div>
 
@@ -599,7 +600,7 @@ export default function BookingCalendar({
                     isPast
                       ? "cursor-not-allowed text-charcoal/25"
                       : isAvailable
-                        ? "bg-violet-ghost text-violet hover:bg-violet hover:text-white hover:shadow-[0_8px_22px_rgba(93,63,211,0.18)]"
+                        ? "bg-violet-ghost text-violet hover:bg-violet hover:text-white hover:shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.18)]"
                         : "cursor-not-allowed text-charcoal/30",
                     isToday && !isPast ? "ring-1 ring-violet/30" : "",
                   ].join(" ")}
@@ -615,23 +616,23 @@ export default function BookingCalendar({
 
           {/* Loading shimmer */}
           {daysLoading && (
-            <div className="mt-3 flex items-center justify-center gap-2 text-[12px] text-charcoal/50">
+            <div className="mt-3 flex items-center justify-center gap-2 text-[12px] text-charcoal/65">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               {t("bookingCalendar.checkingAvailability")}
             </div>
           )}
 
           <PolicyHint {...policy} />
-        </motion.div>
+        </m.div>
       )}
 
       {/* ── STEP 2, TIME ───────────────────────────────────────────────────── */}
       {step === 2 && (
-        <motion.div variants={fadeUp}>
+        <m.div variants={fadeUp}>
           <button
             type="button"
             onClick={() => setStep(1)}
-            className="mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
+            className="cursor-pointer mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             {t("bookingCalendar.backToDate")}
@@ -654,36 +655,36 @@ export default function BookingCalendar({
             <div className="rounded-xl border border-dashed border-charcoal/20 bg-violet-ghost p-6 text-center">
               <Clock className="mx-auto h-5 w-5 text-charcoal/40" />
               <p className="mt-2 text-[13px] font-semibold text-charcoal">{t("bookingCalendar.noTimes")}</p>
-              <p className="mt-1 text-[12px] text-charcoal/60">{t("bookingCalendar.tryDifferentDay")}</p>
+              <p className="mt-1 text-[12px] text-charcoal/65">{t("bookingCalendar.tryDifferentDay")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
-              {slots.map((s) => (
+              {labelSlots(slots, timezone).map((labelled, i) => (
                 <button
-                  key={s.startUtc}
+                  key={labelled.startUtc}
                   type="button"
-                  onClick={() => handleSlotClick(s)}
-                  className="rounded-xl border border-violet/15 bg-white px-3 py-3 text-[13px] font-semibold text-violet transition hover:border-transparent hover:bg-violet hover:text-white hover:shadow-[0_8px_20px_rgba(93,63,211,0.18)]"
+                  onClick={() => handleSlotClick(slots[i])}
+                  className="cursor-pointer rounded-xl border border-violet/15 bg-white px-3 py-3 text-[13px] font-semibold text-violet transition hover:border-transparent hover:bg-violet hover:text-white hover:shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)]"
                 >
-                  {formatTime(s.startUtc, timezone)}
+                  {labelled.label}
                 </button>
               ))}
             </div>
           )}
 
-          <p className="mt-4 text-[11px] text-charcoal/55">
+          <p className="mt-4 text-[11px] text-charcoal/65">
             {t("bookingCalendar.eachSlotIs")} {durationMin} {t("bookingCalendar.minutesLong")}
           </p>
-        </motion.div>
+        </m.div>
       )}
 
       {/* ── STEP 3, CONFIRM ────────────────────────────────────────────────── */}
       {step === 3 && selectedSlot && (
-        <motion.div variants={fadeUp}>
+        <m.div variants={fadeUp}>
           <button
             type="button"
             onClick={() => setStep(2)}
-            className="mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
+            className="cursor-pointer mb-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-violet transition hover:underline"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             {t("bookingCalendar.chooseAnother")}
@@ -704,14 +705,14 @@ export default function BookingCalendar({
                 <div className="mt-0.5 text-[11px] text-charcoal/65">
                   {formatLongDate(selectedSlot.startUtc, timezone)}
                 </div>
-                <div className="mt-0.5 text-[10px] text-charcoal/50">{timezone}</div>
+                <div className="mt-0.5 text-[10px] text-charcoal/65">{timezone}</div>
               </div>
             </div>
           </div>
 
           {/* Notes */}
           <label htmlFor="bk-notes" className="mt-5 block text-[12px] font-semibold text-violet">
-            {t("bookingCalendar.discussLabel")} <span className="font-normal text-charcoal/55">{t("bookingCalendar.optionalTag")}</span>
+            {t("bookingCalendar.discussLabel")} <span className="font-normal text-charcoal/65">{t("bookingCalendar.optionalTag")}</span>
           </label>
           <textarea
             id="bk-notes"
@@ -736,12 +737,12 @@ export default function BookingCalendar({
             type="button"
             onClick={handleConfirm}
             disabled={submitting}
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-5 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-8"
           >
             {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> {t("bookingCalendar.bookingEllipsis")}</>) : (<>{t("bookingCalendar.confirmBooking")} <Check className="h-4 w-4" /></>)}
           </button>
-        </motion.div>
+        </m.div>
       )}
-    </motion.div>
+    </m.div>
   )
 }

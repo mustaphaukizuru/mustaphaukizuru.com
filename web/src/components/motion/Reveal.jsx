@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 
 /**
  * Reveal · scroll-reveal wrapper
@@ -35,7 +35,7 @@ export default function Reveal({
   ...rest
 }) {
   const reduced = useReducedMotion()
-  const MotionTag = motion[as] || motion.div
+  const MotionTag = m[as] || m.div
 
   if (reduced) {
     const Tag = as

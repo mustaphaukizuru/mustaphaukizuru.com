@@ -24,7 +24,7 @@ import {
   useState,
 } from "react"
 import { createPortal } from "react-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 const SIDE_OFFSET = 8
 
@@ -141,6 +141,7 @@ export default function Tooltip({
       triggerRef.current = node
       const orig = children.ref
       if (typeof orig === "function") orig(node)
+      // eslint-disable-next-line react-hooks/immutability -- forwarding the node to the child's own ref object inside a ref callback (not during render)
       else if (orig && typeof orig === "object") orig.current = node
     },
     onMouseEnter: (...args) => {
@@ -170,7 +171,7 @@ export default function Tooltip({
       ? createPortal(
           <AnimatePresence>
             {open && !disabled && content && (
-              <motion.div
+              <m.div
                 ref={panelRef}
                 id={tipId}
                 role="tooltip"
@@ -194,7 +195,7 @@ export default function Tooltip({
                 ].join(" ")}
               >
                 {content}
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>,
           document.body,

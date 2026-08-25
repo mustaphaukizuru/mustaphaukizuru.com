@@ -92,8 +92,8 @@ const FloatingLabelInput = forwardRef(function FloatingLabelInput(
         />
         <label
           htmlFor={fieldId}
-          className={`pointer-events-none absolute left-4 origin-left text-[15px] text-charcoal-80/55 transition-all duration-200 ease-out
-            top-4 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-charcoal-80/55
+          className={`pointer-events-none absolute left-4 origin-left text-[15px] text-charcoal-80/65 transition-all duration-200 ease-out
+            top-4 peer-placeholder-shown:top-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-charcoal-80/65
             peer-focus:top-1.5 peer-focus:scale-[0.78] peer-focus:text-violet
             peer-[:not(:placeholder-shown)]:top-1.5 peer-[:not(:placeholder-shown)]:scale-[0.78]
             ${error ? "peer-focus:text-rose-700 peer-[:not(:placeholder-shown)]:text-rose-700" : ""}`}
@@ -104,7 +104,7 @@ const FloatingLabelInput = forwardRef(function FloatingLabelInput(
       </div>
 
       {hint && !error && (
-        <p id={hintId} className="mt-1.5 text-[12px] text-charcoal-80/55">
+        <p id={hintId} className="mt-1.5 text-[12px] text-charcoal-80/65">
           {hint}
         </p>
       )}

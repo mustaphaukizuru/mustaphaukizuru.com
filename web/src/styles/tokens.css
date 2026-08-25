@@ -29,7 +29,32 @@
   --color-cyan:              #7DD3FC;  /* Electric Cyan — accent only */
   --color-terracotta:        #E9C46A;  /* Soft Terracotta — humanity */
   --color-terracotta-deep:   #D4A847;  /* Hover terracotta */
+  --color-terracotta-800:    #856212;  /* NEW v1.2 — terracotta's body-text companion. Terracotta and terracotta-deep are both light hues (1.9:1 on white); this is the only warm-accent step that clears AA as text on a light ground. */
   --color-charcoal-80:       #1A1B23;  /* Midnight Charcoal — alias */
+  --color-charcoal-deep:     #0E0F14;  /* NEW v1.1 — deepest dark canvas (auth panel, dark dashboard page bg) */
+  --color-violet-mid:        #7B5FE0;  /* NEW v1.1 — gradient mid-stop between violet and violet-light */
+  --color-mint-light:        #34D399;  /* NEW v1.1 — brighter mint for illustrations / confetti / success marks */
+  --color-coral:             #E07856;  /* NEW v1.1 — warm coral accent (Services hero illustration) */
+  --color-code-fg:           #C8C8D0;  /* NEW v1.1 — code text on the charcoal code surface */
+  --color-coral-pale:        #FCE7DC;  /* NEW v1.1 — coral's pale companion (chip backgrounds) */
+
+  /* ── RGB CHANNEL TRIPLES (NEW v1.1) ───────────────────────────────────
+   * Alpha variants of a brand color must NOT be written as a fresh
+   * `rgba(93, 63, 211, 0.06)` literal — that re-states the palette and
+   * drifts. Compose them instead:
+   *     rgb(var(--color-violet-rgb)/0.06)
+   * The slash form has no spaces, so it is also legal inside a Tailwind
+   * arbitrary value: `shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.06)]`.
+   */
+  --color-violet-rgb:      93 63 211;
+  --color-azure-rgb:        2 132 199;
+  --color-terracotta-rgb: 233 196 106;
+  --color-charcoal-rgb:    26 27 35;
+  --color-mist-rgb:       248 250 252;
+  --color-mint-rgb:        16 185 129;
+  --color-amber-rgb:      245 158 11;
+  --color-rose-rgb:       225 29 72;
+  --color-coral-rgb:      224 120 86;
 
   /* ───────────────────────────────────────────────────────────────────────
      1 · COLOR — SURFACE
@@ -117,11 +142,24 @@
   --color-skeleton-shine:   #F5F3F8;
 
   /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — AVATAR TINTS (NEW v1.1)
+     Deterministic 5-way categorical palette for initials avatars. Indexed
+     by a hash of the user's name, so the same person always gets the same
+     tint. Each bg/fg pair is >= 4.5:1.
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-avatar-1-bg: #FFF1EC;  --color-avatar-1-fg: #7C2D12;  /* terracotta tint */
+  --color-avatar-2-bg: #E6F1FF;  --color-avatar-2-fg: #1D4ED8;  /* azure tint      */
+  --color-avatar-3-bg: #E8F7EE;  --color-avatar-3-fg: #15803D;  /* mint tint       */
+  --color-avatar-4-bg: #FFF5D6;  --color-avatar-4-fg: #854D0E;  /* amber tint      */
+  --color-avatar-5-bg: #FDE7EF;  --color-avatar-5-fg: #9D174D;  /* rose tint       */
+
+  /* ───────────────────────────────────────────────────────────────────────
      2 · TYPOGRAPHY — FAMILY
      ─────────────────────────────────────────────────────────────────────── */
   --font-display:  "Sora", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body:     "Sora", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono:     "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-script:   "Caveat", "Brush Script MT", cursive;  /* NEW v1.1 — hand-drawn annotations in hero illustrations ONLY */
 
   /* ───────────────────────────────────────────────────────────────────────
      2 · TYPOGRAPHY — SCALE
@@ -392,12 +430,12 @@
    * elevated= modals / popovers (one step up from card)
    * mist alias kept for components that named the canvas as "mist"
    */
-  --color-surface-page:           #0E0F14;  /* Deeper than Charcoal — full-dark canvas */
-  --color-surface-mist:           #0E0F14;  /* alias of page */
+  --color-surface-page:           var(--color-charcoal-deep);  /* Deeper than Charcoal — full-dark canvas */
+  --color-surface-mist:           var(--color-charcoal-deep);  /* alias of page */
   --color-surface-cream:          #14151B;  /* dashboard canvas tint */
   --color-surface-card:           #1A1B23;  /* Midnight Charcoal — primary card */
   --color-surface-elevated:       #22232D;  /* Modals / popovers — one step up */
-  --color-surface-dark:           #0E0F14;  /* On-dark surface alias (rarely used in dark mode) */
+  --color-surface-dark:           var(--color-charcoal-deep);  /* On-dark surface alias (rarely used in dark mode) */
   --color-surface-dark-elevated:  #2A2C3A;
 
   /* ── Text — Brand v3 §26 dark-mode pairs ──────────────────────────── */

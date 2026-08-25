@@ -20,7 +20,7 @@ import {
   useState,
 } from "react"
 import { createPortal } from "react-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 const OFFSET = 8
 
@@ -142,7 +142,7 @@ export default function Popover({
   // Wire trigger
   if (!isValidElement(trigger)) {
     if (typeof console !== "undefined") {
-      // eslint-disable-next-line no-console
+       
       console.warn("<Popover> requires a single React element as `trigger`.")
     }
     return null
@@ -170,7 +170,7 @@ export default function Popover({
         createPortal(
           <AnimatePresence>
             {open && (
-              <motion.div
+              <m.div
                 ref={panelRef}
                 id={panelId}
                 role="dialog"
@@ -194,7 +194,7 @@ export default function Popover({
                 ].join(" ")}
               >
                 {children}
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>,
           document.body,

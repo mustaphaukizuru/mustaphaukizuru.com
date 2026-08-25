@@ -77,7 +77,7 @@ export default function Pagination({
     "border border-[var(--color-border-subtle)] bg-[var(--color-surface-card)] " +
     "text-[var(--color-text-secondary)] hover:text-[var(--color-violet)] " +
     "hover:border-[var(--color-border-violet)] hover:bg-[var(--color-violet-pale)] " +
-    "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)] " +
+    "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgb(var(--color-violet-rgb)/0.18)] " +
     "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--color-surface-card)] disabled:hover:text-[var(--color-text-secondary)]"
 
   const activeBtn =

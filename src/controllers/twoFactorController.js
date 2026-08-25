@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs")
 const asyncHandler = require("../utils/asyncHandler")
 const generateToken = require("../utils/generateToken")
+const { setSessionCookie } = require("../utils/sessionCookie")
 const prisma = require("../lib/prisma")
 const twoFactorService = require("../services/twoFactorService")
 const { completeLoginAfter2FA } = require("../services/authService")
@@ -136,6 +137,10 @@ const loginVerify = asyncHandler(async (req, res) => {
   // Verified — finalize login
   const user  = await completeLoginAfter2FA(payload.userId)
   const token = generateToken(user, Boolean(payload.rememberMe))
+  // Step 40 · this is a real session creation point (the password-only leg
+  // never issued one), so it sets the httpOnly session + CSRF cookie pair.
+  // `token` stays in the body as a rollout shim for pre-step-40 clients.
+  setSessionCookie(res, token, { rememberMe: Boolean(payload.rememberMe) })
 
   return res.status(200).json({
     success: true,

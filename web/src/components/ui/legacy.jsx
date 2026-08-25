@@ -17,6 +17,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import { ArrowUp, ArrowDown, X } from "lucide-react"
+import SkeletonBlock from "./SkeletonPrimitives"
 
 // Re-export new primitives for ergonomic single-import access
 export { SearchInput } from "./SearchInput"
@@ -30,36 +31,36 @@ export {
  *  ──────────────────────────────────────────────────────────────────── */
 const TONE_MAP = {
   purple: "bg-violet-pale text-violet",
-  green: "bg-mint/15 text-mint",
+  green: "bg-mint/15 text-mint-700",
   amber: "bg-amber/10 text-amber-700",
-  blue: "bg-azure/10 text-azure",
+  blue: "bg-azure/10 text-azure-deep",
   red: "bg-rose/10 text-rose-700",
-  peach: "bg-terracotta/20 text-terracotta",
+  peach: "bg-terracotta/20 text-terracotta-800",
 }
 
 export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple", trend }) {
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:shadow-[0_8px_24px_rgba(93,63,211,0.08)] sm:p-5">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.08)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-micro font-semibold uppercase tracking-[0.12em] text-charcoal-80/55">
+          <div className="text-micro font-semibold uppercase tracking-[0.12em] text-charcoal-80/65">
             {title}
           </div>
           <div className="mt-1.5 text-section font-bold leading-none text-violet sm:mt-2 sm:text-page">
             {value ?? ","}
           </div>
           {subtitle && (
-            <div className="mt-1.5 text-micro text-charcoal-80/55 sm:mt-2">{subtitle}</div>
+            <div className="mt-1.5 text-micro text-charcoal-80/65 sm:mt-2">{subtitle}</div>
           )}
           {trend !== undefined && (
             <div className={`mt-1 inline-flex items-center gap-1 text-micro font-semibold ${
-              trend >= 0 ? "text-mint" : "text-rose-600"
+              trend >= 0 ? "text-mint-700" : "text-rose-600"
             }`}>
               {trend >= 0
                 ? <ArrowUp className="h-3 w-3" aria-hidden="true" />
                 : <ArrowDown className="h-3 w-3" aria-hidden="true" />}
               <span className="font-mono tabular-nums">{Math.abs(trend)}%</span>
-              <span className="text-charcoal-80/55 font-normal">from last month</span>
+              <span className="text-charcoal-80/65 font-normal">from last month</span>
             </div>
           )}
         </div>
@@ -78,23 +79,23 @@ export function MetricCard({ title, value, subtitle, icon: Icon, tone = "purple"
  *  Prefer <Badge status="..." /> from ./Badge
  *  ──────────────────────────────────────────────────────────────────── */
 const STATUS_STYLE = {
-  paid: "bg-mint/15 text-mint",
+  paid: "bg-mint/15 text-mint-700",
   pending: "bg-amber/10 text-amber-700",
   failed: "bg-rose/10 text-rose-700",
   cancelled: "bg-charcoal-80/10 text-charcoal-80",
   refunded: "bg-rose/10 text-rose-700",
-  active: "bg-mint/15 text-mint",
+  active: "bg-mint/15 text-mint-700",
   inactive: "bg-charcoal-80/10 text-charcoal-80",
   suspended: "bg-rose/10 text-rose-700",
-  open: "bg-azure/10 text-azure",
+  open: "bg-azure/10 text-azure-deep",
   closed: "bg-charcoal-80/10 text-charcoal-80",
-  resolved: "bg-mint/15 text-mint",
+  resolved: "bg-mint/15 text-mint-700",
   draft: "bg-charcoal-80/10 text-charcoal-80",
-  published: "bg-mint/15 text-mint",
-  in_progress: "bg-azure/10 text-azure",
-  approved: "bg-mint/15 text-mint",
+  published: "bg-mint/15 text-mint-700",
+  in_progress: "bg-azure/10 text-azure-deep",
+  approved: "bg-mint/15 text-mint-700",
   rejected: "bg-rose/10 text-rose-700",
-  member: "bg-azure/10 text-azure",
+  member: "bg-azure/10 text-azure-deep",
   admin: "bg-violet-pale text-violet",
 }
 
@@ -132,7 +133,12 @@ export function EmptyState({ icon: Icon, title, description, action }) {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
- *  SkeletonCard — preserved for backwards compatibility
+ *  SkeletonCard — preserved for backwards compatibility.
+ *  Prop signature (`height`) and export name are frozen: ~17 admin/dashboard
+ *  pages import it via ui/index.jsx. The hand-rolled `animate-pulse` bars are
+ *  gone — every bar now renders through the canonical Skeleton block in
+ *  ./SkeletonPrimitives.jsx, so this shares the one reduced-motion-aware
+ *  `ukz-shimmer` recipe with the rest of the app.
  *  ──────────────────────────────────────────────────────────────────── */
 export function SkeletonCard({ height = "h-[132px]" }) {
   return (
@@ -140,12 +146,12 @@ export function SkeletonCard({ height = "h-[132px]" }) {
       role="status"
       aria-busy="true"
       aria-label="Loading"
-      className={`animate-pulse rounded-xl border border-charcoal-80/8 bg-white ${height}`}
+      className={`rounded-xl border border-charcoal-80/8 bg-white ${height}`}
     >
       <div className="flex flex-col gap-3 p-5">
-        <div className="h-3 w-1/3 rounded-full bg-violet-pale" />
-        <div className="h-8 w-1/2 rounded-xl bg-violet-pale" />
-        <div className="h-2 w-2/3 rounded-full bg-charcoal-80/10" />
+        <SkeletonBlock h="h-3" w="w-1/3" rounded="full" />
+        <SkeletonBlock h="h-8" w="w-1/2" rounded="rounded-xl" />
+        <SkeletonBlock h="h-2" w="w-2/3" rounded="full" tone="muted" />
       </div>
     </div>
   )
@@ -156,12 +162,12 @@ export function SkeletonCard({ height = "h-[132px]" }) {
  *  ──────────────────────────────────────────────────────────────────── */
 export function SectionCard({ title, subtitle, action, children, className = "" }) {
   return (
-    <div className={`rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] ${className}`}>
+    <div className={`rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] ${className}`}>
       {(title || action) && (
         <div className="flex flex-col gap-2 border-b border-charcoal-80/8 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
           <div className="min-w-0">
             {title && <h3 className="text-body font-semibold text-violet">{title}</h3>}
-            {subtitle && <p className="mt-0.5 text-micro text-charcoal-80/60">{subtitle}</p>}
+            {subtitle && <p className="mt-0.5 text-micro text-charcoal-80/65">{subtitle}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
@@ -179,7 +185,7 @@ export function PageHeader({ title, subtitle, action, breadcrumb }) {
     <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
       <div className="min-w-0">
         {breadcrumb && (
-          <div className="mb-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+          <div className="mb-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
             {breadcrumb}
           </div>
         )}
@@ -211,7 +217,7 @@ export function PrimaryBtn({
     lg: "px-5 py-3 text-meta gap-2",
   }
   const variants = {
-    primary: "bg-violet text-white hover:bg-violet-deep shadow-[0_4px_14px_rgba(93,63,211,0.18)] focus-visible:ring-azure/40",
+    primary: "bg-violet text-white hover:bg-violet-deep shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.18)] focus-visible:ring-azure/40",
     secondary: "border border-violet/20 bg-white text-violet hover:bg-violet-pale focus-visible:ring-azure/30",
     danger: "bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-300/40",
     ghost: "text-charcoal-80/65 hover:bg-violet-pale hover:text-violet focus-visible:ring-azure/30",
@@ -222,7 +228,7 @@ export function PrimaryBtn({
       onClick={onClick}
       disabled={disabled || loading}
       aria-busy={loading ? "true" : "false"}
-      className={`inline-flex items-center justify-center rounded-lg font-semibold transition hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2 ${sizes[size]} ${variants[variant]} ${className}`}
+      className={`cursor-pointer inline-flex items-center justify-center rounded-lg font-semibold transition hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0 disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2 ${sizes[size]} ${variants[variant]} ${className}`}
     >
       {loading ? (
         <span
@@ -243,8 +249,8 @@ export function PrimaryBtn({
 export function AlertBanner({ type = "error", message, onDismiss }) {
   const styles = {
     error: "border-rose/20 bg-rose/5 text-rose-700",
-    success: "border-mint/30 bg-mint/8 text-mint",
-    info: "border-azure/30 bg-azure/10 text-azure",
+    success: "border-mint/30 bg-mint/8 text-mint-700",
+    info: "border-azure/30 bg-azure/10 text-azure-deep",
     warning: "border-amber/20 bg-amber/10 text-amber-700",
   }
   if (!message) return null
@@ -260,7 +266,7 @@ export function AlertBanner({ type = "error", message, onDismiss }) {
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="shrink-0 rounded p-0.5 opacity-65 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-current/30"
+          className="cursor-pointer shrink-0 rounded p-0.5 opacity-65 transition hover:opacity-100 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-current/30"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
         </button>

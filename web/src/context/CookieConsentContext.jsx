@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 /* ════════════════════════════════════════════════════════════════════════
    CookieConsentContext.jsx · GDPR / ePrivacy / LFPDPPP-aware consent
    ────────────────────────────────────────────────────────────────────────
@@ -131,7 +132,7 @@ export function CookieConsentProvider({ children }) {
   }, [setCategories])
 
   const reset = useCallback(() => {
-    try { window.localStorage.removeItem(STORAGE_KEY) } catch {}
+    try { window.localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
     setRecord(null)
   }, [])
 

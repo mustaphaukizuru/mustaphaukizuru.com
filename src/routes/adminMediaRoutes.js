@@ -1,6 +1,6 @@
 const express = require("express")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
-const { listMedia, deleteMedia, updateMedia, uploadMedia } = require("../controllers/adminMediaController")
+const { uploadMedia } = require("../controllers/adminMediaController")
 const { uploadMedia: multerMedia } = require("../middleware/uploadAvatar")
 
 // B10 · per-user upload throttle (20 / 1 hour / user)
@@ -8,9 +8,9 @@ const { uploadRateLimiter } = require("../middleware/rateLimiter")
 
 const router = express.Router()
 
-router.get   ("/",      protect, adminOnly,                            listMedia)
-router.post  ("/",      protect, adminOnly, uploadRateLimiter, multerMedia, uploadMedia)   // B10
-router.patch ("/:id",   protect, adminOnly,                            updateMedia)
-router.delete("/:id",   protect, adminOnly,                            deleteMedia)
+// Generic admin upload endpoint — used by the blog editor (cover images) and
+// the bio editor (avatars/logos). The media-library browsing UI was removed;
+// only the upload pipeline remains.
+router.post("/", protect, adminOnly, uploadRateLimiter, multerMedia, uploadMedia)
 
 module.exports = router

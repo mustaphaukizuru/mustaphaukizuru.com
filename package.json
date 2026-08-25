@@ -18,18 +18,21 @@
     "seed:audience-plans": "node prisma/seed-audience-plans.js",
     "janitor:orders": "node scripts/cancel-stale-orders.js",
     "optimize:images": "bash scripts/optimize-images.sh",
-    "seed:permissions": "node prisma/seed-permissions.js",
     "seed:products": "node prisma/seed/products-seed.js",
+    "seed:blog": "node prisma/seed-blog.js",
     "google:bootstrap": "node scripts/google-oauth-bootstrap.js",
     "google:verify": "node scripts/google-meet-verify.js",
-    "consultations:heal-links": "node scripts/heal-consultation-links.js"
+    "consultations:heal-links": "node scripts/heal-consultation-links.js",
+    "test:integration": "jest test/integration",
+    "test:unit": "jest --testPathIgnorePatterns=test/integration"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
-    "@sentry/node": "^8.55.1",
+    "@sentry/node": "^10.71.0",
     "axios": "^1.7.9",
     "bcryptjs": "^3.0.2",
     "compression": "^1.7.4",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.1",
@@ -43,7 +46,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.0",
     "node-cron": "^3.0.3",
-    "nodemailer": "^8.0.4",
+    "nodemailer": "^9.0.5",
     "pdfkit": "^0.18.0",
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",
@@ -72,7 +75,17 @@
       "!src/lib/prisma.js"
     ],
     "coverageDirectory": "<rootDir>/coverage",
-    "verbose": true
+    "verbose": true,
+    "coverageThreshold": {
+      "global": {
+        "lines": 44,
+        "statements": 41,
+        "branches": 26,
+        "functions": 27
+      }
+    },
+    "globalSetup": "<rootDir>/test/helpers/ensureIndexHtml.js",
+    "globalTeardown": "<rootDir>/test/helpers/globalTeardown.js"
   },
   "engines": {
     "node": ">=20.0.0 <23.0.0"

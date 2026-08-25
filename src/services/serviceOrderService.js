@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const AppError = require("../utils/AppError")
 
 /**
  * Service orders go through the same Order pipeline as product orders — this
@@ -59,30 +60,30 @@ async function createUniqueOrderNumber() {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function createServiceOrder({ userId, slug, packageId, requirements, preferredStartDate, customerName, customerEmail }) {
-  if (!userId) throw buildError("AUTH_MISSING", "Authentication required", 401)
+  if (!userId) throw new AppError("Authentication required", { statusCode: 401, code: "AUTH_MISSING" })
 
   const service = await prisma.service.findFirst({
     where:   { slug, status: "published" },
     include: { packages: { where: { isActive: true } } },
   })
-  if (!service) throw buildError("NOT_FOUND", `Service '${slug}' not found`, 404)
+  if (!service) throw new AppError(`Service '${slug}' not found`, { statusCode: 404, code: "NOT_FOUND" })
 
-  if (!packageId) throw buildError("VALIDATION_ERROR", "packageId is required", 400)
+  if (!packageId) throw new AppError("packageId is required", { statusCode: 400, code: "VALIDATION_ERROR" })
 
   const pkg = service.packages.find((p) => p.id === packageId)
-  if (!pkg) throw buildError("NOT_FOUND", `Package not found or inactive for this service`, 404)
+  if (!pkg) throw new AppError(`Package not found or inactive for this service`, { statusCode: 404, code: "NOT_FOUND" })
 
   const user = await prisma.user.findUnique({
     where:  { id: userId },
     select: { id: true, fullName: true, email: true },
   })
-  if (!user) throw buildError("AUTH_MISSING", "User not found", 401)
+  if (!user) throw new AppError("User not found", { statusCode: 401, code: "AUTH_MISSING" })
 
   const resolvedName  = customerName  || user.fullName || "Customer"
   const resolvedEmail = customerEmail || user.email
 
   if (!resolvedEmail) {
-    throw buildError("VALIDATION_ERROR", "A contact email is required", 400)
+    throw new AppError("A contact email is required", { statusCode: 400, code: "VALIDATION_ERROR" })
   }
 
   const unitPrice = safeNum(pkg.price)
@@ -271,13 +272,6 @@ function serializeServiceOrder(row, { detailed = false } = {}) {
  * Internal
  * ──────────────────────────────────────────────────────────────────────────── */
 
-function buildError(code, message, statusCode = 400) {
-  const err = new Error(message)
-  err.statusCode = statusCode
-  err.code = code
-  return err
-}
-
 /* ────────────────────────────────────────────────────────────────────────
  *  orderByTier · public-facing "Choose Plan" entry point
  *  Auto-provisions Service + ServicePackage on first hit + supports guest checkout.
@@ -287,23 +281,26 @@ async function orderByTier({
   audience, tier, planName, price, priceUsd, currency = "MXN",
   customerName, customerEmail, requirements, userId,
 }) {
-  if (!audience) throw buildError("VALIDATION_ERROR", "audience is required", 400)
-  if (!tier)     throw buildError("VALIDATION_ERROR", "tier is required", 400)
-  if (!planName) throw buildError("VALIDATION_ERROR", "planName is required", 400)
+  if (!audience) throw new AppError("audience is required", { statusCode: 400, code: "VALIDATION_ERROR" })
+  if (!tier)     throw new AppError("tier is required", { statusCode: 400, code: "VALIDATION_ERROR" })
+  if (!planName) throw new AppError("planName is required", { statusCode: 400, code: "VALIDATION_ERROR" })
 
   // Accept either `price` (canonical) or the legacy `priceUsd` field.
   // Pricing is denominated in MXN by default — see currency arg.
   const planPrice = price != null ? price : priceUsd
   if (planPrice == null || isNaN(Number(planPrice))) {
-    throw buildError("VALIDATION_ERROR", "price is required and must be numeric", 400)
+    throw new AppError("price is required and must be numeric", { statusCode: 400, code: "VALIDATION_ERROR" })
   }
-  if (!customerEmail) throw buildError("VALIDATION_ERROR", "customerEmail is required", 400)
+  if (!customerEmail) throw new AppError("customerEmail is required", { statusCode: 400, code: "VALIDATION_ERROR" })
 
   // Resolve user — auto-account flow for guests.
   let resolvedUserId = userId || null
   if (!resolvedUserId) {
     const { findOrCreateUserForCheckout } = require("./authService")
     const result = await findOrCreateUserForCheckout({ fullName: customerName, email: customerEmail })
+    if (result.requiresLogin) {
+      throw new AppError("An account already exists for this email. Please sign in to complete your purchase.", { statusCode: 401, code: "ACCOUNT_EXISTS" })
+    }
     resolvedUserId = result.user.id
   }
 
@@ -432,7 +429,7 @@ async function adminUpdateServiceOrder(id, patch = {}, ctx = {}) {
           afterJson:   pickServiceOrderAuditFields(row),
           ipAddress:   ctx.ipAddress || null,
         },
-      }).catch(() => null)
+      })
     }
 
     return row

@@ -11,6 +11,8 @@
       "fallbackKind": "Article",
       "share": "Share",
       "shareAria": "Share this article",
+      "copyLink": "Copy link",
+      "copyLinkCopied": "Copied!",
       "tags": "Tags"
     },
     "meta": {
@@ -23,7 +25,8 @@
     }
   },
   "list": {
-    "page": "Blog"
+    "page": "Blog",
+    "featured": "Featured"
   },
   "author": {
     "aria": "About the author",
@@ -53,6 +56,20 @@
     "paginationAria": "Blog pagination",
     "noMatchTitle": "No articles match your filters",
     "noMatchBody": "Try a broader search, pick a different category, or clear the filters and browse the full set.",
-    "clearFilters2": "Clear filters"
+    "clearFilters2": "Clear filters",
+    "searchPlaceholder": "Search {{count}} articles…",
+    "searchButton": "Search",
+    "articleCount_one": "{{count}} article",
+    "articleCount_other": "{{count}} articles"
+  },
+  "newsletterCta": {
+    "eyebrow": "Newsletter",
+    "title": "Get posts like this in your inbox",
+    "body": "One actionable tech insight a week — no spam, unsubscribe anytime.",
+    "placeholder": "you@email.com",
+    "button": "Subscribe",
+    "success": "You're in! Check your inbox to confirm.",
+    "invalid": "Please enter a valid email address.",
+    "error": "Something went wrong. Please try again."
   }
 }

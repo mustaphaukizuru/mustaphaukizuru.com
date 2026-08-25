@@ -63,6 +63,7 @@ export async function listPortfolio(opts = {}) {
     if (projects.length > 0) {
       return {
         projects,
+        items: projects, // alias — AboutPage and newer callers read `items`
         total: Number(res?.total ?? res?.data?.total ?? projects.length),
         hasMore: Boolean(res?.hasMore ?? res?.data?.hasMore ?? false),
       }
@@ -74,7 +75,7 @@ export async function listPortfolio(opts = {}) {
   }
 
   const all = (aboutProjects || []).slice(0, limit).map(shapeProject).filter(Boolean)
-  return { projects: all, total: aboutProjects?.length || 0, hasMore: false }
+  return { projects: all, items: all, total: aboutProjects?.length || 0, hasMore: false }
 }
 
 /**

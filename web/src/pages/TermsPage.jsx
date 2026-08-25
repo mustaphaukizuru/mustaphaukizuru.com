@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { FileText, Calendar, Scale, Mail, Link as LinkIcon } from "lucide-react"
 
@@ -64,16 +64,16 @@ export default function TermsPage() {
   return (
     <div className="bg-mist">
       {/* Hero */}
-      <section className="py-16 text-center" style={{ backgroundColor: "#5D3FD3" }}>
+      <section className="py-16 text-center" style={{ backgroundColor: "var(--color-violet)" }}>
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-terracotta">
             <Scale className="h-7 w-7" />
           </div>
           <h1 className="mt-5 text-page font-bold text-white">{t("terms.title", "Terms & Conditions")}</h1>
-          <p className="mt-3 text-body text-white/55">
+          <p className="mt-3 text-body text-white/85">
             {t("terms.intro")}
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white/50">
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white">
             <Calendar className="h-3.5 w-3.5" /> {t("terms.lastUpdated", "Last updated")}: {LAST_UPDATED}
           </div>
         </div>
@@ -87,9 +87,9 @@ export default function TermsPage() {
             section above. */}
         <nav
           aria-label={t("terms.tocAria", { defaultValue: "Table of contents" })}
-          className="mb-8 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+          className="mb-8 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
         >
-          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
             {t("terms.tocLabel", { defaultValue: "On this page" })}
           </p>
           <ol className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
@@ -108,10 +108,10 @@ export default function TermsPage() {
 
         <article className="flex flex-col gap-4">
           {sections.map(({ slug, title, content }, i) => (
-            <motion.section
+            <m.section
               key={slug}
               id={slug}
-              className="scroll-mt-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+              className="scroll-mt-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -131,7 +131,7 @@ export default function TermsPage() {
                 </a>
               </h2>
               <p className="text-meta leading-7 text-charcoal-80/70">{content}</p>
-            </motion.section>
+            </m.section>
           ))}
         </article>
 

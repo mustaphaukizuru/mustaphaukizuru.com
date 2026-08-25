@@ -13,8 +13,15 @@ export default function useCountdown() {
   const [seconds, setSeconds] = useState(0)
   const intervalRef = useRef(null)
 
+  function stop() {
+    if (intervalRef.current) {
+      window.clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }
+
   // Always clear interval on unmount.
-  useEffect(() => () => stop(), []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => stop(), [])
 
   function tick() {
     setSeconds((prev) => {
@@ -31,13 +38,6 @@ export default function useCountdown() {
     stop()
     setSeconds(s)
     intervalRef.current = window.setInterval(tick, 1000)
-  }
-
-  function stop() {
-    if (intervalRef.current) {
-      window.clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
   }
 
   return { seconds, start, stop, isRunning: seconds > 0 }

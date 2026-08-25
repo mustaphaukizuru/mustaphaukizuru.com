@@ -27,7 +27,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, m } from "framer-motion"
 import {
   ArrowUpRight,
   Briefcase,
@@ -69,16 +69,16 @@ function SubCopy({ children }) {
 /* ─────────────────────────── slide 1 · audience ─────────────────────── */
 
 const AUDIENCES = [
-  { color: "#5D3FD3", labelKey: "auth.marketing.audienceProsLabel", pct: 0.58, count: "1,650", noteKey: "auth.marketing.audienceProsNote" },
-  { color: "#E9C46A", labelKey: "auth.marketing.audienceInstitutionsLabel", pct: 0.29, count: "458", noteKey: "auth.marketing.audienceInstitutionsNote" },
-  { color: "#8B6FE8", labelKey: "auth.marketing.audienceSmesLabel", pct: 0.13, count: "350", noteKey: "auth.marketing.audienceSmesNote" },
+  { color: "var(--color-violet)", labelKey: "auth.marketing.audienceProsLabel", pct: 0.58, count: "1,650", noteKey: "auth.marketing.audienceProsNote" },
+  { color: "var(--color-terracotta)", labelKey: "auth.marketing.audienceInstitutionsLabel", pct: 0.29, count: "458", noteKey: "auth.marketing.audienceInstitutionsNote" },
+  { color: "var(--color-violet-light)", labelKey: "auth.marketing.audienceSmesLabel", pct: 0.13, count: "350", noteKey: "auth.marketing.audienceSmesNote" },
 ]
 
 function AudienceDonut({ reduce }) {
   const { t } = useTranslation("common")
   const radius = 38
   const circumference = 2 * Math.PI * radius
-  let cursor = 0
+  const starts = AUDIENCES.reduce((acc, s, i) => { acc.push(i === 0 ? 0 : acc[i - 1] + AUDIENCES[i - 1].pct); return acc }, [])
 
   return (
     <div className="relative h-32 w-32 shrink-0">
@@ -87,10 +87,9 @@ function AudienceDonut({ reduce }) {
         {AUDIENCES.map((s, i) => {
           const dash = s.pct * circumference
           const gap = circumference - dash
-          const offset = -cursor * circumference
-          cursor += s.pct
+          const offset = -starts[i] * circumference
           return (
-            <motion.circle
+            <m.circle
               key={s.labelKey}
               cx="50"
               cy="50"
@@ -119,7 +118,7 @@ function AudienceDonut({ reduce }) {
 function SlideAudience({ reduce }) {
   const { t } = useTranslation("common")
   return (
-    <motion.div
+    <m.div
       key="slide-audience"
       variants={slideVariants}
       initial="enter"
@@ -153,7 +152,7 @@ function SlideAudience({ reduce }) {
           </li>
         </ul>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -183,7 +182,7 @@ const PILLARS = [
 function SlidePillars() {
   const { t } = useTranslation("common")
   return (
-    <motion.div
+    <m.div
       key="slide-pillars"
       variants={slideVariants}
       initial="enter"
@@ -215,7 +214,7 @@ function SlidePillars() {
           </div>
         ))}
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -224,7 +223,7 @@ function SlidePillars() {
 function SlideTestimonial() {
   const { t } = useTranslation("common")
   return (
-    <motion.div
+    <m.div
       key="slide-testimonial"
       variants={slideVariants}
       initial="enter"
@@ -240,7 +239,7 @@ function SlideTestimonial() {
       <figure className="relative rounded-2xl border border-white/8 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-5">
         <Quote
           aria-hidden="true"
-          className="absolute -top-2.5 left-5 h-5 w-5 rounded-full bg-violet p-1 text-white shadow-[0_8px_20px_rgba(93,63,211,0.4)]"
+          className="absolute -top-2.5 left-5 h-5 w-5 rounded-full bg-violet p-1 text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.4)]"
         />
         <blockquote className="text-[13.5px] leading-6 text-white/85">
           {t("auth.marketing.testimonialQuote")}
@@ -269,7 +268,7 @@ function SlideTestimonial() {
         {t("auth.marketing.exploreStore")}
         <ArrowUpRight className="h-3.5 w-3.5 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </Link>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -342,7 +341,7 @@ export default function MarketingPanel({ reduce }) {
 
       {/* ── Bottom: dot nav + counter ─────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <div role="tablist" aria-label={t("auth.marketing.slidesAria")} className="flex items-center gap-2">
+        <div role="tablist" aria-label={t("auth.marketing.slidesAria")} className="-mx-1.5 flex items-center">
           {Array.from({ length: SLIDE_COUNT }).map((_, i) => (
             <button
               key={i}
@@ -351,10 +350,15 @@ export default function MarketingPanel({ reduce }) {
               aria-selected={active === i}
               aria-label={`Go to slide ${i + 1}`}
               onClick={() => setActive(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
-                active === i ? "w-7 bg-white/85" : "w-1.5 bg-white/25 hover:bg-white/45"
-              }`}
-            />
+              className="flex h-6 w-6 items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            >
+              <span
+                aria-hidden="true"
+                className={`block h-1.5 rounded-full transition-all duration-300 ${
+                  active === i ? "w-4 bg-white/85" : "w-1.5 bg-white/25"
+                }`}
+              />
+            </button>
           ))}
         </div>
 

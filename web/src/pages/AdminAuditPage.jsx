@@ -207,7 +207,7 @@ export default function AdminAuditPage() {
 
       {/* Entity filter */}
       <label className="flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-2.5 py-1.5">
-        <Filter className="h-3 w-3 text-charcoal-80/45" aria-hidden="true" />
+        <Filter className="h-3 w-3 text-charcoal-80/65" aria-hidden="true" />
         <select
           value={entityFilter}
           onChange={(e) => setEntityFilter(e.target.value)}

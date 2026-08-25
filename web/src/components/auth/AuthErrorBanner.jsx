@@ -6,8 +6,8 @@
    server-side failure inside an AuthShell-like layout.
 
    Brand alignment (Brand Identity v3.0 §11 + §05):
-     · Rose Signal #E11D48 reserved for hard failures (kind="error")
-     · Amber Glow #F59E0B for recoverable warnings (kind="warning")
+     · Rose Signal var(--color-rose) reserved for hard failures (kind="error")
+     · Amber Glow var(--color-amber) for recoverable warnings (kind="warning")
      · Charcoal-tinted neutral for transient info (kind="info")
      · Icon plate · title + body hierarchy · optional inline action
      · role="alert" + aria-live="assertive" wired automatically
@@ -115,7 +115,7 @@ export default function AuthErrorBanner({ error, onDismiss, className = "" }) {
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-charcoal-80/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          className="-mr-1 -mt-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
         >
           <CloseIcon className="h-3.5 w-3.5" />
         </button>

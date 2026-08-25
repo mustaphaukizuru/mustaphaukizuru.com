@@ -3,7 +3,7 @@ import {
   ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Search, X,
   Inbox, RefreshCw, MoreHorizontal,
 } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  DataTable · F10.H + F10.L · Batch 6B-2
@@ -103,7 +103,7 @@ function PaginationControls({ page, totalPages, total, pageSize, pageSizeOptions
             {pageSizeOptions.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
         </label>
-        <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
           {range || `${start}\u2013${end} of ${total}`}
         </span>
       </div>
@@ -140,7 +140,7 @@ function BulkActionsToolbar({ selectedCount, actions, onClear, totalCount }) {
   return (
     <AnimatePresence>
       {selectedCount > 0 && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 8, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 8, scale: 0.98 }}
@@ -150,7 +150,7 @@ function BulkActionsToolbar({ selectedCount, actions, onClear, totalCount }) {
           aria-live="polite"
           aria-label={`${selectedCount} of ${totalCount} rows selected`}
         >
-          <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-violet/20 bg-white px-4 py-2.5 shadow-[0_18px_44px_rgba(93,63,211,0.18)]">
+          <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-violet/20 bg-white px-4 py-2.5 shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.18)]">
             <div className="flex items-center gap-2">
               <span className="rounded-md bg-violet px-2 py-0.5 font-mono text-[11px] font-bold tabular-nums text-white">
                 {selectedCount}
@@ -185,12 +185,12 @@ function BulkActionsToolbar({ selectedCount, actions, onClear, totalCount }) {
               type="button"
               onClick={onClear}
               aria-label="Clear selection"
-              className="ml-1 flex h-7 w-7 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-charcoal-80/10 hover:text-charcoal-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+              className="ml-1 flex h-7 w-7 items-center justify-center rounded-md text-charcoal-80/65 transition hover:bg-charcoal-80/10 hover:text-charcoal-80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
             >
               <X className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   )
@@ -232,6 +232,7 @@ export default function DataTable({
   const [selected, setSelected] = useState(() => new Set())
 
   // Reset page if rows shrink below current page
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset pagination when query inputs change
   useEffect(() => { setPage(1) }, [search, sortKey, sortDir, pageSize])
 
   // Build CSS grid template from column widths
@@ -329,12 +330,12 @@ export default function DataTable({
   const someOnPageSelected = pagedRows.some((r) => selected.has(rowKey(r))) && !allOnPageSelected
 
   return (
-    <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+    <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
       {/* Toolbar */}
       <div className="flex flex-col gap-3 border-b border-charcoal-80/8 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           {toolbar}
-          <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+          <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
             {sortedRows.length} {sortedRows.length === 1 ? "result" : "results"}
             {search && rows.length !== sortedRows.length && <span className="ml-1 text-charcoal-80/40">of {rows.length}</span>}
           </span>

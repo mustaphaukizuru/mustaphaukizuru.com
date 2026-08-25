@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 // ════════════════════════════════════════════════════════════════════════════
 // ThemeSwitcher · ui composite · v1.0
 // ────────────────────────────────────────────────────────────────────────────
@@ -75,6 +76,7 @@ export function useTheme() {
   // Hydrate once on the client
   useEffect(() => {
     const stored = readStored()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
     setThemeState(stored)
     applyTheme(stored)
     setMounted(true)
@@ -137,12 +139,12 @@ export default function ThemeSwitcher({
         onClick={() => setTheme(next)}
         aria-label={`Activate ${next} mode`}
         className={[
-          "inline-flex items-center justify-center rounded-full",
+          "cursor-pointer inline-flex items-center justify-center rounded-full",
           "h-9 w-9 text-[var(--color-text-secondary)]",
           "border border-[var(--color-border-subtle)] bg-[var(--color-surface-card)]",
           "transition-[background-color,color,border-color,box-shadow] duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
           "hover:text-[var(--color-violet)] hover:border-[var(--color-border-violet)] hover:bg-[var(--color-violet-pale)]",
-          "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)]",
+          "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgb(var(--color-violet-rgb)/0.18)]",
           className,
         ].join(" ")}
       >
@@ -173,10 +175,10 @@ export default function ThemeSwitcher({
             aria-checked={active}
             onClick={() => setTheme(value)}
             className={[
-              "inline-flex items-center gap-1.5 rounded-[8px] font-semibold",
+              "cursor-pointer inline-flex items-center gap-1.5 rounded-[8px] font-semibold",
               sizeCls,
               "transition-colors duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
-              "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgba(93,63,211,0.18)]",
+              "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-[rgb(var(--color-violet-rgb)/0.18)]",
               active
                 ? "bg-[var(--color-violet-pale)] text-[var(--color-violet)]"
                 : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]",

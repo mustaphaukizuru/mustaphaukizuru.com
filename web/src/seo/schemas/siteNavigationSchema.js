@@ -10,7 +10,6 @@ const DEFAULT_NAV = [
   { name: "Home",      path: "/" },
   { name: "About",     path: "/about" },
   { name: "Services",  path: "/services" },
-  { name: "Solutions", path: "/solutions" },
   { name: "Store",     path: "/store" },
   { name: "Portfolio", path: "/portfolio" },
   { name: "Blog",      path: "/blog" },

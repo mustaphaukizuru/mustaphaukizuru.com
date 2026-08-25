@@ -23,7 +23,7 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Send, CheckCircle2, Mail, MapPin, Sparkles,
   GraduationCap, Briefcase, User, Layers, Clock as ClockIcon, Tag,
@@ -34,6 +34,7 @@ import SocialLinks, { CONTACT_SOCIALS } from "../components/SocialLinks"
 import FloatingLabelInput    from "../components/forms/FloatingLabelInput"
 import FloatingLabelTextarea from "../components/forms/FloatingLabelTextarea"
 import AuthErrorBanner       from "../components/auth/AuthErrorBanner"
+import Confetti from "../components/motion/Confetti"
 
 /* Social icons + animations are owned by the shared SocialLinks component
  * imported above — no per-page glyph copies are required. */
@@ -144,7 +145,7 @@ function RadioPill({ label, value, current, onChange, name }) {
       className={
         "group relative flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all duration-200 focus-within:ring-[3px] focus-within:ring-violet/25 " +
         (checked
-          ? "border-violet bg-violet/[0.06] shadow-[0_2px_8px_rgba(93,63,211,0.08)]"
+          ? "border-violet bg-violet/[0.06] shadow-[0_2px_8px_rgb(var(--color-violet-rgb)/0.08)]"
           : "border-charcoal-80/12 hover:border-violet/40 hover:bg-violet-pale/30")
       }
     >
@@ -156,7 +157,7 @@ function RadioPill({ label, value, current, onChange, name }) {
         }
       >
         {checked ? (
-          <motion.span
+          <m.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 400, damping: 18 }}
@@ -212,7 +213,6 @@ function ContactSection() {
   // page-level useTranslation in ContactPage doesn't reach across the
   // component boundary. Was missing → ReferenceError on every render.
   const { t } = useTranslation("contact")
-  const reduce = useReducedMotion()
 
   // `website` is a honeypot — bots autofill it; real users never see it.
   const [form, setForm] = useState(INITIAL_FORM)
@@ -270,7 +270,7 @@ function ContactSection() {
   /* Live per-field validation — errors only surface after the user
    * has interacted with that field (touched=true) or attempted submit.
    * I18N · the messageMin/messageMax keys interpolate {{min}}/{{max}}. */
-  function validateField(field, value, allValues = form) {
+  function validateField(field, value) {
     switch (field) {
       case "firstName":
         return value.trim() ? "" : t("form.errors.firstName")
@@ -401,7 +401,7 @@ function ContactSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* "Two ways to reach me", clarifies Book vs. Send Message */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
@@ -410,7 +410,7 @@ function ContactSection() {
         >
           <Link
             to="/book"
-            className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border-2 border-violet bg-violet p-5 text-white shadow-[0_14px_40px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(93,63,211,0.28)] sm:p-6"
+            className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border-2 border-violet bg-violet p-5 text-white shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgb(var(--color-violet-rgb)/0.28)] sm:p-6"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
@@ -421,12 +421,12 @@ function ContactSection() {
               </span>
             </div>
             <div>
-              <h3 className="text-[18px] font-bold !text-white sm:text-[19px]">{t("callout.bookTitle")}</h3>
+              <h2 className="text-[18px] font-bold !text-white sm:text-[19px]">{t("callout.bookTitle")}</h2>
               <p className="mt-1 text-[13px] leading-6 !text-white/85">
                 {t("callout.bookBody")}
               </p>
             </div>
-            <span className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-bold !text-terracotta">
+            <span className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-bold !text-white">
               {t("callout.bookCta")}
               <span className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">→</span>
             </span>
@@ -434,7 +434,7 @@ function ContactSection() {
 
           <a
             href="#contact-form"
-            className="group relative flex flex-col gap-3 rounded-2xl border-2 border-violet/15 bg-white p-5 text-charcoal-80 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_14px_40px_rgba(93,63,211,0.12)] sm:p-6"
+            className="group relative flex flex-col gap-3 rounded-2xl border-2 border-violet/15 bg-white p-5 text-charcoal-80 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.12)] sm:p-6"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-pale text-violet">
@@ -445,7 +445,7 @@ function ContactSection() {
               </span>
             </div>
             <div>
-              <h3 className="text-[18px] font-bold text-violet sm:text-[19px]">{t("callout.writeTitle")}</h3>
+              <h2 className="text-[18px] font-bold text-violet sm:text-[19px]">{t("callout.writeTitle")}</h2>
               <p className="mt-1 text-[13px] leading-6 text-charcoal-80/70">
                 {t("callout.writeBody")}
               </p>
@@ -455,21 +455,21 @@ function ContactSection() {
               <span className="transition-transform group-hover:translate-y-0.5" aria-hidden="true">↓</span>
             </span>
           </a>
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_-20px_rgba(93,63,211,0.20)] ring-1 ring-charcoal-80/[0.06]"
+          className="mx-auto max-w-4xl overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_-20px_rgb(var(--color-violet-rgb)/0.20)] ring-1 ring-charcoal-80/[0.06]"
           id="contact-form"
         >
 
           {/* ════════════════════════════════════════════════════════
                FORM panel · full-width centered
                ════════════════════════════════════════════════════════ */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
@@ -477,20 +477,21 @@ function ContactSection() {
             className="bg-white p-6 sm:p-10 lg:p-12"
           >
             {success ? (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
-                className="flex flex-col items-center gap-4 py-10 text-center sm:py-14"
+                className="relative flex flex-col items-center gap-4 py-10 text-center sm:py-14"
               >
-                <motion.div
+                <Confetti fire={success} />
+                <m.div
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 14 }}
                   className="flex h-16 w-16 items-center justify-center rounded-2xl bg-mint/12 text-emerald-700"
                 >
                   <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
-                </motion.div>
+                </m.div>
                 <h3 className="text-card font-bold text-violet">{t("form.successDetail.title")}</h3>
                 <p className="max-w-xs text-meta text-charcoal-80/65">
                   {t("form.successDetail.body")}
@@ -502,7 +503,7 @@ function ContactSection() {
                 >
                   {t("form.successDetail.again")}
                 </button>
-              </motion.div>
+              </m.div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-6 sm:gap-7" noValidate>
                 {/* Honeypot (hidden) */}
@@ -522,27 +523,27 @@ function ContactSection() {
                 />
 
                 {error ? (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] font-medium text-rose-700"
                     role="alert"
                   >
                     {error}
-                  </motion.div>
+                  </m.div>
                 ) : null}
 
                 {/* Context chip · only when URL params pre-filled the form */}
                 {paramContext ? (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: -6, scale: 0.97 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                     className="flex items-start gap-3 rounded-xl border border-terracotta/25 bg-terracotta/[0.08] px-4 py-3"
                   >
-                    <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-terracotta-deep" aria-hidden="true" />
+                    <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-terracotta-800" aria-hidden="true" />
                     <div className="flex flex-col gap-1 text-[12.5px] sm:text-[13px]">
-                      <span className="font-bold text-terracotta-deep">
+                      <span className="font-bold text-terracotta-800">
                         {t("form.context.title")}
                       </span>
                       <span className="text-charcoal-80/70">
@@ -554,7 +555,7 @@ function ContactSection() {
                         ].filter(Boolean).join(" · ") || t("form.context.yourSelection")}
                       </span>
                     </div>
-                  </motion.div>
+                  </m.div>
                 ) : null}
 
                 {/* Phase 10 · Floating-label inputs replace the previous
@@ -565,7 +566,7 @@ function ContactSection() {
                     focus or when filled. */}
 
                 {/* Row · First Name + Last Name */}
-                <motion.div variants={fadeUp} className="grid gap-5 sm:grid-cols-2 sm:gap-6">
+                <m.div variants={fadeUp} className="grid gap-5 sm:grid-cols-2 sm:gap-6">
                   <FloatingLabelInput
                     name="firstName"
                     label={t("form.firstName")}
@@ -586,10 +587,10 @@ function ContactSection() {
                     error={touched.lastName ? fieldErrors.lastName : ""}
                     required
                   />
-                </motion.div>
+                </m.div>
 
                 {/* Row · Mail */}
-                <motion.div variants={fadeUp}>
+                <m.div variants={fadeUp}>
                   <FloatingLabelInput
                     name="email"
                     label={t("form.email")}
@@ -601,10 +602,10 @@ function ContactSection() {
                     error={touched.email ? fieldErrors.email : ""}
                     required
                   />
-                </motion.div>
+                </m.div>
 
                 {/* Audience selector · 3 RadioPills */}
-                <motion.fieldset variants={fadeUp} className="border-0 p-0">
+                <m.fieldset variants={fadeUp} className="border-0 p-0">
                   <legend className="text-[13px] font-semibold text-charcoal sm:text-meta">
                     {t("form.audienceLegend")}
                   </legend>
@@ -624,10 +625,10 @@ function ContactSection() {
                   {touched.audience && fieldErrors.audience && (
                     <p className="mt-2 text-[12px] text-rose">{fieldErrors.audience}</p>
                   )}
-                </motion.fieldset>
+                </m.fieldset>
 
                 {/* Message */}
-                <motion.div variants={fadeUp}>
+                <m.div variants={fadeUp}>
                   <FloatingLabelTextarea
                     label={t("form.messageLabel")}
                     name="message"
@@ -639,10 +640,10 @@ function ContactSection() {
                     error={touched.message ? fieldErrors.message : ""}
                     required
                   />
-                </motion.div>
+                </m.div>
 
                 {/* Consent */}
-                <motion.label variants={fadeUp} className="flex items-start gap-3 text-[13px] text-charcoal/75">
+                <m.label variants={fadeUp} className="flex items-start gap-3 text-[13px] text-charcoal/75">
                   <input
                     type="checkbox"
                     checked={form.consent}
@@ -653,23 +654,23 @@ function ContactSection() {
                   <span>
                     {t("form.consent")}
                   </span>
-                </motion.label>
+                </m.label>
                 {touched.consent && fieldErrors.consent && (
                   <p className="-mt-3 ml-7 text-[12px] text-rose">{fieldErrors.consent}</p>
                 )}
 
                 {error && (
-                  <motion.div variants={fadeUp}>
+                  <m.div variants={fadeUp}>
                     <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
-                  </motion.div>
+                  </m.div>
                 )}
 
                 {/* Submit */}
-                <motion.div variants={fadeUp} className="pt-2">
+                <m.div variants={fadeUp} className="pt-2">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(93,63,211,0.28)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-violet-rgb)/0.28)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   >
                     {loading ? (
                       <>
@@ -682,11 +683,11 @@ function ContactSection() {
                       </>
                     )}
                   </button>
-                </motion.div>
+                </m.div>
               </form>
             )}
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </div>
     </section>
   )
@@ -701,7 +702,7 @@ function ContactSection() {
 function ContactChannelsSection() {
   const { t } = useTranslation("contact")
   return (
-    <section className="py-16 sm:py-20" style={{ backgroundColor: "rgba(248, 250, 252, 0.5)" }}>
+    <section className="py-16 sm:py-20" style={{ backgroundColor: "rgb(var(--color-mist-rgb)/0.5)" }}>
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <h2 className="text-[24px] font-bold text-violet sm:text-[32px]">{t("channels.title")}</h2>
@@ -711,7 +712,7 @@ function ContactChannelsSection() {
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <a
               href={`mailto:${EMAIL}`}
-              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
+              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.08)]"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                 <Mail className="h-5 w-5" aria-hidden="true" />
@@ -725,7 +726,7 @@ function ContactChannelsSection() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgba(93,63,211,0.08)]"
+              className="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white p-5 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.08)]"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint-50 text-mint">
                 <CheckCircle2 className="h-5 w-5" aria-hidden="true" />

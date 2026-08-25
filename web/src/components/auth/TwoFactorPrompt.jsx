@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { ShieldCheck, KeyRound, ArrowLeft } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
@@ -96,14 +96,14 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
   const totpComplete = digits.every((d) => d !== "")
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="flex flex-col gap-5"
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_20px_rgba(93,63,211,0.18)]">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)]">
           <ShieldCheck className="h-5 w-5" />
         </div>
         <div className="min-w-0">
@@ -112,7 +112,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
             {mode === "totp"
               ? "Enter the 6-digit code from your authenticator app"
               : "Enter one of your saved backup codes"}
-            {email ? <span className="ml-1 text-charcoal-80/45">· {email}</span> : null}
+            {email ? <span className="ml-1 text-charcoal-80/65">· {email}</span> : null}
           </p>
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
               />
             ))}
           </div>
-          <p className="mt-2 text-center text-micro text-charcoal-80/55">
+          <p className="mt-2 text-center text-micro text-charcoal-80/65">
             {t("auth.twofa.tipPaste")}
           </p>
         </div>
@@ -165,7 +165,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
             autoFocus
             className="w-full rounded-xl border-2 border-charcoal-80/15 bg-mist px-4 py-3.5 text-center text-body font-mono font-bold tracking-[0.2em] text-violet outline-none transition focus:border-violet focus:bg-white focus:ring-2 focus:ring-violet/15 disabled:opacity-50"
           />
-          <p className="mt-2 text-micro text-charcoal-80/55">
+          <p className="mt-2 text-micro text-charcoal-80/65">
             {t("auth.twofa.backupOnce")}
           </p>
         </div>
@@ -175,7 +175,7 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
         type="button"
         onClick={() => handleSubmit()}
         disabled={loading || (mode === "totp" ? !totpComplete : !backupCode.trim())}
-        className="w-full rounded-xl bg-violet py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:translate-y-0 disabled:opacity-60"
+        className="w-full rounded-xl bg-violet py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:translate-y-0 disabled:opacity-60"
       >
         {loading ? (
           <span className="flex items-center justify-center gap-2">
@@ -213,6 +213,6 @@ export default function TwoFactorPrompt({ onSubmit, onCancel, loading, error, em
           {mode === "totp" ? "Use a backup code instead" : "Use authenticator code"}
         </button>
       </div>
-    </motion.div>
+    </m.div>
   )
 }

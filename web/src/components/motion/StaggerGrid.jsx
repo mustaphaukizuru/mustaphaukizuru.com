@@ -1,5 +1,5 @@
 import { Children } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 
 /**
  * StaggerGrid · grid container that reveals its children in a wave
@@ -79,8 +79,8 @@ export default function StaggerGrid({
     show:   { opacity: 1, y: 0, transition: { duration, ease: [0.22, 1, 0.36, 1] } },
   }
 
-  const MotionContainer = motion[as] || motion.div
-  const MotionItem      = motion[itemAs] || motion.div
+  const MotionContainer = m[as] || m.div
+  const MotionItem      = m[itemAs] || m.div
 
   return (
     <MotionContainer

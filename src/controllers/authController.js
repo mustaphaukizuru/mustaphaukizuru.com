@@ -2,12 +2,31 @@ const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const asyncHandler = require("../utils/asyncHandler");
 const generateToken = require("../utils/generateToken");
+const jwt = require("jsonwebtoken");
+const { setSessionCookie, clearSessionCookie } = require("../utils/sessionCookie");
+const { extractSessionToken } = require("../middleware/authMiddleware");
 const prisma = require("../lib/prisma");
 const {
   sendPasswordResetConfirmationEmail,
   sendResetEmail, // template-free fallback (built inline in mailer.js)
 } = require("../utils/mailer");
 const { sendTemplateEmail } = require("../services/emailService");
+const twoFactorService = require("../services/twoFactorService");
+
+/**
+ * Security · OAuth logins must honour 2FA exactly like password logins.
+ * If the linked account has 2FA enabled, hand the SPA a short-lived
+ * 2FA-pending token (via URL fragment) instead of a session token; the
+ * login page exchanges it for a session after the code is verified.
+ * Returns true when a redirect was issued.
+ */
+async function redirectIfTwoFactorRequired(res, { user, frontend, returnTo }) {
+  const enabled = await twoFactorService.isEnabledForUser(user.id);
+  if (!enabled) return false;
+  const twoFactorToken = twoFactorService.issueTwoFactorToken({ userId: user.id, rememberMe: false });
+  res.redirect(302, `${frontend}/login#twoFactorToken=${encodeURIComponent(twoFactorToken)}&return_to=${encodeURIComponent(returnTo || "/dashboard")}`);
+  return true;
+}
 const { resolveUserLocale } = require("../utils/resolveUserLocale");
 const { notifyWelcome, notifyPasswordChanged } = require("../services/notificationService");
 
@@ -15,6 +34,7 @@ const {
   registerUser,
   loginUser,
   getUserProfile,
+  revokeUserSessions,
 } = require("../services/authService");
 
 const {
@@ -22,7 +42,19 @@ const {
   findOrCreateGoogleUser,
   buildAuthUrl: buildGoogleAuthUrl,
   exchangeCodeForProfile: exchangeGoogleCodeForProfile,
-} = require("../services/googleAuthService");
+} = require("../services/googleAuthService")
+
+const {
+  buildAuthUrl: buildMicrosoftAuthUrl,
+  exchangeCodeForProfile: exchangeMicrosoftCodeForProfile,
+  findOrCreateMicrosoftUser,
+} = require("../services/microsoftAuthService")
+
+const {
+  buildAuthUrl: buildFacebookAuthUrl,
+  exchangeCodeForProfile: exchangeFacebookCodeForProfile,
+  findOrCreateFacebookUser,
+} = require("../services/facebookAuthService");
 
 /* ────────────────────────────────────────────────────────────────────────
  * Google OAuth redirect flow · helpers
@@ -42,11 +74,14 @@ const NONCE_COOKIE = "g_oauth_nonce"
 const RETURN_COOKIE = "g_oauth_return"
 const STATE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
-// Tiny inline cookie parser — the codebase doesn't use cookie-parser
-// middleware and we only need to read three cookies on one route, so a
-// dedicated dep would be overkill. Format follows RFC 6265 closely
-// enough for our purposes: `name=value; name2=value2`. URL-decodes
-// values written by Express's res.cookie().
+// Step 40 · cookie-parser is now mounted app-wide (src/app.js), so
+// `req.cookies` is normally already populated. `parseRequestCookies` is
+// kept as a fallback for any context that mounts these routes without the
+// middleware (unit tests, a future standalone router), and `readCookies`
+// is the single accessor every handler below goes through.
+//
+// Format follows RFC 6265 closely enough for our purposes:
+// `name=value; name2=value2`. URL-decodes values written by res.cookie().
 function parseRequestCookies(req) {
   const header = req.headers.cookie || ""
   const out = {}
@@ -60,6 +95,12 @@ function parseRequestCookies(req) {
     try { out[name] = decodeURIComponent(raw) } catch { out[name] = raw }
   }
   return out
+}
+
+/** req.cookies when cookie-parser ran, otherwise a locally parsed copy. */
+function readCookies(req) {
+  if (req.cookies && typeof req.cookies === "object") return req.cookies
+  return parseRequestCookies(req)
 }
 
 function getRedirectUri(req) {
@@ -160,7 +201,7 @@ const googleOAuthCallback = asyncHandler(async (req, res) => {
     return res.redirect(302, `${frontend}/login?google=cancelled`)
   }
 
-  const cookies     = parseRequestCookies(req)
+  const cookies     = readCookies(req)
   const code        = String(req.query.code  || "")
   const stateQuery  = String(req.query.state || "")
   const stateCookie = String(cookies[STATE_COOKIE] || "")
@@ -181,8 +222,14 @@ const googleOAuthCallback = asyncHandler(async (req, res) => {
       expectedNonce: nonceCookie || undefined,
     })
     const user = await findOrCreateGoogleUser(profile)
-    const token = generateToken(user)
     clearOAuthCookies(res)
+    if (await redirectIfTwoFactorRequired(res, { user, frontend, returnTo })) return
+    const token = generateToken(user)
+    // Step 40 · the session now lives in an httpOnly cookie. The redirect
+    // back from Google is a top-level same-site GET, so the sameSite=lax
+    // cookie survives the hop and the SPA is already authenticated by the
+    // time /auth/google/return renders.
+    setSessionCookie(res, token, { rememberMe: false })
 
     // Token + user are handed to the SPA via URL FRAGMENT, not query
     // string. Fragments aren't sent in the HTTP request line (the server
@@ -249,6 +296,7 @@ const signup = asyncHandler(async (req, res) => {
 
   const user = await registerUser({ fullName, email, password });
   const token = generateToken(user);
+  setSessionCookie(res, token);   // Step 40 · httpOnly session + CSRF cookie
 
   // Welcome email + in-app notification (non-blocking).
   // Uses the DB-driven template so admin can customize the copy from the
@@ -272,6 +320,9 @@ const signup = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     message: "Account created successfully",
+    // ROLLOUT · `token` is still returned in the body so SPA builds shipped
+    // before step 40 keep working. It can be dropped once those builds have
+    // aged out — see CLAUDE.md "Session auth".
     data: { user, token },
   });
 });
@@ -316,6 +367,9 @@ const login = asyncHandler(async (req, res) => {
     // ── Standard path ───────────────────────────────────────────────────
     const user = result;
     const token = generateToken(user, Boolean(rememberMe));
+    // Step 40 · the authoritative session is the httpOnly cookie; the body
+    // token below is a rollout shim for pre-step-40 clients.
+    setSessionCookie(res, token, { rememberMe: Boolean(rememberMe) });
 
     return res.status(200).json({
       success: true,
@@ -356,6 +410,7 @@ const googleLogin = asyncHandler(async (req, res) => {
   const profile = await verifyGoogleToken(credential);
   const user = await findOrCreateGoogleUser(profile);
   const token = generateToken(user);
+  setSessionCookie(res, token);   // Step 40
 
   res.status(200).json({
     success: true,
@@ -572,13 +627,233 @@ const resetPassword = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * POST /api/v1/auth/logout  (step 40)
+ *
+ * Two jobs, in this order of importance:
+ *   1. Clear `mu_session` + `mu_csrf`. The SPA cannot do this itself — the
+ *      session cookie is httpOnly by design.
+ *   2. Bump `tokensValidFrom` so the JWT that was in that cookie (and any
+ *      Bearer copy of it an older client still holds) stops verifying
+ *      server-side. Deleting a cookie only helps if the token inside it is
+ *      also dead; otherwise a copy captured earlier would still work.
+ *
+ * Deliberately NOT wrapped in `protect`: sign-out must succeed even when the
+ * token is already expired, malformed, or missing. We decode leniently only
+ * to learn WHICH user to revoke, and always answer 200 with both cookies
+ * cleared. An unauthenticated caller simply gets a no-op.
+ */
+const logout = asyncHandler(async (req, res) => {
+  const { token } = extractSessionToken(req);
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // Only a real session token identifies a session to revoke; a
+      // purpose-scoped token (2FA-pending) never created one.
+      if (decoded && decoded.userId && decoded.purpose === undefined) {
+        await revokeUserSessions(decoded.userId);
+      }
+    } catch {
+      // Expired / tampered / signed with a rotated secret — nothing to revoke
+      // beyond the cookies we are about to clear.
+    }
+  }
+
+  clearSessionCookie(res);
+
+  return res.status(200).json({
+    success: true,
+    message: "Signed out",
+  });
+});
+
+/* ════════════════════════════════════════════════════════════════════════
+ * MICROSOFT OAUTH — redirect flow
+ * Same pattern as Google: state cookie → redirect → callback → token → session
+ * ════════════════════════════════════════════════════════════════════════ */
+
+const MS_STATE_COOKIE  = "ms_oauth_state"
+const MS_NONCE_COOKIE  = "ms_oauth_nonce"
+const MS_RETURN_COOKIE = "ms_oauth_return"
+
+function getMicrosoftRedirectUri(req) {
+  if (process.env.MICROSOFT_OAUTH_REDIRECT_URI) return process.env.MICROSOFT_OAUTH_REDIRECT_URI
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "https"
+  const host  = req.headers["x-forwarded-host"]  || req.headers.host
+  return `${proto}://${host}/api/auth/microsoft/callback`
+}
+
+const startMicrosoftOAuth = asyncHandler(async (req, res) => {
+  const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  if (!process.env.MICROSOFT_CLIENT_ID || !process.env.MICROSOFT_CLIENT_SECRET) {
+    console.error("[microsoft-oauth] /start refused — missing credentials")
+    return res.redirect(302, `${frontend}/login?microsoft=server_misconfigured`)
+  }
+
+  try {
+    const state = crypto.randomBytes(32).toString("hex")
+    const nonce = crypto.randomBytes(32).toString("hex")
+    const redirectUri = getMicrosoftRedirectUri(req)
+    let returnTo = String(req.query.return_to || "/dashboard")
+    if (!returnTo.startsWith("/") || returnTo.includes("//") || returnTo.includes(":")) returnTo = "/dashboard"
+
+    const isSecure = (req.headers["x-forwarded-proto"] || req.protocol) === "https"
+    const cookieOpts = { httpOnly: true, secure: isSecure, sameSite: "lax", maxAge: 5 * 60 * 1000, path: "/" }
+    res.cookie(MS_STATE_COOKIE,  state,    cookieOpts)
+    res.cookie(MS_NONCE_COOKIE,  nonce,    cookieOpts)
+    res.cookie(MS_RETURN_COOKIE, returnTo, cookieOpts)
+
+    const authUrl = buildMicrosoftAuthUrl({ state, nonce, redirectUri })
+    return res.redirect(302, authUrl)
+  } catch (err) {
+    const frontend2 = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+    return res.redirect(302, `${frontend2}/login?microsoft=unavailable`)
+  }
+})
+
+const microsoftOAuthCallback = asyncHandler(async (req, res) => {
+  const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  if (req.query.error) {
+    res.clearCookie(MS_STATE_COOKIE, { path: "/" })
+    res.clearCookie(MS_NONCE_COOKIE, { path: "/" })
+    res.clearCookie(MS_RETURN_COOKIE, { path: "/" })
+    return res.redirect(302, `${frontend}/login?microsoft=cancelled`)
+  }
+
+  const cookies     = readCookies(req)
+  const code        = String(req.query.code  || "")
+  const stateQuery  = String(req.query.state || "")
+  const stateCookie = String(cookies[MS_STATE_COOKIE] || "")
+  const returnTo    = String(cookies[MS_RETURN_COOKIE] || "/dashboard")
+
+  res.clearCookie(MS_STATE_COOKIE,  { path: "/" })
+  res.clearCookie(MS_NONCE_COOKIE,  { path: "/" })
+  res.clearCookie(MS_RETURN_COOKIE, { path: "/" })
+
+  if (!code || !stateQuery || !stateCookie || stateQuery !== stateCookie) {
+    return res.redirect(302, `${frontend}/login?microsoft=state_mismatch`)
+  }
+
+  const redirectUri = getMicrosoftRedirectUri(req)
+  try {
+    const profile = await exchangeMicrosoftCodeForProfile({ code, redirectUri })
+    const user    = await findOrCreateMicrosoftUser(profile)
+    if (await redirectIfTwoFactorRequired(res, { user, frontend, returnTo })) return
+    const token   = generateToken(user)
+    setSessionCookie(res, token, { rememberMe: false })   // Step 40
+
+    const safeUser = encodeURIComponent(JSON.stringify({
+      id: user.id, fullName: user.fullName, email: user.email, role: user.role,
+      avatarUrl: user.avatarUrl || null, createdAt: user.createdAt || null,
+      hasPassword: Boolean(user.passwordHash), authProvider: "microsoft",
+    }))
+    return res.redirect(302, `${frontend}/auth/microsoft/return#token=${encodeURIComponent(token)}&user=${safeUser}&return_to=${encodeURIComponent(returnTo)}`)
+  } catch (err) {
+    console.error("[microsoft-oauth] exchange failed:", err?.response?.data?.error || err?.message || "unknown")
+    return res.redirect(302, `${frontend}/login?microsoft=exchange_failed`)
+  }
+})
+
+/* ════════════════════════════════════════════════════════════════════════
+ * FACEBOOK OAUTH — redirect flow
+ * ════════════════════════════════════════════════════════════════════════ */
+
+const FB_STATE_COOKIE  = "fb_oauth_state"
+const FB_RETURN_COOKIE = "fb_oauth_return"
+
+function getFacebookRedirectUri(req) {
+  if (process.env.FACEBOOK_OAUTH_REDIRECT_URI) return process.env.FACEBOOK_OAUTH_REDIRECT_URI
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "https"
+  const host  = req.headers["x-forwarded-host"]  || req.headers.host
+  return `${proto}://${host}/api/auth/facebook/callback`
+}
+
+const startFacebookOAuth = asyncHandler(async (req, res) => {
+  const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  if (!process.env.FACEBOOK_CLIENT_ID || !process.env.FACEBOOK_CLIENT_SECRET) {
+    console.error("[facebook-oauth] /start refused — missing credentials")
+    return res.redirect(302, `${frontend}/login?facebook=server_misconfigured`)
+  }
+
+  try {
+    const state = crypto.randomBytes(32).toString("hex")
+    const redirectUri = getFacebookRedirectUri(req)
+    let returnTo = String(req.query.return_to || "/dashboard")
+    if (!returnTo.startsWith("/") || returnTo.includes("//") || returnTo.includes(":")) returnTo = "/dashboard"
+
+    const isSecure = (req.headers["x-forwarded-proto"] || req.protocol) === "https"
+    const cookieOpts = { httpOnly: true, secure: isSecure, sameSite: "lax", maxAge: 5 * 60 * 1000, path: "/" }
+    res.cookie(FB_STATE_COOKIE,  state,    cookieOpts)
+    res.cookie(FB_RETURN_COOKIE, returnTo, cookieOpts)
+
+    const authUrl = buildFacebookAuthUrl({ state, redirectUri })
+    return res.redirect(302, authUrl)
+  } catch (err) {
+    const frontend2 = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+    return res.redirect(302, `${frontend2}/login?facebook=unavailable`)
+  }
+})
+
+const facebookOAuthCallback = asyncHandler(async (req, res) => {
+  const frontend = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+
+  if (req.query.error || req.query.error_code) {
+    res.clearCookie(FB_STATE_COOKIE,  { path: "/" })
+    res.clearCookie(FB_RETURN_COOKIE, { path: "/" })
+    return res.redirect(302, `${frontend}/login?facebook=cancelled`)
+  }
+
+  const cookies     = readCookies(req)
+  const code        = String(req.query.code  || "")
+  const stateQuery  = String(req.query.state || "")
+  const stateCookie = String(cookies[FB_STATE_COOKIE] || "")
+  const returnTo    = String(cookies[FB_RETURN_COOKIE] || "/dashboard")
+
+  res.clearCookie(FB_STATE_COOKIE,  { path: "/" })
+  res.clearCookie(FB_RETURN_COOKIE, { path: "/" })
+
+  if (!code || !stateQuery || !stateCookie || stateQuery !== stateCookie) {
+    return res.redirect(302, `${frontend}/login?facebook=state_mismatch`)
+  }
+
+  const redirectUri = getFacebookRedirectUri(req)
+  try {
+    const profile = await exchangeFacebookCodeForProfile({ code, redirectUri })
+    const user    = await findOrCreateFacebookUser(profile)
+    if (await redirectIfTwoFactorRequired(res, { user, frontend, returnTo })) return
+    const token   = generateToken(user)
+    setSessionCookie(res, token, { rememberMe: false })   // Step 40
+
+    const safeUser = encodeURIComponent(JSON.stringify({
+      id: user.id, fullName: user.fullName, email: user.email, role: user.role,
+      avatarUrl: user.avatarUrl || null, createdAt: user.createdAt || null,
+      hasPassword: Boolean(user.passwordHash), authProvider: "facebook",
+    }))
+    return res.redirect(302, `${frontend}/auth/facebook/return#token=${encodeURIComponent(token)}&user=${safeUser}&return_to=${encodeURIComponent(returnTo)}`)
+  } catch (err) {
+    console.error("[facebook-oauth] exchange failed:", err?.response?.data?.error || err?.message || "unknown")
+    return res.redirect(302, `${frontend}/login?facebook=exchange_failed`)
+  }
+})
+
 module.exports = {
   signup,
   login,
+  logout,
   googleLogin,
-  // OAuth redirect flow — primary path going forward
+  // Google OAuth redirect flow
   startGoogleOAuth,
   googleOAuthCallback,
+  // Microsoft OAuth redirect flow
+  startMicrosoftOAuth,
+  microsoftOAuthCallback,
+  // Facebook OAuth redirect flow
+  startFacebookOAuth,
+  facebookOAuthCallback,
   me,
   forgotPassword,
   resetPassword,

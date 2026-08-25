@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { Shield, Calendar, Mail, Link as LinkIcon } from "lucide-react"
@@ -49,16 +49,16 @@ export default function PrivacyPage() {
   const { t } = useTranslation("legal")
   return (
     <div className="bg-mist">
-      <section className="py-16 text-center" style={{ backgroundColor: "#1A1B23" }}>
+      <section className="py-16 text-center" style={{ backgroundColor: "var(--color-charcoal)" }}>
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-white/10 text-terracotta">
             <Shield className="h-7 w-7" />
           </div>
           <h1 className="mt-5 text-page font-bold text-white">{t("privacy.title", "Privacy Policy")}</h1>
-          <p className="mt-3 text-body text-white/55">
+          <p className="mt-3 text-body text-white/85">
             {t("privacy.subtitle")}
           </p>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white/50">
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white">
             <Calendar className="h-3.5 w-3.5" /> Last updated: {LAST_UPDATED}
           </div>
         </div>
@@ -71,9 +71,9 @@ export default function PrivacyPage() {
             and CookiePolicyPage for consistency across the legal trio. */}
         <nav
           aria-label={t("privacy.tocAria", { defaultValue: "Table of contents" })}
-          className="mb-8 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+          className="mb-8 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
         >
-          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+          <p className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
             {t("privacy.tocLabel", { defaultValue: "On this page" })}
           </p>
           <ol className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
@@ -92,12 +92,12 @@ export default function PrivacyPage() {
 
         <article className="flex flex-col gap-4">
           {sections.map(({ slug, title, content }, i) => (
-            <motion.section
+            <m.section
               key={slug}
               id={slug}
               // scroll-mt offset accounts for the sticky Header so the
               // section title isn't hidden behind it on anchor jumps.
-              className="scroll-mt-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_2px_10px_rgba(93,63,211,0.04)]"
+              className="scroll-mt-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]"
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -122,10 +122,10 @@ export default function PrivacyPage() {
                 </a>
               </h2>
               <p className="text-meta leading-7 text-charcoal-80/70">{content}</p>
-            </motion.section>
+            </m.section>
           ))}
         </article>
-        <div className="mt-8 flex items-center gap-4 rounded-xl p-6 text-white" style={{ backgroundColor: "#1A1B23" }}>
+        <div className="mt-8 flex items-center gap-4 rounded-xl p-6 text-white" style={{ backgroundColor: "var(--color-charcoal)" }}>
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
             <Mail className="h-6 w-6" />
           </div>

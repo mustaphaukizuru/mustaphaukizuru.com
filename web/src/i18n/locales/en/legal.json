@@ -87,6 +87,9 @@
     "changePrefs": "Change your preferences",
     "resetClick": "Click below to reset and choose again.",
     "managePrefs": "Manage cookie preferences",
-    "questions": "Cookie or privacy questions?"
+    "questions": "Cookie or privacy questions?",
+    "tocAria": "Table of contents",
+    "tocLabel": "On this page",
+    "anchorAria": "Direct link to"
   }
 }

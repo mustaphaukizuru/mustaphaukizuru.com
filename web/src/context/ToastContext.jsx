@@ -1,7 +1,7 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 import { CheckCircle2, AlertCircle, Info, TriangleAlert, X } from "lucide-react"
 
-import { useTranslation } from "react-i18next"
 const ToastContext = createContext(null)
 
 const TOAST_ICONS = {
@@ -45,7 +45,7 @@ function ToastItem({ toast, onClose }) {
 
   return (
     <div
-      className={`pointer-events-auto relative overflow-hidden rounded-xl border px-4 py-3 shadow-[0_10px_28px_rgba(93,63,211,0.10)] backdrop-blur-sm ${style.container}`}
+      className={`pointer-events-auto relative overflow-hidden rounded-xl border px-4 py-3 shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.10)] backdrop-blur-sm ${style.container}`}
     >
       <div className="flex items-start gap-3 pr-8">
         <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${style.icon}`} />

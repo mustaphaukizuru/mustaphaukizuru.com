@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const AppError = require("../utils/AppError")
 const { validateCoupon, calculateDiscount } = require("./couponService")
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -52,14 +53,36 @@ const CART_INCLUDE = {
  * @param {object|null} coupon applied coupon row or null
  * @returns {{ subtotal: number, discount: number, tax: number, total: number }}
  */
+/**
+ * Is this coupon still valid for this cart, right now?
+ *
+ * Mirrors the time/threshold rules couponService.validateCoupon enforces at
+ * apply time. Usage limits are deliberately NOT re-checked here: they are
+ * consumed atomically when the order is created (orderService), and counting
+ * them on a cart read would reject the buyer's own in-flight redemption.
+ */
+function couponStillApplies(coupon, subtotal) {
+  if (!coupon.isActive) return false
+  const now = new Date()
+  if (coupon.startsAt && new Date(coupon.startsAt) > now) return false
+  if (coupon.expiresAt && new Date(coupon.expiresAt) < now) return false
+  if (coupon.minOrderAmount != null && subtotal < toNumber(coupon.minOrderAmount)) return false
+  return true
+}
+
 function computeTotals(items, coupon) {
   const subtotal = items.reduce((sum, item) => {
     return sum + toNumber(item.priceSnapshot) * (item.quantity || 1)
   }, 0)
 
+  // Re-validate the coupon on EVERY read, not just re-compute the amount.
+  // The cart changes after a coupon is applied: items get removed (dropping
+  // the subtotal under minOrderAmount) and time passes (expiresAt). Checking
+  // only `isActive` let a stale discount ride through serializeCart into
+  // checkout — a customer could apply a coupon to a large cart, delete items,
+  // and keep the discount.
   let discount = 0
-  if (coupon && coupon.isActive) {
-    // Re-compute discount in case subtotal has changed since coupon was applied.
+  if (coupon && couponStillApplies(coupon, subtotal)) {
     discount = calculateDiscount(coupon, subtotal)
   }
 
@@ -144,7 +167,7 @@ function serializeCart(cart) {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function getOrCreateActiveCart(userId) {
-  if (!userId) throw buildError("VALIDATION_ERROR", "userId is required", 400)
+  if (!userId) throw new AppError("userId is required", { statusCode: 400, code: "VALIDATION_ERROR" })
 
   let cart = await prisma.cart.findFirst({
     where:   { userId, status: "active" },
@@ -176,10 +199,10 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
   const qty = Math.max(1, Math.floor(Number(quantity) || 1))
 
   if (!productId && !serviceId) {
-    throw buildError("VALIDATION_ERROR", "productId or serviceId is required", 400)
+    throw new AppError("productId or serviceId is required", { statusCode: 400, code: "VALIDATION_ERROR" })
   }
   if (productId && serviceId) {
-    throw buildError("VALIDATION_ERROR", "Pass productId OR serviceId, not both", 400)
+    throw new AppError("Pass productId OR serviceId, not both", { statusCode: 400, code: "VALIDATION_ERROR" })
   }
 
   const cart = await getOrCreateActiveCart(userId)
@@ -191,7 +214,7 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
       where:  { id: productId },
       select: { id: true, title: true, price: true, isActive: true },
     })
-    if (!product || !product.isActive) throw buildError("NOT_FOUND", "Product not found", 404)
+    if (!product || !product.isActive) throw new AppError("Product not found", { statusCode: 404, code: "NOT_FOUND" })
     itemType      = "product"
     titleSnapshot = product.title
     priceSnapshot = product.price
@@ -200,7 +223,7 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
       where:  { id: serviceId },
       select: { id: true, title: true, basePrice: true, status: true },
     })
-    if (!service || service.status === "archived") throw buildError("NOT_FOUND", "Service not found", 404)
+    if (!service || service.status === "archived") throw new AppError("Service not found", { statusCode: 404, code: "NOT_FOUND" })
     itemType      = "service"
     titleSnapshot = service.title
     priceSnapshot = service.basePrice
@@ -241,13 +264,13 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
 
 async function updateItemQuantity(userId, itemId, quantity) {
   const qty = Math.floor(Number(quantity))
-  if (!Number.isFinite(qty)) throw buildError("VALIDATION_ERROR", "quantity must be a number", 400)
+  if (!Number.isFinite(qty)) throw new AppError("quantity must be a number", { statusCode: 400, code: "VALIDATION_ERROR" })
 
   const cart = await getOrCreateActiveCart(userId)
   const item = await prisma.cartItem.findFirst({
     where:  { id: itemId, cartId: cart.id },
   })
-  if (!item) throw buildError("NOT_FOUND", "Cart item not found", 404)
+  if (!item) throw new AppError("Cart item not found", { statusCode: 404, code: "NOT_FOUND" })
 
   if (qty <= 0) {
     await prisma.cartItem.delete({ where: { id: itemId } })
@@ -262,7 +285,7 @@ async function updateItemQuantity(userId, itemId, quantity) {
 async function removeItem(userId, itemId) {
   const cart = await getOrCreateActiveCart(userId)
   const item = await prisma.cartItem.findFirst({ where: { id: itemId, cartId: cart.id } })
-  if (!item) throw buildError("NOT_FOUND", "Cart item not found", 404)
+  if (!item) throw new AppError("Cart item not found", { statusCode: 404, code: "NOT_FOUND" })
 
   await prisma.cartItem.delete({ where: { id: itemId } })
   await touchCart(cart.id)
@@ -288,7 +311,7 @@ async function clearCart(userId) {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function mergeGuestCart(userId, items = []) {
-  if (!Array.isArray(items)) throw buildError("VALIDATION_ERROR", "items must be an array", 400)
+  if (!Array.isArray(items)) throw new AppError("items must be an array", { statusCode: 400, code: "VALIDATION_ERROR" })
 
   const results = { merged: 0, skipped: 0 }
 
@@ -328,7 +351,7 @@ async function mergeGuestCart(userId, items = []) {
 async function applyCoupon(userId, code) {
   const cart = await getOrCreateActiveCart(userId)
   if (!cart.items || cart.items.length === 0) {
-    throw buildError("VALIDATION_ERROR", "Add items to your cart before applying a coupon", 400)
+    throw new AppError("Add items to your cart before applying a coupon", { statusCode: 400, code: "VALIDATION_ERROR" })
   }
 
   const subtotal = cart.items.reduce(
@@ -343,7 +366,7 @@ async function applyCoupon(userId, code) {
 
   if (!result.valid) {
     // Surface the message — status 400 is semantically correct for validation fail.
-    throw buildError("COUPON_INVALID", result.message, 400)
+    throw new AppError(result.message, { statusCode: 400, code: "COUPON_INVALID" })
   }
 
   await prisma.cart.update({
@@ -374,13 +397,6 @@ async function touchCart(cartId) {
     where: { id: cartId },
     data:  { updatedAt: new Date() },
   })
-}
-
-function buildError(code, message, statusCode = 400) {
-  const err = new Error(message)
-  err.statusCode = statusCode
-  err.code = code
-  return err
 }
 
 module.exports = {

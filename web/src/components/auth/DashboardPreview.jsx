@@ -4,8 +4,8 @@
    Decorative right-hero widget stack used by AuthShell. Mimics the
    "Transform Data into Cool Insights" dashboard preview from the
    reference design while staying fully on-brand:
-     · Royal Violet (#5D3FD3) accent on bars / progress fills
-     · Soft Terracotta (#E9C46A) for highlight ticks
+     · Royal Violet (var(--color-violet)) accent on bars / progress fills
+     · Soft Terracotta (var(--color-terracotta)) for highlight ticks
      · All mock data is static and decorative — never read from the API.
 
    Built entirely with Tailwind + inline SVG so the asset budget stays
@@ -13,7 +13,7 @@
    when prefers-reduced-motion is set.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   ArrowUpRight,
   ChevronRight,
@@ -82,7 +82,7 @@ export default function DashboardPreview({ reduce }) {
           {/* Bar chart */}
           <div className="flex h-16 items-end gap-1.5">
             {BAR_HEIGHTS.map((h, i) => (
-              <motion.span
+              <m.span
                 key={i}
                 initial={{ scaleY: 0.3, opacity: 0.4 }}
                 animate={{ scaleY: 1, opacity: 1 }}
@@ -141,7 +141,7 @@ export default function DashboardPreview({ reduce }) {
           </span>
         </div>
         <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/8">
-          <motion.div
+          <m.div
             initial={{ width: "0%" }}
             animate={{ width: "92%" }}
             transition={{ duration: 1.4, delay: 0.6, ease: "easeOut" }}
@@ -157,14 +157,14 @@ export default function DashboardPreview({ reduce }) {
 
 function Card({ children, delay = 0, className = "" }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
       className={`rounded-2xl border border-white/8 bg-white/[0.04] p-3.5 backdrop-blur-sm ${className}`}
     >
       {children}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -190,16 +190,16 @@ function Sparkline({ reduce }) {
     >
       <defs>
         <linearGradient id="spark-fill" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#5D3FD3" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#5D3FD3" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--color-violet)" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="var(--color-violet)" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <motion.path
+      <m.path
         initial={reduce ? { pathLength: 1 } : { pathLength: 0 }}
         animate={{ pathLength: 1 }}
         transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
         d="M2 30 L18 22 L34 28 L50 12 L66 18 L82 8 L98 14 L118 4"
-        stroke="#8B6FE8"
+        stroke="var(--color-violet-light)"
         strokeWidth="1.8"
         fill="none"
         strokeLinecap="round"
@@ -228,11 +228,11 @@ function CircularProgress({ value = 0, reduce }) {
           strokeWidth="5"
           fill="none"
         />
-        <motion.circle
+        <m.circle
           cx="30"
           cy="30"
           r={radius}
-          stroke="#8B6FE8"
+          stroke="var(--color-violet-light)"
           strokeWidth="5"
           strokeLinecap="round"
           fill="none"
@@ -255,9 +255,9 @@ function Doughnut({ reduce }) {
   const circumference = 2 * Math.PI * radius
   // Segment proportions (must sum to 1)
   const segments = [
-    { color: "#5D3FD3", pct: 0.58 }, // Small Business
-    { color: "#8B6FE8", pct: 0.13 }, // Enterprise
-    { color: "#E9C46A", pct: 0.29 }, // Individuals
+    { color: "var(--color-violet)", pct: 0.58 }, // Small Business
+    { color: "var(--color-violet-light)", pct: 0.13 }, // Enterprise
+    { color: "var(--color-terracotta)", pct: 0.29 }, // Individuals
   ]
   let cursor = 0
   return (
@@ -277,7 +277,7 @@ function Doughnut({ reduce }) {
           const offset = -cursor * circumference
           cursor += s.pct
           return (
-            <motion.circle
+            <m.circle
               key={i}
               cx="35"
               cy="35"

@@ -112,7 +112,7 @@ async function listServices({ isFeatured, page = 1, limit = 24, locale = "en" } 
   const safePage  = Math.max(1, Number(page) || 1)
   const safeLimit = Math.min(48, Math.max(1, Number(limit) || 24))
 
-  const where = { status: "published" }
+  const where = { status: "published", deletedAt: null }
   if (isFeatured === true || isFeatured === "true") where.isFeatured = true
 
   const [items, total] = await Promise.all([
@@ -149,7 +149,7 @@ async function listServices({ isFeatured, page = 1, limit = 24, locale = "en" } 
 
 async function getServiceBySlug(slug, locale = "en") {
   const service = await prisma.service.findFirst({
-    where: { slug, status: "published" },
+    where: { slug, status: "published", deletedAt: null },
     include: {
       features: { orderBy: { sortOrder: "asc" } },
       packages: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
@@ -162,7 +162,7 @@ async function getServiceBySlug(slug, locale = "en") {
 
 async function getFeaturedServices() {
   const items = await prisma.service.findMany({
-    where:   { status: "published", isFeatured: true },
+    where:   { status: "published", isFeatured: true, deletedAt: null },
     orderBy: [{ updatedAt: "desc" }],
     take:    6,
     include: {
@@ -180,7 +180,7 @@ async function getFeaturedServices() {
  */
 async function getRelatedServices(currentServiceId, limit = 3) {
   const items = await prisma.service.findMany({
-    where:   { status: "published", id: { not: currentServiceId } },
+    where:   { status: "published", deletedAt: null, id: { not: currentServiceId } },
     orderBy: [{ isFeatured: "desc" }, { updatedAt: "desc" }],
     take:    limit,
     include: {

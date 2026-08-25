@@ -33,8 +33,8 @@ function buildHomeSchemas() {
     {
       "@context": "https://schema.org",
       "@type": "SiteNavigationElement",
-      name: ["Home", "About", "Solutions", "Services", "Store", "Contact"],
-      url: ["/", "/about", "/solutions", "/services", "/store", "/contact"].map(absoluteUrl),
+      name: ["Home", "About", "Services", "Store", "Contact"],
+      url: ["/", "/about", "/services", "/store", "/contact"].map(absoluteUrl),
     },
   ];
 }
@@ -113,17 +113,12 @@ export default function SeoRouteManager() {
       return {
         title: "Project Case Overview",
         description: "Review project outcomes, system improvements, implementation goals, and delivery details.",
-        image: absoluteUrl("/og/og-solutions.png"),
+        image: DEFAULT_OG_IMAGE,
         type: "article",
       };
     }
 
-    return { ...(staticSeoByRoute[cleanPath] || {}), ...(esOverride || {}) } || {
-      title: "Professional Technology Platform",
-      description: siteConfig.defaultDescription,
-      image: DEFAULT_OG_IMAGE,
-      type: "website",
-    };
+    return { ...(staticSeoByRoute[cleanPath] || {}), ...(esOverride || {}) };
   }, [pathname, productMatch, productSeo, projectMatch]);
 
   const robots = shouldNoindex(pathname)

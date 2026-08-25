@@ -106,16 +106,9 @@ async function checkSmtp() {
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
     return { skipped: true, reason: "SMTP not configured" }
   }
-  const nodemailer = require("nodemailer")
-  const transport = nodemailer.createTransport({
-    host:   process.env.SMTP_HOST,
-    port:   Number(process.env.SMTP_PORT || 465),
-    secure: process.env.SMTP_SECURE !== "false",
-    auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  })
-  await transport.verify()
-  transport.close()
-  return { ok: true }
+  // Verify through the single shared transport (services/emailService).
+  const { verifyTransport } = require("../services/emailService")
+  return verifyTransport()
 }
 
 async function checkMercadoPago() {

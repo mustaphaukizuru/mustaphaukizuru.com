@@ -9,6 +9,8 @@ const {
   downloadProduct,
   downloadByFileId,
 } = require("../controllers/downloadController")
+const asyncHandler = require("../utils/asyncHandler")
+const { getDownloadLibraryForUser } = require("../services/downloadService")
 
 const router = express.Router()
 
@@ -23,6 +25,16 @@ const router = express.Router()
  *  Both routes require auth and pass through the per-user rate limiter
  *  (B10 · 10 / 1 hour / user).
  */
+
+/**
+ *  0 · /my/library — dashboard "downloads by order" view. Read-only JSON
+ *      (no file bytes), so it bypasses the download rate limiter. Declared
+ *      first so the "/:id" wildcard never captures it.
+ */
+router.get("/my/library", protect, asyncHandler(async (req, res) => {
+  const data = await getDownloadLibraryForUser(req.user.id)
+  return res.status(200).json({ success: true, data })
+}))
 
 router.get("/:productId/file/:fileId", protect, downloadRateLimiter, downloadProduct)
 router.get("/:id",                     protect, downloadRateLimiter, downloadByFileId)

@@ -4,7 +4,9 @@
     "features": "Features",
     "files": "Files",
     "reviews": "Reviews",
-    "faq": "FAQ"
+    "faq": "FAQ",
+    "included": "What's Included",
+    "specs": "Specs"
   },
   "info": {
     "fileSize": "File size",
@@ -15,17 +17,24 @@
     "license": "License",
     "compatibility": "Compatibility",
     "category": "Category",
-    "delivery": "Delivery"
+    "delivery": "Delivery",
+    "files": "Files",
+    "fileCount_one": "{{count}} file",
+    "fileCount_other": "{{count}} files"
+  },
+  "dates": {
+    "today": "today",
+    "yesterday": "yesterday",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago",
+    "weeksAgo_one": "{{count}} week ago",
+    "weeksAgo_other": "{{count}} weeks ago"
   },
   "actions": {
     "addToCart": "Add to cart",
     "addingToCart": "Adding…",
     "addedToCart": "Added!",
     "buyNow": "Buy now",
-    "compare": "Compare",
-    "wishlist": "Save for later",
-    "wishlistAdd": "Add to wishlist",
-    "wishlistRemove": "Remove from wishlist",
     "share": "Share",
     "copyLink": "Copy link",
     "linkCopied": "Link copied!",
@@ -52,7 +61,8 @@
   },
   "description": {
     "showLess": "Show less",
-    "learnMore": "Learn more about this item"
+    "learnMore": "Learn more about this item",
+    "fallback": "This digital product is professionally crafted to deliver immediate implementation value. Built to save time and reduce setup friction."
   },
   "highlights": {
     "title": "Highlights"
@@ -65,13 +75,15 @@
   },
   "carousel": {
     "thumbnailsAria": "Product image thumbnails",
-    "imageAlt": "Product image"
+    "imageAlt": "Product image",
+    "showImage": "Show image {{index}}: {{alt}}"
   },
   "mobileBar": {
     "ariaLabel": "Product purchase bar"
   },
   "files": {
-    "untitled": "Untitled file"
+    "untitled": "Untitled file",
+    "downloadAria": "Download {{name}}"
   },
   "errors": {
     "notFound": "Product not found"
@@ -92,7 +104,8 @@
     "verifiedPurchase": "Verified Purchase",
     "deleteTitle": "Delete review",
     "awaitingModeration": "Awaiting moderation, only you can see this for now",
-    "replyFrom": "Reply from"
+    "replyFrom": "Reply from",
+    "verifiedIntro": "Reviews marked as verified come from customers who purchased this product through the store."
   },
   "detail": {
     "noFiles": "No file list available yet",
@@ -121,6 +134,34 @@
     "featuredBadge": "Featured",
     "newBadge": "New",
     "qty": "Qty",
-    "share": "Share"
+    "share": "Share",
+    "product": "Product"
+  },
+  "buyBox": {
+    "securePayment": "Secure payment via Mercado Pago or PayPal. Your card details never touch our servers.",
+    "decreaseQty": "Decrease quantity",
+    "increaseQty": "Increase quantity"
+  },
+  "license": {
+    "title": "License & updates",
+    "subtitle": "Every purchase comes with a single-buyer licence. Here is what you can and cannot do with the files.",
+    "personal": {
+      "title": "Personal use",
+      "body": "Use the files in unlimited personal projects, forever."
+    },
+    "commercial": {
+      "title": "Commercial use",
+      "body": "Use in client work and products you sell, on one website or brand per licence."
+    },
+    "notAllowed": {
+      "title": "Not allowed",
+      "body": "Reselling, redistributing, sharing the source files, or bundling them into templates or kits."
+    },
+    "updates": {
+      "title": "Updates included",
+      "body": "You get free lifetime updates for the major version you purchased. Every new release appears in your dashboard, ready to re-download.",
+      "versionNote": "A future major version may be offered as a paid upgrade at a discount for existing customers."
+    },
+    "fullTerms": "Read the full terms"
   }
 }

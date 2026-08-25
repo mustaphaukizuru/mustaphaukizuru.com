@@ -77,7 +77,7 @@ export default function AdminDownloadsPage() {
           <div className="truncate text-meta font-semibold text-violet">
             {row.user?.fullName || "Unnamed User"}
           </div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             {row.user?.email || "-"}
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function AdminDownloadsPage() {
           <div className="truncate text-meta font-semibold text-violet">
             {row.product?.title || "Product"}
           </div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             /store/{row.product?.slug || "-"}
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function AdminDownloadsPage() {
         <p className="text-meta text-charcoal-80/70">
           Monitor digital delivery, member access, and top downloaded products.
         </p>
-        <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+        <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
           Latest 100 download records
         </span>
       </div>
@@ -192,7 +192,7 @@ export default function AdminDownloadsPage() {
       {/* Two-column: Top products list + Download activity table */}
       <div className="grid gap-4 xl:grid-cols-[1fr_1.5fr]">
         {/* Top products card (kept as ranked list, better than table for top-N) */}
-        <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <h3 className="truncate text-card font-bold text-violet">Top Downloaded Products</h3>
@@ -229,7 +229,7 @@ export default function AdminDownloadsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-meta font-semibold text-violet">{item.title}</div>
-                        <div className="mt-0.5 truncate font-mono text-[10px] text-charcoal-80/55">
+                        <div className="mt-0.5 truncate font-mono text-[10px] text-charcoal-80/65">
                           {item.productId?.slice(0, 12)}
                         </div>
                       </div>
@@ -237,7 +237,7 @@ export default function AdminDownloadsPage() {
                         <div className="font-mono text-meta font-bold tabular-nums text-violet">
                           {item.downloads}
                         </div>
-                        <div className="text-[10px] text-charcoal-80/55">downloads</div>
+                        <div className="text-[10px] text-charcoal-80/65">downloads</div>
                       </div>
                     </div>
                     {/* Bar */}

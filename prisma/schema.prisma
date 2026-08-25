@@ -191,13 +191,54 @@ enum PortfolioStatus {
 /// USERS
 /// =============================================================
 
+/// Step 42 · schema tidy. Named AccountRole (not UserRole) because a
+/// `UserRole` join model already exists in this schema.
+enum AccountRole {
+  member
+  admin
+}
+
+enum ContactMessageStatus {
+  new
+  read
+  replied
+}
+
+enum NewsletterStatus {
+  pending
+  subscribed
+  unsubscribed
+}
+
+enum CampaignRecipientStatus {
+  queued
+  sent
+  failed
+  bounced
+}
+
+enum DiagnosticAudience {
+  EDU
+  SMB
+  IND
+}
+
+enum DiagnosticTier {
+  Foundation
+  Stabilizing
+  Optimizing
+  Mature
+}
+
 model User {
   id                     String           @id @default(cuid())
   fullName               String
   email                  String           @unique
   passwordHash           String?
-  role                   String           @default("member")
+  role                   AccountRole      @default(member)
   googleId               String?          @unique
+  microsoftId            String?          @unique
+  facebookId             String?          @unique
   avatarUrl              String?
   authProvider           String           @default("local")
   phone                  String?
@@ -322,6 +363,9 @@ model Session {
   @@index([userId])
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model Role {
   id          String   @id @default(cuid())
   name        String   @unique
@@ -332,6 +376,9 @@ model Role {
   rolePermissions RolePermission[]
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model UserRole {
   id        String   @id @default(cuid())
   userId    String
@@ -346,6 +393,9 @@ model UserRole {
   @@index([roleId])
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model AdminPermission {
   id        String   @id @default(cuid())
   key       String   @unique
@@ -355,6 +405,9 @@ model AdminPermission {
   rolePermissions RolePermission[]
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model RolePermission {
   id           String @id @default(cuid())
   roleId       String
@@ -425,6 +478,8 @@ model Product {
   createdById        String?
   rating             Float         @default(0)
   reviewCount        Int           @default(0)
+  /// Step 42 · soft delete. Non-null = hidden from every public read.
+  deletedAt          DateTime?
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
@@ -447,6 +502,7 @@ model Product {
   @@index([status])
   @@index([isActive])
   @@index([isFeatured])
+  @@index([deletedAt])
 }
 
 model ProductFeature {
@@ -473,7 +529,8 @@ model ProductFile {
   maxDownloadsPerUser Int?
   uploadedAt          DateTime @default(now())
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  downloadLogs DownloadLog[]
 
   @@index([productId])
 }
@@ -493,6 +550,9 @@ model ProductImage {
   @@index([productId])
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model ProductTag {
   id   String @id @default(cuid())
   name String @unique
@@ -501,6 +561,9 @@ model ProductTag {
   products ProductTagMap[]
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model ProductTagMap {
   id        String @id @default(cuid())
   productId String
@@ -611,6 +674,9 @@ enum RecommendationStatus {
   archived
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model Recommendation {
   id       String  @id @default(cuid())
   title    String
@@ -669,6 +735,8 @@ model Service {
   metaTitle        String?
   metaDescription  String?       @db.Text
   createdById      String?
+  /// Step 42 · soft delete. Non-null = hidden from every public read.
+  deletedAt        DateTime?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -714,6 +782,7 @@ model Service {
   @@index([status])
   @@index([isBookable])
   @@index([audienceCode])
+  @@index([deletedAt])
 }
 
 model ServiceFeature {
@@ -761,6 +830,9 @@ model ServicePackage {
 
 /// Join row mapping which Service Features are included in a given Package.
 /// Drives the ✓/✗ matrix shown on the public Choose-Your-Plan page.
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model PackageFeatureSlot {
   id        String @id @default(cuid())
   packageId String
@@ -1048,6 +1120,9 @@ model DownloadLog {
   productId      String
   orderId        String
   userDownloadId String?
+  /// Per-file download cap tracking. Nullable so legacy rows (pre per-file cap)
+  /// stay valid; downloadService falls back to productId for those.
+  productFileId  String?
   userAgent      String?  @db.Text
   ipAddress      String?
   createdAt      DateTime @default(now())
@@ -1056,11 +1131,13 @@ model DownloadLog {
   product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
   userDownload UserDownload? @relation(fields: [userDownloadId], references: [id], onDelete: SetNull)
+  productFile  ProductFile?  @relation(fields: [productFileId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([productId])
   @@index([orderId])
   @@index([userDownloadId])
+  @@index([productFileId])
 }
 
 /// =============================================================
@@ -1140,16 +1217,14 @@ model Consultation {
   rescheduledFrom Consultation?  @relation("ConsultationReschedule", fields: [rescheduledFromId], references: [id], onDelete: SetNull)
   rescheduledTo   Consultation[] @relation("ConsultationReschedule")
 
-  /// Race-safe booking — superseded by Booking Hardening v1.
-  /// The previous @@unique([assignedAdminId, scheduledAt]) only prevented
-  /// SAME-START collisions. Booking Hardening v1 replaces it with a
-  /// PostgreSQL EXCLUDE constraint on tstzrange(scheduledAt, endsAt)
-  /// (see migrations/<ts>_booking_hardening_v1/migration.sql) which
-  /// rejects ALL overlapping bookings — variable durations included.
-  /// Prisma can't express EXCLUDE natively, so the constraint lives in
-  /// raw SQL only. The catch blocks in consultationService.bookConsultation
-  /// and rescheduleConsultation map Postgres exclusion_violation
-  /// (SQLSTATE 23P01) to 409 SLOT_OVERLAP.
+  /// Race-safe booking. This database is MySQL, which has no EXCLUDE
+  /// constraint, so same-start collisions per host are rejected at the DB
+  /// level by this unique index (P2002 → 409 in consultationService).
+  /// Overlap of different-length bookings is handled by the availability
+  /// check in bookConsultation, which only offers non-overlapping slots.
+  clientProject   ClientProject? @relation("ConsultationProject")
+
+  @@unique([assignedAdminId, scheduledAt])
   @@index([serviceOrderId])
   @@index([serviceId])
   @@index([userId])
@@ -1216,7 +1291,9 @@ model AvailabilityException {
 
 model ClientProject {
   id              String        @id @default(cuid())
-  serviceOrderId  String        @unique
+  serviceOrderId  String?       @unique
+  /// Free consultations (no paid ServiceOrder) open a project shell too.
+  consultationId  String?       @unique
   userId          String
   assignedAdminId String?
   projectName     String
@@ -1227,7 +1304,8 @@ model ClientProject {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  serviceOrder  ServiceOrder       @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  serviceOrder  ServiceOrder?      @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade)
+  consultation  Consultation?      @relation("ConsultationProject", fields: [consultationId], references: [id], onDelete: SetNull)
   user          User               @relation("UserClientProjects", fields: [userId], references: [id], onDelete: Cascade)
   assignedAdmin User?              @relation("AssignedClientProjects", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   milestones    ProjectMilestone[]
@@ -1333,9 +1411,9 @@ model DiagnosticSubmission {
   name            String
   email           String
   organization    String?
-  audience        String   // EDU | SMB | IND
+  audience        DiagnosticAudience
   overallScore    Int      // 0-100 normalised
-  tier            String   // Foundation | Stabilizing | Optimizing | Mature
+  tier            DiagnosticTier
   sectionScores   Json     // { A: { pct, raw, max }, ... }
   scores          Json     // raw { "A.1": 3, ... }
   topPriorities   Json     // [{id,svc,title,score,tier}]
@@ -1355,7 +1433,7 @@ model ContactMessage {
   phone     String?
   subject   String?
   message   String    @db.Text
-  status    String    @default("new")
+  status    ContactMessageStatus @default(new)
   repliedAt DateTime?
   createdAt DateTime  @default(now())
 }
@@ -1363,7 +1441,7 @@ model ContactMessage {
 model NewsletterSubscriber {
   id             String    @id @default(cuid())
   email          String    @unique
-  status         String    @default("subscribed")
+  status         NewsletterStatus @default(subscribed)
   subscribedAt   DateTime  @default(now())
   unsubscribedAt DateTime?
 
@@ -1408,27 +1486,47 @@ model EmailTemplate {
   @@index([locale])
 }
 
+/// Delivery state of one EmailLog row (roadmap step 41 · single email layer).
+enum EmailStatus {
+  queued
+  sent
+  failed
+  bounced
+  skipped
+}
+
 model EmailLog {
-  id                String    @id @default(cuid())
+  id                String      @id @default(cuid())
   userId            String?
   emailTo           String
   templateKey       String?
   subject           String
-  status            String    @default("queued")
+  status            EmailStatus @default(queued)
   providerMessageId String?
   sentAt            DateTime?
-  errorMessage      String?   @db.Text
-  createdAt         DateTime  @default(now())
+  errorMessage      String?     @db.Text
+  /// Number of delivery attempts made so far (1 after the first send).
+  attempts          Int         @default(0)
+  /// When the retry job may re-attempt delivery. Null = no retry scheduled.
+  nextAttemptAt     DateTime?
+  /// Stored mail options (from/to/subject/html/text/headers/ics) so the
+  /// retry job can re-send without re-rendering. Null for permanent rows.
+  payload           Json?
+  createdAt         DateTime    @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([status, nextAttemptAt])
 }
 
 /// =============================================================
 /// CMS AND MEDIA
 /// =============================================================
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model Page {
   id              String     @id @default(cuid())
   title           String
@@ -1559,6 +1657,9 @@ model Portfolio {
 // B08 · Wishlist + Saved Addresses
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model Wishlist {
   id        String         @id @default(cuid())
   userId    String         @unique
@@ -1568,6 +1669,9 @@ model Wishlist {
   updatedAt DateTime       @updatedAt
 }
 
+/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
+/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
+/// backed-up migration once you have confirmed nothing else depends on it.
 model WishlistItem {
   id         String   @id @default(cuid())
   wishlistId String
@@ -1620,6 +1724,12 @@ model TwoFactorAuth {
   // Json array of { codeHash: string, used: boolean, usedAt: string|null }
   // Codes are bcrypt-hashed; one-time-use; replaced en bloc on regenerate.
   backupCodes Json
+
+  /// Highest TOTP time-step already accepted for this user. RFC 6238 §5.2
+  /// requires a one-time-password to be usable exactly once: without this,
+  /// an observed code stays replayable for the whole verification window.
+  /// Nullable so `db push` is additive; null means "nothing consumed yet".
+  lastUsedStep BigInt?
 
   enabledAt DateTime?
   createdAt DateTime  @default(now())
@@ -1855,12 +1965,16 @@ model BlogPost {
 
   tags BlogTagMap[]
 
+  /// Step 42 · soft delete. Non-null = hidden from every public read.
+  deletedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status, publishedAt])
   @@index([isFeatured, publishedAt])
   @@index([categoryId])
+  @@index([deletedAt])
 }
 
 /// =============================================================
@@ -1926,7 +2040,7 @@ model EmailCampaignRecipient {
   campaign     EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   email        String
   userId       String?
-  status       String        @default("queued") // queued | sent | failed | bounced
+  status       CampaignRecipientStatus @default(queued)
   providerId   String?
   errorMessage String?       @db.Text
   sentAt       DateTime?

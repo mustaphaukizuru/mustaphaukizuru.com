@@ -14,23 +14,13 @@
  * everywhere else.
  */
 
-// 1. Sentry first (no-op if SENTRY_DSN is unset).
-let Sentry = null
-if (process.env.SENTRY_DSN) {
-  try {
-    Sentry = require("@sentry/node")
-    Sentry.init({
-      dsn:              process.env.SENTRY_DSN,
-      environment:      process.env.NODE_ENV || "development",
-      tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE || 0.1),
-      release:          require("../package.json").version,
-    })
-    // eslint-disable-next-line no-console
-    console.log(`🛰️  Sentry initialized · env=${process.env.NODE_ENV || "development"}`)
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("[Sentry] init failed:", err.message)
-  }
+// 1. Sentry first (no-op if SENTRY_DSN is unset). src/lib/sentry.js is the
+//    single Sentry.init call site (@sentry/node v10) — it must load before
+//    express/prisma so the OpenTelemetry auto-instrumentation can hook them.
+const Sentry = require("./lib/sentry")
+if (Sentry) {
+  // eslint-disable-next-line no-console
+  console.log(`🛰️  Sentry initialized · env=${process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development"}`)
 }
 
 // 2-3. Env + app

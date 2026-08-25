@@ -60,6 +60,8 @@ async function listAllServices({ page = 1, limit = 50, includeArchived = false }
   return {
     items: items.map((s) => ({
       ...serializeService(s),
+      deletedAt:     s.deletedAt ? s.deletedAt.toISOString() : null,
+      isDeleted:     s.deletedAt != null,
       packageCount:  s._count.packages,
       featureCount:  s._count.features,
       orderCount:    s._count.serviceOrders,
@@ -183,12 +185,37 @@ async function updateService(id, data) {
   return serializeService(service)
 }
 
+/* ────────────────────────────────────────────────────────────────────────────
+ * Step 42 · soft delete.
+ *   softDeleteService(id)  → deletedAt = now, status archived, isFeatured off.
+ *   hardDeleteService(id)  → prisma.service.delete (FK Restrict on orders /
+ *                            consultations will reject rows still referenced).
+ *   restoreService(id)     → deletedAt = null; status left archived → draft so
+ *                            it never re-enters the public catalogue silently.
+ * ──────────────────────────────────────────────────────────────────────────── */
 async function softDeleteService(id) {
   const existing = await prisma.service.findUnique({ where: { id } })
   if (!existing) return null
   const service = await prisma.service.update({
     where: { id },
-    data:  { status: "archived", isFeatured: false },
+    data:  { status: "archived", isFeatured: false, deletedAt: new Date() },
+  })
+  return serializeService(service)
+}
+
+async function hardDeleteService(id) {
+  const existing = await prisma.service.findUnique({ where: { id }, select: { id: true } })
+  if (!existing) return null
+  await prisma.service.delete({ where: { id } })
+  return { id }
+}
+
+async function restoreService(id) {
+  const existing = await prisma.service.findUnique({ where: { id } })
+  if (!existing) return null
+  const service = await prisma.service.update({
+    where: { id },
+    data:  { deletedAt: null, status: existing.status === "archived" ? "draft" : existing.status },
   })
   return serializeService(service)
 }
@@ -354,6 +381,8 @@ module.exports = {
   createService,
   updateService,
   softDeleteService,
+  hardDeleteService,
+  restoreService,
   addPackage,
   updatePackage,
   removePackage,

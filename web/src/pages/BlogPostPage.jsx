@@ -5,10 +5,10 @@
    chrome (back link, share/tags labels, related posts, meta line).
    ════════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link, useParams, Navigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   ArrowLeft, ArrowRight, Calendar, Clock, Tag, Share2, CalendarCheck, Copy, Check,
 } from "lucide-react"
@@ -19,8 +19,11 @@ import Breadcrumbs from "../components/Breadcrumbs"
 import { SITE_URL } from "../seo/siteSeo"
 import SocialLinks from "../components/SocialLinks"
 import BlogContentRenderer, { extractTOC } from "../components/blog/BlogContentRenderer"
+import BlogCoverGradient from "../components/BlogCoverGradient"
 import BlogAuthorByline from "../components/blog/BlogAuthorByline"
+import NewsletterInline from "../components/NewsletterInline"
 import { apiRequest } from "../lib/api"
+import { TOKENS } from "../styles/tokens.js"
 import {
   BLOG_CATEGORIES,
   getPostBySlug,
@@ -56,7 +59,7 @@ function ReadingProgress() {
       className="fixed left-0 top-0 z-50 h-[3px] origin-left transition-[width] duration-75"
       style={{
         width: `${progress}%`,
-        background: "linear-gradient(90deg, #5D3FD3, #0284C7)",
+        background: "linear-gradient(90deg, var(--color-violet), var(--color-azure))",
       }}
     />
   )
@@ -64,6 +67,7 @@ function ReadingProgress() {
 
 /* ── Copy-link button ────────────────────────────────────────────────── */
 function CopyLinkButton({ url }) {
+  const { t } = useTranslation("blog")
   const [copied, setCopied] = useState(false)
   function copy() {
     navigator.clipboard?.writeText(url).then(() => {
@@ -75,12 +79,12 @@ function CopyLinkButton({ url }) {
     <button
       type="button"
       onClick={copy}
-      title="Copy link"
+      title={t("post.rail.copyLink")}
       className="inline-flex items-center gap-1.5 rounded-full border border-charcoal-80/15 bg-white px-3 py-1.5 text-[12px] font-semibold text-charcoal-80/70 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
     >
       {copied
-        ? <><Check className="h-3.5 w-3.5 text-mint" aria-hidden="true" />Copied</>
-        : <><Copy className="h-3.5 w-3.5"           aria-hidden="true" />Copy link</>}
+        ? <><Check className="h-3.5 w-3.5 text-mint" aria-hidden="true" />{t("post.rail.copyLinkCopied")}</>
+        : <><Copy className="h-3.5 w-3.5"            aria-hidden="true" />{t("post.rail.copyLink")}</>}
     </button>
   )
 }
@@ -108,7 +112,7 @@ function TableOfContents({ toc }) {
   if (toc.length < 2) return null
   return (
     <section>
-      <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+      <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
         <ArrowRight className="h-3 w-3 text-violet" aria-hidden="true" />
         Contents
       </h3>
@@ -126,7 +130,7 @@ function TableOfContents({ toc }) {
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30",
                     isActive
                       ? "font-semibold text-violet"
-                      : "text-charcoal-80/55 hover:text-violet",
+                      : "text-charcoal-80/65 hover:text-violet",
                   ].join(" ")}
                 >
                   {isActive && (
@@ -163,7 +167,7 @@ function BackToTop() {
       type="button"
       aria-label="Back to top"
       onClick={() => window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" })}
-      className="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-violet text-white shadow-[0_8px_24px_-6px_rgba(93,63,211,0.55)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
+      className="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-violet text-white shadow-[0_8px_24px_-6px_rgb(var(--color-violet-rgb)/0.55)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
     >
       <ArrowLeft className="h-4 w-4 rotate-90" aria-hidden="true" />
     </button>
@@ -178,7 +182,7 @@ function MidArticleCTA() {
       className="my-10 overflow-hidden rounded-2xl border border-violet/20 bg-gradient-to-r from-violet/[0.06] to-azure/[0.04] p-6"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_22px_-8px_rgba(93,63,211,0.50)]">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_22px_-8px_rgb(var(--color-violet-rgb)/0.50)]">
           <CalendarCheck className="h-5 w-5" aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
@@ -191,7 +195,7 @@ function MidArticleCTA() {
         </div>
         <Link
           to="/book"
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-violet px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(93,63,211,0.50)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-violet px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgb(var(--color-violet-rgb)/0.50)] transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
         >
           Book 30 min
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -228,14 +232,12 @@ export default function BlogPostPage() {
   const post = apiPost || staticPost
   const related = staticRelated
 
-  if (!post) return <Navigate to="/blog" replace />
-
-  const category = categoryByValue(post.category)
-  const url = `${SITE_URL}/blog/${post.slug}`
-  const toc = useMemo(() => extractTOC(post.body), [post.body])
+  const url = post ? `${SITE_URL}/blog/${post.slug}` : ""
+  const toc = useMemo(() => (post ? extractTOC(post.body) : []), [post])
 
   // BlogPosting JSON-LD — injected per-article for Google rich results
   useEffect(() => {
+    if (!post) return undefined
     const id = "blog-post-jsonld"
     document.getElementById(id)?.remove()
     const script = document.createElement("script")
@@ -264,6 +266,10 @@ export default function BlogPostPage() {
     document.head.appendChild(script)
     return () => document.getElementById(id)?.remove()
   }, [post, url])
+
+  if (!post) return <Navigate to="/blog" replace />
+
+  const category = categoryByValue(post.category)
 
   function formatDate(iso) {
     return new Date(iso).toLocaleDateString(localeTag, {
@@ -308,7 +314,7 @@ export default function BlogPostPage() {
               {t("post.rail.back")}
             </Link>
             <div className="flex items-center gap-3">
-              <span className="hidden text-[12px] text-charcoal-80/50 sm:block">
+              <span className="hidden text-[12px] text-charcoal-80/65 sm:block">
                 {category?.label || t("post.rail.fallbackKind")}
               </span>
               <CopyLinkButton url={url} />
@@ -320,7 +326,7 @@ export default function BlogPostPage() {
       {/* Article header — full-width container so title aligns with the nav */}
       <section className="bg-white">
         <Container py="md">
-          <motion.header
+          <m.header
             variants={fadeUp}
             initial={reduce ? false : "hidden"}
             animate="show"
@@ -348,7 +354,7 @@ export default function BlogPostPage() {
               {post.excerpt}
             </p>
 
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[12.5px] text-charcoal-80/55">
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[12.5px] text-charcoal-80/65">
               {/* Author — links to blog index (shows all their posts) */}
               <Link
                 to="/blog"
@@ -374,9 +380,46 @@ export default function BlogPostPage() {
                 {t("post.meta.minRead", { count: post.readMinutes })}
               </span>
             </div>
-          </motion.header>
+          </m.header>
         </Container>
       </section>
+
+      {/* Article cover — full-width gradient banner when no real cover image */}
+      {!post.cover && (
+        <div className="bg-white px-4 pb-0 pt-2 sm:px-6 lg:px-8 print:hidden">
+          <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl">
+            <BlogCoverGradient
+              title={post.title}
+              category={category?.label || ""}
+              accent={category?.accent || TOKENS.violet}
+              readMinutes={post.readMinutes}
+              aspectRatio="21 / 6"
+            />
+          </div>
+        </div>
+      )}
+      {post.cover && (
+        <div className="bg-white px-4 pb-0 pt-2 sm:px-6 lg:px-8 print:hidden">
+          {/* 16:9 frame + object-cover. A 1600×900 cover fills it edge to edge
+              with no crop and no empty bars. Non-16:9 images center-crop
+              cleanly — the standard full-bleed hero look. */}
+          <div
+            className="relative mx-auto max-w-7xl overflow-hidden rounded-2xl bg-violet-pale/40"
+            style={{ aspectRatio: "16 / 9" }}
+          >
+            <img
+              src={post.cover}
+              alt=""
+              width={1600}
+              height={900}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              className="h-full w-full object-cover object-center"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Article body — same Container width as the nav (xl = 1280px) so the
           article's left edge aligns with the header. The prose column takes
@@ -403,7 +446,7 @@ export default function BlogPostPage() {
                 <TableOfContents toc={toc} />
 
                 <section>
-                  <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+                  <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                     <Share2 className="h-3 w-3 text-violet" aria-hidden="true" />
                     {t("post.rail.share")}
                   </h3>
@@ -422,7 +465,7 @@ export default function BlogPostPage() {
                 </section>
 
                 <section>
-                  <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+                  <h3 className="mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                     <Tag className="h-3 w-3 text-violet" aria-hidden="true" />
                     {t("post.rail.tags")}
                   </h3>
@@ -442,6 +485,13 @@ export default function BlogPostPage() {
             </aside>
           </div>
         </Container>
+      </section>
+
+      {/* End-of-article newsletter CTA — warmest moment to convert a reader */}
+      <section className="bg-white px-4 pb-4 sm:px-6 lg:px-8 print:hidden">
+        <div className="mx-auto max-w-3xl">
+          <NewsletterInline source={`blog:${post.slug}`} />
+        </div>
       </section>
 
       {/* Related posts (hidden when printing) */}
@@ -466,7 +516,7 @@ export default function BlogPostPage() {
                   <li key={p.slug}>
                     <Link
                       to={`/blog/${p.slug}`}
-                      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_14px_36px_-14px_rgba(93,63,211,0.20)]"
+                      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white transition hover:-translate-y-0.5 hover:border-violet/25 hover:shadow-[0_14px_36px_-14px_rgb(var(--color-violet-rgb)/0.20)]"
                     >
                       {/* Cover thumbnail */}
                       <div className="aspect-[16/9] overflow-hidden bg-violet-pale">
@@ -482,7 +532,7 @@ export default function BlogPostPage() {
                             <span
                               aria-hidden="true"
                               className="h-2 w-2 rounded-full opacity-30"
-                              style={{ backgroundColor: pCat?.accent || "#5D3FD3" }}
+                              style={{ backgroundColor: pCat?.accent || TOKENS.violet }}
                             />
                           </div>
                         )}

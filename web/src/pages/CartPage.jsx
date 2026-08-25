@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Minus, Plus, Trash2, ArrowRight, ShoppingCart,
   Package, Shield, Zap, Tag, X, ChevronRight,
@@ -57,7 +57,7 @@ function EmptyCart() {
   const { t } = useTranslation("cart")
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <motion.div
+      <m.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.4, ease: "backOut" }}
@@ -69,17 +69,17 @@ function EmptyCart() {
         <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-mist bg-violet font-mono text-micro font-bold tabular-nums text-white">
           0
         </div>
-      </motion.div>
+      </m.div>
 
       <h2 className="mt-6 text-section font-bold text-violet">{t("empty.title")}</h2>
-      <p className="mx-auto mt-2 max-w-sm text-meta leading-6 text-charcoal-80/60">
+      <p className="mx-auto mt-2 max-w-sm text-meta leading-6 text-charcoal-80/65">
         {t("empty.subtitleLong")}
       </p>
 
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link
           to="/store"
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
         >
           <ShoppingCart className="h-4 w-4" aria-hidden="true" /> {t("empty.browseStore")}
         </Link>
@@ -135,13 +135,13 @@ function CartItem({ item, onUpdateQty, onRemove }) {
   }
 
   return (
-    <motion.div
+    <m.div
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.22 }}
-      className="group overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-3 shadow-[0_2px_10px_rgba(93,63,211,0.04)] sm:p-5"
+      className="group overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-3 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)] sm:p-5"
     >
       <div className="flex gap-3 sm:gap-4">
         {/* Image */}
@@ -171,7 +171,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
               <h3 className="mt-1 text-meta font-bold leading-tight text-violet sm:text-body sm:truncate">{item.title}</h3>
             </div>
             {/* F08.A · Trash2 with shake animation on click */}
-            <motion.button
+            <m.button
               type="button"
               onClick={handleRemove}
               animate={shaking ? { x: [0, -3, 3, -3, 3, -2, 2, 0], rotate: [0, -4, 4, -4, 4, 0] } : { x: 0, rotate: 0 }}
@@ -181,7 +181,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
               title={t("actions.removeFromCart")}
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-            </motion.button>
+            </m.button>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
@@ -215,7 +215,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
                 {formatPrice(item.price * item.quantity)}
               </div>
               {item.quantity > 1 && (
-                <div className="font-mono text-micro tabular-nums text-charcoal-80/45">
+                <div className="font-mono text-micro tabular-nums text-charcoal-80/65">
                   {formatPrice(item.price)} {t("item.each")}
                 </div>
               )}
@@ -223,7 +223,7 @@ function CartItem({ item, onUpdateQty, onRemove }) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -238,10 +238,10 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
   const itemCount = items.reduce((s, i) => s + i.quantity, 0)
 
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.06)] lg:sticky lg:top-24">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)] lg:sticky lg:top-24">
       <div className="border-b border-charcoal-80/10 px-6 py-5">
         <h2 className="text-card font-bold text-violet">{t("summary.title")}</h2>
-        <p className="mt-1 text-micro text-charcoal-80/55">
+        <p className="mt-1 text-micro text-charcoal-80/65">
           {t("itemCount", { count: itemCount })}
         </p>
       </div>
@@ -254,7 +254,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
               <span className="min-w-0 flex-1 truncate text-charcoal-80/70">
                 {item.title}
                 {item.quantity > 1 && (
-                  <span className="ml-1.5 font-mono tabular-nums text-charcoal-80/45">×{item.quantity}</span>
+                  <span className="ml-1.5 font-mono tabular-nums text-charcoal-80/65">×{item.quantity}</span>
                 )}
               </span>
               <span className="shrink-0 font-mono font-semibold tabular-nums text-violet">
@@ -274,11 +274,11 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
           </div>
 
           {discount > 0 && (
-            <div className="flex justify-between text-mint">
+            <div className="flex justify-between text-mint-700">
               <span>
                 {t("summary.discount")}
                 {appliedCoupon?.code && (
-                  <span className="ml-1 text-micro text-mint/80">({appliedCoupon.code})</span>
+                  <span className="ml-1 text-micro text-mint-700">({appliedCoupon.code})</span>
                 )}
               </span>
               <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount)}</span>
@@ -287,7 +287,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
 
           <div className="flex justify-between text-charcoal-80/65">
             <span>{t("summary.taxLabel")}</span>
-            <span className="font-semibold text-mint">{formatPrice(0)}</span>
+            <span className="font-semibold text-mint-700">{formatPrice(0)}</span>
           </div>
 
           {/* Total, F08.A · large JetBrains Mono bold */}
@@ -311,10 +311,10 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
           }}
           // Brand v3 §06 Sacred Rule — the Innovation Gradient (bg-grad-innovation)
           // owns conversion CTAs. Replaced the previous hand-rolled 3-stop
-          // gradient (which included off-palette #7c3aed) with the canonical
+          // gradient (which included an off-palette Tailwind violet-600) with the canonical
           // 2-stop utility class so the cart's primary action matches the
           // checkout button visually and stays in the sanctioned palette.
-          className="group mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-grad-innovation py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgba(93,63,211,0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(93,63,211,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+          className="group mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-grad-innovation py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgb(var(--color-violet-rgb)/0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
         >
           {isAuthenticated ? (
             <>{t("actions.checkout")} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" /></>
@@ -337,7 +337,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
             { icon: Zap,    key: "instant" },
             { icon: Check,  key: "dashboard" },
           ].map(({ icon: Icon, key }) => (
-            <div key={key} className="flex items-center gap-2.5 text-micro text-charcoal-80/50">
+            <div key={key} className="flex items-center gap-2.5 text-micro text-charcoal-80/65">
               <Icon className="h-3.5 w-3.5 shrink-0 text-violet" aria-hidden="true" />
               {t(`trust.${key}`)}
             </div>
@@ -394,7 +394,7 @@ export default function CartPage() {
         {/* Header */}
         <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <nav className="mb-2 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/50" aria-label="Breadcrumb">
+            <nav className="mb-2 flex flex-wrap items-center gap-2 text-micro text-charcoal-80/65" aria-label="Breadcrumb">
               <Link to="/" className="hover:text-violet">{t("header.breadcrumb.home")}</Link>
               <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <Link to="/store" className="hover:text-violet">{t("header.breadcrumb.store")}</Link>
@@ -407,7 +407,7 @@ export default function CartPage() {
             </h1>
 
             {cartItems.length > 0 && (
-              <p className="mt-1 text-meta text-charcoal-80/60">
+              <p className="mt-1 text-meta text-charcoal-80/65">
                 {t("itemCount", { count: cartItems.reduce((s, i) => s + i.quantity, 0) })}
               </p>
             )}
@@ -417,7 +417,7 @@ export default function CartPage() {
             <button
               type="button"
               onClick={clearCart}
-              className="inline-flex w-fit items-center gap-1.5 self-start rounded-md text-meta font-medium text-charcoal-80/60 transition hover:text-red-500 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2 sm:self-auto"
+              className="inline-flex w-fit items-center gap-1.5 self-start rounded-md text-meta font-medium text-charcoal-80/65 transition hover:text-red-500 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2 sm:self-auto"
             >
               <Trash2 className="h-4 w-4" aria-hidden="true" />
               {t("header.clearCart")}
@@ -451,12 +451,12 @@ export default function CartPage() {
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-mint text-white">
                         <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />
                       </span>
-                      <span className="text-meta font-semibold text-mint">
+                      <span className="text-meta font-semibold text-mint-700">
                         {t("summary.discountApplied")}{" "}
                         <span className="font-mono tabular-nums">−{formatPrice(discount)}</span>
                       </span>
                       {appliedCoupon.code && (
-                        <code className="ml-1 rounded-md bg-white/60 px-2 py-0.5 font-mono text-micro font-semibold text-mint">
+                        <code className="ml-1 rounded-md bg-white/60 px-2 py-0.5 font-mono text-micro font-semibold text-mint-700">
                           {appliedCoupon.code}
                         </code>
                       )}

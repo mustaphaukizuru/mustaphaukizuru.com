@@ -85,14 +85,10 @@ const pageMeta = {
   "/admin/consultations": { title: "Consultations", subtitle: "Every booked call, confirm, complete, mark no-show, or cancel on behalf of the client." },
   "/admin/service-orders": { title: "Service Orders", subtitle: "Paid consulting and packaged service deliveries, track delivery state and milestones." },
   "/admin/reviews": { title: "Reviews", subtitle: "Moderate product and service reviews, approve, hide, reject, reply, or feature." },
-  "/admin/recommendations": { title: "Recommendations", subtitle: "Curate hand-picked tools, books, services, and partners shown on the public Recommendations page." },
   "/admin/refunds": { title: "Refunds", subtitle: "Track every refund, dispute, and chargeback across MercadoPago and PayPal." },
-  "/admin/roles": { title: "Roles & Permissions", subtitle: "Custom roles and scoped permissions for the admin team." },
   "/admin/sessions": { title: "Active Sessions", subtitle: "Live sign-ins and security incident response." },
   "/admin/portfolio": { title: "Portfolio", subtitle: "Case studies and projects." },
   "/admin/support": { title: "Support Tickets", subtitle: "Member requests and resolution." },
-  "/admin/pages": { title: "Pages", subtitle: "CMS content and legal." },
-  "/admin/media": { title: "Media Library", subtitle: "Uploads and assets." },
   "/admin/email-templates": { title: "Email Templates", subtitle: "Transactional emails." },
   "/admin/email-logs": { title: "Email Logs", subtitle: "Delivery history." },
   "/admin/users": { title: "Users", subtitle: "Members and roles." },
@@ -111,7 +107,7 @@ function resolveMeta(pathname) {
 /* ──────────────────────────────────────────────────────────────────────────
  *  Mobile slide-out menu — re-uses AdminSidebar's navigation array
  *  ──────────────────────────────────────────────────────────────────── */
-function AdminMobileMenu({ open, onClose, user, initials, onLogout }) {
+function AdminMobileMenu({ open, onClose, user, initials }) {
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden"
     else document.body.style.overflow = ""
@@ -153,7 +149,7 @@ function AdminMobileMenu({ open, onClose, user, initials, onLogout }) {
               <UserAvatar src={user?.avatarUrl} initials={initials} size={9} />
               <div>
                 <div className="text-meta font-bold text-violet">{user?.fullName || "Admin"}</div>
-                <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">Administrator</div>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">Administrator</div>
               </div>
             </div>
             <button
@@ -180,7 +176,7 @@ function AdminMobileMenu({ open, onClose, user, initials, onLogout }) {
           <nav className="flex-1 overflow-y-auto px-3 pb-3" aria-label="Admin sections">
             {navigation.map((group) => (
               <div key={group.section} className="mb-3">
-                <div className="mb-1 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45">
+                <div className="mb-1 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                   {group.section}
                 </div>
                 <div className="space-y-0.5">
@@ -232,6 +228,7 @@ export default function AdminLayout() {
     navigate("/", { replace: true })
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- close menu on route change
   useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
 
   return (
@@ -259,14 +256,14 @@ export default function AdminLayout() {
           <div className="min-w-0">
 
             {/* ── Mobile Header ── */}
-            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgba(93,63,211,0.06)] lg:hidden">
+            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.18)]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.18)]">
                   <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                 </div>
                 <div>
                   <div className="text-body font-bold text-violet">{currentMeta.title}</div>
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">Admin Console</div>
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">Admin Console</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -313,7 +310,7 @@ export default function AdminLayout() {
 
       {/* Mobile bottom tab bar */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 border-t border-charcoal-80/10 bg-white shadow-[0_-4px_16px_rgba(93,63,211,0.06)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-charcoal-80/10 bg-white shadow-[0_-4px_16px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden"
         aria-label="Quick navigation"
       >
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1.5">
@@ -329,7 +326,7 @@ export default function AdminLayout() {
                   [
                     "flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 text-center transition-all",
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
-                    isActive ? "text-violet" : "text-charcoal-80/45 hover:text-violet",
+                    isActive ? "text-violet" : "text-charcoal-80/65 hover:text-violet",
                   ].join(" ")
                 }
               >
@@ -337,7 +334,7 @@ export default function AdminLayout() {
                   <>
                     <div className={[
                       "flex h-8 w-8 items-center justify-center rounded-lg transition-all",
-                      isActive ? "bg-violet text-white shadow-[0_4px_14px_rgba(93,63,211,0.25)]" : "",
+                      isActive ? "bg-violet text-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.25)]" : "",
                     ].join(" ")}>
                       <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
                     </div>

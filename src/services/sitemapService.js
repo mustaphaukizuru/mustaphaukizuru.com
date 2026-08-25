@@ -8,12 +8,11 @@ const prisma = require("../lib/prisma")
  *  for 1 hour to keep search-engine traffic from hammering the DB.
  *
  *  Pages included:
- *    Static       — Home, About, Services, Solutions, Store, Contact, Book,
+ *    Static       — Home, About, Services, Store, Contact, Book,
  *                   Privacy, Terms, Refund
  *    Products     — every active Product, by /store/:slug
  *    Services     — every active Service, by /services/:slug
  *    Portfolio    — every published PortfolioProject, by /projects/:slug
- *    CMS pages    — every published Page (legal/content), by /:slug
  *
  *  Frequency / priority hints follow Google's modern guidance — most signals
  *  are now ignored except <lastmod>, but we set the others for older crawlers
@@ -31,7 +30,6 @@ const STATIC_PAGES = [
   { path: "/",          changefreq: "weekly",  priority: 1.0 },
   { path: "/about",     changefreq: "monthly", priority: 0.8 },
   { path: "/services",  changefreq: "weekly",  priority: 0.9 },
-  { path: "/solutions", changefreq: "monthly", priority: 0.85 },
   { path: "/store",     changefreq: "daily",   priority: 0.9 },
   { path: "/contact",   changefreq: "monthly", priority: 0.7 },
   { path: "/book",      changefreq: "weekly",  priority: 0.8 },
@@ -80,7 +78,7 @@ async function buildSitemapXml() {
   // Products — only active and visible
   try {
     const products = await prisma.product.findMany({
-      where:  { isActive: true },
+      where:  { isActive: true, deletedAt: null },
       select: { slug: true, updatedAt: true },
     })
     products.forEach((p) => {
@@ -96,10 +94,12 @@ async function buildSitemapXml() {
     console.warn("[sitemap] product query failed:", e.message)
   }
 
-  // Services — only active
+  // Services — published + not soft-deleted. (Service has no `isActive`
+  // column; the previous filter threw on every build and services were
+  // silently missing from the sitemap.)
   try {
     const services = await prisma.service.findMany({
-      where:  { isActive: true },
+      where:  { status: "published", deletedAt: null },
       select: { slug: true, updatedAt: true },
     })
     services.forEach((s) => {
@@ -134,26 +134,6 @@ async function buildSitemapXml() {
     }
   } catch (e) {
     console.warn("[sitemap] portfolio query failed:", e.message)
-  }
-
-  // CMS pages — published only. Excludes the legal pages already listed in STATIC_PAGES.
-  try {
-    const staticSlugs = new Set(STATIC_PAGES.map((p) => p.path.slice(1)))
-    const pages = await prisma.page.findMany({
-      where:  { status: "published" },
-      select: { slug: true, updatedAt: true },
-    })
-    pages.forEach((p) => {
-      if (!p.slug || staticSlugs.has(p.slug)) return
-      entries.push(urlEntry({
-        loc:        `${SITE_URL}/${encodeURIComponent(p.slug)}`,
-        lastmod:    p.updatedAt,
-        changefreq: "monthly",
-        priority:   0.4,
-      }))
-    })
-  } catch (e) {
-    console.warn("[sitemap] CMS page query failed:", e.message)
   }
 
   return [

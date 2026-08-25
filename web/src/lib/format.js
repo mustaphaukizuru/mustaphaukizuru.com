@@ -21,6 +21,12 @@ const DEFAULT_CURRENCY = "MXN";
 // the active i18n language. Date/number formatting still respects locale
 // elsewhere — only currency is locale-pinned.
 const PRICE_LOCALE = "en-US";
+// Locale for non-currency number/date formatting (counts, dates, times).
+// Pinned to en-US so the documented output shapes hold everywhere —
+// "1,500" · "May 8, 2026" · "May 8, 2026 · 12:01 PM". Previously this
+// constant was referenced by formatCount/formatDate/formatDateTime but
+// never declared, throwing ReferenceError at every call site.
+const FORMAT_LOCALE = "en-US";
 
 function intlPrice(amount, currency) {
   try {

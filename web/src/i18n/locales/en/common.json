@@ -7,8 +7,7 @@
     "store": "Store",
     "portfolio": "Portfolio",
     "blog": "Blog",
-    "contact": "Contact",
-    "recommendations": "Recommendations"
+    "contact": "Contact"
   },
   "button": {
     "submit": "Submit",
@@ -102,18 +101,22 @@
     "navSolutions": "Solutions",
     "navStore": "Store",
     "navBlog": "Blog",
-    "navRecs": "Recs",
     "navContact": "Contact",
     "legalTerms": "Terms & Conditions",
     "legalPrivacy": "Privacy Policy",
     "legalCookies": "Cookie Policy",
-    "legalRefund": "Refund Policy"
+    "legalRefund": "Refund Policy",
+    "legalTermsShort": "Terms",
+    "legalPrivacyShort": "Privacy",
+    "legalCookiesShort": "Cookies",
+    "legalRefundShort": "Refund"
   },
   "language": {
     "english": "English",
     "spanish": "Spanish",
     "switchTo": "Switch to {{lang}}",
-    "ariaSelector": "Language selector"
+    "ariaSelector": "Language selector",
+    "switchToCode": "{{code}} — Switch to {{lang}}"
   },
   "meta": {
     "siteName": "Mustapha Ukizuru",
@@ -125,6 +128,13 @@
     "back": "Back to website",
     "support": "Contact support",
     "trailer": "If you continue to receive emails, please email us directly at"
+  },
+  "newsletterConfirmed": {
+    "title": "You're subscribed",
+    "body": "Thanks for confirming — you're on the list. Expect the next issue in your inbox; you can unsubscribe with one click from any email.",
+    "back": "Back to website",
+    "support": "Contact support",
+    "trailer": "Questions about the newsletter? Email us directly at"
   },
   "header": {
     "siteNav": "Site navigation",
@@ -144,7 +154,6 @@
     "dashboard": "Dashboard",
     "myOrders": "My orders",
     "downloads": "Downloads",
-    "wishlist": "Wishlist",
     "profile": "Profile",
     "adminPanel": "Admin Panel",
     "account": "Account",
@@ -172,7 +181,9 @@
     "toggleNote": "Toggle each category below. Strictly necessary cookies are required for the site to work — these are always on.",
     "savePrefs2": "Save preferences",
     "yourPrivacy": "Cookies & your privacy",
-    "shortBody": "We use strictly necessary cookies to keep this site secure, plus optional analytics. You can change preferences anytime."
+    "shortBody": "We use strictly necessary cookies to keep this site secure, plus optional analytics. You can change preferences anytime.",
+    "orAdjust": "or adjust preferences any time.",
+    "manage": "Manage"
   },
   "search": {
     "placeholder": "Type a command or search...",
@@ -188,8 +199,8 @@
     "clear": "Clear search",
     "errorTitle": "Search couldn't run",
     "errorBody": "Try again",
-    "placeholder2":      "Type a command or search…",
-    "placeholderShort":  "Search products…"
+    "placeholder2": "Type a command or search…",
+    "placeholderShort": "Search products…"
   },
   "cart": {
     "drawer": {
@@ -230,8 +241,8 @@
       "skipToForm": "Skip to form",
       "backHome": "Back to Home",
       "rights": "Mustapha Ukizuru. All rights reserved.",
-      "privacy": "Privacy Policy",
-      "terms": "Terms & Conditions",
+      "privacy": "Privacy",
+      "terms": "Terms",
       "aboutAria": "About Mustapha Ukizuru"
     },
     "marketing": {
@@ -315,12 +326,6 @@
       "sendShortcut": "Cmd/Ctrl + ↵ to send",
       "stopGenerating": "Stop generating"
     },
-    "compare": {
-      "trayAria": "Product comparison tray",
-      "clearAria": "Clear comparison",
-      "clearAll": "Clear all",
-      "viewComparison": "View comparison"
-    },
     "pricing": {
       "mostPopular": "Most Popular",
       "getStarted": "Get Started"
@@ -337,10 +342,20 @@
   },
   "components": {
     "visitSite": "Visit Site",
+    "imageAria": "Show image {{index}}",
     "clearHistory": "Clear history",
     "spokenLanguages": "Levels follow the Common European Framework of Reference for Languages (CEFR).",
     "learnMore": "Learn more",
     "mostPopular": "Most popular"
+  },
+  "fab": {
+    "openLabel": "Quick contact",
+    "closeLabel": "Close contact menu",
+    "whatsappLabel": "Message on WhatsApp",
+    "whatsappText": "Hi Mustapha, I found you through your website and I'd like to chat.",
+    "emailLabel": "Send an email",
+    "bookLabel": "Book a consultation",
+    "contactLabel": "Contact page"
   },
   "bookingCalendar": {
     "stepDate": "Date",

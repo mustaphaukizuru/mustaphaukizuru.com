@@ -133,8 +133,8 @@ const Checkbox = forwardRef(function Checkbox(
           isChecked || indeterminate
             ? "bg-[var(--color-action-primary)] border-[var(--color-action-primary)]"
             : "",
-          "peer-focus-visible:shadow-[0_0_0_3px_rgba(93,63,211,0.18)]",
-          hasError && "peer-focus-visible:shadow-[0_0_0_3px_rgba(220,38,38,0.18)]",
+          "peer-focus-visible:shadow-[0_0_0_3px_rgb(var(--color-violet-rgb)/0.18)]",
+          hasError && "peer-focus-visible:shadow-[0_0_0_3px_rgb(var(--color-rose-rgb)/0.18)]",
         ]
           .filter(Boolean)
           .join(" ")}

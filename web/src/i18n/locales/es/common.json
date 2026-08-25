@@ -7,8 +7,7 @@
     "store": "Tienda",
     "portfolio": "Portafolio",
     "blog": "Blog",
-    "contact": "Contacto",
-    "recommendations": "Recomendaciones"
+    "contact": "Contacto"
   },
   "button": {
     "submit": "Enviar",
@@ -102,18 +101,22 @@
     "navSolutions": "Soluciones",
     "navStore": "Tienda",
     "navBlog": "Blog",
-    "navRecs": "Recomendaciones",
     "navContact": "Contacto",
     "legalTerms": "Términos y condiciones",
     "legalPrivacy": "Política de privacidad",
     "legalCookies": "Política de cookies",
-    "legalRefund": "Política de reembolsos"
+    "legalRefund": "Política de reembolsos",
+    "legalTermsShort": "Términos",
+    "legalPrivacyShort": "Privacidad",
+    "legalCookiesShort": "Cookies",
+    "legalRefundShort": "Reembolsos"
   },
   "language": {
     "english": "Inglés",
     "spanish": "Español",
     "switchTo": "Cambiar a {{lang}}",
-    "ariaSelector": "Selector de idioma"
+    "ariaSelector": "Selector de idioma",
+    "switchToCode": "{{code}} — Cambiar a {{lang}}"
   },
   "meta": {
     "siteName": "Mustapha Ukizuru",
@@ -125,6 +128,13 @@
     "back": "Volver al sitio",
     "support": "Contactar a soporte",
     "trailer": "Si sigues recibiendo correos, escríbenos directamente a"
+  },
+  "newsletterConfirmed": {
+    "title": "Suscripción confirmada",
+    "body": "Gracias por confirmar — ya estás en la lista. Recibirás la próxima edición en tu bandeja de entrada; puedes darte de baja con un clic desde cualquier correo.",
+    "back": "Volver al sitio",
+    "support": "Contactar a soporte",
+    "trailer": "¿Dudas sobre el newsletter? Escríbenos directamente a"
   },
   "header": {
     "siteNav": "Navegación del sitio",
@@ -144,7 +154,6 @@
     "dashboard": "Panel",
     "myOrders": "Mis pedidos",
     "downloads": "Descargas",
-    "wishlist": "Favoritos",
     "profile": "Perfil",
     "adminPanel": "Panel admin",
     "account": "Cuenta",
@@ -172,7 +181,9 @@
     "toggleNote": "Activa o desactiva cada categoría. Las cookies estrictamente necesarias son obligatorias para el funcionamiento del sitio — siempre están activas.",
     "savePrefs2": "Guardar preferencias",
     "yourPrivacy": "Cookies y tu privacidad",
-    "shortBody": "Usamos cookies estrictamente necesarias para mantener el sitio seguro, además de analíticas opcionales. Puedes cambiar tus preferencias en cualquier momento."
+    "shortBody": "Usamos cookies estrictamente necesarias para mantener el sitio seguro, además de analíticas opcionales. Puedes cambiar tus preferencias en cualquier momento.",
+    "orAdjust": "o ajusta tus preferencias cuando quieras.",
+    "manage": "Preferencias"
   },
   "search": {
     "placeholder": "Escribe un comando o busca...",
@@ -188,8 +199,8 @@
     "clear": "Limpiar búsqueda",
     "errorTitle": "La búsqueda no pudo ejecutarse",
     "errorBody": "Inténtalo de nuevo",
-    "placeholder2":      "Escribe un comando o busca…",
-    "placeholderShort":  "Buscar productos…"
+    "placeholder2": "Escribe un comando o busca…",
+    "placeholderShort": "Buscar productos…"
   },
   "cart": {
     "drawer": {
@@ -230,8 +241,8 @@
       "skipToForm": "Saltar al formulario",
       "backHome": "Volver al inicio",
       "rights": "Mustapha Ukizuru. Todos los derechos reservados.",
-      "privacy": "Política de privacidad",
-      "terms": "Términos y condiciones",
+      "privacy": "Privacidad",
+      "terms": "Términos",
       "aboutAria": "Sobre Mustapha Ukizuru"
     },
     "marketing": {
@@ -315,12 +326,6 @@
       "sendShortcut": "Cmd/Ctrl + ↵ para enviar",
       "stopGenerating": "Detener generación"
     },
-    "compare": {
-      "trayAria": "Bandeja de comparación de productos",
-      "clearAria": "Limpiar comparación",
-      "clearAll": "Limpiar todo",
-      "viewComparison": "Ver comparación"
-    },
     "pricing": {
       "mostPopular": "Más popular",
       "getStarted": "Comenzar"
@@ -337,6 +342,7 @@
   },
   "components": {
     "visitSite": "Visitar sitio",
+    "imageAria": "Mostrar imagen {{index}}",
     "clearHistory": "Limpiar historial",
     "spokenLanguages": "Los niveles siguen el Marco Común Europeo de Referencia para las Lenguas (MCER).",
     "learnMore": "Saber más",
@@ -354,5 +360,14 @@
     "minutes": "minutos",
     "optionalTag": "(opcional)",
     "confirmBooking": "Confirmar reserva"
+  },
+  "fab": {
+    "openLabel": "Contacto rápido",
+    "closeLabel": "Cerrar menú de contacto",
+    "whatsappLabel": "Escríbeme por WhatsApp",
+    "whatsappText": "Hola Mustapha, te encontré en tu sitio web y me gustaría platicar.",
+    "emailLabel": "Enviar un correo",
+    "bookLabel": "Reservar consultoría",
+    "contactLabel": "Página de contacto"
   }
 }

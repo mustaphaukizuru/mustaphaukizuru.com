@@ -1,183 +1,73 @@
 import {
-  Building2,
-  BriefcaseBusiness,
-  GraduationCap,
-  BookOpen,
-  MonitorSmartphone,
-  Wrench,
-  BrainCircuit,
-  Server,
+  Compass,
+  Bot,
+  CloudCog,
+  Code2,
   Search,
-  Lightbulb,
-  Settings2,
-  LineChart,
+  Hammer,
+  Rocket,
 } from "lucide-react"
 
 /* ──────────────────────────────────────────────────────────────────────────
- *  homeData.js · I18N12 — bilingual key-based catalogue
+ *  homeData.js · roadmap step 24/28 — one thesis, two paths, trust layer
  *
- *  After the I18N rollout, this file no longer ships English strings.
- *  Instead it exposes:
- *    · `titleKey` / `descriptionKey` — i18next keys under the `home` namespace
- *    · `icon` — Lucide React component, locale-agnostic
- *    · `roleKey` (testimonials only) — locale-routed role label
- *
- *  Consumers (Home.jsx) call `t(item.titleKey)` to render. Real customer
- *  testimonial quotes (`text`) are kept in their original English on purpose —
- *  translating a quote without the speaker's consent would misrepresent them.
- *  When a Spanish-speaking customer ships a quote in Spanish we add a
- *  parallel record with its own keys.
+ *  Locale-agnostic catalogue for the Home page. Every visible string is an
+ *  i18next key under the `home` namespace; consumers call `t(key)`.
+ *  Icons are Lucide components (never emoji).
  *  ──────────────────────────────────────────────────────────────────── */
 
-export const audiences = [
-  {
-    titleKey:       "home:audiences.smes.title",
-    descriptionKey: "home:audiences.smes.description",
-    icon:           Building2,
-  },
-  {
-    titleKey:       "home:audiences.professionals.title",
-    descriptionKey: "home:audiences.professionals.description",
-    icon:           BriefcaseBusiness,
-  },
-  {
-    titleKey:       "home:audiences.schools.title",
-    descriptionKey: "home:audiences.schools.description",
-    icon:           GraduationCap,
-  },
+/* The 4 service categories from docs/SERVICE_CATALOGUE_2026-08.md.
+ * `to` points at a slug that exists in web/src/data/servicesCatalogue.js
+ * today; AI & Automation has no dedicated catalogue slug yet, so it links
+ * to the catalogue index until one is seeded. */
+export const serviceCategories = [
+  { key: "strategy", icon: Compass,  to: "/services/it-strategy-consulting" },
+  { key: "ai",       icon: Bot,      to: "/services/ai-automation" },
+  { key: "cloud",    icon: CloudCog, to: "/services/cloud-architecture-migration" },
+  { key: "product",  icon: Code2,    to: "/services/digital-product-engineering" },
 ]
 
-export const solutions = [
-  { titleKey: "home:solutionsList.digitalProducts",          icon: BookOpen },
-  { titleKey: "home:solutionsList.professionalTraining",     icon: GraduationCap },
-  { titleKey: "home:solutionsList.websiteAndDigitalSystems", icon: MonitorSmartphone },
-  { titleKey: "home:solutionsList.technologyConsulting",     icon: BrainCircuit },
-  { titleKey: "home:solutionsList.stemCodingRobotics",       icon: Wrench },
-  { titleKey: "home:solutionsList.itInfrastructure",         icon: Server },
-]
-
-/* featuredProducts is reference seed data only — actual featured products
- * come from the API on Home mount. Kept English for legacy consumers
- * (storybook, dev seeds). Not rendered on the public Home page. */
-export const featuredProducts = [
-  {
-    id: "digital-transformation-starter-toolkit",
-    category: "IT Toolkits",
-    title: "Digital Transformation Starter Toolkit",
-    description: "Practical templates to guide digital planning and implementation.",
-    price: 10,
-    rating: 5,
-  },
-  {
-    id: "weekly-content-calendar",
-    category: "Templates",
-    title: "Weekly Content Calendar for Creators",
-    description: "A structured planning resource for consistent digital publishing.",
-    price: 12,
-    rating: 5,
-  },
-  {
-    id: "stem-program-planning-pack",
-    category: "Training",
-    title: "STEM Program Planning Pack",
-    description: "Organized teaching resources for coding and robotics initiatives.",
-    price: 18,
-    rating: 5,
-  },
-  {
-    id: "school-it-audit-checklist",
-    category: "Operations",
-    title: "School IT Audit Checklist",
-    description: "A ready-to-use checklist for reviewing infrastructure and systems.",
-    price: 15,
-    rating: 5,
-  },
-  {
-    id: "website-launch-planning-kit",
-    category: "Business Systems",
-    title: "Website Launch Planning Kit",
-    description: "A clean framework for planning and structuring web projects.",
-    price: 14,
-    rating: 5,
-  },
-  {
-    id: "digital-workflow-optimization-pack",
-    category: "Consulting",
-    title: "Digital Workflow Optimization Pack",
-    description: "Templates and guidance for improving digital efficiency.",
-    price: 16,
-    rating: 5,
-  },
-]
-
+/* "How I work" — three steps. Copy lives under home:process.steps.* */
 export const processSteps = [
-  {
-    titleKey:       "home:processSteps.discovery.title",
-    descriptionKey: "home:processSteps.discovery.description",
-    icon:           Search,
-  },
-  {
-    titleKey:       "home:processSteps.strategy.title",
-    descriptionKey: "home:processSteps.strategy.description",
-    icon:           Lightbulb,
-  },
-  {
-    titleKey:       "home:processSteps.implementation.title",
-    descriptionKey: "home:processSteps.implementation.description",
-    icon:           Settings2,
-  },
-  {
-    titleKey:       "home:processSteps.optimization.title",
-    descriptionKey: "home:processSteps.optimization.description",
-    icon:           LineChart,
-  },
+  { key: "discover", icon: Search },
+  { key: "build",    icon: Hammer },
+  { key: "launch",   icon: Rocket },
 ]
 
-/* Real customer testimonials. `text` is the verbatim quote from the
- * customer — never translated without explicit consent. `roleKey` routes
- * the role label through i18n so the Spanish surface shows
- * "Administradora escolar" instead of "School Administrator". */
-export const testimonials = [
-  {
-    initials: "AM",
-    name:     "Aline M.",
-    roleKey:  "home:testimonialRoles.schoolAdministrator",
-    rating:   5,
-    text:     "The platform strategy and infrastructure guidance helped us modernize our digital learning environment with confidence.",
-  },
-  {
-    initials: "JN",
-    name:     "Jean N.",
-    roleKey:  "home:testimonialRoles.businessOwner",
-    rating:   5,
-    text:     "The consulting approach was structured, practical, and focused on results. Our digital processes became more organized immediately.",
-  },
-  {
-    initials: "CK",
-    name:     "Claudine K.",
-    roleKey:  "home:testimonialRoles.educationCoordinator",
-    rating:   4,
-    text:     "The STEM and technology planning support gave us a clear path for building engaging learning experiences.",
-  },
-  {
-    initials: "TM",
-    name:     "Theo M.",
-    roleKey:  "home:testimonialRoles.operationsLead",
-    rating:   5,
-    text:     "Strong communication, thoughtful planning, and modern systems thinking made the implementation process smooth.",
-  },
-  {
-    initials: "SR",
-    name:     "Sarah R.",
-    roleKey:  "home:testimonialRoles.independentProfessional",
-    rating:   4,
-    text:     "The digital strategy recommendations helped me improve my online structure and work more efficiently.",
-  },
-  {
-    initials: "DK",
-    name:     "David K.",
-    roleKey:  "home:testimonialRoles.itCoordinator",
-    rating:   5,
-    text:     "Reliable guidance and a professional process. The solutions were practical, scalable, and easy to adopt.",
-  },
+/* Trust layer (step 28) — named testimonials with role + company.
+ *
+ * PLACEHOLDER ENTRIES. The previous anonymised quotes ("Aline M.") carried
+ * no company attribution, so they could not satisfy the named-testimonial
+ * requirement. Each entry below is marked `placeholder: true` and renders a
+ * `data-placeholder` attribute; the owner replaces name/role/company/quote
+ * in home.json (EN + ES, under testimonials.items.<key>) and flips the flag
+ * to false. Never ship these as real social proof. */
+/**
+ * Testimonials · home:testimonials.items.<key> holds the quote, name, role
+ * and company for each entry.
+ *
+ * Entries marked `placeholder: true` are INVENTED examples showing the shape
+ * of the data. They are filtered out of `testimonials` below so the site
+ * never publishes social proof that no real client gave — a fake endorsement
+ * on a live page is a lie to buyers, not a styling detail.
+ *
+ * To go live with a testimonial: replace the copy in BOTH
+ * web/src/i18n/locales/en/home.json and es/home.json, then delete
+ * `placeholder: true` from its entry here. The section renders as soon as at
+ * least one real entry exists, and stays hidden while there are none.
+ */
+export const testimonialEntries = [
+  { key: "a", initials: "AM", rating: 5, placeholder: true },
+  { key: "b", initials: "JN", rating: 5, placeholder: true },
+  { key: "c", initials: "CK", rating: 5, placeholder: true },
+]
+
+export const testimonials = testimonialEntries.filter((entry) => !entry.placeholder)
+
+/* Proof-strip numbers (HomeStatsStrip). Labels via home:stats.<key>Label */
+export const stats = [
+  { key: "years",     to: 8,   suffix: "+" },
+  { key: "projects",  to: 47,  suffix: ""  },
+  { key: "countries", to: 4,   suffix: ""  },
+  { key: "students",  to: 100, suffix: "+" },
 ]
