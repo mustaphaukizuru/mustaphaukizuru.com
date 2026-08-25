@@ -138,7 +138,7 @@ export default function FormShell({
                 type="button"
                 onClick={onClearError}
                 aria-label="Dismiss error"
-                className="rounded p-0.5 text-rose-600/60 transition hover:text-rose-800 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-rose-300/40"
+                className="rounded p-0.5 text-rose-600 transition hover:text-rose-800 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-rose-300/40"
               >
                 <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>

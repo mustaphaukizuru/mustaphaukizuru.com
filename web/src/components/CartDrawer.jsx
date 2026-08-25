@@ -192,7 +192,7 @@ export default function CartDrawer() {
                       <span>
                         Discount
                         {appliedCoupon?.code && (
-                          <span className="ml-1 font-mono text-micro text-mint-700/80">({appliedCoupon.code})</span>
+                          <span className="ml-1 font-mono text-micro text-mint-700">({appliedCoupon.code})</span>
                         )}
                       </span>
                       <span className="font-mono tabular-nums">−{fmt(discount)}</span>

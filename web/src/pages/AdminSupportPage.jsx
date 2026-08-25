@@ -195,7 +195,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
                 <RotateCcw className="h-4 w-4" />
                 Refund request · Order #{fullTicket.order.orderNumber}
               </div>
-              <div className="mt-1 text-micro text-rose-700/85">
+              <div className="mt-1 text-micro text-rose-700">
                 Total {Number(fullTicket.order.totalAmount || 0).toFixed(2)} {fullTicket.order.currency} ·
                 Status <span className="font-semibold capitalize">{fullTicket.order.status}</span>
               </div>

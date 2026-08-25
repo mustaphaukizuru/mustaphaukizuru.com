@@ -336,7 +336,9 @@ function BookingCalendar({ reduce }) {
               <Globe className="h-3.5 w-3.5 !text-violet" aria-hidden="true" />
               America/Mexico_City
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold !text-mint-600 ring-1 ring-mint-600/25">
+            {/* mint-600 on white is 3.19:1 — fine for an icon (3:1 bar) but
+                this is 10px TEXT, which needs 4.5:1. mint-700 is 7.68:1. */}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold !text-mint-700 ring-1 ring-mint-600/25">
               <span className="relative flex h-1.5 w-1.5">
                 <m.span
                   aria-hidden="true"

@@ -288,7 +288,7 @@ export default function ServicesCheckoutPage() {
           <div className="rounded-2xl border border-rose/20 bg-rose/5 p-8 text-center">
             <AlertCircle className="mx-auto mb-3 h-10 w-10 text-rose-600" />
             <h1 className="text-card font-bold text-rose-700">{t("checkout.errors.notFound")}</h1>
-            <p className="mt-2 text-meta text-rose-700/85">
+            <p className="mt-2 text-meta text-rose-700">
               {t("checkout.errors.notFoundBody")}
             </p>
             <Link

@@ -22,7 +22,7 @@
  * are listed under EXEMPT with the reason they are out of scope — they are
  * documented, not checked as body text.
  */
-import { readFileSync } from "node:fs"
+import { readFileSync, readdirSync, existsSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -224,6 +224,44 @@ if (process.argv.includes("--report")) {
   console.log("\n  Exempt by role:")
   for (const e of EXEMPT) console.log("    · " + e)
   console.log("")
+}
+
+/* ── Rule: never dilute an already-darkened scale step for TEXT ────────────
+ * The -600/-700/-800 steps exist precisely because the brand anchor fails
+ * AA as body text. Putting an alpha back on top undoes that: `text-mint-700/75`
+ * measured 3.86:1 at 10.5px on white and failed a desktop Lighthouse run,
+ * while the declared-pair table above passed — because nobody had thought to
+ * declare that exact pair. This scan needs no declaration: the pattern itself
+ * is the bug. Backgrounds (`bg-*`) and rings are unaffected.
+ * ------------------------------------------------------------------------- */
+function scanDilutedTextTokens() {
+  const roots = ["src"]
+  const offenders = []
+  const RE = /text-(mint|amber|rose|azure|violet|terracotta|charcoal|steel)-(600|700|800)\/(\d{1,3})\b/g
+
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = `${dir}/${entry.name}`
+      if (entry.isDirectory()) { walk(full); continue }
+      if (!/\.(jsx?|tsx?)$/.test(entry.name)) continue
+      const text = readFileSync(full, "utf8")
+      for (const m of text.matchAll(RE)) {
+        if (Number(m[3]) >= 100) continue
+        offenders.push(`${full}: ${m[0]}`)
+      }
+    }
+  }
+  for (const r of roots) { if (existsSync(r)) walk(r) }
+  return offenders
+}
+
+const diluted = scanDilutedTextTokens()
+if (diluted.length) {
+  console.error("\n\x1b[31m✖ Contrast gate failed\x1b[0m — a darkened scale step is being diluted for TEXT.\n")
+  for (const d of diluted) console.error("    " + d)
+  console.error("\n  The -600/-700/-800 steps are the AA-passing choice; an alpha puts them back under 4.5:1.")
+  console.error("  Use the solid token for text. Alpha is fine on bg-* and ring-*.\n")
+  process.exit(1)
 }
 
 if (failures.length) {

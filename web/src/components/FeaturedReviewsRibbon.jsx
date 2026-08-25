@@ -54,7 +54,7 @@ function ReviewCard({ review }) {
         <StarRow rating={review.rating} />
         <span className="text-meta font-bold text-violet">{review.rating}.0</span>
         {review.isVerifiedPurchase && (
-          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-mint-600/10 px-2 py-0.5 text-micro font-bold text-mint-600">
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-mint-600/10 px-2 py-0.5 text-micro font-bold text-mint-700">
             <ShieldCheck className="h-2.5 w-2.5" /> Verified
           </span>
         )}

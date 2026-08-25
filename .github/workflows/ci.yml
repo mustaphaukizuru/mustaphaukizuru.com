@@ -92,6 +92,15 @@ jobs:
         working-directory: web
         run: npm run lint:tokens
 
+      # Roadmap step 22 (companion gate) — WCAG 2.1 AA contrast lock.
+      # This was previously not wired into CI, which is exactly how a
+      # text-mint-700/75 at 10.5px (3.86:1) reached the branch and failed the
+      # Lighthouse job instead. Catching it here costs seconds; catching it
+      # in Lighthouse costs a full browser run and a much vaguer error.
+      - name: Contrast gate
+        working-directory: web
+        run: npm run lint:contrast
+
       - name: Lint
         working-directory: web
         run: npm run lint

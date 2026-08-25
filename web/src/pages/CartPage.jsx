@@ -278,7 +278,7 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
               <span>
                 {t("summary.discount")}
                 {appliedCoupon?.code && (
-                  <span className="ml-1 text-micro text-mint-700/80">({appliedCoupon.code})</span>
+                  <span className="ml-1 text-micro text-mint-700">({appliedCoupon.code})</span>
                 )}
               </span>
               <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount)}</span>

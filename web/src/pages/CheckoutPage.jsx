@@ -844,7 +844,7 @@ export default function CheckoutPage() {
                       <code className="truncate font-mono text-micro font-semibold text-mint-700">
                         {appliedCoupon.code}
                       </code>
-                      <span className="font-mono text-micro tabular-nums text-mint-700/85">
+                      <span className="font-mono text-micro tabular-nums text-mint-700">
                         −{formatPrice(discount)}
                       </span>
                     </div>

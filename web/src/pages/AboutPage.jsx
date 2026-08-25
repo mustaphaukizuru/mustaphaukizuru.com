@@ -552,7 +552,7 @@ function AboutStatsStrip() {
       ring:    "ring-mint/15",
       number:  "text-mint-700",
       icon:    "bg-mint/12 text-mint",
-      hint:    "text-mint-700/75",
+      hint:    "text-mint-700",
       accent:  "bg-mint",
       glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-mint-rgb)/0.18), transparent 70%)",
     },

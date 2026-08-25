@@ -181,7 +181,7 @@ export default function RefundPage() {
             <h2 className="mb-3 flex items-center gap-2 text-body font-bold text-amber-700">
               <FileSearch className="h-5 w-5" /> {t("refund.chargebacks.title")}
             </h2>
-            <p className="text-meta text-amber-700/85">
+            <p className="text-meta text-amber-700">
               {t("refund.chargebacks.body")}
             </p>
           </m.div>
