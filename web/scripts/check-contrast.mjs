@@ -197,7 +197,17 @@ const EXEMPT = [
   "terracotta star-rating glyphs, hero sparkles and decorative <Star fill> marks — icons, 3:1",
   "azure / mint / amber / rose / coral as lucide icon tints inside h-8…h-14 tiles — non-text UI, 3:1",
   "violet↔azure gradients, blurred blobs, ring-* / border-* tints — decoration, no text",
-  "terracotta and azure accent words inside `.text-display` / `.text-page` headings — large text, 3:1",
+  // Verified 2026-08-25: every terracotta accent word inside a heading sits on a
+  // DARK ground — StoreHero (bg-violet-deep), Footer, and the AboutPage CTA band
+  // are all text-white sections, covered by the declared terracotta-on-charcoal
+  // pair above. There is currently NO light-ground terracotta heading, so the
+  // "1.9:1 display heading" debt recorded in docs/LAUNCH_HANDOVER_2026-08.md §7
+  // was stale. Azure accent words are the remaining reason this line exists.
+  //
+  // CAUTION: this gate only checks DECLARED pairs, so a future light-ground
+  // terracotta heading would pass silently. If one is added, declare it —
+  // terracotta-800 (#856212, 5.60:1 on white) is the light-ground companion.
+  "azure accent words inside `.text-display` / `.text-page` headings — large text, 3:1",
   "chart series fills and sparkline strokes drawn from the brand anchors — non-text UI, 3:1",
   "`--color-*-rgb` alpha washes used as backgrounds rather than as text — surfaces, not text",
   "mint (2.54:1) and amber (2.15:1) on white as icon tints: below even the 3:1 non-text bar,",

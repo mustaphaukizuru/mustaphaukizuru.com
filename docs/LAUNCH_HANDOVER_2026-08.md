@@ -286,9 +286,14 @@ Two things left deliberately, both design decisions:
 - `--text-micro` is 10 px and is ~34 % of the text on /about. Lighthouse wants
   >= 12 px for mobile legibility. Raising it shifts layout site-wide, so it is
   yours to make.
-- The terracotta accent on light-ground display headings is 1.9:1. Fixing it
-  means picking a different accent hue for light heroes (see
-  `docs/DESIGN_SYSTEM.md`).
+- ~~The terracotta accent on light-ground display headings is 1.9:1.~~
+  **Stale — there is no such heading.** Verified 2026-08-25: every terracotta
+  accent word inside a heading sits on a dark ground (StoreHero
+  `bg-violet-deep`, the Footer, and the AboutPage CTA band are all
+  `text-white` sections), which the declared terracotta-on-charcoal pair
+  already covers. Nothing to fix. If a light-ground terracotta heading is ever
+  added, use `terracotta-800` (#856212, 5.60:1 on white) and declare the pair
+  — the gate checks declared pairs only, so it would not catch it otherwise.
 
 ### Contrast: the gate had a hole, now closed
 

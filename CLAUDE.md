@@ -20,8 +20,12 @@ npm run seed:email     # upsert email templates from prisma/seed-email-templates
 
 ## Database — always `db push`, never `migrate`
 ```bash
-npx prisma db push && npx prisma generate
+npm run db:push          # guarded: refuses a non-local DATABASE_URL
 ```
+**`.env` points at PRODUCTION** — there is no dev database. `scripts/guard-prod-db.js`
+now blocks `db:push` and every `seed:*` script unless the host is local. To act on
+production deliberately: `node scripts/backup-db-json.js` first, then
+`ALLOW_PROD_DB=1 npm run db:push`. Unrecognised hosts count as production by design.
 Hostinger MySQL cannot create the shadow DB `migrate dev` needs. There is no migrations history; the schema file is the source of truth. Import the client from `src/lib/prisma.js` only (never `new PrismaClient()`).
 
 ## Deploy — Hostinger + Passenger (not PM2)
