@@ -250,7 +250,15 @@ export default defineConfig({
           // case studies) — admin/dashboard bundles never pull it.
           if (id.includes("node_modules/gsap"))                       return "gsap"
           if (id.includes("node_modules/lucide-react"))               return "lucide"
-          if (id.includes("node_modules/react-icons"))                return "icons"
+          // react-icons is deliberately NOT pinned to a shared chunk. It is
+          // used by exactly five files, all brand/tech logos on About and the
+          // tech-stack strips. Forcing it into one "icons" chunk made every
+          // page download it — Lighthouse measured 24 kB with 23 kB unused on
+          // /terms. Returning undefined HERE (before the node_modules
+          // catch-all below, which would otherwise sweep it into "vendor" —
+          // just as global) hands placement back to Rollup, which puts the
+          // glyphs in the route chunks that actually render them.
+          if (id.includes("node_modules/react-icons"))                return undefined
           if (id.includes("node_modules/pdfjs-dist"))                 return "pdfjs"
           if (id.includes("node_modules/i18next") ||
               id.includes("node_modules/react-i18next"))              return "i18n"
