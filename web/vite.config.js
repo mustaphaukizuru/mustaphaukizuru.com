@@ -266,6 +266,11 @@ export default defineConfig({
           // library for nothing. Same treatment: let Rollup put it in the
           // admin chunks that import it.
           if (id.includes("node_modules/zod"))                        return undefined
+          // lenis is dynamically imported by SmoothScrollProvider AFTER its
+          // feature-flag and reduced-motion guards. manualChunks overrides
+          // Rollup even for dynamic imports, so without this it lands back in
+          // "vendor" and ships to everyone regardless.
+          if (id.includes("node_modules/lenis"))                      return undefined
           if (id.includes("node_modules/pdfjs-dist"))                 return "pdfjs"
           if (id.includes("node_modules/i18next") ||
               id.includes("node_modules/react-i18next"))              return "i18n"
