@@ -192,7 +192,14 @@ describe("order → paid → refund → webhook replay", () => {
       .send({ type: "payment", action: "payment.updated", data: { id: "MP-PAY-1" } })
     expect(res.status).toBe(401)
     expect(ctx.mocks.fetch).not.toHaveBeenCalled()
-    expect(ctx.prisma.rows("paymentWebhook").find((w) => w.gatewayEventId === "req-bad-sig").processed).toBe(false)
+    // A forged delivery must not reach the database at all. This assertion
+    // used to read `...find(w => w.gatewayEventId === "req-bad-sig").processed`
+    // toBe(false) — i.e. it asserted that an unverified event DID get an audit
+    // row, just an unprocessed one. That was the bug: signature verification
+    // ran after the audit insert, so anyone could POST junk and grow the
+    // paymentWebhook table without limit. Verification now runs first, so the
+    // correct assertion is that no row exists for a bad signature.
+    expect(ctx.prisma.rows("paymentWebhook").find((w) => w.gatewayEventId === "req-bad-sig")).toBeUndefined()
   })
 
   test("replayed Mercado Pago 'refunded' webhook (valid HMAC) leaves the order refunded", async () => {

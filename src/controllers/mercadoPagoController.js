@@ -68,7 +68,26 @@ const webhook = async (req, res) => {
       req.query?.id ||
       null
 
-    // 1. Persist the raw event for audit BEFORE any processing.
+    // 1. Signature verification FIRST (skipped in dev when MP_WEBHOOK_SECRET
+    //    is unset). This used to run *after* the audit insert below, which
+    //    handed any unauthenticated caller a write primitive: every spoofed
+    //    POST created a paymentWebhook row before we ever checked the HMAC,
+    //    so the table could be grown without limit. Verifying first costs
+    //    nothing — signatureHeader, requestId and paymentId are all read
+    //    from the request above — and it means only authentic events reach
+    //    the database.
+    //
+    //    Trade-off, deliberate: forged deliveries are no longer persisted to
+    //    the audit table. They are still logged (logger.warn below), which is
+    //    the right place for them — an attacker-controlled row in a payments
+    //    table is worse than a log line.
+    const verified = verifyMercadoPagoSignature({ signatureHeader, requestId, dataId: paymentId })
+    if (!verified) {
+      logger.warn("[MP webhook] signature verification failed", { paymentId, requestId })
+      return res.status(401).json({ received: true, error: "signature" })
+    }
+
+    // 2. Persist the raw event for audit before any processing.
     //    The (paymentGateway, gatewayEventId) unique constraint causes a
     //    P2002 on duplicate deliveries — we treat that as a no-op so MP
     //    retries within the dedup window don't spam the audit log.
@@ -90,13 +109,6 @@ const webhook = async (req, res) => {
       }
       // any other DB error — log and continue, audit is best-effort
       logger.warn("[MP webhook] audit insert failed:", e.message)
-    }
-
-    // 2. Signature verification (skipped in dev when MP_WEBHOOK_SECRET unset).
-    const verified = verifyMercadoPagoSignature({ signatureHeader, requestId, dataId: paymentId })
-    if (!verified) {
-      logger.warn("[MP webhook] signature verification failed", { paymentId, requestId })
-      return res.status(401).json({ received: true, error: "signature" })
     }
 
     if (!paymentId) return res.status(200).json({ received: true })
