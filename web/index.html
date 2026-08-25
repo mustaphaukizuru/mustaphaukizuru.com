@@ -16,15 +16,18 @@
 
     <!-- ────────────────────────────────────────────────────────────────
          SEO04 · Search-engine verification meta tags
-         Replace the placeholder values once Search Console / Bing / etc.
-         issue a verification token. DNS TXT verification is preferred for
-         Google (see SEARCH-CONSOLE-SETUP.md) but the meta is kept as a
-         fallback when DNS access is restricted.
+         Tokens are substituted at build time from VITE_GOOGLE_VERIFY /
+         VITE_BING_VERIFY / VITE_YANDEX_VERIFY / VITE_PINTEREST_VERIFY env
+         vars (see vite.config.js · seoVerificationReplacePlugin). When a
+         var is unset the line is stripped from the HTML entirely, so
+         production never ships placeholder strings. DNS TXT verification
+         is preferred for Google (see SEARCH-CONSOLE-SETUP.md) but the meta
+         is kept as a fallback when DNS access is restricted.
          ──────────────────────────────────────────────────────────────── -->
-    <meta name="google-site-verification" content="REPLACE_WITH_GOOGLE_TOKEN" />
-    <meta name="msvalidate.01"            content="REPLACE_WITH_BING_TOKEN" />
-    <meta name="yandex-verification"      content="REPLACE_WITH_YANDEX_TOKEN" />
-    <meta name="p:domain_verify"          content="REPLACE_WITH_PINTEREST_TOKEN" />
+    <meta name="google-site-verification" content="__GOOGLE_VERIFY__" />
+    <meta name="msvalidate.01"            content="__BING_VERIFY__" />
+    <meta name="yandex-verification"      content="__YANDEX_VERIFY__" />
+    <meta name="p:domain_verify"          content="__PINTEREST_VERIFY__" />
 
     <!-- F02 · Brand identity — favicon set + manifest, single source of truth.
          The SVG favicon is the master (always crisp); PNG fallbacks cover

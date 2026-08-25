@@ -31,10 +31,39 @@ function gaIdReplacePlugin() {
   }
 }
 
+// SEO · Search-engine verification tokens are substituted from env at build
+// time. When a token is unset the corresponding <meta> line is stripped
+// entirely so we never ship placeholder strings to production source.
+const VERIFICATION_TOKENS = {
+  __GOOGLE_VERIFY__:    process.env.VITE_GOOGLE_VERIFY    || "",
+  __BING_VERIFY__:      process.env.VITE_BING_VERIFY      || "",
+  __YANDEX_VERIFY__:    process.env.VITE_YANDEX_VERIFY    || "",
+  __PINTEREST_VERIFY__: process.env.VITE_PINTEREST_VERIFY || "",
+}
+
+function seoVerificationReplacePlugin() {
+  return {
+    name: "seo-verification-replace",
+    transformIndexHtml(html) {
+      let out = html
+      for (const [placeholder, value] of Object.entries(VERIFICATION_TOKENS)) {
+        if (value) {
+          out = out.replace(new RegExp(placeholder, "g"), value)
+        } else {
+          const lineRe = new RegExp(`^[ \\t]*<meta[^>]*${placeholder}[^>]*/>\\s*\\n?`, "gm")
+          out = out.replace(lineRe, "")
+        }
+      }
+      return out
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
     react(),
     gaIdReplacePlugin(),
+    seoVerificationReplacePlugin(),
     ...(visualizerPlugin ? [visualizerPlugin] : []),
     tailwindcss(),
     VitePWA({
