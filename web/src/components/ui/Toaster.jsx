@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { Toaster as SonnerToaster, toast as sonnerToast } from "sonner"
 import { CheckCircle2, AlertCircle, Info, Loader2 } from "lucide-react"
 
@@ -38,7 +39,7 @@ export default function Toaster() {
         classNames: {
           toast:
             "group !pointer-events-auto !rounded-2xl !border !border-charcoal-80/10 " +
-            "!bg-white/95 !shadow-[0_18px_50px_-12px_rgba(93,63,211,0.18),0_2px_8px_rgba(0,0,0,0.04)] " +
+            "!bg-white/95 !shadow-[0_18px_50px_-12px_rgb(var(--color-violet-rgb)/0.18),0_2px_8px_rgba(0,0,0,0.04)] " +
             "!backdrop-blur-md !text-charcoal-80 !p-4 !text-[13.5px] !font-medium",
           title: "!font-semibold !text-charcoal !leading-snug",
           description: "!mt-1 !text-[12.5px] !text-charcoal-80/70",
@@ -47,7 +48,7 @@ export default function Toaster() {
           cancelButton:
             "!rounded-full !bg-charcoal-80/5 !px-3 !py-1 !text-[12px] !font-medium !text-charcoal-80",
           closeButton:
-            "!h-6 !w-6 !rounded-full !bg-charcoal-80/5 !text-charcoal-80/55 hover:!text-charcoal-80",
+            "!h-6 !w-6 !rounded-full !bg-charcoal-80/5 !text-charcoal-80/65 hover:!text-charcoal-80",
           success: "before:!absolute before:!inset-y-0 before:!left-0 before:!w-1 before:!rounded-l-2xl before:!bg-mint",
           error: "before:!absolute before:!inset-y-0 before:!left-0 before:!w-1 before:!rounded-l-2xl before:!bg-rose",
           info: "before:!absolute before:!inset-y-0 before:!left-0 before:!w-1 before:!rounded-l-2xl before:!bg-azure",

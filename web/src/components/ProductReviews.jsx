@@ -21,7 +21,7 @@ import {
   deleteProductReview,
   markReviewHelpful,
 } from "../services/reviewService"
-import { getStoredUser, getStoredToken } from "../lib/api"
+import { getStoredUser } from "../lib/api"
 
 import { useTranslation } from "react-i18next"
 /* ─── atoms ───────────────────────────────────────────────────────────── */
@@ -63,7 +63,7 @@ function RatingBar({ label, count, total }) {
       <div className="h-2 flex-1 overflow-hidden rounded-full bg-charcoal-80/8">
         <div className="h-full rounded-full bg-terracotta transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <span className="w-6 text-right text-charcoal-80/50">{count}</span>
+      <span className="w-6 text-right text-charcoal-80/65">{count}</span>
     </div>
   )
 }
@@ -166,7 +166,7 @@ export default function ProductReviews({ slug, productTitle }) {
   const [formSuccess, setFormSuccess] = useState("")
 
   const currentUser = getStoredUser()
-  const isLoggedIn = Boolean(getStoredToken())
+  const isLoggedIn = Boolean(getStoredUser())
 
   const loadReviews = useCallback(async () => {
     try {
@@ -231,7 +231,7 @@ export default function ProductReviews({ slug, productTitle }) {
             {stats.averageRating.toFixed(1)}
           </div>
           <StarRating rating={Math.round(stats.averageRating)} size={18} />
-          <div className="mt-1 text-micro text-charcoal-80/50">
+          <div className="mt-1 text-micro text-charcoal-80/65">
             {stats.totalReviews} {stats.totalReviews === 1 ? "review" : "reviews"}
           </div>
         </div>
@@ -245,7 +245,7 @@ export default function ProductReviews({ slug, productTitle }) {
 
       {/* ── Submit feedback ── */}
       {formSuccess && (
-        <div className="flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="flex items-start gap-2 rounded-xl border border-mint/20 bg-mint/10 px-4 py-3 text-sm text-emerald-700">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{formSuccess}</span>
         </div>
@@ -278,7 +278,7 @@ export default function ProductReviews({ slug, productTitle }) {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-xl border border-violet/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]"
+          className="space-y-4 rounded-xl border border-violet/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]"
         >
           <div>
             <label className="mb-2 block text-sm font-semibold text-violet">{t("reviews.yourRating")}</label>
@@ -298,12 +298,12 @@ export default function ProductReviews({ slug, productTitle }) {
           </div>
 
           {formError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+            <div className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-2.5 text-sm text-rose-700">
               {formError}
             </div>
           )}
 
-          <p className="text-micro text-charcoal-80/55">
+          <p className="text-micro text-charcoal-80/65">
             {t("reviews.moderationNote")}
           </p>
 
@@ -333,7 +333,7 @@ export default function ProductReviews({ slug, productTitle }) {
           ))}
         </div>
       ) : reviews.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist px-6 py-8 text-center text-sm text-charcoal-80/50">
+        <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-mist px-6 py-8 text-center text-sm text-charcoal-80/65">
           {t("reviews.noneYet")}
         </div>
       ) : (
@@ -344,7 +344,7 @@ export default function ProductReviews({ slug, productTitle }) {
             return (
               <article
                 key={review.id}
-                className="rounded-xl border border-charcoal-80/8 bg-white p-5 shadow-[0_2px_8px_rgba(93,63,211,0.03)]"
+                className="rounded-xl border border-charcoal-80/8 bg-white p-5 shadow-[0_2px_8px_rgb(var(--color-violet-rgb)/0.03)]"
               >
                 <header className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
@@ -381,7 +381,7 @@ export default function ProductReviews({ slug, productTitle }) {
                     <button
                       type="button"
                       onClick={() => handleDelete(review.id)}
-                      className="rounded-lg p-1.5 text-charcoal-80/30 transition hover:bg-red-50 hover:text-red-500"
+                      className="rounded-lg p-1.5 text-charcoal-80/30 transition hover:bg-rose/10 hover:text-red-500"
                       title={t("reviews.deleteTitle")}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -397,7 +397,7 @@ export default function ProductReviews({ slug, productTitle }) {
                     public can't see the queue length, but the reviewer knows
                     why their review isn't yet visible to others. */}
                 {isOwner && review.status && review.status !== "approved" && (
-                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-micro font-semibold text-amber-700">
+                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber/10 px-3 py-1 text-micro font-semibold text-amber-700">
                     <Clock3 className="h-3 w-3" /> {t("reviews.awaitingModeration")}
                   </div>
                 )}
@@ -414,7 +414,7 @@ export default function ProductReviews({ slug, productTitle }) {
                       <MessageSquare className="h-3 w-3" />
                       {t("reviews.replyFrom")} {review.adminReplyBy?.fullName || "the team"}
                       {review.adminReplyAt && (
-                        <span className="font-normal text-charcoal-80/50 normal-case tracking-normal">
+                        <span className="font-normal text-charcoal-80/65 normal-case tracking-normal">
                           · {timeAgo(review.adminReplyAt)}
                         </span>
                       )}

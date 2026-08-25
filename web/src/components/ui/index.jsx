@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 // ════════════════════════════════════════════════════════════════════════════
 // ui · Master barrel · v2.0 · 2026-spec design system
 // ────────────────────────────────────────────────────────────────────────────
@@ -9,9 +10,9 @@
 // Two layers live behind this barrel:
 //
 //   1. Production primitives — token-driven, accessible, Framer-animated.
-//      Source of truth lives in components/system/. The thin wrappers in this
-//      folder re-export them under stable names so an implementation change
-//      in /system flows automatically through the barrel.
+//      Source of truth lives HERE (components/ui/). components/system/ is a
+//      folder of thin re-exports kept only so legacy `@/components/system`
+//      imports keep working — never edit an implementation there.
 //
 //   2. New 2026-standard primitives created in this folder:
 //        Form    · Checkbox · Radio · Switch · Select · Label · FormField
@@ -54,6 +55,7 @@ export { Badge, STATUS_TO_TONE } from "./Badge"
 export { Divider } from "./Divider"
 export { Stat, AnimatedCount } from "./Stat"
 export { EmptyStateSurface } from "./EmptyStateSurface"
+export { SkeletonStat } from "./SkeletonPrimitives"
 
 // ── Overlays & feedback ───────────────────────────────────────────────────
 export { Modal, ModalFooter, Dialog, DialogFooter } from "./Modal"

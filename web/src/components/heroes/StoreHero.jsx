@@ -27,7 +27,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Sparkles, ArrowRight, Zap, ShieldCheck, RotateCcw, Headphones, Star,
   ChevronLeft, ChevronRight, ImageIcon, Package,
@@ -81,7 +81,7 @@ function FeaturedCard({ product, position, total }) {
   const s = POSITIONS[position] ?? POSITIONS[2]
 
   return (
-    <motion.article
+    <m.article
       initial={false}
       animate={{
         scale: s.scale,
@@ -150,12 +150,12 @@ function FeaturedCard({ product, position, total }) {
 
         {/* Counter badge · "1 of 5" */}
         {isFront && total > 1 && (
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal-80/45">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal-80/65">
             {t("hero.featuredLive")}
           </p>
         )}
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -168,7 +168,7 @@ function FeaturedSkeleton({ reduce }) {
     <div className="relative h-[440px] w-full sm:h-[460px] lg:h-[480px]">
       <div className="absolute inset-0 mx-auto flex w-[86%] flex-col overflow-hidden rounded-3xl bg-white/80 shadow-[0_18px_44px_rgba(0,0,0,0.18)] ring-1 ring-white/10 backdrop-blur-sm">
         <div className="relative aspect-[5/3] w-full overflow-hidden bg-gradient-to-br from-violet-pale to-terracotta/30">
-          <motion.div
+          <m.div
             aria-hidden="true"
             animate={reduce ? undefined : { x: ["-100%", "100%"] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
@@ -176,7 +176,7 @@ function FeaturedSkeleton({ reduce }) {
           />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <Package className="h-12 w-12 text-violet/40" aria-hidden="true" />
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet/50">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet">
               {t("hero.comingSoon")}
             </p>
           </div>
@@ -233,7 +233,7 @@ function FeaturedProductsCarousel({ products, reduce }) {
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 24, scale: 0.96 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -268,7 +268,7 @@ function FeaturedProductsCarousel({ products, reduce }) {
 
       {/* Auto-advance progress bar · resets per slide, pauses on hover */}
       {total > 1 && (
-        <motion.div
+        <m.div
           key={`${current}-${paused ? "p" : "r"}`}
           aria-hidden="true"
           initial={{ width: "0%" }}
@@ -323,7 +323,7 @@ function FeaturedProductsCarousel({ products, reduce }) {
           </button>
         </div>
       )}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -338,23 +338,23 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
   return (
     <section
       className="relative overflow-hidden bg-gradient-to-br from-violet via-violet-deep to-charcoal-80 py-12 sm:py-16 lg:py-20"
-      style={{ backgroundImage: "linear-gradient(135deg, #5D3FD3 0%, #4A2EAB 50%, #1A1B23 100%)" }}
+      style={{ backgroundImage: "linear-gradient(135deg, var(--color-violet) 0%, var(--color-violet-deep) 50%, var(--color-charcoal) 100%)" }}
     >
 
       {/* ── Animated background ──────────────────────────────────────── */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, 30, 0], y: [0, 20, 0], scale: [1, 1.08, 1] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
         className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-white/5 blur-3xl"
       />
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, -22, 0], y: [0, 28, 0], scale: [1, 1.12, 1] }}
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
         className="pointer-events-none absolute -bottom-16 left-1/3 h-56 w-56 rounded-full bg-terracotta/10 blur-2xl"
       />
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, 24, 0], y: [0, -18, 0], opacity: [0.35, 0.75, 0.35] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1.4 }}
@@ -371,13 +371,13 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
           backgroundSize: "44px 44px",
         }}
       />
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         style={{
           backgroundImage:
-            "linear-gradient(120deg, transparent 30%, rgba(233, 196, 106,0.06) 50%, transparent 70%)",
+            "linear-gradient(120deg, transparent 30%, rgb(var(--color-terracotta-rgb)/0.06) 50%, transparent 70%)",
           backgroundSize: "200% 200%",
         }}
         className="pointer-events-none absolute inset-0"
@@ -388,14 +388,14 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
 
           {/* LEFT · narrative + CTAs + trust strip (PRESERVED) */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col gap-6"
           >
             {/* Eyebrow */}
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro font-semibold uppercase tracking-[0.2em] text-terracotta ring-1 ring-white/10 backdrop-blur-sm">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-violet-deep px-4 py-1.5 text-micro font-semibold uppercase tracking-[0.2em] text-terracotta ring-1 ring-white/10 backdrop-blur-sm">
               <Sparkles className="h-3.5 w-3.5" /> {t("hero.premiumDigital")}
             </span>
 
@@ -412,9 +412,9 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
 
             {/* Social-proof line */}
             <div className="flex flex-wrap items-center gap-3 text-micro text-white/60">
-              <span className="inline-flex items-center gap-1 text-terracotta" aria-label="five star rating">
+              <span role="img" className="inline-flex items-center gap-1 text-terracotta" aria-label={t("hero.ratingAria", { defaultValue: "Rated five out of five stars" })}>
                 {[0, 1, 2, 3, 4].map((i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                  <Star key={i} className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
                 ))}
               </span>
               <span className="font-semibold text-white/85">{t("hero.trustCrafted")}</span>
@@ -432,7 +432,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
             <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 to="/store#products"
-                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet shadow-[0_14px_36px_rgba(233, 196, 106,0.30)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet-deep shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.30)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
               >
                 {t("hero.shopNow")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
@@ -467,14 +467,14 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
                 24/7 support
               </li>
             </ul>
-          </motion.div>
+          </m.div>
 
           {/* RIGHT — Featured products carousel.
               FeaturedProductsCarousel is the 3-card stack with auto-advance,
               hover-pause, keyboard ← / →, dot nav, and progress bar.
               FeaturedSkeleton renders a graceful empty state when the feed
               is still loading or returns no products. */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
@@ -485,7 +485,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
             ) : (
               <FeaturedSkeleton reduce={reduce} />
             )}
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

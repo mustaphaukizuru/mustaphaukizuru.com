@@ -12,7 +12,7 @@
 const prisma = require("../lib/prisma")
 
 /** Default selection for public reads — drafts/archived are excluded. */
-const PUBLIC_WHERE = { status: "published" }
+const PUBLIC_WHERE = { status: "published", deletedAt: null }
 
 function serializePost(post) {
   if (!post) return null
@@ -63,8 +63,16 @@ async function listPublicPosts({ category, tag, q, limit = 50, offset = 0 } = {}
     prisma.blogPost.findMany({
       where,
       orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
-      include: { category: true, tags: { include: { tag: true } } },
-      take: Math.min(limit, 100),
+      // Card projection only — `body` (the heavy Json column) is excluded;
+      // getPublicPostBySlug returns the full post.
+      select: {
+        id: true, slug: true, title: true, excerpt: true, cover: true,
+        readMinutes: true, isFeatured: true, publishedAt: true, createdAt: true,
+        authorName: true, authorRole: true, authorAvatar: true,
+        category: { select: { id: true, label: true, slug: true } },
+        tags:     { select: { tag: { select: { id: true, label: true, slug: true } } } },
+      },
+      take: Math.min(Math.max(1, limit), 100),
       skip: offset,
     }),
     prisma.blogPost.count({ where }),
@@ -94,7 +102,7 @@ async function listTopTags(limit = 14) {
   const rows = await prisma.blogTag.findMany({
     include: {
       _count: {
-        select: { posts: { where: { post: { status: "published" } } } },
+        select: { posts: { where: { post: PUBLIC_WHERE } } },
       },
     },
   })

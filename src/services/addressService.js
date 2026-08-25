@@ -63,6 +63,7 @@ async function list(userId) {
   return prisma.address.findMany({
     where:   { userId },
     orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+    take:    100,
   })
 }
 

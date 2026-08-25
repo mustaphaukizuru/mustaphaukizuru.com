@@ -29,7 +29,32 @@
   --color-cyan:              #7DD3FC;  /* Electric Cyan — accent only */
   --color-terracotta:        #E9C46A;  /* Soft Terracotta — humanity */
   --color-terracotta-deep:   #D4A847;  /* Hover terracotta */
+  --color-terracotta-800:    #856212;  /* NEW v1.2 — terracotta's body-text companion. Terracotta and terracotta-deep are both light hues (1.9:1 on white); this is the only warm-accent step that clears AA as text on a light ground. */
   --color-charcoal-80:       #1A1B23;  /* Midnight Charcoal — alias */
+  --color-charcoal-deep:     #0E0F14;  /* NEW v1.1 — deepest dark canvas (auth panel, dark dashboard page bg) */
+  --color-violet-mid:        #7B5FE0;  /* NEW v1.1 — gradient mid-stop between violet and violet-light */
+  --color-mint-light:        #34D399;  /* NEW v1.1 — brighter mint for illustrations / confetti / success marks */
+  --color-coral:             #E07856;  /* NEW v1.1 — warm coral accent (Services hero illustration) */
+  --color-code-fg:           #C8C8D0;  /* NEW v1.1 — code text on the charcoal code surface */
+  --color-coral-pale:        #FCE7DC;  /* NEW v1.1 — coral's pale companion (chip backgrounds) */
+
+  /* ── RGB CHANNEL TRIPLES (NEW v1.1) ───────────────────────────────────
+   * Alpha variants of a brand color must NOT be written as a fresh
+   * `rgba(93, 63, 211, 0.06)` literal — that re-states the palette and
+   * drifts. Compose them instead:
+   *     rgb(var(--color-violet-rgb)/0.06)
+   * The slash form has no spaces, so it is also legal inside a Tailwind
+   * arbitrary value: `shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.06)]`.
+   */
+  --color-violet-rgb:      93 63 211;
+  --color-azure-rgb:        2 132 199;
+  --color-terracotta-rgb: 233 196 106;
+  --color-charcoal-rgb:    26 27 35;
+  --color-mist-rgb:       248 250 252;
+  --color-mint-rgb:        16 185 129;
+  --color-amber-rgb:      245 158 11;
+  --color-rose-rgb:       225 29 72;
+  --color-coral-rgb:      224 120 86;
 
   /* ───────────────────────────────────────────────────────────────────────
      1 · COLOR — SURFACE
@@ -117,11 +142,24 @@
   --color-skeleton-shine:   #F5F3F8;
 
   /* ───────────────────────────────────────────────────────────────────────
+     1 · COLOR — AVATAR TINTS (NEW v1.1)
+     Deterministic 5-way categorical palette for initials avatars. Indexed
+     by a hash of the user's name, so the same person always gets the same
+     tint. Each bg/fg pair is >= 4.5:1.
+     ─────────────────────────────────────────────────────────────────────── */
+  --color-avatar-1-bg: #FFF1EC;  --color-avatar-1-fg: #7C2D12;  /* terracotta tint */
+  --color-avatar-2-bg: #E6F1FF;  --color-avatar-2-fg: #1D4ED8;  /* azure tint      */
+  --color-avatar-3-bg: #E8F7EE;  --color-avatar-3-fg: #15803D;  /* mint tint       */
+  --color-avatar-4-bg: #FFF5D6;  --color-avatar-4-fg: #854D0E;  /* amber tint      */
+  --color-avatar-5-bg: #FDE7EF;  --color-avatar-5-fg: #9D174D;  /* rose tint       */
+
+  /* ───────────────────────────────────────────────────────────────────────
      2 · TYPOGRAPHY — FAMILY
      ─────────────────────────────────────────────────────────────────────── */
   --font-display:  "Sora", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body:     "Sora", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono:     "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-script:   "Caveat", "Brush Script MT", cursive;  /* NEW v1.1 — hand-drawn annotations in hero illustrations ONLY */
 
   /* ───────────────────────────────────────────────────────────────────────
      2 · TYPOGRAPHY — SCALE
@@ -346,6 +384,311 @@
 [data-on-dark] *:focus-visible {
   box-shadow: var(--ring-focus-on-dark);
 }
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   DARK THEME · DASHBOARD-SCOPED · Brand v3 § 04 + § 26 contrast matrix
+   ────────────────────────────────────────────────────────────────────────
+   Scope: ONLY surfaces with `data-dashboard-shell` on their root —
+   currently DashboardLayout and AdminLayout. The public website is
+   anchored to the canonical light brand per Brand Identity v3.1 §00
+   ("Default Mode: Light") and never flips, regardless of the user's
+   stored theme preference.
+
+   Why scope to dashboards only:
+     · Public site is the brand showcase — light identity is canonical
+     · Dashboards are the operator (Mustapha) and engaged members'
+       working surface — dark mode meaningfully reduces eye strain on
+       long sessions reviewing data tables, charts, and admin forms
+     · Keeps the brand v3 light-first promise intact while still
+       delivering the §17 "both modes designed" call where it matters
+
+   Activation: ThemeSwitcher sets `data-theme="dark"` on <html> (via the
+   existing useTheme hook). The CSS selectors below combine that root
+   attribute with `[data-dashboard-shell]` so the override ONLY paints
+   inside the dashboard subtree. A user who toggles dark in /dashboard
+   then navigates to /about sees the canonical light brand — exactly
+   the intent.
+
+   Token strategy: override SEMANTIC tokens (--color-surface-*,
+   --color-text-*, --color-feedback-*-bg). Brand anchors (--color-mist,
+   --color-charcoal, --color-violet) stay fixed so `bg-charcoal
+   text-white` pairs (dashboard header dark cards, sign-out buttons,
+   admin sidebar) never become invisible when the theme flips.
+
+   Contrast pairs (Brand v3 §26):
+     Cloud Mist on Charcoal — 16.4:1 AAA (primary text)
+     Violet Light on Charcoal — 5.8:1 AA (brand accent on dark)
+     Cyan on Charcoal — 9.4:1 AAA (live indicators)
+   ════════════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] [data-dashboard-shell] {
+  color-scheme: dark;
+
+  /* ── Surfaces (canvas → cards → elevated) ─────────────────────────────
+   * page    = body canvas (deepest)
+   * card    = primary content surface (one step up from canvas)
+   * elevated= modals / popovers (one step up from card)
+   * mist alias kept for components that named the canvas as "mist"
+   */
+  --color-surface-page:           var(--color-charcoal-deep);  /* Deeper than Charcoal — full-dark canvas */
+  --color-surface-mist:           var(--color-charcoal-deep);  /* alias of page */
+  --color-surface-cream:          #14151B;  /* dashboard canvas tint */
+  --color-surface-card:           #1A1B23;  /* Midnight Charcoal — primary card */
+  --color-surface-elevated:       #22232D;  /* Modals / popovers — one step up */
+  --color-surface-dark:           var(--color-charcoal-deep);  /* On-dark surface alias (rarely used in dark mode) */
+  --color-surface-dark-elevated:  #2A2C3A;
+
+  /* ── Text — Brand v3 §26 dark-mode pairs ──────────────────────────── */
+  --color-text-primary:           #F8FAFC;  /* Cloud Mist — 16.4:1 AAA on charcoal */
+  --color-text-secondary:         #CBD5E1;  /* Slate-300 lighter — readable secondary */
+  --color-text-muted:             #94A3B8;  /* Slate-400 — metadata */
+  --color-text-link:              #7DD3FC;  /* Cyan on dark — 9.4:1 AAA per §26 */
+  --color-text-link-hover:        #BAE6FD;  /* Cyan-200 hover */
+  --color-text-inverse:           #1A1B23;  /* Charcoal — for surfaces that stay light */
+
+  /* ── Borders (subtle through strong, all at low opacity for dark) ── */
+  --color-border-subtle:          rgba(248, 250, 252, 0.06);
+  --color-border-default:         rgba(248, 250, 252, 0.10);
+  --color-border-strong:          rgba(248, 250, 252, 0.18);
+  --color-border-violet:          rgba(139, 111, 232, 0.30);  /* Violet Light @ 30% */
+  --color-border-violet-strong:   #8B6FE8;                    /* Violet Light fully opaque */
+
+  /* ── Action tokens ─────────────────────────────────────────────────
+   * Brand anchor violet stays the same hue, but on-violet text muted
+   * adjusts since dark mode loses the contrast from the light canvas.
+   */
+  --color-action-secondary:         #1A1B23;
+  --color-action-secondary-hover:   #22232D;
+  --color-action-ghost-hover:       rgba(139, 111, 232, 0.12);  /* Violet Light @ 12% wash */
+
+  /* ── Feedback color bgs flip from solid pastels to transparent tints
+   *    so they sit naturally on a dark canvas without looking like
+   *    Day Mode pastels punched into the night.
+   *    Pattern: rgba(<brand color>, 0.16) bg + brand-light text.
+   */
+  --color-feedback-success:       #10B981;
+  --color-feedback-success-bg:    rgba(16, 185, 129, 0.16);
+  --color-feedback-success-text:  #6EE7B7;  /* Emerald-300 — readable on dark tint */
+
+  --color-feedback-warning:       #F59E0B;
+  --color-feedback-warning-bg:    rgba(245, 158, 11, 0.16);
+  --color-feedback-warning-text:  #FCD34D;  /* Amber-300 — readable on dark tint */
+
+  --color-feedback-danger:        #E11D48;
+  --color-feedback-danger-bg:     rgba(225, 29, 72, 0.16);
+  --color-feedback-danger-text:   #FDA4AF;  /* Rose-300 — readable on dark tint */
+
+  --color-feedback-info:          #7DD3FC;  /* Cyan replaces Violet as info on dark */
+  --color-feedback-info-bg:       rgba(125, 211, 252, 0.16);
+  --color-feedback-info-text:     #BAE6FD;
+
+  /* ── Focus ring — Cyan-on-dark per §26 (higher contrast than Azure) */
+  --ring-focus:                   0 0 0 3px rgba(125, 211, 252, 0.40);
+  --ring-focus-on-dark:           0 0 0 3px rgba(248, 250, 252, 0.55);
+
+  /* ── Shadows — deepened so cards still read as elevated on dark canvas
+   * Light-mode shadows used rgba(26,27,35,…) (charcoal) which disappears
+   * on a dark canvas. Switch to pure black at higher opacity for parity. */
+  --shadow-overlay:               0 24px 64px rgba(0, 0, 0, 0.55);
+  --shadow-popover:               0 16px 40px rgba(0, 0, 0, 0.40);
+  --shadow-card-soft:             0 8px 20px  rgba(0, 0, 0, 0.30);
+  --shadow-card-md:               0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   DARK THEME · scrollbar adaptation (dashboard scope only)
+   Light-mode scrollbar thumb uses violet-pale; on a dark canvas it's
+   nearly invisible. Re-paint scrollbars inside dashboard surfaces so
+   data tables and long forms stay scannable.
+   ════════════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] [data-dashboard-shell] ::-webkit-scrollbar-thumb        { background: rgba(255, 255, 255, 0.10); }
+[data-theme="dark"] [data-dashboard-shell] ::-webkit-scrollbar-thumb:hover  { background: rgba(255, 255, 255, 0.20); }
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   DARK THEME · input autofill (dashboard scope only)
+   ════════════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] [data-dashboard-shell] input:-webkit-autofill,
+[data-theme="dark"] [data-dashboard-shell] input:-webkit-autofill:hover,
+[data-theme="dark"] [data-dashboard-shell] input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface-elevated) inset;
+  -webkit-text-fill-color: var(--color-text-primary);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   DARK THEME · utility auto-flips (dashboard scope only)
+   ────────────────────────────────────────────────────────────────────────
+   The dashboard layouts hard-code Tailwind brand utilities like
+   `bg-mist`, `text-charcoal`, `bg-slate-100` directly. To make them flip
+   without rewriting every dashboard component, target the most common
+   "canvas / primary text / secondary text" utilities under the
+   dashboard-shell selector.
+
+   These overrides do NOT leak to public pages because the selector
+   requires `[data-dashboard-shell]` as a descendant ancestor — public
+   layouts (PublicShell, AuthShell) carry no such attribute.
+
+   Pages that need finer-grained dark designs can still opt into
+   semantic tokens via `bg-[var(--color-surface-card)]` etc., and those
+   will flip via the token block above.
+   ════════════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] [data-dashboard-shell] {
+  background-color: var(--color-surface-page);
+  color: var(--color-text-primary);
+}
+
+/* ── Canvas + text utilities ───────────────────────────────────────── */
+[data-theme="dark"] [data-dashboard-shell] .bg-mist          { background-color: var(--color-surface-page) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal,
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80 { color: var(--color-text-primary) !important; }
+[data-theme="dark"] [data-dashboard-shell] .bg-slate-100     { background-color: var(--color-surface-cream) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-steel       { color: var(--color-text-muted) !important; }
+
+/* ── Opacity-modified charcoal text (KPI labels, captions, metadata) ──
+ * The base `.text-charcoal-80` flip above doesn't reach Tailwind opacity
+ * variants like `text-charcoal-80/55`. Those resolve to "charcoal at 55%
+ * alpha" which on a dark canvas is near-invisible (dark-on-dark with
+ * partial transparency). Mirror each common density to Cloud Mist at the
+ * same alpha so KPI labels, dropdown subtitles, table-cell metadata,
+ * placeholder copy, etc. all stay readable in dark mode.
+ */
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/35   { color: rgba(248, 250, 252, 0.45) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/40   { color: rgba(248, 250, 252, 0.48) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/45   { color: rgba(248, 250, 252, 0.52) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/50   { color: rgba(248, 250, 252, 0.58) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/55   { color: rgba(248, 250, 252, 0.62) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/60   { color: rgba(248, 250, 252, 0.68) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/65   { color: rgba(248, 250, 252, 0.72) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/70   { color: rgba(248, 250, 252, 0.78) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/75   { color: rgba(248, 250, 252, 0.82) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/80   { color: rgba(248, 250, 252, 0.85) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/85   { color: rgba(248, 250, 252, 0.88) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal-80\/90   { color: rgba(248, 250, 252, 0.92) !important; }
+
+/* Same family without the `-80` suffix (some components use `text-charcoal/N`) */
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal\/50  { color: rgba(248, 250, 252, 0.58) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal\/55  { color: rgba(248, 250, 252, 0.62) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal\/60  { color: rgba(248, 250, 252, 0.68) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal\/65  { color: rgba(248, 250, 252, 0.72) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal\/70  { color: rgba(248, 250, 252, 0.78) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal\/75  { color: rgba(248, 250, 252, 0.82) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal\/80  { color: rgba(248, 250, 252, 0.85) !important; }
+[data-theme="dark"] [data-dashboard-shell] .text-charcoal\/85  { color: rgba(248, 250, 252, 0.88) !important; }
+
+/* Placeholder colors — Tailwind generates these as `::placeholder` rules.
+ * Form inputs use `placeholder:text-charcoal-80/35` (search fields) and
+ * `placeholder:text-charcoal-80/45` (form fields). Both invisible on
+ * dark canvas without a flip. */
+[data-theme="dark"] [data-dashboard-shell] .placeholder\:text-charcoal-80\/35::placeholder { color: rgba(248, 250, 252, 0.40) !important; }
+[data-theme="dark"] [data-dashboard-shell] .placeholder\:text-charcoal-80\/45::placeholder { color: rgba(248, 250, 252, 0.50) !important; }
+[data-theme="dark"] [data-dashboard-shell] .placeholder\:text-charcoal-80\/55::placeholder { color: rgba(248, 250, 252, 0.55) !important; }
+
+/* ── HOVER STATE FLIPS ──────────────────────────────────────────────
+ * Tailwind compiles `hover:bg-foo` to `.hover\:bg-foo:hover { … }` —
+ * a literally-different class name from the resting `.bg-foo`. My
+ * earlier flips only caught the resting variants, so on hover the
+ * sidebar rows / icon plates / buttons reverted to light-mode defaults
+ * (pale wash + dark text on dark canvas = invisible). Mirror every
+ * hover modifier used across the dashboard sidebars + nav rows.
+ */
+
+/* Background hover washes */
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-mist:hover         { background-color: var(--color-surface-page) !important; }
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-white:hover        { background-color: var(--color-surface-elevated) !important; }
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-violet-pale:hover  { background-color: rgba(139, 111, 232, 0.18) !important; }
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-violet-pale\/30:hover,
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-violet-pale\/40:hover,
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-violet-pale\/50:hover,
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-violet-pale\/60:hover { background-color: rgba(139, 111, 232, 0.12) !important; }
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-violet-ghost:hover { background-color: rgba(139, 111, 232, 0.10) !important; }
+
+/* Sibling `group-hover:` variants (used by SidebarItem icon plates) */
+[data-theme="dark"] [data-dashboard-shell] .group:hover .group-hover\:bg-white        { background-color: var(--color-surface-elevated) !important; }
+[data-theme="dark"] [data-dashboard-shell] .group:hover .group-hover\:bg-violet-pale  { background-color: rgba(139, 111, 232, 0.18) !important; }
+[data-theme="dark"] [data-dashboard-shell] .group:hover .group-hover\:bg-violet-ghost { background-color: rgba(139, 111, 232, 0.10) !important; }
+
+/* Text hover swaps — text-violet hover swaps to Violet Light per §04 */
+[data-theme="dark"] [data-dashboard-shell] .hover\:text-violet:hover { color: #8B6FE8 !important; }
+[data-theme="dark"] [data-dashboard-shell] .group:hover .group-hover\:text-violet { color: #8B6FE8 !important; }
+
+/* Border hover (sidebar items, cards) */
+[data-theme="dark"] [data-dashboard-shell] .hover\:border-violet\/30:hover,
+[data-theme="dark"] [data-dashboard-shell] .hover\:border-violet\/40:hover { border-color: rgba(139, 111, 232, 0.45) !important; }
+[data-theme="dark"] [data-dashboard-shell] .hover\:border-charcoal-80\/15:hover { border-color: rgba(248, 250, 252, 0.15) !important; }
+
+/* ── Card surfaces ──────────────────────────────────────────────────
+ * .bg-white inside the dashboard is overwhelmingly used as a card
+ * surface (admin tables, dashboard panels, form containers, modals).
+ * Flipping to `--color-surface-card` (#1A1B23) makes every card read
+ * as elevated against the deeper canvas. The few cases where a
+ * literally-white bg is intentional (e.g. payment-method logo tiles
+ * inside the PayPal/MercadoPago badges) sit in the Footer, which is
+ * outside the dashboard-shell — those stay white correctly.
+ */
+[data-theme="dark"] [data-dashboard-shell] .bg-white         { background-color: var(--color-surface-card) !important; }
+
+/* ── Borders ────────────────────────────────────────────────────────
+ * Light-mode borders use `border-charcoal-80/N` (charcoal at low
+ * opacity) for hairlines. On a dark canvas, charcoal-on-charcoal at
+ * 8-15% is invisible. Flip to mist-on-dark at the same opacity bands
+ * so the elevation language stays intact. Most-used densities first.
+ */
+[data-theme="dark"] [data-dashboard-shell] .border-charcoal-80\/6  { border-color: rgba(248, 250, 252, 0.06) !important; }
+[data-theme="dark"] [data-dashboard-shell] .border-charcoal-80\/8  { border-color: rgba(248, 250, 252, 0.08) !important; }
+[data-theme="dark"] [data-dashboard-shell] .border-charcoal-80\/10 { border-color: rgba(248, 250, 252, 0.10) !important; }
+[data-theme="dark"] [data-dashboard-shell] .border-charcoal-80\/12 { border-color: rgba(248, 250, 252, 0.12) !important; }
+[data-theme="dark"] [data-dashboard-shell] .border-charcoal-80\/15 { border-color: rgba(248, 250, 252, 0.15) !important; }
+[data-theme="dark"] [data-dashboard-shell] .border-charcoal\/8    { border-color: rgba(248, 250, 252, 0.08) !important; }
+[data-theme="dark"] [data-dashboard-shell] .border-charcoal\/10   { border-color: rgba(248, 250, 252, 0.10) !important; }
+[data-theme="dark"] [data-dashboard-shell] .border-charcoal\/12   { border-color: rgba(248, 250, 252, 0.12) !important; }
+
+/* divide-* utilities follow the same charcoal-at-low-opacity pattern
+ * for table rows and stacked lists. Flip them to mist-on-dark too. */
+[data-theme="dark"] [data-dashboard-shell] .divide-charcoal-80\/6 > * + *  { border-color: rgba(248, 250, 252, 0.06) !important; }
+[data-theme="dark"] [data-dashboard-shell] .divide-charcoal-80\/8 > * + *  { border-color: rgba(248, 250, 252, 0.08) !important; }
+[data-theme="dark"] [data-dashboard-shell] .divide-charcoal-80\/10 > * + * { border-color: rgba(248, 250, 252, 0.10) !important; }
+[data-theme="dark"] [data-dashboard-shell] .divide-slate-100 > * + *       { border-color: rgba(248, 250, 252, 0.08) !important; }
+
+/* ── Violet text on dark — Brand v3 §04 contrast rule ───────────────
+ * Royal Violet #5D3FD3 on charcoal fails WCAG (1.1:1). Brand spec
+ * mandates Violet Light #8B6FE8 for violet text on dark surfaces.
+ * Auto-swap every violet text utility within the dashboard subtree
+ * under dark mode. text-violet-deep (#4A2EAB, even darker) also
+ * fails contrast on dark canvas — also flips to Violet Light.
+ */
+[data-theme="dark"] [data-dashboard-shell] .text-violet,
+[data-theme="dark"] [data-dashboard-shell] .text-violet-deep { color: #8B6FE8 !important; }
+
+/* ── Hover-bg charcoal utilities ─────────────────────────────────────
+ * `hover:bg-charcoal-80/N` is used as a subtle hover wash on
+ * iconography and inline buttons (DataTable cell actions, modal close
+ * buttons). On a dark canvas, charcoal-on-charcoal is invisible. Flip
+ * to white-on-dark at the same opacity bands so the hover affordance
+ * stays discoverable.
+ */
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-charcoal-80\/5:hover  { background-color: rgba(248, 250, 252, 0.05) !important; }
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-charcoal-80\/10:hover { background-color: rgba(248, 250, 252, 0.10) !important; }
+[data-theme="dark"] [data-dashboard-shell] .hover\:bg-charcoal-80\/15:hover { background-color: rgba(248, 250, 252, 0.15) !important; }
+
+/* Resting `bg-charcoal-80/N` (subtle tinted surfaces, used as filter
+ * pill backgrounds and inline-button rest states) flips the same way. */
+[data-theme="dark"] [data-dashboard-shell] .bg-charcoal-80\/5  { background-color: rgba(248, 250, 252, 0.05) !important; }
+[data-theme="dark"] [data-dashboard-shell] .bg-charcoal-80\/10 { background-color: rgba(248, 250, 252, 0.10) !important; }
+[data-theme="dark"] [data-dashboard-shell] .bg-charcoal-80\/15 { background-color: rgba(248, 250, 252, 0.15) !important; }
+
+/* ── Card-tint backgrounds (low-opacity violet washes) ──────────────
+ * The violet-pale tint blocks (filter chips, table headers, hover
+ * states) read fine in light mode but feel under-saturated on dark.
+ * Bump the wash to a darker violet at higher opacity so it actually
+ * registers as a surface against the charcoal canvas.
+ */
+[data-theme="dark"] [data-dashboard-shell] .bg-violet-pale\/30,
+[data-theme="dark"] [data-dashboard-shell] .bg-violet-pale\/40,
+[data-theme="dark"] [data-dashboard-shell] .bg-violet-pale\/60 { background-color: rgba(139, 111, 232, 0.12) !important; }
+[data-theme="dark"] [data-dashboard-shell] .bg-violet-pale     { background-color: rgba(139, 111, 232, 0.18) !important; }
+[data-theme="dark"] [data-dashboard-shell] .bg-violet-ghost    { background-color: rgba(139, 111, 232, 0.08) !important; }
 
 
 /* ═══════�

@@ -17,8 +17,8 @@ import { authFetch as apiRequest } from "../lib/api"
 import { useToast } from "../context/ToastContext"
 
 const STATUS_PILLS = {
-  draft: { label: "Draft", bg: "bg-amber-50", text: "text-amber-800", ring: "ring-amber-200" },
-  published: { label: "Published", bg: "bg-emerald-50", text: "text-emerald-800", ring: "ring-emerald-200" },
+  draft: { label: "Draft", bg: "bg-amber/10", text: "text-amber-700", ring: "ring-amber/20" },
+  published: { label: "Published", bg: "bg-mint/10", text: "text-emerald-800", ring: "ring-mint/20" },
   archived: { label: "Archived", bg: "bg-charcoal-80/[0.06]", text: "text-charcoal-80/65", ring: "ring-charcoal-80/15" },
 }
 
@@ -61,7 +61,7 @@ export default function AdminBlogPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [status])
+  useEffect(() => { load()   }, [status])
 
   async function confirmDelete() {
     if (!pendingDelete) return
@@ -112,7 +112,7 @@ export default function AdminBlogPage() {
                 type="button"
                 onClick={() => { setSearch(""); load() }}
                 aria-label="Clear search"
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-charcoal-80/45 hover:bg-charcoal-80/[0.06]"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-charcoal-80/65 hover:bg-charcoal-80/[0.06]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -143,7 +143,7 @@ export default function AdminBlogPage() {
 
         <Link
           to="/admin/blog/new"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3.5 py-2 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgba(93,63,211,0.50)] transition hover:bg-violet-deep"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3.5 py-2 text-[13px] font-semibold text-white shadow-[0_8px_22px_-8px_rgb(var(--color-violet-rgb)/0.50)] transition hover:bg-violet-deep"
         >
           <Plus className="h-4 w-4" /> New post
         </Link>
@@ -152,7 +152,7 @@ export default function AdminBlogPage() {
       {/* Table */}
       <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white">
         <table className="min-w-full divide-y divide-charcoal-80/10 text-left text-[13px]">
-          <thead className="bg-charcoal-80/[0.03] text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">
+          <thead className="bg-charcoal-80/[0.03] text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">
             <tr>
               <th scope="col" className="px-4 py-3">Title</th>
               <th scope="col" className="hidden px-4 py-3 sm:table-cell">Category</th>
@@ -163,21 +163,21 @@ export default function AdminBlogPage() {
           </thead>
           <tbody className="divide-y divide-charcoal-80/[0.06]">
             {loading ? (
-              <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/55">Loading posts…</td></tr>
+              <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/65">Loading posts…</td></tr>
             ) : error ? (
-              <tr><td colSpan={5} className="px-4 py-10 text-center text-red-600">{error}</td></tr>
+              <tr><td colSpan={5} className="px-4 py-10 text-center text-rose-700">{error}</td></tr>
             ) : posts.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/55">
+              <tr><td colSpan={5} className="px-4 py-10 text-center text-charcoal-80/65">
                 No posts match. <Link to="/admin/blog/new" className="font-semibold text-violet hover:underline">Create one</Link>.
               </td></tr>
             ) : posts.map((p) => (
               <tr key={p.id} className="transition hover:bg-violet-pale/30">
                 <td className="px-4 py-3">
                   <div className="flex items-start gap-2">
-                    {p.featured ? <Star className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" aria-label="Featured" /> : null}
+                    {p.featured ? <Star role="img" className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" aria-label="Featured" /> : null}
                     <div>
                       <div className="font-semibold text-violet">{p.title}</div>
-                      <div className="font-mono text-[11px] text-charcoal-80/45">/{p.slug}</div>
+                      <div className="font-mono text-[11px] text-charcoal-80/65">/{p.slug}</div>
                     </div>
                   </div>
                 </td>
@@ -185,7 +185,7 @@ export default function AdminBlogPage() {
                   {p.category || "-"}
                 </td>
                 <td className="hidden px-4 py-3 lg:table-cell"><StatusPill status={p.status} /></td>
-                <td className="hidden px-4 py-3 text-charcoal-80/55 lg:table-cell">{formatDate(p.updatedAt)}</td>
+                <td className="hidden px-4 py-3 text-charcoal-80/65 lg:table-cell">{formatDate(p.updatedAt)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="inline-flex items-center gap-1">
                     {p.status === "published" ? (
@@ -194,7 +194,7 @@ export default function AdminBlogPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="View public"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet"
                       >
                         <Globe className="h-4 w-4" />
                       </a>
@@ -202,7 +202,7 @@ export default function AdminBlogPage() {
                     <Link
                       to={`/admin/blog/${p.id}/edit`}
                       aria-label="Edit post"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Link>
@@ -210,7 +210,7 @@ export default function AdminBlogPage() {
                       type="button"
                       onClick={() => setPendingDelete(p)}
                       aria-label="Delete post"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/55 transition hover:bg-red-50 hover:text-red-600"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-charcoal-80/65 transition hover:bg-rose/10 hover:text-rose-700"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -227,7 +227,7 @@ export default function AdminBlogPage() {
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose/10 text-rose-700">
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div className="flex-1">
@@ -264,8 +264,8 @@ export default function AdminBlogPage() {
 function Metric({ icon: Icon, label, value, accent }) {
   const ringMap = {
     violet: "bg-violet-pale text-violet",
-    emerald: "bg-emerald-50 text-emerald-600",
-    amber: "bg-amber-50 text-amber-600",
+    emerald: "bg-mint/10 text-emerald-700",
+    amber: "bg-amber/10 text-amber-700",
     charcoal: "bg-charcoal-80/[0.06] text-charcoal-80/70",
   }
   return (
@@ -274,7 +274,7 @@ function Metric({ icon: Icon, label, value, accent }) {
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">{label}</div>
+        <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">{label}</div>
         <div className="text-[20px] font-extrabold tabular-nums text-charcoal-80">{value}</div>
       </div>
     </div>

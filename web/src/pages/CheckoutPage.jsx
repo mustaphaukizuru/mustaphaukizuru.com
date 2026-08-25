@@ -57,14 +57,14 @@ function CheckoutProgress({ step }) {
       {steps.map((s, i) => (
         <div key={s} className="flex items-center gap-2">
           <div className={`flex h-7 w-7 items-center justify-center rounded-xl text-micro font-bold transition-all ${
-            i < step ? "bg-mint text-white" :
+            i < step ? "bg-mint text-charcoal" :
             i === step ? "bg-violet text-white" :
-                         "bg-charcoal-80/12 text-charcoal-80/50"
+                         "bg-charcoal-80/12 text-charcoal-80/65"
           }`}>
             {i < step ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : i + 1}
           </div>
           <span className={`hidden text-micro font-semibold sm:block ${
-            i === step ? "text-violet" : "text-charcoal-80/50"
+            i === step ? "text-violet" : "text-charcoal-80/65"
           }`}>{s}</span>
           {i < steps.length - 1 && <ChevronRight className="h-4 w-4 text-charcoal-80/25" aria-hidden="true" />}
         </div>
@@ -101,7 +101,7 @@ function OrderItem({ item }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-meta font-semibold text-violet">{item.title}</div>
-        <div className="text-micro text-charcoal-80/55">
+        <div className="text-micro text-charcoal-80/65">
           {item.category || "Digital"} ·{" "}
           <span className="font-mono tabular-nums">{t("misc.qty")} {item.quantity}</span>
         </div>
@@ -116,7 +116,7 @@ function OrderItem({ item }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Payment method selector card · F08.B · 3px Royal Violet border on selected
 // ─────────────────────────────────────────────────────────────────────────────
-function PaymentOption({ id, active, onClick, title, subtitle, badge, logo }) {
+function PaymentOption({ active, onClick, title, subtitle, badge, logo }) {
   return (
     <button
       type="button"
@@ -125,16 +125,16 @@ function PaymentOption({ id, active, onClick, title, subtitle, badge, logo }) {
       aria-checked={active}
       className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all sm:gap-4 sm:p-4 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
         active
-          ? "border-[3px] border-violet bg-violet-ghost shadow-[0_8px_24px_rgba(93,63,211,0.10)]"
+          ? "border-[3px] border-violet bg-violet-ghost shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.10)]"
           : "border-2 border-charcoal-80/12 bg-white hover:border-violet/30"
       }`}
     >
       <div className="shrink-0">
         {logo || (
           <div className={`flex h-12 w-12 items-center justify-center rounded-xl border ${
-            active ? "border-violet/20 bg-violet-pale" : "border-charcoal-80/10 bg-[#f4f4f4]"
+            active ? "border-violet/20 bg-violet-pale" : "border-charcoal-80/10 bg-[var(--color-slate-50)]"
           }`}>
-            <CreditCard className={`h-5 w-5 ${active ? "text-violet" : "text-charcoal-80/50"}`} aria-hidden="true" />
+            <CreditCard className={`h-5 w-5 ${active ? "text-violet" : "text-charcoal-80/65"}`} aria-hidden="true" />
           </div>
         )}
       </div>
@@ -147,7 +147,7 @@ function PaymentOption({ id, active, onClick, title, subtitle, badge, logo }) {
             </span>
           )}
         </div>
-        <div className="text-micro text-charcoal-80/60">{subtitle}</div>
+        <div className="text-micro text-charcoal-80/65">{subtitle}</div>
       </div>
       <div className={`h-5 w-5 shrink-0 rounded-full border-2 transition-all ${
         active ? "border-violet bg-violet" : "border-charcoal-80/25"
@@ -166,7 +166,7 @@ function PaymentOption({ id, active, onClick, title, subtitle, badge, logo }) {
 //     visual weight in the radio group regardless of brand artwork.
 //   • Brand mark sized at ~50% of pill height — gives generous breathing
 //     room and prevents the "logo over the card" overflow seen pre-fix.
-//   • MercadoPago keeps its sacred yellow #FFE600 brand chip (LATAM
+//   • MercadoPago keeps its sacred yellow brand chip (LATAM
 //     recognition); PayPal sits on a neutral surface that tints to
 //     violet-pale on selection so the active card reads decisively.
 //   • Border softens on selection to ring the pill in violet, mirroring
@@ -353,7 +353,7 @@ export default function CheckoutPage() {
           onError: (err) => setError(err?.message || "PayPal encountered an error."),
         }).render(paypalRef.current)
         paypalRendered.current = true
-      } catch (err) {
+      } catch {
         setError("Unable to render PayPal button. Please refresh and try again.")
       }
     }
@@ -429,6 +429,14 @@ export default function CheckoutPage() {
         return
       }
     } catch (err) {
+      // The email belongs to a claimed account — the buyer must sign in so
+      // the order lands in THEIR dashboard, not a stranger's. Send them to
+      // login and bring them straight back here afterwards.
+      if (err?.code === "ACCOUNT_EXISTS" || err?.status === 401) {
+        setError(err.message || "Please sign in to complete your purchase.")
+        navigate("/login", { state: { from: "/checkout", email: form.customerEmail } })
+        return
+      }
       setError(err.message || "Failed to start checkout. Please try again.")
     } finally {
       setLoading(false)
@@ -471,11 +479,11 @@ export default function CheckoutPage() {
       {/* Header */}
       <div className="border-b border-charcoal-80/10 bg-white px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-          <Link to="/cart" className="flex items-center gap-2 text-meta font-medium text-charcoal-80/60 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">
+          <Link to="/cart" className="flex items-center gap-2 text-meta font-medium text-charcoal-80/65 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> <span className="hidden sm:inline">{t("actions.backToCart")}</span><span className="sm:hidden">{t("header.breadcrumb.cart")}</span>
           </Link>
           <div className="order-last w-full sm:order-none sm:w-auto"><CheckoutProgress step={2} /></div>
-          <div className="flex items-center gap-1.5 text-micro text-charcoal-80/50">
+          <div className="flex items-center gap-1.5 text-micro text-charcoal-80/65">
             <Lock className="h-3.5 w-3.5 text-mint" aria-hidden="true" /> <span className="hidden sm:inline">{t("trust.secure")}</span><span className="sm:hidden">{t("trust.secure")}</span>
           </div>
         </div>
@@ -488,7 +496,7 @@ export default function CheckoutPage() {
           <div className="flex flex-col gap-5">
 
             {/* Contact info, name + email */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <h2 className="mb-5 text-card font-bold text-violet">{t("sections.billing")}</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
@@ -572,7 +580,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Delivery */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <h2 className="mb-4 text-card font-bold text-violet">{t("delivery.label")}</h2>
               <div className="flex items-center gap-3 rounded-xl border border-mint/30 bg-mint/8 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint text-white">
@@ -580,18 +588,18 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <div className="text-meta font-bold text-violet">{t("delivery.label")}</div>
-                  <div className="text-micro text-charcoal-80/60">{t("delivery.subtitle")}</div>
+                  <div className="text-micro text-charcoal-80/65">{t("delivery.subtitle")}</div>
                 </div>
                 <CheckCircle2 className="ml-auto h-5 w-5 shrink-0 text-mint" aria-hidden="true" />
               </div>
             </div>
 
             {/* B08 · Billing address (preserved) */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-card font-bold text-violet">{t("misc.billingAddress")}</h2>
-                  <p className="mt-0.5 text-micro text-charcoal-80/60">
+                  <p className="mt-0.5 text-micro text-charcoal-80/65">
                     {t("misc.addressOptional")}
                   </p>
                 </div>
@@ -609,7 +617,7 @@ export default function CheckoutPage() {
                 <div className="h-14 animate-pulse rounded-xl bg-violet-pale" />
               ) : addresses.length === 0 ? (
                 <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4 text-micro text-charcoal-80/70">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-charcoal-80/50" aria-hidden="true" />
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-charcoal-80/65" aria-hidden="true" />
                   <div>
                     {t("misc.noSavedAddresses")}{" "}
                     <Link to="/dashboard/addresses" className="font-semibold text-violet hover:underline">
@@ -630,7 +638,7 @@ export default function CheckoutPage() {
                         onClick={() => setSelectedAddressId(isSelected ? "" : addr.id)}
                         className={`flex w-full items-start gap-3 rounded-xl p-3 text-left transition-all sm:gap-4 sm:p-4 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                           isSelected
-                            ? "border-2 border-violet bg-violet-ghost shadow-[0_6px_18px_rgba(93,63,211,0.08)]"
+                            ? "border-2 border-violet bg-violet-ghost shadow-[0_6px_18px_rgb(var(--color-violet-rgb)/0.08)]"
                             : "border-2 border-charcoal-80/10 hover:border-violet/30"
                         }`}
                       >
@@ -669,7 +677,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Payment method · F08.B · 3px violet border on selected */}
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <h2 className="mb-4 text-card font-bold text-violet">{t("sections.payment")}</h2>
               <div role="radiogroup" aria-label={t("payment.ariaLabel")} className="flex flex-col gap-3">
                 <PaymentOption
@@ -708,12 +716,12 @@ export default function CheckoutPage() {
 
             {/* Error / info */}
             {error && (
-              <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700" role="alert">
+              <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700" role="alert">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{error}
               </div>
             )}
             {info && (
-              <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-meta text-blue-700">
+              <div className="flex items-start gap-3 rounded-xl border border-azure/20 bg-azure-pale px-4 py-3 text-meta text-azure-800">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" aria-hidden="true" />{info}
               </div>
             )}
@@ -742,13 +750,17 @@ export default function CheckoutPage() {
               </span>
             </label>
 
-            {/* F08.B · Place order · Innovation Gradient */}
+            {/* F08.B · Place order · Sacred Innovation Gradient.
+                Brand v3 §06 — the canonical 2-stop violet→azure gradient
+                lives in the bg-grad-innovation utility class. Previously
+                this used an inline 3-stop gradient with off-palette
+                Tailwind violet-600; switched to the utility for token alignment and
+                visual parity with the CartPage primary action. */}
             <button
               type="button"
               onClick={handleSubmit}
               disabled={loading || paypalLoading}
-              className="group flex w-full items-center justify-center gap-2 rounded-xl py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgba(93,63,211,0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(93,63,211,0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 disabled:opacity-60 disabled:hover:translate-y-0"
-              style={{ background: "linear-gradient(135deg, var(--color-violet) 0%, #7c3aed 60%, var(--color-azure) 100%)" }}
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-grad-innovation py-4 text-body font-semibold text-white shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.32)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgb(var(--color-violet-rgb)/0.42)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 disabled:opacity-60 disabled:hover:translate-y-0"
             >
               {(loading || paypalLoading) ? (
                 <><Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> {t("payment.processing")}</>
@@ -777,7 +789,7 @@ export default function CheckoutPage() {
 
             {/* PayPal buttons render target */}
             {paymentMethod === "paypal" && orderCreated?.id && (
-              <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+              <div className="rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
                 <div className="mb-3 text-meta font-semibold text-violet">{t("misc.completePayPal")}</div>
                 <div ref={paypalRef} className="min-h-[50px]" />
               </div>
@@ -808,7 +820,7 @@ export default function CheckoutPage() {
 
           {/* ── RIGHT · Order summary sidebar ────────────────────────────── */}
           <div>
-            <div className="sticky top-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgba(93,63,211,0.06)]">
+            <div className="sticky top-24 rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)]">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-card font-bold text-violet">{t("sections.summary")}</h2>
                 <span className="rounded-xl bg-violet-pale px-3 py-1 font-mono text-micro font-semibold tabular-nums text-violet">
@@ -829,10 +841,10 @@ export default function CheckoutPage() {
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-mint text-white">
                         <Check className="h-3 w-3" strokeWidth={3} aria-hidden="true" />
                       </span>
-                      <code className="truncate font-mono text-micro font-semibold text-mint">
+                      <code className="truncate font-mono text-micro font-semibold text-mint-700">
                         {appliedCoupon.code}
                       </code>
-                      <span className="font-mono text-micro tabular-nums text-mint/85">
+                      <span className="font-mono text-micro tabular-nums text-mint-700">
                         −{formatPrice(discount)}
                       </span>
                     </div>
@@ -870,7 +882,7 @@ export default function CheckoutPage() {
                   </form>
                 )}
                 {couponError && (
-                  <p className="mt-1.5 text-micro text-red-600" role="alert">{couponError}</p>
+                  <p className="mt-1.5 text-micro text-rose-700" role="alert">{couponError}</p>
                 )}
               </div>
 
@@ -881,14 +893,14 @@ export default function CheckoutPage() {
                   <span className="font-mono font-semibold tabular-nums text-violet">{formatPrice(subtotal)}</span>
                 </div>
                 {discount > 0 && (
-                  <div className="flex justify-between text-meta text-mint">
+                  <div className="flex justify-between text-meta text-mint-700">
                     <span>{tCart("summary.discount")}</span>
                     <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-meta text-charcoal-80/70">
                   <span>{tCart("summary.taxLabel")}</span>
-                  <span className="font-semibold text-mint">$0.00</span>
+                  <span className="font-semibold text-mint-700">$0.00</span>
                 </div>
                 <div className="flex items-baseline justify-between border-t border-charcoal-80/10 pt-3">
                   <span className="text-body font-bold text-violet">{tCart("summary.total")}</span>
@@ -904,7 +916,7 @@ export default function CheckoutPage() {
                   { icon: Zap,          key: "instant" },
                   { icon: CheckCircle2, key: "dashboard" },
                 ].map(({ icon: Icon, key }) => (
-                  <div key={key} className="flex items-center gap-2.5 text-micro text-charcoal-80/55">
+                  <div key={key} className="flex items-center gap-2.5 text-micro text-charcoal-80/65">
                     <Icon className="h-4 w-4 shrink-0 text-violet" aria-hidden="true" />
                     <span>{t(`trust.${key}`)}</span>
                   </div>

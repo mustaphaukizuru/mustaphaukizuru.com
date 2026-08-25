@@ -1,25 +1,32 @@
 import { useEffect, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
-import {
-  ArrowRight, Sparkles, Search, Grid3x3, AlertCircle, ChevronRight,
-  ExternalLink, Tag,
-} from "lucide-react"
+import { Link, useSearchParams } from "react-router-dom"
+import { m } from "framer-motion"
+import { ArrowRight, Sparkles, Search, Grid3x3, AlertCircle, Tag } from "lucide-react"
 import Seo from "../components/seo/Seo"
 import Breadcrumbs from "../components/Breadcrumbs"
 import { itemListSchema } from "../seo/schemas"
-import { listPortfolio } from "../services/portfolioService"
+import { apiGet } from "../lib/api"
 import StaggerGrid from "../components/motion/StaggerGrid"
+import Meteors from "../components/motion/Meteors"
+import MagneticButton from "../components/motion/MagneticButton"
+import CaseStudyCard from "../components/portfolio/CaseStudyCard"
+import ServiceFilter from "../components/portfolio/ServiceFilter"
+import { SERVICE_SLUGS } from "../components/portfolio/caseStudy"
 
 /* ──────────────────────────────────────────────────────────────────────────
- *  PortfolioPage · /portfolio
+ *  PortfolioPage · /portfolio  (roadmap step 27 — case studies)
  *
- *  I18N · Phase 118 — every visible string keyed under the `portfolio`
- *  namespace. Server-driven content (item.title, item.shortDescription,
- *  item.category) already comes locale-resolved via pickLocale in
- *  portfolioService (Phase 6A) — only the chrome (hero, filters,
- *  pagination, empty/error states, CTA, SEO) is translated here.
+ *  Grid of CaseStudyCards that lead with the outcome line. Two filter rows:
+ *    • service category (it-strategy-consulting | ai-automation |
+ *      cloud-architecture-migration | digital-product-engineering) — server
+ *      side via ?service= (JSON path into the case-study block), kept in the
+ *      URL so /portfolio?service=ai-automation is linkable.
+ *    • legacy free-text category chips (server ?category=).
+ *  Search stays client-side over the loaded page.
+ *
+ *  Talks to /api/portfolio directly: the shared web/services/portfolioService
+ *  wrapper drops category/page params and reshapes the envelope.
  *  ──────────────────────────────────────────────────────────────────── */
 
 const fadeUp = {
@@ -34,8 +41,26 @@ function Container({ children, className = "" }) {
 
 const PAGE_SIZE = 12
 
+async function fetchPortfolio({ category, service, page, limit }) {
+  const qs = new URLSearchParams()
+  qs.set("page", String(page))
+  qs.set("limit", String(limit))
+  if (category) qs.set("category", category)
+  if (service) qs.set("service", service)
+  const res = await apiGet(`/api/portfolio?${qs.toString()}`)
+  return {
+    items:      Array.isArray(res?.data) ? res.data : [],
+    pagination: res?.pagination || null,
+    categories: Array.isArray(res?.categories) ? res.categories : [],
+  }
+}
+
 export default function PortfolioPage() {
   const { t } = useTranslation("portfolio")
+  const [searchParams, setSearchParams] = useSearchParams()
+  const serviceParam = searchParams.get("service")
+  const activeService = SERVICE_SLUGS.includes(serviceParam) ? serviceParam : null
+
   const [items, setItems] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -50,8 +75,9 @@ export default function PortfolioPage() {
     async function load() {
       setLoading(true); setError("")
       try {
-        const result = await listPortfolio({
+        const result = await fetchPortfolio({
           category: activeCategory || undefined,
+          service:  activeService || undefined,
           page,
           limit: PAGE_SIZE,
         })
@@ -68,16 +94,18 @@ export default function PortfolioPage() {
     load()
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCategory, page])
+  }, [activeCategory, activeService, page])
 
   // Client-side search on the currently loaded page (cheap, good enough for a dozen items)
   const visibleItems = useMemo(() => {
     if (!query.trim()) return items
     const q = query.trim().toLowerCase()
     return items.filter((it) => {
+      const cs = it.caseStudy || {}
       const hay = [
         it.title, it.shortDescription, it.category, it.role, it.client,
-        ...(it.tags || []), ...(it.tools || []),
+        cs.problem, cs.context, it.outcomeLine,
+        ...(it.tags || []), ...(it.tools || []), ...(cs.stack || []),
       ].filter(Boolean).join(" ").toLowerCase()
       return hay.includes(q)
     })
@@ -85,6 +113,13 @@ export default function PortfolioPage() {
 
   const onCategoryClick = (cat) => {
     setActiveCategory(cat)
+    setPage(1)
+  }
+
+  const onServiceChange = (slug) => {
+    const next = new URLSearchParams(searchParams)
+    if (slug) next.set("service", slug); else next.delete("service")
+    setSearchParams(next, { replace: true })
     setPage(1)
   }
 
@@ -113,67 +148,74 @@ export default function PortfolioPage() {
       {/* HERO */}
       <section className="border-b border-charcoal-80/10 bg-white">
         <Container className="py-12 sm:py-16 lg:py-20">
-          <motion.div initial="hidden" animate="show" variants={stagger} className="flex flex-col gap-5">
-            <motion.span variants={fadeUp} className="inline-flex w-fit items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
-              <Sparkles className="h-3 w-3" /> {t("hero.eyebrow")}
-            </motion.span>
-            <motion.h1 variants={fadeUp} className="text-page font-bold tracking-tight text-violet sm:text-page lg:text-display">
+          <m.div initial="hidden" animate="show" variants={stagger} className="flex flex-col gap-5">
+            <m.span variants={fadeUp} className="inline-flex w-fit items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
+              <Sparkles className="h-3 w-3" aria-hidden="true" /> {t("hero.eyebrow")}
+            </m.span>
+            <m.h1 variants={fadeUp} className="text-page font-bold tracking-tight text-violet sm:text-page lg:text-display">
               {t("hero.title")}
-            </motion.h1>
-            <motion.p variants={fadeUp} className="max-w-2xl text-body leading-7 text-charcoal-80/75 sm:text-body">
+            </m.h1>
+            <m.p variants={fadeUp} className="max-w-2xl text-body leading-7 text-charcoal-80/75 sm:text-body">
               {t("hero.subtitle")}
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
         </Container>
       </section>
 
       {/* FILTER + SEARCH TOOLBAR */}
       <section className="border-b border-charcoal-80/10 bg-white">
         <Container className="py-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            {/* Category chips */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => onCategoryClick(null)}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-micro font-semibold transition ${
-                  activeCategory === null
-                    ? "bg-violet text-white"
-                    : "bg-violet-pale text-violet hover:bg-violet/10"
-                }`}
-              >
-                <Grid3x3 className="h-3.5 w-3.5" /> {t("filters.all")}
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c.name}
-                  type="button"
-                  onClick={() => onCategoryClick(c.name)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-micro font-semibold transition ${
-                    activeCategory === c.name
-                      ? "bg-violet text-white"
-                      : "bg-violet-pale text-violet hover:bg-violet/10"
-                  }`}
-                >
-                  <Tag className="h-3 w-3" /> {c.name}
-                  <span className="ml-1 rounded-full bg-black/5 px-1.5 text-micro font-normal">
-                    {c.count}
-                  </span>
-                </button>
-              ))}
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <ServiceFilter value={activeService} onChange={onServiceChange} />
+
+              {/* Search */}
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/40" aria-hidden="true" />
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("filters.search")}
+                  aria-label={t("filters.search")}
+                  className="w-full rounded-xl border border-violet/15 bg-white pl-9 pr-3 py-2 text-meta text-violet placeholder:text-charcoal-80/35 focus:border-violet focus:outline-none focus:ring-2 focus:ring-violet/10 lg:w-64"
+                />
+              </div>
             </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/40" />
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("filters.search")}
-                className="w-full rounded-xl border border-violet/15 bg-white pl-9 pr-3 py-2 text-meta text-violet placeholder:text-charcoal-80/35 focus:border-violet focus:outline-none focus:ring-2 focus:ring-violet/10 lg:w-64"
-              />
-            </div>
+            {/* Legacy free-text category chips (secondary row) */}
+            {categories.length > 1 ? (
+              <div role="group" aria-label={t("filters.byCategory")} className="flex flex-wrap items-center gap-2 border-t border-charcoal-80/5 pt-3">
+                <button
+                  type="button"
+                  onClick={() => onCategoryClick(null)}
+                  aria-pressed={activeCategory === null}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-micro font-semibold transition ${
+                    activeCategory === null
+                      ? "border-violet bg-violet text-white"
+                      : "border-charcoal-80/15 bg-white text-charcoal-80/70 hover:border-violet/40 hover:text-violet"
+                  }`}
+                >
+                  <Grid3x3 className="h-3 w-3" aria-hidden="true" /> {t("filters.all")}
+                </button>
+                {categories.map((c) => (
+                  <button
+                    key={c.name}
+                    type="button"
+                    onClick={() => onCategoryClick(c.name)}
+                    aria-pressed={activeCategory === c.name}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-micro font-semibold transition ${
+                      activeCategory === c.name
+                        ? "border-violet bg-violet text-white"
+                        : "border-charcoal-80/15 bg-white text-charcoal-80/70 hover:border-violet/40 hover:text-violet"
+                    }`}
+                  >
+                    <Tag className="h-3 w-3" aria-hidden="true" /> {c.name}
+                    <span className="ml-1 rounded-full bg-black/5 px-1.5 text-micro font-normal">{c.count}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         </Container>
       </section>
@@ -182,14 +224,14 @@ export default function PortfolioPage() {
       <section className="py-10 sm:py-14">
         <Container>
           {loading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-busy="true">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-80 animate-pulse rounded-2xl bg-white shadow-[0_8px_24px_rgba(93,63,211,0.04)]" />
+                <div key={i} className="h-96 animate-pulse rounded-2xl bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.04)]" />
               ))}
             </div>
           ) : error ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-red-700">
-              <AlertCircle className="mx-auto mb-2 h-6 w-6" />
+            <div className="rounded-2xl border border-rose/20 bg-rose/10 p-8 text-center text-rose-700" role="alert">
+              <AlertCircle className="mx-auto mb-2 h-6 w-6" aria-hidden="true" />
               <p className="text-meta">{error}</p>
             </div>
           ) : visibleItems.length === 0 ? (
@@ -201,21 +243,13 @@ export default function PortfolioPage() {
             </div>
           ) : (
             <>
-              {/* Phase 10b · StaggerGrid replaces the manual motion.div.
-                  The previous wrapper paired AnimatePresence with a key
-                  that included activeCategory + page so the grid would
-                  remount on filter change — but the inner motion.div
-                  didn't actually stagger because PortfolioCard children
-                  have no variants of their own. StaggerGrid wraps each
-                  child in its own variant-bearing motion node, so the
-                  intended wave-entrance now actually fires. */}
               <StaggerGrid
-                key={`${activeCategory || "all"}-${page}`}
+                key={`${activeService || "any"}-${activeCategory || "all"}-${page}`}
                 className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
                 stagger={0.06}
               >
                 {visibleItems.map((item) => (
-                  <PortfolioCard key={item.id} item={item} />
+                  <CaseStudyCard key={item.id} item={item} />
                 ))}
               </StaggerGrid>
 
@@ -251,84 +285,23 @@ export default function PortfolioPage() {
       {/* CTA */}
       <section className="border-t border-charcoal-80/10 bg-white py-12">
         <Container>
-          <div className="rounded-2xl border border-charcoal-80/10 bg-violet px-6 py-10 text-center sm:px-10 sm:py-14">
-            <h2 className="text-section font-bold text-white sm:text-section">{t("cta.title")}</h2>
-            <p className="mx-auto mt-2 max-w-xl text-meta leading-6 text-white/70">
+          <div className="relative isolate overflow-hidden rounded-2xl border border-charcoal-80/10 bg-violet px-6 py-10 text-center sm:px-10 sm:py-14">
+            <Meteors number={10} />
+            <h2 className="relative text-section font-bold text-white sm:text-section">{t("cta.title")}</h2>
+            <p className="relative mx-auto mt-2 max-w-xl text-meta leading-6 text-white/70">
               {t("cta.subtitle")}
             </p>
-            <Link
-              to="/contact"
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              {t("cta.button")} <ArrowRight className="h-4 w-4" />
-            </Link>
+            <MagneticButton className="relative mt-6">
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                {t("cta.button")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </MagneticButton>
           </div>
         </Container>
       </section>
     </div>
-  )
-}
-
-/* ────────────────────────────────────────────────────────────────────────────
- * Card · sub-component scopes its own useTranslation hook because the
- * Featured/Case study/Live labels live under the same namespace.
- * ──────────────────────────────────────────────────────────────────────────── */
-
-function PortfolioCard({ item }) {
-  const { t } = useTranslation("portfolio")
-  return (
-    <motion.article
-      variants={fadeUp}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.06)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(93,63,211,0.12)]"
-    >
-      <Link to={`/projects/${item.slug}`} className="block">
-        {/* Cover */}
-        <div className="relative aspect-[16/10] overflow-hidden bg-violet-pale">
-          {item.coverImage ? (
-            <img
-              src={item.coverImage}
-              alt={item.title}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-violet/40">
-              <Grid3x3 className="h-10 w-10" />
-            </div>
-          )}
-          {item.isFeatured && (
-            <div className="absolute left-3 top-3">
-              <span className="inline-flex items-center gap-1 rounded-full bg-terracotta px-2.5 py-0.5 text-micro font-bold text-violet-deep">
-                <Sparkles className="h-2.5 w-2.5" /> {t("card.featured")}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Body */}
-        <div className="flex flex-1 flex-col p-5">
-          <div className="text-micro font-semibold uppercase tracking-[0.15em] text-violet/70">
-            {item.category}
-            {item.year && <span className="ml-2 text-charcoal-80/40">· {item.year}</span>}
-          </div>
-          <h3 className="mt-2 line-clamp-2 text-card font-bold text-violet group-hover:text-violet-deep">
-            {item.title}
-          </h3>
-          <p className="mt-2 line-clamp-3 text-meta leading-6 text-charcoal-80/70">
-            {item.shortDescription}
-          </p>
-          <div className="mt-4 flex items-center justify-between">
-            <span className="inline-flex items-center gap-1 text-micro font-semibold text-violet">
-              {t("card.caseStudy")} <ChevronRight className="h-3.5 w-3.5" />
-            </span>
-            {item.liveUrl && (
-              <span className="inline-flex items-center gap-1 text-micro text-charcoal-80/55">
-                <ExternalLink className="h-3 w-3" /> {t("card.live")}
-              </span>
-            )}
-          </div>
-        </div>
-      </Link>
-    </motion.article>
   )
 }

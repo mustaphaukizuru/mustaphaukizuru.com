@@ -22,23 +22,24 @@ import { ChevronRight, Home } from "lucide-react"
  *   · The current page is rendered as <span aria-current="page">
  *   · Visible focus ring · WCAG 2.1 AA contrast on every state
  */
+function buildCrumbs(pathname, nameOverrides) {
+  const path = (pathname || "/").split("?")[0].split("#")[0]
+  if (path === "/" || path === "") return []
+  const segments = path.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean)
+  let acc = ""
+  return segments.map((seg) => {
+    acc += "/" + seg
+    const override = nameOverrides[acc]
+    const name = override || decodeURIComponent(seg).replace(/[-_]/g, " ").replace(/\b\w/g, (m) => m.toUpperCase())
+    return { name, path: acc }
+  })
+}
+
 export default function Breadcrumbs({ items, nameOverrides = {}, className = "" }) {
   const location = useLocation()
 
   // Auto-build crumbs from pathname when items aren't supplied
-  let crumbs = items
-  if (!Array.isArray(crumbs)) {
-    const path = (location.pathname || "/").split("?")[0].split("#")[0]
-    if (path === "/" || path === "") return null
-    const segments = path.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean)
-    let acc = ""
-    crumbs = segments.map((seg) => {
-      acc += "/" + seg
-      const override = nameOverrides[acc]
-      const name = override || decodeURIComponent(seg).replace(/[-_]/g, " ").replace(/\b\w/g, (m) => m.toUpperCase())
-      return { name, path: acc }
-    })
-  }
+  const crumbs = Array.isArray(items) ? items : buildCrumbs(location.pathname, nameOverrides)
 
   if (!Array.isArray(crumbs) || crumbs.length === 0) return null
 

@@ -18,7 +18,7 @@
    Drops in via `<ServicesHero />` — ServicesPage.jsx already imports it.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
@@ -26,6 +26,11 @@ import {
   Briefcase, PieChart, TrendingUp, Package, Check,
 } from "lucide-react"
 import KineticHeadline from "../motion/KineticHeadline"
+// The service count is DERIVED, never typed. The hero used to hard-code "96"
+// while the section directly below it read "Twenty-one services grouped into
+// four lines" — a contradiction a visitor could spot on one screen. Reading
+// the catalogue means the two can never disagree again.
+import { CATALOG_STATS } from "../../data/servicesCatalogue"
 
 /* ── Animation variants ─────────────────────────────────────────────────── */
 const fadeUp = {
@@ -66,9 +71,9 @@ function BrandUnderline() {
     >
       <defs>
         <linearGradient id="brand-underline-grad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="#5D3FD3" />
-          <stop offset="65%"  stopColor="#7B5FE0" />
-          <stop offset="100%" stopColor="#E07856" />
+          <stop offset="0%"   stopColor="var(--color-violet)" />
+          <stop offset="65%"  stopColor="var(--color-violet-mid)" />
+          <stop offset="100%" stopColor="var(--color-coral)" />
         </linearGradient>
       </defs>
       <path
@@ -99,7 +104,7 @@ const CUSTOMER_PHOTO = "https://images.unsplash.com/photo-1573496359142-b8d87734
 function ServicesHeroIllustration({ reduce }) {
   const { t } = useTranslation("services")
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 24, scale: 0.97 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -117,8 +122,8 @@ function ServicesHeroIllustration({ reduce }) {
           className="pointer-events-none absolute left-[8%] top-[2%] z-0 h-[10%] w-[14%]"
           viewBox="0 0 60 30"
         >
-          <path d="M2 24 Q 14 6, 28 18 T 56 12" stroke="#5D3FD3" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.8" />
-          <circle cx="58" cy="9" r="2.4" fill="#5D3FD3" opacity="0.7" />
+          <path d="M2 24 Q 14 6, 28 18 T 56 12" stroke="var(--color-violet)" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.8" />
+          <circle cx="58" cy="9" r="2.4" fill="var(--color-violet)" opacity="0.7" />
         </svg>
 
         {/* ── Decorative marker (top-right) ─────────────────────────── */}
@@ -127,20 +132,20 @@ function ServicesHeroIllustration({ reduce }) {
           className="pointer-events-none absolute right-[2%] top-[2%] z-0 h-[8%] w-[10%]"
           viewBox="0 0 50 30"
         >
-          <path d="M2 8 L 12 2 M 6 18 L 18 6 M 22 22 L 30 12" stroke="#E07856" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M2 8 L 12 2 M 6 18 L 18 6 M 22 22 L 30 12" stroke="var(--color-coral)" strokeWidth="2.5" strokeLinecap="round" />
         </svg>
 
         {/* ── Soft ambient violet bloom behind the photo ────────────── */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40 blur-3xl"
-          style={{ background: "radial-gradient(circle, #5D3FD3 0%, transparent 65%)" }}
+          style={{ background: "radial-gradient(circle, var(--color-violet) 0%, transparent 65%)" }}
         />
 
         {/* ═══════════════════════════════════════════════════════════
            CENTER PHOTO CARD
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.92 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
@@ -165,12 +170,12 @@ function ServicesHeroIllustration({ reduce }) {
             className="pointer-events-none absolute inset-0"
             style={{ background: "linear-gradient(180deg, transparent 50%, rgba(45,26,94,0.18) 100%)" }}
           />
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            LEFT BIG CARD — Services (violet)
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, x: -24 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -183,8 +188,8 @@ function ServicesHeroIllustration({ reduce }) {
             top: "22%",
             width: "32%",
             aspectRatio: "3/4",
-            background: "linear-gradient(155deg, #6B4DD8 0%, #4530B8 100%)",
-            boxShadow: "0 18px 40px -10px rgba(93,63,211,0.45), 0 6px 16px -4px rgba(45,26,94,0.30)",
+            background: "linear-gradient(155deg, var(--color-violet-mid) 0%, var(--color-violet-deep) 100%)",
+            boxShadow: "0 18px 40px -10px rgb(var(--color-violet-rgb)/0.45), 0 6px 16px -4px rgba(45,26,94,0.30)",
           }}
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 sm:h-10 sm:w-10 lg:h-11 lg:w-11">
@@ -195,15 +200,15 @@ function ServicesHeroIllustration({ reduce }) {
               {t("hero.servicesLabel")}
             </div>
             <div className="mt-1 text-3xl font-bold leading-none tracking-tight text-white sm:text-4xl lg:text-5xl">
-              96
+              {CATALOG_STATS.totalServices}
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            RIGHT BIG CARD — Engagements (charcoal)
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, x: 24 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -216,7 +221,7 @@ function ServicesHeroIllustration({ reduce }) {
             top: "22%",
             width: "32%",
             aspectRatio: "3/4",
-            background: "linear-gradient(155deg, #2A2A33 0%, #15151B 100%)",
+            background: "linear-gradient(155deg, var(--color-charcoal-light) 0%, var(--color-charcoal) 100%)",
             boxShadow: "0 18px 40px -10px rgba(0,0,0,0.40), 0 6px 16px -4px rgba(0,0,0,0.25)",
           }}
         >
@@ -231,12 +236,12 @@ function ServicesHeroIllustration({ reduce }) {
               82+
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            TOP FLOAT — "{t("hero.servicePlan")}" tag (above center photo)
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: -16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -245,51 +250,51 @@ function ServicesHeroIllustration({ reduce }) {
           {...(!reduce && { transition: { y: { duration: 5.5, repeat: Infinity, ease: "easeInOut" } } })}
           className="absolute left-1/2 top-[2%] z-30 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[11px] font-semibold text-charcoal-80 shadow-[0_8px_22px_rgba(45,26,94,0.16)] sm:gap-2 sm:px-4 sm:py-2 sm:text-[12px]"
         >
-          <Package className="h-3.5 w-3.5 text-violet sm:h-4 sm:w-4" style={{ color: "#5D3FD3" }} aria-hidden="true" />
+          <Package className="h-3.5 w-3.5 text-violet sm:h-4 sm:w-4" style={{ color: "var(--color-violet)" }} aria-hidden="true" />
           <span>{t("hero.servicePlan")}</span>
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            TOP-RIGHT FLOAT — "{t("hero.onTimeDelivery")}" stat (peach card)
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, x: 16, y: -8 }}
           whileInView={{ opacity: 1, x: 0, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55, delay: 0.45 }}
           animate={reduce ? undefined : { y: [0, -5, 0] }}
           {...(!reduce && { transition: { y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.4 } } })}
-          className="absolute right-[2%] top-[8%] z-30 rounded-2xl bg-[#FCE7DC] px-2.5 py-2 shadow-[0_10px_24px_rgba(224,120,86,0.20)] sm:right-[4%] sm:px-3 sm:py-2.5"
+          className="absolute right-[2%] top-[8%] z-30 rounded-2xl bg-[var(--color-coral-pale)] px-2.5 py-2 shadow-[0_10px_24px_rgb(var(--color-coral-rgb)/0.20)] sm:right-[4%] sm:px-3 sm:py-2.5"
         >
-          <div className="font-mono text-[8px] font-semibold uppercase tracking-[0.12em] text-charcoal-80/55 sm:text-[9px]">
+          <div className="font-mono text-[8px] font-semibold uppercase tracking-[0.12em] text-charcoal-80/65 sm:text-[9px]">
             {t("hero.onTimeDelivery")}
           </div>
           <div className="mt-1 flex items-center gap-1.5 sm:gap-2">
             <span className="text-base font-bold leading-none text-charcoal-80 sm:text-lg">94%</span>
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700 sm:text-[10px]">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-mint/15 px-1.5 py-0.5 text-[9px] font-semibold text-mint-700 sm:text-[10px]">
               <TrendingUp className="h-2.5 w-2.5" aria-hidden="true" />
               5.2%
             </span>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════════════════════════
            BOTTOM-RIGHT FLOAT — "On duty" availability mini-card
            ═══════════════════════════════════════════════════════════ */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55, delay: 0.55 }}
           animate={reduce ? undefined : { y: [0, 6, 0] }}
           {...(!reduce && { transition: { y: { duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 1.0 } } })}
-          className="absolute bottom-[6%] right-[8%] z-30 rounded-2xl bg-[#1A1A22] px-3 py-2 text-white shadow-[0_12px_28px_rgba(0,0,0,0.35)] sm:px-3.5 sm:py-2.5"
+          className="absolute bottom-[6%] right-[8%] z-30 rounded-2xl bg-[var(--color-charcoal)] px-3 py-2 text-white shadow-[0_12px_28px_rgba(0,0,0,0.35)] sm:px-3.5 sm:py-2.5"
         >
           <div className="flex items-center gap-2">
             <div className="flex -space-x-1.5">
-              <span className="block h-5 w-5 rounded-full border-2 border-[#1A1A22] bg-violet sm:h-6 sm:w-6" style={{ background: "linear-gradient(135deg, #6B4DD8, #E07856)" }} />
-              <span className="block h-5 w-5 rounded-full border-2 border-[#1A1A22] bg-emerald-400 sm:h-6 sm:w-6" />
-              <span className="block h-5 w-5 rounded-full border-2 border-[#1A1A22] bg-orange-300 sm:h-6 sm:w-6" />
+              <span className="block h-5 w-5 rounded-full border-2 border-[var(--color-charcoal)] bg-violet sm:h-6 sm:w-6" style={{ background: "linear-gradient(135deg, var(--color-violet-mid), var(--color-coral))" }} />
+              <span className="block h-5 w-5 rounded-full border-2 border-[var(--color-charcoal)] bg-emerald-400 sm:h-6 sm:w-6" />
+              <span className="block h-5 w-5 rounded-full border-2 border-[var(--color-charcoal)] bg-orange-300 sm:h-6 sm:w-6" />
             </div>
             <div className="min-w-0">
               <div className="font-mono text-[8px] font-semibold uppercase tracking-[0.12em] text-white/55 sm:text-[9px]">
@@ -304,9 +309,9 @@ function ServicesHeroIllustration({ reduce }) {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
           </div>
-        </motion.div>
+        </m.div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -321,13 +326,13 @@ export default function ServicesHero() {
     <section className="relative overflow-hidden bg-white pb-12 pt-4 sm:pb-16 sm:pt-6 lg:pb-20 lg:pt-8">
 
       {/* ── Soft ambient blobs · gentle motion ─────────────────────── */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, 22, 0], y: [0, 14, 0], scale: [1, 1.06, 1] }}
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
         className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet/[0.05] blur-3xl"
       />
-      <motion.div
+      <m.div
         aria-hidden="true"
         animate={reduce ? undefined : { x: [0, -18, 0], y: [0, -10, 0], scale: [1, 1.08, 1] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
@@ -338,19 +343,19 @@ export default function ServicesHero() {
         <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
 
           {/* ── LEFT · narrative + CTAs + proof ─────────────────────── */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             animate="show"
             className="max-w-xl"
           >
             {/* Eyebrow */}
-            <motion.div variants={fadeUp}>
+            <m.div variants={fadeUp}>
               <EyebrowChip>
                 <Sparkles className="h-3 w-3" aria-hidden="true" />
                 {t("hero.servicesEyebrow")}
               </EyebrowChip>
-            </motion.div>
+            </m.div>
 
             {/* Phase 10b · kinetic word-by-word reveal. The legacy
                 gradient-clipped span (with its underline decoration) is
@@ -366,19 +371,19 @@ export default function ServicesHero() {
                 { text: t("hero.headlinePremium") },
                 { text: `${t("hero.honestPrice")}.`, gradient: true },
               ]}
-              gradientClassName="bg-gradient-to-r from-violet via-[#7B5FE0] to-terracotta bg-clip-text !text-transparent"
+              gradientClassName="bg-gradient-to-r from-violet via-[var(--color-violet-mid)] to-terracotta bg-clip-text !text-transparent"
             />
 
             {/* Subhead · marketing voice — three-beat rhythm, plain words */}
-            <motion.p
+            <m.p
               variants={fadeUp}
               className="mt-5 max-w-md text-[15px] leading-7 text-charcoal-80/65 sm:text-[16px]"
             >
               {t("hero.headlineWebsitesApps")} <span className="font-semibold text-charcoal-80">{t("hero.builtRight")}</span>, <span className="font-semibold text-charcoal-80">{t("hero.pricedFair")}</span>, <span className="font-semibold text-charcoal-80">{t("hero.deliveredFast")}</span>.
-            </motion.p>
+            </m.p>
 
             {/* CTAs */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               className="mt-7 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4"
             >
@@ -386,8 +391,7 @@ export default function ServicesHero() {
                   reserved for Book / Buy / Checkout / Contact CTAs). */}
               <Link
                 to="/book"
-                aria-label={t("hero.bookCallAria")}
-                className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-grad-innovation px-6 py-3.5 text-[14px] font-bold !text-white shadow-[0_16px_36px_-10px_rgba(93,63,211,0.55),0_4px_10px_-2px_rgba(2,132,199,0.25)] ring-1 ring-inset ring-white/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_48px_-10px_rgba(93,63,211,0.65),0_6px_14px_-2px_rgba(2,132,199,0.32)] focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/50 focus-visible:ring-offset-2"
+                className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-grad-innovation px-6 py-3.5 text-[14px] font-bold !text-white shadow-[0_16px_36px_-10px_rgb(var(--color-violet-rgb)/0.55),0_4px_10px_-2px_rgb(var(--color-azure-rgb)/0.25)] ring-1 ring-inset ring-white/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_48px_-10px_rgb(var(--color-violet-rgb)/0.65),0_6px_14px_-2px_rgb(var(--color-azure-rgb)/0.32)] focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/50 focus-visible:ring-offset-2"
               >
                 <span
                   aria-hidden="true"
@@ -402,19 +406,25 @@ export default function ServicesHero() {
                   15-minute capability assessment served at /diagnostic
                   (public/diagnostic/index.html). Opens in a new tab so the
                   user's place on the services page is preserved. */}
-              <a
-                href="/diagnostic"
-                target="_blank"
-                rel="noopener noreferrer"
+              {/* Self-audit CTA · same-window navigation to the new React
+                  shell at /self-audit (the shell iframes /diagnostic and
+                  forwards every audit event to trackEvent for analytics).
+                  Pre-fix this targeted /diagnostic directly with
+                  target="_blank", which (a) lost the SPA chrome, (b)
+                  bypassed page-view tracking, and (c) made the iframe-based
+                  analytics dead-on-arrival because the new tab had no GA
+                  bootstrap. */}
+              <Link
+                to="/self-audit"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-charcoal-80/15 bg-white px-6 py-3.5 text-[14px] font-bold !text-charcoal-80 transition hover:-translate-y-0.5 hover:border-violet/30 hover:!text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/30"
               >
                 <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
                 {t("hero.selfAuditCta", "Take the free self-audit")}
-              </a>
-            </motion.div>
+              </Link>
+            </m.div>
 
             {/* Stats row */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               className="mt-8 grid grid-cols-2 gap-6 sm:max-w-sm sm:gap-8"
             >
@@ -422,29 +432,29 @@ export default function ServicesHero() {
                 <div className="font-mono text-[28px] font-extrabold leading-none tabular-nums !text-charcoal-80 sm:text-[32px]">
                   94<span className="!text-mint">%</span>
                 </div>
-                <div className="mt-1.5 text-[11.5px] text-charcoal-80/55 sm:text-[12px]">
+                <div className="mt-1.5 text-[11.5px] text-charcoal-80/65 sm:text-[12px]">
                   {t("hero.onTimeDelivery")}
                 </div>
               </div>
               <div>
                 <div className="font-mono text-[28px] font-extrabold leading-none tabular-nums !text-charcoal-80 sm:text-[32px]">
-                  82<span className="!text-mint">+</span>
+                  {CATALOG_STATS.totalServices}
                 </div>
-                <div className="mt-1.5 text-[11.5px] text-charcoal-80/55 sm:text-[12px]">
+                <div className="mt-1.5 text-[11.5px] text-charcoal-80/65 sm:text-[12px]">
                   {t("hero.atomicServices")}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Divider */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               aria-hidden="true"
               className="mt-7 h-px w-full max-w-sm bg-gradient-to-r from-charcoal-80/15 via-charcoal-80/10 to-transparent"
             />
 
             {/* Feature ticks — three concrete value points */}
-            <motion.ul
+            <m.ul
               variants={fadeUp}
               className="mt-5 grid grid-cols-1 gap-2.5 sm:max-w-md sm:grid-cols-1"
             >
@@ -456,7 +466,7 @@ export default function ServicesHero() {
                 <li key={feature} className="flex items-center gap-2.5">
                   <span
                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                    style={{ background: "linear-gradient(135deg, #5D3FD3, #7B5FE0)" }}
+                    style={{ background: "linear-gradient(135deg, var(--color-violet), var(--color-violet-mid))" }}
                     aria-hidden="true"
                   >
                     <Check className="h-3 w-3 text-white" strokeWidth={3} />
@@ -466,8 +476,8 @@ export default function ServicesHero() {
                   </span>
                 </li>
               ))}
-            </motion.ul>
-          </motion.div>
+            </m.ul>
+          </m.div>
 
           {/* ── RIGHT · Live Delivery Pipeline ──────────────────────── */}
           <ServicesHeroIllustration reduce={reduce} />

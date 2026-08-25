@@ -1,7 +1,7 @@
+/* eslint-disable react-refresh/only-export-components -- provider + hook co-located */
 import { createContext, useCallback, useContext, useMemo, useState } from "react"
 import { CheckCircle2, AlertCircle, Info, TriangleAlert, X } from "lucide-react"
 
-import { useTranslation } from "react-i18next"
 const ToastContext = createContext(null)
 
 const TOAST_ICONS = {
@@ -11,26 +11,31 @@ const TOAST_ICONS = {
   warning: TriangleAlert,
 }
 
+// Brand v3 §05 semantic feedback tokens. Each toast type maps to its
+// canonical tier — Mint (success) · Rose (error) · Azure (info) · Amber
+// (warning) — using brand opacity utilities rather than Tailwind's default
+// green/blue/red scales. Matches the chip pattern established across
+// dashboard + admin pages so toast surfaces feel native to the system.
 const TOAST_STYLES = {
   success: {
-    container: "border-green-200 bg-green-50 text-green-800",
-    icon: "text-green-600",
-    progress: "bg-green-500",
+    container: "border-mint/20 bg-mint/10 text-emerald-800",
+    icon: "text-emerald-700",
+    progress: "bg-mint",
   },
   error: {
-    container: "border-red-200 bg-red-50 text-red-800",
-    icon: "text-red-600",
-    progress: "bg-red-500",
+    container: "border-rose/20 bg-rose/10 text-rose-800",
+    icon: "text-rose-700",
+    progress: "bg-rose",
   },
   info: {
-    container: "border-blue-200 bg-blue-50 text-blue-800",
-    icon: "text-blue-600",
-    progress: "bg-blue-500",
+    container: "border-azure/20 bg-azure-pale text-azure-800",
+    icon: "text-azure",
+    progress: "bg-azure",
   },
   warning: {
-    container: "border-amber-200 bg-amber-50 text-amber-800",
-    icon: "text-amber-600",
-    progress: "bg-amber-500",
+    container: "border-amber/20 bg-amber/10 text-amber-700",
+    icon: "text-amber-700",
+    progress: "bg-amber",
   },
 }
 
@@ -40,7 +45,7 @@ function ToastItem({ toast, onClose }) {
 
   return (
     <div
-      className={`pointer-events-auto relative overflow-hidden rounded-xl border px-4 py-3 shadow-[0_10px_28px_rgba(93,63,211,0.10)] backdrop-blur-sm ${style.container}`}
+      className={`pointer-events-auto relative overflow-hidden rounded-xl border px-4 py-3 shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.10)] backdrop-blur-sm ${style.container}`}
     >
       <div className="flex items-start gap-3 pr-8">
         <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${style.icon}`} />

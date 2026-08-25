@@ -73,7 +73,7 @@ const Switch = forwardRef(function Switch(
         isOn
           ? "bg-[var(--color-action-primary)]"
           : "bg-[var(--color-border-strong)]",
-        "peer-focus-visible:shadow-[0_0_0_3px_rgba(93,63,211,0.18)]",
+        "peer-focus-visible:shadow-[0_0_0_3px_rgb(var(--color-violet-rgb)/0.18)]",
       ]
         .filter(Boolean)
         .join(" ")}

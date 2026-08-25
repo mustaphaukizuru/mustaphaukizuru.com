@@ -5,8 +5,13 @@
 
 const { Router } = require("express")
 const ctrl = require("../controllers/adminBioController")
+const { protect, adminOnly } = require("../middleware/authMiddleware")
 
 const router = Router()
+
+// Security · this router is mounted bare in routes/index.js, so it must
+// enforce auth itself. Every /admin router guards itself for the same reason.
+router.use(protect, adminOnly)
 
 // Experience
 router.get("/experience",        ctrl.listExperience)

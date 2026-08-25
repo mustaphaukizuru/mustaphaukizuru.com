@@ -2,7 +2,7 @@ export default function ProgressGroup({ title, items = [] }) {
   return (
     <div className={title ? "rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-sm" : ""}>
       {title ? (
-        <h3 className="font-['Sora'] text-2xl font-semibold text-violet">
+        <h3 className="font-display text-2xl font-semibold text-violet">
           {title}
         </h3>
       ) : null}

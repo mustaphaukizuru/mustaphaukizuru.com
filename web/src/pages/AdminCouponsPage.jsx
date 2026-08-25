@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Tag, Plus, Edit3, Trash2, X, Check, Activity, ChevronRight,
   Copy, Users, TrendingUp, Calendar, AlertCircle, Percent, DollarSign,
@@ -93,11 +93,8 @@ const EMPTY_FORM = {
   description: "",
   discountType: "percentage",
   discountValue: "10",
-  minOrderAmount: "",
-  usageLimit: "",
-  maxUsesPerUser: "",
-  stackable: true,
-  startsAt: "",
+  usageLimit: "1",
+  maxUsesPerUser: "1",
   expiresAt: "",
   isActive: true,
 }
@@ -109,11 +106,8 @@ function formStateFromCoupon(coupon) {
     description: coupon.description || "",
     discountType: coupon.discountType || "percentage",
     discountValue: coupon.discountValue != null ? String(coupon.discountValue) : "",
-    minOrderAmount: coupon.minOrderAmount != null ? String(coupon.minOrderAmount) : "",
     usageLimit: coupon.usageLimit != null ? String(coupon.usageLimit) : "",
     maxUsesPerUser: coupon.maxUsesPerUser != null ? String(coupon.maxUsesPerUser) : "",
-    stackable: coupon.stackable !== false,
-    startsAt: coupon.startsAt ? coupon.startsAt.slice(0, 10) : "",
     expiresAt: coupon.expiresAt ? coupon.expiresAt.slice(0, 10) : "",
     isActive: coupon.isActive !== false,
   }
@@ -125,13 +119,10 @@ function buildPayload(form) {
     description: form.description.trim() || null,
     discountType: form.discountType,
     discountValue: Number(form.discountValue),
-    stackable: Boolean(form.stackable),
     isActive: Boolean(form.isActive),
   }
-  payload.minOrderAmount = form.minOrderAmount !== "" ? Number(form.minOrderAmount) : null
   payload.usageLimit = form.usageLimit !== "" ? Number(form.usageLimit) : null
   payload.maxUsesPerUser = form.maxUsesPerUser !== "" ? Number(form.maxUsesPerUser) : null
-  payload.startsAt = form.startsAt || null
   payload.expiresAt = form.expiresAt || null
   return payload
 }
@@ -210,8 +201,10 @@ export default function AdminCouponsPage() {
       if (payload.discountType === "percentage" && payload.discountValue > 100) {
         throw new Error("Percentage cannot exceed 100")
       }
-      if (payload.startsAt && payload.expiresAt && new Date(payload.startsAt) > new Date(payload.expiresAt)) {
-        throw new Error("Start date must be before expiry date")
+      for (const [key, label] of [["usageLimit", "Total usage limit"], ["maxUsesPerUser", "Max uses per user"]]) {
+        if (payload[key] != null && (!Number.isInteger(payload[key]) || payload[key] < 1)) {
+          throw new Error(`${label} must be a whole number of at least 1 (or blank for unlimited)`)
+        }
       }
       if (modalMode === "create") await createCoupon(payload)
       else await updateCoupon(editing.id, payload)
@@ -288,7 +281,7 @@ export default function AdminCouponsPage() {
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                try { navigator.clipboard?.writeText(row.code) } catch {}
+                try { navigator.clipboard?.writeText(row.code) } catch { /* clipboard unavailable */ }
               }}
               aria-label={`Copy code ${row.code}`}
               title="Copy code"
@@ -298,7 +291,7 @@ export default function AdminCouponsPage() {
             </button>
           </div>
           {row.description && (
-            <div className="mt-0.5 truncate text-micro text-charcoal-80/60">{row.description}</div>
+            <div className="mt-0.5 truncate text-micro text-charcoal-80/65">{row.description}</div>
           )}
         </div>
       ),
@@ -322,19 +315,6 @@ export default function AdminCouponsPage() {
               {Number(row.discountValue).toFixed(2)}
             </>
           )}
-        </span>
-      ),
-    },
-    {
-      key: "minOrder",
-      label: "Min. order",
-      sortable: true,
-      width: "0.7fr",
-      align: "right",
-      getValue: (row) => row.minOrderAmount != null ? Number(row.minOrderAmount) : -1,
-      render: (row) => (
-        <span className="font-mono text-meta tabular-nums text-charcoal-80/85">
-          {row.minOrderAmount != null ? `$${Number(row.minOrderAmount).toFixed(2)}` : "-"}
         </span>
       ),
     },
@@ -406,7 +386,7 @@ export default function AdminCouponsPage() {
   return (
     <section className="space-y-5">
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -426,7 +406,7 @@ export default function AdminCouponsPage() {
         </p>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgba(93,63,211,0.22)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-2 rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           New coupon
@@ -512,7 +492,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
   }, [onClose])
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
       onClick={onClose}
@@ -520,13 +500,13 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
       aria-modal="true"
       aria-label={mode === "create" ? "New coupon" : "Edit coupon"}
     >
-      <motion.div
+      <m.div
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.96, opacity: 0 }}
         transition={{ duration: 0.18, ease: "easeOut" }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-xl overflow-y-auto rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_24px_60px_rgba(93,63,211,0.18)] max-h-[90vh]"
+        className="w-full max-w-xl overflow-y-auto rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_24px_60px_rgb(var(--color-violet-rgb)/0.18)] max-h-[90vh]"
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-card font-bold text-violet">
@@ -536,7 +516,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-lg p-1.5 text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+            className="rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -563,7 +543,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
             hint="Optional"
             value={form.description}
             onChange={(e) => set({ description: e.target.value })}
-            placeholder="Launch promo, 10% off orders over $20"
+            placeholder="Launch promo, 10% off"
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -589,62 +569,32 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
 
           <div className="grid grid-cols-2 gap-4">
             <FormInput
-              label="Min. order amount"
-              hint="Leave blank for no minimum"
-              type="number"
-              min="0" step="0.01"
-              value={form.minOrderAmount}
-              onChange={(e) => set({ minOrderAmount: e.target.value })}
-              placeholder="e.g. 20"
-            />
-            <FormInput
               label="Total usage limit"
-              hint="Blank = unlimited"
+              hint="Default 1 (single-use). Blank = unlimited"
               type="number"
-              min="0" step="1"
+              min="1" step="1"
               value={form.usageLimit}
               onChange={(e) => set({ usageLimit: e.target.value })}
-              placeholder="e.g. 100"
+              placeholder="1"
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <FormInput
               label="Max uses per user"
-              hint="Blank = unlimited"
+              hint="Default 1. Blank = unlimited"
               type="number"
-              min="0" step="1"
+              min="1" step="1"
               value={form.maxUsesPerUser}
               onChange={(e) => set({ maxUsesPerUser: e.target.value })}
-              placeholder="e.g. 1"
+              placeholder="1"
             />
-            <Field label="Stackable" hint="Allows combining with other coupons">
-              <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-mist px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">
-                <input
-                  type="checkbox"
-                  checked={form.stackable}
-                  onChange={(e) => set({ stackable: e.target.checked })}
-                  className="h-4 w-4 rounded border-charcoal-80/30 text-violet accent-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
-                />
-                <span>Yes, can be stacked</span>
-              </label>
-            </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormInput
-              label="Starts at"
-              type="date"
-              value={form.startsAt}
-              onChange={(e) => set({ startsAt: e.target.value })}
-            />
-            <FormInput
-              label="Expires at"
-              type="date"
-              value={form.expiresAt}
-              onChange={(e) => set({ expiresAt: e.target.value })}
-            />
-          </div>
+          <FormInput
+            label="Expires at"
+            hint="Blank = never expires"
+            type="date"
+            value={form.expiresAt}
+            onChange={(e) => set({ expiresAt: e.target.value })}
+          />
 
           <Field label="Active">
             <label className="mt-1 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-charcoal-80/12 bg-mist px-3 py-2 text-meta text-charcoal-80 transition hover:bg-violet-pale">
@@ -659,7 +609,7 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
           </Field>
 
           {error && (
-            <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-meta text-rose-700" role="alert">
+            <div className="flex items-start gap-2 rounded-lg border border-rose/20 bg-rose/5 px-3 py-2 text-meta text-rose-700" role="alert">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               {error}
             </div>
@@ -693,8 +643,8 @@ function CouponFormModal({ mode, form, setForm, onSave, onClose, saving, error }
             </button>
           </div>
         </form>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   )
 }
 
@@ -709,7 +659,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
   }, [onClose])
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-[60] flex justify-end bg-black/40 backdrop-blur-sm"
       onClick={onClose}
@@ -717,7 +667,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
       aria-modal="true"
       aria-label={`Usage history for ${coupon.code}`}
     >
-      <motion.aside
+      <m.aside
         initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
         transition={{ duration: 0.24, ease: "easeOut" }}
         onClick={(e) => e.stopPropagation()}
@@ -725,7 +675,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
       >
         <div className="sticky top-0 flex items-center justify-between border-b border-charcoal-80/8 bg-white px-5 py-4">
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">Usage history</div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">Usage history</div>
             <div className="mt-0.5 flex items-center gap-2">
               <Tag className="h-3.5 w-3.5 text-violet" aria-hidden="true" />
               <code className="font-mono text-meta font-semibold text-violet">{coupon.code}</code>
@@ -735,7 +685,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Close usage drawer"
-            className="rounded-lg p-1.5 text-charcoal-80/55 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+            className="rounded-lg p-1.5 text-charcoal-80/65 transition hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -743,9 +693,9 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
 
         <div className="p-5">
           {loading ? (
-            <div className="py-10 text-center text-meta text-charcoal-80/60" role="status">Loading…</div>
+            <div className="py-10 text-center text-meta text-charcoal-80/65" role="status">Loading…</div>
           ) : rows.length === 0 ? (
-            <div className="py-10 text-center text-meta text-charcoal-80/60">No redemptions yet.</div>
+            <div className="py-10 text-center text-meta text-charcoal-80/65">No redemptions yet.</div>
           ) : (
             <ul className="space-y-3">
               {rows.map((row) => (
@@ -755,9 +705,9 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
                       <div className="truncate text-meta font-medium text-violet">
                         {row.user?.fullName || "Unknown user"}
                       </div>
-                      <div className="truncate font-mono text-micro text-charcoal-80/60">{row.user?.email || ""}</div>
+                      <div className="truncate font-mono text-micro text-charcoal-80/65">{row.user?.email || ""}</div>
                     </div>
-                    <div className="font-mono text-micro tabular-nums text-charcoal-80/60">{formatDate(row.usedAt)}</div>
+                    <div className="font-mono text-micro tabular-nums text-charcoal-80/65">{formatDate(row.usedAt)}</div>
                   </div>
                   {row.order && (
                     <div className="mt-2 flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-micro text-charcoal-80/85">
@@ -773,7 +723,7 @@ function UsageDrawer({ coupon, rows, loading, onClose }) {
             </ul>
           )}
         </div>
-      </motion.aside>
-    </motion.div>
+      </m.aside>
+    </m.div>
   )
 }

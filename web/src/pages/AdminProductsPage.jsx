@@ -80,13 +80,13 @@ function FlagsCell({ featured, isNew }) {
   return (
     <div className="flex items-center gap-1">
       {featured && (
-        <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+        <span className="inline-flex items-center gap-1 rounded-md bg-amber/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
           <Star className="h-2.5 w-2.5" aria-hidden="true" />
           Featured
         </span>
       )}
       {isNew && (
-        <span className="rounded-md bg-mint/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-mint">
+        <span className="rounded-md bg-mint/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-mint-700">
           New
         </span>
       )}
@@ -161,7 +161,7 @@ export default function AdminProductsPage() {
       render: (row) => (
         <div className="min-w-0">
           <div className="truncate text-meta font-semibold text-violet">{row.title}</div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             /store/{row.slug}
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function AdminProductsPage() {
         </div>
         <Link
           to="/admin/products/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgba(93,63,211,0.22)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-2 rounded-lg bg-violet px-4 py-2.5 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           New Product
@@ -262,7 +262,7 @@ export default function AdminProductsPage() {
       </div>
 
       {errorMessage && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {errorMessage}
         </div>

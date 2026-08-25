@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Briefcase, Calendar, Clock, CheckCircle2, AlertCircle, Pause, XCircle,
   ChevronRight, Loader2, MessageSquare, Folder, FileText, ArrowRight,
 } from "lucide-react"
 
 import { fetchMyServiceOrders } from "../services/serviceOrderService"
+import useApiQuery from "../hooks/useApiQuery"
 
 /**
  * DashboardServiceOrdersPage · #5
@@ -23,10 +24,10 @@ import { fetchMyServiceOrders } from "../services/serviceOrderService"
  */
 
 const STATUS_VISUAL = {
-  new:       { Icon: Clock,        fg: "text-azure",  bg: "bg-azure/10",   ring: "ring-azure/20" },
+  new:       { Icon: Clock,        fg: "text-azure-deep",  bg: "bg-azure/10",   ring: "ring-azure/20" },
   active:    { Icon: Briefcase,    fg: "text-violet", bg: "bg-violet-pale", ring: "ring-violet/20" },
-  on_hold:   { Icon: Pause,        fg: "text-amber",  bg: "bg-amber/10",   ring: "ring-amber/20" },
-  completed: { Icon: CheckCircle2, fg: "text-mint",   bg: "bg-mint/15",    ring: "ring-mint/25" },
+  on_hold:   { Icon: Pause,        fg: "text-amber-700",  bg: "bg-amber/10",   ring: "ring-amber/20" },
+  completed: { Icon: CheckCircle2, fg: "text-mint-700",   bg: "bg-mint/15",    ring: "ring-mint/25" },
   cancelled: { Icon: XCircle,      fg: "text-rose",   bg: "bg-rose/10",    ring: "ring-rose/20" },
 }
 
@@ -49,20 +50,11 @@ function fmtDate(iso) {
 
 export default function DashboardServiceOrdersPage() {
   const { t } = useTranslation("dashboard")
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true); setError("")
-    fetchMyServiceOrders()
-      .then((data) => { if (!cancelled) setOrders(data) })
-      .catch((e) => { if (!cancelled) setError(e?.message || t("serviceOrders.errors.load")) })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const { data: orders = [], loading, error } = useApiQuery(
+    "serviceOrders",
+    () => fetchMyServiceOrders(),
+    { select: (data) => (Array.isArray(data) ? data : []) }
+  )
 
   if (loading) {
     return (
@@ -124,9 +116,9 @@ function ServiceOrderCard({ order }) {
   }, [order])
 
   return (
-    <motion.article
+    <m.article
       {...fadeUp}
-      className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_4px_18px_rgba(93,63,211,0.04)]"
+      className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[0_4px_18px_rgb(var(--color-violet-rgb)/0.04)]"
     >
       <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-start">
         <div className="min-w-0">
@@ -134,7 +126,7 @@ function ServiceOrderCard({ order }) {
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 ${visual.bg} ${visual.fg} ${visual.ring}`}>
               <StatusIcon className="h-3 w-3" aria-hidden="true" /> {statusLabel}
             </span>
-            <span className="font-mono text-[11px] text-charcoal-80/45">
+            <span className="font-mono text-[11px] text-charcoal-80/65">
               #{(order.id || "").slice(-8).toUpperCase()}
             </span>
           </div>
@@ -169,7 +161,7 @@ function ServiceOrderCard({ order }) {
                     >
                       {idx + 1}
                     </div>
-                    <span className={`font-mono text-[10px] uppercase tracking-wider ${reached ? "text-charcoal" : "text-charcoal-80/45"}`}>
+                    <span className={`font-mono text-[10px] uppercase tracking-wider ${reached ? "text-charcoal" : "text-charcoal-80/65"}`}>
                       {t(`serviceOrders.status.${step}.label`)}
                     </span>
                   </li>
@@ -207,15 +199,15 @@ function ServiceOrderCard({ order }) {
           </Link>
         </div>
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 
 function Chip({ Icon, label, value }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/10 bg-mist px-2 py-1 text-[11px] text-charcoal-80/75">
-      <Icon className="h-3 w-3 text-charcoal-80/55" aria-hidden="true" />
-      <span className="font-mono uppercase tracking-wider text-charcoal-80/55">{label}:</span>
+      <Icon className="h-3 w-3 text-charcoal-80/65" aria-hidden="true" />
+      <span className="font-mono uppercase tracking-wider text-charcoal-80/65">{label}:</span>
       <span className="font-semibold text-charcoal">{value}</span>
     </span>
   )

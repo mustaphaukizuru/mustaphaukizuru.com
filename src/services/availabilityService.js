@@ -274,27 +274,38 @@ function clearHostCache() { hostCache.clear() }
 
 /**
  * Load the booking policy for a service, or return sensible defaults.
+ *
+ * Booking Hardening v1 · exposes three additional fields:
+ *   - bookingRequiresPayment           — gates free bookings on paid services
+ *   - bookingCancellationNoticeHours   — replaces hardcoded 12h
+ *   - bookingRescheduleNoticeHours     — replaces hardcoded 12h
  */
 async function loadServicePolicy(serviceId) {
   const defaults = {
-    bookingDurationMin:    30,
-    bookingBufferMin:      15,
-    bookingMinNoticeHours: 24,
-    bookingMaxAdvanceDays: 60,
-    isBookable:            true,  // when no service supplied (free discovery call)
+    bookingDurationMin:             30,
+    bookingBufferMin:               15,
+    bookingMinNoticeHours:          24,
+    bookingMaxAdvanceDays:          60,
+    bookingRequiresPayment:         false, // generic discovery call → free
+    bookingCancellationNoticeHours: 12,
+    bookingRescheduleNoticeHours:   12,
+    isBookable:                     true,  // when no service supplied (free discovery call)
   }
   if (!serviceId) return defaults
 
   const svc = await prisma.service.findUnique({
     where: { id: serviceId },
     select: {
-      isBookable:            true,
-      bookingDurationMin:    true,
-      bookingBufferMin:      true,
-      bookingMinNoticeHours: true,
-      bookingMaxAdvanceDays: true,
-      title:                 true,
-      slug:                  true,
+      isBookable:                     true,
+      bookingDurationMin:             true,
+      bookingBufferMin:               true,
+      bookingMinNoticeHours:          true,
+      bookingMaxAdvanceDays:          true,
+      bookingRequiresPayment:         true,
+      bookingCancellationNoticeHours: true,
+      bookingRescheduleNoticeHours:   true,
+      title:                          true,
+      slug:                           true,
     },
   })
 
@@ -308,6 +319,39 @@ async function loadServicePolicy(serviceId) {
     })
   }
   return svc
+}
+
+/**
+ * Load just the cancel/reschedule notice windows for a consultation's service.
+ *
+ * Distinct from loadServicePolicy because:
+ *   1. It must NOT throw when the service has been de-listed since the
+ *      booking was made — a member should always be able to cancel an
+ *      existing consultation even if the admin un-published the service.
+ *   2. It only reads two columns, so it's cheaper for the cancel/reschedule
+ *      hot path which doesn't need the full booking policy.
+ *
+ * Returns defaults (12h each) when serviceId is null/missing.
+ */
+async function loadCancellationPolicy(serviceId) {
+  const defaults = {
+    bookingCancellationNoticeHours: 12,
+    bookingRescheduleNoticeHours:   12,
+  }
+  if (!serviceId) return defaults
+
+  const svc = await prisma.service.findUnique({
+    where: { id: serviceId },
+    select: {
+      bookingCancellationNoticeHours: true,
+      bookingRescheduleNoticeHours:   true,
+    },
+  })
+  if (!svc) return defaults
+  return {
+    bookingCancellationNoticeHours: svc.bookingCancellationNoticeHours ?? 12,
+    bookingRescheduleNoticeHours:   svc.bookingRescheduleNoticeHours   ?? 12,
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -549,6 +593,7 @@ module.exports = {
   // Internals exposed for the booking service + tests
   resolveHostUserId,
   loadServicePolicy,
+  loadCancellationPolicy,
   computeSlotsForDate,
   expandRuleForDate,
   parseHHmm,

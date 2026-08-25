@@ -60,9 +60,18 @@ const updatePost = asyncHandler(async (req, res) => {
   res.json({ post })
 })
 
+/* Step 42 · soft delete; ?hard=1 permanently removes the row. */
 const deletePost = asyncHandler(async (req, res) => {
-  await adminBlog.deletePost(req.params.id)
+  const hard = req.query.hard === "1" || req.query.hard === "true"
+  const result = await adminBlog.deletePost(req.params.id, { hard })
+  if (!hard && !result) return res.status(404).json({ error: "Post not found" })
   res.status(204).end()
+})
+
+const restorePost = asyncHandler(async (req, res) => {
+  const post = await adminBlog.restorePost(req.params.id)
+  if (!post) return res.status(404).json({ error: "Post not found" })
+  res.json({ post })
 })
 
 /* ── Categories ───────────────────────────────────────────────────────── */
@@ -97,7 +106,7 @@ const listTags = asyncHandler(async (_req, res) => {
 })
 
 module.exports = {
-  listPosts, getPost, createPost, updatePost, deletePost,
+  listPosts, getPost, createPost, updatePost, deletePost, restorePost,
   listCategories, createCategory, updateCategory, deleteCategory,
   listTags,
 }

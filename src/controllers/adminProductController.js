@@ -4,6 +4,7 @@ const {
   createAdminProduct,
   updateAdminProduct,
   deleteAdminProduct,
+  restoreAdminProduct,
   getAdminProductById,
   addProductFile,
   removeProductFile,
@@ -57,13 +58,30 @@ const updateProduct = asyncHandler(async (req, res) => {
   })
 })
 
+/* Step 42 · DELETE /:id is a soft delete; DELETE /:id?hard=1 keeps the
+ * legacy destructive path (files + images + row) for admins. */
 const removeProduct = asyncHandler(async (req, res) => {
-  await deleteAdminProduct(req.params.id)
+  const hard = req.query.hard === "1" || req.query.hard === "true"
+  const result = await deleteAdminProduct(req.params.id, { hard })
+
+  if (!hard && !result) {
+    return res.status(404).json({ success: false, message: "Product not found" })
+  }
 
   res.status(200).json({
     success: true,
-    message: "Product deleted successfully",
+    message: hard ? "Product permanently deleted" : "Product moved to trash",
+    data: hard ? undefined : result,
   })
+})
+
+/* Step 42 · PATCH /:id/restore — clears deletedAt. */
+const restoreProduct = asyncHandler(async (req, res) => {
+  const product = await restoreAdminProduct(req.params.id)
+  if (!product) {
+    return res.status(404).json({ success: false, message: "Product not found" })
+  }
+  res.status(200).json({ success: true, message: "Product restored", data: product })
 })
 
 const uploadProductFile = asyncHandler(async (req, res) => {
@@ -140,6 +158,7 @@ module.exports = {
   createProduct,
   updateProduct,
   removeProduct,
+  restoreProduct,
   uploadProductFile,
   deleteProductFile,
   markPrimaryProductFile,

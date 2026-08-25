@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Helmet } from "react-helmet-async"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   ArrowLeft,
   Clock,
@@ -69,7 +69,7 @@ const stagger = { hidden: {},                    show: { transition: { staggerCh
  *   "contact" → navigate to /contact
  * ────────────────────────────────────────────────────────────────────────── */
 const TONES = {
-  amber: { tile: "bg-amber-50 text-amber-700",  ring: "ring-amber-100" },
+  amber: { tile: "bg-amber/10 text-amber-700",  ring: "ring-amber-100" },
   rose:  { tile: "bg-rose-50 text-rose-700",    ring: "ring-rose-50"   },
   azure: { tile: "bg-azure-pale text-azure-800",ring: "ring-azure-pale" },
   slate: { tile: "bg-slate-100 text-steel-700", ring: "ring-slate-200" },
@@ -94,6 +94,69 @@ const CONFIGS = {
 
 function getConfig(type) {
   return CONFIGS[type] || CONFIGS[String(type)] || CONFIGS.GENERIC
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * NotFoundArt — branded illustration for the 404 state only.
+ *
+ * A small browser-window scene with a magnifier that found nothing: friendly
+ * and on-brand (violet/azure/terracotta) where the harsher error types keep
+ * the sober icon tile. Pure inline SVG — no asset request, scales crisply,
+ * inherits the page's entrance animation from the parent motion wrapper.
+ * ────────────────────────────────────────────────────────────────────────── */
+function NotFoundArt() {
+  return (
+    <svg
+      viewBox="0 0 200 132"
+      className="h-32 w-48 sm:h-36 sm:w-56"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {/* Ground shadow */}
+      <ellipse cx="100" cy="122" rx="64" ry="7" fill="var(--color-violet)" opacity="0.08" />
+      {/* Browser window */}
+      <rect x="34" y="14" width="132" height="92" rx="12" fill="#FFFFFF" stroke="var(--color-violet)" strokeOpacity="0.22" strokeWidth="2" />
+      <line x1="34" y1="36" x2="166" y2="36" stroke="var(--color-violet)" strokeOpacity="0.14" strokeWidth="2" />
+      {/* Traffic dots */}
+      <circle cx="48" cy="25" r="3.5" fill="var(--color-terracotta)" />
+      <circle cx="60" cy="25" r="3.5" fill="var(--color-mint-light)" />
+      <circle cx="72" cy="25" r="3.5" fill="var(--color-azure)" />
+      {/* Ghost content lines */}
+      <rect x="48" y="48" width="58" height="7" rx="3.5" fill="var(--color-violet)" opacity="0.12" />
+      <rect x="48" y="62" width="84" height="7" rx="3.5" fill="var(--color-violet)" opacity="0.08" />
+      <rect x="48" y="76" width="42" height="7" rx="3.5" fill="var(--color-violet)" opacity="0.08" />
+      {/* Dashed search trail ending nowhere */}
+      <path
+        d="M52 94 C 78 88, 102 96, 124 84"
+        fill="none"
+        stroke="var(--color-azure)"
+        strokeOpacity="0.5"
+        strokeWidth="2"
+        strokeDasharray="5 5"
+        strokeLinecap="round"
+      />
+      {/* Magnifier */}
+      <circle cx="134" cy="76" r="17" fill="var(--color-azure)" fillOpacity="0.08" stroke="var(--color-azure)" strokeWidth="4" />
+      <line x1="146.5" y1="88.5" x2="160" y2="102" stroke="var(--color-azure)" strokeWidth="6" strokeLinecap="round" />
+      {/* The missing-page question mark inside the glass */}
+      <text
+        x="134"
+        y="83"
+        textAnchor="middle"
+        fontFamily="var(--font-mono)"
+        fontSize="19"
+        fontWeight="700"
+        fill="var(--color-violet)"
+      >
+        ?
+      </text>
+      {/* Floating accents */}
+      <circle cx="22" cy="44" r="5" fill="var(--color-terracotta)" opacity="0.7" />
+      <circle cx="180" cy="32" r="4" fill="var(--color-violet)" opacity="0.35" />
+      <circle cx="186" cy="78" r="3" fill="var(--color-mint-light)" opacity="0.6" />
+      <circle cx="16" cy="86" r="3" fill="var(--color-azure)" opacity="0.45" />
+    </svg>
+  )
 }
 
 /**
@@ -212,7 +275,7 @@ export default function ErrorPage({
           key="retry"
           type="button"
           onClick={handleRetry}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
         >
           <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("actions.tryAgain")}
         </button>
@@ -225,7 +288,7 @@ export default function ErrorPage({
           key="signIn"
           type="button"
           onClick={handleSignIn}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgba(93,63,211,0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.20)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
         >
           <LogIn className="h-4 w-4" aria-hidden="true" /> {t("actions.signIn")}
         </button>
@@ -288,34 +351,41 @@ export default function ErrorPage({
         aria-atomic="true"
         className="relative flex min-h-[70vh] items-center justify-center px-4 py-16"
       >
-        <motion.div
+        <m.div
           variants={stagger}
           initial="hidden"
           animate="show"
           className="flex w-full max-w-xl flex-col items-center text-center"
         >
-          {/* Icon tile — tone-aware */}
-          <motion.div
-            variants={fadeUp}
-            className={`flex h-24 w-24 items-center justify-center rounded-2xl ring-1 ${tone.tile} ${tone.ring} shadow-[0_12px_32px_rgba(15,23,42,0.06)]`}
-            aria-hidden="true"
-          >
-            <Icon className="h-12 w-12" strokeWidth={1.6} />
-          </motion.div>
+          {/* Visual — friendly illustration for 404, tone-aware icon tile
+              for every other (more serious) error type */}
+          {resolvedType === "404" ? (
+            <m.div variants={fadeUp} aria-hidden="true">
+              <NotFoundArt />
+            </m.div>
+          ) : (
+            <m.div
+              variants={fadeUp}
+              className={`flex h-24 w-24 items-center justify-center rounded-2xl ring-1 ${tone.tile} ${tone.ring} shadow-[0_12px_32px_rgb(var(--color-charcoal-rgb)/0.06)]`}
+              aria-hidden="true"
+            >
+              <Icon className="h-12 w-12" strokeWidth={1.6} />
+            </m.div>
+          )}
 
           {/* HTTP code — large, soft, decorative */}
           {code && (
-            <motion.div
+            <m.div
               variants={fadeUp}
               aria-hidden="true"
               className="mt-4 text-display font-bold leading-none text-violet/10 select-none"
             >
               {code}
-            </motion.div>
+            </m.div>
           )}
 
           {/* Title */}
-          <motion.h1
+          <m.h1
             ref={headingRef}
             tabIndex={-1}
             variants={fadeUp}
@@ -323,33 +393,33 @@ export default function ErrorPage({
             style={{ marginTop: code ? "-1rem" : "1.5rem" }}
           >
             {label}
-          </motion.h1>
+          </m.h1>
 
           {/* Message */}
-          <motion.p
+          <m.p
             variants={fadeUp}
             className="mt-3 max-w-md text-body leading-7 text-charcoal-80/65"
           >
             {desc}
-          </motion.p>
+          </m.p>
 
           {/* Actions */}
-          <motion.div
+          <m.div
             variants={fadeUp}
             className="mt-8 flex flex-wrap items-center justify-center gap-3"
           >
             {ActionButtons}
-          </motion.div>
+          </m.div>
 
           {/* Reference id + support hint — single, calm line */}
-          <motion.div variants={fadeUp} className="mt-8 max-w-md space-y-2">
-            <p className="text-micro text-charcoal-80/55">
+          <m.div variants={fadeUp} className="mt-8 max-w-md space-y-2">
+            <p className="text-micro text-charcoal-80/65">
               {t("reference.label")}{" "}
               <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-steel-700">
                 {refId}
               </code>
             </p>
-            <p className="text-micro text-charcoal-80/45">
+            <p className="text-micro text-charcoal-80/65">
               {t("support.prefix")}{" "}
               <Link
                 to={`/contact?ref=${encodeURIComponent(refId)}`}
@@ -359,11 +429,11 @@ export default function ErrorPage({
               </Link>
               {t("support.suffix")}
             </p>
-          </motion.div>
+          </m.div>
 
           {/* Dev-only technical detail. Production users never see this. */}
           {isDev && technicalDump && (
-            <motion.details
+            <m.details
               variants={fadeUp}
               className="mt-8 w-full max-w-md rounded-xl border border-slate-200 bg-slate-50 p-4 text-left text-xs text-steel-700"
             >
@@ -373,9 +443,9 @@ export default function ErrorPage({
               <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-steel-700">
                 {String(technicalDump)}
               </pre>
-            </motion.details>
+            </m.details>
           )}
-        </motion.div>
+        </m.div>
       </div>
     </>
   )

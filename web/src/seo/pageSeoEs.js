@@ -13,7 +13,6 @@ import { DEFAULT_OG_IMAGE, absoluteUrl } from "./siteSeo"
  *   /          consultoría tecnológica México
  *   /services  consultoría IT México · EdTech · transformación digital escuelas
  *   /store     productos digitales México · plantillas IT · recursos STEM
- *   /solutions soluciones tecnológicas escuelas México
  *
  * Title budget 55–60 chars, description 150–160 chars (after the brand
  * suffix Seo.jsx appends).
@@ -45,30 +44,45 @@ export const staticSeoEsByRoute = {
     ],
   },
 
-  "/solutions": {
-    title: "Soluciones Digitales para Escuelas, PyMES y Profesionales",
+  "/services": {
+    title: "Servicios Tecnológicos · Consultoría de TI · IA y Automatización · Nube · Producto Digital",
     description:
-      "Soluciones digitales a la medida: infraestructura IT escolar, EdTech, sitios web, sistemas para PyMES y programas STEM. México, LATAM e internacional.",
+      "Cuatro líneas de servicio, 21 servicios: consultoría estratégica de TI, integración con IA y automatización, arquitectura en la nube y migración, e ingeniería de producto digital para PyMEs.",
     keywords: [
-      "soluciones digitales escuelas México",
-      "infraestructura IT escolar",
-      "implementación programas STEM",
-      "software empresarial PyMES",
-      "soluciones EdTech LATAM",
+      "consultoría de TI México",
+      "CTO fraccional",
+      "automatización con IA",
+      "migración a la nube",
+      "desarrollo de MVP",
     ],
   },
 
-  "/services": {
-    title: "Servicios Tecnológicos · Consultoría IT · EdTech",
+  "/services/it-strategy-consulting": {
+    title: "Consultoría Estratégica de TI · Auditoría de software · CTO fraccional · Cumplimiento",
     description:
-      "Consultoría IT profesional, sistemas web, transformación IT escolar y desarrollo de programas STEM para empresas e instituciones educativas.",
-    keywords: [
-      "servicios de consultoría IT México",
-      "consultoría EdTech",
-      "consultoría IT escolar",
-      "consultoría tecnológica LATAM",
-      "desarrollo de programas STEM",
-    ],
+      "Auditoría de la pila de software, CTO fraccional, evaluación de proveedores y RFP, hoja de ruta de transformación digital y cumplimiento LFPDPPP.",
+    keywords: ["consultoría estratégica de TI", "CTO fraccional México", "auditoría de software", "cumplimiento LFPDPPP"],
+  },
+
+  "/services/ai-automation": {
+    title: "Integración con IA y Automatización · Bots · RAG · Calificadores de WhatsApp",
+    description:
+      "Bots de persona con LLM, calificadores de leads por WhatsApp sincronizados al CRM, pipelines API multiplataforma, bases de conocimiento RAG y extracción de datos.",
+    keywords: ["automatización con IA", "chatbot WhatsApp CRM", "base de conocimiento RAG", "integración Make Zapier"],
+  },
+
+  "/services/cloud-architecture-migration": {
+    title: "Arquitectura en la Nube y Migración · AWS · Azure · GCP · Docker · Zero Trust",
+    description:
+      "Migración on-premise a la nube, optimización de facturas hasta 40 %, recuperación ante desastres, contenedorización con Docker y seguridad zero-trust.",
+    keywords: ["migración a la nube", "AWS Azure GCP", "optimización de costos en la nube", "contenedorización Docker"],
+  },
+
+  "/services/digital-product-engineering": {
+    title: "Ingeniería de Producto Digital · UI/UX · MVP web · Móvil · APIs · CI/CD",
+    description:
+      "Wireframing interactivo UI/UX, aplicaciones web MVP, apps móviles multiplataforma, diseño seguro de APIs, automatización CI/CD y mantenimiento gestionado.",
+    keywords: ["desarrollo de MVP México", "app móvil multiplataforma", "diseño de APIs", "automatización CI/CD"],
   },
 
   "/store": {
@@ -150,11 +164,6 @@ export const staticSeoEsByRoute = {
       "Explicación clara de cómo mustaphaukizuru.com utiliza cookies, qué categorías existen y cómo gestionar tus preferencias en cualquier momento.",
   },
 
-  "/recommendations": {
-    title: "Recomendaciones · Herramientas y Recursos que Uso",
-    description:
-      "Herramientas, libros, cursos, plantillas y servicios seleccionados a mano que he usado personalmente y respaldo.",
-  },
 }
 
 /**

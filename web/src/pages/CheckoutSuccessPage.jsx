@@ -1,108 +1,109 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useParams, useSearchParams } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
-  Download, LayoutDashboard, ArrowRight,
-  Mail, ShoppingBag, Star, Package, Shield, Sparkles, Clock3,
-  AlertCircle, Loader2, FileDown, ExternalLink,
+  Download, LayoutDashboard, ArrowRight, Mail, ShoppingBag, Package, Shield,
+  Clock3, AlertCircle, Loader2, FileDown, FileText, Check, RefreshCw, KeyRound, LogIn,
 } from "lucide-react"
 import { useCart } from "../store/CartContext"
-import { authFetch, API_BASE_URL } from "../lib/api"
+import { apiRequest, getStoredUser } from "../lib/api"
 import { formatPrice } from "../lib/format"
 import { fetchMyOrderById } from "../services/orderService"
-import { getFileTypeStyles } from "../lib/fileTypeIcons"
+import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
+import { downloadFileById, downloadInvoice, downloadErrorKey } from "../components/product/downloadHelpers"
+import Confetti from "../components/motion/Confetti"
+import SuccessCheck from "../components/motion/SuccessCheck"
 
 /* ──────────────────────────────────────────────────────────────────────────
- *  CheckoutSuccessPage · F08.C · Batch 5
+ *  CheckoutSuccessPage · roadmap 26 · instant download after payment
  *
- *  Refinements applied:
- *    - Animated SVG checkmark with Framer Motion path-draw (~300 ms,
- *      ease-out-expo). Replaces the static Lucide CheckCircle2 icon for the
- *      success hero.
- *    - "Thank you!" title + "Order #ORD-XXX confirmed" line with order
- *      number in JetBrains Mono.
- *    - NEW: Order summary card fetches the order via fetchMyOrderById(orderId)
- *      from B04 enriched endpoint. Shows line items + price.
- *    - NEW: Per-digital-file "Download now" button per item using the
- *      enriched downloads[] array returned by B04. Falls back to "Available
- *      in dashboard" when the list isn't included.
- *    - "Access in dashboard" secondary CTA → /dashboard/downloads
- *      (previously linked to /dashboard/products).
- *    - "Check your email for confirmation and receipt" note kept and
- *      restyled into a single info chip.
- *
- *  Preserved verbatim:
- *    - clearCart() on mount
- *    - MercadoPago "pending" polling logic via /api/mercadopago/status
- *    - Failed / Polling / Paid status branches
- *    - Search-param-driven gateway display
- *  ──────────────────────────────────────────────────────────────────── */
+ *  Phases
+ *    pending  → polls GET /api/orders/:id/status (public probe) every 3 s,
+ *               up to ~2 min, until the gateway (Mercado Pago) confirms.
+ *    timeout  → "we'll email you" + Check again.
+ *    failed   → retry / back to store.
+ *    paid     → signed-in owner: order summary + per-file Download buttons
+ *               (GET /api/downloads/:productFileId, entitlement-gated) +
+ *               receipt PDF (GET /api/orders/:id/invoice.pdf) + dashboard link.
+ *               guest (claim-link account): "check your email to claim your
+ *               account" — downloads are NOT exposed (API requires auth).
+ *  ────────────────────────────────────────────────────────────────────────── */
+
+const HERO_CONFETTI_COLORS = ["#FFFFFF", "var(--color-terracotta)", "var(--color-mint-light)", "#B9A6F2", "var(--color-cyan)"]
+const POLL_INTERVAL_MS = 3000
+const MAX_POLLS = 40 // ≈ 2 minutes
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } } }
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.10 } } }
 
-/* ──────────────────────────────────────────────────────────────────────────
- *  AnimatedCheckmark · F08.C · path-draw SVG checkmark, ease-out-expo
- *  Sized to fit a 96×96 container. Stroke draws over ~300 ms.
- *  ──────────────────────────────────────────────────────────────────── */
-function AnimatedCheckmark({ size = 96 }) {
-  const { t } = useTranslation("checkout")
-  return (
-    <motion.svg
-      width={size}
-      height={size}
-      viewBox="0 0 96 96"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label={t("success.successAria")}
-      initial={{ scale: 0.6, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-    >
-      {/* Solid green disc background */}
-      <motion.circle
-        cx="48"
-        cy="48"
-        r="44"
-        fill="var(--color-mint)"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      />
-      {/* Path-drawn checkmark */}
-      <motion.path
-        d="M30 50 L43 63 L66 36"
-        fill="none"
-        stroke="white"
-        strokeWidth="6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 0.30, ease: [0.16, 1, 0.3, 1], delay: 0.18 }}
-      />
-    </motion.svg>
-  )
+// The success checkmark lives in components/motion/SuccessCheck.jsx — it is the
+// same drawing as the one that used to be inlined here, but it honours
+// prefers-reduced-motion (renders the final frame instead of animating).
+
+function formatOrderRef({ order, probe, fallbackId }) {
+  const number = order?.orderNumber || probe?.orderNumber
+  if (number) return `#${number}`
+  return fallbackId ? `#${String(fallbackId).slice(0, 12).toUpperCase()}` : ""
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
- *  Format the order reference exactly as spec: ORD-YYYYMMDD-XXX
- *  Falls back to the raw orderId if no createdAt exists.
- *  ──────────────────────────────────────────────────────────────────── */
-function formatOrderRef(order, fallbackId) {
-  if (!order && fallbackId) return `#${String(fallbackId).slice(0, 12).toUpperCase()}`
-  if (!order) return ""
-  if (order.orderNumber) return `#${order.orderNumber}`
-  const created = order.createdAt ? new Date(order.createdAt) : null
-  if (created && !isNaN(created.getTime())) {
-    const yyyy = created.getFullYear()
-    const mm = String(created.getMonth() + 1).padStart(2, "0")
-    const dd = String(created.getDate()).padStart(2, "0")
-    const tail = String(order.id || fallbackId || "").slice(0, 6).toUpperCase()
-    return `#ORD-${yyyy}${mm}${dd}-${tail}`
-  }
-  return `#${String(order.id || fallbackId || "").slice(0, 12).toUpperCase()}`
+/* One row per purchased file — streams through the entitlement-gated endpoint. */
+function DownloadRow({ dl, state, onDownload }) {
+  const { t } = useTranslation("checkout")
+  const styles = getFileTypeStyles(dl.fileType || dl.fileName || "")
+  const Icon = styles.icon
+  const size = dl.fileSizeFormatted || formatFileSize(dl.fileSize) || ""
+  const remaining = state.remaining
+  const exhausted = remaining !== null && remaining <= 0
+  const revoked = dl.entitlementStatus && dl.entitlementStatus !== "active"
+  const disabled = state.busy || exhausted || revoked
+
+  return (
+    <li className="flex flex-col gap-3 rounded-xl border border-charcoal-80/10 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${styles.chip}`} aria-hidden="true">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="truncate font-mono text-meta font-semibold text-charcoal" title={dl.fileName}>{dl.fileName}</span>
+            <span className={`shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase ${styles.chip}`}>{styles.label}</span>
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
+            {size && <span>{size}</span>}
+            {dl.version && <><span aria-hidden="true">·</span><span>v{String(dl.version).replace(/^v/i, "")}</span></>}
+            <span aria-hidden="true">·</span>
+            <span className={exhausted ? "text-rose-600" : ""}>
+              {remaining === null ? t("success.unlimited") : t("success.remaining", { count: remaining })}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onDownload(dl)}
+        disabled={disabled}
+        aria-label={t("success.downloadAria", { name: dl.fileName })}
+        className={`group inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl px-4 py-2 text-meta font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 sm:self-center ${
+          exhausted || revoked
+            ? "cursor-not-allowed bg-charcoal-80/20 text-white"
+            : state.done
+              ? "border border-mint/40 bg-mint/10 text-mint-600 hover:bg-mint/15"
+              : "bg-violet text-white hover:-translate-y-0.5 hover:bg-violet-deep disabled:opacity-60"
+        }`}
+      >
+        {state.busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          : state.done ? <Check className="h-4 w-4" aria-hidden="true" />
+          : <FileDown className="h-4 w-4 transition group-hover:translate-y-0.5" aria-hidden="true" />}
+        {revoked ? t("success.revoked")
+          : exhausted ? t("success.limitReached")
+          : state.busy ? t("success.downloading")
+          : state.done ? t("success.downloadAgain")
+          : t("success.download")}
+      </button>
+    </li>
+  )
 }
 
 export default function CheckoutSuccessPage() {
@@ -112,372 +113,429 @@ export default function CheckoutSuccessPage() {
   const { clearCart } = useCart()
 
   const gateway = searchParams.get("gateway")
-  const isPending = searchParams.get("pending") === "true"
+  const startPending = searchParams.get("pending") === "true"
+  const signedIn = Boolean(getStoredUser())
 
-  const [orderStatus, setOrderStatus] = useState(isPending ? "pending" : "paid")
-  const [polling, setPolling] = useState(isPending)
+  const [phase, setPhase] = useState(startPending ? "pending" : "paid")
   const [pollCount, setPollCount] = useState(0)
+  const [probe, setProbe] = useState(null)
 
-  // F08.C · order detail state
   const [order, setOrder] = useState(null)
   const [orderLoading, setOrderLoading] = useState(true)
   const [orderError, setOrderError] = useState("")
+  const [orderForbidden, setOrderForbidden] = useState(false)
 
-  // Clear cart on mount
+  const [fileState, setFileState] = useState({})   // productFileId → { busy, done, remaining }
+  const [downloadError, setDownloadError] = useState("")
+  const [receiptBusy, setReceiptBusy] = useState(false)
+
   useEffect(() => { clearCart() }, [clearCart])
 
-  // PRESERVED · MercadoPago pending polling
+  // Status probe — runs on mount and on every poll tick. Public endpoint, so it
+  // also works for guest buyers who are not signed in yet.
   useEffect(() => {
-    if (!isPending || !orderId || !polling) return
-    if (pollCount >= 10) { setPolling(false); return }
-
-    const timer = setTimeout(async () => {
+    if (!orderId) return
+    let cancelled = false
+    ;(async () => {
       try {
-        const res = await authFetch(`/api/mercadopago/status/${orderId}`)
-        const status = res?.data?.status
-        if (status === "paid") {
-          setOrderStatus("paid")
-          setPolling(false)
-        } else if (status === "failed" || status === "cancelled") {
-          setOrderStatus("failed")
-          setPolling(false)
-        } else {
-          setPollCount((c) => c + 1)
-        }
-      } catch {
-        setPollCount((c) => c + 1)
-      }
-    }, 2000)
+        const res = await apiRequest(`/api/v1/orders/${encodeURIComponent(orderId)}/status`)
+        const d = res?.data
+        if (cancelled || !d) return
+        setProbe(d)
+        if (d.status === "paid") setPhase("paid")
+        else if (d.status === "failed" || d.status === "cancelled") setPhase("failed")
+        else setPhase((p) => (p === "timeout" ? p : "pending"))
+      } catch { /* keep current phase; next tick retries */ }
+    })()
+    return () => { cancelled = true }
+  }, [orderId, pollCount])
 
-    return () => clearTimeout(timer)
-  }, [isPending, orderId, polling, pollCount])
-
-  // F08.C · fetch full order once status reaches "paid"
+  // Poll scheduler — ~2 min max, then hand off to "we'll email you".
   useEffect(() => {
-    if (!orderId || orderStatus !== "paid") return
+    if (phase !== "pending") return
+    if (pollCount >= MAX_POLLS) { setPhase("timeout"); return }
+    const timer = setTimeout(() => setPollCount((c) => c + 1), POLL_INTERVAL_MS)
+    return () => clearTimeout(timer)
+  }, [phase, pollCount])
+
+  // Enriched order (items + downloads + invoice) — owner only.
+  useEffect(() => {
+    if (!orderId || phase !== "paid" || !signedIn) { setOrderLoading(false); return }
     let cancelled = false
     ;(async () => {
       setOrderLoading(true)
       setOrderError("")
       try {
         const data = await fetchMyOrderById(orderId)
-        if (!cancelled) setOrder(data || null)
+        if (cancelled) return
+        setOrder(data || null)
+        const initial = {}
+        for (const dl of data?.downloads || []) {
+          initial[dl.productFileId] = { busy: false, done: false, remaining: dl.downloadsRemaining ?? null }
+        }
+        setFileState(initial)
       } catch (err) {
-        if (!cancelled) setOrderError(err?.message || "Could not load order details.")
+        if (cancelled) return
+        if (err?.code === "FORBIDDEN" || err?.status === 403) setOrderForbidden(true)
+        else setOrderError(err?.message || t("success.orderLoadError"))
       } finally {
         if (!cancelled) setOrderLoading(false)
       }
     })()
     return () => { cancelled = true }
-  }, [orderId, orderStatus])
+  }, [orderId, phase, signedIn, t])
 
-  const isPaid = orderStatus === "paid"
-  const isFailed = orderStatus === "failed"
+  async function handleDownload(dl) {
+    const id = dl.productFileId
+    setDownloadError("")
+    setFileState((s) => ({ ...s, [id]: { ...s[id], busy: true } }))
+    try {
+      await downloadFileById(id, dl.fileName)
+      setFileState((s) => {
+        const prev = s[id] || {}
+        const remaining = prev.remaining === null || prev.remaining === undefined ? null : Math.max(0, prev.remaining - 1)
+        return { ...s, [id]: { busy: false, done: true, remaining } }
+      })
+    } catch (err) {
+      const key = downloadErrorKey(err?.code).split(".").pop()
+      const fallback = (typeof err?.toUserMessage === "function" ? err.toUserMessage() : null) || err?.message
+      setDownloadError(key ? t(`success.errors.${key}`, fallback) : fallback || t("success.downloadError"))
+      setFileState((s) => ({ ...s, [id]: { ...s[id], busy: false } }))
+    }
+  }
 
-  const orderRef = formatOrderRef(order, orderId)
+  async function handleReceipt() {
+    if (!order?.invoicePdfUrl) return
+    setReceiptBusy(true)
+    setDownloadError("")
+    try { await downloadInvoice(order.invoicePdfUrl, order.orderNumber) }
+    catch (err) { setDownloadError(err?.message || t("success.receiptError")) }
+    finally { setReceiptBusy(false) }
+  }
+
+  const isFailed = phase === "failed"
+  const isPending = phase === "pending"
+  const isTimeout = phase === "timeout"
+  const isPaid = phase === "paid"
+  const orderRef = formatOrderRef({ order, probe, fallbackId: orderId })
+  const currency = order?.currency || "MXN"
   const items = Array.isArray(order?.items) ? order.items : []
-  const downloads = Array.isArray(order?.downloads) ? order.downloads : []
-  const subtotal = Number(order?.subtotal ?? 0)
-  const discount = Number(order?.discount ?? 0)
-  const orderTotal = Number(order?.total ?? subtotal)
+  const downloads = useMemo(() => (Array.isArray(order?.downloads) ? order.downloads : []), [order])
+  const subtotal = Number(order?.subtotalAmount ?? order?.subtotal ?? 0)
+  const discount = Number(order?.discountAmount ?? order?.discount ?? 0)
+  const orderTotal = Number(order?.totalAmount ?? order?.total ?? subtotal)
 
-  // Build a map of productId → downloads[] for per-item button rendering
-  const downloadsByProduct = downloads.reduce((acc, d) => {
-    const pid = d.productId || d.product?.id
-    if (!pid) return acc
-    if (!acc[pid]) acc[pid] = []
-    acc[pid].push(d)
-    return acc
-  }, {})
+  // Group downloads by product for the "Your downloads" card.
+  const downloadGroups = useMemo(() => {
+    const map = new Map()
+    for (const dl of downloads) {
+      const key = dl.productId || dl.productTitle
+      if (!map.has(key)) map.set(key, { title: dl.productTitle, slug: dl.productSlug, files: [] })
+      map.get(key).files.push(dl)
+    }
+    return Array.from(map.values())
+  }, [downloads])
+
+  const heroBg = isFailed || isPending || isTimeout ? "var(--color-charcoal)" : "var(--color-violet)"
 
   return (
     <div className="bg-mist">
-      {/* Hero band — inline backgroundColor guarantees the right dark/violet
-          surface even if Tailwind's JIT misses the dynamic class names. */}
-      <div
-        className="py-16 text-center"
-        style={{
-          backgroundColor: isFailed ? "#1A1B23" : polling ? "#1A1B23" : "#5D3FD3",
-        }}
-      >
-        <motion.div
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5, ease: "backOut" }}
-          className="mx-auto inline-flex items-center justify-center"
-        >
+      {/* Hero */}
+      <div className="relative py-16 text-center" style={{ backgroundColor: heroBg }}>
+        <Confetti fire={isPaid} colors={HERO_CONFETTI_COLORS} />
+        <m.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: "backOut" }} className="mx-auto inline-flex items-center justify-center">
           {isFailed ? (
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E5484D] shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[var(--color-rose)] shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
               <AlertCircle className="h-12 w-12 text-white" aria-hidden="true" />
             </div>
-          ) : polling ? (
+          ) : isPending || isTimeout ? (
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-amber shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-              <Loader2 className="h-12 w-12 animate-spin text-white" aria-hidden="true" />
+              {isPending ? <Loader2 className="h-12 w-12 animate-spin text-white" aria-hidden="true" /> : <Clock3 className="h-12 w-12 text-white" aria-hidden="true" />}
             </div>
           ) : (
-            <AnimatedCheckmark size={96} />
+            <SuccessCheck size={96} label={t("success.successAria")} />
           )}
-        </motion.div>
+        </m.div>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }}>
+        <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }}>
           <h1 className="mt-6 text-page font-bold text-white">
-            {isFailed ? t("success.failedTitle", "Payment Failed") : polling ? t("success.confirming", "Confirming Payment…") : t("success.title", "Thank you!")}
+            {isFailed ? t("success.failedTitle", "Payment Failed")
+              : isPending ? t("success.confirming", "Confirming Payment…")
+              : isTimeout ? t("success.pendingTimeoutTitle")
+              : t("success.title", "Thank you!")}
           </h1>
           <p className="mt-2 text-body text-white/70">
-            {isFailed ? t("success.failedSubtitle", "Your payment could not be processed. Please try again.") :
-             polling ? t("success.confirmingSubtitle", "Waiting for payment confirmation. This takes a moment…") :
-                         orderRef ? (
-                           <>
-                             {t("success.orderNumber", "Order")}{" "}
-                             <span className="font-mono font-bold tabular-nums text-terracotta">{orderRef}</span>
-                             {" "}{t("success.confirmed", "confirmed.")}
-                           </>
-                         ) : t("success.subtitle", "Your order is confirmed and your digital products are ready.")}
+            {isFailed ? t("success.failedSubtitle", "Your payment could not be processed. Please try again.")
+              : isPending ? t("success.confirmingSubtitle", "Waiting for payment confirmation. This takes a moment…")
+              : isTimeout ? t("success.pendingTimeoutSubtitle")
+              : orderRef ? (
+                <>
+                  {t("success.orderNumber", "Order")}{" "}
+                  <span className="font-mono font-bold tabular-nums text-terracotta">{orderRef}</span>
+                  {" "}{t("success.confirmed", "confirmed.")}
+                </>
+              ) : t("success.subtitle")}
           </p>
-          {gateway && !isFailed && !polling && (
+          {gateway && isPaid && (
             <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-micro text-white/70">
               {t("misc.paidVia")} {gateway === "mercadopago" ? "Mercado Pago" : "PayPal"}
             </div>
           )}
-        </motion.div>
+        </m.div>
       </div>
 
       <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
         {isFailed ? (
-          <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-5 text-center">
-            <motion.p variants={fadeUp} className="text-body text-charcoal-80/65">
-              {t("misc.noChargeBody")}
-            </motion.p>
-            <motion.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link
-                to="/checkout"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
-              >
+          <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-5 text-center">
+            <m.p variants={fadeUp} className="text-body text-charcoal-80/65">{t("misc.noChargeBody")}</m.p>
+            <m.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link to="/checkout" className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
                 {t("success.tryAgain")}
               </Link>
-              <Link
-                to="/store"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/20 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
-              >
+              <Link to="/store" className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/20 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
                 {t("success.backToStore")}
               </Link>
-            </motion.div>
-          </motion.div>
-        ) : polling ? (
-          <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
-            <motion.div variants={fadeUp} className="rounded-xl border border-amber/20 bg-[#fffbeb] p-6 text-meta text-amber-700 max-w-sm">
+            </m.div>
+          </m.div>
+        ) : isPending ? (
+          <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
+            <m.div variants={fadeUp} className="max-w-sm rounded-xl border border-amber/20 bg-amber/8 p-6 text-meta text-amber-700">
               <Clock3 className="mx-auto mb-3 h-8 w-8 text-amber" aria-hidden="true" />
               {t("success.processingMP")}
-            </motion.div>
-          </motion.div>
+              {orderRef && <div className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/65">{orderRef}</div>}
+            </m.div>
+          </m.div>
+        ) : isTimeout ? (
+          <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
+            <m.div variants={fadeUp} className="max-w-md rounded-xl border border-charcoal-80/10 bg-white p-6 text-meta text-charcoal-80/75 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)]">
+              <Mail className="mx-auto mb-3 h-8 w-8 text-violet" aria-hidden="true" />
+              {t("success.pendingTimeoutBody")}
+              {orderRef && <div className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/65">{orderRef}</div>}
+            </m.div>
+            <m.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => { setPollCount(0); setPhase("pending") }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+              >
+                <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("success.checkAgain")}
+              </button>
+              <Link to="/dashboard/downloads" className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/20 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale">
+                <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> {t("success.accessDashboard")}
+              </Link>
+            </m.div>
+          </m.div>
         ) : (
-          <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-5">
+          <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-5">
 
-            {/* F08.C · Email confirmation note (unified into one chip) */}
-            <motion.div
-              variants={fadeUp}
-              className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.05)]"
-            >
+            {/* Guest / claim-link buyer — downloads stay behind sign-in */}
+            {!signedIn && (
+              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-violet/20 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.06)]">
+                <div className="flex items-start gap-4 p-6">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
+                    <KeyRound className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-body font-bold text-violet">{t("success.claimTitle")}</h2>
+                    <p className="mt-1 text-meta leading-6 text-charcoal-80/70">{t("success.claimBody")}</p>
+                    <p className="mt-2 text-micro text-charcoal-80/65">{t("success.claimDownloads")}</p>
+                    <Link to="/login" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:bg-violet-deep">
+                      <LogIn className="h-4 w-4" aria-hidden="true" /> {t("success.claimSignIn")}
+                    </Link>
+                  </div>
+                </div>
+              </m.div>
+            )}
+
+            {signedIn && orderForbidden && (
+              <m.div variants={fadeUp} className="flex items-start gap-3 rounded-xl border border-amber/25 bg-amber/8 p-4 text-meta text-amber-700">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                {t("success.notYourOrder")}
+              </m.div>
+            )}
+
+            {/* Your downloads — instant */}
+            {signedIn && !orderForbidden && (
+              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
+                <div className="flex items-center justify-between border-b border-charcoal-80/10 px-6 py-5">
+                  <div>
+                    <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/65">{t("success.downloadsTitle")}</div>
+                    <p className="mt-1 text-meta text-charcoal-80/65">{t("success.downloadsSubtitle")}</p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-mint/15 text-mint-600">
+                    <Download className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                </div>
+
+                <div className="px-6 py-5">
+                  {downloadError && (
+                    <div className="mb-4 flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700" role="alert">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{downloadError}
+                    </div>
+                  )}
+                  {orderLoading ? (
+                    <div className="space-y-3">{[1, 2].map((n) => <div key={n} className="h-16 animate-pulse rounded-xl bg-violet-pale" />)}</div>
+                  ) : orderError ? (
+                    <div className="rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">{orderError}</div>
+                  ) : downloadGroups.length === 0 ? (
+                    <p className="text-meta text-charcoal-80/65">{t("success.noDownloads")}</p>
+                  ) : (
+                    <div className="space-y-5">
+                      {downloadGroups.map((group) => (
+                        <div key={group.slug || group.title}>
+                          <h3 className="mb-2 text-meta font-bold text-violet">{group.title}</h3>
+                          <ul className="space-y-2">
+                            {group.files.map((dl) => (
+                              <DownloadRow
+                                key={dl.productFileId}
+                                dl={dl}
+                                state={fileState[dl.productFileId] || { busy: false, done: false, remaining: dl.downloadsRemaining ?? null }}
+                                onDownload={handleDownload}
+                              />
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="mt-5 flex items-center gap-2 text-micro text-charcoal-80/65">
+                    <Shield className="h-3.5 w-3.5 shrink-0 text-violet/70" aria-hidden="true" />
+                    <span>
+                      {t("success.redownload")}{" "}
+                      <Link to="/dashboard/downloads" className="font-semibold text-violet hover:underline">{t("success.downloadsDashboard")}</Link>.
+                    </span>
+                  </p>
+                </div>
+              </m.div>
+            )}
+
+            {/* Order summary + receipt */}
+            {signedIn && !orderForbidden && (
+              <m.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)]">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-charcoal-80/10 px-6 py-5">
+                  <div>
+                    <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/65">{t("success.orderSummary")}</div>
+                    {orderRef && <div className="mt-1 font-mono text-body font-bold tabular-nums text-violet">{orderRef}</div>}
+                  </div>
+                  {order?.invoicePdfUrl ? (
+                    <button
+                      type="button"
+                      onClick={handleReceipt}
+                      disabled={receiptBusy}
+                      className="inline-flex items-center gap-2 rounded-xl border border-violet/20 px-4 py-2 text-meta font-semibold text-violet transition hover:bg-violet-pale disabled:opacity-60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+                    >
+                      {receiptBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FileText className="h-4 w-4" aria-hidden="true" />}
+                      {t("success.receipt")}
+                    </button>
+                  ) : !orderLoading && (
+                    <span className="inline-flex items-center gap-2 text-micro text-charcoal-80/65">
+                      <FileText className="h-3.5 w-3.5" aria-hidden="true" /> {t("success.receiptPreparing")}
+                    </span>
+                  )}
+                </div>
+
+                <div className="px-6 py-5">
+                  {orderLoading ? (
+                    <div className="h-16 animate-pulse rounded-xl bg-violet-pale" />
+                  ) : items.length === 0 ? (
+                    <p className="text-meta text-charcoal-80/65">{t("success.orderPreparing")}</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {items.map((item) => {
+                        const qty = Number(item.quantity ?? 1)
+                        const unit = Number(item.unitPrice ?? item.price ?? 0)
+                        const line = Number(item.lineTotal ?? unit * qty)
+                        return (
+                          <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4">
+                            <div className="min-w-0 flex-1">
+                              <div className="text-meta font-semibold text-violet">{item.title || item.product?.title}</div>
+                              <div className="font-mono text-micro tabular-nums text-charcoal-80/65">{t("misc.qty")} {qty}</div>
+                            </div>
+                            <div className="shrink-0 font-mono text-meta font-bold tabular-nums text-violet">{formatPrice(line, currency)}</div>
+                          </div>
+                        )
+                      })}
+
+                      {(subtotal > 0 || orderTotal > 0) && (
+                        <div className="mt-4 space-y-2 border-t border-charcoal-80/10 pt-4 text-meta">
+                          <div className="flex justify-between text-charcoal-80/65">
+                            <span>{t("success.subtotalLabel")}</span>
+                            <span className="font-mono font-semibold tabular-nums text-violet">{formatPrice(subtotal, currency)}</span>
+                          </div>
+                          {discount > 0 && (
+                            <div className="flex justify-between text-mint-700">
+                              <span>{t("success.discountLabel")}</span>
+                              <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount, currency)}</span>
+                            </div>
+                          )}
+                          <div className="flex items-baseline justify-between border-t border-charcoal-80/10 pt-2">
+                            <span className="text-body font-bold text-violet">{t("success.totalLabel")}</span>
+                            <span className="font-mono text-card font-extrabold tabular-nums text-violet">{formatPrice(orderTotal, currency)}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </m.div>
+            )}
+
+            {/* Email chip */}
+            <m.div variants={fadeUp} className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)]">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mint/15 text-mint">
                 <Mail className="h-5 w-5" aria-hidden="true" />
               </div>
-              <div className="min-w-0 text-meta text-charcoal-80/75">
-                {t("success.checkEmail")}
-              </div>
-            </motion.div>
-
-            {/* F08.C · Order summary card (NEW) */}
-            <motion.div variants={fadeUp} className="overflow-hidden rounded-xl border border-charcoal-80/10 bg-white shadow-[0_8px_24px_rgba(93,63,211,0.05)]">
-              <div className="flex items-center justify-between border-b border-charcoal-80/10 px-6 py-5">
-                <div>
-                  <div className="text-micro font-semibold uppercase tracking-[0.18em] text-charcoal-80/50">{t("success.orderSummary")}</div>
-                  {orderRef && (
-                    <div className="mt-1 font-mono text-body font-bold tabular-nums text-violet">{orderRef}</div>
-                  )}
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-pale text-violet">
-                  <Sparkles className="h-5 w-5" aria-hidden="true" />
-                </div>
-              </div>
-
-              <div className="px-6 py-5">
-                {orderLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2].map((n) => (
-                      <div key={n} className="h-16 animate-pulse rounded-xl bg-violet-pale" />
-                    ))}
-                  </div>
-                ) : orderError ? (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
-                    {orderError}
-                  </div>
-                ) : items.length === 0 ? (
-                  <p className="text-meta text-charcoal-80/55">
-                    {t("success.orderPreparing")}
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {items.map((item) => {
-                      const productId = item.productId || item.product?.id
-                      const title = item.title || item.product?.title || "Item"
-                      const qty = Number(item.quantity ?? 1)
-                      const price = Number(item.price ?? item.unitPrice ?? 0)
-                      const dls = downloadsByProduct[productId] || []
-
-                      return (
-                        <div key={item.id || productId} className="rounded-xl border border-charcoal-80/10 bg-mist p-4">
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0 flex-1">
-                              <div className="text-meta font-semibold text-violet">{title}</div>
-                              <div className="text-micro text-charcoal-80/55">
-                                <span className="font-mono tabular-nums">{t("misc.qty")} {qty}</span>
-                              </div>
-                            </div>
-                            <div className="shrink-0 font-mono text-meta font-bold tabular-nums text-violet">
-                              {formatPrice(price * qty, order?.currency || "MXN")}
-                            </div>
-                          </div>
-
-                          {/* F08.C · Per-file Download buttons */}
-                          {dls.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {dls.map((dl) => {
-                                const styles = getFileTypeStyles(dl.fileType || dl.fileName || "")
-                                const url = dl.downloadUrl?.startsWith("http")
-                                  ? dl.downloadUrl
-                                  : `${API_BASE_URL}${dl.downloadUrl || ""}`
-                                return (
-                                  <a
-                                    key={dl.id || dl.fileId || dl.fileName}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="group inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-micro font-semibold transition hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(93,63,211,0.10)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
-                                    style={{ borderColor: styles.borderColor, color: styles.color }}
-                                    aria-label={`Download ${dl.fileName || dl.fileType}`}
-                                  >
-                                    <span
-                                      className="inline-flex h-5 w-5 items-center justify-center rounded-md text-[9px] font-bold uppercase"
-                                      style={{ background: styles.background, color: styles.color }}
-                                    >
-                                      {styles.label?.slice(0, 3) || "FILE"}
-                                    </span>
-                                    <span className="max-w-[200px] truncate">{dl.fileName || styles.label}</span>
-                                    <FileDown className="h-3.5 w-3.5 transition group-hover:translate-y-0.5" aria-hidden="true" />
-                                  </a>
-                                )
-                              })}
-                            </div>
-                          )}
-
-                          {dls.length === 0 && downloads.length === 0 && (
-                            <p className="mt-2 text-micro text-charcoal-80/55">
-                              {t("success.availableIn")}{" "}
-                              <Link to="/dashboard/downloads" className="font-semibold text-violet hover:underline">
-                                {t("success.downloadsDashboard")}
-                              </Link>.
-                            </p>
-                          )}
-                        </div>
-                      )
-                    })}
-
-                    {/* Totals strip */}
-                    {(subtotal > 0 || orderTotal > 0) && (
-                      <div className="mt-4 space-y-2 border-t border-charcoal-80/10 pt-4 text-meta">
-                        <div className="flex justify-between text-charcoal-80/65">
-                          <span>{t("success.subtotalLabel")}</span>
-                          <span className="font-mono font-semibold tabular-nums text-violet">
-                            {formatPrice(subtotal, order?.currency || "MXN")}
-                          </span>
-                        </div>
-                        {discount > 0 && (
-                          <div className="flex justify-between text-mint">
-                            <span>{t("success.discountLabel")}</span>
-                            <span className="font-mono font-semibold tabular-nums">−{formatPrice(discount, order?.currency || "MXN")}</span>
-                          </div>
-                        )}
-                        <div className="flex items-baseline justify-between border-t border-charcoal-80/10 pt-2">
-                          <span className="text-body font-bold text-violet">{t("success.totalLabel")}</span>
-                          <span className="font-mono text-card font-extrabold tabular-nums text-violet">
-                            {formatPrice(orderTotal, order?.currency || "MXN")}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </motion.div>
+              <div className="min-w-0 text-meta text-charcoal-80/75">{t("success.checkEmail")}</div>
+            </m.div>
 
             {/* What happens next */}
-            <motion.div variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.05)]">
+            <m.div variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)]">
               <h3 className="mb-4 text-body font-bold text-violet">{t("success.whatNext")}</h3>
               <div className="space-y-4">
                 {[
-                  { icon: Mail, title: "Confirmation Email Sent", desc: "Check your inbox for the order confirmation and receipt.", done: true },
-                  { icon: Package, title: "Products Ready to Download", desc: "Your digital products are available immediately in your dashboard.", done: true },
-                  { icon: Shield, title: "Lifetime Access", desc: "Access your purchased products anytime from your dashboard.", done: false },
-                ].map(({ icon: Icon, title, desc, done }) => (
-                  <div key={title} className="flex items-start gap-4">
+                  { icon: Mail,    key: "email",  done: true },
+                  { icon: Package, key: "ready",  done: signedIn },
+                  { icon: Shield,  key: "access", done: false },
+                ].map(({ icon: Icon, key, done }) => (
+                  <div key={key} className="flex items-start gap-4">
                     <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${done ? "bg-mint/15 text-mint" : "bg-violet-pale text-violet"}`}>
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-meta font-semibold text-violet">{title}</span>
+                        <span className="text-meta font-semibold text-violet">{t(`success.next.${key}Title`)}</span>
                         {done && (
-                          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-mint text-white" aria-label={t("success.completeAria")}>
-                            <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} aria-hidden="true">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
+                          <span role="img" className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-mint text-white" aria-label={t("success.completeAria")}>
+                            <Check className="h-2.5 w-2.5" strokeWidth={3} aria-hidden="true" />
                           </span>
                         )}
                       </div>
-                      <p className="mt-0.5 text-meta text-charcoal-80/65">{desc}</p>
+                      <p className="mt-0.5 text-meta text-charcoal-80/65">{t(`success.next.${key}Desc`)}</p>
                     </div>
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </m.div>
 
-            {/* F08.C · Actions, primary download / secondary dashboard */}
-            <motion.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/dashboard/downloads"
-                className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet py-4 text-meta font-semibold text-white shadow-[0_10px_28px_rgba(93,63,211,0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
-              >
+            {/* Actions */}
+            <m.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
+              <Link to="/dashboard/downloads" className="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet py-4 text-meta font-semibold text-white shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
                 <Download className="h-5 w-5" aria-hidden="true" />
                 {t("success.downloadResources")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
-              <Link
-                to="/dashboard"
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-violet/20 py-4 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
-              >
+              <Link to="/dashboard" className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-violet/20 py-4 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2">
                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> {t("success.accessDashboard")}
               </Link>
-            </motion.div>
+            </m.div>
 
-            {/* Rating */}
-            <motion.div variants={fadeUp} className="flex flex-col items-center gap-4 rounded-xl border border-charcoal-80/10 bg-white p-5 text-center">
-              <div className="flex gap-1 text-terracotta">
-                {Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-5 w-5 fill-current" aria-hidden="true" />)}
-              </div>
-              <p className="text-meta text-charcoal-80/65">
-                {t("success.purchaseThanks", "Thank you for your purchase! We hope the resources support your work and goals.")}
-              </p>
-            </motion.div>
-
-            <motion.div variants={fadeUp} className="flex items-center justify-center">
-              <Link
-                to="/store"
-                className="inline-flex items-center gap-1.5 rounded-md text-meta font-medium text-charcoal-80/55 hover:text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
-              >
-              <ShoppingBag className="h-4 w-4" aria-hidden="true" /> {t("success.continueShopping")} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <m.div variants={fadeUp} className="flex items-center justify-center">
+              <Link to="/store" className="inline-flex items-center gap-1.5 rounded-md text-meta font-medium text-charcoal-80/65 hover:text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">
+                <ShoppingBag className="h-4 w-4" aria-hidden="true" /> {t("success.continueShopping")} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </div>
     </div>

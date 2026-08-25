@@ -165,5 +165,22 @@
     "activeProjects": "Proyectos activos",
     "recentClients": "Clientes recientes",
     "viewAll": "Ver todo"
+  },
+  "stats": {
+    "sectionLabel": "Métricas clave",
+    "eyebrow": "En números",
+    "title": "Un historial que puedes verificar",
+    "lede": "Cada cifra está respaldada por un artefacto verificable: perfil público, certificaciones registradas y listas de cohortes. Sin métricas de vanidad.",
+    "liveBadge": "En vivo",
+    "yearsLabel": "Años entregando trabajo en producción",
+    "yearsHint": "Ruanda · Turquía · Etiopía · México",
+    "countriesLabel": "Países vividos y trabajados",
+    "countriesHint": "ES · EN · TR · KIN",
+    "certsLabel": "Certificaciones profesionales",
+    "certsHint": "Google · IBM · Universidad de Londres",
+    "studentsLabel": "Estudiantes de CS y STEM enseñados",
+    "studentsHint": "K-12 · calificados por cohorte",
+    "source": "Fuente: perfil público · certificaciones verificadas · listas de cohortes · cifras actualizadas",
+    "verifyCta": "Verificar las credenciales"
   }
 }

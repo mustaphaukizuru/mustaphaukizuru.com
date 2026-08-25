@@ -20,7 +20,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Eye,
   EyeOff,
@@ -34,8 +34,11 @@ import {
 } from "lucide-react"
 
 import AuthShell from "../components/auth/AuthShell"
+import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 import BrandMark from "../components/auth/BrandMark"
 import GoogleLoginButton from "../components/GoogleLoginButton"
+import MicrosoftLoginButton from "../components/MicrosoftLoginButton"
+import FacebookLoginButton from "../components/FacebookLoginButton"
 import { scorePassword } from "../components/AuthInput"
 import { useAuth } from "../context/AuthContext"
 import useCapsLock from "../hooks/useCapsLock"
@@ -58,7 +61,7 @@ const stagger = {
 }
 
 const STRENGTH_META = {
-  0: { label: "Too short", color: "bg-charcoal-80/15", text: "text-charcoal-80/45" },
+  0: { label: "Too short", color: "bg-charcoal-80/15", text: "text-charcoal-80/65" },
   1: { label: "Weak", color: "bg-rose", text: "text-rose-700" },
   2: { label: "Weak", color: "bg-rose", text: "text-rose-700" },
   3: { label: "Medium", color: "bg-amber", text: "text-amber-700" },
@@ -83,7 +86,10 @@ export default function SignupPage() {
   const [honeypot, setHoneypot] = useState("")
 
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  // error: null | string | { kind, title, body, action }
+  // The richer object shape unlocks contextual recovery actions —
+  // most notably the "Sign in instead" link on duplicate-email errors.
+  const [error, setError] = useState(null)
 
   const capsOn = useCapsLock()
 
@@ -109,7 +115,7 @@ export default function SignupPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError("")
+    setError(null)
 
     if (honeypot) return
 
@@ -117,27 +123,51 @@ export default function SignupPage() {
     const cleanEmail = email.trim().toLowerCase()
 
     if (cleanName.length < 2) {
-      setError("Please enter your full name (at least 2 characters).")
+      setError({
+        kind: "warning",
+        title: "Your full name is required",
+        body: "Enter at least 2 characters — first and last name help personalize your dashboard.",
+      })
       return
     }
     if (!EMAIL_RE.test(cleanEmail)) {
-      setError("Please enter a valid email address.")
+      setError({
+        kind: "warning",
+        title: "Email format looks off",
+        body: "Make sure it follows name@example.com.",
+      })
       return
     }
     if (password.length < MIN_PW_LENGTH) {
-      setError(`Password must be at least ${MIN_PW_LENGTH} characters.`)
+      setError({
+        kind: "warning",
+        title: "Password is too short",
+        body: `Use at least ${MIN_PW_LENGTH} characters — currently ${password.length}.`,
+      })
       return
     }
     if (password !== confirm) {
-      setError(t("signup.passwordsDontMatch") + ".")
+      setError({
+        kind: "warning",
+        title: "Passwords don't match",
+        body: "Re-enter the same password in both fields.",
+      })
       return
     }
     if (score < 3) {
-      setError("Please choose a stronger password (mix letters, numbers, and symbols).")
+      setError({
+        kind: "warning",
+        title: "Choose a stronger password",
+        body: "Mix uppercase, lowercase, numbers, and a symbol. The strength meter below shows your progress.",
+      })
       return
     }
     if (!acceptedTerms) {
-      setError("Please accept the Terms and Privacy Policy to continue.")
+      setError({
+        kind: "warning",
+        title: "Please accept the Terms",
+        body: "Tick the agreement below to continue. We treat your data as carefully as our own.",
+      })
       return
     }
 
@@ -153,11 +183,43 @@ export default function SignupPage() {
       const code = err?.code || ""
       const msg = err?.toUserMessage?.() || err?.message || ""
       if (code === "NETWORK_ERROR") {
-        setError("Cannot reach the server. Check your connection and try again.")
+        setError({
+          kind: "warning",
+          title: "Can't reach the server",
+          body: "Check your internet connection and try again. If the problem persists, our servers may be briefly unavailable.",
+        })
       } else if (code === "DUPLICATE_ENTRY" || /exist/i.test(msg)) {
-        setError("An account with this email already exists. Try signing in instead.")
+        // The single most actionable failure on this page: their email is
+        // already in our database, so the cheapest path forward is signing
+        // in — not creating a new account. Inline action makes that one tap.
+        setError({
+          kind: "error",
+          title: "Account already exists",
+          body: `An account with ${cleanEmail} is already registered. You can sign in instead, or reset your password if you've forgotten it.`,
+          action: (
+            <>
+              <Link
+                to="/login"
+                state={{ prefillEmail: cleanEmail }}
+                className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              >
+                Sign in instead →
+              </Link>
+              <Link
+                to="/forgot-password"
+                className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-charcoal-80/65 underline-offset-2 hover:text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+              >
+                Reset password
+              </Link>
+            </>
+          ),
+        })
       } else if (code === "DB_UNAVAILABLE") {
-        setError("Service temporarily unavailable. Please try again shortly.")
+        setError({
+          kind: "warning",
+          title: "Service temporarily unavailable",
+          body: "We're briefly offline for maintenance. Please try again in a minute.",
+        })
       } else {
         setError(msg || "Account creation failed. Please try again.")
       }
@@ -169,12 +231,12 @@ export default function SignupPage() {
   return (
     <AuthShell
     >
-      <motion.div
+      <m.div
         initial="hidden"
         animate="show"
         variants={reduce ? undefined : stagger}
       >
-        <motion.div variants={fadeUp} className="text-center">
+        <m.div variants={fadeUp} className="text-center">
           <BrandMark />
           <h1 className="mt-5 font-display text-[1.75rem] font-bold tracking-tight text-charcoal">
             {t("signup.title")}
@@ -182,21 +244,15 @@ export default function SignupPage() {
           <p className="mt-2 text-[14px] leading-6 text-charcoal-80/65">
             {t("signup.subtitle")}
           </p>
-        </motion.div>
+        </m.div>
 
         {error && (
-          <motion.div
-            variants={fadeUp}
-            role="alert"
-            aria-live="assertive"
-            className="mt-6 flex items-start gap-3 rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] text-rose-700"
-          >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="leading-relaxed">{error}</span>
-          </motion.div>
+          <m.div variants={fadeUp} className="mt-6">
+            <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
+          </m.div>
         )}
 
-        <motion.form
+        <m.form
           variants={reduce ? undefined : stagger}
           onSubmit={handleSubmit}
           noValidate
@@ -213,7 +269,7 @@ export default function SignupPage() {
             className="absolute left-[-9999px] h-0 w-0 opacity-0"
           />
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="signup-name" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("signup.nameLabel")}
             </label>
@@ -228,9 +284,9 @@ export default function SignupPage() {
               disabled={loading}
               required
             />
-          </motion.div>
+          </m.div>
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="signup-email" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("signup.emailLabel")}
             </label>
@@ -250,9 +306,9 @@ export default function SignupPage() {
               required
               valid={email.length > 0 && emailValid}
             />
-          </motion.div>
+          </m.div>
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="signup-password" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("signup.passwordLabel")}
             </label>
@@ -272,7 +328,7 @@ export default function SignupPage() {
                   onClick={() => setShowPw((v) => !v)}
                   aria-label={showPw ? "Hide password" : "Show password"}
                   aria-pressed={showPw}
-                  className="rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                  className="rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
                 >
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -301,7 +357,7 @@ export default function SignupPage() {
                 {password ? meta.label : ","}
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] text-charcoal-80/55">
+            <p className="mt-1.5 text-[11px] text-charcoal-80/65">
               {t("signup.mustBeAtLeast")} {MIN_PW_LENGTH} {t("signup.pwHint")}
             </p>
 
@@ -314,9 +370,9 @@ export default function SignupPage() {
                 <ShieldAlert className="h-3 w-3" /> {t("signup.capsLockOn")}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="signup-confirm" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("signup.repeatPassword")}
             </label>
@@ -338,7 +394,7 @@ export default function SignupPage() {
                   onClick={() => setShowCf((v) => !v)}
                   aria-label={showCf ? "Hide password" : "Show password"}
                   aria-pressed={showCf}
-                  className="rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                  className="rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
                 >
                   {showCf ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -365,9 +421,9 @@ export default function SignupPage() {
                 )}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
-          <motion.label
+          <m.label
             variants={fadeUp}
             className="mt-1 inline-flex cursor-pointer items-start gap-2.5 text-[12.5px] leading-5 text-charcoal-80/75"
           >
@@ -388,9 +444,9 @@ export default function SignupPage() {
               </Link>
               .
             </span>
-          </motion.label>
+          </m.label>
 
-          <motion.button
+          <m.button
             variants={fadeUp}
             type="submit"
             disabled={submitDisabled}
@@ -405,23 +461,25 @@ export default function SignupPage() {
             ) : (
               t("signup.createAccount") || "Sign Up"
             )}
-          </motion.button>
-        </motion.form>
+          </m.button>
+        </m.form>
 
-        <motion.div variants={fadeUp} className="mt-6">
+        <m.div variants={fadeUp} className="mt-6">
           <div className="relative flex items-center gap-3">
             <div className="h-px flex-1 bg-charcoal-80/10" />
-            <span className="text-[12px] font-medium text-charcoal-80/50">
+            <span className="text-[12px] font-medium text-charcoal-80/65">
               {t("signup.orSignupWith")}
             </span>
             <div className="h-px flex-1 bg-charcoal-80/10" />
           </div>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-col gap-3">
             <GoogleLoginButton label="signup" />
+            <MicrosoftLoginButton label="signup" />
+            <FacebookLoginButton label="signup" />
           </div>
-        </motion.div>
+        </m.div>
 
-        <motion.p
+        <m.p
           variants={fadeUp}
           className="mt-7 text-center text-[13px] text-charcoal-80/65"
         >
@@ -429,8 +487,8 @@ export default function SignupPage() {
           <Link to="/login" className="font-semibold text-violet transition hover:text-violet-deep">
             {t("signup.signIn")}
           </Link>
-        </motion.p>
-      </motion.div>
+        </m.p>
+      </m.div>
     </AuthShell>
   )
 }

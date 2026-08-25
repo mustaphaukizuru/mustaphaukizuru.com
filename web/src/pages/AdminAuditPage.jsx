@@ -207,7 +207,7 @@ export default function AdminAuditPage() {
 
       {/* Entity filter */}
       <label className="flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-2.5 py-1.5">
-        <Filter className="h-3 w-3 text-charcoal-80/45" aria-hidden="true" />
+        <Filter className="h-3 w-3 text-charcoal-80/65" aria-hidden="true" />
         <select
           value={entityFilter}
           onChange={(e) => setEntityFilter(e.target.value)}
@@ -239,7 +239,7 @@ export default function AdminAuditPage() {
   return (
     <section className="space-y-5">
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           {error}
         </div>
       )}

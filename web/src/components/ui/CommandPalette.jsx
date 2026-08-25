@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 // ════════════════════════════════════════════════════════════════════════════
 // CommandPalette · ui composite · v1.0
 // ────────────────────────────────────────────────────────────────────────────
@@ -37,7 +38,7 @@ import {
   useState,
 } from "react"
 import { createPortal } from "react-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { Search, CornerDownLeft, ArrowDown, ArrowUp, ChevronRight } from "lucide-react"
 
 // Naive but fast fuzzy match — every char of `q` must appear in order in `s`.
@@ -101,6 +102,7 @@ export default function CommandPalette({
   // Reset on open
   useEffect(() => {
     if (!open) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset palette state when opened
     setQuery("")
     setActive(0)
     const t = setTimeout(() => inputRef.current?.focus(), 30)
@@ -146,6 +148,7 @@ export default function CommandPalette({
 
   // Keep active in bounds
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clamp active index when results shrink
     if (active >= flat.length) setActive(0)
   }, [active, flat.length])
 
@@ -181,7 +184,7 @@ export default function CommandPalette({
   return createPortal(
     <AnimatePresence>
       {open && (
-        <motion.div
+        <m.div
           role="dialog"
           aria-modal="true"
           aria-labelledby={`${reactId}-input`}
@@ -192,9 +195,9 @@ export default function CommandPalette({
           onClick={(e) => {
             if (e.target === e.currentTarget) close()
           }}
-          className="fixed inset-0 z-[var(--z-modal,70)] flex items-start justify-center bg-[rgba(26,27,35,0.55)] backdrop-blur-md p-4 pt-[12vh]"
+          className="fixed inset-0 z-[var(--z-modal,70)] flex items-start justify-center bg-[rgb(var(--color-charcoal-rgb)/0.55)] backdrop-blur-md p-4 pt-[12vh]"
         >
-          <motion.div
+          <m.div
             initial={{ y: -10, scale: 0.98, opacity: 0 }}
             animate={{ y: 0, scale: 1, opacity: 1 }}
             exit={{ y: -8, scale: 0.98, opacity: 0 }}
@@ -332,8 +335,8 @@ export default function CommandPalette({
                 </span>
               )}
             </div>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>,
     document.body,

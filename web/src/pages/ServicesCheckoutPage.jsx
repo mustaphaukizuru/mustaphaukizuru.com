@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams, useNavigate, Link } from "react-router-dom"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   ArrowLeft, ShieldCheck, Zap, CheckCircle2, AlertCircle, Loader2,
   CreditCard, Briefcase,
@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext"
 import { orderServiceTier } from "../services/serviceCheckoutService"
 import { createMercadoPagoPreference } from "../services/mercadoPagoService"
 import { createPaypalSession, capturePaypalSession } from "../services/paypalService"
+import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  ServicesCheckoutPage · /checkout/service?audience=X&tier=Y
@@ -87,7 +88,10 @@ export default function ServicesCheckoutPage() {
   })
   const [agreedTerms, setAgreedTerms] = useState(false)
   const [paymentMethod, setMethod] = useState("mercadopago")
-  const [error, setError] = useState("")
+  // error: null | string | { kind, title, body, action }
+  // Strings still flow through (existing i18n keys); the richer object lets
+  // payment failures suggest the alternate gateway in one tap.
+  const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
   // PayPal SDK
@@ -121,33 +125,64 @@ export default function ServicesCheckoutPage() {
 
   function validate() {
     if (!plan) {
-      setError(t("checkout.errors.planInvalid"))
+      setError({
+        kind: "error",
+        title: t("checkout.errors.planInvalidTitle", { defaultValue: "Plan not found" }),
+        body: t("checkout.errors.planInvalid"),
+      })
       return false
     }
-    if (!form.customerName.trim()) { setError(t("checkout.errors.nameRequired")); return false }
-    if (!form.customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customerEmail.trim())) {
-      setError(t("checkout.errors.emailInvalid")); return false
+    if (!form.customerName.trim()) {
+      setError({
+        kind: "warning",
+        title: t("checkout.errors.nameRequiredTitle", { defaultValue: "Name is required" }),
+        body: t("checkout.errors.nameRequired"),
+      })
+      return false
     }
-    if (!agreedTerms) { setError(t("checkout.errors.termsRequired")); return false }
-    setError("")
+    if (!form.customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customerEmail.trim())) {
+      setError({
+        kind: "warning",
+        title: t("checkout.errors.emailInvalidTitle", { defaultValue: "Email format looks off" }),
+        body: t("checkout.errors.emailInvalid"),
+      })
+      return false
+    }
+    if (!agreedTerms) {
+      setError({
+        kind: "warning",
+        title: t("checkout.errors.termsRequiredTitle", { defaultValue: "Please accept the Terms" }),
+        body: t("checkout.errors.termsRequired"),
+      })
+      return false
+    }
+    setError(null)
     return true
   }
 
   async function ensureOrder() {
     if (orderIdRef.current) return orderIdRef.current
-    const result = await orderServiceTier({
-      audience: plan.audienceCode,
-      tier: plan.tierKey,
-      planName: `${plan.audienceName} · ${plan.tierName}`,
-      // `price` is the canonical, currency-agnostic field — paired with
-      // `currency` below it tells the backend exactly what we promised
-      // the customer at the moment they clicked Pay.
-      price: plan.price,
-      currency: plan.currency,
-      customerName: form.customerName,
-      customerEmail: form.customerEmail,
-      requirements: form.requirements,
-    })
+    let result
+    try {
+      result = await orderServiceTier({
+        audience: plan.audienceCode,
+        tier: plan.tierKey,
+        planName: `${plan.audienceName} · ${plan.tierName}`,
+        price: plan.price,
+        currency: plan.currency,
+        customerName: form.customerName,
+        customerEmail: form.customerEmail,
+        requirements: form.requirements,
+      })
+    } catch (err) {
+      // Email belongs to a claimed account → sign in, then come back here.
+      if (err?.code === "ACCOUNT_EXISTS" || err?.status === 401) {
+        navigate("/login", {
+          state: { from: window.location.pathname + window.location.search, email: form.customerEmail },
+        })
+      }
+      throw err
+    }
     if (!result?.orderId) throw new Error("Order creation failed, no order id returned")
     orderIdRef.current = result.orderId
     return result.orderId
@@ -155,7 +190,7 @@ export default function ServicesCheckoutPage() {
 
   async function handleMercadoPago() {
     if (!validate()) return
-    setBusy(true); setError("")
+    setBusy(true); setError(null)
     try {
       const orderId = await ensureOrder()
       // BUGFIX: createMercadoPagoPreference expects a string orderId, not
@@ -167,7 +202,22 @@ export default function ServicesCheckoutPage() {
       window.location.href = url
     } catch (err) {
       console.error("[ServiceCheckout] MP failed:", err)
-      setError(err.message || t("checkout.errors.mpFailed"))
+      setError({
+        kind: "error",
+        title: t("checkout.errors.mpFailedTitle", { defaultValue: "MercadoPago checkout failed" }),
+        body: err.message || t("checkout.errors.mpFailed"),
+        // The page supports both gateways — when one fails, the cheapest
+        // recovery path is the other. Inline action saves a re-scroll.
+        action: (
+          <button
+            type="button"
+            onClick={() => { setMethod("paypal"); setError(null) }}
+            className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          >
+            Try PayPal instead →
+          </button>
+        ),
+      })
       setBusy(false)
     }
   }
@@ -198,11 +248,28 @@ export default function ServicesCheckoutPage() {
             await capturePaypalSession(data.orderID, internalOrderId)
             navigate(`/checkout/success/${internalOrderId}?gateway=paypal`, { replace: true })
           },
-          onCancel: () => setError(t("checkout.errors.paypalCancel")),
+          onCancel: () => setError({
+            kind: "info",
+            title: t("checkout.errors.paypalCancelTitle", { defaultValue: "PayPal payment was cancelled" }),
+            body: t("checkout.errors.paypalCancel"),
+          }),
           onError: (err) => {
             // Surface the real error so future failures aren't masked.
             console.error("[ServiceCheckout] PayPal error:", err)
-            setError(err?.message || t("checkout.errors.paypalFailed"))
+            setError({
+              kind: "error",
+              title: t("checkout.errors.paypalFailedTitle", { defaultValue: "PayPal checkout failed" }),
+              body: err?.message || t("checkout.errors.paypalFailed"),
+              action: (
+                <button
+                  type="button"
+                  onClick={() => { setMethod("mercadopago"); setError(null) }}
+                  className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                >
+                  Try MercadoPago instead →
+                </button>
+              ),
+            })
           },
         }).render(paypalRef.current)
         paypalRendered.current = true
@@ -218,10 +285,10 @@ export default function ServicesCheckoutPage() {
     return (
       <div className="bg-mist py-16">
         <div className="mx-auto max-w-xl px-4">
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center">
+          <div className="rounded-2xl border border-rose/20 bg-rose/5 p-8 text-center">
             <AlertCircle className="mx-auto mb-3 h-10 w-10 text-rose-600" />
             <h1 className="text-card font-bold text-rose-700">{t("checkout.errors.notFound")}</h1>
-            <p className="mt-2 text-meta text-rose-700/85">
+            <p className="mt-2 text-meta text-rose-700">
               {t("checkout.errors.notFoundBody")}
             </p>
             <Link
@@ -252,12 +319,12 @@ export default function ServicesCheckoutPage() {
 
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
           {/* ── LEFT · plan summary + customer form ───────────────────── */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}
             className="space-y-6"
           >
             {/* Plan header */}
-            <div className="rounded-2xl border border-violet/20 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-2xl border border-violet/20 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <div className="mb-2 flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-violet">
                   <Briefcase className="h-3 w-3" /> {plan.audienceName}
@@ -278,14 +345,14 @@ export default function ServicesCheckoutPage() {
                 <div className="font-mono text-[40px] font-bold leading-none tabular-nums text-violet">
                   {formatMoney(plan.price, plan.currency)}
                 </div>
-                <div className="pb-1.5 font-mono text-[13px] uppercase tracking-wider text-charcoal-80/55">
+                <div className="pb-1.5 font-mono text-[13px] uppercase tracking-wider text-charcoal-80/65">
                   {plan.currency || "MXN"}
                 </div>
               </div>
 
               {plan.includedFeatures?.length > 0 && (
                 <div className="mt-5 border-t border-charcoal-80/10 pt-5">
-                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+                  <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
                     {t("checkout.plan.includedTitle")}
                   </div>
                   <ul className="mt-3 space-y-1.5">
@@ -301,7 +368,7 @@ export default function ServicesCheckoutPage() {
             </div>
 
             {/* Customer info form */}
-            <div className="rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <h2 className="text-card font-bold text-violet">{t("checkout.form.title")}</h2>
               <p className="mt-1 text-meta text-charcoal-80/65">
                 {isAuthenticated ? t("checkout.form.prefilled") : t("checkout.form.guest")}
@@ -326,7 +393,7 @@ export default function ServicesCheckoutPage() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="mb-1.5 block text-[12px] font-semibold text-charcoal-80">
-                    {t("checkout.form.requirementsLabel")} <span className="font-normal text-charcoal-80/55">{t("checkout.form.requirementsHint")}</span>
+                    {t("checkout.form.requirementsLabel")} <span className="font-normal text-charcoal-80/65">{t("checkout.form.requirementsHint")}</span>
                   </label>
                   <textarea
                     rows={4} value={form.requirements}
@@ -337,14 +404,14 @@ export default function ServicesCheckoutPage() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* ── RIGHT · payment sidebar ──────────────────────────────── */}
-          <motion.aside
+          <m.aside
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}
             className="lg:sticky lg:top-6 space-y-4 self-start"
           >
-            <div className="rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+            <div className="rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
               <h3 className="text-card font-bold text-violet">{t("checkout.payment.title")}</h3>
 
               {/* Method picker · brand names left untranslated by design. */}
@@ -368,7 +435,7 @@ export default function ServicesCheckoutPage() {
 
               {/* Total */}
               <div className="mt-5 flex items-baseline justify-between border-t border-charcoal-80/10 pt-4">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-charcoal-80/55">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-charcoal-80/65">
                   {t("checkout.payment.totalToday")}
                 </span>
                 <span className="font-mono text-card font-bold tabular-nums text-violet">
@@ -391,8 +458,8 @@ export default function ServicesCheckoutPage() {
               </label>
 
               {error && (
-                <div className="mt-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-meta text-rose-700" role="alert">
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
+                <div className="mt-4">
+                  <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
                 </div>
               )}
 
@@ -401,7 +468,7 @@ export default function ServicesCheckoutPage() {
                 {paymentMethod === "mercadopago" ? (
                   <button
                     type="button" onClick={handleMercadoPago} disabled={busy}
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-violet px-4 py-3 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(93,63,211,0.20)] transition hover:bg-violet-deep disabled:opacity-60"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-violet px-4 py-3 text-sm font-semibold text-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.20)] transition hover:bg-violet-deep disabled:opacity-60"
                   >
                     {busy
                       ? <><Loader2 className="h-4 w-4 animate-spin" /> {t("checkout.payment.starting")}</>
@@ -410,7 +477,7 @@ export default function ServicesCheckoutPage() {
                 ) : (
                   <div ref={paypalRef} className="min-h-[55px]">
                     {!paypalReady && (
-                      <div className="flex items-center justify-center rounded-lg border border-charcoal-80/10 bg-mist px-4 py-3 text-micro text-charcoal-80/55">
+                      <div className="flex items-center justify-center rounded-lg border border-charcoal-80/10 bg-mist px-4 py-3 text-micro text-charcoal-80/65">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("checkout.payment.loadingPayPal")}
                       </div>
                     )}
@@ -421,14 +488,14 @@ export default function ServicesCheckoutPage() {
               {/* Trust row · i18n-keyed labels */}
               <div className="mt-5 space-y-2.5 border-t border-charcoal-80/10 pt-5">
                 {trustItems.map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex items-center gap-2.5 text-micro text-charcoal-80/55">
+                  <div key={label} className="flex items-center gap-2.5 text-micro text-charcoal-80/65">
                     <Icon className="h-4 w-4 shrink-0 text-violet" />
                     <span>{label}</span>
                   </div>
                 ))}
               </div>
             </div>
-          </motion.aside>
+          </m.aside>
         </div>
       </div>
     </div>

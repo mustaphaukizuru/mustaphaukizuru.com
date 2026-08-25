@@ -135,10 +135,10 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
   }
 
   return (
-    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+    <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/55">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
             Ticket{" "}
             <span className="text-violet">
               #{ticket.ticketNumber || (ticket.id ? String(ticket.id).slice(0, 8) : "-")}
@@ -157,7 +157,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
           type="button"
           onClick={onClose}
           aria-label="Close thread"
-          className="shrink-0 rounded-lg border border-charcoal-80/12 bg-white p-2 text-charcoal-80/55 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          className="shrink-0 rounded-lg border border-charcoal-80/12 bg-white p-2 text-charcoal-80/65 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -176,7 +176,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
               onClick={() => handleStatusChange(s)}
               className={`rounded-lg px-3 py-1.5 text-micro font-semibold capitalize transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                 active
-                  ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.20)]"
+                  ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.20)]"
                   : "border border-charcoal-80/12 bg-white text-charcoal-80/85 hover:border-violet/20 hover:bg-violet-pale hover:text-violet"
               }`}
             >
@@ -188,14 +188,14 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
 
       {/* M16, Refund request banner with deep-link to the order's refund modal */}
       {(fullTicket.category === "refund_request") && fullTicket.order ? (
-        <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50/60 p-4">
+        <div className="mb-5 rounded-xl border border-rose/20 bg-rose/5/60 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-meta font-semibold text-rose-700">
                 <RotateCcw className="h-4 w-4" />
                 Refund request · Order #{fullTicket.order.orderNumber}
               </div>
-              <div className="mt-1 text-micro text-rose-700/85">
+              <div className="mt-1 text-micro text-rose-700">
                 Total {Number(fullTicket.order.totalAmount || 0).toFixed(2)} {fullTicket.order.currency} ·
                 Status <span className="font-semibold capitalize">{fullTicket.order.status}</span>
               </div>
@@ -223,7 +223,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
       ) : null}
 
       {error && (
-        <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-meta text-rose-700" role="alert">
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-rose/20 bg-rose/5 px-3 py-2 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -232,7 +232,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
       {/* Messages */}
       <div className="space-y-3" role="log" aria-label="Conversation messages">
         {messages.length === 0 && (
-          <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist p-4 text-center text-micro text-charcoal-80/55">
+          <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist p-4 text-center text-micro text-charcoal-80/65">
             No messages yet.
           </div>
         )}
@@ -249,7 +249,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
               <span className="text-micro font-bold">
                 {msg.isAdmin ? "Support Team" : (ticket.user?.fullName || "User")}
               </span>
-              <span className="font-mono text-[10px] tabular-nums text-charcoal-80/55">
+              <span className="font-mono text-[10px] tabular-nums text-charcoal-80/65">
                 {new Date(msg.createdAt).toLocaleString(undefined, {
                   year: "numeric", month: "short", day: "numeric",
                   hour: "2-digit", minute: "2-digit",
@@ -280,7 +280,7 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
           onClick={handleReply}
           disabled={sending || !reply.trim()}
           aria-busy={sending ? "true" : "false"}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgba(93,63,211,0.22)] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-micro font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)] disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
         >
           {sending ? (
             <>
@@ -378,7 +378,7 @@ export default function AdminSupportPage() {
               <div className="truncate text-meta font-semibold text-violet">{row.subject}</div>
               <CategoryBadge category={row.category} />
             </div>
-            <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+            <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
               #{row.ticketNumber || (row.id ? String(row.id).slice(0, 8) : "-")}
               {row.order ? ` · order ${row.order.orderNumber}` : ""}
             </div>
@@ -398,7 +398,7 @@ export default function AdminSupportPage() {
           <div className="truncate text-meta font-medium text-charcoal-80">
             {row.user?.fullName || "Unknown User"}
           </div>
-          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
             {row.user?.email}
           </div>
         </div>
@@ -454,7 +454,7 @@ export default function AdminSupportPage() {
   const toolbar = (
     <div className="flex flex-wrap items-center gap-2">
       <label className="flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-2.5 py-1.5">
-        <Filter className="h-3 w-3 text-charcoal-80/45" aria-hidden="true" />
+        <Filter className="h-3 w-3 text-charcoal-80/65" aria-hidden="true" />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -507,7 +507,7 @@ export default function AdminSupportPage() {
   return (
     <section className="space-y-5">
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>

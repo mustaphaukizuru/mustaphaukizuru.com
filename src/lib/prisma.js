@@ -35,4 +35,63 @@ if (process.env.NODE_ENV === "production") {
   console.warn("DB unavailable — server running, DB operations will retry")
 })()
 
+/* ─────────────────────────── connection-health helpers ─────────────────
+ * Why this exists:
+ *   Hostinger shared MySQL kills idle TCP connections after ~60s
+ *   (wait_timeout). Prisma's connection pool doesn't always notice the
+ *   socket was closed by the server, so on the NEXT query (often from a
+ *   cron firing every 5 minutes — way past wait_timeout) the Rust query
+ *   engine grabs a dead socket and panics:
+ *     "PANIC: timer has gone away"
+ *   This is the tokio runtime crashing because its internal timer task
+ *   was dropped during teardown, not a logic bug.
+ *
+ *   Standard mitigation in serverful Prisma + shared-MySQL deployments
+ *   is to PROBE the connection (cheap SELECT 1) before any cold-cache
+ *   query, and RECYCLE the engine if the probe fails. That's what these
+ *   two helpers do.
+ *
+ * Usage:
+ *   const prisma = require("../lib/prisma")
+ *   const { isAlive, recycle } = require("../lib/prisma")
+ *
+ *   if (!(await isAlive())) {
+ *     await recycle()
+ *     if (!(await isAlive())) return  // give up this pass; cron retries
+ *   }
+ *   await prisma.consultation.findMany(...)
+ *
+ * Cost:
+ *   `SELECT 1` is a single packet — typically < 5ms on a warm pool, and
+ *   fails fast (< 100ms) on a dead one. The cost is negligible compared
+ *   to the cost of letting the engine panic.
+ * ──────────────────────────────────────────────────────────────────── */
+
+// Cheap connection probe. Returns true on a healthy socket, false if the
+// engine can't talk to MySQL right now (closed socket, network blip,
+// MySQL paused for maintenance, etc.). NEVER throws — catches every
+// possible error class so the caller can branch on a clean boolean.
+async function isAlive() {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    return true
+  } catch (err) {
+    // We deliberately don't log here — callers (mostly crons) decide
+    // whether a failed ping is worth surfacing. A noisy ping log would
+    // drown the actual error in any 5-minute cron loop.
+    return false
+  }
+}
+
+// Force a fresh engine + connection. Safe to call after a panic — even
+// if $disconnect() throws (because the engine is already dead), we still
+// try $connect() to bring a new one online. NEVER throws; if reconnect
+// fails the next isAlive() will return false and the caller can decide.
+async function recycle() {
+  try { await prisma.$disconnect() } catch { /* engine may already be dead */ }
+  try { await prisma.$connect()    } catch { /* will retry on next call */ }
+}
+
 module.exports = prisma
+module.exports.isAlive = isAlive
+module.exports.recycle = recycle

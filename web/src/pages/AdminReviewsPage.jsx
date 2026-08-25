@@ -16,17 +16,18 @@
      · Keyboard shortcuts: J/K to navigate, A approve, H hide.
      · Empty state nudges admin toward something to do.
 
-   Brand tokens: #5D3FD3 / #1A1B23 throughout. Framer Motion fade/stagger.
+   Brand tokens: var(--color-violet) / var(--color-charcoal) throughout. Framer Motion fade/stagger.
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   Star, RefreshCw, CheckCircle2, EyeOff, X, Trash2, MessageSquare,
   AlertTriangle, ShieldCheck, Search, ExternalLink, Loader2,
   Send, Flag, Briefcase, Package, User as UserIcon, Sparkles,
 } from "lucide-react"
 import { useToast } from "../context/ToastContext"
+import { ConfirmModal } from "../components/admin/forms"
 import {
   fetchAdminReviewStats,
   fetchAdminReviews,
@@ -40,12 +41,16 @@ import {
 const fadeUp = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.25 } } }
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.04 } } }
 
+// Brand v3 §05 — every status tone maps to a sanctioned feedback tier.
+// pending = warning (amber), flagged = error-soft (rose at 10%),
+// approved = success (mint), hidden = neutral (steel on slate),
+// rejected = error-hard (rose at 15% with deeper text).
 const STATUSES = [
-  { key: "pending", label: "Pending", Icon: AlertTriangle, tone: "bg-amber-100 text-amber-600" },
-  { key: "flagged", label: "Flagged", Icon: Flag, tone: "bg-[#fee2e2] text-[#b91c1c]" },
-  { key: "approved", label: "Approved", Icon: CheckCircle2, tone: "bg-mint-100 text-mint-800" },
-  { key: "hidden", label: "Hidden", Icon: EyeOff, tone: "bg-slate-50 text-[#666]" },
-  { key: "rejected", label: "Rejected", Icon: X, tone: "bg-[#fee2e2] text-[#7f1d1d]" },
+  { key: "pending", label: "Pending", Icon: AlertTriangle, tone: "bg-amber/12 text-amber-700" },
+  { key: "flagged", label: "Flagged", Icon: Flag, tone: "bg-rose/10 text-rose-700" },
+  { key: "approved", label: "Approved", Icon: CheckCircle2, tone: "bg-mint/12 text-emerald-700" },
+  { key: "hidden", label: "Hidden", Icon: EyeOff, tone: "bg-slate-100 text-steel-700" },
+  { key: "rejected", label: "Rejected", Icon: X, tone: "bg-rose/15 text-rose-800" },
 ]
 
 function timeAgo(iso) {
@@ -101,8 +106,8 @@ function FilterChips({ active, onSelect, stats }) {
             onClick={() => onSelect(s.key)}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${
               isActive
-                ? "bg-violet text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)]"
-                : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"
+                ? "bg-violet text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.20)]"
+                : "bg-violet-pale text-violet hover:bg-violet-pale"
             }`}
           >
             <s.Icon className="h-3.5 w-3.5" />
@@ -126,10 +131,10 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
   const SubjectIcon = review.subjectType === "service" ? Briefcase : Package
 
   return (
-    <motion.article
+    <m.article
       variants={fadeUp}
-      className={`group relative flex items-start gap-3 rounded-2xl border bg-white p-4 transition hover:border-violet/30 hover:shadow-[0_8px_22px_rgba(93,63,211,0.06)] ${
-        selected ? "border-violet shadow-[0_8px_22px_rgba(93,63,211,0.10)]" : "border-charcoal/12"
+      className={`group relative flex items-start gap-3 rounded-2xl border bg-white p-4 transition hover:border-violet/30 hover:shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.06)] ${
+        selected ? "border-violet shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.10)]" : "border-charcoal/12"
       }`}
     >
       <input
@@ -168,14 +173,14 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
         </div>
 
         <p className="mt-2 line-clamp-3 text-[13px] leading-snug text-charcoal/85">
-          {review.reviewText || <span className="italic text-charcoal/55">, no body, stars only,</span>}
+          {review.reviewText || <span className="italic text-charcoal/65">, no body, stars only,</span>}
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-charcoal/60">
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-charcoal/65">
           <span className="inline-flex items-center gap-1">
             <UserIcon className="h-3 w-3" />
             <span className="font-semibold text-violet">{review.user?.fullName || "Anonymous"}</span>
-            {review.user?.email && <span className="text-charcoal/45">· {review.user.email}</span>}
+            {review.user?.email && <span className="text-charcoal/65">· {review.user.email}</span>}
           </span>
           <span className="text-charcoal/30">•</span>
           {subject && (
@@ -202,7 +207,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
       <div className="flex shrink-0 flex-col gap-1.5 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
         {review.status !== "approved" && (
           <button type="button" onClick={() => onQuickAction(review, "approve")} aria-label="Approve"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-mint-100 text-mint-800 transition hover:bg-[#d4ebd9]"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-mint-100 text-mint-800 transition hover:bg-mint/20"
           >
             <CheckCircle2 className="h-4 w-4" />
           </button>
@@ -220,7 +225,7 @@ function ReviewCard({ review, selected, onSelect, onOpen, onQuickAction }) {
           <X className="h-4 w-4" />
         </button>
       </div>
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -231,6 +236,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
   const [reply, setReply] = useState("")
   const [busy, setBusy] = useState(false)
   const [featured, setFeatured] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     if (review) {
@@ -273,12 +279,16 @@ function DetailPanel({ review, onClose, onUpdated }) {
     finally { setBusy(false) }
   }
 
-  async function handleDelete() {
-    if (!window.confirm("Delete this review permanently? This cannot be undone.")) return
+  function handleDelete() {
+    setConfirmDelete(true)
+  }
+
+  async function performDelete() {
     setBusy(true)
     try {
       await deleteAdminReview(review.id)
       showSuccess("Review deleted")
+      setConfirmDelete(false)
       onUpdated?.({ id: review.id, deleted: true })
       onClose()
     } catch (e) { showError(e?.message || "Could not delete review") }
@@ -289,22 +299,22 @@ function DetailPanel({ review, onClose, onUpdated }) {
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         key="backdrop"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
         className="fixed inset-0 z-[110] bg-black/40"
         aria-hidden="true"
       />
-      <motion.aside
+      <m.aside
         key="panel"
         role="dialog"
         aria-modal="true"
         initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed right-0 top-0 z-[111] flex h-full w-full max-w-xl flex-col overflow-hidden border-l border-charcoal/12 bg-white shadow-[-30px_0_80px_rgba(93,63,211,0.15)]"
+        className="fixed right-0 top-0 z-[111] flex h-full w-full max-w-xl flex-col overflow-hidden border-l border-charcoal/12 bg-white shadow-[-30px_0_80px_rgb(var(--color-violet-rgb)/0.15)]"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-charcoal/10 bg-[#faf7fb] px-6 py-5">
+        <header className="flex items-start justify-between gap-4 border-b border-charcoal/10 bg-violet-pale/40 px-6 py-5">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <StarRow rating={review.rating} />
@@ -324,7 +334,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             </p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close"
-            className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-charcoal/55 transition hover:bg-white hover:text-violet"
+            className="-mt-1 -mr-1 flex h-9 w-9 items-center justify-center rounded-xl text-charcoal/65 transition hover:bg-white hover:text-violet"
           >
             <X className="h-5 w-5" />
           </button>
@@ -333,7 +343,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {subject && (
             <section className="mb-5 rounded-xl border border-charcoal/10 bg-mist p-4">
-              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">
+              <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/65">
                 {review.subjectType === "service" ? "Service" : "Product"}
               </div>
               <a
@@ -347,7 +357,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
               {review.orderItem && (
-                <div className="mt-1 font-mono text-[10.5px] text-charcoal/55">
+                <div className="mt-1 font-mono text-[10.5px] text-charcoal/65">
                   Order line: {String(review.orderItem.id).slice(0, 12)}…
                 </div>
               )}
@@ -355,7 +365,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
           )}
 
           <section className="mb-5">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">Reviewer</div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/65">Reviewer</div>
             <div className="flex items-center gap-3 rounded-xl border border-charcoal/10 bg-white p-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-pale text-violet">
                 <UserIcon className="h-5 w-5" />
@@ -370,9 +380,9 @@ function DetailPanel({ review, onClose, onUpdated }) {
           </section>
 
           <section className="mb-5">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">Review body</div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/65">Review body</div>
             <div className="whitespace-pre-wrap rounded-xl border border-charcoal/10 bg-white p-4 text-[13.5px] leading-relaxed text-charcoal/85">
-              {review.reviewText || <span className="italic text-charcoal/45">No text, stars only.</span>}
+              {review.reviewText || <span className="italic text-charcoal/65">No text, stars only.</span>}
             </div>
             {review.flaggedReason && (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-[11px] font-semibold text-rose-700">
@@ -382,7 +392,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
           </section>
 
           <section className="mb-5">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/55">
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/65">
               Public reply
               <span className="ml-2 text-charcoal/40">{reply.length}/2000</span>
             </div>
@@ -396,7 +406,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             />
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <button type="button" onClick={saveReply} disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.20)] transition hover:bg-violet-deep disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.20)] transition hover:bg-violet-deep disabled:opacity-60"
               >
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 {review.adminReply ? "Update reply" : "Post reply"}
@@ -412,11 +422,11 @@ function DetailPanel({ review, onClose, onUpdated }) {
           </section>
         </div>
 
-        <footer className="flex items-center justify-between gap-2 border-t border-charcoal/10 bg-[#faf7fb] px-6 py-4">
+        <footer className="flex items-center justify-between gap-2 border-t border-charcoal/10 bg-violet-pale/40 px-6 py-4">
           <div className="flex flex-wrap gap-1.5">
             {review.status !== "approved" && (
               <button type="button" onClick={() => setStatus("approved")} disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-mint-100 px-3.5 py-2 text-[12px] font-semibold text-mint-800 transition hover:bg-[#d4ebd9] disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-mint-100 px-3.5 py-2 text-[12px] font-semibold text-mint-800 transition hover:bg-mint/20 disabled:opacity-60"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" /> Approve
               </button>
@@ -437,7 +447,7 @@ function DetailPanel({ review, onClose, onUpdated }) {
             )}
             <button type="button" onClick={toggleFeatured} disabled={busy}
               className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[12px] font-semibold transition disabled:opacity-60 ${
-                featured ? "bg-violet text-white hover:bg-violet-deep" : "bg-violet-pale text-violet hover:bg-[#DCD4F4]"
+                featured ? "bg-violet text-white hover:bg-violet-deep" : "bg-violet-pale text-violet hover:bg-violet-pale"
               }`}
             >
               <Sparkles className="h-3.5 w-3.5" /> {featured ? "Featured" : "Feature"}
@@ -449,7 +459,19 @@ function DetailPanel({ review, onClose, onUpdated }) {
             <Trash2 className="h-4 w-4" />
           </button>
         </footer>
-      </motion.aside>
+      </m.aside>
+
+      <ConfirmModal
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={performDelete}
+        busy={busy}
+        title="Delete this review permanently?"
+        confirmLabel="Delete"
+        tone="danger"
+      >
+        <p className="text-sm text-charcoal-80">This cannot be undone.</p>
+      </ConfirmModal>
     </AnimatePresence>
   )
 }
@@ -459,15 +481,15 @@ function DetailPanel({ review, onClose, onUpdated }) {
 function BulkBar({ count, onAction, onClear, busy }) {
   if (count === 0) return null
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
-      className="sticky bottom-4 z-20 mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet/15 bg-white p-3 shadow-[0_12px_36px_rgba(93,63,211,0.15)]"
+      className="sticky bottom-4 z-20 mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet/15 bg-white p-3 shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.15)]"
     >
       <span className="text-[12.5px] font-semibold text-violet">
         {count} selected
       </span>
       <div className="flex flex-wrap items-center gap-1.5">
-        <button onClick={() => onAction("approve")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-mint-100 px-3 py-1.5 text-[12px] font-semibold text-mint-800 hover:bg-[#d4ebd9] disabled:opacity-60">
+        <button onClick={() => onAction("approve")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-mint-100 px-3 py-1.5 text-[12px] font-semibold text-mint-800 hover:bg-mint/20 disabled:opacity-60">
           <CheckCircle2 className="h-3.5 w-3.5" /> Approve
         </button>
         <button onClick={() => onAction("hide")} disabled={busy} className="inline-flex items-center gap-1 rounded-xl bg-violet-ghost px-3 py-1.5 text-[12px] font-semibold text-violet hover:bg-violet-pale disabled:opacity-60">
@@ -480,7 +502,7 @@ function BulkBar({ count, onAction, onClear, busy }) {
           Clear
         </button>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -629,7 +651,7 @@ export default function AdminReviewsPage() {
       </header>
 
       {stats && (
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_2px_10px_rgba(93,63,211,0.04)]">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-charcoal/10 bg-white p-3 shadow-[0_2px_10px_rgb(var(--color-violet-rgb)/0.04)]">
           <FilterChips active={activeStatus} onSelect={(s) => { clearSelection(); setActive(s) }} stats={stats} />
           <div className="ml-auto flex items-center gap-2 text-[12px] text-charcoal/65">
             <Star className="h-3.5 w-3.5 fill-terracotta text-terracotta" />
@@ -649,7 +671,7 @@ export default function AdminReviewsPage() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[13px] text-rose-700">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-[13px] text-rose-700">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </div>
       )}
@@ -662,12 +684,12 @@ export default function AdminReviewsPage() {
         <div className="rounded-2xl border border-dashed border-charcoal/20 bg-white p-10 text-center">
           <CheckCircle2 className="mx-auto h-7 w-7 text-mint-800" />
           <h2 className="mt-3 text-[15px] font-bold text-violet">All clear</h2>
-          <p className="mt-1 text-[12.5px] text-charcoal/60">
+          <p className="mt-1 text-[12.5px] text-charcoal/65">
             Nothing in <strong>{activeStatus}</strong> right now.
           </p>
         </div>
       ) : (
-        <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-3">
+        <m.div variants={stagger} initial="hidden" animate="show" className="grid gap-3">
           {visible.map((r) => (
             <ReviewCard
               key={r.id}
@@ -678,7 +700,7 @@ export default function AdminReviewsPage() {
               onQuickAction={handleQuickAction}
             />
           ))}
-        </motion.div>
+        </m.div>
       )}
 
       <AnimatePresence>
@@ -693,7 +715,7 @@ export default function AdminReviewsPage() {
         onUpdated={handleUpdated}
       />
 
-      <p className="pt-2 text-center text-[10.5px] text-charcoal/50">
+      <p className="pt-2 text-center text-[10.5px] text-charcoal/65">
         Pro tips: shift-click checkboxes to range-select · J / K navigate · A approve · H hide
       </p>
     </div>

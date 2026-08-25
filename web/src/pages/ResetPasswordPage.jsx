@@ -20,7 +20,7 @@
 import { useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import {
   Lock,
   Eye,
@@ -33,6 +33,7 @@ import {
 } from "lucide-react"
 
 import AuthShell from "../components/auth/AuthShell"
+import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 import useCapsLock from "../hooks/useCapsLock"
 import { scorePassword } from "../components/AuthInput"
 import { apiPost } from "../lib/api"
@@ -49,7 +50,7 @@ const stagger = {
 }
 
 const STRENGTH_META = {
-  0: { label: "Too short", color: "bg-charcoal-80/15", text: "text-charcoal-80/45" },
+  0: { label: "Too short", color: "bg-charcoal-80/15", text: "text-charcoal-80/65" },
   1: { label: "Weak", color: "bg-rose", text: "text-rose-700" },
   2: { label: "Weak", color: "bg-rose", text: "text-rose-700" },
   3: { label: "Medium", color: "bg-amber", text: "text-amber-700" },
@@ -71,8 +72,9 @@ export default function ResetPasswordPage() {
 
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
-  const [tokenExpired, setTokenExpired] = useState(false)
+  // error: null | string | { kind, title, body, action }
+  const [error, setError] = useState(null)
+  const [, setTokenExpired] = useState(false)
 
   const score = useMemo(() => scorePassword(password), [password])
   const meta = STRENGTH_META[score] || STRENGTH_META[0]
@@ -84,24 +86,52 @@ export default function ResetPasswordPage() {
     !matches ||
     score < 3
 
+  // The "request a new link" action shared by every token-related error
+  // path. Centralized so the affordance never drifts in copy or styling.
+  const newLinkAction = (
+    <Link
+      to="/forgot-password"
+      className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+    >
+      {t("reset.newLink") || "Request a new link"} →
+    </Link>
+  )
+
   async function handleSubmit(e) {
     e.preventDefault()
-    setError("")
+    setError(null)
     if (!token) {
-      setError("Reset token is missing. Please request a new password reset link.")
+      setError({
+        kind: "error",
+        title: "Reset link is missing",
+        body: "We can't find a valid token in this URL. Request a fresh password-reset email.",
+        action: newLinkAction,
+      })
       setTokenExpired(true)
       return
     }
     if (password.length < MIN_PW_LENGTH) {
-      setError(`Password must be at least ${MIN_PW_LENGTH} characters.`)
+      setError({
+        kind: "warning",
+        title: "Password is too short",
+        body: `Use at least ${MIN_PW_LENGTH} characters — currently ${password.length}.`,
+      })
       return
     }
     if (password !== confirm) {
-      setError(t("reset.passwordsDontMatch") + ".")
+      setError({
+        kind: "warning",
+        title: "Passwords don't match",
+        body: "Re-enter the same password in both fields.",
+      })
       return
     }
     if (score < 3) {
-      setError("Please choose a stronger password (mix letters, numbers, and symbols).")
+      setError({
+        kind: "warning",
+        title: "Choose a stronger password",
+        body: "Mix uppercase, lowercase, numbers, and a symbol. The strength meter below shows your progress.",
+      })
       return
     }
 
@@ -114,10 +144,19 @@ export default function ResetPasswordPage() {
       const code = err?.code || ""
       const msg = err?.toUserMessage?.() || err?.message || ""
       if (code === "NETWORK_ERROR") {
-        setError("Cannot reach the server. Check your connection and try again.")
+        setError({
+          kind: "warning",
+          title: "Can't reach the server",
+          body: "Check your internet connection and try again. If the problem persists, our servers may be briefly unavailable.",
+        })
       } else if (/expired|invalid/i.test(msg)) {
         setTokenExpired(true)
-        setError("This reset link has expired or is invalid. Please request a new one.")
+        setError({
+          kind: "error",
+          title: "This reset link has expired",
+          body: "Reset links are good for 30 minutes. Request a new one and we'll send a fresh email.",
+          action: newLinkAction,
+        })
       } else {
         setError(msg || "Failed to reset password. Please try again.")
       }
@@ -130,41 +169,41 @@ export default function ResetPasswordPage() {
     return (
       <AuthShell
       >
-        <motion.div
+        <m.div
           initial="hidden"
           animate="show"
           variants={reduce ? undefined : stagger}
           className="text-center"
         >
-          <motion.div
+          <m.div
             variants={fadeUp}
-            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-mint shadow-[0_12px_36px_rgba(16,185,129,0.40)] ring-4 ring-mint/15"
+            className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-mint shadow-[0_12px_36px_rgb(var(--color-mint-rgb)/0.40)] ring-4 ring-mint/15"
           >
             <CheckCircle2 className="h-8 w-8 text-white" />
-          </motion.div>
+          </m.div>
 
-          <motion.h1
+          <m.h1
             variants={fadeUp}
             className="mt-6 font-display text-[1.75rem] font-bold tracking-tight text-charcoal"
           >
             {t("reset.successTitle")}
-          </motion.h1>
-          <motion.p
+          </m.h1>
+          <m.p
             variants={fadeUp}
             className="mt-2 text-[14px] leading-6 text-charcoal-80/65"
           >
             {t("reset.successBody")}
-          </motion.p>
+          </m.p>
 
-          <motion.div variants={fadeUp} className="mt-7">
+          <m.div variants={fadeUp} className="mt-7">
             <Link
               to="/login"
-              className="inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-charcoal-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
             >
               {t("reset.backToLogin")}
             </Link>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </AuthShell>
     )
   }
@@ -172,12 +211,12 @@ export default function ResetPasswordPage() {
   return (
     <AuthShell
     >
-      <motion.div
+      <m.div
         initial="hidden"
         animate="show"
         variants={reduce ? undefined : stagger}
       >
-        <motion.div variants={fadeUp}>
+        <m.div variants={fadeUp}>
           <Link
             to="/login"
             className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-charcoal-80/65 transition hover:text-violet"
@@ -185,44 +224,30 @@ export default function ResetPasswordPage() {
             <ArrowLeft className="h-3.5 w-3.5" />
             Back
           </Link>
-        </motion.div>
+        </m.div>
 
-        <motion.div variants={fadeUp} className="mt-6 text-center">
+        <m.div variants={fadeUp} className="mt-6 text-center">
           <h1 className="font-display text-[1.75rem] font-bold tracking-tight text-charcoal">
             {t("reset.createNew")}
           </h1>
           <p className="mt-2 text-[14px] leading-6 text-charcoal-80/65">
             {t("reset.subtitle")}
           </p>
-        </motion.div>
+        </m.div>
 
         {error && (
-          <motion.div
-            variants={fadeUp}
-            role="alert"
-            aria-live="assertive"
-            className="mt-6 flex items-start gap-3 rounded-xl border border-rose/30 bg-rose/5 px-4 py-3 text-[13px] text-rose-700"
-          >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="flex-1 leading-relaxed">{error}</span>
-            {tokenExpired && (
-              <Link
-                to="/forgot-password"
-                className="shrink-0 font-semibold underline hover:no-underline"
-              >
-                {t("reset.newLink")}
-              </Link>
-            )}
-          </motion.div>
+          <m.div variants={fadeUp} className="mt-6">
+            <AuthErrorBanner error={error} onDismiss={() => setError(null)} />
+          </m.div>
         )}
 
-        <motion.form
+        <m.form
           variants={reduce ? undefined : stagger}
           onSubmit={handleSubmit}
           noValidate
           className="mt-6 flex flex-col gap-4"
         >
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="reset-password" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("reset.newPasswordLabel")}
             </label>
@@ -247,7 +272,7 @@ export default function ResetPasswordPage() {
                 onClick={() => setShowPw((v) => !v)}
                 aria-label={showPw ? "Hide password" : "Show password"}
                 aria-pressed={showPw}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
               >
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -283,7 +308,7 @@ export default function ResetPasswordPage() {
               className={`mt-1.5 text-[11px] ${
                 password.length > 0 && password.length < MIN_PW_LENGTH
                   ? "font-medium text-rose-700"
-                  : "text-charcoal-80/55"
+                  : "text-charcoal-80/65"
               }`}
             >
               {t("reset.mustBeAtLeast")} {MIN_PW_LENGTH} characters
@@ -301,9 +326,9 @@ export default function ResetPasswordPage() {
                 <ShieldAlert className="h-3 w-3" /> {t("reset.capsLockOn")}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
-          <motion.div variants={fadeUp}>
+          <m.div variants={fadeUp}>
             <label htmlFor="reset-confirm" className="mb-1.5 block text-[12px] font-semibold text-charcoal">
               {t("reset.repeatNew")}
             </label>
@@ -341,7 +366,7 @@ export default function ResetPasswordPage() {
                 onClick={() => setShowCf((v) => !v)}
                 aria-label={showCf ? "Hide password" : "Show password"}
                 aria-pressed={showCf}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/45 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-charcoal-80/65 transition hover:text-violet focus:outline-none focus-visible:ring-2 focus-visible:ring-azure/40"
               >
                 {showCf ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -367,15 +392,15 @@ export default function ResetPasswordPage() {
                 )}
               </p>
             )}
-          </motion.div>
+          </m.div>
 
-          <motion.button
+          <m.button
             variants={fadeUp}
             type="submit"
             disabled={submitDisabled}
             aria-busy={loading || undefined}
             aria-describedby={submitDisabled && !loading ? "reset-disabled-hint" : undefined}
-            className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgba(26,27,35,0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-charcoal py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-charcoal-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-charcoal-light focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">
@@ -385,7 +410,7 @@ export default function ResetPasswordPage() {
             ) : (
               "Submit"
             )}
-          </motion.button>
+          </m.button>
 
           {/* Surfacing the first unmet requirement when the button is
               disabled — the previous build silently disabled Submit when
@@ -396,7 +421,7 @@ export default function ResetPasswordPage() {
               id="reset-disabled-hint"
               role="status"
               aria-live="polite"
-              className="-mt-1 text-center text-[11.5px] text-charcoal-80/60"
+              className="-mt-1 text-center text-[11.5px] text-charcoal-80/65"
             >
               {password.length < MIN_PW_LENGTH ? `Password needs at least ${MIN_PW_LENGTH} characters (${password.length} so far).`
                 : !matches ? "Repeat your password — they need to match."
@@ -404,8 +429,8 @@ export default function ResetPasswordPage() {
                 : "Complete the requirements above to continue."}
             </p>
           )}
-        </motion.form>
-      </motion.div>
+        </m.form>
+      </m.div>
     </AuthShell>
   )
 }

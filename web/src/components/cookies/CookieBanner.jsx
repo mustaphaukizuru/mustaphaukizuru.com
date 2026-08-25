@@ -3,11 +3,14 @@
    ────────────────────────────────────────────────────────────────────────
    Renders only when the user has not yet decided. Provides three explicit
    actions: {t("cookies.acceptAll")}, {t("cookies.rejectAll")}, Manage preferences (granular). Uses
-   Framer Motion for the entrance/exit and brand tokens (#5D3FD3 / #1A1B23)
+   Framer Motion for the entrance/exit and brand tokens (var(--color-violet) / var(--color-charcoal))
    for visual consistency with the rest of the site.
 
    Accessibility:
-     · role="dialog" + aria-modal="false" so it announces but does not trap
+     · Banner is a non-modal role="region" (labelled) — it must not claim
+       to be a dialog since it never traps focus or blocks the page.
+     · The preferences panel is the canonical <Modal> (focus trap, Escape,
+       scroll lock, reduced-motion aware).
      · Each control is a real <button> with discernible label
      · Visible at 14px+ and meets WCAG AA contrast on the dark surface
 
@@ -16,10 +19,11 @@
 
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { Cookie, ShieldCheck, Settings, Check, X } from "lucide-react"
 import { useCookieConsent, COOKIE_CATEGORIES } from "../../context/CookieConsentContext"
 import { useTranslation } from "react-i18next"
+import { Modal } from "../ui/Modal"
 
 /* ── Granular preferences modal ─────────────────────────────────────────── */
 function PreferencesModal({ open, onClose }) {
@@ -39,31 +43,19 @@ function PreferencesModal({ open, onClose }) {
   }
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-[120] bg-black/50 backdrop-blur-sm"
-            aria-hidden="true"
-          />
-          {/* Modal */}
-          <motion.div
-            key="modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="cookie-prefs-title"
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed left-1/2 top-1/2 z-[121] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-charcoal/15 bg-white shadow-[0_30px_80px_rgba(93,63,211,0.25)]"
-          >
+    <Modal
+      open={open}
+      onClose={onClose}
+      bare
+      hideClose
+      ariaLabelledBy="cookie-prefs-title"
+      placement="middle"
+      size="none"
+      zIndex={120}
+      wrapperClassName="p-4"
+      backdropClassName="bg-black/50 backdrop-blur-sm"
+      className="max-w-2xl overflow-hidden rounded-2xl border border-charcoal/15 bg-white shadow-[0_30px_80px_rgb(var(--color-violet-rgb)/0.25)]"
+    >
             <div className="flex items-start justify-between gap-4 border-b border-charcoal/10 px-6 py-5">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">
@@ -79,7 +71,7 @@ function PreferencesModal({ open, onClose }) {
                 type="button"
                 onClick={onClose}
                 aria-label={t("cookies.closeAria")}
-                className="-mt-1 -mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-charcoal/55 transition hover:bg-violet-ghost hover:text-violet"
+                className="cursor-pointer -mt-1 -mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-charcoal/65 transition hover:bg-violet-ghost hover:text-violet"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -105,7 +97,7 @@ function PreferencesModal({ open, onClose }) {
                             )}
                           </div>
                           <p className="mt-1 text-[12px] leading-5 text-charcoal/75">{cat.description}</p>
-                          <p className="mt-1.5 font-mono text-[10.5px] text-charcoal/55">
+                          <p className="mt-1.5 font-mono text-[10.5px] text-charcoal/65">
                             Examples: {cat.examples}
                           </p>
                         </div>
@@ -142,14 +134,14 @@ function PreferencesModal({ open, onClose }) {
                 <button
                   type="button"
                   onClick={() => { rejectAll(); onClose() }}
-                  className="rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
+                  className="cursor-pointer rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   {t("cookies.rejectAll")}
                 </button>
                 <button
                   type="button"
                   onClick={() => { acceptAll(); onClose() }}
-                  className="rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
+                  className="cursor-pointer rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   {t("cookies.acceptAll")}
                 </button>
@@ -157,15 +149,12 @@ function PreferencesModal({ open, onClose }) {
               <button
                 type="button"
                 onClick={handleSave}
-                className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
+                className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
               >
                 <Check className="h-4 w-4" /> {t("cookies.savePrefs2")}
               </button>
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    </Modal>
   )
 }
 
@@ -183,9 +172,8 @@ export default function CookieBanner() {
     <>
       <AnimatePresence>
         {!decided && (
-          <motion.aside
-            role="dialog"
-            aria-modal="false"
+          <m.aside
+            role="region"
             aria-label={t("cookies.consentAria")}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -193,7 +181,7 @@ export default function CookieBanner() {
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-x-3 bottom-3 z-[110] sm:inset-x-6 sm:bottom-6"
           >
-            <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl border border-charcoal/12 bg-white/95 p-5 shadow-[0_30px_80px_rgba(93,63,211,0.18)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-6 sm:p-6">
+            <div className="mx-auto flex max-w-5xl flex-col gap-4 rounded-2xl border border-charcoal/12 bg-white/95 p-5 shadow-[0_30px_80px_rgb(var(--color-violet-rgb)/0.18)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-6 sm:p-6">
               <div className="flex shrink-0 items-start gap-3 sm:items-center">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Cookie className="h-5 w-5" />
@@ -206,10 +194,10 @@ export default function CookieBanner() {
               <div className="flex-1 min-w-0">
                 <h2 className="hidden text-[15px] font-bold text-violet sm:block">{t("cookies.yourPrivacy")}</h2>
                 <p className="mt-1 text-[12.5px] leading-5 text-charcoal/80 sm:text-[13px]">
-                  {t("cookies.shortBody")}<Link to="/cookies" className="font-semibold text-violet underline-offset-2 hover:underline">
+                  {t("cookies.shortBody")}<Link to="/cookies" className="cursor-pointer font-semibold text-violet underline-offset-2 hover:underline">
                     {t("cookies.policyLink")}
                   </Link>{" "}
-                  or adjust preferences any time.
+                  {" "}{t("cookies.orAdjust")}
                 </p>
               </div>
 
@@ -217,27 +205,27 @@ export default function CookieBanner() {
                 <button
                   type="button"
                   onClick={() => setPrefsOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
+                  className="cursor-pointer inline-flex items-center gap-1.5 rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
-                  <Settings className="h-4 w-4" /> Manage
+                  <Settings className="h-4 w-4" /> {t("cookies.manage")}
                 </button>
                 <button
                   type="button"
                   onClick={rejectAll}
-                  className="inline-flex items-center justify-center rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
+                  className="cursor-pointer inline-flex items-center justify-center rounded-xl border border-violet/20 bg-white px-4 py-2.5 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   {t("cookies.rejectAll")}
                 </button>
                 <button
                   type="button"
                   onClick={acceptAll}
-                  className="inline-flex items-center justify-center rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep"
+                  className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-violet px-5 py-2.5 text-[12.5px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep"
                 >
                   {t("cookies.acceptAll")}
                 </button>
               </div>
             </div>
-          </motion.aside>
+          </m.aside>
         )}
       </AnimatePresence>
 

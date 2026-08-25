@@ -11,19 +11,23 @@
     <meta name="color-scheme" content="light" />
     <meta name="author" content="Mustapha Ukizuru" />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="alternate" type="application/rss+xml" title="MUSTAPHA UKIZURU Blog" href="/feed.xml" />
     <meta name="description" content="Technology consulting, digital products, website systems, school IT transformation, and STEM education solutions for businesses, professionals, and educational institutions." />
 
     <!-- ────────────────────────────────────────────────────────────────
          SEO04 · Search-engine verification meta tags
-         Replace the placeholder values once Search Console / Bing / etc.
-         issue a verification token. DNS TXT verification is preferred for
-         Google (see SEARCH-CONSOLE-SETUP.md) but the meta is kept as a
-         fallback when DNS access is restricted.
+         Tokens are substituted at build time from VITE_GOOGLE_VERIFY /
+         VITE_BING_VERIFY / VITE_YANDEX_VERIFY / VITE_PINTEREST_VERIFY env
+         vars (see vite.config.js · seoVerificationReplacePlugin). When a
+         var is unset the line is stripped from the HTML entirely, so
+         production never ships placeholder strings. DNS TXT verification
+         is preferred for Google (see SEARCH-CONSOLE-SETUP.md) but the meta
+         is kept as a fallback when DNS access is restricted.
          ──────────────────────────────────────────────────────────────── -->
-    <meta name="google-site-verification" content="REPLACE_WITH_GOOGLE_TOKEN" />
-    <meta name="msvalidate.01"            content="REPLACE_WITH_BING_TOKEN" />
-    <meta name="yandex-verification"      content="REPLACE_WITH_YANDEX_TOKEN" />
-    <meta name="p:domain_verify"          content="REPLACE_WITH_PINTEREST_TOKEN" />
+    <meta name="google-site-verification" content="__GOOGLE_VERIFY__" />
+    <meta name="msvalidate.01"            content="__BING_VERIFY__" />
+    <meta name="yandex-verification"      content="__YANDEX_VERIFY__" />
+    <meta name="p:domain_verify"          content="__PINTEREST_VERIFY__" />
 
     <!-- F02 · Brand identity — favicon set + manifest, single source of truth.
          The SVG favicon is the master (always crisp); PNG fallbacks cover
@@ -105,29 +109,16 @@
     </script>
 
     <!-- ────────────────────────────────────────────────────────────────
-         SEO04 · GA4 gtag.js — bootstrap snippet
-         The measurement ID is read at *build time* from VITE_GA_MEASUREMENT_ID
-         and substituted into __GA_MEASUREMENT_ID__ via vite.config (see
-         vite-plugin define). When the env var is unset, the bootstrap is
-         a no-op: gtag is never called and there is no network request to
-         googletagmanager.com (the placeholder triggers an early-return).
-         All page_view + ecommerce events fire from web/src/lib/analytics.js.
-         ──────────────────────────────────────────────────────────────── -->
-    <script>
-      (function () {
-        var GA_ID = "__GA_MEASUREMENT_ID__";
-        if (!GA_ID || GA_ID.indexOf("__") === 0 || GA_ID === "undefined") return;
-        var s = document.createElement("script");
-        s.async = true;
-        s.src = "https://www.googletagmanager.com/gtag/js?id=" + GA_ID;
-        document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){ window.dataLayer.push(arguments); }
-        window.gtag = gtag;
-        gtag("js", new Date());
-        gtag("config", GA_ID, { send_page_view: false }); // SPA route changes fire pageviews
-      })();
-    </script>
+         SEO04 · GA4 gtag.js — bootstrap REMOVED, now consent-gated
+         GA4 used to auto-load here from VITE_GA_MEASUREMENT_ID on every
+         page boot. That violated GDPR / ePrivacy because the script
+         ran (and gtag pings fired) BEFORE the user had a chance to
+         accept the analytics category on the cookie banner.
+         The loader now lives in web/src/lib/analytics.js and only
+         injects gtag.js after `setAnalyticsConsent(true)` is called by
+         CookieConsentContext — i.e. ONLY when the user has explicitly
+         opted in. A "Reject all" click means zero bytes to Google.
+         ──────────────────────────────────────────────────────────── -->
   </head>
   <body>
     <div id="root"></div>

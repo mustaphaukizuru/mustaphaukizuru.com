@@ -17,6 +17,11 @@ import { useTranslation } from "react-i18next"
 // ─────────────────────────────────────────────────────────────────────────────
 // Icon & color map per notification type
 // ─────────────────────────────────────────────────────────────────────────────
+// Brand v3 §05 — feedback-tier semantic mapping. Mirrors
+// DashboardNotificationsPage's TYPE_META exactly so the in-header
+// dropdown and the full notifications page render the same chip tones
+// for any given event. Sole source of truth lives here AND there;
+// any future change must update both.
 const TYPE_META = {
   [NOTIFICATION_TYPES.ORDER_PLACED]: {
     icon: ShoppingCart,
@@ -24,35 +29,35 @@ const TYPE_META = {
   },
   [NOTIFICATION_TYPES.PAYMENT_SUCCESS]: {
     icon: CreditCard,
-    color: "bg-[#e8f4ea] text-mint-800",
+    color: "bg-mint/12 text-emerald-700",
   },
   [NOTIFICATION_TYPES.PAYMENT_FAILED]: {
     icon: CreditCard,
-    color: "bg-red-50 text-red-600",
+    color: "bg-rose/10 text-rose-700",
   },
   [NOTIFICATION_TYPES.REFUND_ISSUED]: {
     icon: RefreshCcw,
-    color: "bg-[#eef2ff] text-[#4f46e5]",
+    color: "bg-azure-pale text-azure",
   },
   [NOTIFICATION_TYPES.DOWNLOAD_READY]: {
     icon: Download,
-    color: "bg-[#e8f4ea] text-mint-800",
+    color: "bg-mint/12 text-emerald-700",
   },
   [NOTIFICATION_TYPES.DOWNLOAD_REVOKED]: {
     icon: Package,
-    color: "bg-[#f6efe3] text-amber-800",
+    color: "bg-amber/12 text-amber-700",
   },
   [NOTIFICATION_TYPES.SERVICE_UPDATE]: {
     icon: Package,
-    color: "bg-[#f6efe3] text-amber-800",
+    color: "bg-amber/12 text-amber-700",
   },
   [NOTIFICATION_TYPES.SUPPORT_REPLY]: {
     icon: MessageSquare,
-    color: "bg-[#eef3fb] text-[#2f5ea8]",
+    color: "bg-azure-pale text-azure",
   },
   [NOTIFICATION_TYPES.SYSTEM]: {
     icon: Info,
-    color: "bg-slate-50 text-[#666]",
+    color: "bg-slate-100 text-steel",
   },
 }
 
@@ -75,7 +80,7 @@ function NotificationItem({ notification, onRead }) {
     <button
       type="button"
       onClick={() => onRead(notification.id)}
-      className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-[#f7f4f8] ${
+      className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-violet-pale/40 ${
         !notification.isRead ? "bg-violet-ghost" : ""
       }`}
     >
@@ -99,7 +104,7 @@ function NotificationItem({ notification, onRead }) {
           </div>
         )}
 
-        <div className="mt-1 text-micro text-charcoal-80/50">
+        <div className="mt-1 text-micro text-charcoal-80/65">
           {timeAgo(notification.createdAt)}
         </div>
       </div>
@@ -147,7 +152,7 @@ export default function NotificationDropdown() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-[#f4eef6]"
+        className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-violet-pale/60"
         aria-label="Notifications"
       >
         <Bell className="h-4.5 w-4.5" />
@@ -160,13 +165,13 @@ export default function NotificationDropdown() {
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[360px] rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgba(93,63,211,0.14)]">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[360px] rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgb(var(--color-violet-rgb)/0.14)]">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-charcoal-80/10 px-4 py-3">
             <div>
               <div className="text-body font-semibold text-violet">Notifications</div>
               {unreadCount > 0 && (
-                <div className="text-micro text-charcoal-80/60">{unreadCount} unread</div>
+                <div className="text-micro text-charcoal-80/65">{unreadCount} unread</div>
               )}
             </div>
 
@@ -175,7 +180,7 @@ export default function NotificationDropdown() {
                 <button
                   type="button"
                   onClick={markAllAsRead}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-charcoal-80/10 px-3 py-1.5 text-micro font-medium text-violet transition hover:bg-[#f4eef6]"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-charcoal-80/10 px-3 py-1.5 text-micro font-medium text-violet transition hover:bg-violet-pale/60"
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
                   {t("notifDropdown.markAllRead")}
@@ -184,7 +189,7 @@ export default function NotificationDropdown() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-xl text-charcoal-80/50 transition hover:bg-[#f4eef6] hover:text-violet"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-xl text-charcoal-80/65 transition hover:bg-violet-pale/60 hover:text-violet"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -196,7 +201,7 @@ export default function NotificationDropdown() {
             {loading && notifications.length === 0 ? (
               <div className="space-y-2 p-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 animate-pulse rounded-xl bg-[#f4f1f4]" />
+                  <div key={i} className="h-16 animate-pulse rounded-xl bg-violet-pale/40" />
                 ))}
               </div>
             ) : notifications.length === 0 ? (
@@ -207,7 +212,7 @@ export default function NotificationDropdown() {
                 <div className="mt-3 text-meta font-semibold text-violet">
                   {t("notifDropdown.allCaughtUp")}
                 </div>
-                <div className="mt-1 text-micro text-charcoal-80/60">
+                <div className="mt-1 text-micro text-charcoal-80/65">
                   {t("notifDropdown.noNotifs")}
                 </div>
               </div>

@@ -103,14 +103,14 @@ function ServiceOrderCard({ order, onUpdate }) {
   }
 
   return (
-    <article className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:border-violet/15">
+    <article className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:border-violet/15">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 p-5">
         <div className="min-w-0 flex-1">
           <div className="text-card font-bold text-violet">
             {order.service?.title || "Service"}
             {order.servicePackage?.name && (
-              <span className="ml-2 font-mono text-micro font-normal text-charcoal-80/55">
+              <span className="ml-2 font-mono text-micro font-normal text-charcoal-80/65">
                 · {order.servicePackage.name}
               </span>
             )}
@@ -165,7 +165,7 @@ function ServiceOrderCard({ order, onUpdate }) {
               <h4 className="flex items-center gap-1.5 text-meta font-bold text-violet">
                 <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                 Consultations
-                <span className="font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                <span className="font-mono text-[11px] tabular-nums text-charcoal-80/65">
                   ({order.consultations?.length || 0})
                 </span>
               </h4>
@@ -223,7 +223,7 @@ function ServiceOrderCard({ order, onUpdate }) {
                         href={c.meetingLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-micro font-semibold text-azure transition hover:underline focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-azure/40"
+                        className="text-micro font-semibold text-azure-deep transition hover:underline focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-azure/40"
                       >
                         Join
                       </a>
@@ -235,7 +235,7 @@ function ServiceOrderCard({ order, onUpdate }) {
                 ))}
               </ul>
             ) : !showSched ? (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/65">
                 No consultations scheduled.
               </div>
             ) : null}
@@ -326,7 +326,7 @@ function ServiceOrderCard({ order, onUpdate }) {
                 )}
               </div>
             ) : !showProject ? (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-mist px-4 py-3 text-center text-micro text-charcoal-80/65">
                 No project created yet.
               </div>
             ) : null}
@@ -358,7 +358,7 @@ export default function AdminServicesPage() {
     }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [filterStatus])
+  useEffect(() => { load()   }, [filterStatus])
 
   function handleOrderUpdate(id, updates) {
     setOrders((prev) => prev.map((o) => o.id === id ? { ...o, ...updates } : o))
@@ -410,7 +410,7 @@ export default function AdminServicesPage() {
               onClick={() => setFilterStatus(s)}
               className={`rounded-lg px-3 py-1.5 text-micro font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                 active
-                  ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.20)]"
+                  ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.20)]"
                   : "border border-charcoal-80/12 bg-white text-charcoal-80/65 hover:border-violet/20 hover:bg-violet-pale hover:text-violet"
               }`}
             >
@@ -421,7 +421,7 @@ export default function AdminServicesPage() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-meta text-amber-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-amber/20 bg-amber/10 px-4 py-3 text-meta text-amber-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>

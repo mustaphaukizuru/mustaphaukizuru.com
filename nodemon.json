@@ -1,0 +1,17 @@
+{
+  "watch": [
+    "src",
+    ".env",
+    ".env.production"
+  ],
+  "ext": "js,json,env",
+  "ignore": [
+    "src/**/*.test.js",
+    "src/**/*.spec.js",
+    "node_modules",
+    "public/assets",
+    "storage",
+    "coverage"
+  ],
+  "delay": 750
+}

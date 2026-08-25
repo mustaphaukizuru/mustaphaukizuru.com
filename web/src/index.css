@@ -59,6 +59,8 @@
   --color-violet-pale:     #EDE9FB;
   --color-violet-ghost:    #F5F2FE;
   --color-violet-deep:     #4A2EAB;
+  --color-charcoal-deep:   #0E0F14;  /* v1.1 — deepest dark canvas (auth split panel, dark dashboard bg) */
+  --color-violet-mid:      #7B5FE0;  /* v1.1 — gradient mid-stop between violet and violet-light */
 
   /* ── Tier 2 · Action ────────────────────────────────────────────────── */
   --color-azure:           #0284C7;
@@ -70,6 +72,7 @@
   /* ── Tier 3 · Warm Accent ───────────────────────────────────────────── */
   --color-terracotta:      #E9C46A;
   --color-terracotta-deep: #D4A847;
+  --color-terracotta-800:  #856212;  /* v1.2 — warm accent as body text on light grounds (5.60:1 on white) */
 
   /* ── Tier 4 · Neutrals ──────────────────────────────────────────────── */
   --color-steel:           #64748B;
@@ -83,6 +86,10 @@
   --color-mint:            #10B981;  /* canonical mint (success) */
   --color-amber:           #F59E0B;  /* canonical amber (pending) */
   --color-rose:            #E11D48;  /* canonical rose (error / destructive) */
+  --color-mint-light:      #34D399;  /* v1.1 — brighter mint for illustrations / confetti / success marks */
+  --color-coral:           #E07856;  /* v1.1 — warm coral accent (Services hero illustration) */
+  --color-code-fg:         #C8C8D0;  /* v1.1 — code text on the charcoal code surface */
+  --color-coral-pale:      #FCE7DC;  /* v1.1 — coral's pale companion (chip backgrounds) */
 
   /*  Phase 9.6b — semantic tint scales.
    *  Naming follows Tailwind's bg/fg pair convention so `bg-amber-50` +
@@ -109,6 +116,7 @@
   --font-display:  "Sora", "system-ui", "sans-serif";
   --font-body:     "Sora", "system-ui", "sans-serif";
   --font-mono:     "JetBrains Mono", "ui-monospace", "monospace";
+  --font-script:   "Caveat", "Brush Script MT", cursive;  /* v1.1 — hand-drawn hero annotations only */
 
   /* ── Border radius scale ────────────────────────────────────────────── */
   --radius-sm: 10px;
@@ -186,6 +194,23 @@
 
 html {
   scroll-behavior: smooth;
+
+  /* Scroll-padding compensates for the sticky public Header (~72px) plus
+     a comfortable visual gap. Without this, anchor links (#section,
+     /page#fragment) scroll the target *under* the sticky header where
+     it's hidden. Tab-navigation to a focused element below the fold
+     also lands cleanly with a breathing margin. Dashboard + Admin
+     layouts have their own sticky headers around the same height, so
+     a single value works platform-wide. */
+  scroll-padding-top: 96px;
+
+  /* Stable scrollbar gutter prevents layout shift when the page grows
+     past the viewport and a scrollbar appears. Without this, the page
+     re-flows to fit the new narrower viewport — text re-wraps, images
+     re-size, focus rings jump. The fix has zero cost on touch devices
+     where scrollbars are overlay-only. */
+  scrollbar-gutter: stable;
+
   -webkit-text-size-adjust: 100%;
 
   /* 21st-century OpenType stack — applies to every element by default.
@@ -208,7 +233,7 @@ html, body, #root { min-height: 100%; }
 body {
   background-color: var(--color-mist);
   color: var(--color-charcoal);
-  font-family: 'Sora', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.6;
   letter-spacing: -0.01em;              /* Brand v3 §07 — body tracks tighter */
@@ -236,7 +261,7 @@ body {
    NOT need to re-specify them every time. They CAN still override via
    Tailwind utilities or per-component className. */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Sora', system-ui, sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.025em;             /* Brand v3 §07 — display tracking */
   text-wrap: balance;                   /* Avoids orphaned headline tails */
@@ -259,7 +284,7 @@ a { text-decoration: none; color: inherit; }
    text-color utility, do NOT let `color: inherit` above bleed through. This
    prevents the historical "dark text on violet button" bug where Tailwind's
    `text-white` was beaten by the unlayered `a { color: inherit; }` rule. */
-a.text-white         { color: #fff               !important; }
+a.text-white         { color: var(--color-text-on-dark) !important; }
 a.text-mist          { color: var(--color-mist)  !important; }
 a.text-violet        { color: var(--color-violet) !important; }
 a.text-charcoal,
@@ -273,7 +298,7 @@ a.text-charcoal-80   { color: var(--color-charcoal) !important; }
    suffix. Opacity remains best-effort (we keep solid white here so links stay
    readable on dark surfaces); use a class outside <a> if you need partial
    white. Brand v3 § 04 — Tier 1 Cloud Mist on dark surfaces. */
-a[class*="text-white/"] { color: #fff !important; }
+a[class*="text-white/"] { color: var(--color-text-on-dark) !important; }
 a[class*="text-mist/"]  { color: var(--color-mist) !important; }
 
 button, input, textarea, select { font: inherit; }
@@ -287,13 +312,51 @@ img, video { max-width: 100%; display: block; }
 }
 
 /* ─── Custom scrollbar ─────────────────────────────────────────────────── */
-::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar        { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track  { background: transparent; }
-::-webkit-scrollbar-thumb  { background: var(--color-violet-pale); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-violet); }
+::-webkit-scrollbar-thumb  {
+  background: var(--color-violet-pale);
+  border-radius: 4px;
+  /* Inset border-like padding so the thumb visually sits in a 4px well
+     against the track. Without this, the thumb hugs the viewport edge
+     and feels too thin against denser scroll content. */
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-violet); background-clip: content-box; }
+
+/* Firefox scrollbar styling — matches WebKit visually (slim violet thumb
+   on transparent track). The two engines diverge here so both rules ship. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-violet-pale) transparent;
+}
+
+/* ─── Scroll-chaining containment ───────────────────────────────────────
+ * `overscroll-behavior: contain` stops scroll events from bubbling out of
+ * a scrollable region when it hits its top/bottom. Without this, scrolling
+ * the sidebar nav past the last item starts scrolling the page; same for
+ * scrolling inside a Modal body, a dropdown menu, or any drawer. With it,
+ * the inner region "swallows" the scroll once it's hit its end — feels
+ * native. Applied to every common inner-scroll surface. */
+[role="dialog"],
+[role="menu"],
+[role="listbox"],
+aside [class*="overflow-y-auto"],
+[data-scroll-contained] {
+  overscroll-behavior: contain;
+}
+
+/* Long lists inside drawers / modals also benefit — covers `.overflow-auto`
+ * and `.overflow-y-scroll` usage in addition to `.overflow-y-auto`. */
+.overflow-y-auto,
+.overflow-auto,
+.overflow-y-scroll {
+  overscroll-behavior: contain;
+}
 
 /* ─── Selection ────────────────────────────────────────────────────────── */
-::selection { background: var(--color-violet); color: #fff; }
+::selection { background: var(--color-violet); color: var(--color-text-on-violet); }
 
 /* ─── Smooth page transitions ──────────────────────────────────────────── */
 .page-enter { animation: page-in 0.25s ease-out; }
@@ -327,7 +390,7 @@ img, video { max-width: 100%; display: block; }
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #fafafa inset;
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface-elevated) inset;
   -webkit-text-fill-color: var(--color-charcoal);
   transition: background-color 9999s ease-in-out 0s;
 }
@@ -339,16 +402,16 @@ input:-webkit-autofill:focus {
    CTAs — Buy, Checkout, Contact, Book. Once per viewport.
    ════════════════════════════════════════════════════════════════════════ */
 .bg-grad-innovation {
-  background-image: linear-gradient(135deg, #5D3FD3 0%, #0284C7 100%);
+  background-image: var(--color-grad-innovation);
 }
 .bg-grad-dawn {
-  background-image: linear-gradient(135deg, #5D3FD3 0%, #0284C7 50%, #7DD3FC 100%);
+  background-image: var(--color-grad-dawn);
 }
 .bg-grad-electric {
-  background-image: linear-gradient(135deg, #0284C7 0%, #7DD3FC 100%);
+  background-image: var(--color-grad-electric);
 }
 .bg-grad-humanity {
-  background-image: linear-gradient(135deg, #E9C46A 0%, #F8FAFC 100%);
+  background-image: var(--color-grad-humanity);
 }
 
 
@@ -467,7 +530,7 @@ code, samp, kbd, pre, var {
   50%      { box-shadow: inset 0 -2px 3px rgba(0,0,0,0.12), 0 0 0 5px rgba(255,255,255,0.14); }
 }
 .ukz-cta-bg {
-  background: linear-gradient(135deg, #5D3FD3 0%, #0284C7 50%, #5D3FD3 100%);
+  background: linear-gradient(135deg, var(--color-violet) 0%, var(--color-azure) 50%, var(--color-violet) 100%);
   background-size: 220% 220%;
   animation: ukzCtaGradient 14s ease-in-out infinite;
 }
@@ -488,5 +551,49 @@ code, samp, kbd, pre, var {
 
 @media (prefers-reduced-motion: reduce) {
   .ukz-cta-bg, .ukz-ring, .ukz-sun, .ukz-shine, .ukz-ball-pulse { animation: none; }
-  .ukz-cta-bg { background: #5D3FD3; }
+  .ukz-cta-bg { background: var(--color-violet); }
+}
+
+/* ─── Shimmer button · light sweep on Innovation Gradient CTAs ─────────
+ * Add `ukz-shimmer` alongside any gradient button to apply a soft white
+ * diagonal sweep animation. The sweep is a pseudo-element so it doesn't
+ * require any extra markup.                                               */
+@keyframes ukzShimmerSweep {
+  0%   { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%)  skewX(-20deg); }
+}
+.ukz-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.ukz-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 70%
+  );
+  animation: ukzShimmerSweep 2.8s ease-in-out infinite 1.2s;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ukz-shimmer::after { animation: none; }
+}
+
+/* ─── BlurFade utility · blur-clear reveal for headings ───────────────── */
+@keyframes ukzBlurFade {
+  from { opacity: 0; filter: blur(12px); transform: translateY(14px); }
+  to   { opacity: 1; filter: blur(0px);  transform: translateY(0);    }
+}
+.ukz-blur-fade {
+  animation: ukzBlurFade 0.65s cubic-bezier(0.22,1,0.36,1) both;
+}
+.ukz-blur-fade-delay-1 { animation-delay: 0.1s; }
+.ukz-blur-fade-delay-2 { animation-delay: 0.2s; }
+.ukz-blur-fade-delay-3 { animation-delay: 0.3s; }
+@media (prefers-reduced-motion: reduce) {
+  .ukz-blur-fade { animation: none; opacity: 1; }
 }

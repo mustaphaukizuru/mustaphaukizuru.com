@@ -38,8 +38,22 @@ const update = asyncHandler(async (req, res) => {
   res.json({ success: true, data: service })
 })
 
+/* Step 42 · DELETE /:id soft-deletes (deletedAt + archived). ?hard=1 removes
+ * the row permanently — FK Restrict on orders / consultations may reject it. */
 const softDelete = asyncHandler(async (req, res) => {
-  const service = await adminServiceService.softDeleteService(req.params.id)
+  const hard = req.query.hard === "1" || req.query.hard === "true"
+  const service = hard
+    ? await adminServiceService.hardDeleteService(req.params.id)
+    : await adminServiceService.softDeleteService(req.params.id)
+  if (!service) {
+    return res.status(404).json({ success: false, code: "NOT_FOUND", message: "Service not found" })
+  }
+  res.json({ success: true, data: service })
+})
+
+/* Step 42 · PATCH /:id/restore */
+const restore = asyncHandler(async (req, res) => {
+  const service = await adminServiceService.restoreService(req.params.id)
   if (!service) {
     return res.status(404).json({ success: false, code: "NOT_FOUND", message: "Service not found" })
   }
@@ -88,7 +102,7 @@ const removeFeature = asyncHandler(async (req, res) => {
 })
 
 module.exports = {
-  list, getOne, create, update, softDelete,
+  list, getOne, create, update, softDelete, restore,
   addPackage, updatePackage, removePackage,
   addFeature, removeFeature,
 }

@@ -114,10 +114,10 @@ export default function LoadingScreen({ onFinish }) {
         className="pointer-events-none absolute inset-0 opacity-90"
         style={{
           backgroundImage:
-            "radial-gradient(at 20% 20%, rgba(124,58,237,0.55) 0px, transparent 50%)," +
-            "radial-gradient(at 80% 0%, rgba(2,132,199,0.40) 0px, transparent 55%)," +
-            "radial-gradient(at 0% 100%, rgba(233,196,106,0.32) 0px, transparent 50%)," +
-            "radial-gradient(at 80% 100%, rgba(93,63,211,0.55) 0px, transparent 55%)",
+            "radial-gradient(at 20% 20%, rgb(var(--color-violet-rgb)/0.55) 0px, transparent 50%)," +
+            "radial-gradient(at 80% 0%, rgb(var(--color-azure-rgb)/0.40) 0px, transparent 55%)," +
+            "radial-gradient(at 0% 100%, rgb(var(--color-terracotta-rgb)/0.32) 0px, transparent 50%)," +
+            "radial-gradient(at 80% 100%, rgb(var(--color-violet-rgb)/0.55) 0px, transparent 55%)",
         }}
       />
       {/* Subtle dot grid, adds tactile depth without competing with the mark */}
@@ -139,8 +139,8 @@ export default function LoadingScreen({ onFinish }) {
                 "conic-gradient(from 0deg," +
                 " rgba(255,255,255,0) 0deg," +
                 " rgba(255,255,255,0.85) 90deg," +
-                " #E9C46A 170deg," +
-                " #7DD3FC 240deg," +
+                " var(--color-terracotta) 170deg," +
+                " var(--color-cyan) 240deg," +
                 " rgba(255,255,255,0) 360deg)",
               WebkitMask:
                 "radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px))",
@@ -195,7 +195,7 @@ export default function LoadingScreen({ onFinish }) {
             className="h-full rounded-full transition-[width] duration-300 ease-out"
             style={{
               width: `${progress}%`,
-              background: "linear-gradient(90deg, #E9C46A 0%, #FFFFFF 50%, #7DD3FC 100%)",
+              background: "linear-gradient(90deg, var(--color-terracotta) 0%, #FFFFFF 50%, var(--color-cyan) 100%)",
               boxShadow: "0 0 14px rgba(255,255,255,0.45)",
             }}
           />

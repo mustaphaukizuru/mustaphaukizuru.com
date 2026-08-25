@@ -1,7 +1,8 @@
 BigInt.prototype.toJSON = function() { return this.toString() }
 
-const express     = require("express")
-const compression = require("compression")
+const express      = require("express")
+const cookieParser = require("cookie-parser")
+const compression  = require("compression")
 const cors        = require("cors")
 const helmet      = require("helmet")
 const morgan      = require("morgan")
@@ -41,6 +42,18 @@ if (Sentry?.Handlers?.requestHandler) {
   // Sentry v8+ uses auto-instrumentation; no request handler needed.
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 40 · Cookie parsing — must sit ahead of every route that reads a
+// cookie: the `mu_session` / `mu_csrf` session pair (utils/sessionCookie),
+// the CSRF guard below, and the short-lived OAuth state/nonce cookies in
+// authController. It only reads the `Cookie` header, so mounting it this
+// early never interferes with the raw-body PayPal webhook further down.
+// Unsigned — every cookie we set is either a JWT (self-authenticating) or a
+// random CSRF nonce compared against a header, so a signing secret adds
+// nothing.
+// ─────────────────────────────────────────────────────────────────────────────
+app.use(cookieParser())
+
 // Compression
 app.use(compression({ level: 6, threshold: 1024 }))
 
@@ -53,13 +66,16 @@ app.use("/images/products", express.static(path.join(__dirname, "../public/image
     res.setHeader("Cache-Control", "public, max-age=604800, immutable")
   },
 }))
-app.use("/images/avatars", express.static(path.join(__dirname, "../public/images/avatars"), {
+// Avatars & media are user uploads — served from storage/ (persists across
+// builds), NOT ../public (wiped by Vite emptyOutDir on every build). The URL
+// prefix stays /images/* so existing database URLs keep resolving.
+app.use("/images/avatars", express.static(path.join(__dirname, "../storage/uploads/avatars"), {
   setHeaders: (res) => {
     res.setHeader("X-Content-Type-Options", "nosniff")
     res.setHeader("Content-Disposition", "inline")
   },
 }))
-app.use("/images/media", express.static(path.join(__dirname, "../public/images/media"), {
+app.use("/images/media", express.static(path.join(__dirname, "../storage/uploads/media"), {
   setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
 }))
 
@@ -134,6 +150,28 @@ app.use(process.env.NODE_ENV !== "production"
   ? morgan("dev")
   : morgan(":method :url :status :response-time ms"))
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PayPal webhook · RAW body for signature verification
+//
+// MUST be mounted BEFORE the global express.json() below. body-parser sets
+// req._body = true once it consumes the stream, after which a per-route
+// express.raw() is a silent no-op — a long-standing body-parser footgun.
+// Mounting the webhook here gives PayPal's signature verifier a Buffer it
+// can hash byte-for-byte against the transmission signature, while the rest
+// of /api/* still gets the convenient parsed JSON below.
+//
+// Both /api/paypal/webhook (legacy) and /api/v1/paypal/webhook (canonical)
+// are accepted — PayPal has the legacy URL configured in many dashboards,
+// so we honor it without the deprecation noise the routes/index.js mount
+// would otherwise tack on.
+// ─────────────────────────────────────────────────────────────────────────────
+const { webhook: paypalWebhookHandler } = require("./controllers/paypalController")
+app.post(
+  ["/api/paypal/webhook", "/api/v1/paypal/webhook"],
+  express.raw({ type: "application/json", limit: "10mb" }),
+  paypalWebhookHandler,
+)
+
 // Body parsing
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true, limit: "10mb" }))
@@ -152,6 +190,21 @@ app.use(["/api/admin", "/api/v1/admin"], tagAdminSurface)
 // Mounted BEFORE routes so it covers everything under /api. Endpoint-specific
 // limiters sit in front of individual routes and are ALSO checked.
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 40 · CSRF guard — double-submit token.
+//
+// Mounted after cookie-parser and body parsing, and immediately before the
+// API routes so every state-changing endpoint under /api is covered. It only
+// engages when a `mu_session` cookie is present (ambient credentials);
+// Bearer-token clients and the payment webhooks pass straight through. See
+// middleware/csrf.js for the full exemption rationale.
+//
+// The raw-body PayPal webhook above is registered earlier in the chain and
+// therefore never reaches this guard.
+// ─────────────────────────────────────────────────────────────────────────────
+const { csrfProtection } = require("./middleware/csrf")
+app.use("/api", csrfProtection)
+
 app.use("/api", globalApiLimiter, routes)
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -168,6 +221,31 @@ app.get("/sitemap.xml", async (_req, res) => {
   } catch (err) {
     console.error("[sitemap.xml] dynamic build failed, falling back:", err.message)
     res.status(200).sendFile(path.join(__dirname, "../public/sitemap.xml"))
+  }
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RSS 2.0 feed — /feed.xml
+// Cached in-process for 1 hour; rebuilt on first request after cache expires.
+// Feed readers poll on their own schedule (typically 30–60 min), so the 1h
+// TTL keeps DB load minimal while staying fresh enough for daily publishing.
+// ─────────────────────────────────────────────────────────────────────────────
+const { buildFeed } = require("./services/feedService")
+let _feedCache = { xml: null, builtAt: 0 }
+const FEED_TTL_MS = 60 * 60 * 1000 // 1 hour
+
+app.get("/feed.xml", async (_req, res) => {
+  try {
+    const now = Date.now()
+    if (!_feedCache.xml || now - _feedCache.builtAt > FEED_TTL_MS) {
+      _feedCache = { xml: await buildFeed(), builtAt: now }
+    }
+    res.setHeader("Content-Type",  "application/rss+xml; charset=utf-8")
+    res.setHeader("Cache-Control", "public, max-age=3600")
+    res.status(200).send(_feedCache.xml)
+  } catch (err) {
+    console.error("[feed.xml] build failed:", err.message)
+    res.status(503).send("Feed temporarily unavailable")
   }
 })
 
@@ -227,8 +305,19 @@ app.use(express.static(frontendPath, {
   },
 }))
 
-// React Router SPA fallback
+// SEO · server-side OG/Twitter meta injection for shareable detail pages
+// (/store/:slug, /blog/:slug, /services/:slug, /projects/:slug + /es/ mirror).
+// Falls through to the SPA fallback below when the entity is not found.
+const { createOgInjector } = require("./middleware/ogInjector")
+const { matchesSpaRoute }  = require("./utils/spaRoutes")
+app.get(/^\/(?!api).*/, createOgInjector({ indexPath: path.join(frontendPath, "index.html") }))
+
+// React Router SPA fallback — known SPA routes get 200; anything else still
+// renders the SPA (so its ErrorPage shows) but with a real 404 for crawlers.
 app.get(/^\/(?!api).*/, (req, res) => {
+  const known = matchesSpaRoute(req.path)
+  res.status(known ? 200 : 404)
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
   res.sendFile(path.join(frontendPath, "index.html"))
 })
 

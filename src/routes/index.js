@@ -13,7 +13,6 @@ const cartRoutes = require("./cartRoutes")
 const couponRoutes = require("./couponRoutes")
 const serviceRoutes = require("./serviceRoutes")
 const reviewRoutes = require("./reviewRoutes")
-const recommendationRoutes = require("./recommendationRoutes")
 const portfolioRoutes = require("./portfolioRoutes")
 const newsletterRoutes = require("./newsletterRoutes")              // B07
 const bioRoutes = require("./bioRoutes")                            // M12
@@ -31,7 +30,6 @@ const adminCouponRoutes = require("./adminCouponRoutes")
 const adminContactRoutes = require("./adminContactRoutes")
 const adminUserRoutes = require("./adminUserRoutes")
 const adminSupportRoutes = require("./adminSupportRoutes")
-const adminPagesRoutes = require("./adminPagesRoutes")
 const adminEmailTemplatesRoutes = require("./adminEmailTemplatesRoutes")
 const adminEmailLogRoutes = require("./adminEmailLogRoutes")         // B07
 const adminNewsletterRoutes = require("./adminNewsletterRoutes")      // B07
@@ -41,7 +39,6 @@ const adminServiceRoutes = require("./adminServiceRoutes")
 const adminPortfolioRoutes = require("./adminPortfolioRoutes")
 const adminAuditRoutes = require("./adminAuditRoutes")
 const adminReviewRoutes = require("./adminReviewRoutes")
-const adminRecommendationRoutes = require("./adminRecommendationRoutes")
 
 // Booking calendar (availability rules, exceptions, consultations)
 const availabilityRoutes      = require("./availabilityRoutes")
@@ -52,7 +49,6 @@ const notificationRoutes = require("./notificationRoutes")
 const supportRoutes = require("./supportRoutes")
 const profileRoutes = require("./profileRoutes")
 const memberServiceOrderRoutes = require("./memberServiceOrderRoutes")
-const wishlistRoutes = require("./wishlistRoutes")                    // B08
 const addressRoutes = require("./addressRoutes")                      // B08
 
 // Priority #8 · Client project management (milestones + files)
@@ -64,14 +60,13 @@ const adminRefundRoutes  = require("./adminRefundRoutes")
 const memberRefundRoutes = require("./memberRefundRoutes")
 
 // M16 · Blog — public read + admin CRUD
-const blogRoutes      = require("./blogRoutes")
-const adminBlogRoutes = require("./adminBlogRoutes")
+const blogRoutes        = require("./blogRoutes")
+const adminBlogRoutes   = require("./adminBlogRoutes")
+const diagnosticRoutes  = require("./diagnosticRoutes")   // Self-audit email gate
 
 // M17 · Sessions admin
 const adminSessionRoutes = require("./adminSessionRoutes")
 
-// M18 · Roles & permissions admin
-const adminRoleRoutes = require("./adminRoleRoutes")
 
 // M19 · Marketing campaigns
 const adminCampaignRoutes = require("./adminCampaignRoutes")
@@ -145,7 +140,6 @@ v1.use("/health",      healthRoutes)
 v1.use("/products",    productRoutes)
 v1.use("/services",        serviceRoutes)
 v1.use("/reviews",         reviewRoutes)
-v1.use("/recommendations", recommendationRoutes)
 v1.use("/portfolio",   portfolioRoutes)
 v1.use("/newsletter",  newsletterRoutes)
 v1.use("/bio",         bioRoutes)                                    // M12
@@ -160,6 +154,7 @@ v1.use("/downloads",   downloadRoutes)
 v1.use("/availability",  availabilityRoutes)        // Public read — slot listings
 v1.use("/consultations", consultationRoutes)        // Member booking lifecycle
 v1.use("/blog",          blogRoutes)                // M16 — Public blog list + detail
+v1.use("/",              diagnosticRoutes)          // Self-audit: POST /diagnostic-submission + GET /admin/diagnostic
 
 // Admin
 v1.use("/admin/dashboard",        adminDashboardRoutes)
@@ -171,7 +166,6 @@ v1.use("/admin/categories",       adminCategoryRoutes)
 v1.use("/admin/coupons",          adminCouponRoutes)
 v1.use("/admin/users",            adminUserRoutes)
 v1.use("/admin/support",          adminSupportRoutes)
-v1.use("/admin/pages",            adminPagesRoutes)
 v1.use("/admin/email-templates",  adminEmailTemplatesRoutes)
 v1.use("/admin/email-logs",       adminEmailLogRoutes)
 v1.use("/admin/newsletter",       adminNewsletterRoutes)
@@ -181,7 +175,6 @@ v1.use("/admin/client-projects",  adminClientProjectRoutes)
 v1.use("/admin/services",         adminServiceRoutes)
 v1.use("/admin/portfolio",        adminPortfolioRoutes)
 v1.use("/admin/reviews",          adminReviewRoutes)
-v1.use("/admin/recommendations",  adminRecommendationRoutes)
 v1.use("/admin/audit",            adminAuditRoutes)
 v1.use("/admin/contact-messages", adminContactRoutes)
 v1.use("/admin/bio",              adminBioRoutes)                  // M12
@@ -190,7 +183,6 @@ v1.use("/admin",                  adminAvailabilityRoutes)        // Booking —
 v1.use("/admin",                  adminRefundRoutes)              // M15 — /admin/refunds + /admin/orders/:id/refund(-eligibility)
 v1.use("/admin/blog",             adminBlogRoutes)                // M16 — Blog CRUD (posts + categories + tags)
 v1.use("/admin/sessions",         adminSessionRoutes)             // M17 — Active sessions, revoke individual / revoke-all
-v1.use("/admin/roles",            adminRoleRoutes)                // M18 — Roles + permission assignment
 v1.use("/admin/campaigns",        adminCampaignRoutes)            // M19 — Marketing email campaigns
 
 // Member
@@ -200,7 +192,6 @@ v1.use("/member/notifications",   notificationRoutes)
 v1.use("/member/support",         supportRoutes)
 v1.use("/member/service-orders",  memberServiceOrderRoutes)
 v1.use("/member/projects",        memberClientProjectRoutes)
-v1.use("/member/wishlist",        wishlistRoutes)
 v1.use("/member/addresses",       addressRoutes)
 v1.use("/member/orders",          memberRefundRoutes)             // M15 — /member/orders/:id/refunds
 
@@ -216,9 +207,15 @@ router.use("/v1", v1)
 // rationale above). Everything else gets the deprecation header injected.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Webhooks + health — exempt from deprecation headers (no sunset noise)
+// Webhooks + health — exempt from deprecation headers (no sunset noise).
+//
+// PayPal's webhook is NOT mounted here — it lives at the app level (see
+// src/app.js) where it can intercept the request BEFORE the global JSON
+// parser. The previous narrow-exempt mount under "/paypal/webhook" stripped
+// the path prefix, leaving paypalRoutes' inner "/webhook" route unreachable
+// (the request became "" inside the sub-router). Keeping the comment so we
+// don't reintroduce the same mount.
 router.use("/health",                 healthRoutes)
-router.use("/paypal/webhook",         paypalRoutes)            // narrow exempt
 router.use("/mercadopago/webhook",    mercadoPagoRoutes)       // narrow exempt
 
 // Public (deprecated) — order matters: webhook subroutes already mounted above
@@ -231,7 +228,6 @@ router.use("/mercadopago/webhook",    mercadoPagoRoutes)       // narrow exempt
 router.use("/products",    deprecationMiddleware, productRoutes)
 router.use("/services",        deprecationMiddleware, serviceRoutes)
 router.use("/reviews",         deprecationMiddleware, reviewRoutes)
-router.use("/recommendations", deprecationMiddleware, recommendationRoutes)
 router.use("/portfolio",   deprecationMiddleware, portfolioRoutes)
 router.use("/newsletter",  deprecationMiddleware, newsletterRoutes)
 router.use("/bio",         deprecationMiddleware, bioRoutes)        // M12
@@ -256,7 +252,6 @@ router.use("/admin/categories",       deprecationMiddleware, adminCategoryRoutes
 router.use("/admin/coupons",          deprecationMiddleware, adminCouponRoutes)
 router.use("/admin/users",            deprecationMiddleware, adminUserRoutes)
 router.use("/admin/support",          deprecationMiddleware, adminSupportRoutes)
-router.use("/admin/pages",            deprecationMiddleware, adminPagesRoutes)
 router.use("/admin/email-templates",  deprecationMiddleware, adminEmailTemplatesRoutes)
 router.use("/admin/email-logs",       deprecationMiddleware, adminEmailLogRoutes)
 router.use("/admin/newsletter",       deprecationMiddleware, adminNewsletterRoutes)
@@ -265,7 +260,6 @@ router.use("/admin/service-orders",   deprecationMiddleware, adminServiceOrdersR
 router.use("/admin/services",         deprecationMiddleware, adminServiceRoutes)
 router.use("/admin/portfolio",        deprecationMiddleware, adminPortfolioRoutes)
 router.use("/admin/reviews",          deprecationMiddleware, adminReviewRoutes)
-router.use("/admin/recommendations",  deprecationMiddleware, adminRecommendationRoutes)
 router.use("/admin/audit",            deprecationMiddleware, adminAuditRoutes)
 router.use("/admin/contact-messages", deprecationMiddleware, adminContactRoutes)
 router.use("/admin/bio",              deprecationMiddleware, adminBioRoutes)        // M12
@@ -279,7 +273,6 @@ router.use("/member/cart",            deprecationMiddleware, cartRoutes)
 router.use("/member/notifications",   deprecationMiddleware, notificationRoutes)
 router.use("/member/support",         deprecationMiddleware, supportRoutes)
 router.use("/member/service-orders",  deprecationMiddleware, memberServiceOrderRoutes)
-router.use("/member/wishlist",        deprecationMiddleware, wishlistRoutes)
 router.use("/member/addresses",       deprecationMiddleware, addressRoutes)
 router.use("/member/orders",          deprecationMiddleware, memberRefundRoutes)             // M15 (legacy)
 

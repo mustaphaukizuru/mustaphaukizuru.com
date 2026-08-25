@@ -63,6 +63,7 @@ export default function Kbd({
   className = "",
 }) {
   const [mac, setMac] = useState(false)
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- platform detection after mount (SSR-safe)
   useEffect(() => setMac(isMac()), [])
 
   const sizeCls = SIZE[size] || SIZE.md

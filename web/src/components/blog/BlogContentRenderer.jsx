@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 /* ════════════════════════════════════════════════════════════════════════
    BlogContentRenderer · typed renderer for blog post body blocks.
    ────────────────────────────────────────────────────────────────────────
@@ -16,12 +17,34 @@
    is parsed deterministically and rendered as a real React node.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { Fragment } from "react"
+import { Fragment, useState } from "react"
 import { Link } from "react-router-dom"
-import { Info, CheckCircle2, AlertTriangle, Quote } from "lucide-react"
+import { Info, CheckCircle2, AlertTriangle, Quote, Copy, Check, PlayCircle } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
-export default function BlogContentRenderer({ blocks }) {
+
+// Inject the midCTA after this block index (0-based, so index 2 = after 3rd block)
+const MID_CTA_AFTER_INDEX = 2
+
+/* ── Shared utilities — also used by BlogPostPage for TOC ──────────────── */
+
+export function slugify(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim()
+}
+
+export function extractTOC(blocks) {
+  if (!Array.isArray(blocks)) return []
+  return blocks
+    .filter((b) => b.type === "h2" || b.type === "h3")
+    .map((b) => ({ id: slugify(b.text), text: b.text, level: b.type === "h2" ? 2 : 3 }))
+}
+
+export default function BlogContentRenderer({ blocks, midCTA }) {
   const { t } = useTranslation("blog")
   if (!Array.isArray(blocks) || blocks.length === 0) {
     return (
@@ -33,7 +56,10 @@ export default function BlogContentRenderer({ blocks }) {
   return (
     <div className="flex flex-col">
       {blocks.map((block, i) => (
-        <Fragment key={i}>{renderBlock(block)}</Fragment>
+        <Fragment key={i}>
+          {renderBlock(block)}
+          {midCTA && i === MID_CTA_AFTER_INDEX ? midCTA : null}
+        </Fragment>
       ))}
     </div>
   )
@@ -51,14 +77,20 @@ function renderBlock(block) {
 
     case "h2":
       return (
-        <h2 className="mt-12 text-[24px] font-bold leading-tight tracking-tight text-violet first:mt-0 sm:text-[26px]">
+        <h2
+          id={slugify(block.text)}
+          className="mt-12 scroll-mt-24 text-[24px] font-bold leading-tight tracking-tight text-violet first:mt-0 sm:text-[26px]"
+        >
           {renderInline(block.text)}
         </h2>
       )
 
     case "h3":
       return (
-        <h3 className="mt-9 text-[19px] font-bold leading-tight text-violet first:mt-0 sm:text-[20px]">
+        <h3
+          id={slugify(block.text)}
+          className="mt-9 scroll-mt-24 text-[19px] font-bold leading-tight text-violet first:mt-0 sm:text-[20px]"
+        >
           {renderInline(block.text)}
         </h3>
       )
@@ -102,13 +134,13 @@ function renderBlock(block) {
                                 Info
       const styles =
         variant === "success"
-          ? "border-emerald-200/70 bg-emerald-50 text-emerald-900"
+          ? "border-mint/20/70 bg-mint/10 text-emerald-800"
           : variant === "warning"
-          ? "border-amber-200/70 bg-amber-50 text-amber-900"
+          ? "border-amber/20/70 bg-amber/10 text-amber-700"
           : "border-violet/20 bg-violet-pale/40 text-charcoal-80/85"
       const iconColor =
-        variant === "success" ? "text-emerald-600" :
-        variant === "warning" ? "text-amber-600" :
+        variant === "success" ? "text-emerald-700" :
+        variant === "warning" ? "text-amber-700" :
                                 "text-violet"
       return (
         <aside className={`mt-7 flex gap-3 rounded-2xl border p-5 ${styles}`}>
@@ -135,16 +167,155 @@ function renderBlock(block) {
             {renderInline(block.text)}
           </blockquote>
           {block.cite ? (
-            <figcaption className="mt-2 text-[12.5px] font-semibold text-charcoal-80/55">
-             , {block.cite}
+            <figcaption className="mt-2 text-[12.5px] font-semibold text-charcoal-80/65">
+              — {block.cite}
             </figcaption>
           ) : null}
         </figure>
       )
 
+    case "code":
+      return <CodeBlock block={block} />
+
+    case "image":
+      return <ImageBlock block={block} />
+
+    case "video":
+      return <VideoBlock block={block} />
+
+    case "takeaways":
+      return (
+        <div className="mt-7 overflow-hidden rounded-2xl border border-violet/25 bg-violet-pale/40">
+          <div className="border-b border-violet/15 px-5 py-3 sm:px-6">
+            <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-violet">
+              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+              {block.title || "Key takeaways"}
+            </p>
+          </div>
+          <ul className="flex flex-col gap-3 px-5 py-4 sm:px-6 sm:py-5">
+            {(block.items || []).map((item, i) => (
+              <li key={i} className="flex items-start gap-3 text-[14.5px] leading-6 text-charcoal-80/85">
+                <span
+                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet text-white"
+                  aria-hidden="true"
+                >
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                </span>
+                {renderInline(item)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+
     default:
       return null
   }
+}
+
+/* ── Code block with copy button ─────────────────────────────────────── */
+function CodeBlock({ block }) {
+  const [copied, setCopied] = useState(false)
+  const code = block.code || block.text || ""
+  const lang  = block.lang || "code"
+
+  function copy() {
+    navigator.clipboard?.writeText(code).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="mt-6 overflow-hidden rounded-2xl border border-charcoal-80/20 bg-[var(--color-charcoal)]">
+      {/* Header bar: language label + copy button */}
+      <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-2.5">
+        <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em] text-white/40">
+          {lang}
+        </span>
+        <button
+          type="button"
+          onClick={copy}
+          className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold text-white/50 transition hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+        >
+          {copied
+            ? <><Check className="h-3.5 w-3.5 text-mint" aria-hidden="true" />Copied</>
+            : <><Copy className="h-3.5 w-3.5"            aria-hidden="true" />Copy</>}
+        </button>
+      </div>
+      {/* Code body — JetBrains Mono, scrollable */}
+      <pre className="overflow-x-auto px-5 py-4">
+        <code className="font-mono text-[13.5px] leading-7 text-[var(--color-code-fg)]">
+          {code}
+        </code>
+      </pre>
+    </div>
+  )
+}
+
+/* ── Image block ─────────────────────────────────────────────────────── */
+function ImageBlock({ block }) {
+  if (!block.src) return null
+  return (
+    <figure className="mt-8">
+      <div className="overflow-hidden rounded-2xl bg-charcoal-80/[0.04]">
+        <img
+          src={block.src}
+          alt={block.alt || ""}
+          loading="lazy"
+          className="w-full object-cover"
+        />
+      </div>
+      {block.caption ? (
+        <figcaption className="mt-2 text-center text-[12.5px] italic text-charcoal-80/65">
+          {block.caption}
+        </figcaption>
+      ) : null}
+    </figure>
+  )
+}
+
+/* ── Video embed block ───────────────────────────────────────────────── */
+function getPublicEmbedUrl(raw) {
+  try {
+    const url = new URL(raw)
+    if (url.hostname.includes("youtube.com") && url.searchParams.get("v")) {
+      return `https://www.youtube.com/embed/${url.searchParams.get("v")}`
+    }
+    if (url.hostname === "youtu.be") {
+      return `https://www.youtube.com/embed${url.pathname}`
+    }
+    if (url.hostname.includes("vimeo.com")) {
+      const id = url.pathname.replace(/\//g, "")
+      return `https://player.vimeo.com/video/${id}`
+    }
+  } catch { /* invalid URL */ }
+  return ""
+}
+
+function VideoBlock({ block }) {
+  const embed = getPublicEmbedUrl(block.url || "")
+  if (!embed) return null
+  return (
+    <figure className="mt-8">
+      <div className="relative w-full overflow-hidden rounded-2xl bg-charcoal-80/[0.04]" style={{ paddingBottom: "56.25%" }}>
+        <iframe
+          src={embed}
+          className="absolute inset-0 h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          loading="lazy"
+          title={block.caption || "Video"}
+        />
+      </div>
+      {block.caption ? (
+        <figcaption className="mt-2 flex items-center justify-center gap-1.5 text-[12.5px] italic text-charcoal-80/65">
+          <PlayCircle className="h-3.5 w-3.5 text-violet/60" aria-hidden="true" />
+          {block.caption}
+        </figcaption>
+      ) : null}
+    </figure>
+  )
 }
 
 /* ── Inline formatter ────────────────────────────────────────────────── */

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   ShieldCheck, Shield, Smartphone, Copy, Check, Download, RefreshCw,
   AlertCircle, Lock, X, KeyRound, Trash2, ChevronRight,
@@ -13,7 +13,9 @@ import {
   regenerateBackupCodes as apiRegenerateBackupCodes,
 } from "../services/authService"
 import { useToast } from "../context/ToastContext"
+import useApiQuery from "../hooks/useApiQuery"
 import { SectionCard, SkeletonCard } from "../components/ui/index"
+import ProfileTabs from "../components/dashboard/ProfileTabs"
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Dashboard2FAPage — /dashboard/2fa
@@ -28,9 +30,11 @@ import { SectionCard, SkeletonCard } from "../components/ui/index"
 export default function Dashboard2FAPage() {
   const { t, i18n } = useTranslation("dashboard")
   const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
-  const [status, setStatus] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const { data: status = null, loading, error, refetch: loadStatus, setData: setStatus } = useApiQuery(
+    "twoFactor:status",
+    () => fetchTwoFactorStatus(),
+    { select: (data) => data || { isEnabled: false, isSetupInProgress: false } }
+  )
 
   const [setupData, setSetupData] = useState(null)
   const [setupBusy, setSetupBusy] = useState(false)
@@ -43,19 +47,6 @@ export default function Dashboard2FAPage() {
 
   const { showSuccess, showError } = useToast()
 
-  async function loadStatus() {
-    setLoading(true); setError("")
-    try {
-      const data = await fetchTwoFactorStatus()
-      setStatus(data || { isEnabled: false, isSetupInProgress: false })
-    } catch (err) {
-      setError(err?.message || t("twoFactor.errors.loadStatus"))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { loadStatus() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
 
   async function handleStartSetup() {
     setSetupBusy(true)
@@ -88,27 +79,19 @@ export default function Dashboard2FAPage() {
   }
 
   async function handleDisable(password) {
-    try {
-      await apiDisableTwoFactor(password)
-      setDisableModalOpen(false)
-      setSetupData(null)
-      await loadStatus()
-      showSuccess(t("twoFactor.toast.disabled"))
-    } catch (err) {
-      throw err
-    }
+    await apiDisableTwoFactor(password)
+    setDisableModalOpen(false)
+    setSetupData(null)
+    await loadStatus()
+    showSuccess(t("twoFactor.toast.disabled"))
   }
 
   async function handleRegenerate(password) {
-    try {
-      const data = await apiRegenerateBackupCodes(password)
-      setBackupCodes(data?.backupCodes || [])
-      setRegenerateModalOpen(false)
-      await loadStatus()
-      showSuccess(t("twoFactor.toast.regenerated"))
-    } catch (err) {
-      throw err
-    }
+    const data = await apiRegenerateBackupCodes(password)
+    setBackupCodes(data?.backupCodes || [])
+    setRegenerateModalOpen(false)
+    await loadStatus()
+    showSuccess(t("twoFactor.toast.regenerated"))
   }
 
   if (loading) {
@@ -160,24 +143,25 @@ export default function Dashboard2FAPage() {
       </AnimatePresence>
 
       <section className="space-y-5">
+      <ProfileTabs />
         {error && (
-          <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-meta text-red-700">
+          <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
           </div>
         )}
 
         {/* Hero */}
-        <div className={`rounded-xl border p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] sm:p-6 ${
+        <div className={`rounded-xl border p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] sm:p-6 ${
           currentState === "enabled"
-            ? "border-emerald-200 bg-gradient-to-br from-emerald-50 to-white"
+            ? "border-mint/20 bg-gradient-to-br from-emerald-50 to-white"
             : "border-charcoal-80/10 bg-white"
         }`}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
               <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
                 currentState === "enabled"
-                  ? "bg-emerald-500 text-white shadow-[0_8px_20px_rgba(16,185,129,0.25)]"
-                  : "bg-violet text-white shadow-[0_8px_20px_rgba(93,63,211,0.18)]"
+                  ? "bg-emerald-500 text-white shadow-[0_8px_20px_rgb(var(--color-mint-rgb)/0.25)]"
+                  : "bg-violet text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)]"
               }`}>
                 {currentState === "enabled" ? <ShieldCheck className="h-6 w-6" /> : <Shield className="h-6 w-6" />}
               </div>
@@ -202,7 +186,7 @@ export default function Dashboard2FAPage() {
                   <ShieldCheck className="h-3 w-3" /> {t("twoFactor.hero.enabledPill")}
                 </span>
                 {status?.enabledAt && (
-                  <span className="mt-1.5 text-micro text-charcoal-80/55">
+                  <span className="mt-1.5 text-micro text-charcoal-80/65">
                     {t("twoFactor.hero.since", { date: new Date(status.enabledAt).toLocaleDateString(localeTag) })}
                   </span>
                 )}
@@ -234,7 +218,7 @@ export default function Dashboard2FAPage() {
         )}
 
         {currentState === "setup" && !setupData && (
-          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 text-center shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 text-center shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
             <p className="text-meta text-charcoal-80/70">{t("twoFactor.stale.body")}</p>
             <button
               type="button"
@@ -296,7 +280,7 @@ function DisabledState({ onStart, starting }) {
           type="button"
           onClick={onStart}
           disabled={starting}
-          className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-3 text-meta font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-3 text-meta font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.22)] transition hover:-translate-y-0.5 hover:bg-violet-deep disabled:opacity-60"
         >
           <Shield className="h-4 w-4" />
           {starting ? t("twoFactor.disabled.starting") : t("twoFactor.disabled.enable")}
@@ -327,24 +311,24 @@ function SetupState({ data, code, setCode, onVerify, verifying, onCancel }) {
     >
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         <div className="flex flex-col items-center gap-3">
-          <div className="rounded-xl border border-charcoal-80/15 bg-white p-3 shadow-[0_4px_16px_rgba(93,63,211,0.06)]">
+          <div className="rounded-xl border border-charcoal-80/15 bg-white p-3 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.06)]">
             {data.qrCodeDataUrl ? (
               <img src={data.qrCodeDataUrl} alt={t("twoFactor.setup.qrAlt")} width={220} height={220} className="block" />
             ) : (
-              <div className="flex h-[220px] w-[220px] items-center justify-center text-micro text-charcoal-80/50">
+              <div className="flex h-[220px] w-[220px] items-center justify-center text-micro text-charcoal-80/65">
                 {t("twoFactor.setup.qrUnavailable")}
               </div>
             )}
           </div>
           <div className="text-center">
-            <div className="text-micro font-semibold uppercase tracking-wider text-charcoal-80/55">{t("twoFactor.setup.manualLabel")}</div>
+            <div className="text-micro font-semibold uppercase tracking-wider text-charcoal-80/65">{t("twoFactor.setup.manualLabel")}</div>
             <button
               type="button"
               onClick={copyManual}
               className="mt-1 inline-flex items-center gap-2 rounded-lg border border-charcoal-80/15 bg-mist px-3 py-1.5 font-mono text-micro text-violet transition hover:bg-violet-pale"
             >
               {data.manualEntryCode}
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 opacity-60" />}
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-700" /> : <Copy className="h-3.5 w-3.5 opacity-60" />}
             </button>
           </div>
         </div>
@@ -385,7 +369,7 @@ function SetupState({ data, code, setCode, onVerify, verifying, onCancel }) {
             <button
               type="button"
               onClick={onCancel}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-5 py-3 text-meta font-medium text-red-600 transition hover:bg-red-50"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose/20 bg-white px-5 py-3 text-meta font-medium text-rose-700 transition hover:bg-rose/10"
             >
               <Trash2 className="h-3.5 w-3.5" />
               {t("twoFactor.setup.cancelSetup")}
@@ -413,7 +397,7 @@ function EnabledState({ status, onRegenerate, onDisable }) {
         {/* Backup code status */}
         <div className={`flex items-start gap-3 rounded-xl border p-4 ${
           lowOnCodes
-            ? "border-amber-200 bg-amber-50"
+            ? "border-amber/20 bg-amber/10"
             : "border-charcoal-80/10 bg-mist"
         }`}>
           <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
@@ -443,7 +427,7 @@ function EnabledState({ status, onRegenerate, onDisable }) {
 
         {/* Disable */}
         <div className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4">
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose/10 text-rose-700">
             <Trash2 className="h-4 w-4" />
           </div>
           <div className="min-w-0 flex-1">
@@ -455,7 +439,7 @@ function EnabledState({ status, onRegenerate, onDisable }) {
           <button
             type="button"
             onClick={onDisable}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-2 text-micro font-semibold text-red-600 transition hover:bg-red-50"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-rose/20 bg-white px-3 py-2 text-micro font-semibold text-rose-700 transition hover:bg-rose/10"
           >
             <Lock className="h-3.5 w-3.5" /> {t("twoFactor.enabled.disable")}
           </button>
@@ -499,18 +483,18 @@ function BackupCodesModal({ codes, onClose }) {
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
     >
-      <motion.div
+      <m.div
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", stiffness: 220, damping: 22 }}
-        className="w-full max-w-[520px] rounded-xl bg-white shadow-[0_30px_80px_rgba(93,63,211,0.22)]"
+        className="w-full max-w-[520px] rounded-xl bg-white shadow-[0_30px_80px_rgb(var(--color-violet-rgb)/0.22)]"
       >
         <div className="flex items-start justify-between border-b border-charcoal-80/10 p-6">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-[0_8px_20px_rgba(217,119,6,0.25)]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-[0_8px_20px_rgb(var(--color-amber-rgb)/0.25)]">
               <KeyRound className="h-5 w-5" />
             </div>
             <div>
@@ -552,13 +536,13 @@ function BackupCodesModal({ codes, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="mt-3 w-full rounded-xl border border-charcoal-80/15 py-2.5 text-micro font-medium text-charcoal-80 hover:bg-[#f4eef6]"
+            className="mt-3 w-full rounded-xl border border-charcoal-80/15 py-2.5 text-micro font-medium text-charcoal-80 hover:bg-violet-pale/60"
           >
             {t("twoFactor.backupModal.saved")}
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   )
 }
 
@@ -583,22 +567,22 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
   }
 
   const toneClasses = confirmTone === "red"
-    ? "bg-red-600 hover:bg-red-700 shadow-[0_8px_20px_rgba(220,38,38,0.25)]"
-    : "bg-violet hover:bg-violet-deep shadow-[0_8px_20px_rgba(93,63,211,0.22)]"
+    ? "bg-red-600 hover:bg-red-700 shadow-[0_8px_20px_rgb(var(--color-rose-rgb)/0.25)]"
+    : "bg-violet hover:bg-violet-deep shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.22)]"
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
     >
-      <motion.div
+      <m.div
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", stiffness: 220, damping: 22 }}
-        className="w-full max-w-[440px] rounded-xl bg-white shadow-[0_30px_80px_rgba(93,63,211,0.22)]"
+        className="w-full max-w-[440px] rounded-xl bg-white shadow-[0_30px_80px_rgb(var(--color-violet-rgb)/0.22)]"
       >
         <div className="flex items-center justify-between border-b border-charcoal-80/10 p-5">
           <h2 className="text-body font-bold text-violet">{t(titleKey)}</h2>
-          <button onClick={onClose} type="button" aria-label={t("twoFactor.passwordModal.close")} className="rounded-xl p-1.5 text-charcoal-80/50 hover:bg-[#f4eef6]">
+          <button onClick={onClose} type="button" aria-label={t("twoFactor.passwordModal.close")} className="rounded-xl p-1.5 text-charcoal-80/65 hover:bg-violet-pale/60">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -607,7 +591,7 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
           <p className="text-micro text-charcoal-80/75">{t(descKey)}</p>
 
           {error && (
-            <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-micro text-red-700">
+            <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-micro text-rose-700">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
             </div>
           )}
@@ -638,12 +622,12 @@ function PasswordConfirmModal({ titleKey, descKey, confirmKey, confirmTone, onCl
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-charcoal-80/15 px-4 py-3 text-meta font-medium text-charcoal-80 hover:bg-[#f4eef6]"
+            className="rounded-xl border border-charcoal-80/15 px-4 py-3 text-meta font-medium text-charcoal-80 hover:bg-violet-pale/60"
           >
             {t("twoFactor.passwordModal.cancel")}
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   )
 }

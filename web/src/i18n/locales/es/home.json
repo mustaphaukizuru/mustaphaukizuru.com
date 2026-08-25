@@ -1,137 +1,167 @@
 {
   "hero": {
-    "eyebrow": "Tecnología · Educación · Productos digitales",
-    "title": "Construye tu futuro con tecnología que sí funciona",
-    "subtitle": "Ingeniería full-stack, consultoría y educación STEM desde Tlalnepantla, México. Plataformas reales, aulas reales, resultados reales.",
-    "ctaPrimary": "Ver servicios",
-    "ctaSecondary": "Explorar la tienda",
-    "ariaLabel": "Mustapha Ukizuru — ingeniería full-stack, consultoría y educación STEM desde Tlalnepantla, México",
-    "exploreServices": "Ver servicios",
-    "bookCall": "Agendar llamada",
-    "openToWork": "Abierto a trabajar",
-    "builtInLatam": "Construido en LATAM",
-    "activeProject": "Proyecto activo",
-    "paidQa": "pagado · en QA",
-    "featuredProduct": "Producto destacado",
-    "consultingAria": "Consultoría — 3 espacios abiertos este mes, haz clic para agendar una llamada",
-    "availableNow": "Disponible ahora",
-    "slotsOpen": "3 espacios abiertos · este mes",
-    "engineeredWith": "Construido con",
-    "buildingSince": "Construyendo desde 2018",
-    "yearsShipping": "años entregando",
-    "projectsShipped": "47 proyectos entregados",
-    "headlineBuilt": "Construido.",
-    "headlineShipped": "Lanzado.",
-    "headlineForYou": "Para ti.",
-    "welcomeBack": "Bienvenido,",
-    "milestoneThree": "Hito 3",
-    "cardConsulting": "Consultoría",
-    "cardStack": "Stack"
+    "ariaLabel": "Mustapha Ukizuru — consultor de ingeniería de software para empresas en crecimiento",
+    "eyebrow": "Consultor de ingeniería de software · CDMX y remoto",
+    "headline": "Software que hace funcionar tu negocio, construido por un ingeniero al que puedes llamar.",
+    "subtitle": "Estrategia de TI, IA y automatización, infraestructura en la nube e ingeniería de producto de extremo a extremo para PyMEs en México y el extranjero. Un solo punto de contacto desde la primera llamada hasta el último despliegue.",
+    "ctaPrimary": "Agenda una llamada de 30 min",
+    "ctaSecondary": "Ver productos",
+    "callNote": "Gratis · sin propuesta hasta que hablemos",
+    "avatarAlt": "Mustapha Ukizuru",
+    "avatarName": "Mustapha Ukizuru",
+    "avatarRole": "Consultor e ingeniero full-stack"
   },
-  "sections": {
-    "audiences": {
-      "eyebrow": "Con quién trabajo",
-      "title": "Equipos listos para modernizarse",
-      "subtitle": "Colaboro con organizaciones y personas que buscan sistemas más sólidos, una presencia digital más clara y formas más inteligentes de trabajar."
+  "stats": {
+    "ariaLabel": "Pruebas en números",
+    "eyebrow": "Trayectoria",
+    "yearsLabel": "años entregando software en producción",
+    "projectsLabel": "proyectos entregados",
+    "countriesLabel": "países donde he trabajado",
+    "studentsLabel": "personas capacitadas",
+    "stackLabel": "Construido con"
+  },
+  "paths": {
+    "eyebrow": "Dos formas de trabajar conmigo",
+    "title": "Contrátame, o usa lo que ya construí",
+    "subtitle": "Proyectos a medida cuando el problema es solo tuyo. Productos listos cuando alguien ya lo resolvió.",
+    "services": {
+      "title": "Servicios",
+      "body": "Consultoría e ingeniería a la medida de tu equipo. Empezamos con una llamada de 30 minutos, recibes una propuesta escrita y luego construimos.",
+      "bullets": [
+        "Paquetes de precio fijo o por tiempo y materiales",
+        "Demos semanales, sin facturas sorpresa",
+        "Contratos en español o inglés"
+      ],
+      "cta": "Ver servicios",
+      "secondary": "Agendar llamada"
     },
-    "solutions": {
-      "eyebrow": "Soluciones",
-      "title": "Hecho para la forma en que realmente trabajas",
-      "subtitle": "Tecnología práctica que fortalece tus sistemas, mejora tu presencia digital y se mantiene fuera del camino.",
-      "cta": "Ver soluciones"
-    },
-    "featuredProducts": {
-      "eyebrow": "Tienda",
-      "title": "Plantillas y kits que yo mismo uso",
-      "subtitle": "Recursos prácticos y con criterio, creados desde proyectos reales con clientes, para que avances más rápido.",
-      "cta": "Ir a la tienda",
-      "emptyTitle": "Pronto habrá recursos nuevos",
-      "emptyBody": "Estoy terminando el siguiente lote de plantillas y kits. Vuelve a revisar esta semana.",
-      "emptyCta": "Avísame"
-    },
-    "featuredServices": {
-      "eyebrow": "Servicios",
-      "title": "Lo que hago",
-      "subtitle": "Consultoría senior, desarrollo full-stack y todo lo intermedio, ajustado al tamaño y al presupuesto de tu equipo.",
-      "cta": "Todos los servicios",
-      "learnMore": "Conocer más"
-    },
-    "featuredPortfolio": {
-      "eyebrow": "Portafolio",
-      "title": "Proyectos seleccionados",
-      "subtitle": "Proyectos recientes con escuelas, PYMEs y plataformas educativas.",
-      "cta": "Todos los proyectos"
-    },
-    "process": {
-      "eyebrow": "Cómo funciona",
-      "title": "Un camino claro de la idea al lanzamiento",
-      "subtitle": "Cuatro fases predecibles. Sin sorpresas ni desviaciones de alcance. Siempre sabrás qué sigue."
-    },
-    "testimonials": {
-      "eyebrow": "Testimonios",
-      "title": "En sus propias palabras",
-      "subtitle": "Lo que clientes y colaboradores han dicho después de trabajar juntos.",
-      "prevAria": "Testimonios anteriores",
-      "nextAria": "Testimonios siguientes"
-    },
-    "reviews": {
-      "title": "Reseñas recientes"
+    "products": {
+      "title": "Productos",
+      "body": "Plantillas, kits y cursos destilados de proyectos reales. Compra una vez, descarga al instante, úsalo para siempre.",
+      "bullets": [
+        "Descarga inmediata tras el pago",
+        "Paga en MXN o USD (MercadoPago, PayPal)",
+        "Actualizaciones incluidas"
+      ],
+      "cta": "Ir a la tienda"
     }
   },
-  "audiences": {
-    "smes": {
-      "title": "PYMEs y empresas",
-      "description": "Sistemas más sólidos, presencia digital más clara y operaciones más inteligentes."
-    },
-    "professionals": {
-      "title": "Profesionales y particulares",
-      "description": "Flujos de trabajo modernos y visibilidad online clara para profesionales independientes."
-    },
-    "schools": {
-      "title": "Escuelas y educación",
-      "description": "Tecnología, STEM y aprendizaje digital, hechos para escuelas y docentes."
+  "services": {
+    "eyebrow": "Servicios",
+    "title": "Cuatro formas en que puedo ayudarte",
+    "subtitle": "Cada categoría es un conjunto de servicios bien definidos. Elige la más cercana a tu problema y lo delimitamos juntos en la llamada.",
+    "cta": "Todos los servicios",
+    "learnMore": "Ver detalles",
+    "items": {
+      "strategy": {
+        "title": "Consultoría estratégica de TI",
+        "body": "Auditoría de la pila de software, CTO fraccional, evaluación de proveedores y RFP, hoja de ruta de transformación digital, cumplimiento LFPDPPP y evaluación de riesgos."
+      },
+      "ai": {
+        "title": "Integración con IA y automatización",
+        "body": "Asistentes con la voz de tu marca, calificadores de leads por WhatsApp, pipelines API multiplataforma, bases de conocimiento RAG privadas, extracción de datos de documentos."
+      },
+      "cloud": {
+        "title": "Arquitectura en la nube y migración",
+        "body": "De on-premise a AWS, Azure o GCP, optimización de facturas en la nube, recuperación ante desastres, contenedorización, seguridad zero-trust."
+      },
+      "product": {
+        "title": "Ingeniería de producto de extremo a extremo",
+        "body": "Prototipos interactivos, aplicaciones web MVP, móviles multiplataforma, diseño seguro de APIs, pipelines CI/CD, mantenimiento gestionado."
+      }
     }
   },
-  "solutionsList": {
-    "digitalProducts": "Productos digitales",
-    "professionalTraining": "Capacitación profesional y talleres",
-    "websiteAndDigitalSystems": "Sitios web y sistemas digitales",
-    "technologyConsulting": "Consultoría tecnológica",
-    "stemCodingRobotics": "Programas de STEM, programación y robótica",
-    "itInfrastructure": "Infraestructura de TI y transformación digital"
+  "featuredProducts": {
+    "eyebrow": "Tienda",
+    "title": "Plantillas y kits que yo mismo uso",
+    "subtitle": "Recursos prácticos creados a partir de proyectos reales con clientes. Descárgalos y úsalos hoy.",
+    "cta": "Explorar la tienda",
+    "emptyTitle": "Nuevos recursos pronto",
+    "emptyBody": "Estoy terminando el próximo lote de plantillas y kits. Vuelve esta semana.",
+    "emptyCta": "Avísame"
   },
-  "processSteps": {
-    "discovery": {
-      "title": "Descubrimiento",
-      "description": "Entender tus sistemas actuales, tus prioridades y los retos reales que están frenando el avance."
-    },
-    "strategy": {
-      "title": "Estrategia",
-      "description": "Definir una hoja de ruta práctica con objetivos claros, decisiones tecnológicas y dirección de implementación."
-    },
-    "implementation": {
-      "title": "Implementación",
-      "description": "Convertir el plan en sistemas, plataformas, flujos y recursos digitales confiables."
-    },
-    "optimization": {
-      "title": "Optimización",
-      "description": "Afinar el rendimiento, fortalecer la adopción y mejorar la efectividad digital a largo plazo."
+  "portfolio": {
+    "eyebrow": "Trabajo seleccionado",
+    "title": "Tres proyectos, tres problemas distintos",
+    "subtitle": "Proyectos recientes con escuelas, PyMEs y plataformas educativas.",
+    "cta": "Todos los proyectos"
+  },
+  "testimonials": {
+    "eyebrow": "Lo que dicen los clientes",
+    "title": "En sus propias palabras",
+    "subtitle": "De personas que me contrataron y lanzaron conmigo.",
+    "placeholderNote": "Testimonio de relleno — reemplazar antes del lanzamiento",
+    "items": {
+      "a": {
+        "quote": "[Placeholder] Reemplaza con una cita textual del cliente sobre un resultado concreto, p. ej. costos de nube reducidos en un porcentaje o una fecha de lanzamiento cumplida.",
+        "name": "Nombre del cliente",
+        "role": "Cargo",
+        "company": "Empresa"
+      },
+      "b": {
+        "quote": "[Placeholder] Reemplaza con una cita textual sobre cómo se llevó el proyecto: comunicación, alcance, sin sorpresas.",
+        "name": "Nombre del cliente",
+        "role": "Cargo",
+        "company": "Empresa"
+      },
+      "c": {
+        "quote": "[Placeholder] Reemplaza con una cita textual sobre un producto digital o capacitación que el cliente usó y recomienda.",
+        "name": "Nombre del cliente",
+        "role": "Cargo",
+        "company": "Empresa"
+      }
     }
   },
-  "testimonialRoles": {
-    "schoolAdministrator": "Administradora escolar",
-    "businessOwner": "Dueño de negocio",
-    "educationCoordinator": "Coordinadora educativa",
-    "operationsLead": "Líder de operaciones",
-    "independentProfessional": "Profesional independiente",
-    "itCoordinator": "Coordinador de TI"
+  "process": {
+    "eyebrow": "Cómo trabajo",
+    "title": "Tres pasos, sin misterio",
+    "subtitle": "Siempre sabes qué está pasando, cuánto cuesta y qué sigue.",
+    "steps": {
+      "discover": {
+        "title": "Descubrir",
+        "body": "Una llamada gratuita de 30 minutos para entender tus sistemas, restricciones y el resultado que necesitas. Recibes una propuesta escrita en días."
+      },
+      "build": {
+        "title": "Construir",
+        "body": "Iteraciones cortas con una demo cada semana. Los cambios de alcance se acuerdan por escrito antes de facturarse."
+      },
+      "launch": {
+        "title": "Lanzar y dar soporte",
+        "body": "Despliegue, documentación y entrega a tu equipo. El mantenimiento mensual opcional lo mantiene funcionando."
+      }
+    }
+  },
+  "blog": {
+    "eyebrow": "Del blog",
+    "title": "Notas desde el trabajo",
+    "subtitle": "Estrategia, código y lecciones aprendidas, escritas para quienes dirigen y construyen cosas.",
+    "cta": "Todos los artículos",
+    "read": "Leer",
+    "rss": "Suscríbete por RSS"
   },
   "cta": {
-    "eyebrow": "Empecemos",
-    "titleLine1": "Pongámonos",
-    "titleLine2": "a trabajar.",
-    "body": "Software a la medida, soluciones digitales listas para usar y consultoría senior, todo bajo un mismo techo. La primera llamada es gratis, sin presión.",
-    "ctaBook": "Reserva una llamada gratis",
-    "ctaStore": "Explorar la tienda"
+    "eyebrow": "Siguiente paso",
+    "title": "Cuéntame qué está frenando tu negocio.",
+    "body": "Una llamada de 30 minutos, gratis, en español o inglés. Te vas con un siguiente paso claro, trabajemos juntos o no.",
+    "ctaBook": "Agenda una llamada de 30 min",
+    "ctaStore": "Ver productos",
+    "signature": "Tu único punto de contacto — sin intermediarios ni agencias."
+  },
+  "newsletter": {
+    "eyebrow": "Consejos semanales",
+    "headlinePart1": "Mantente",
+    "headlinePart2": "un paso adelante.",
+    "body": "Cada semana: un consejo tecnológico accionable, una herramienta que estoy usando, y un aprendizaje del aula o del código. Sin relleno.",
+    "freeCallout": "Gratis · Sin spam · Cancela cuando quieras",
+    "placeholder": "tu@correo.com",
+    "inputAriaLabel": "Tu dirección de correo electrónico",
+    "cta": "Suscribirme gratis",
+    "submitting": "Suscribiendo…",
+    "successMessage": "Casi listo — revisa tu bandeja de entrada para confirmar tu suscripción.",
+    "validationError": "Por favor ingresa un correo electrónico válido.",
+    "serverError": "Algo salió mal. Por favor inténtalo de nuevo.",
+    "trust1": "4 países",
+    "trust2": "Educador STEM",
+    "trust3": "8+ años entregando"
   }
 }

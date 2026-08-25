@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom"
 import {
   LayoutDashboard,
-  Package,
   ShoppingBag,
   Download,
   Headphones,
@@ -15,11 +14,12 @@ import {
   X,
   Menu,
   Globe,
-  Heart,
-  MapPin, Briefcase, Calendar} from "lucide-react"
+  Briefcase, Calendar} from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
 import NotificationDropdown from "../components/dashboard/NotificationDropdown"
+import UpcomingMeetingBanner from "../components/dashboard/UpcomingMeetingBanner"
+import ThemeSwitcher from "../components/ui/ThemeSwitcher"
 
 import { useTranslation } from "react-i18next"
 /* ──────────────────────────────────────────────────────────────────────────
@@ -39,7 +39,9 @@ import { useTranslation } from "react-i18next"
  *    - Skip-to-main-content link added for keyboard users.
  *
  *  Preserved verbatim:
- *    - Navigation grouping and sections (Overview · Library · Support · Account)
+ *    - Navigation grouping (consolidated in roadmap step 29 to Overview ·
+ *      Orders · Downloads · Consultations · Projects · Support · Profile;
+ *      Addresses / Security / Notifications are tabs under Profile)
  *    - Mobile slide-out behavior + body-scroll lock
  *    - Bottom tab bar structure
  *    - All routes
@@ -48,6 +50,9 @@ import { useTranslation } from "react-i18next"
  *    - User avatar resolution + fallback initials
  *    - pageMeta lookup
  *  ──────────────────────────────────────────────────────────────────── */
+
+// Sub-routes that should light up the "Profile" entry.
+const PROFILE_ROUTES = ["/dashboard/profile", "/dashboard/addresses", "/dashboard/2fa", "/dashboard/notifications"]
 
 function resolveAvatar(url) {
   if (!url) return null
@@ -76,53 +81,46 @@ function UserAvatar({ src, initials, size = 9, className = "" }) {
   )
 }
 
-// ── Navigation ──
+// ── Navigation · roadmap step 29 · consolidated to 7 entries ──
+// Addresses / Security / Notifications live as tabs inside Profile
+// (see components/dashboard/ProfileTabs). Their routes are unchanged.
+// Labels resolve through dashboard.json `nav.*` / `layout.navDesc.*`.
 const navigation = [
   {
-    section: "Overview",
+    sectionKey: "layout.sections.overview",
     items: [
-      { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard, end: true, description: "Summary and activity" },
+      { labelKey: "nav.overview", descKey: "layout.navDesc.overview", to: "/dashboard", icon: LayoutDashboard, end: true },
     ],
   },
   {
-    section: "Library",
+    sectionKey: "layout.sections.library",
     items: [
-      { label: "My Products", to: "/dashboard/products", icon: Package, description: "Downloads and access" },
-      { label: "Downloads", to: "/dashboard/downloads", icon: Download, description: "File history and logs" },
-      { label: "Order History", to: "/dashboard/orders", icon: ShoppingBag, description: "Purchases and status" },
-      { label: "Service Orders", to: "/dashboard/service-orders", icon: Briefcase, description: "Consulting services" },
-      { label: "Wishlist", to: "/dashboard/wishlist", icon: Heart, description: "Saved for later" },
+      { labelKey: "nav.orders", descKey: "layout.navDesc.orders", to: "/dashboard/orders", icon: ShoppingBag },
+      { labelKey: "nav.downloads", descKey: "layout.navDesc.downloads", to: "/dashboard/downloads", icon: Download },
     ],
   },
   {
-    section: "Bookings",
+    sectionKey: "layout.sections.work",
     items: [
-      { label: "Consultations", to: "/dashboard/consultations", icon: Calendar, description: "Upcoming and past calls" },
-      { label: "Projects", to: "/dashboard/projects", icon: Briefcase, description: "Milestones, files, timeline" },
+      { labelKey: "nav.consultations", descKey: "layout.navDesc.consultations", to: "/dashboard/consultations", icon: Calendar },
+      { labelKey: "nav.projects", descKey: "layout.navDesc.projects", to: "/dashboard/projects", icon: Briefcase },
+      { labelKey: "nav.support", descKey: "layout.navDesc.support", to: "/dashboard/support", icon: Headphones },
     ],
   },
   {
-    section: "Support",
+    sectionKey: "layout.sections.account",
     items: [
-      { label: "Support", to: "/dashboard/support", icon: Headphones, description: "Help and tickets" },
-    ],
-  },
-  {
-    section: "Account",
-    items: [
-      { label: "Profile", to: "/dashboard/profile", icon: User, description: "Personal information" },
-      { label: "Addresses", to: "/dashboard/addresses", icon: MapPin, description: "Saved billing addresses" },
-      { label: "Security", to: "/dashboard/2fa", icon: ShieldCheck, description: "Two-factor authentication" },
+      { labelKey: "nav.profile", descKey: "layout.navDesc.profile", to: "/dashboard/profile", icon: User, match: PROFILE_ROUTES },
     ],
   },
 ]
 
 const bottomTabs = [
-  { label: "Home", to: "/dashboard", icon: LayoutDashboard, end: true },
-  { label: "Products", to: "/dashboard/products", icon: Package },
-  { label: "Orders", to: "/dashboard/orders", icon: ShoppingBag },
-  { label: "Downloads", to: "/dashboard/downloads", icon: Download },
-  { label: "Profile", to: "/dashboard/profile", icon: User },
+  { labelKey: "nav.overview", to: "/dashboard", icon: LayoutDashboard, end: true },
+  { labelKey: "nav.orders", to: "/dashboard/orders", icon: ShoppingBag },
+  { labelKey: "nav.downloads", to: "/dashboard/downloads", icon: Download },
+  { labelKey: "nav.support", to: "/dashboard/support", icon: Headphones },
+  { labelKey: "nav.profile", to: "/dashboard/profile", icon: User, match: PROFILE_ROUTES },
 ]
 
 const pageMeta = {
@@ -132,9 +130,10 @@ const pageMeta = {
   "/dashboard/orders": { title: "Order History", subtitle: "Review your purchases, payment state, and order records." },
   "/dashboard/consultations": { title: "Consultations", subtitle: "Manage upcoming bookings, reschedule, or cancel calls." },
   "/dashboard/service-orders": { title: "Service Orders", subtitle: "Track your consulting services, consultations, and project milestones." },
-  "/dashboard/wishlist": { title: "Wishlist", subtitle: "Products you've saved for later." },
   "/dashboard/addresses": { title: "Addresses", subtitle: "Manage saved billing and invoicing addresses." },
   "/dashboard/2fa": { title: "Security · Two-Factor Auth", subtitle: "Add an extra layer of protection to your account." },
+  "/dashboard/notifications": { title: "Notifications", subtitle: "Everything that happened on your account, in one place." },
+  "/dashboard/projects": { title: "Projects", subtitle: "Milestones, files, and timeline for every engagement." },
   "/dashboard/support": { title: "Support", subtitle: "Open tickets, get help, and track your support requests." },
   "/dashboard/profile": { title: "Profile", subtitle: "Manage your account information and personal details." },
 }
@@ -144,30 +143,33 @@ const pageMeta = {
  *  active. Replaces the prior solid-violet "selected" state.
  *  ──────────────────────────────────────────────────────────────────── */
 function SidebarItem({ item }) {
+  const { t } = useTranslation("dashboard")
+  const { pathname } = useLocation()
   const Icon = item.icon
+  const forced = item.match ? item.match.some((p) => pathname.startsWith(p)) : null
   return (
     <NavLink
       to={item.to}
       end={item.end}
-      className={({ isActive }) =>
+      className={({ isActive: navActive }) =>
         [
           "group relative flex items-start gap-3 rounded-xl py-3 transition-all duration-200",
           // F10.B · 4px Deep Azure left border on active. The pl-3 accounts
           // for the 4px left border so the icon remains in the same x-axis
           // position regardless of state.
-          isActive
-            ? "bg-violet-pale border-l-[4px] border-l-azure pl-[calc(0.75rem-4px)] pr-3 text-violet shadow-[inset_0_0_0_1px_rgba(93,63,211,0.06)]"
+          (forced ?? navActive)
+            ? "bg-violet-pale border-l-[4px] border-l-azure pl-[calc(0.75rem-4px)] pr-3 text-violet shadow-[inset_0_0_0_1px_rgb(var(--color-violet-rgb)/0.06)]"
             : "border-l-[4px] border-l-transparent pl-[calc(0.75rem-4px)] pr-3 text-charcoal-80 hover:bg-violet-ghost hover:text-violet",
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2",
         ].join(" ")
       }
     >
-      {({ isActive }) => (
+      {({ isActive: navActive }) => { const isActive = forced ?? navActive; return (
         <>
           <div
             className={[
               "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
-              isActive ? "bg-violet text-white shadow-[0_4px_12px_rgba(93,63,211,0.18)]" : "bg-[#f7f1f8] text-violet group-hover:bg-white",
+              isActive ? "bg-violet text-white shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.18)]" : "bg-violet-pale/60 text-violet group-hover:bg-white",
             ].join(" ")}
           >
             <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -175,7 +177,7 @@ function SidebarItem({ item }) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
               <span className={`truncate text-meta font-semibold ${isActive ? "text-violet" : ""}`}>
-                {item.label}
+                {t(item.labelKey)}
               </span>
               <ChevronRight
                 className={[
@@ -185,12 +187,12 @@ function SidebarItem({ item }) {
                 aria-hidden="true"
               />
             </div>
-            <div className={["mt-0.5 truncate text-micro", isActive ? "text-violet/70" : "text-charcoal-80/60"].join(" ")}>
-              {item.description}
+            <div className={["mt-0.5 truncate text-micro", isActive ? "text-violet/70" : "text-charcoal-80/65"].join(" ")}>
+              {t(item.descKey)}
             </div>
           </div>
         </>
-      )}
+      ) }}
     </NavLink>
   )
 }
@@ -198,6 +200,7 @@ function SidebarItem({ item }) {
 // ── Mobile slide-out menu ──
 function MobileMenu({ open, onClose, user, initials, onLogout }) {
   const { t } = useTranslation("common")
+  const { t: td } = useTranslation("dashboard")
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden"
     else document.body.style.overflow = ""
@@ -239,7 +242,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
               <UserAvatar src={user?.avatarUrl} initials={initials} size={10} />
               <div>
                 <div className="text-meta font-bold text-violet">{user?.fullName || "Member"}</div>
-                <div className="text-micro text-charcoal-80/60">{user?.email || ""}</div>
+                <div className="text-micro text-charcoal-80/65">{user?.email || ""}</div>
               </div>
             </div>
             <button
@@ -265,9 +268,9 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
           {/* Nav */}
           <div className="flex-1 overflow-y-auto px-4 pb-4">
             {navigation.map((group) => (
-              <div key={group.section} className="mb-6">
-                <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/45">
-                  {group.section}
+              <div key={group.sectionKey} className="mb-6">
+                <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
+                  {td(group.sectionKey)}
                 </div>
                 <div className="space-y-1.5">
                   {group.items.map((item) => (
@@ -278,12 +281,18 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
             ))}
           </div>
 
+          {/* Theme switcher (mobile drawer) — same scoping rules as the
+              desktop sidebar control above. */}
+          <div className="border-t border-charcoal-80/10 px-4 pt-4">
+            <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
+          </div>
+
           {/* Logout */}
-          <div className="border-t border-charcoal-80/10 p-4">
+          <div className="p-4">
             <button
               type="button"
               onClick={onLogout}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-meta font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-300/40 focus-visible:ring-offset-2"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose/20 bg-white px-4 py-3 text-meta font-semibold text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
               Logout
@@ -302,10 +311,11 @@ export default function DashboardLayout() {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const currentMeta = pageMeta[location.pathname] || {
-    title: "Dashboard",
-    subtitle: "Manage your account and digital products.",
-  }
+  const currentMeta = useMemo(() => {
+    if (pageMeta[location.pathname]) return pageMeta[location.pathname]
+    const parent = Object.keys(pageMeta).find((p) => p !== "/dashboard" && location.pathname.startsWith(`${p}/`))
+    return pageMeta[parent] || { title: "Dashboard", subtitle: "Manage your account and digital products." }
+  }, [location.pathname])
 
   const initials = user?.fullName
     ?.split(" ")
@@ -321,11 +331,18 @@ export default function DashboardLayout() {
 
   // Close mobile menu on route change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- close menu on route change
     setMobileMenuOpen(false)
   }, [location.pathname])
 
   return (
-    <section className="min-h-screen bg-mist pb-20 lg:pb-0">
+    // `data-dashboard-shell` is the scoping anchor for dashboard-only
+    // dark mode (see styles/tokens.css). The public website never has
+    // this attribute, so the canonical light brand identity stays
+    // intact regardless of the user's stored theme preference. Toggling
+    // dark mode (via ThemeSwitcher in the sidebar) flips only the
+    // dashboard subtree per Brand v3.1 §00 "Default Mode: Light".
+    <section data-dashboard-shell className="min-h-screen bg-mist pb-20 lg:pb-0">
       {/* Skip-to-content for keyboard users */}
       <a
         href="#dashboard-main"
@@ -340,13 +357,13 @@ export default function DashboardLayout() {
           {/* ── Desktop Sidebar ── */}
           <div className="hidden lg:sticky lg:top-4 lg:block lg:h-[calc(100vh-2rem)]">
             <aside
-              className="flex h-full min-h-0 w-full flex-col rounded-xl border border-charcoal-80/10 bg-white px-4 py-4 shadow-[0_14px_40px_rgba(93,63,211,0.06)]"
+              className="flex h-full min-h-0 w-full flex-col rounded-xl border border-charcoal-80/10 bg-white px-4 py-4 shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.06)]"
               aria-label={t("layout.navAria")}
             >
               {/* Brand */}
               <div className="border-b border-charcoal-80/10 px-2 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet text-white shadow-[0_10px_22px_rgba(93,63,211,0.18)]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet text-white shadow-[0_10px_22px_rgb(var(--color-violet-rgb)/0.18)]">
                     <ShieldCheck className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -368,9 +385,9 @@ export default function DashboardLayout() {
               {/* Nav */}
               <div className="mt-4 flex-1 overflow-y-auto pr-1">
                 {navigation.map((group) => (
-                  <div key={group.section} className="mb-6">
-                    <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/45">
-                      {group.section}
+                  <div key={group.sectionKey} className="mb-6">
+                    <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
+                      {t(group.sectionKey)}
                     </div>
                     <div className="space-y-1.5">
                       {group.items.map((item) => (
@@ -382,7 +399,7 @@ export default function DashboardLayout() {
               </div>
 
               {/* User card */}
-              <div className="mt-3 rounded-xl border border-charcoal-80/10 bg-[#fbf8fb] p-4">
+              <div className="mt-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 p-4">
                 <div className="flex items-center gap-3">
                   <UserAvatar src={user?.avatarUrl} initials={initials} size={11} />
                   <div className="min-w-0 flex-1">
@@ -392,11 +409,19 @@ export default function DashboardLayout() {
                 </div>
               </div>
 
+              {/* Theme switcher — 3-way Light / Dark / System control.
+                  Scoped to the dashboard subtree via data-dashboard-shell
+                  on this section's root, so toggling here does NOT alter
+                  the public website's canonical light brand. */}
+              <div className="mt-3">
+                <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
+              </div>
+
               {/* Logout */}
               <button
                 type="button"
                 onClick={handleLogout}
-                className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 text-meta font-semibold text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-red-300/40 focus-visible:ring-offset-2"
+                className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-rose/20 bg-white px-4 py-3 text-meta font-semibold text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
                 Logout
@@ -408,12 +433,12 @@ export default function DashboardLayout() {
           <div className="min-w-0">
 
             {/* ── Mobile Header ── */}
-            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgba(93,63,211,0.06)] lg:hidden">
+            <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[0_2px_12px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden">
               <div className="flex items-center gap-3">
-                <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_12px_rgba(93,63,211,0.22)]" />
+                <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.22)]" />
                 <div>
                   <div className="text-body font-bold text-violet">{currentMeta.title}</div>
-                  <div className="text-micro text-charcoal-80/55">{t("layout.memberDashboard")}</div>
+                  <div className="text-micro text-charcoal-80/65">{t("layout.memberDashboard")}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -438,10 +463,10 @@ export default function DashboardLayout() {
             </header>
 
             {/* ── Desktop Header ── */}
-            <header className="sticky top-4 z-20 hidden rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_35px_rgba(93,63,211,0.05)] lg:block">
+            <header className="sticky top-4 z-20 hidden rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[0_12px_35px_rgb(var(--color-violet-rgb)/0.05)] lg:block">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
-                  <div className="text-micro font-medium uppercase tracking-[0.12em] text-charcoal-80/50">
+                  <div className="text-micro font-medium uppercase tracking-[0.12em] text-charcoal-80/65">
                     Dashboard / {currentMeta.title}
                   </div>
                   <div className="mt-2">
@@ -454,12 +479,12 @@ export default function DashboardLayout() {
                 <div className="flex flex-wrap items-center gap-3">
                   <label htmlFor="dashboard-search" className="sr-only">{t("layout.searchDashboard")}</label>
                   <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-mist px-4 py-3 transition focus-within:border-violet/40 focus-within:ring-[3px] focus-within:ring-azure/20">
-                    <Search className="h-4 w-4 text-charcoal-80/45" aria-hidden="true" />
+                    <Search className="h-4 w-4 text-charcoal-80/65" aria-hidden="true" />
                     <input
                       id="dashboard-search"
                       type="text"
                       placeholder="Search orders, products..."
-                      className="w-[180px] bg-transparent text-meta text-violet outline-none placeholder:text-charcoal-80/45"
+                      className="w-[180px] bg-transparent text-meta text-violet outline-none placeholder:text-charcoal-80/65"
                     />
                   </div>
                   <button
@@ -467,18 +492,18 @@ export default function DashboardLayout() {
                     onClick={() => navigate("/dashboard/support")}
                     aria-label={t("layout.openSupport")}
                     title="Support"
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-[#f4eef6] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-violet-pale/60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
                   >
                     <HelpCircle className="h-[18px] w-[18px]" aria-hidden="true" />
                   </button>
                   <NotificationDropdown />
-                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-[#faf8fb] px-3.5 py-2">
-                    <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_10px_rgba(93,63,211,0.22)]" />
+                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3.5 py-2">
+                    <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[0_4px_10px_rgb(var(--color-violet-rgb)/0.22)]" />
                     <div className="min-w-0">
                       <div className="truncate text-meta font-semibold leading-none text-violet">
                         {user?.fullName?.split(" ")[0] || "Member"}
                       </div>
-                      <div className="mt-0.5 truncate text-micro leading-none text-charcoal-80/55">
+                      <div className="mt-0.5 truncate text-micro leading-none text-charcoal-80/65">
                         {user?.email || ""}
                       </div>
                     </div>
@@ -489,6 +514,11 @@ export default function DashboardLayout() {
 
             {/* Page content */}
             <main id="dashboard-main" className="mt-3 min-w-0 lg:mt-4">
+              {/* Pinned banner that auto-appears 15 min before any
+                  confirmed meeting and stays until 60 min past start.
+                  Renders nothing when there's no imminent meeting —
+                  no layout shift on most page loads. */}
+              <UpcomingMeetingBanner />
               <Outlet />
             </main>
           </div>
@@ -505,39 +535,40 @@ export default function DashboardLayout() {
       />
 
       {/* ── Mobile Bottom Tab Bar ── */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-charcoal-80/10 bg-white shadow-[0_-4px_16px_rgba(93,63,211,0.06)] lg:hidden" aria-label={t("layout.quickNav")}>
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-charcoal-80/10 bg-white shadow-[0_-4px_16px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden" aria-label={t("layout.quickNav")}>
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1.5">
           {bottomTabs.map((tab) => {
             const Icon = tab.icon
+            const forced = tab.match ? tab.match.some((p) => location.pathname.startsWith(p)) : null
             return (
               <NavLink
                 key={tab.to}
                 to={tab.to}
                 end={tab.end}
-                aria-label={tab.label}
-                className={({ isActive }) =>
+                aria-label={t(tab.labelKey)}
+                className={({ isActive: navActive }) =>
                   [
                     "flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-center transition-all",
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
-                    isActive ? "text-violet" : "text-charcoal-80/45 hover:text-violet",
+                    (forced ?? navActive) ? "text-violet" : "text-charcoal-80/65 hover:text-violet",
                   ].join(" ")
                 }
               >
-                {({ isActive }) => (
+                {({ isActive: navActive }) => { const isActive = forced ?? navActive; return (
                   <>
                     <div
                       className={[
                         "flex h-8 w-8 items-center justify-center rounded-xl transition-all",
-                        isActive ? "bg-violet text-white shadow-[0_4px_14px_rgba(93,63,211,0.25)]" : "",
+                        isActive ? "bg-violet text-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.25)]" : "",
                       ].join(" ")}
                     >
                       <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
                     </div>
                     <span className={`text-micro font-semibold ${isActive ? "text-violet" : ""}`}>
-                      {tab.label}
+                      {t(tab.labelKey)}
                     </span>
                   </>
-                )}
+                ) }}
               </NavLink>
             )
           })}

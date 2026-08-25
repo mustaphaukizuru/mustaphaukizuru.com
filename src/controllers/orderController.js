@@ -1,5 +1,11 @@
 const asyncHandler = require("../utils/asyncHandler")
 const logger = require("../utils/logger")
+// getOrderStatus reads the order directly (a deliberately minimal, public
+// payload). This import was missing, so that endpoint threw
+// `ReferenceError: prisma is not defined` on every call — the checkout
+// success page polls it after a Mercado Pago redirect, so buyers sat on
+// "confirming payment" until it timed out.
+const prisma = require("../lib/prisma")
 const {
   createOrder: createOrderService,
   getEnrichedOrderById,
@@ -61,6 +67,12 @@ const createOrder = asyncHandler(async (req, res) => {
         fullName: customerName,
         email:    customerEmail,
       })
+      if (result.requiresLogin) {
+        return res.status(401).json({
+          success: false, code: "ACCOUNT_EXISTS",
+          message: "An account already exists for this email. Please sign in to complete your purchase.",
+        })
+      }
       userId       = result.user.id
       isNewUser    = result.isNew
       claimToken   = result.claimToken || null
@@ -186,4 +198,41 @@ const getOrderById = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, data: order })
 })
 
-module.exports = { createOrder, getMyOrders, getOrderById }
+/**
+ * GET /api/orders/:id/status — minimal payment-status probe used by the
+ * checkout success page while a gateway (Mercado Pago) is still confirming.
+ *
+ * Deliberately public (attachUserIfPresent): a brand-new guest buyer is not
+ * signed in yet on the success page, but still needs to see the order flip
+ * to "paid". The order id is an unguessable cuid and the payload is limited
+ * to status + reference — no items, amounts, downloads, or PII. Anything
+ * richer stays behind GET /api/orders/:id (protect + owner check).
+ */
+const getOrderStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params
+  const order = await prisma.order.findUnique({
+    where:  { id },
+    select: { id: true, orderNumber: true, status: true, paidAt: true, userId: true },
+  })
+  if (!order) {
+    return res.status(404).json({ success: false, code: "NOT_FOUND", message: "Order not found" })
+  }
+  const isAdmin = req.user?.role === "admin"
+  const isOwner = Boolean(order.userId && req.user?.id === order.userId)
+  return res.status(200).json({
+    success: true,
+    data: {
+      id:           order.id,
+      orderNumber:  order.orderNumber,
+      status:       order.status,
+      paidAt:       order.paidAt,
+      // Tells the client whether the enriched order (and downloads) can be
+      // fetched with the current session, or whether it must show the
+      // "claim your account" state instead.
+      canViewOrder: isAdmin || isOwner,
+      hasAccount:   Boolean(order.userId),
+    },
+  })
+})
+
+module.exports = { createOrder, getMyOrders, getOrderById, getOrderStatus }

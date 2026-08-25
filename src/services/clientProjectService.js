@@ -38,6 +38,7 @@ async function listAdminProjects() {
   const rows = await prisma.clientProject.findMany({
     orderBy: [{ updatedAt: "desc" }],
     include: PROJECT_INCLUDE,
+    take:    200,
   })
   return rows
 }
@@ -223,6 +224,7 @@ async function listMyProjects(userId) {
       },
       _count: { select: { files: true } },
     },
+    take: 200,
   })
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { Modal } from "./ui/Modal"
 import {
   Award,
   Download,
@@ -42,6 +42,11 @@ import { useTranslation } from "react-i18next"
  *
  * Props:
  *   src           — public path to PDF OR external credential URL
+ *   thumbnail     — optional image URL (PNG/JPG) used as the tile preview.
+ *                   When provided, renders an <img> instead of the PDF.js
+ *                   canvas — faster, no worker dependency, and survives the
+ *                   PDFs PDF.js can't decode (JBIG2, JPEG2000, etc.). On
+ *                   <img> load error, falls back to the PDF.js renderer.
  *   credentialUrl — optional explicit credential page; if present, takes
  *                   precedence over `src` for the "Verify" CTA in
  *                   credential mode
@@ -106,13 +111,14 @@ async function loadPdfjs() {
 // pdfjs.getDocument rejected (worker MIME mismatch, fetch 404, etc).
 function logDev(...args) {
   if (import.meta?.env?.DEV) {
-    // eslint-disable-next-line no-console
+     
     console.warn("[CertificatePreview]", ...args)
   }
 }
 
 export default function CertificatePreview({
   src,
+  thumbnail,
   credentialUrl,
   issuerLogo,
   title,
@@ -152,9 +158,9 @@ export default function CertificatePreview({
             className="absolute inset-0"
             style={{
               backgroundImage:
-                "radial-gradient(at 20% 0%, rgba(93,63,211,0.92), transparent 60%), " +
+                "radial-gradient(at 20% 0%, rgb(var(--color-violet-rgb)/0.92), transparent 60%), " +
                 "radial-gradient(at 100% 100%, rgba(53,0,80,0.95), transparent 55%), " +
-                "linear-gradient(180deg, #3B2487 0%, #1A1B23 100%)",
+                "linear-gradient(180deg, var(--color-action-primary-active) 0%, var(--color-charcoal) 100%)",
             }}
           />
           <div
@@ -217,7 +223,6 @@ export default function CertificatePreview({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={`${t("certificate.openLabel", { defaultValue: "Open certificate" })}: ${title}`}
         className={cn(
           "group relative flex w-full flex-col overflow-hidden rounded-2xl bg-white text-left shadow-card-soft ring-1 ring-charcoal-80/8",
           "transition hover:-translate-y-1 hover:shadow-popover hover:ring-violet/25",
@@ -226,7 +231,7 @@ export default function CertificatePreview({
         )}
       >
         <div className="relative aspect-[1.414/1] w-full overflow-hidden bg-slate-50">
-          <PdfPageImage src={src} title={title} />
+          <CertificateThumbnail src={src} thumbnail={thumbnail} title={title} />
           <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-charcoal/5" aria-hidden="true" />
 
           {verified && (
@@ -265,17 +270,39 @@ export default function CertificatePreview({
         </div>
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <CertificateModal
-            src={src}
-            title={title}
-            issuer={issuer}
-            onClose={() => setOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      <CertificateModal
+        open={open}
+        src={src}
+        title={title}
+        issuer={issuer}
+        onClose={() => setOpen(false)}
+      />
     </>
+  )
+}
+
+/* ───────────────────────── Thumbnail dispatcher ─────────────────────────
+ * Prefers a static image (PNG/JPG) when supplied — it's faster, has no
+ * worker dependency, and survives PDFs that PDF.js can't decode (e.g.
+ * Google's Certified Educator cert ships JBIG2 streams that pdf.js refuses).
+ * If the image 404s or errors, we transparently fall back to PdfPageImage,
+ * which itself degrades to a branded placeholder if PDF.js also fails.
+ * ───────────────────────────────────────────────────────────────────── */
+function CertificateThumbnail({ src, thumbnail, title }) {
+  const [imgFailed, setImgFailed] = useState(false)
+  const showImage = thumbnail && !imgFailed
+  return showImage ? (
+    <img
+      src={thumbnail}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      decoding="async"
+      onError={() => setImgFailed(true)}
+      className="absolute inset-0 h-full w-full object-cover"
+    />
+  ) : (
+    <PdfPageImage src={src} title={title} />
   )
 }
 
@@ -328,7 +355,7 @@ function PdfPageImage({ src, title, scale = 1.4 }) {
       />
       {state === "loading" && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-2 text-violet/70">
+          <div className="flex flex-col items-center gap-2 text-violet">
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
             <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.18em]">
               Rendering
@@ -367,24 +394,54 @@ function PdfPageImage({ src, title, scale = 1.4 }) {
  * state with prominent Download + Open-in-new-tab CTAs. The user always
  * has a clear path forward.
  */
-function CertificateModal({ src, title, issuer, onClose }) {
+function CertificateModal({ open, src, title, issuer, onClose }) {
+  const { t } = useTranslation("about")
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      bare
+      hideClose
+      ariaLabel={`${t("certificate.modalLabel", { defaultValue: "Certificate" })}: ${title}`}
+      placement="middle"
+      size="none"
+      zIndex={80}
+      // Backdrop padding: edge-to-edge on mobile (so the modal becomes a
+      // proper fullscreen viewer), narrow inset on desktop so the page
+      // chrome behind is still acknowledged as context.
+      wrapperClassName="p-0 sm:p-4 md:p-6"
+      backdropClassName="bg-charcoal/85 backdrop-blur-md"
+      // Sizing strategy:
+      //   • Mobile: full-bleed (h-[100dvh] w-full, no rounding) — the
+      //     PDF needs every pixel of vertical space, and a 12px gutter
+      //     around the modal was eating ~24 px the iframe desperately
+      //     needed for portrait-oriented certificate PDFs.
+      //   • Desktop: large modal that scales WITH the viewport — the
+      //     previous `min(92vh, 880px)` cap meant a 1440 p monitor
+      //     showed 880 px of certificate plus 425 px of empty white
+      //     space below. Removing the 880-px ceiling lets tall
+      //     viewports finally render the full A4/landscape PDF.
+      //   • Width: max-w-6xl (was 5xl) so landscape certificates have
+      //     enough horizontal room before the iframe starts forcing
+      //     its own zoom-out.
+      className={[
+        "flex flex-col overflow-hidden bg-white shadow-[0_24px_64px_rgba(0,0,0,0.35)]",
+        "h-[100dvh] rounded-none",
+        "sm:h-[min(94vh,calc(100dvh-2rem))] sm:max-w-5xl sm:rounded-2xl",
+        "md:max-w-6xl",
+      ].join(" ")}
+    >
+      <CertificateViewer src={src} title={title} issuer={issuer} onClose={onClose} />
+    </Modal>
+  )
+}
+
+/* Stateful viewer body — mounted only while the Modal is open so the load
+ * watchdog restarts on every open. */
+function CertificateViewer({ src, title, issuer, onClose }) {
   const { t }                = useTranslation("about")
   const [state, setState]    = useState("loading") // loading · ok · error
   const watchdogRef          = useRef(null)
-
-  // Lock body scroll
-  useEffect(() => {
-    const orig = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    return () => { document.body.style.overflow = orig }
-  }, [])
-
-  // Esc to close
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose() }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [onClose])
 
   // Watchdog — if the iframe doesn't fire `load` within 5s, assume failure.
   useEffect(() => {
@@ -409,30 +466,22 @@ function CertificateModal({ src, title, issuer, onClose }) {
   })()
 
   return (
-    <motion.div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`${t("certificate.modalLabel", { defaultValue: "Certificate" })}: ${title}`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-charcoal/85 p-4 backdrop-blur-md"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <motion.div
-        initial={{ scale: 0.96, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.96, opacity: 0 }}
-        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-modal"
-      >
-        {/* Header bar */}
-        <div className="flex items-center gap-3 border-b border-charcoal-80/8 bg-white px-4 py-3">
+    <>
+        {/* Header bar — title left · verified chip · actions right.
+            Layout collapses gracefully on narrow widths: the verified chip
+            hides on mobile (its meaning is conveyed by the issuer eyebrow),
+            and the download label collapses to icon-only. */}
+        <div className="flex items-center gap-2 border-b border-charcoal-80/8 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[14px] font-bold text-charcoal">{title}</p>
+            <div className="flex items-center gap-2">
+              <p className="truncate text-[14px] font-bold text-charcoal">{title}</p>
+              <span className="hidden shrink-0 items-center gap-1 rounded-full bg-mint/12 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-mint-700 sm:inline-flex">
+                <ShieldCheck className="h-2.5 w-2.5" strokeWidth={2.4} aria-hidden="true" />
+                {t("certificate.verifiedBadge", { defaultValue: "Verified" })}
+              </span>
+            </div>
             {issuer && (
-              <p className="truncate font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-violet">
+              <p className="truncate font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-violet">
                 {issuer}
               </p>
             )}
@@ -441,17 +490,19 @@ function CertificateModal({ src, title, issuer, onClose }) {
           <a
             href={src}
             download={filename}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-charcoal-80/12 bg-white px-3 text-[12.5px] font-semibold text-charcoal-80/85 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+            className="cursor-pointer inline-flex h-9 items-center gap-1.5 rounded-full border border-charcoal-80/12 bg-white px-2.5 text-[12.5px] font-semibold text-charcoal-80/85 transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 sm:px-3"
             aria-label={t("certificate.downloadLabel", { defaultValue: "Download PDF" })}
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("certificate.downloadShort", { defaultValue: "Download" })}
+            <span className="hidden sm:inline">
+              {t("certificate.downloadShort", { defaultValue: "Download" })}
+            </span>
           </a>
           <a
             href={src}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-violet"
+            className="cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             aria-label={t("certificate.openNewTab")}
           >
             <ExternalLink className="h-4 w-4" />
@@ -460,14 +511,16 @@ function CertificateModal({ src, title, issuer, onClose }) {
             type="button"
             onClick={onClose}
             aria-label={t("certificate.closeLabel", { defaultValue: "Close" })}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5"
+            className="cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full text-charcoal-80/65 transition hover:bg-charcoal-80/5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="relative flex-1 overflow-hidden bg-slate-50">
+        {/* Body — slate-50 tint replaces the harsh pure-white whitespace that
+            shows below short landscape certs. The native PDF viewer's own
+            background blends with our canvas instead of clashing. */}
+        <div className="relative flex-1 overflow-hidden bg-slate-100">
           {/* Always-mounted iframe so onLoad can fire. Hidden until ready. */}
           <iframe
             src={src}
@@ -503,7 +556,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
                 <a
                   href={src}
                   download={filename}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_rgba(93,63,211,0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
+                  className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2 text-[12.5px] font-semibold text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.18)] transition hover:-translate-y-0.5 hover:bg-violet-deep"
                 >
                   <Download className="h-3.5 w-3.5" />
                   {t("certificate.downloadShort", { defaultValue: "Download" })}
@@ -512,7 +565,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
                   href={src}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-charcoal-80/15 px-4 py-2 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
+                  className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-charcoal-80/15 px-4 py-2 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   {t("certificate.openNewTab")}
@@ -521,8 +574,7 @@ function CertificateModal({ src, title, issuer, onClose }) {
             </div>
           )}
         </div>
-      </motion.div>
-    </motion.div>
+    </>
   )
 }
 

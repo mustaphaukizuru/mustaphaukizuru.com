@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "framer-motion"
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
+import { m, useReducedMotion } from "framer-motion"
 import { Mail, Globe } from "lucide-react"
 
 /**
@@ -255,14 +256,23 @@ export const FOLLOW_SOCIALS = [
 ]
 
 /* ── Sizing tokens ────────────────────────────────────────────────────── */
-/* Chips are sized for an Apple-style ~50% icon-to-chip ratio so brand
- * silhouettes read clearly at every breakpoint. The footprint stays
- * compact — these sit alongside body copy and CTAs, not as a hero. */
+/* Chips use a refined ~42% icon-to-chip ratio. The previous 50% Apple-
+ * style ratio made the glyphs feel "shouty" on the page — every brand
+ * mark dominated its tile rather than sitting comfortably within it.
+ * 42% is the ratio Apple News, Vercel, and Linear use for social rows:
+ * the silhouette is still instantly recognizable but the chip reads as
+ * a polished button first, brand emblem second. This also normalizes
+ * the apparent size of glyphs with non-square viewBoxes (LinkedIn 448×512
+ * "in", Facebook 320×512 "f") against the 24×24 ones (GitHub, Instagram,
+ * TikTok) — the wider letter glyphs no longer feel chunkier.
+ *
+ * Box dimensions are square (h-X w-X), so every chip in a row renders
+ * identically regardless of which brand it represents. */
 
 const SIZE = {
-  sm: { box: "h-8 w-8", icon: "h-[16px] w-[16px]", radius: "rounded-full", gap: "gap-2" },
-  md: { box: "h-10 w-10", icon: "h-[20px] w-[20px]", radius: "rounded-full", gap: "gap-2.5" },
-  lg: { box: "h-11 w-11", icon: "h-[22px] w-[22px]", radius: "rounded-full", gap: "gap-3" },
+  sm: { box: "h-9 w-9",   icon: "h-[15px] w-[15px]", radius: "rounded-full", gap: "gap-2"   },
+  md: { box: "h-11 w-11", icon: "h-[18px] w-[18px]", radius: "rounded-full", gap: "gap-2.5" },
+  lg: { box: "h-12 w-12", icon: "h-[20px] w-[20px]", radius: "rounded-full", gap: "gap-3"   },
 }
 
 /* ── Motion variants ──────────────────────────────────────────────────── */
@@ -305,7 +315,7 @@ export default function SocialLinks({
     .filter(Boolean)
 
   return (
-    <motion.ul
+    <m.ul
       role="list"
       aria-label={ariaLabel}
       variants={reduce ? undefined : containerVariants}
@@ -324,7 +334,7 @@ export default function SocialLinks({
           reduce={reduce}
         />
       ))}
-    </motion.ul>
+    </m.ul>
   )
 }
 
@@ -350,7 +360,7 @@ function SocialChip({ item, variant, tone, sizing, reduce }) {
   const cssVars = { "--brand": item.color }
 
   return (
-    <motion.li
+    <m.li
       variants={reduce ? undefined : itemVariants}
       className="ukz-social-chip relative isolate"
       style={cssVars}
@@ -363,7 +373,7 @@ function SocialChip({ item, variant, tone, sizing, reduce }) {
         style={{ backgroundColor: item.color, zIndex: 0 }}
       />
 
-      <motion.a
+      <m.a
         href={item.href}
         target={target}
         rel={rel}
@@ -433,7 +443,7 @@ function SocialChip({ item, variant, tone, sizing, reduce }) {
               : undefined
           }
         />
-      </motion.a>
+      </m.a>
 
       <style>{`
         .ukz-social-chip:hover .ukz-social-halo { opacity: 0.55; }
@@ -449,7 +459,7 @@ function SocialChip({ item, variant, tone, sizing, reduce }) {
           .ukz-social-chip .ukz-social-sheen > span { animation: none !important; }
         }
       `}</style>
-    </motion.li>
+    </m.li>
   )
 }
 

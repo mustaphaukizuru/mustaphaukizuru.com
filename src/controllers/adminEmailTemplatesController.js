@@ -89,13 +89,14 @@ const listTemplates = asyncHandler(async (req, res) => {
     const rows = await prisma.emailTemplate.findMany({
       where: { locale: localeFilter },
       orderBy: { key: "asc" },
+      take: 200,
     })
     return res.json({ success: true, data: rows.map(shape) })
   }
 
   // Default: return EN rows + a summary of which locales each key has populated
   // so the admin UI can show "EN/ES" availability per template at a glance.
-  const allRows = await prisma.emailTemplate.findMany({ orderBy: [{ key: "asc" }, { locale: "asc" }] })
+  const allRows = await prisma.emailTemplate.findMany({ orderBy: [{ key: "asc" }, { locale: "asc" }], take: 400 })
   const grouped = new Map()
   for (const row of allRows) {
     const existing = grouped.get(row.key)

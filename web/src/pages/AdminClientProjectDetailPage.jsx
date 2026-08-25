@@ -66,7 +66,7 @@ export default function AdminClientProjectDetailPage() {
       setError(err.message || "Could not load project")
     } finally { setLoading(false) }
   }
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [id])
+  useEffect(() => { load()   }, [id])
 
   async function handleSave() {
     setSaving(true)
@@ -151,13 +151,13 @@ export default function AdminClientProjectDetailPage() {
       </Link>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </div>
       )}
 
       {/* Project metadata */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h1 className="text-card font-bold text-violet">{isNew ? "New project" : project?.projectName}</h1>
           {!isNew && project && <StatusPill status={project.projectStatus} />}
@@ -205,7 +205,7 @@ export default function AdminClientProjectDetailPage() {
         <div className="mt-5 flex justify-end">
           <button
             type="button" onClick={handleSave} disabled={saving}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(93,63,211,0.18)] transition hover:bg-violet-deep disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgb(var(--color-violet-rgb)/0.18)] transition hover:bg-violet-deep disabled:opacity-60"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {isNew ? "Create project" : "Save changes"}
@@ -215,7 +215,7 @@ export default function AdminClientProjectDetailPage() {
 
       {/* Milestones */}
       {!isNew && project && (
-        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-card font-bold text-violet">Milestones</h2>
@@ -237,7 +237,7 @@ export default function AdminClientProjectDetailPage() {
                       <StatusPill status={m.status} />
                     </div>
                     {m.description && <p className="mt-1 text-micro text-charcoal-80/65">{m.description}</p>}
-                    <div className="mt-1.5 font-mono text-[11px] text-charcoal-80/45">
+                    <div className="mt-1.5 font-mono text-[11px] text-charcoal-80/65">
                       {m.dueDate && <>Due {new Date(m.dueDate).toLocaleDateString()} · </>}
                       {m.completedAt && <>Completed {new Date(m.completedAt).toLocaleDateString()}</>}
                     </div>
@@ -252,7 +252,7 @@ export default function AdminClientProjectDetailPage() {
                     </select>
                     <button
                       type="button" onClick={() => handleMilestoneDelete(m)}
-                      className="rounded-md border border-red-200 bg-white p-1.5 text-red-600 transition hover:bg-red-50"
+                      className="rounded-md border border-rose/20 bg-white p-1.5 text-rose-700 transition hover:bg-rose/10"
                       aria-label={`Delete ${m.title}`}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -262,7 +262,7 @@ export default function AdminClientProjectDetailPage() {
               )
             })}
             {project.milestones.length === 0 && (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-4 text-center text-meta text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-4 text-center text-meta text-charcoal-80/65">
                 No milestones yet. Add the first one below.
               </div>
             )}
@@ -296,7 +296,7 @@ export default function AdminClientProjectDetailPage() {
 
       {/* Files */}
       {!isNew && project && (
-        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-card font-bold text-violet">Deliverables</h2>
@@ -310,7 +310,7 @@ export default function AdminClientProjectDetailPage() {
 
           <div className="mt-4 space-y-2">
             {project.files.length === 0 && (
-              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-4 text-center text-meta text-charcoal-80/55">
+              <div className="rounded-lg border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-4 text-center text-meta text-charcoal-80/65">
                 No files uploaded yet.
               </div>
             )}
@@ -322,7 +322,7 @@ export default function AdminClientProjectDetailPage() {
                   </div>
                   <div className="min-w-0">
                     <div className="truncate text-meta font-semibold text-charcoal-80">{f.fileName}</div>
-                    <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/55">
+                    <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
                       {f.fileType || "file"} · {new Date(f.createdAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -337,7 +337,7 @@ export default function AdminClientProjectDetailPage() {
                   </a>
                   <button
                     type="button" onClick={() => handleFileDelete(f)}
-                    className="rounded-md border border-red-200 bg-white p-1.5 text-red-600 transition hover:bg-red-50"
+                    className="rounded-md border border-rose/20 bg-white p-1.5 text-rose-700 transition hover:bg-rose/10"
                     aria-label={`Delete ${f.fileName}`}
                   >
                     <Trash2 className="h-3.5 w-3.5" />

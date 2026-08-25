@@ -17,6 +17,7 @@ router.post("/posts",         c.createPost)
 router.get("/posts/:id",      c.getPost)
 router.patch("/posts/:id",    c.updatePost)
 router.delete("/posts/:id",   c.deletePost)
+router.patch("/posts/:id/restore", c.restorePost)
 
 /* Categories */
 router.get("/categories",         c.listCategories)

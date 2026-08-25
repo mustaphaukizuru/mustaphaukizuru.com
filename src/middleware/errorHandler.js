@@ -19,9 +19,56 @@
 //   FILE_TOO_LARGE · DB_ERROR · REQUEST_ERROR
 // ─────────────────────────────────────────────────────────────────────────────
 
+const fs     = require("fs")
+const path   = require("path")
 const logger = require("../utils/logger")
+const AppError = require("../utils/AppError")
 
 BigInt.prototype.toJSON = function () { return this.toString() }
+
+// In production the SPA build copies web/public/* → public/. In development
+// (`npm run dev` with no build) the source files live in web/public/ only.
+// Resolve at startup once so both modes work with no extra config.
+function resolveErrorHtml(name) {
+  const built = path.join(__dirname, "..", "..", "public", name)
+  const src   = path.join(__dirname, "..", "..", "web", "public", name)
+  return fs.existsSync(built) ? built : src
+}
+const HTML_500_PATH = resolveErrorHtml("500.html")
+const HTML_503_PATH = resolveErrorHtml("503.html")
+
+/**
+ * Decide whether the caller wants HTML or JSON. Same heuristic as notFound.js:
+ *   - Anything under /api/ is JSON (frontend service calls).
+ *   - Otherwise check Accept: text/html.
+ *
+ * Kept inline (rather than imported from notFound) to keep this middleware
+ * stand-alone — it loads before Sentry and runs on every request path.
+ */
+function wantsHtml(req) {
+  if (req.originalUrl && req.originalUrl.startsWith("/api/")) return false
+  const accept = String(req.headers?.accept || "")
+  return accept.includes("text/html")
+}
+
+/**
+ * Read the static error page from /public, with an in-memory cache so we
+ * don't pay the disk read on every 5xx. Cache invalidates on file change
+ * (mtime check) so editing the HTML in development picks up immediately.
+ */
+const htmlCache = new Map()
+function readErrorHtml(filePath) {
+  try {
+    const stat = fs.statSync(filePath)
+    const cached = htmlCache.get(filePath)
+    if (cached && cached.mtimeMs === stat.mtimeMs) return cached.html
+    const html = fs.readFileSync(filePath, "utf8")
+    htmlCache.set(filePath, { mtimeMs: stat.mtimeMs, html })
+    return html
+  } catch {
+    return null
+  }
+}
 
 const PRISMA_CONNECTION_MSGS = ["Can't reach database", "Connection refused", "ECONNREFUSED", "P1001", "P1002", "P1003"]
 const PRISMA_CLIENT_NAMES    = ["PrismaClientKnownRequestError","PrismaClientUnknownRequestError","PrismaClientRustPanicError","PrismaClientInitializationError","PrismaClientValidationError"]
@@ -59,6 +106,22 @@ function buildErrorBody(code, message, details = null, extra = null) {
   }
 }
 
+/**
+ * Send an HTML error page for a browser request. Returns true if a page was
+ * sent, false if the caller should fall through to JSON (file missing, etc.).
+ */
+function sendHtmlError(req, res, status) {
+  if (!wantsHtml(req)) return false
+  const filePath = status === 503 ? HTML_503_PATH : HTML_500_PATH
+  const html = readErrorHtml(filePath)
+  if (!html) return false
+  res.status(status)
+  res.setHeader("Content-Type", "text/html; charset=utf-8")
+  res.setHeader("Cache-Control", "no-store")
+  res.send(html)
+  return true
+}
+
 function errorHandler(err, req, res, next) {
   if (res.headersSent) return next(err)
 
@@ -67,6 +130,7 @@ function errorHandler(err, req, res, next) {
   // ── DB unreachable ─────────────────────────────────────────────────────
   if (isDbConnectionError(err)) {
     logger.error("[DB] Connection error:", err.message)
+    if (sendHtmlError(req, res, 503)) return
     return res.status(503).json(buildErrorBody(
       "DB_UNAVAILABLE",
       "Service temporarily unavailable. Please try again shortly.",
@@ -132,7 +196,24 @@ function errorHandler(err, req, res, next) {
     ))
   }
 
-  // ── Application errors ────────────────────────────────────────────────
+  // ── AppError (canonical application error) ────────────────────────────
+  // statusCode + code + details are authoritative; same dual-shape body as
+  // the legacy {statusCode, code} errors below.
+  if (AppError.isAppError(err)) {
+    const appStatus = err.statusCode || 500
+    if (appStatus >= 500) {
+      logger.error("[AppError]", appStatus, err.code, err.message, isProd ? "" : err.stack?.split("\n")[1])
+      if (sendHtmlError(req, res, appStatus === 503 ? 503 : 500)) return
+    }
+    return res.status(appStatus).json(buildErrorBody(
+      err.code || mapStatusToCode(appStatus),
+      err.message || "Internal server error",
+      err.details || null,
+      !isProd && appStatus >= 500 ? { stack: err.stack?.split("\n").slice(0, 5) } : null,
+    ))
+  }
+
+  // ── Application errors (legacy {statusCode, code} shape) ──────────────
   const status   = err.statusCode || err.status || 500
   const message  = err.message || "Internal server error"
 
@@ -141,6 +222,10 @@ function errorHandler(err, req, res, next) {
 
   if (status >= 500) {
     logger.error("[Error]", status, err.name, err.message, isProd ? "" : err.stack?.split("\n")[1])
+    // Browsers hitting a non-API page (e.g. SSR-style request that crashed)
+    // get the branded 500.html. API callers still receive JSON below so
+    // existing frontend code (web/src/lib/api.js) keeps working unchanged.
+    if (sendHtmlError(req, res, status === 503 ? 503 : 500)) return
   }
 
   const stackExtra = !isProd && status >= 500

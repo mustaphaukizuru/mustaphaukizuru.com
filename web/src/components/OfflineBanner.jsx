@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { WifiOff, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 
@@ -47,7 +47,7 @@ export default function OfflineBanner() {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div
+        <m.div
           key="offline-banner"
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -55,7 +55,7 @@ export default function OfflineBanner() {
           transition={{ duration: 0.22, ease: "easeOut" }}
           role="alert"
           aria-live="assertive"
-          className="fixed inset-x-0 top-0 z-[60] bg-rose text-mist shadow-[0_12px_32px_rgba(225,29,72,0.30)]"
+          className="fixed inset-x-0 top-0 z-[60] bg-rose text-mist shadow-[0_12px_32px_rgb(var(--color-rose-rgb)/0.30)]"
         >
           <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:px-6 lg:px-8">
             <WifiOff
@@ -78,7 +78,7 @@ export default function OfflineBanner() {
               <X className="h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
             </button>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   )

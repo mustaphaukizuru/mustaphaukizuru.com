@@ -13,7 +13,7 @@ export default function AdminRoute({ children }) {
             <div className="absolute inset-0 rounded-full border-4 border-violet-pale" />
             <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-violet" />
           </div>
-          <span className="text-micro font-medium text-charcoal-80/50">Loading admin…</span>
+          <span className="text-micro font-medium text-charcoal-80/65">Loading admin…</span>
         </div>
       </div>
     )

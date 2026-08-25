@@ -12,6 +12,7 @@ router.post("/",             c.create)
 router.get("/:id",           c.getOne)
 router.patch("/:id",         c.update)
 router.delete("/:id",        c.softDelete)
+router.patch("/:id/restore", c.restore)
 
 /* ── Packages ──────────────────────────────────────────────────────── */
 router.post("/:id/packages",        c.addPackage)

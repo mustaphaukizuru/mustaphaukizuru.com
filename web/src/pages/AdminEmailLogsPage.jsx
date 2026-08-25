@@ -73,7 +73,7 @@ export default function AdminEmailLogsPage() {
     } catch { /* non-critical */ }
   }
 
-  useEffect(() => { load() /* eslint-disable-next-line */ }, [statusFilter, templateFilter])
+  useEffect(() => { load()   }, [statusFilter, templateFilter])
   useEffect(() => { loadStats() }, [])
 
   // Unique template keys from loaded rows for the filter dropdown
@@ -161,7 +161,7 @@ export default function AdminEmailLogsPage() {
   const toolbar = (
     <div className="flex flex-wrap items-center gap-2">
       <label className="flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-2.5 py-1.5">
-        <Filter className="h-3 w-3 text-charcoal-80/45" aria-hidden="true" />
+        <Filter className="h-3 w-3 text-charcoal-80/65" aria-hidden="true" />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -194,7 +194,7 @@ export default function AdminEmailLogsPage() {
   return (
     <section className="space-y-5">
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           {error}
         </div>
       )}

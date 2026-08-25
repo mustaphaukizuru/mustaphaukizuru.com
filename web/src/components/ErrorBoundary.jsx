@@ -51,7 +51,7 @@ export default class ErrorBoundary extends Component {
 
     // Always log in development.
     if (import.meta?.env?.DEV) {
-      // eslint-disable-next-line no-console
+       
       console.error("[ErrorBoundary]", error, info)
     }
   }
@@ -67,6 +67,15 @@ export default class ErrorBoundary extends Component {
   render() {
     const { error } = this.state
     if (!error) return this.props.children
+
+    // Optional custom fallback — components that don't want the full-page
+    // brand error UI (e.g., <Header> wrapping itself so a Header crash
+    // falls back to a minimal sticky brand-bar instead of a brand-violet
+    // takeover) can pass a `fallback` ReactNode. Keeps the default
+    // behavior backwards-compatible for the top-level mount.
+    if (this.props.fallback !== undefined) {
+      return this.props.fallback
+    }
 
     const message = friendlyMessage(error?.message, "Something went wrong rendering this page.")
     const isDev = !!import.meta?.env?.DEV

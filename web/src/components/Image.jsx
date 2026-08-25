@@ -41,10 +41,6 @@
 
 const propTypes = null; // intentional, keep this component prop-types-free; React 19 + JSDoc above is enough
 
-function isAbsolute(url) {
-  return /^(https?:)?\/\//i.test(url) || url.startsWith("data:") || url.startsWith("blob:");
-}
-
 function deriveFallbackFormat(src) {
   // If the primary src is a JPG/PNG, use it as the fallback type.
   // If it's already WebP, AVIF, or unknown, default fallback to JPEG.
@@ -84,8 +80,8 @@ export default function Image({
   if (!src) return null;
   if (typeof alt !== "string") {
     // Decorative image MUST pass alt="" explicitly per a11y rules.
-    if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
+    if (import.meta.env.DEV) {
+       
       console.warn("[<Image />] alt is required. Use alt=\"\" for decorative images.");
     }
   }

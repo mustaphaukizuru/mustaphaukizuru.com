@@ -93,12 +93,19 @@ async function checkFileEntitlement(userId, productFileId) {
   }
 
   // Check per-file per-user cap (ProductFile.maxDownloadsPerUser).
-  // Counts against DownloadLog rows for this user+product. Close enough
-  // for our use case — logs record every completed stream.
+  // Counts DownloadLog rows for this user + THIS file. Legacy rows written
+  // before productFileId existed have productFileId = null — for those we
+  // fall back to matching on productId so old downloads still count.
   let downloadsRemaining = null
   if (file.maxDownloadsPerUser != null) {
     const consumed = await prisma.downloadLog.count({
-      where: { userId, productId: file.product.id },
+      where: {
+        userId,
+        OR: [
+          { productFileId: file.id },
+          { productFileId: null, productId: file.product.id },
+        ],
+      },
     })
     if (consumed >= file.maxDownloadsPerUser) {
       return {
@@ -126,12 +133,13 @@ async function checkFileEntitlement(userId, productFileId) {
  * here shouldn't bubble up to the user).
  * ──────────────────────────────────────────────────────────────────────────── */
 
-async function recordDownload({ userId, productId, orderId, userDownloadId, ipAddress, userAgent }) {
+async function recordDownload({ userId, productId, productFileId, orderId, userDownloadId, ipAddress, userAgent }) {
   await prisma.$transaction([
     prisma.downloadLog.create({
       data: {
         userId,
         productId,
+        productFileId:  productFileId || null,
         orderId,
         userDownloadId: userDownloadId || null,
         ipAddress:      ipAddress || null,
@@ -152,8 +160,175 @@ async function recordDownload({ userId, productId, orderId, userDownloadId, ipAd
   })
 }
 
+/* ────────────────────────────────────────────────────────────────────────────
+ * countConsumedByFile — per-file download tally for one user.
+ *
+ * Mirrors the counting rule in checkFileEntitlement (DownloadLog rows keyed by
+ * productFileId, with legacy null-productFileId rows falling back to the
+ * product) so "downloads remaining" shown in the UI equals what the gate will
+ * enforce on the next request.
+ *
+ * @param {string} userId
+ * @param {Array<{id: string, productId: string}>} files
+ * @returns {Promise<Map<string, number>>} productFileId → consumed count
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+async function countConsumedByFile(userId, files = []) {
+  const map = new Map()
+  if (!userId || !Array.isArray(files) || files.length === 0) return map
+
+  for (const f of files) map.set(f.id, 0)
+  const fileIds = files.map((f) => f.id)
+  const productIds = [...new Set(files.map((f) => f.productId).filter(Boolean))]
+
+  const logs = await prisma.downloadLog.findMany({
+    where: {
+      userId,
+      OR: [
+        { productFileId: { in: fileIds } },
+        { productFileId: null, productId: { in: productIds } },
+      ],
+    },
+    select: { productFileId: true, productId: true },
+  })
+
+  for (const log of logs) {
+    if (log.productFileId) {
+      if (map.has(log.productFileId)) map.set(log.productFileId, map.get(log.productFileId) + 1)
+      continue
+    }
+    for (const f of files) {
+      if (f.productId === log.productId) map.set(f.id, map.get(f.id) + 1)
+    }
+  }
+  return map
+}
+
+/**
+ * computeDownloadsRemaining — same precedence as checkFileEntitlement:
+ * per-file cap wins, then per-entitlement cap, else null (= unlimited).
+ */
+function computeDownloadsRemaining(file, entitlement, consumed = 0) {
+  if (file?.maxDownloadsPerUser != null) {
+    return Math.max(0, file.maxDownloadsPerUser - consumed)
+  }
+  if (entitlement?.downloadLimit != null) {
+    return Math.max(0, entitlement.downloadLimit - (entitlement.downloadCount || 0))
+  }
+  return null
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * getDownloadLibraryForUser — "downloads for order" view for the dashboard.
+ *
+ * One query over UserDownload (the entitlement table) for every PAID order of
+ * the user, expanded into orders → products → files with the same
+ * downloadsRemaining semantics the download gate enforces. Revoked
+ * entitlements are still listed (entitlementStatus !== "active") so the UI
+ * can explain why a button is disabled instead of silently hiding files.
+ *
+ * @param {string} userId
+ * @returns {Promise<{ orders: Array }>}
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+async function getDownloadLibraryForUser(userId) {
+  if (!userId) return { orders: [] }
+
+  const entitlements = await prisma.userDownload.findMany({
+    where: { userId, order: { status: "paid" } },
+    include: {
+      order: {
+        select: {
+          id: true, orderNumber: true, status: true, currency: true,
+          createdAt: true, paidAt: true,
+          invoice: { select: { id: true } },
+        },
+      },
+      product: {
+        select: {
+          id: true, title: true, slug: true, isActive: true, updatedAt: true, version: true,
+          images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true, altText: true } },
+          files: {
+            orderBy: { isPrimary: "desc" },
+            select: {
+              id: true, productId: true, fileName: true, fileType: true, fileSize: true,
+              version: true, isPrimary: true, maxDownloadsPerUser: true, uploadedAt: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  })
+
+  const allFiles = []
+  for (const e of entitlements) for (const f of e.product?.files || []) allFiles.push(f)
+  const consumedByFile = await countConsumedByFile(userId, allFiles)
+
+  const ordersById = new Map()
+  for (const e of entitlements) {
+    if (!e.order || !e.product) continue
+    if (!ordersById.has(e.order.id)) {
+      ordersById.set(e.order.id, {
+        orderId:       e.order.id,
+        orderNumber:   e.order.orderNumber,
+        status:        e.order.status,
+        currency:      e.order.currency,
+        purchasedAt:   e.order.paidAt || e.order.createdAt,
+        invoicePdfUrl: e.order.invoice ? `/api/orders/${e.order.id}/invoice.pdf` : null,
+        products:      [],
+      })
+    }
+    const orderEntry = ordersById.get(e.order.id)
+    if (orderEntry.products.some((pr) => pr.productId === e.product.id)) continue
+
+    const files = Array.isArray(e.product.files) ? e.product.files : []
+    const latestVersion = e.product.version
+      || files.find((f) => f.isPrimary)?.version
+      || files[0]?.version
+      || null
+
+    orderEntry.products.push({
+      productId:         e.product.id,
+      title:             e.product.title,
+      slug:              e.product.slug,
+      isActive:          e.product.isActive,
+      updatedAt:         e.product.updatedAt,
+      latestVersion,
+      imageUrl:          e.product.images?.[0]?.url || null,
+      imageAlt:          e.product.images?.[0]?.altText || null,
+      entitlementStatus: e.downloadAccessStatus,
+      lastDownloadedAt:  e.lastDownloadedAt,
+      files: files.map((f) => {
+        const consumed = consumedByFile.get(f.id) || 0
+        return {
+          fileId:              f.id,
+          fileName:            f.fileName,
+          fileType:            f.fileType,
+          fileSize:            f.fileSize != null ? Number(f.fileSize) : null,
+          version:             f.version,
+          isPrimary:           f.isPrimary,
+          uploadedAt:          f.uploadedAt,
+          maxDownloadsPerUser: f.maxDownloadsPerUser,
+          downloadsUsed:       consumed,
+          downloadsRemaining:  computeDownloadsRemaining(f, e, consumed),
+          downloadUrl:         `/api/downloads/${f.id}`,
+        }
+      }),
+    })
+  }
+
+  const orders = Array.from(ordersById.values())
+    .sort((a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt))
+
+  return { orders }
+}
+
 module.exports = {
   getDownloadForUser,
   checkFileEntitlement,
   recordDownload,
+  countConsumedByFile,
+  computeDownloadsRemaining,
+  getDownloadLibraryForUser,
 }

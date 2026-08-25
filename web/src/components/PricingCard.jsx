@@ -7,7 +7,7 @@ export default function PricingCard({ plan }) {
     <div
       className={`relative rounded-xl border bg-white p-7 shadow-sm transition hover:-translate-y-1 ${
         plan.popular
-          ? "border-violet/25 shadow-[0_18px_48px_rgba(93,63,211,0.10)]"
+          ? "border-violet/25 shadow-[0_18px_48px_rgb(var(--color-violet-rgb)/0.10)]"
           : "border-charcoal-80/10"
       }`}
     >
@@ -17,7 +17,7 @@ export default function PricingCard({ plan }) {
         </div>
       )}
 
-      <h3 className="font-['Sora'] text-2xl font-bold text-violet">
+      <h3 className="font-display text-2xl font-bold text-violet">
         {plan.title}
       </h3>
 

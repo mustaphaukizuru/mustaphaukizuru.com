@@ -31,10 +31,39 @@ function gaIdReplacePlugin() {
   }
 }
 
+// SEO · Search-engine verification tokens are substituted from env at build
+// time. When a token is unset the corresponding <meta> line is stripped
+// entirely so we never ship placeholder strings to production source.
+const VERIFICATION_TOKENS = {
+  __GOOGLE_VERIFY__:    process.env.VITE_GOOGLE_VERIFY    || "",
+  __BING_VERIFY__:      process.env.VITE_BING_VERIFY      || "",
+  __YANDEX_VERIFY__:    process.env.VITE_YANDEX_VERIFY    || "",
+  __PINTEREST_VERIFY__: process.env.VITE_PINTEREST_VERIFY || "",
+}
+
+function seoVerificationReplacePlugin() {
+  return {
+    name: "seo-verification-replace",
+    transformIndexHtml(html) {
+      let out = html
+      for (const [placeholder, value] of Object.entries(VERIFICATION_TOKENS)) {
+        if (value) {
+          out = out.replace(new RegExp(placeholder, "g"), value)
+        } else {
+          const lineRe = new RegExp(`^[ \\t]*<meta[^>]*${placeholder}[^>]*/>\\s*\\n?`, "gm")
+          out = out.replace(lineRe, "")
+        }
+      }
+      return out
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
     react(),
     gaIdReplacePlugin(),
+    seoVerificationReplacePlugin(),
     ...(visualizerPlugin ? [visualizerPlugin] : []),
     tailwindcss(),
     VitePWA({
@@ -51,23 +80,49 @@ export default defineConfig({
         "fonts/JetBrainsMono-Variable.woff2",
       ],
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png,svg,webp,woff2}"],
-        // Allow precaching of files up to 3 MiB. The default 2 MiB cap
-        // rejected the 2.38 MB avatar-master.png. Long-term TODO: optimise
-        // that PNG (it has no business being 2.38 MB — target ≤ 200 KB
-        // via mozjpeg / pngquant or convert to WebP).
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        // PERF · precache only what the shell needs. Raster images (portfolio
+        // screenshots, profile photos, certificates) and admin-only route
+        // chunks are fetched on demand and cached by the runtime rules
+        // below — they must NOT be downloaded by every anonymous visitor.
+        // Before this change the precache was 215 entries / 18.8 MB.
+        globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        globIgnores: [
+          "**/node_modules/**",
+          "assets/Admin*",          // admin route chunks — admins only
+          "assets/SelfAudit*",
+          "assets/pdf*",            // pdfjs + worker, lazy on cert preview
+          "images/**",
+          "documents/**",
+          "og/**",
+          "cv/**",
+        ],
+        // Default 2 MiB precache cap. The previous 3 MiB override was a
+        // workaround for the 2.38 MB avatar-master.png; that source PNG
+        // (and its 5 colour siblings) have since been compressed via
+        // scripts/compress-avatars.mjs from 2000×2000 / ~2.3 MB to
+        // 400×400 / ~35 KB PNG (+ 14 KB WebP sibling), so the standard
+        // cap is now correct. If any future asset exceeds 2 MiB it
+        // should be optimised before raising this ceiling again.
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
         runtimeCaching: [
-          // ── API: network-first, fall back to short-lived cache for offline reads ──
+          // ── API: network-first for PUBLIC catalogue reads only ──
+          // SECURITY · never cache authenticated responses (/auth/me, orders,
+          // dashboard, admin). A shared device going offline after logout
+          // must not replay the previous user's data from Cache Storage.
+          // The allowlist is public GET catalogue data only; lib/api.js
+          // also deletes this cache on logout.
           {
-            urlPattern: ({ url }) =>
-              url.origin === self.location.origin && url.pathname.startsWith("/api/"),
+            urlPattern: ({ url, request }) =>
+              request.method === "GET" &&
+              url.origin === self.location.origin &&
+              /^\/api\/(v1\/)?(products|services|portfolio|blog|bio|recommendations|reviews)(\/|$)/.test(url.pathname) &&
+              !request.headers.has("Authorization"),
             handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",
               networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 50, maxAgeSeconds: 10 * 60 },
+              cacheableResponse: { statuses: [200] },
             },
           },
           // ── Images: cache-first, 30 days ──
@@ -103,6 +158,11 @@ export default defineConfig({
           /^\/admin/,
           /^\/images\/products\//,
           /^\/documents\//,
+          /^\/cv\//,          // CV PDFs — must be served directly, not by SW
+          /\.pdf$/i,          // any .pdf URL anywhere on the site
+          /^\/files\//,       // download endpoints
+          /^\/fonts\//,       // static font files
+          /^\/og\//,          // open-graph images
         ],
         cleanupOutdatedCaches: true,
       },
@@ -114,6 +174,16 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     strictPort: true,
+    // Dev-only: user uploads (avatars, blog/media covers) are stored under
+    // storage/ and served by the Express API on :5000 — not by Vite. Forward
+    // those specific /images/* prefixes to the backend so the relative URLs
+    // stored in the database resolve from the Vite origin during development.
+    // In production the backend serves the SPA and these paths from one
+    // origin, so no proxy is needed. Target matches VITE_API_BASE_URL.
+    proxy: {
+      "/images/media":   { target: "http://localhost:5000", changeOrigin: true },
+      "/images/avatars": { target: "http://localhost:5000", changeOrigin: true },
+    },
     headers: {
       "Cross-Origin-Opener-Policy": "unsafe-none",
       "Cross-Origin-Embedder-Policy": "unsafe-none",
@@ -123,16 +193,22 @@ export default defineConfig({
      * the dev console was showing. Default Vite HMR auto-detects the host
      * from the page origin, but when the dev server binds to 0.0.0.0 (so
      * it's reachable from other devices on the LAN) some browsers compute
-     * the wrong WebSocket host. Pinning the HMR client to localhost:5173
+     * the wrong WebSocket host. Pinning the HMR client host to localhost
      * keeps HMR working in the local browser; LAN clients hitting the dev
      * server by IP fall back to full-reload mode, which is the right
      * trade-off for occasional cross-device testing.
+     *
+     * Do NOT pin `port`/`clientPort` here: a hard-coded port makes any
+     * second dev instance (e.g. `--port 5273`) spawn a *dedicated* HMR
+     * WebSocket server on 5173 alongside the real one. Windows allows the
+     * double-bind, and browsers resolving localhost to ::1 then hit the
+     * WebSocket listener and render "426 Upgrade Required" instead of the
+     * app. Without an explicit port, the HMR socket rides the dev server's
+     * own port — correct on 5173, 5273, or anywhere else.
      */
     hmr: {
-      host:       "localhost",
-      port:       5173,
-      clientPort: 5173,
-      protocol:   "ws",
+      host:     "localhost",
+      protocol: "ws",
     },
   },
 
@@ -170,13 +246,63 @@ export default defineConfig({
          * Group the React runtime together; route every other framework
          * library into its own well-named chunk; everything else lands in
          * `vendor`. The check order matters — more specific matches first.
+         *
+         * PERFORMANCE FIX · vendor chunk was 570kB because the catch-all
+         * `node_modules → vendor` rule was scooping up:
+         *   · pdfjs-dist (~400kB) — only used via dynamic import in
+         *     CertificatePreview; should ship as its own lazy chunk so
+         *     visitors who never open a cert preview don't pay the cost.
+         *   · i18next + react-i18next + language-detector (~150kB combined)
+         *     — used everywhere via useTranslation hooks; their own chunk
+         *     makes vendor leaner and keeps i18n updates from invalidating
+         *     the entire vendor cache.
+         *   · lenis · sonner · react-helmet-async — small enough to leave
+         *     in `vendor`, but flagged here for future tuning.
          */
         manualChunks(id) {
+          // PERF · I18N01 · one chunk per locale. src/i18n/resources.js only
+          // ever reaches resources.<lang>.js through import(), so these are
+          // pure lazy chunks: a visitor downloads the active language only,
+          // and the other one arrives on first language switch. Naming them
+          // explicitly keeps the split deterministic (and greppable in the
+          // build output) instead of relying on Rollup's default grouping.
+          if (/[\\/]src[\\/]i18n[\\/](locales[\\/]en[\\/]|resources\.en\.js)/.test(id)) return "locale-en"
+          if (/[\\/]src[\\/]i18n[\\/](locales[\\/]es[\\/]|resources\.es\.js)/.test(id)) return "locale-es"
           if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return "react-vendor"
           if (id.includes("node_modules/react-router"))               return "router"
-          if (id.includes("node_modules/framer-motion"))              return "framer"
+          // framer-motion: no manual chunk — LazyMotion (src/components/motion/
+          // MotionProvider) async-loads the domMax feature bundle, and pinning the
+          // whole package into one chunk would drag it back into the critical path.
+          if (id.includes("node_modules/framer-motion"))              return undefined
+          // gsap + ScrollTrigger: own chunk, only reached via dynamic import()
+          // from components/motion/scroll/useScrollNarrative (Home process,
+          // case studies) — admin/dashboard bundles never pull it.
+          if (id.includes("node_modules/gsap"))                       return "gsap"
           if (id.includes("node_modules/lucide-react"))               return "lucide"
-          if (id.includes("node_modules/react-icons"))                return "icons"
+          // react-icons is deliberately NOT pinned to a shared chunk. It is
+          // used by exactly five files, all brand/tech logos on About and the
+          // tech-stack strips. Forcing it into one "icons" chunk made every
+          // page download it — Lighthouse measured 24 kB with 23 kB unused on
+          // /terms. Returning undefined HERE (before the node_modules
+          // catch-all below, which would otherwise sweep it into "vendor" —
+          // just as global) hands placement back to Rollup, which puts the
+          // glyphs in the route chunks that actually render them.
+          if (id.includes("node_modules/react-icons"))                return undefined
+          // zod is used ONLY by the admin form schemas (lib/validation/**) and
+          // hooks/useForm, and every admin page is React.lazy'd. The
+          // node_modules catch-all below was pinning it into "vendor", so a
+          // visitor reading /terms downloaded and parsed the whole validation
+          // library for nothing. Same treatment: let Rollup put it in the
+          // admin chunks that import it.
+          if (id.includes("node_modules/zod"))                        return undefined
+          // lenis is dynamically imported by SmoothScrollProvider AFTER its
+          // feature-flag and reduced-motion guards. manualChunks overrides
+          // Rollup even for dynamic imports, so without this it lands back in
+          // "vendor" and ships to everyone regardless.
+          if (id.includes("node_modules/lenis"))                      return undefined
+          if (id.includes("node_modules/pdfjs-dist"))                 return "pdfjs"
+          if (id.includes("node_modules/i18next") ||
+              id.includes("node_modules/react-i18next"))              return "i18n"
           if (id.includes("node_modules"))                            return "vendor"
         },
       },

@@ -1,81 +1,46 @@
-const prisma       = require("../lib/prisma")
-const path         = require("path")
-const fs           = require("fs")
-const asyncHandler = require("../utils/asyncHandler")
+const asyncHandler   = require("../utils/asyncHandler")
+const profileService = require("../services/profileService")
 
-// Phase 9.2c · refactored to asyncHandler so unhandled errors flow into the
-// central errorHandler middleware. The pre-Phase-9.2 code did
-//   catch (err) { return res.status(500).json({ message: err.message }) }
-// at five different sites — every Prisma engine error, validation failure,
-// or schema typo was being mirrored back to the client. errorHandler
-// sanitises before returning.
+// Phase 9.2c · asyncHandler so unhandled errors flow into the central
+// errorHandler middleware. Step 39 · all Prisma / bcrypt / filesystem work
+// moved to services/profileService.js — this file only validates input and
+// shapes the HTTP response. Response shapes are unchanged.
 
 // GET /api/member/profile
+//
+// `hasPassword` tells the frontend which password form to render: "Set
+// password" (Google-only users with no local credential yet) vs. "Change
+// password". `authProvider` is informational only.
 const getProfile = asyncHandler(async (req, res) => {
-  const userId = req.user?.id
-  const user   = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, fullName: true, email: true, role: true, phone: true, company: true, avatarUrl: true, createdAt: true },
-  })
-  const profile = await prisma.userProfile.findUnique({ where: { userId } }).catch(() => null)
-  return res.status(200).json({ success: true, data: { ...user, profile } })
+  const data = await profileService.getProfile(req.user?.id)
+  return res.status(200).json({ success: true, data })
 })
 
 // PATCH /api/member/profile
 const updateProfile = asyncHandler(async (req, res) => {
-  const userId = req.user?.id
   const { fullName, phone, company } = req.body
-  const data = {}
-  if (fullName !== undefined) data.fullName = fullName
-  if (phone    !== undefined) data.phone    = phone
-  if (company  !== undefined) data.company  = company
-
-  const user = await prisma.user.update({
-    where:  { id: userId },
-    data,
-    select: { id: true, fullName: true, email: true, phone: true, company: true, avatarUrl: true },
-  })
+  const user = await profileService.updateProfile(req.user?.id, { fullName, phone, company })
   return res.status(200).json({ success: true, data: user })
 })
 
 // POST /api/member/profile/avatar
 const uploadAvatar = asyncHandler(async (req, res) => {
-  const userId = req.user?.id
-  const file   = req.file
+  const file = req.file
   if (!file) return res.status(400).json({ success: false, message: "No image uploaded" })
 
   const avatarUrl = `/images/avatars/${file.filename}`
-
-  // Delete old avatar if exists
-  const current = await prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } })
-  if (current?.avatarUrl) {
-    const oldPath = path.join(__dirname, "../../public", current.avatarUrl)
-    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath)
-  }
-
-  const user = await prisma.user.update({
-    where:  { id: userId },
-    data:   { avatarUrl },
-    select: { id: true, avatarUrl: true, fullName: true },
-  })
+  const user = await profileService.setAvatar(req.user?.id, avatarUrl)
   return res.status(200).json({ success: true, data: user })
 })
 
 // DELETE /api/member/profile/avatar
 const deleteAvatar = asyncHandler(async (req, res) => {
-  const userId = req.user?.id
-  const current = await prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } })
-  if (current?.avatarUrl) {
-    const oldPath = path.join(__dirname, "../../public", current.avatarUrl)
-    if (fs.existsSync(oldPath)) try { fs.unlinkSync(oldPath) } catch { /* best-effort */ }
-  }
-  await prisma.user.update({ where: { id: userId }, data: { avatarUrl: null } })
+  await profileService.removeAvatar(req.user?.id)
   return res.status(200).json({ success: true, message: "Avatar removed" })
 })
 
 // PATCH /api/member/profile/password
 const changePassword = asyncHandler(async (req, res) => {
-  const bcrypt = require("bcryptjs")
   const userId = req.user?.id
   const { currentPassword, newPassword } = req.body
   if (!currentPassword || !newPassword) {
@@ -85,21 +50,58 @@ const changePassword = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "New password must be at least 6 characters" })
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { passwordHash: true } })
-  const isMatch = await bcrypt.compare(currentPassword, user?.passwordHash || "")
+  const isMatch = await profileService.verifyCurrentPassword(userId, currentPassword)
   if (!isMatch) return res.status(401).json({ success: false, message: "Current password is incorrect" })
 
-  const hash = await bcrypt.hash(newPassword, 12)
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      passwordHash: hash,
-      // Phase 9.4 watermark — revoke any JWT issued before this rotation
-      // so stolen rememberMe tokens stop being honoured.
-      tokensValidFrom: new Date(),
-    },
-  })
+  await profileService.writePassword(userId, newPassword)
   return res.status(200).json({ success: true, message: "Password changed successfully" })
 })
 
-module.exports = { getProfile, updateProfile, uploadAvatar, deleteAvatar, changePassword }
+// POST /api/member/profile/set-password
+//
+// Account-linking flow. For users who originally signed up via Google
+// (passwordHash = null), this lets them ADD an email/password fallback.
+//
+// Security properties:
+//   • Auth-protected — only the account owner (verified by JWT) can set it.
+//   • Idempotency block — refuses if the user already has a passwordHash;
+//     PATCH /password (which requires proof of the current one) is the path
+//     for rotation.
+//   • Same JWT-watermark rotation as changePassword (tokensValidFrom bump).
+//
+// authProvider is intentionally NOT changed — the password is purely an
+// additional way in.
+const setPassword = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  const { newPassword, confirmPassword } = req.body || {}
+
+  if (!newPassword || !confirmPassword) {
+    return res.status(400).json({ success: false, message: "Both new and confirm password are required" })
+  }
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ success: false, message: "Passwords do not match" })
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, message: "Password must be at least 6 characters" })
+  }
+
+  const passwordHash = await profileService.getPasswordHash(userId)
+  if (passwordHash === undefined) {
+    return res.status(404).json({ success: false, message: "User not found" })
+  }
+  if (passwordHash) {
+    return res.status(409).json({
+      success: false,
+      message: "A password is already set on this account. Use Change Password to update it.",
+    })
+  }
+
+  await profileService.writePassword(userId, newPassword)
+  return res.status(200).json({
+    success: true,
+    message: "Password set. You can now sign in with email and password as a backup.",
+    data: { hasPassword: true },
+  })
+})
+
+module.exports = { getProfile, updateProfile, uploadAvatar, deleteAvatar, changePassword, setPassword }

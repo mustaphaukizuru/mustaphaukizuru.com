@@ -111,4 +111,96 @@ if (isLive) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// Google OAuth — pre-flight (runs in ALL environments)
+//
+// Misconfigured OAuth breaks sign-in in dev just as much as in prod, so
+// we check here regardless of NODE_ENV. The most common failure mode is
+// "operator added GOOGLE_CLIENT_ID to .env but forgot GOOGLE_CLIENT_SECRET"
+// — the legacy One-Tap flow only needed the ID, the new redirect flow
+// needs both. Without the secret, the token exchange in /api/auth/google/
+// callback throws and users hit ?google=exchange_failed with no clue why.
+// ─────────────────────────────────────────────────────────────
+{
+  const hasClientId     = Boolean(process.env.GOOGLE_CLIENT_ID)
+  const hasClientSecret = Boolean(process.env.GOOGLE_CLIENT_SECRET)
+
+  if (hasClientId && !hasClientSecret) {
+    console.warn(
+      "⚠️  Google OAuth: GOOGLE_CLIENT_ID is set but GOOGLE_CLIENT_SECRET is missing.\n" +
+      "    The redirect flow (POST /api/auth/google/start → callback) WILL fail at the\n" +
+      "    token exchange step. Get the secret from Google Cloud Console:\n" +
+      "      https://console.cloud.google.com/apis/credentials\n" +
+      "      → OAuth 2.0 Client IDs → click your client → \"Show secret\"\n" +
+      "    Then add to .env:  GOOGLE_CLIENT_SECRET=<paste here>"
+    )
+  }
+  if (hasClientSecret && !hasClientId) {
+    console.warn(
+      "⚠️  Google OAuth: GOOGLE_CLIENT_SECRET is set but GOOGLE_CLIENT_ID is missing.\n" +
+      "    Set both or unset both."
+    )
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Google Calendar / Meet — shape-aware pre-flight.
+//
+// Runs in EVERY environment (dev included): bookings depend on Google in
+// every environment, and the failure mode is silent (meetingLink=null on
+// the row, no join link in the customer email). A malformed refresh token
+// is the most common booby trap — the bootstrap script asks the operator
+// to paste a redirect URL containing `?code=4/…` (a one-time auth code)
+// and prints the actual refresh token (`1//…`) at the end. Copy-pasting
+// the wrong one of the two has happened in the wild.
+//
+// We delegate the shape check to googleCalendar.diagnoseConfig() so this
+// pre-flight and the runtime gate (lib/googleCalendar.isConfigured) stay
+// in lockstep — there's exactly one source of truth for "is the config
+// usable".
+// ─────────────────────────────────────────────────────────────
+{
+  // Require lazily to keep env.js load-time minimal and to avoid coupling
+  // the env validator to googleapis (which lib/googleCalendar pulls in).
+  // If the require itself fails (missing dep, syntax issue), skip the
+  // pre-flight rather than crash on boot.
+  let googleCalendar = null
+  try { googleCalendar = require("../lib/googleCalendar") } catch { /* skip */ }
+
+  if (googleCalendar && typeof googleCalendar.diagnoseConfig === "function") {
+    const diag = googleCalendar.diagnoseConfig()
+    if (diag === "ok") {
+      // Healthy — stay quiet.
+    } else if (diag.startsWith("missing env:")) {
+      // Intentional skip (operator hasn't bootstrapped Google yet) —
+      // warn so they know consultations will save without a Meet link.
+      console.warn(
+        "⚠️  Google Calendar not configured — consultations will save with " +
+        "meetingLink=null and require manual admin link entry."
+      )
+      console.warn("    · " + diag)
+      console.warn("    · Bootstrap with:  npm run google:bootstrap")
+    } else {
+      // Misshapen value (e.g. someone pasted the `4/…` auth code into
+      // GOOGLE_OAUTH_REFRESH_TOKEN instead of the `1//…` refresh token).
+      // This is NOT an intentional skip — it's a broken configuration
+      // that would silently degrade every booking. Fail loudly.
+      const banner =
+        "❌ Google Calendar misconfigured — every consultation booking will save without a Meet link."
+      if (config.nodeEnv === "production") {
+        console.error(banner)
+        console.error("    · " + diag)
+        console.error("    · Fix with:  npm run google:bootstrap")
+        console.error("\n   Refusing to start in production with a broken booking flow.\n")
+        process.exit(1)
+      } else {
+        console.error(banner)
+        console.error("    · " + diag)
+        console.error("    · Fix with:  npm run google:bootstrap")
+        console.error("    (allowed to continue in non-production)\n")
+      }
+    }
+  }
+}
+
 module.exports = config

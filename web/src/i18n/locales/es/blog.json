@@ -11,6 +11,8 @@
       "fallbackKind": "Artículo",
       "share": "Compartir",
       "shareAria": "Comparte este artículo",
+      "copyLink": "Copiar enlace",
+      "copyLinkCopied": "¡Copiado!",
       "tags": "Etiquetas"
     },
     "meta": {
@@ -23,7 +25,8 @@
     }
   },
   "list": {
-    "page": "Blog"
+    "page": "Blog",
+    "featured": "Destacado"
   },
   "author": {
     "aria": "Sobre el autor",
@@ -53,6 +56,20 @@
     "paginationAria": "Paginación del blog",
     "noMatchTitle": "Ningún artículo coincide con tus filtros",
     "noMatchBody": "Prueba una búsqueda más amplia, elige otra categoría o limpia los filtros para ver todo el catálogo.",
-    "clearFilters2": "Limpiar filtros"
+    "clearFilters2": "Limpiar filtros",
+    "searchPlaceholder": "Buscar {{count}} artículos…",
+    "searchButton": "Buscar",
+    "articleCount_one": "{{count}} artículo",
+    "articleCount_other": "{{count}} artículos"
+  },
+  "newsletterCta": {
+    "eyebrow": "Boletín",
+    "title": "Recibe artículos como este en tu correo",
+    "body": "Una idea técnica accionable por semana — sin spam, cancela cuando quieras.",
+    "placeholder": "tu@correo.com",
+    "button": "Suscribirme",
+    "success": "¡Listo! Revisa tu correo para confirmar.",
+    "invalid": "Ingresa un correo electrónico válido.",
+    "error": "Algo salió mal. Inténtalo de nuevo."
   }
 }

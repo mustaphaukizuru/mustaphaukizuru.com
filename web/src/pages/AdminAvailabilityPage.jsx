@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import {
   Calendar, Clock, Plus, Trash2, Globe2, AlertCircle, Save, ShieldOff, CalendarPlus, Loader2,
 } from "lucide-react"
@@ -100,7 +100,7 @@ function AddRuleForm({ defaultTimezone, onCreated }) {
       </div>
 
       {error && (
-        <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-[12px] text-rose-700">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {error}
         </div>
@@ -109,7 +109,7 @@ function AddRuleForm({ defaultTimezone, onCreated }) {
       <button
         type="submit"
         disabled={submitting}
-        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         Add rule
@@ -135,17 +135,17 @@ function RulesByDay({ rules, onDelete }) {
         <div key={d.i} className="rounded-xl border border-charcoal/10 bg-white p-3">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-violet">{d.short}</span>
-            <span className="text-[10px] text-charcoal/45">{d.items.length} {d.items.length === 1 ? "rule" : "rules"}</span>
+            <span className="text-[10px] text-charcoal/65">{d.items.length} {d.items.length === 1 ? "rule" : "rules"}</span>
           </div>
           {d.items.length === 0 ? (
-            <div className="rounded-xl bg-violet-ghost p-3 text-center text-[11px] text-charcoal/45">Off</div>
+            <div className="rounded-xl bg-violet-ghost p-3 text-center text-[11px] text-charcoal/65">Off</div>
           ) : (
             <div className="space-y-1.5">
               {d.items.map((r) => (
                 <div key={r.id} className="group flex items-center justify-between gap-2 rounded-xl border border-charcoal/10 bg-violet-ghost px-2.5 py-2">
                   <div className="min-w-0">
                     <div className="text-[12px] font-semibold text-violet">{r.startTime}–{r.endTime}</div>
-                    <div className="mt-0.5 truncate text-[10px] text-charcoal/55">
+                    <div className="mt-0.5 truncate text-[10px] text-charcoal/65">
                       {r.slotDurationMin}min {r.bufferMin > 0 ? `· +${r.bufferMin}min` : ""}
                     </div>
                   </div>
@@ -153,9 +153,9 @@ function RulesByDay({ rules, onDelete }) {
                     type="button"
                     onClick={() => onDelete(r)}
                     aria-label="Delete rule"
-                    className="opacity-0 transition group-hover:opacity-100 hover:text-red-600"
+                    className="opacity-0 transition group-hover:opacity-100 hover:text-rose-700"
                   >
-                    <Trash2 className="h-3.5 w-3.5 text-charcoal/60" />
+                    <Trash2 className="h-3.5 w-3.5 text-charcoal/65" />
                   </button>
                 </div>
               ))}
@@ -234,7 +234,7 @@ function AddExceptionForm({ defaultTimezone, onCreated }) {
       </div>
 
       {error && (
-        <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-3 py-2 text-[12px] text-rose-700">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {error}
         </div>
@@ -243,7 +243,7 @@ function AddExceptionForm({ defaultTimezone, onCreated }) {
       <button
         type="submit"
         disabled={submitting}
-        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgba(93,63,211,0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-violet px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.25)] transition hover:bg-violet-deep disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         Add exception
@@ -259,7 +259,7 @@ const inputCls = "w-full rounded-xl border border-charcoal/15 bg-white px-3 py-2
 function Field({ label, children }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal/60">{label}</span>
+      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal/65">{label}</span>
       {children}
     </label>
   )
@@ -323,9 +323,9 @@ export default function AdminAvailabilityPage() {
   }
 
   return (
-    <motion.section variants={fadeUp} initial="hidden" animate="show" className="space-y-5">
+    <m.section variants={fadeUp} initial="hidden" animate="show" className="space-y-5">
       {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+        <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-[13px] text-rose-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
@@ -370,7 +370,7 @@ export default function AdminAvailabilityPage() {
             {exceptions.map((ex) => (
               <div key={ex.id} className="flex items-center justify-between gap-3 rounded-xl border border-charcoal/10 bg-white px-4 py-3 sm:px-5">
                 <div className="flex items-center gap-3">
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${ex.type === "block" ? "bg-red-50 text-red-600" : "bg-[#e8f4ea] text-mint-800"}`}>
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${ex.type === "block" ? "bg-rose/10 text-rose-700" : "bg-mint/12 text-emerald-700"}`}>
                     {ex.type === "block" ? <ShieldOff className="h-4 w-4" /> : <CalendarPlus className="h-4 w-4" />}
                   </div>
                   <div>
@@ -388,7 +388,7 @@ export default function AdminAvailabilityPage() {
                   type="button"
                   onClick={() => handleDeleteException(ex)}
                   aria-label="Delete exception"
-                  className="text-charcoal/55 transition hover:text-red-600"
+                  className="text-charcoal/65 transition hover:text-rose-700"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -405,10 +405,10 @@ export default function AdminAvailabilityPage() {
         </div>
       </SectionCard>
 
-      <p className="text-center text-[11px] text-charcoal/55">
+      <p className="text-center text-[11px] text-charcoal/65">
         <Globe2 className="mr-1 inline h-3 w-3" />
         Tip: clients always see times converted to their own timezone, set rules in the timezone you actually take calls.
       </p>
-    </motion.section>
+    </m.section>
   )
 }

@@ -1,18 +1,16 @@
-import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { motion } from "framer-motion"
 import {
   ArrowLeft, Briefcase, Calendar, FileText, Download, CheckCircle2,
   Clock, AlertCircle, User as UserIcon, Hourglass,
 } from "lucide-react"
 import { fetchMyProject } from "../services/clientProjectService"
+import useApiQuery from "../hooks/useApiQuery"
 import { SkeletonCard } from "../components/ui/index"
 import StatusPill from "../components/admin/StatusPill"
 import { API_BASE_URL } from "../lib/api"
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : ","
-const fmtFileSize = (path) => path ? path.split("/").pop() : "file"
 
 const MILESTONE_ICON = {
   pending: Hourglass,
@@ -35,30 +33,11 @@ function fileDownloadUrl(projectId, fileId) {
 export default function DashboardProjectDetailPage() {
   const { t } = useTranslation("dashboard")
   const { id } = useParams()
-  const [project, setProject] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      setLoading(true); setError("")
-      try {
-        const data = await fetchMyProject(id)
-        if (cancelled) return
-        if (import.meta.env.DEV) console.info("[Project] loaded", data?.id)
-        setProject(data)
-      } catch (err) {
-        if (cancelled) return
-        console.error("[Project] load failed:", err)
-        setError(err.message || t("projects.errors.loadOne"))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  const { data: project = null, loading, error } = useApiQuery(
+    `projects:${id}`,
+    () => fetchMyProject(id),
+    { enabled: Boolean(id), select: (data) => data || null }
+  )
 
   if (loading) return <section><SkeletonCard height="h-[400px]" /></section>
 
@@ -68,7 +47,7 @@ export default function DashboardProjectDetailPage() {
         <Link to="/dashboard/projects" className="inline-flex items-center gap-1 text-meta text-violet hover:underline">
           <ArrowLeft className="h-4 w-4" /> {t("projects.detail.back")}
         </Link>
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {error || t("projects.errors.notFound")}
         </div>
@@ -86,7 +65,7 @@ export default function DashboardProjectDetailPage() {
       </Link>
 
       {/* Header */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -97,7 +76,7 @@ export default function DashboardProjectDetailPage() {
             {project.description && (
               <p className="mt-2 max-w-2xl text-meta text-charcoal-80/75">{project.description}</p>
             )}
-            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/55">
+            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/65">
               <span><Calendar className="inline h-3 w-3 mr-1" />{t("projects.detail.started", { date: fmtDate(project.startDate) })}</span>
               <span><Calendar className="inline h-3 w-3 mr-1" />{t("projects.detail.due",     { date: fmtDate(project.dueDate)   })}</span>
               {project.assignedAdmin && (
@@ -106,7 +85,7 @@ export default function DashboardProjectDetailPage() {
             </div>
           </div>
           <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">{t("projects.detail.progress")}</div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
             <div className="font-mono text-display font-bold tabular-nums text-violet">{pct}%</div>
           </div>
         </div>
@@ -123,16 +102,16 @@ export default function DashboardProjectDetailPage() {
         </p>
         <div className="mt-4 space-y-3">
           {project.milestones.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/55">
+            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/65">
               {t("projects.detail.noMilestones")}
             </div>
           ) : project.milestones.map((m, idx) => {
             const Icon = MILESTONE_ICON[m.status] || Hourglass
-            const tone = m.status === "completed" ? "bg-mint/15 text-mint border-mint/30"
-                       : m.status === "in_progress" ? "bg-amber-50 text-amber-700 border-amber-200"
+            const tone = m.status === "completed" ? "bg-mint/15 text-mint-700 border-mint/30"
+                       : m.status === "in_progress" ? "bg-amber/10 text-amber-700 border-amber/20"
                        : "bg-charcoal-80/5 text-charcoal-80/65 border-charcoal-80/10"
             return (
-              <motion.div
+              <m.div
                 key={m.id}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -148,12 +127,12 @@ export default function DashboardProjectDetailPage() {
                     <StatusPill status={m.status} />
                   </div>
                   {m.description && <p className="mt-1 text-micro text-charcoal-80/65">{m.description}</p>}
-                  <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/45">
+                  <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
                     {m.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDate(m.dueDate) })}</span>}
                     {m.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(m.completedAt) })}</span>}
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             )
           })}
         </div>
@@ -167,7 +146,7 @@ export default function DashboardProjectDetailPage() {
         </p>
         <div className="mt-4 space-y-2">
           {project.files.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/55">
+            <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/65">
               {t("projects.detail.noFiles")}
             </div>
           ) : project.files.map((f) => (
@@ -184,7 +163,7 @@ export default function DashboardProjectDetailPage() {
                 </div>
                 <div className="min-w-0">
                   <div className="truncate text-meta font-semibold text-charcoal-80">{f.fileName}</div>
-                  <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/55">
+                  <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
                     {f.fileType || t("projects.detail.fileFallback")} · {fmtDate(f.createdAt)}
                   </div>
                 </div>

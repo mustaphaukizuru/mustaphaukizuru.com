@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { CheckCircle2, AlertCircle } from "lucide-react"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -143,10 +144,10 @@ export default function AuthInput({
         </p>
       )}
       {!hasError && isOk && hint && (
-        <p className="mt-1.5 text-micro font-medium text-mint">{hint}</p>
+        <p className="mt-1.5 text-micro font-medium text-mint-700">{hint}</p>
       )}
       {!hasError && !isOk && hint && (
-        <p className="mt-1.5 text-micro text-charcoal-80/55">{hint}</p>
+        <p className="mt-1.5 text-micro text-charcoal-80/65">{hint}</p>
       )}
 
       {/* Optional password strength meter */}
@@ -248,9 +249,9 @@ const STRENGTH_META = {
   0: { label: ",", barClass: "bg-charcoal-80/8", labelClass: "text-charcoal-80/30" },
   1: { label: "Weak", barClass: "bg-rose", labelClass: "text-rose" },
   2: { label: "Weak", barClass: "bg-rose", labelClass: "text-rose" },
-  3: { label: "Medium", barClass: "bg-amber", labelClass: "text-amber" },
-  4: { label: "Strong", barClass: "bg-mint", labelClass: "text-mint" },
-  5: { label: "Strong", barClass: "bg-mint", labelClass: "text-mint" },
+  3: { label: "Medium", barClass: "bg-amber", labelClass: "text-amber-700" },
+  4: { label: "Strong", barClass: "bg-mint", labelClass: "text-mint-700" },
+  5: { label: "Strong", barClass: "bg-mint", labelClass: "text-mint-700" },
 }
 
 // Expose the scorer for pages that want to gate submit on a minimum score

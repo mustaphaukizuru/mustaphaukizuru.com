@@ -216,11 +216,21 @@ function buildConsultationIcs(consultation, options = {}) {
   if (consultation.meetingLink)  lines.push(`\nJoin link: ${consultation.meetingLink}`)
   lines.push(`\nManage your booking: ${baseUrl}/dashboard/consultations`)
 
-  // Sequence: use a server-stored counter if present; else 0 for create,
-  // 1 for reschedule (rescheduledFromId set), N for explicit override.
+  // Sequence: prefer the server-stored monotonic revision counter
+  // (Booking Hardening v1 added Consultation.revision; it starts at 0
+  // and increments on every reschedule via the new-row payload in
+  // consultationService.rescheduleConsultation). When `revision` is
+  // missing (pre-v1 rows or unit-test fixtures), fall back to the
+  // historic boolean heuristic so legacy data still emits sane ICS.
+  //
+  // RFC 5545 § 3.8.7.4 — SEQUENCE MUST increment monotonically across
+  // every update of the same UID; clients that see a non-increasing
+  // SEQUENCE may silently discard the update.
   const sequence = Number.isInteger(options.sequence)
     ? options.sequence
-    : (consultation.rescheduledFromId ? 1 : 0)
+    : (Number.isInteger(consultation.revision)
+      ? consultation.revision
+      : (consultation.rescheduledFromId ? 1 : 0))
 
   // Alarms — 24h + 1h before start (matches our reminder cron).
   const alarms = options.method === "CANCEL"

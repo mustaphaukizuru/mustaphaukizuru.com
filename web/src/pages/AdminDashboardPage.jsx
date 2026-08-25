@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import {
   TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, Users,
-  RefreshCw, Download, FileText, Plus, ArrowRight, ArrowUpRight,
+  RefreshCw, Download, Plus, ArrowRight, ArrowUpRight,
   CheckCircle2, Clock, XCircle, RotateCcw, AlertCircle, Eye,
   Activity, Zap, Calendar, Headphones, UserPlus, FolderOpen,
   Briefcase, ClipboardList, Receipt, MessageSquare,
@@ -79,7 +79,8 @@ function timeAgo(date) {
 /* ──────────────────────────────────────────────────────────────────── */
 /* Sparkline */
 /* ──────────────────────────────────────────────────────────────────── */
-function Sparkline({ data, color = "var(--color-violet, #5D3FD3)", width = 88, height = 28 }) {
+function Sparkline({ data, color = "var(--color-violet)", width = 88, height = 28 }) {
+  const gradId = `spark-grad-${useId().replace(/:/g, "")}`
   if (!data || data.length < 2) {
     return (
       <svg width={width} height={height} aria-hidden="true">
@@ -99,7 +100,6 @@ function Sparkline({ data, color = "var(--color-violet, #5D3FD3)", width = 88, h
   })
   const pathD = points.map(([x, y], i) => (i === 0 ? `M${x},${y}` : `L${x},${y}`)).join(" ")
   const fillD = `${pathD} L${width},${height} L0,${height} Z`
-  const gradId = `spark-grad-${Math.random().toString(36).slice(2, 8)}`
 
   return (
     <svg width={width} height={height} aria-hidden="true">
@@ -124,11 +124,11 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
   const TrendIcon = isUp ? TrendingUp : isDown ? TrendingDown : null
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut", delay }}
-      className="relative overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.04)] transition hover:shadow-[0_10px_28px_rgba(93,63,211,0.08)]"
+      className="relative overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] transition hover:shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.08)]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -138,7 +138,7 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
                 <Icon className="h-3 w-3" aria-hidden="true" />
               </div>
             )}
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal-80/55">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
               {label}
             </p>
           </div>
@@ -148,12 +148,12 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
           </div>
 
           {subValue && (
-            <p className="mt-1.5 truncate font-mono text-micro tabular-nums text-charcoal-80/55">{subValue}</p>
+            <p className="mt-1.5 truncate font-mono text-micro tabular-nums text-charcoal-80/65">{subValue}</p>
           )}
         </div>
 
         {spark && (
-          <div className="shrink-0" style={{ color: trend === "down" ? "#e11d48" : "#5D3FD3" }}>
+          <div className="shrink-0" style={{ color: trend === "down" ? "var(--color-rose)" : "var(--color-violet)" }}>
             <Sparkline data={spark} color="currentColor" />
           </div>
         )}
@@ -161,20 +161,25 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
 
       {delta != null && (
         <div className="mt-3 flex items-center gap-1.5">
+          {/* Brand v3 §14 delta chip — semantic feedback tier on each
+              state. Aligned with the dashboard token pattern established
+              for status pills (mint = success, rose = error, slate =
+              neutral). Previously used Tailwind's rose-50/600 default
+              which read warmer than the brand's Rose Signal tone. */}
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[11px] font-bold tabular-nums ${
-              isUp ? "bg-mint/15 text-mint" :
-              isDown ? "bg-rose-50 text-rose-600" :
-                       "bg-charcoal-80/10 text-charcoal-80/70"
+              isUp ? "bg-mint/15 text-emerald-700" :
+              isDown ? "bg-rose/10 text-rose-700" :
+                       "bg-slate-100 text-steel-700"
             }`}
           >
             {TrendIcon && <TrendIcon className="h-2.5 w-2.5" aria-hidden="true" />}
             {isUp ? "+" : ""}{delta.toFixed(1)}%
           </span>
-          <span className="text-micro text-charcoal-80/55">{deltaLabel}</span>
+          <span className="text-micro text-charcoal-80/65">{deltaLabel}</span>
         </div>
       )}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -193,7 +198,7 @@ function RevenueAreaChart({ data, height = 220 }) {
       <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded-lg border border-dashed border-charcoal-80/15 bg-mist p-8 text-center" role="status">
         <Activity className="h-8 w-8 text-charcoal-80/30" aria-hidden="true" />
         <p className="mt-3 text-meta font-semibold text-charcoal-80/65">No revenue data yet</p>
-        <p className="mt-1 max-w-xs text-micro text-charcoal-80/45">
+        <p className="mt-1 max-w-xs text-micro text-charcoal-80/65">
           Once paid orders come in, daily revenue will appear here.
         </p>
       </div>
@@ -214,22 +219,25 @@ function RevenueAreaChart({ data, height = 220 }) {
   const gridY = [0.25, 0.5, 0.75, 1].map((r) => PAD_Y + r * (H - PAD_Y * 2))
 
   return (
-    <div className="relative">
+    // text-charcoal sets the SVG's currentColor — dashboard dark-mode
+    // utility flip (batch 15) swaps text-charcoal → Cloud Mist, so the
+    // grid + axis labels using `currentColor` auto-track the theme.
+    <div className="relative text-charcoal">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" role="img" aria-label="Revenue trend chart">
         <defs>
           <linearGradient id="rev-area-grad-v2" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#5D3FD3" stopOpacity="0.20" />
-            <stop offset="100%" stopColor="#5D3FD3" stopOpacity="0.00" />
+            <stop offset="0%" stopColor="var(--color-violet)" stopOpacity="0.20" />
+            <stop offset="100%" stopColor="var(--color-violet)" stopOpacity="0.00" />
           </linearGradient>
         </defs>
         {gridY.map((y, i) => (
-          <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="#1A1B23" strokeOpacity="0.08" strokeDasharray="2 4" />
+          <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="currentColor" strokeOpacity="0.10" strokeDasharray="2 4" />
         ))}
-        <motion.path d={fillD} fill="url(#rev-area-grad-v2)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.15 }} />
-        <motion.path
+        <m.path d={fillD} fill="url(#rev-area-grad-v2)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.15 }} />
+        <m.path
           d={pathD}
           fill="none"
-          stroke="#5D3FD3"
+          stroke="var(--color-violet)"
           strokeWidth="2"
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -251,11 +259,11 @@ function RevenueAreaChart({ data, height = 220 }) {
                 onMouseLeave={() => setHoverIdx(null)}
                 style={{ cursor: "crosshair" }}
               />
-              <motion.circle
+              <m.circle
                 cx={p.x}
                 cy={p.y}
                 r={hoverIdx === i ? 5 : 3}
-                fill="#5D3FD3"
+                fill="var(--color-violet)"
                 stroke="white"
                 strokeWidth="2"
                 initial={{ opacity: 0 }}
@@ -263,7 +271,7 @@ function RevenueAreaChart({ data, height = 220 }) {
                 transition={{ delay: 0.6 + i * 0.04 }}
               />
               {hoverIdx === i && (
-                <line x1={p.x} y1={PAD_Y} x2={p.x} y2={H - PAD_Y} stroke="#5D3FD3" strokeOpacity="0.25" strokeDasharray="3 3" />
+                <line x1={p.x} y1={PAD_Y} x2={p.x} y2={H - PAD_Y} stroke="var(--color-violet)" strokeOpacity="0.25" strokeDasharray="3 3" />
               )}
             </g>
           )
@@ -278,8 +286,8 @@ function RevenueAreaChart({ data, height = 220 }) {
               y={H - 4}
               textAnchor="middle"
               fontSize="10"
-              fontFamily="JetBrains Mono, monospace"
-              fill="#1A1B23"
+              fontFamily="var(--font-mono)"
+              fill="currentColor"
               fillOpacity="0.55"
             >
               {p.label}
@@ -289,21 +297,21 @@ function RevenueAreaChart({ data, height = 220 }) {
       </svg>
       <AnimatePresence>
         {hoverIdx != null && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
-            className="pointer-events-none absolute top-2 rounded-lg border border-violet/15 bg-white px-3 py-2 shadow-[0_8px_24px_rgba(93,63,211,0.12)]"
+            className="pointer-events-none absolute top-2 rounded-lg border border-violet/15 bg-white px-3 py-2 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.12)]"
             style={{ left: `${(points[hoverIdx].x / W) * 100}%`, transform: "translateX(-50%)" }}
           >
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">
               {points[hoverIdx].label}
             </div>
             <div className="mt-0.5 font-mono text-meta font-bold tabular-nums text-violet">
               {fmtMoney(points[hoverIdx].value)}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -315,10 +323,10 @@ function RevenueAreaChart({ data, height = 220 }) {
 /* ──────────────────────────────────────────────────────────────────── */
 function StatusDonut({ paid, pending, failed, refunded, total }) {
   const segments = [
-    { label: "Paid", value: paid, color: "#10b981", icon: CheckCircle2 },
-    { label: "Pending", value: pending, color: "#f59e0b", icon: Clock },
-    { label: "Failed", value: failed, color: "#e11d48", icon: XCircle },
-    { label: "Refunded", value: refunded, color: "#6366f1", icon: RotateCcw },
+    { label: "Paid", value: paid, color: "var(--color-mint)", icon: CheckCircle2 },
+    { label: "Pending", value: pending, color: "var(--color-amber)", icon: Clock },
+    { label: "Failed", value: failed, color: "var(--color-rose)", icon: XCircle },
+    { label: "Refunded", value: refunded, color: "var(--color-violet-mid)", icon: RotateCcw },
   ]
 
   const sum = segments.reduce((s, x) => s + x.value, 0) || 1
@@ -327,15 +335,17 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
   let offset = 0
 
   return (
-    <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+    // text-charcoal sets currentColor for the donut track ring so it
+    // flips with the dashboard theme (mist-on-dark hairline in dark mode).
+    <div className="flex flex-col items-center gap-5 text-charcoal sm:flex-row sm:items-center">
       <div className="relative">
         <svg width="160" height="160" viewBox="0 0 160 160" role="img" aria-label="Order status breakdown">
-          <circle cx="80" cy="80" r={R} fill="none" stroke="#1A1B23" strokeOpacity="0.08" strokeWidth="14" />
+          <circle cx="80" cy="80" r={R} fill="none" stroke="currentColor" strokeOpacity="0.10" strokeWidth="14" />
           {segments.map((seg, i) => {
             const portion = seg.value / sum
             const dash = portion * C
             const segCircle = (
-              <motion.circle
+              <m.circle
                 key={seg.label}
                 cx="80" cy="80" r={R}
                 fill="none"
@@ -355,9 +365,9 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
           })}
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/55">Total</span>
+          <span className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">Total</span>
           <span className="font-mono text-[24px] font-bold leading-none tabular-nums text-violet">{total}</span>
-          <span className="mt-0.5 text-[10px] text-charcoal-80/55">orders</span>
+          <span className="mt-0.5 text-[10px] text-charcoal-80/65">orders</span>
         </div>
       </div>
       <div className="flex-1 space-y-2">
@@ -371,7 +381,7 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="font-mono text-meta font-bold tabular-nums text-violet">{seg.value}</span>
-                <span className="font-mono text-[10px] tabular-nums text-charcoal-80/45">{percentage}%</span>
+                <span className="font-mono text-[10px] tabular-nums text-charcoal-80/65">{percentage}%</span>
               </div>
             </div>
           )
@@ -386,18 +396,18 @@ function StatusDonut({ paid, pending, failed, refunded, total }) {
 /* ──────────────────────────────────────────────────────────────────── */
 function StatusPill({ status }) {
   const config = {
-    paid: { bg: "bg-mint/15", text: "text-mint", label: "Paid" },
-    pending: { bg: "bg-amber-50", text: "text-amber-700", label: "Pending" },
+    paid: { bg: "bg-mint/15", text: "text-mint-700", label: "Paid" },
+    pending: { bg: "bg-amber/10", text: "text-amber-700", label: "Pending" },
     failed: { bg: "bg-rose-50", text: "text-rose-600", label: "Failed" },
     cancelled: { bg: "bg-charcoal-80/10", text: "text-charcoal-80", label: "Cancelled" },
     refunded: { bg: "bg-rose-50", text: "text-rose-600", label: "Refunded" },
-    open: { bg: "bg-azure/10", text: "text-azure", label: "Open" },
-    in_progress: { bg: "bg-azure/10", text: "text-azure", label: "In Progress" },
-    resolved: { bg: "bg-mint/15", text: "text-mint", label: "Resolved" },
-    active: { bg: "bg-mint/15", text: "text-mint", label: "Active" },
-    completed: { bg: "bg-mint/15", text: "text-mint", label: "Completed" },
-    new: { bg: "bg-azure/10", text: "text-azure", label: "New" },
-    on_hold: { bg: "bg-amber-50", text: "text-amber-700", label: "On Hold" },
+    open: { bg: "bg-azure/10", text: "text-azure-deep", label: "Open" },
+    in_progress: { bg: "bg-azure/10", text: "text-azure-deep", label: "In Progress" },
+    resolved: { bg: "bg-mint/15", text: "text-mint-700", label: "Resolved" },
+    active: { bg: "bg-mint/15", text: "text-mint-700", label: "Active" },
+    completed: { bg: "bg-mint/15", text: "text-mint-700", label: "Completed" },
+    new: { bg: "bg-azure/10", text: "text-azure-deep", label: "New" },
+    on_hold: { bg: "bg-amber/10", text: "text-amber-700", label: "On Hold" },
   }
   const cfg = config[status] || config.cancelled
   return (
@@ -507,7 +517,6 @@ export default function AdminDashboardPage() {
   const activeProducts = safeNum(stats.activeProducts)
   const totalProducts = safeNum(stats.totalProducts)
   const totalUsers = safeNum(stats.totalUsers)
-  const totalDownloads = safeNum(stats.totalDownloads)
   const paidOrders = safeNum(stats.paidOrders)
   const pendingOrders = safeNum(stats.pendingOrders)
   const failedOrders = safeNum(stats.failedOrders)
@@ -586,11 +595,11 @@ export default function AdminDashboardPage() {
       {/* ── 1 · Top action strip ───────────────────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-mint">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/30 bg-mint/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-mint-700">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-mint" aria-hidden="true" />
             Live
           </span>
-          <span className="font-mono text-micro tabular-nums text-charcoal-80/55">
+          <span className="font-mono text-micro tabular-nums text-charcoal-80/65">
             <Calendar className="mr-1 inline h-3 w-3" aria-hidden="true" />
             Last refresh · {new Date().toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
           </span>
@@ -611,7 +620,7 @@ export default function AdminDashboardPage() {
             type="button"
             disabled
             title="Export coming soon"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-3 py-1.5 text-micro font-semibold text-charcoal-80/55 transition disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-3 py-1.5 text-micro font-semibold text-charcoal-80/65 transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
             Export
@@ -620,7 +629,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-meta text-rose-700" role="alert">
+        <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
@@ -685,11 +694,11 @@ export default function AdminDashboardPage() {
 
       {/* ── 3 · Revenue chart + Status donut ───────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)] lg:col-span-2">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)] lg:col-span-2">
           <div className="flex items-baseline justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="text-card font-bold text-violet">Revenue Trend</h2>
-              <p className="mt-0.5 text-micro text-charcoal-80/55">
+              <p className="mt-0.5 text-micro text-charcoal-80/65">
                 Daily paid revenue
                 {!Array.isArray(stats.dailyRevenue) && (
                   <span className="ml-1 text-charcoal-80/40">(derived from recent orders)</span>
@@ -705,10 +714,10 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="border-b border-charcoal-80/8 px-5 py-4">
             <h2 className="text-card font-bold text-violet">Order Status</h2>
-            <p className="mt-0.5 text-micro text-charcoal-80/55">Live distribution</p>
+            <p className="mt-0.5 text-micro text-charcoal-80/65">Live distribution</p>
           </div>
           <div className="p-5">
             <StatusDonut paid={paidOrders} pending={pendingOrders} failed={failedOrders} refunded={refundedOrders} total={totalOrders} />
@@ -719,11 +728,11 @@ export default function AdminDashboardPage() {
       {/* ── 4 · Top products + Recent orders ───────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Top products */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="text-card font-bold text-violet">Top Products</h2>
-              <p className="mt-0.5 text-micro text-charcoal-80/55">By revenue</p>
+              <p className="mt-0.5 text-micro text-charcoal-80/65">By revenue</p>
             </div>
             <Link to="/admin/products" className="inline-flex items-center gap-1 text-micro font-semibold text-violet transition hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1">
               All products <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
@@ -734,7 +743,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <Package className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No sales yet</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">Top sellers will appear here once orders complete.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">Top sellers will appear here once orders complete.</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -752,7 +761,7 @@ export default function AdminDashboardPage() {
                           </div>
                           <div className="min-w-0">
                             <div className="truncate text-meta font-semibold text-violet">{p.title || p.productTitle || "Product"}</div>
-                            <div className="font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                            <div className="font-mono text-[11px] tabular-nums text-charcoal-80/65">
                               {qty} unit{qty === 1 ? "" : "s"}
                             </div>
                           </div>
@@ -760,7 +769,7 @@ export default function AdminDashboardPage() {
                         <div className="font-mono text-meta font-bold tabular-nums text-violet">{fmtMoney(rev)}</div>
                       </div>
                       <div className="mt-2 h-1 overflow-hidden rounded-full bg-charcoal-80/8">
-                        <motion.div
+                        <m.div
                           className="h-full rounded-full bg-violet"
                           initial={{ width: 0 }}
                           animate={{ width: `${ratio}%` }}
@@ -776,11 +785,11 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent orders */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="text-card font-bold text-violet">Recent Orders</h2>
-              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/55">
+              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/65">
                 Last {recentOrders.length} order{recentOrders.length === 1 ? "" : "s"}
               </p>
             </div>
@@ -793,7 +802,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <ShoppingCart className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No orders yet</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">When customers buy, orders appear here.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">When customers buy, orders appear here.</p>
               </div>
             ) : (
               <div className="divide-y divide-charcoal-80/6">
@@ -813,7 +822,7 @@ export default function AdminDashboardPage() {
                       <div className="mt-1 flex items-center gap-2 text-micro text-charcoal-80/65">
                         <span className="truncate">{o.customerName || o.customerEmail || "Customer"}</span>
                         <span aria-hidden="true">·</span>
-                        <span className="font-mono tabular-nums text-charcoal-80/45">
+                        <span className="font-mono tabular-nums text-charcoal-80/65">
                           {new Date(o.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                         </span>
                       </div>
@@ -830,14 +839,14 @@ export default function AdminDashboardPage() {
       {/* ── 5 · NEW · Pending Support + Recent Signups ─────────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Pending Support */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="flex items-center gap-2 text-card font-bold text-violet">
                 <Headphones className="h-4 w-4" aria-hidden="true" />
                 Pending Support
               </h2>
-              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/55">
+              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/65">
                 {supportSummary.openCount} open ticket{supportSummary.openCount === 1 ? "" : "s"}
               </p>
             </div>
@@ -850,7 +859,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <CheckCircle2 className="h-7 w-7 text-mint/50" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">All caught up</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">No open support tickets right now.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">No open support tickets right now.</p>
               </div>
             ) : (
               <div className="divide-y divide-charcoal-80/6">
@@ -868,13 +877,13 @@ export default function AdminDashboardPage() {
                         <span className="truncate text-meta font-semibold text-violet">{t.subject || "Untitled"}</span>
                         <StatusPill status={t.status} />
                       </div>
-                      <div className="mt-0.5 flex items-center gap-2 font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                      <div className="mt-0.5 flex items-center gap-2 font-mono text-[11px] tabular-nums text-charcoal-80/65">
                         <span>#{t.ticketNumber || String(t.id).slice(0, 8)}</span>
                         <span aria-hidden="true">·</span>
                         <span>{t.user?.fullName || t.user?.email || "Customer"}</span>
                       </div>
                     </div>
-                    <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/45">
+                    <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/65">
                       {timeAgo(t.createdAt)}
                     </span>
                   </Link>
@@ -885,14 +894,14 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Signups */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="flex items-center gap-2 text-card font-bold text-violet">
                 <UserPlus className="h-4 w-4" aria-hidden="true" />
                 Recent Signups
               </h2>
-              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/55">
+              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/65">
                 Last {recentSignups.length} new user{recentSignups.length === 1 ? "" : "s"}
               </p>
             </div>
@@ -905,7 +914,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <Users className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No recent signups</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">New members will appear here as they register.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">New members will appear here as they register.</p>
               </div>
             ) : (
               <div className="divide-y divide-charcoal-80/6">
@@ -923,9 +932,9 @@ export default function AdminDashboardPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-meta font-semibold text-violet">{u.fullName || "Unnamed"}</div>
-                        <div className="truncate font-mono text-[11px] text-charcoal-80/55">{u.email}</div>
+                        <div className="truncate font-mono text-[11px] text-charcoal-80/65">{u.email}</div>
                       </div>
-                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/45">
+                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/65">
                         {timeAgo(u.createdAt)}
                       </span>
                     </div>
@@ -940,14 +949,14 @@ export default function AdminDashboardPage() {
       {/* ── 6 · NEW · Active service projects + Audit feed ─────────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Active Service Projects */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="flex items-center gap-2 text-card font-bold text-violet">
                 <Briefcase className="h-4 w-4" aria-hidden="true" />
                 Active Projects
               </h2>
-              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/55">
+              <p className="mt-0.5 font-mono text-micro tabular-nums text-charcoal-80/65">
                 {activeProjects.length} in delivery
               </p>
             </div>
@@ -960,7 +969,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <FolderOpen className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No active projects</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">Service orders in delivery appear here.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">Service orders in delivery appear here.</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -986,13 +995,13 @@ export default function AdminDashboardPage() {
                             </span>
                             <StatusPill status={sp.status} />
                           </div>
-                          <div className="mt-0.5 truncate font-mono text-[11px] tabular-nums text-charcoal-80/55">
+                          <div className="mt-0.5 truncate font-mono text-[11px] tabular-nums text-charcoal-80/65">
                             {sp.user?.fullName || "Customer"}
                           </div>
                           {milestones.length > 0 && (
                             <>
                               <div className="mt-2 flex items-center justify-between">
-                                <span className="font-mono text-[10px] tabular-nums text-charcoal-80/55">
+                                <span className="font-mono text-[10px] tabular-nums text-charcoal-80/65">
                                   {completed}/{total} milestones
                                 </span>
                                 <span className="font-mono text-[10px] font-bold tabular-nums text-violet">
@@ -1015,14 +1024,14 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Admin Activity */}
-        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+        <div className="rounded-xl border border-charcoal-80/10 bg-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
           <div className="flex items-center justify-between border-b border-charcoal-80/8 px-5 py-4">
             <div>
               <h2 className="flex items-center gap-2 text-card font-bold text-violet">
                 <ClipboardList className="h-4 w-4" aria-hidden="true" />
                 Recent Activity
               </h2>
-              <p className="mt-0.5 text-micro text-charcoal-80/55">Audit log preview</p>
+              <p className="mt-0.5 text-micro text-charcoal-80/65">Audit log preview</p>
             </div>
             <Link to="/admin/audit" className="inline-flex items-center gap-1 text-micro font-semibold text-violet transition hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1">
               View log <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
@@ -1033,7 +1042,7 @@ export default function AdminDashboardPage() {
               <div className="flex flex-col items-center py-10 text-center">
                 <Activity className="h-7 w-7 text-charcoal-80/25" aria-hidden="true" />
                 <p className="mt-2 text-meta font-semibold text-charcoal-80/65">No recent activity</p>
-                <p className="mt-1 text-micro text-charcoal-80/45">Admin actions and platform events appear here.</p>
+                <p className="mt-1 text-micro text-charcoal-80/65">Admin actions and platform events appear here.</p>
               </div>
             ) : (
               <div className="space-y-0.5">
@@ -1045,10 +1054,10 @@ export default function AdminDashboardPage() {
                     login: "violet",
                   }[entry.action] || "violet"
                   const toneStyle = {
-                    mint: "bg-mint/15 text-mint",
+                    mint: "bg-mint/15 text-mint-700",
                     rose: "bg-rose-50 text-rose-600",
-                    azure: "bg-azure/10 text-azure",
-                    amber: "bg-amber-50 text-amber-700",
+                    azure: "bg-azure/10 text-azure-deep",
+                    amber: "bg-amber/10 text-amber-700",
                     violet: "bg-violet-pale text-violet",
                   }[actionTone]
                   return (
@@ -1061,12 +1070,12 @@ export default function AdminDashboardPage() {
                           {entry.description || `${entry.action} on ${entry.entity}`}
                         </div>
                         {entry.performedBy && (
-                          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/55">
+                          <div className="mt-0.5 truncate font-mono text-[11px] text-charcoal-80/65">
                             by {entry.performedBy}
                           </div>
                         )}
                       </div>
-                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/45">
+                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-charcoal-80/65">
                         {timeAgo(entry.createdAt)}
                       </span>
                     </div>
@@ -1079,20 +1088,19 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ── 7 · Quick actions row ──────────────────────────────────────── */}
-      <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgba(93,63,211,0.04)]">
+      <div className="rounded-xl border border-charcoal-80/10 bg-white p-4 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.04)]">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-card font-bold text-violet">
             <Zap className="h-4 w-4" aria-hidden="true" />
             Quick Actions
           </h2>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {[
             { label: "Add Product", to: "/admin/products/new", icon: Plus, primary: true },
             { label: "View Orders", to: "/admin/orders", icon: ShoppingCart },
             { label: "Downloads", to: "/admin/downloads", icon: Download },
             { label: "Support", to: "/admin/support", icon: AlertCircle },
-            { label: "Pages", to: "/admin/pages", icon: FileText },
             { label: "Users", to: "/admin/users", icon: Users },
           ].map(({ label, to, icon: Icon, primary }) => (
             <Link
@@ -1100,7 +1108,7 @@ export default function AdminDashboardPage() {
               to={to}
               className={`group flex items-center gap-2 rounded-lg px-3 py-2.5 text-micro font-semibold transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 ${
                 primary
-                  ? "bg-violet text-white hover:bg-violet-deep hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(93,63,211,0.20)]"
+                  ? "bg-violet text-white hover:bg-violet-deep hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.20)]"
                   : "border border-charcoal-80/12 bg-white text-violet hover:border-violet/20 hover:bg-violet-pale"
               }`}
             >

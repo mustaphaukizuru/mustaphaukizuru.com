@@ -2,7 +2,9 @@ import { useEffect, useState, useRef, useMemo } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import {
   Trash2, Upload, X, Plus, Image as ImageIcon, ExternalLink, Star,
+  ArrowUp, ArrowDown,
 } from "lucide-react"
+import { SERVICE_SLUGS } from "../components/portfolio/caseStudy"
 import {
   adminGetPortfolio,
   adminCreatePortfolio,
@@ -66,7 +68,49 @@ const EMPTY = {
   descriptionEs: "",
   metaTitleEs: "",
   metaDescriptionEs: "",
+  // Step 27 · case-study block. Persisted inside the `results` Json column
+  // as { items, caseStudy } by adminPortfolioService — the API surfaces it
+  // back as `caseStudy` so the form round-trips cleanly.
+  caseStudy: EMPTY_CASE_STUDY(),
 }
+
+function EMPTY_CASE_STUDY() {
+  return {
+    serviceSlug: "",
+    context: "", contextEs: "",
+    problem: "", problemEs: "",
+    approach: [],   // [{ title, body, titleEs, bodyEs }]
+    outcomes: [],   // [{ value, label, labelEs, placeholder }]
+    stack: [],
+  }
+}
+
+function hydrateCaseStudy(cs) {
+  const base = EMPTY_CASE_STUDY()
+  if (!cs || typeof cs !== "object") return base
+  return {
+    ...base,
+    ...cs,
+    serviceSlug: cs.serviceSlug || "",
+    context: cs.context || "", contextEs: cs.contextEs || "",
+    problem: cs.problem || "", problemEs: cs.problemEs || "",
+    approach: Array.isArray(cs.approach)
+      ? cs.approach.map((a) => ({ title: a?.title || "", body: a?.body || "", titleEs: a?.titleEs || "", bodyEs: a?.bodyEs || "" }))
+      : [],
+    outcomes: Array.isArray(cs.outcomes)
+      ? cs.outcomes.map((o) => ({ value: o?.value || "", label: o?.label || "", labelEs: o?.labelEs || "", placeholder: Boolean(o?.placeholder) }))
+      : [],
+    stack: Array.isArray(cs.stack) ? cs.stack : [],
+  }
+}
+
+const SERVICE_OPTIONS = [
+  { value: "", label: "— none —" },
+  { value: "it-strategy-consulting",        label: "IT strategy & consulting" },
+  { value: "ai-automation",                 label: "AI & automation" },
+  { value: "cloud-architecture-migration",  label: "Cloud architecture & migration" },
+  { value: "digital-product-engineering",   label: "Digital product engineering" },
+].filter((o) => o.value === "" || SERVICE_SLUGS.includes(o.value))
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Draft" },
@@ -123,6 +167,7 @@ export default function AdminPortfolioFormPage() {
           results: Array.isArray(data.results) ? data.results : [],
           tools: Array.isArray(data.tools) ? data.tools : [],
           tags: Array.isArray(data.tags) ? data.tags : [],
+          caseStudy: hydrateCaseStudy(data.caseStudy),
         }
         setForm(next)
         setSavedSnapshot(next)
@@ -174,6 +219,8 @@ export default function AdminPortfolioFormPage() {
     }
   }
 
+  const patchCaseStudy = (changes) => patch({ caseStudy: { ...form.caseStudy, ...changes } })
+
   async function handleSave() {
     setSuccessMsg("")
     if (!validate()) {
@@ -189,6 +236,7 @@ export default function AdminPortfolioFormPage() {
         tools: form.tools,
         tags: form.tags,
         gallery: form.gallery,
+        caseStudy: form.caseStudy,
       }
       if (isEdit) {
         const updated = await adminUpdatePortfolio(id, payload)
@@ -196,6 +244,7 @@ export default function AdminPortfolioFormPage() {
           ...form,
           ...updated,
           year: updated?.year != null ? String(updated.year) : "",
+          caseStudy: hydrateCaseStudy(updated?.caseStudy ?? form.caseStudy),
         }
         setForm(next)
         setSavedSnapshot(next)
@@ -322,11 +371,11 @@ export default function AdminPortfolioFormPage() {
             {/* I18N06 · Locale toggle — only translatable fields swap; slug,
                 category, role, client, year, duration, tags, tools, results,
                 URLs, status, featured, display order all stay shared. */}
-            <div className="-mt-1 mb-3 flex items-center justify-between rounded-lg border border-charcoal-80/10 bg-[#faf7fb] px-3 py-2">
-              <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal-80/55">
+            <div className="-mt-1 mb-3 flex items-center justify-between rounded-lg border border-charcoal-80/10 bg-violet-pale/40 px-3 py-2">
+              <span className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">
                 Edit locale
               </span>
-              <div role="tablist" aria-label="Edit locale" className="inline-flex items-center gap-1 rounded-md bg-white p-0.5 shadow-[inset_0_0_0_1px_rgba(26,27,35,0.08)]">
+              <div role="tablist" aria-label="Edit locale" className="inline-flex items-center gap-1 rounded-md bg-white p-0.5 shadow-[inset_0_0_0_1px_rgb(var(--color-charcoal-rgb)/0.08)]">
                 <button
                   type="button"
                   role="tab"
@@ -446,7 +495,76 @@ export default function AdminPortfolioFormPage() {
             </div>
           </FormCard>
 
-          <FormCard title="Case study">
+          <FormCard title="Case study · problem → approach → outcome">
+            <p className="-mt-1 mb-2 text-micro leading-5 text-charcoal-80/65">
+              Rendered on the public project page and drives the outcome line on portfolio cards. Outcomes flagged
+              <strong> illustrative</strong> show with an asterisk until you replace them with real numbers.
+            </p>
+            <FormSelect
+              label="Related service"
+              value={form.caseStudy.serviceSlug}
+              onChange={(e) => patchCaseStudy({ serviceSlug: e.target.value })}
+              options={SERVICE_OPTIONS}
+              hint="Powers the service filter and the “Book a call about a project like this” CTA."
+            />
+            {locale === "en" ? (
+              <FormTextarea
+                label="Client & context"
+                rows={3}
+                value={form.caseStudy.context}
+                onChange={(e) => patchCaseStudy({ context: e.target.value })}
+                placeholder="Who the client is and the situation they were in."
+              />
+            ) : (
+              <FormTextarea
+                label="Client & context (ES)"
+                rows={3}
+                value={form.caseStudy.contextEs}
+                onChange={(e) => patchCaseStudy({ contextEs: e.target.value })}
+                placeholder="Quién es el cliente y en qué situación estaba."
+                hint="Falls back to English if blank."
+              />
+            )}
+            {locale === "en" ? (
+              <FormTextarea
+                label="Problem"
+                rows={3}
+                value={form.caseStudy.problem}
+                onChange={(e) => patchCaseStudy({ problem: e.target.value })}
+                placeholder="The concrete pain point, constraint or goal."
+              />
+            ) : (
+              <FormTextarea
+                label="Problem (ES)"
+                rows={3}
+                value={form.caseStudy.problemEs}
+                onChange={(e) => patchCaseStudy({ problemEs: e.target.value })}
+                placeholder="El problema, restricción u objetivo concreto."
+                hint="Falls back to English if blank."
+              />
+            )}
+
+            <ApproachEditor
+              steps={form.caseStudy.approach}
+              locale={locale}
+              onChange={(approach) => patchCaseStudy({ approach })}
+            />
+
+            <OutcomesEditor
+              outcomes={form.caseStudy.outcomes}
+              locale={locale}
+              onChange={(outcomes) => patchCaseStudy({ outcomes })}
+            />
+
+            <TagListInput
+              label="Stack & tools (case study)"
+              hint="Leave empty to reuse the Tools & technologies list below."
+              values={form.caseStudy.stack}
+              onChange={(stack) => patchCaseStudy({ stack })}
+            />
+          </FormCard>
+
+          <FormCard title="Narrative (overview · challenge · solution)">
             {locale === "en" ? (
               <FormTextarea
                 label="Overview"
@@ -593,7 +711,7 @@ export default function AdminPortfolioFormPage() {
 
           <FormCard title="Cover image">
             {!isEdit && (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-micro text-amber-700" role="status">
+              <p className="rounded-lg border border-amber/20 bg-amber/10 p-2 text-micro text-amber-700" role="status">
                 Save the project first, then come back to upload a cover.
               </p>
             )}
@@ -642,7 +760,7 @@ export default function AdminPortfolioFormPage() {
 
           <FormCard title="Gallery">
             {!isEdit && (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-micro text-amber-700" role="status">
+              <p className="rounded-lg border border-amber/20 bg-amber/10 p-2 text-micro text-amber-700" role="status">
                 Save the project first, then upload gallery images.
               </p>
             )}
@@ -671,7 +789,7 @@ export default function AdminPortfolioFormPage() {
                 {uploadingGallery ? "Uploading…" : "Add"}
               </button>
             </div>
-            <p className="mt-2 text-micro text-charcoal-80/55">
+            <p className="mt-2 text-micro text-charcoal-80/65">
               Removing images here only drops them from this project's list, the file stays on the server.
             </p>
             <input
@@ -685,6 +803,150 @@ export default function AdminPortfolioFormPage() {
         </aside>
       </div>
     </FormShell>
+  )
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  ApproachEditor · 3–5 ordered steps { title, body } (+ ES siblings)
+ *  ──────────────────────────────────────────────────────────────────── */
+const MAX_STEPS = 5
+const MAX_OUTCOMES = 3
+
+function ApproachEditor({ steps, locale, onChange }) {
+  const update = (idx, changes) => onChange(steps.map((s, i) => (i === idx ? { ...s, ...changes } : s)))
+  const remove = (idx) => onChange(steps.filter((_, i) => i !== idx))
+  const move = (idx, dir) => {
+    const to = idx + dir
+    if (to < 0 || to >= steps.length) return
+    const next = [...steps]
+    ;[next[idx], next[to]] = [next[to], next[idx]]
+    onChange(next)
+  }
+  const add = () => {
+    if (steps.length >= MAX_STEPS) return
+    onChange([...steps, { title: "", body: "", titleEs: "", bodyEs: "" }])
+  }
+  const tKey = locale === "es" ? "titleEs" : "title"
+  const bKey = locale === "es" ? "bodyEs" : "body"
+
+  return (
+    <Field label={`Approach steps (${steps.length}/${MAX_STEPS})`} hint="Three to five steps, in order. Short title + one or two sentences each.">
+      <div className="space-y-3">
+        {steps.map((step, idx) => (
+          <div key={idx} className="rounded-lg border border-charcoal-80/12 bg-mist p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-micro font-bold uppercase tracking-[0.14em] text-violet/70">Step {idx + 1}{locale === "es" ? " (ES)" : ""}</span>
+              <div className="flex items-center gap-1">
+                <IconBtn label="Move up" onClick={() => move(idx, -1)} disabled={idx === 0}><ArrowUp className="h-3 w-3" aria-hidden="true" /></IconBtn>
+                <IconBtn label="Move down" onClick={() => move(idx, 1)} disabled={idx === steps.length - 1}><ArrowDown className="h-3 w-3" aria-hidden="true" /></IconBtn>
+                <IconBtn label="Remove step" onClick={() => remove(idx)} danger><X className="h-3 w-3" aria-hidden="true" /></IconBtn>
+              </div>
+            </div>
+            <input
+              type="text"
+              value={step[tKey]}
+              onChange={(e) => update(idx, { [tKey]: e.target.value })}
+              placeholder={locale === "es" ? "Título del paso" : "Step title"}
+              aria-label={`Step ${idx + 1} title`}
+              className={inputClass({ className: "mb-2" })}
+            />
+            <textarea
+              rows={2}
+              value={step[bKey]}
+              onChange={(e) => update(idx, { [bKey]: e.target.value })}
+              placeholder={locale === "es" ? "Qué se hizo y por qué" : "What was done and why"}
+              aria-label={`Step ${idx + 1} body`}
+              className={inputClass({})}
+            />
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={add}
+          disabled={steps.length >= MAX_STEPS}
+          className="inline-flex items-center gap-1 rounded-lg bg-violet-pale px-3 py-1.5 text-micro font-semibold text-violet transition hover:bg-violet hover:text-white disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+        >
+          <Plus className="h-3 w-3" aria-hidden="true" /> Add step
+        </button>
+      </div>
+    </Field>
+  )
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  OutcomesEditor · 2–3 quantified results { value, label, placeholder }
+ *  ──────────────────────────────────────────────────────────────────── */
+function OutcomesEditor({ outcomes, locale, onChange }) {
+  const update = (idx, changes) => onChange(outcomes.map((o, i) => (i === idx ? { ...o, ...changes } : o)))
+  const remove = (idx) => onChange(outcomes.filter((_, i) => i !== idx))
+  const add = () => {
+    if (outcomes.length >= MAX_OUTCOMES) return
+    onChange([...outcomes, { value: "", label: "", labelEs: "", placeholder: true }])
+  }
+  const lKey = locale === "es" ? "labelEs" : "label"
+
+  return (
+    <Field label={`Quantified outcomes (${outcomes.length}/${MAX_OUTCOMES})`} hint="Two or three numbers: value like “-40%”, “3x”, “<2s” plus a short label. Untick “illustrative” once the figure is real.">
+      <div className="space-y-2">
+        {outcomes.map((o, idx) => (
+          <div key={idx} className="grid grid-cols-[92px_1fr_auto] items-center gap-2 rounded-lg border border-charcoal-80/12 bg-mist p-2">
+            <input
+              type="text"
+              value={o.value}
+              onChange={(e) => update(idx, { value: e.target.value })}
+              placeholder="-40%"
+              aria-label={`Outcome ${idx + 1} value`}
+              className={inputClass({ className: "font-mono font-semibold" })}
+            />
+            <input
+              type="text"
+              value={o[lKey]}
+              onChange={(e) => update(idx, { [lKey]: e.target.value })}
+              placeholder={locale === "es" ? "tiempo de despliegue" : "deploy time"}
+              aria-label={`Outcome ${idx + 1} label${locale === "es" ? " (ES)" : ""}`}
+              className={inputClass({})}
+            />
+            <div className="flex items-center gap-2">
+              <label className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-micro text-charcoal-80/70">
+                <input
+                  type="checkbox"
+                  checked={o.placeholder}
+                  onChange={(e) => update(idx, { placeholder: e.target.checked })}
+                  className="h-3.5 w-3.5 accent-violet"
+                />
+                illustrative
+              </label>
+              <IconBtn label="Remove outcome" onClick={() => remove(idx)} danger><X className="h-3 w-3" aria-hidden="true" /></IconBtn>
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={add}
+          disabled={outcomes.length >= MAX_OUTCOMES}
+          className="inline-flex items-center gap-1 rounded-lg bg-violet-pale px-3 py-1.5 text-micro font-semibold text-violet transition hover:bg-violet hover:text-white disabled:opacity-50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+        >
+          <Plus className="h-3 w-3" aria-hidden="true" /> Add outcome
+        </button>
+      </div>
+    </Field>
+  )
+}
+
+function IconBtn({ label, onClick, disabled, danger, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className={`flex h-6 w-6 items-center justify-center rounded-md border border-charcoal-80/12 bg-white text-charcoal-80/70 transition disabled:opacity-40 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-azure/40 ${
+        danger ? "hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600" : "hover:border-violet/30 hover:text-violet"
+      }`}
+    >
+      {children}
+    </button>
   )
 }
 

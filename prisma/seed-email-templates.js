@@ -1,7 +1,7 @@
 /**
  * seed-email-templates.js
  *
- * Upserts the 6 standard EmailTemplate rows the platform needs to operate.
+ * Upserts the standard EmailTemplate rows (EN + ES) the platform needs to operate.
  * Idempotent — re-running this script overwrites the rows with the latest
  * brand-aligned HTML / text / subject. The admin can edit any row via the
  * admin panel afterwards; running this script again will REVERT those edits,
@@ -597,6 +597,239 @@ const TEMPLATES = [
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),
   },
+
+  // 11 · Consultation rescheduled — fires when admin or client moves a booking
+  // Variables: customerName · scheduledAt (new) · previousScheduledAt (old) ·
+  //            durationMin · timezone · serviceTitle · hostName ·
+  //            meetingLink · consultationUrl
+  // The meetingLink is the SAME across reschedules when the booking is on
+  // Google Meet (same Calendar event → same URL). For Jitsi-fallback
+  // bookings the link is regenerated; either way the variable is filled.
+  {
+    key: "consultation.rescheduled",
+    subject: "Your consultation has moved — now {{scheduledAt}}",
+    html: chrome({
+      preheader: "Same meeting, new time. Join link inside.",
+      eyebrow:   "Consultation rescheduled",
+      bodyHtml:
+        heading(`New time: {{scheduledAt}}, {{customerName}}.`) +
+        paragraph(`Your <strong>{{serviceTitle}}</strong> ({{durationMin}} min) with {{hostName}} has been moved. The same join link works — save it now so you have it ready.`) +
+        calloutCard(
+          `<strong>Previous time:</strong> <span style="text-decoration:line-through;opacity:0.6;">{{previousScheduledAt}}</span><br>` +
+          `<strong>New time:</strong> {{scheduledAt}} ({{timezone}})<br><br>` +
+          `<strong>Join link:</strong><br><a href="{{meetingLink}}" style="color:${BRAND_VIOLET};">{{meetingLink}}</a>`
+        ) +
+        button("{{meetingLink}}", "Join the meeting") +
+        paragraph(`If the new time doesn't work, you can reschedule or cancel from your dashboard:`) +
+        button("{{consultationUrl}}", "Manage consultation"),
+    }),
+    text: [
+      "Your consultation has moved — now {{scheduledAt}}",
+      "",
+      "Hi {{customerName}}, your {{serviceTitle}} ({{durationMin}} min) with {{hostName}}",
+      "has been rescheduled.",
+      "",
+      "Previous time: {{previousScheduledAt}}",
+      "New time:      {{scheduledAt}} ({{timezone}})",
+      "",
+      "Join link (unchanged):",
+      "  {{meetingLink}}",
+      "",
+      "Manage your booking:",
+      "  {{consultationUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  /* ── Step 41 · templates migrated out of utils/mailer.js ─────────────────
+   * These are CONTENT FRAGMENTS (no <!doctype>): emailService wraps them
+   * with services/emailLayoutService.wrap() at send time, so they pick up
+   * the shared header/footer chrome automatically.
+   * ───────────────────────────────────────────────────────────────────── */
+
+  // 12 · Order pending (admin moved the order back to pending)
+  // Variables: customerName · orderNumber · orderTotal · orderUrl
+  {
+    key: "order.pending",
+    subject: "Order {{orderNumber}} is pending",
+    html:
+      heading(`Order {{orderNumber}} is pending, {{customerName}}.`) +
+      paragraph(`Your order for <strong>{{orderTotal}}</strong> is waiting on payment confirmation or review. No action is needed from you right now — you'll get another email as soon as it's confirmed.`) +
+      button("{{orderUrl}}", "View order status"),
+    text: [
+      "Order {{orderNumber}} is pending.",
+      "",
+      "Hi {{customerName}}, your order for {{orderTotal}} is waiting on payment",
+      "confirmation or review. No action is needed right now.",
+      "",
+      "Track status:",
+      "  {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 13 · Order cancelled
+  // Variables: customerName · orderNumber · orderTotal · orderUrl
+  {
+    key: "order.cancelled",
+    subject: "Order {{orderNumber}} was cancelled",
+    html:
+      heading(`Order {{orderNumber}} was cancelled.`) +
+      paragraph(`Hi {{customerName}}, your order for <strong>{{orderTotal}}</strong> has been cancelled. If this was a mistake or you need help, reply to this email and we'll sort it out.`) +
+      button(SITE_URL + "/store", "Back to the store"),
+    text: [
+      "Order {{orderNumber}} was cancelled.",
+      "",
+      "Hi {{customerName}}, your order for {{orderTotal}} has been cancelled.",
+      "If this was a mistake, reply to this email.",
+      "",
+      "Store: " + SITE_URL + "/store",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 14 · Payment failed
+  // Variables: customerName · orderNumber · orderTotal · orderUrl
+  {
+    key: "order.failed",
+    subject: "Payment failed for order {{orderNumber}}",
+    html:
+      heading(`We couldn't process your payment, {{customerName}}.`) +
+      paragraph(`The payment for order <strong>{{orderNumber}}</strong> ({{orderTotal}}) didn't go through. This usually means the card was declined or the payment session expired.`) +
+      button(SITE_URL + "/store", "Try again") +
+      calloutCard(`If it keeps failing, try a different payment method or contact your bank. Reply to this email if you need a hand.`),
+    text: [
+      "Payment failed for order {{orderNumber}}.",
+      "",
+      "Hi {{customerName}}, the payment for {{orderTotal}} didn't go through.",
+      "Try again: " + SITE_URL + "/store",
+      "",
+      "If it keeps failing, try another payment method or reply to this email.",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 15 · Password changed (security notice)
+  // Variables: loginUrl · changedAt
+  {
+    key: "auth.password-changed",
+    subject: "Your password was changed",
+    html:
+      heading(`Password updated.`) +
+      paragraph(`Your account password was changed successfully on {{changedAt}}.`) +
+      paragraph(`If you made this change, no further action is needed. If you did <strong>not</strong> change your password, reply to this email immediately so we can secure your account.`) +
+      button("{{loginUrl}}", "Sign in"),
+    text: [
+      "Your password was changed on {{changedAt}}.",
+      "",
+      "If you made this change, no action is needed.",
+      "If you did NOT change your password, reply to this email immediately.",
+      "",
+      "Sign in: {{loginUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 16 · Support ticket created
+  // Variables: customerName · ticketNumber · subject · priority · supportTicketUrl
+  {
+    key: "support.created",
+    subject: "Support ticket #{{ticketNumber}} received",
+    html:
+      heading(`We've got your request, {{customerName}}.`) +
+      paragraph(`Ticket <strong>#{{ticketNumber}}</strong> — <em>{{subject}}</em> — is open with priority <strong>{{priority}}</strong>. We'll reply as soon as possible and you'll get an email when we do.`) +
+      button("{{supportTicketUrl}}", "View ticket"),
+    text: [
+      "Support ticket #{{ticketNumber}} received.",
+      "",
+      "Hi {{customerName}}, your request \"{{subject}}\" (priority: {{priority}}) is open.",
+      "You'll get an email when we reply.",
+      "",
+      "View ticket: {{supportTicketUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 17 · Newsletter welcome (single opt-in confirmation)
+  // Variables: storeUrl · unsubscribeUrl
+  {
+    key: "newsletter.welcome",
+    subject: "You're subscribed",
+    html:
+      heading(`You're on the list.`) +
+      paragraph(`Thanks for subscribing. Expect occasional updates about new digital products, technology insights, and service announcements — quality content, not spam.`) +
+      button("{{storeUrl}}", "Explore the store") +
+      paragraph(`Changed your mind? <a href="{{unsubscribeUrl}}" style="color:${BRAND_VIOLET};">Unsubscribe</a> any time.`),
+    text: [
+      "You're subscribed.",
+      "",
+      "Thanks for subscribing. Expect occasional updates about new products,",
+      "technology insights and service announcements.",
+      "",
+      "Store: {{storeUrl}}",
+      "Unsubscribe: {{unsubscribeUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 18 · Consultation cancelled (ICS CANCEL attached by mailer facade)
+  // Variables: customerName · scheduledAt · serviceTitle · hostName ·
+  //            durationMin · timezone · cancellationReason
+  {
+    key: "consultation.cancelled",
+    subject: "Cancelled — consultation on {{scheduledAt}}",
+    html:
+      heading(`Your consultation was cancelled.`) +
+      paragraph(`Hi {{customerName}}, the <strong>{{serviceTitle}}</strong> ({{durationMin}} min) with {{hostName}} on <strong>{{scheduledAt}}</strong> ({{timezone}}) has been cancelled.`) +
+      calloutCard(`Reason: {{cancellationReason}}`) +
+      button(SITE_URL + "/services", "Book another time") +
+      paragraph(`If this was a mistake, you can book a new consultation from the services page.`),
+    text: [
+      "Your consultation was cancelled.",
+      "",
+      "Hi {{customerName}}, the {{serviceTitle}} ({{durationMin}} min) with {{hostName}}",
+      "on {{scheduledAt}} ({{timezone}}) has been cancelled.",
+      "Reason: {{cancellationReason}}",
+      "",
+      "Book another time: " + SITE_URL + "/services",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 19 · Consultation reminder (24h / 1h, ICS REQUEST attached)
+  // Variables: customerName · whenLabel · scheduledAt · serviceTitle ·
+  //            hostName · durationMin · timezone · meetingLink · consultationUrl
+  {
+    key: "consultation.reminder",
+    subject: "Reminder — your consultation is {{whenLabel}}",
+    html:
+      heading(`Your consultation is {{whenLabel}}, {{customerName}}.`) +
+      paragraph(`A friendly reminder of your <strong>{{serviceTitle}}</strong> ({{durationMin}} min) with {{hostName}} on <strong>{{scheduledAt}}</strong> ({{timezone}}).`) +
+      calloutCard(`<strong>Join link:</strong><br><a href="{{meetingLink}}" style="color:${BRAND_VIOLET};">{{meetingLink}}</a>`) +
+      button("{{meetingLink}}", "Join the meeting") +
+      paragraph(`Need to cancel or move it? Please give at least 12 hours' notice: <a href="{{consultationUrl}}" style="color:${BRAND_VIOLET};">manage your booking</a>.`),
+    text: [
+      "Reminder — your consultation is {{whenLabel}}.",
+      "",
+      "Hi {{customerName}}, your {{serviceTitle}} ({{durationMin}} min) with {{hostName}}",
+      "is on {{scheduledAt}} ({{timezone}}).",
+      "",
+      "Join link:",
+      "  {{meetingLink}}",
+      "",
+      "Manage your booking: {{consultationUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
 ]
 
 
@@ -1033,6 +1266,204 @@ const TEMPLATES_ES = [
       "",
       "Administrar tu reserva:",
       "  {{consultationUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // consultation.rescheduled
+  {
+    key: "consultation.rescheduled",
+    subject: "Tu consulta se reagendó — ahora {{scheduledAt}}",
+    html: chrome({
+      preheader: "Misma reunión, nuevo horario. Link adentro.",
+      eyebrow:   "Consulta reagendada",
+      bodyHtml:
+        heading(`Nuevo horario: {{scheduledAt}}, {{customerName}}.`) +
+        paragraph(`Tu <strong>{{serviceTitle}}</strong> ({{durationMin}} min) con {{hostName}} se movió. El mismo link sirve — guárdalo para tenerlo a la mano.`) +
+        calloutCard(
+          `<strong>Horario anterior:</strong> <span style="text-decoration:line-through;opacity:0.6;">{{previousScheduledAt}}</span><br>` +
+          `<strong>Nuevo horario:</strong> {{scheduledAt}} ({{timezone}})<br><br>` +
+          `<strong>Link para unirte:</strong><br><a href="{{meetingLink}}" style="color:${BRAND_VIOLET};">{{meetingLink}}</a>`
+        ) +
+        button("{{meetingLink}}", "Unirme a la reunión") +
+        paragraph(`Si el nuevo horario no te funciona, puedes reagendar o cancelar desde tu panel:`) +
+        button("{{consultationUrl}}", "Administrar consulta"),
+    }),
+    text: [
+      "Tu consulta se reagendó — ahora {{scheduledAt}}",
+      "",
+      "Hola {{customerName}}, tu {{serviceTitle}} ({{durationMin}} min) con {{hostName}}",
+      "se reagendó.",
+      "",
+      "Horario anterior: {{previousScheduledAt}}",
+      "Nuevo horario:    {{scheduledAt}} ({{timezone}})",
+      "",
+      "Link para unirte (no cambió):",
+      "  {{meetingLink}}",
+      "",
+      "Administrar tu reserva:",
+      "  {{consultationUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  /* ── Step 41 · Spanish drafts for the migrated mailer templates ───────── */
+
+  {
+    key: "order.pending",
+    subject: "Tu pedido {{orderNumber}} está pendiente",
+    html:
+      heading(`Tu pedido {{orderNumber}} está pendiente, {{customerName}}.`) +
+      paragraph(`Tu pedido por <strong>{{orderTotal}}</strong> está esperando la confirmación del pago o una revisión. No necesitas hacer nada por ahora — te avisaremos por correo en cuanto se confirme.`) +
+      button("{{orderUrl}}", "Ver estado del pedido"),
+    text: [
+      "Tu pedido {{orderNumber}} está pendiente.",
+      "",
+      "Hola {{customerName}}, tu pedido por {{orderTotal}} está esperando la",
+      "confirmación del pago o una revisión. No necesitas hacer nada por ahora.",
+      "",
+      "Ver estado:",
+      "  {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "order.cancelled",
+    subject: "Tu pedido {{orderNumber}} fue cancelado",
+    html:
+      heading(`Tu pedido {{orderNumber}} fue cancelado.`) +
+      paragraph(`Hola {{customerName}}, tu pedido por <strong>{{orderTotal}}</strong> fue cancelado. Si fue un error o necesitas ayuda, responde a este correo y lo resolvemos.`) +
+      button(SITE_URL + "/es/store", "Volver a la tienda"),
+    text: [
+      "Tu pedido {{orderNumber}} fue cancelado.",
+      "",
+      "Hola {{customerName}}, tu pedido por {{orderTotal}} fue cancelado.",
+      "Si fue un error, responde a este correo.",
+      "",
+      "Tienda: " + SITE_URL + "/es/store",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "order.failed",
+    subject: "El pago del pedido {{orderNumber}} falló",
+    html:
+      heading(`No pudimos procesar tu pago, {{customerName}}.`) +
+      paragraph(`El pago del pedido <strong>{{orderNumber}}</strong> ({{orderTotal}}) no se completó. Normalmente esto pasa cuando la tarjeta fue rechazada o la sesión de pago expiró.`) +
+      button(SITE_URL + "/es/store", "Intentar de nuevo") +
+      calloutCard(`Si sigue fallando, prueba otro método de pago o contacta a tu banco. Responde a este correo si necesitas ayuda.`),
+    text: [
+      "El pago del pedido {{orderNumber}} falló.",
+      "",
+      "Hola {{customerName}}, el pago por {{orderTotal}} no se completó.",
+      "Intentar de nuevo: " + SITE_URL + "/es/store",
+      "",
+      "Si sigue fallando, prueba otro método de pago o responde a este correo.",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "auth.password-changed",
+    subject: "Tu contraseña fue cambiada",
+    html:
+      heading(`Contraseña actualizada.`) +
+      paragraph(`La contraseña de tu cuenta se cambió correctamente el {{changedAt}}.`) +
+      paragraph(`Si hiciste este cambio, no necesitas hacer nada más. Si <strong>no</strong> cambiaste tu contraseña, responde a este correo de inmediato para proteger tu cuenta.`) +
+      button("{{loginUrl}}", "Iniciar sesión"),
+    text: [
+      "Tu contraseña fue cambiada el {{changedAt}}.",
+      "",
+      "Si hiciste este cambio, no necesitas hacer nada.",
+      "Si NO cambiaste tu contraseña, responde a este correo de inmediato.",
+      "",
+      "Iniciar sesión: {{loginUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "support.created",
+    subject: "Recibimos tu ticket de soporte #{{ticketNumber}}",
+    html:
+      heading(`Recibimos tu solicitud, {{customerName}}.`) +
+      paragraph(`El ticket <strong>#{{ticketNumber}}</strong> — <em>{{subject}}</em> — está abierto con prioridad <strong>{{priority}}</strong>. Te responderemos lo antes posible y recibirás un correo cuando lo hagamos.`) +
+      button("{{supportTicketUrl}}", "Ver ticket"),
+    text: [
+      "Recibimos tu ticket de soporte #{{ticketNumber}}.",
+      "",
+      "Hola {{customerName}}, tu solicitud \"{{subject}}\" (prioridad: {{priority}}) está abierta.",
+      "Recibirás un correo cuando respondamos.",
+      "",
+      "Ver ticket: {{supportTicketUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "newsletter.welcome",
+    subject: "Ya estás suscrito",
+    html:
+      heading(`Ya estás en la lista.`) +
+      paragraph(`Gracias por suscribirte. Recibirás actualizaciones ocasionales sobre nuevos productos digitales, ideas de tecnología y novedades de servicios — contenido de calidad, sin spam.`) +
+      button("{{storeUrl}}", "Explorar la tienda") +
+      paragraph(`¿Cambiaste de opinión? Puedes <a href="{{unsubscribeUrl}}" style="color:${BRAND_VIOLET};">darte de baja</a> cuando quieras.`),
+    text: [
+      "Ya estás suscrito.",
+      "",
+      "Gracias por suscribirte. Recibirás actualizaciones ocasionales sobre nuevos",
+      "productos, ideas de tecnología y novedades de servicios.",
+      "",
+      "Tienda: {{storeUrl}}",
+      "Darse de baja: {{unsubscribeUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "consultation.cancelled",
+    subject: "Cancelada — consulta del {{scheduledAt}}",
+    html:
+      heading(`Tu consulta fue cancelada.`) +
+      paragraph(`Hola {{customerName}}, la <strong>{{serviceTitle}}</strong> ({{durationMin}} min) con {{hostName}} del <strong>{{scheduledAt}}</strong> ({{timezone}}) fue cancelada.`) +
+      calloutCard(`Motivo: {{cancellationReason}}`) +
+      button(SITE_URL + "/es/services", "Reservar otro horario") +
+      paragraph(`Si fue un error, puedes reservar una nueva consulta desde la página de servicios.`),
+    text: [
+      "Tu consulta fue cancelada.",
+      "",
+      "Hola {{customerName}}, la {{serviceTitle}} ({{durationMin}} min) con {{hostName}}",
+      "del {{scheduledAt}} ({{timezone}}) fue cancelada.",
+      "Motivo: {{cancellationReason}}",
+      "",
+      "Reservar otro horario: " + SITE_URL + "/es/services",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "consultation.reminder",
+    subject: "Recordatorio — tu consulta es {{whenLabel}}",
+    html:
+      heading(`Tu consulta es {{whenLabel}}, {{customerName}}.`) +
+      paragraph(`Un recordatorio de tu <strong>{{serviceTitle}}</strong> ({{durationMin}} min) con {{hostName}} el <strong>{{scheduledAt}}</strong> ({{timezone}}).`) +
+      calloutCard(`<strong>Enlace de la reunión:</strong><br><a href="{{meetingLink}}" style="color:${BRAND_VIOLET};">{{meetingLink}}</a>`) +
+      button("{{meetingLink}}", "Unirme a la reunión") +
+      paragraph(`¿Necesitas cancelar o mover la cita? Avísanos con al menos 12 horas de anticipación: <a href="{{consultationUrl}}" style="color:${BRAND_VIOLET};">administrar tu reserva</a>.`),
+    text: [
+      "Recordatorio — tu consulta es {{whenLabel}}.",
+      "",
+      "Hola {{customerName}}, tu {{serviceTitle}} ({{durationMin}} min) con {{hostName}}",
+      "es el {{scheduledAt}} ({{timezone}}).",
+      "",
+      "Enlace de la reunión:",
+      "  {{meetingLink}}",
+      "",
+      "Administrar tu reserva: {{consultationUrl}}",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),

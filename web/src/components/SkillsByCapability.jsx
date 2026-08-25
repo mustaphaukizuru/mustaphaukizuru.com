@@ -1,8 +1,6 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { useEffect, useMemo, useRef, useState } from "react"
-import {
-  motion, AnimatePresence, useReducedMotion,
-  useInView, useMotionValue, useSpring, useTransform,
-} from "framer-motion"
+import { m, AnimatePresence, useReducedMotion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion"
 import {
   Code2, Database, Rocket, Network, ShieldCheck, GraduationCap,
   Sparkles, ArrowUpRight, Layers,
@@ -243,7 +241,7 @@ function Counter({ value }) {
     mv.set(value)
   }, [inView, value, mv, reduce])
 
-  return <motion.span ref={ref}>{display}</motion.span>
+  return <m.span ref={ref}>{display}</m.span>
 }
 
 /* ── Proficiency display tier ─────────────────────────────────────────── */
@@ -265,7 +263,7 @@ function SkillChip({ skill }) {
   const isExpert = (skill.proficiency || 0) >= 5
 
   return (
-    <motion.li
+    <m.li
       variants={fadeUp}
       whileHover={reduce ? undefined : { y: -2, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 320, damping: 22 }}
@@ -278,7 +276,7 @@ function SkillChip({ skill }) {
         {isExpert && !reduce && (
           // soft pulse ring on expert-tier dots — signals mastery without
           // shouting. Spec'd to be subtle, not animation-heavy.
-          <motion.span
+          <m.span
             initial={{ opacity: 0.55, scale: 1 }}
             animate={{ opacity: 0, scale: 2.2 }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
@@ -291,7 +289,7 @@ function SkillChip({ skill }) {
           aria-label={`${tier.label} level`}
         />
       </span>
-    </motion.li>
+    </m.li>
   )
 }
 
@@ -301,14 +299,14 @@ function CapabilityCard({ capability, skills, index }) {
   const { Icon, label, headline, sub } = capability
 
   return (
-    <motion.article
+    <m.article
       variants={fadeUp}
       whileHover={reduce ? undefined : { y: -4 }}
       transition={{ type: "spring", stiffness: 240, damping: 24 }}
-      className="group relative overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_18px_rgba(93,63,211,0.05)] transition-shadow hover:shadow-[0_18px_44px_rgba(93,63,211,0.12)]"
+      className="group relative overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[0_4px_18px_rgb(var(--color-violet-rgb)/0.05)] transition-shadow hover:shadow-[0_18px_44px_rgb(var(--color-violet-rgb)/0.12)]"
     >
       {/* Decorative gradient blob, appears on hover, fades cleanly */}
-      <motion.div
+      <m.div
         aria-hidden="true"
         initial={false}
         className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-violet/8 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
@@ -324,7 +322,7 @@ function CapabilityCard({ capability, skills, index }) {
 
       <header className="mb-5 flex items-start gap-3">
         <span
-          className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet shadow-[inset_0_-1px_0_rgba(93,63,211,0.12)] transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgba(93,63,211,0.30)]"
+          className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-pale text-violet shadow-[inset_0_-1px_0_rgb(var(--color-violet-rgb)/0.12)] transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.30)]"
           aria-hidden="true"
         >
           <Icon className="h-5 w-5" strokeWidth={1.75} />
@@ -332,11 +330,11 @@ function CapabilityCard({ capability, skills, index }) {
         <div className="min-w-0 pr-6">
           <h3 className="text-card font-bold leading-tight text-violet">{label}</h3>
           <p className="mt-1 text-meta font-medium leading-snug text-charcoal-80/80">{headline}</p>
-          <p className="mt-1 text-micro leading-5 text-charcoal-80/55">{sub}</p>
+          <p className="mt-1 text-micro leading-5 text-charcoal-80/65">{sub}</p>
         </div>
       </header>
 
-      <motion.ul
+      <m.ul
         variants={tightStagger}
         initial="hidden"
         whileInView="show"
@@ -344,14 +342,14 @@ function CapabilityCard({ capability, skills, index }) {
         className="flex flex-wrap gap-2"
       >
         {skills.map((s) => <SkillChip key={s.name + s.iconKey} skill={s} />)}
-      </motion.ul>
+      </m.ul>
 
       {/* Hairline accent on hover, micro-detail */}
       <span
         aria-hidden="true"
         className="absolute inset-x-6 bottom-0 h-px origin-left scale-x-0 bg-gradient-to-r from-violet via-violet/40 to-transparent transition-transform duration-500 group-hover:scale-x-100"
       />
-    </motion.article>
+    </m.article>
   )
 }
 
@@ -370,9 +368,9 @@ function FilterPill({ active, label, count, onClick, layoutGroup }) {
     >
       {active && (
         // shared element morph — the violet pill slides between filters
-        <motion.span
+        <m.span
           layoutId={`pill-${layoutGroup}`}
-          className="absolute inset-0 -z-10 rounded-full bg-violet shadow-[0_8px_18px_rgba(93,63,211,0.28)]"
+          className="absolute inset-0 -z-10 rounded-full bg-violet shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.28)]"
           transition={{ type: "spring", stiffness: 380, damping: 32 }}
         />
       )}
@@ -441,39 +439,39 @@ export default function SkillsByCapability({
 
       <div className="relative">
         {/* ── Section header ── */}
-        <motion.div
+        <m.div
           variants={stagger}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-80px" }}
           className="mb-12 flex flex-col items-center gap-3 text-center"
         >
-          <motion.span
+          <m.span
             variants={fadeUp}
             className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet"
           >
             <Sparkles className="h-3 w-3" aria-hidden="true" />
             Capabilities
-          </motion.span>
-          <motion.h2
+          </m.span>
+          <m.h2
             id="capabilities-heading"
             variants={fadeUp}
             className="max-w-3xl text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page"
           >
             {t("skills.engineered")}{" "}
-            <span className="bg-gradient-to-r from-violet via-[#6A4FD8] to-terracotta bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet via-[var(--color-violet-mid)] to-terracotta bg-clip-text text-transparent">
               {t("skills.builtToScale")}
             </span>
-          </motion.h2>
-          <motion.p
+          </m.h2>
+          <m.p
             variants={fadeUp}
             className="max-w-2xl text-body leading-7 text-charcoal-80/70"
           >
             {t("skills.intro")}
-          </motion.p>
+          </m.p>
 
           {/* Stat strip, counts that signal depth at a glance */}
-          <motion.div
+          <m.div
             variants={fadeUp}
             className="mt-4 flex items-center gap-6 text-micro text-charcoal-80/65"
           >
@@ -497,11 +495,11 @@ export default function SkillsByCapability({
               </span>
               <span className="uppercase tracking-wider">Years</span>
             </span>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
 
         {/* ── Filter pills with shared layout morph ── */}
-        <motion.div
+        <m.div
           variants={fadeUp}
           initial="hidden"
           whileInView="show"
@@ -527,11 +525,11 @@ export default function SkillsByCapability({
               layoutGroup="capabilities"
             />
           ))}
-        </motion.div>
+        </m.div>
 
         {/* ── Capability grid ── */}
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={filter}
             variants={stagger}
             initial="hidden"
@@ -546,11 +544,11 @@ export default function SkillsByCapability({
             {visible.map((cap, i) => (
               <CapabilityCard key={cap.id} capability={cap} skills={cap.skills} index={i} />
             ))}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
 
         {/* ── Legend + CTA strip ── */}
-        <motion.div
+        <m.div
           variants={fadeUp}
           initial="hidden"
           whileInView="show"
@@ -565,13 +563,13 @@ export default function SkillsByCapability({
           </div>
           <a
             href="/contact"
-            className="group inline-flex items-center gap-1.5 rounded-full border border-violet/25 bg-white px-4 py-1.5 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:border-violet hover:shadow-[0_8px_20px_rgba(93,63,211,0.15)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-violet/25 bg-white px-4 py-1.5 text-meta font-semibold text-violet transition hover:-translate-y-0.5 hover:border-violet hover:shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.15)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40"
           >
             <Layers className="h-3.5 w-3.5" aria-hidden="true" />
             {t("skills.applyToProject")}
             <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
           </a>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

@@ -1,4 +1,6 @@
 const prisma = require("../lib/prisma")
+const AppError = require("../utils/AppError")
+const { countConsumedByFile, computeDownloadsRemaining } = require("./downloadService")
 const { validateCoupon, calculateDiscount } = require("./couponService")
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -90,7 +92,7 @@ async function createOrder(payload) {
   const { customerName, customerEmail, userId = null, items, couponCode } = payload
 
   if (!items || !Array.isArray(items) || items.length === 0) {
-    throw new Error("Order items are required")
+    throw AppError.badRequest("Order items are required", "VALIDATION_ERROR")
   }
 
   const productIds = items.map((item) => item.productId)
@@ -107,21 +109,21 @@ async function createOrder(payload) {
   })
 
   if (products.length !== productIds.length) {
-    throw new Error("Some products are invalid or unavailable")
+    throw AppError.badRequest("Some products are invalid or unavailable", "VALIDATION_ERROR")
   }
 
   const normalizedItems = items.map((item) => {
     const product = products.find((p) => p.id === item.productId)
-    if (!product) throw new Error(`Product not found for ID: ${item.productId}`)
+    if (!product) throw AppError.badRequest(`Product not found for ID: ${item.productId}`, "VALIDATION_ERROR")
 
     const quantity = Number(item.quantity)
     if (!Number.isInteger(quantity) || quantity < 1) {
-      throw new Error(`Invalid quantity for product: ${product.title}`)
+      throw AppError.badRequest(`Invalid quantity for product: ${product.title}`, "VALIDATION_ERROR")
     }
     // Hardening · upper bound on quantity. Stops a malicious request from
     // submitting `quantity: 999999` and producing an absurd lineTotal.
     if (quantity > MAX_QUANTITY_PER_ITEM) {
-      throw new Error(`Quantity for ${product.title} exceeds the maximum of ${MAX_QUANTITY_PER_ITEM}`)
+      throw AppError.badRequest(`Quantity for ${product.title} exceeds the maximum of ${MAX_QUANTITY_PER_ITEM}`, "VALIDATION_ERROR")
     }
 
     const unitPrice = Number(product.price)
@@ -160,10 +162,7 @@ async function createOrder(payload) {
       cartTotal: subtotal,
     })
     if (!result.valid) {
-      const err = new Error(result.message || "Coupon not valid")
-      err.code = "COUPON_INVALID"
-      err.statusCode = 400
-      throw err
+      throw AppError.badRequest(result.message || "Coupon not valid", "COUPON_INVALID")
     }
     discountAmount = Number(result.discount || 0)
     appliedCoupon  = result.coupon
@@ -215,20 +214,27 @@ async function createOrder(payload) {
     })
 
     if (appliedCoupon) {
-      // Track usage for analytics + per-user limit enforcement on next purchase.
-      await tx.couponUsage.create({
-        data: {
-          couponId:       appliedCoupon.id,
-          userId:         userId || null,
-          orderId:        created.id,
-          discountAmount,
-        },
-      }).catch(() => null)
-      // Increment global usedCount.
-      await tx.coupon.update({
-        where: { id: appliedCoupon.id },
+      // Race-safe consumption · optimistic lock on usedCount. validateCoupon
+      // checked `usedCount < usageLimit` against the value it read; if any
+      // other order consumed the coupon in between, usedCount has moved and
+      // this conditional update touches 0 rows → we abort the whole
+      // transaction instead of over-redeeming. Never swallow errors inside
+      // a transaction — a failed write must roll the order back.
+      const consumed = await tx.coupon.updateMany({
+        where: { id: appliedCoupon.id, usedCount: appliedCoupon.usedCount },
         data:  { usedCount: { increment: 1 } },
-      }).catch(() => null)
+      })
+      if (consumed.count !== 1) {
+        throw AppError.conflict("This coupon was just used by another order — please re-apply it", "COUPON_RACE")
+      }
+      // Per-user usage row (drives maxUsesPerUser). CouponUsage.userId is
+      // required, so guest orders (userId null) cannot record usage — that
+      // is why checkout requires an account.
+      if (userId) {
+        await tx.couponUsage.create({
+          data: { couponId: appliedCoupon.id, userId, orderId: created.id },
+        })
+      }
     }
 
     return created
@@ -356,21 +362,16 @@ async function getEnrichedOrderById(id) {
     entitlementByOrderItem = new Map(entitlements.map((e) => [e.orderItemId, e]))
   }
 
-  // Per-file download count (from DownloadLog joined via userDownloadId)
-  // This is what enforces ProductFile.maxDownloadsPerUser at read time.
-  let downloadCountByFile = new Map()
+  // Per-file download tally — DownloadLog.productFileId is the authoritative
+  // key (legacy rows with a null productFileId fall back to productId). Uses
+  // the same helper the download gate uses so "remaining" matches enforcement.
+  let consumedByFile = new Map()
   if (userId) {
-    // DownloadLog doesn't carry productFileId directly (the schema only ties
-    // logs to products, not files). We derive per-file counts by pairing
-    // logs-per-product with UserDownload-per-orderItem. Good enough for
-    // "downloads remaining" display; the authoritative enforcement happens
-    // in downloadController against UserDownload.downloadCount.
-    const logs = await prisma.downloadLog.groupBy({
-      by: ["productId"],
-      where: { userId, orderId: order.id },
-      _count: { _all: true },
-    })
-    downloadCountByFile = new Map(logs.map((l) => [l.productId, l._count._all]))
+    const allFiles = []
+    for (const item of order.items || []) {
+      for (const f of item.product?.files || []) allFiles.push({ id: f.id, productId: item.product.id })
+    }
+    consumedByFile = await countConsumedByFile(userId, allFiles)
   }
 
   // Latest refund (if any)
@@ -434,16 +435,8 @@ async function getEnrichedOrderById(id) {
     // One download entry per ProductFile of a purchased product.
     if (product && entitlement && Array.isArray(product.files)) {
       for (const file of product.files) {
-        const perUserCap = file.maxDownloadsPerUser ?? null
-        const entitlementCap = entitlement.downloadLimit ?? null
-        const consumed = downloadCountByFile.get(product.id) || 0
-
-        let downloadsRemaining = null  // null = unlimited
-        if (perUserCap != null) {
-          downloadsRemaining = Math.max(0, perUserCap - consumed)
-        } else if (entitlementCap != null) {
-          downloadsRemaining = Math.max(0, entitlementCap - (entitlement.downloadCount || 0))
-        }
+        const consumed = consumedByFile.get(file.id) || 0
+        const downloadsRemaining = computeDownloadsRemaining(file, entitlement, consumed)
 
         downloads.push({
           productFileId:     file.id,
@@ -456,6 +449,8 @@ async function getEnrichedOrderById(id) {
           fileSizeFormatted: formatBytes(file.fileSize),
           version:           file.version,
           isPrimary:         file.isPrimary,
+          maxDownloadsPerUser: file.maxDownloadsPerUser ?? null,
+          downloadsUsed:     consumed,
           downloadUrl:       `/api/downloads/${file.id}`,
           downloadsRemaining,
           entitlementStatus: entitlement.downloadAccessStatus,

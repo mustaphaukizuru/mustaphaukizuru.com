@@ -29,6 +29,26 @@ jest.mock("../src/lib/prisma", () => {
   return {
     consultation: {
       findUnique: jest.fn(),
+      // Phase 11 · provisionMeetingAndNotify (the post-transaction Google
+      // Meet provisioner) calls prisma.consultation.update DIRECTLY
+      // (not through $transaction). Mock at the top level so it doesn't
+      // throw TypeError: not a function. Returns a row populated with
+      // the user/service/assignedAdmin relations the email helper
+      // downstream needs (via the include: PUBLIC_INCLUDE on the real
+      // call). Without these, sendConsultationConfirmedEmail short-
+      // circuits at `if (!to) return` and the email assertion fails.
+      update: jest.fn(({ data }) => Promise.resolve({
+        id:          "c_1",
+        status:      "confirmed",
+        scheduledAt: new Date("2026-06-15T14:00:00Z"),
+        durationMin: 30,
+        timezone:    "America/Mexico_City",
+        ...data,
+        userId:       "user_1",
+        user:         { id: "user_1", fullName: "Client Test", email: "client@example.com" },
+        service:      { id: "svc_1",  title: "Discovery call", slug: "discovery" },
+        assignedAdmin:{ id: "admin_1", fullName: "Mustapha Ukizuru", email: "host@example.com" },
+      })),
     },
     user: {
       update: jest.fn().mockResolvedValue({}),  // no-op for unrelated callers
@@ -44,12 +64,28 @@ jest.mock("../src/lib/prisma", () => {
   }
 })
 
-// emailService is dynamically required inside sendConsultationConfirmedEmail
-// (`require("./emailService")` at function call time). The jest.mock here
-// catches that require and lets us spy on sendTemplateEmail without booting
-// the real transport.
-jest.mock("../src/services/emailService", () => ({
-  sendTemplateEmail: jest.fn().mockResolvedValue({ ok: true }),
+// Phase 11 · Google Meet is now the only auto-provisioned provider, so
+// these tests need to control whether the booking flow believes Google
+// is configured. Default = NOT configured → exercises the "no link
+// generated, admin attention" branch. Tests that want to assert on the
+// Google-success path override per-call via mockReturnValueOnce(true)
+// + createCalendarEvent.mockResolvedValueOnce(...).
+jest.mock("../src/lib/googleCalendar", () => ({
+  isConfigured:        jest.fn(() => false),
+  createCalendarEvent: jest.fn(),
+  updateCalendarEvent: jest.fn(),
+  cancelCalendarEvent: jest.fn(),
+}))
+
+// The admin-confirm path consolidated onto utils/mailer (Phase 12) so that
+// it ships the same ICS attachment the public booking flow does. Mocking
+// the mailer here keeps the test boundary at the orchestrator: we exercise
+// the audit/transaction/provisioner wiring without booting nodemailer.
+jest.mock("../src/utils/mailer", () => ({
+  sendConsultationConfirmationEmail: jest.fn().mockResolvedValue(undefined),
+  sendConsultationRescheduledEmail:  jest.fn().mockResolvedValue(undefined),
+  sendConsultationCancelledEmail:    jest.fn().mockResolvedValue(undefined),
+  sendConsultationReminderEmail:     jest.fn().mockResolvedValue(undefined),
 }))
 
 jest.mock("../src/utils/resolveUserLocale", () => ({
@@ -72,7 +108,7 @@ jest.mock("../src/utils/logger", () => ({
 /* ───────────────────────── system-under-test ───────────────────────────── */
 
 const prisma = require("../src/lib/prisma")
-const { sendTemplateEmail } = require("../src/services/emailService")
+const { sendConsultationConfirmationEmail } = require("../src/utils/mailer")
 const { adminUpdateConsultation } = require("../src/services/consultationService")
 
 /* ─────────────────────────── fixtures ──────────────────────────────────── */
@@ -113,10 +149,15 @@ beforeEach(() => {
 describe("adminUpdateConsultation — audit log", () => {
   test("writes AdminAuditLog row with before/after snapshot on status=confirmed", async () => {
     const before = buildExistingConsultation({ status: "pending" })
-    const after  = buildUpdatedConsultation({
-      status: "confirmed",
+    // Phase 11 · meetingLink is NO LONGER set inside the transaction.
+    // The transaction-side update only flips status/confirmedAt; the
+    // meeting link is provisioned AFTER the commit by
+    // provisionMeetingAndNotify. The audit row captures the
+    // pre-provisioning snapshot, so meetingLink stays null here.
+    const after = buildUpdatedConsultation({
+      status:      "confirmed",
       confirmedAt: new Date(),
-      meetingLink: "https://meet.jit.si/ukizuru-xxx-yyy",
+      meetingLink: null,
     })
     prisma.consultation.findUnique.mockResolvedValueOnce(before)
     prisma.__tx.consultation.update.mockResolvedValueOnce(after)
@@ -137,7 +178,6 @@ describe("adminUpdateConsultation — audit log", () => {
     })
     expect(auditCall.beforeJson.status).toBe("pending")
     expect(auditCall.afterJson.status).toBe("confirmed")
-    expect(auditCall.afterJson.meetingLink).toMatch(/meet\.jit\.si/)
   })
 
   test("action key reflects the new status (cancelled/completed)", async () => {
@@ -184,20 +224,66 @@ describe("adminUpdateConsultation — audit log", () => {
   })
 })
 
-describe("adminUpdateConsultation — auto Jitsi meeting link on first confirm", () => {
-  test("generates a meet.jit.si URL when confirming without an existing link", async () => {
+describe("adminUpdateConsultation — auto Google Meet link on first confirm", () => {
+  // Phase 11 polish: the legacy Jitsi auto-generator was removed.
+  // When admin confirms a pending booking without supplying a link,
+  // the code calls provisionMeetingAndNotify AFTER the transaction
+  // commits — which either creates a Google Calendar event with a
+  // Meet link, or (when Google isn't configured / fails) leaves
+  // meetingLink null for the admin to fill in manually.
+
+  test("creates a Google Meet event when Google is configured", async () => {
+    const googleCalendar = require("../src/lib/googleCalendar")
+    googleCalendar.isConfigured.mockReturnValueOnce(true)
+    googleCalendar.createCalendarEvent.mockResolvedValueOnce({
+      eventId:  "gcal_evt_123",
+      meetLink: "https://meet.google.com/abc-defg-hij",
+      htmlLink: "https://www.google.com/calendar/event?eid=...",
+    })
+
     prisma.consultation.findUnique.mockResolvedValueOnce(buildExistingConsultation({
       status: "pending", meetingLink: null,
     }))
-    prisma.__tx.consultation.update.mockImplementationOnce(({ data }) => {
-      // Return the data the orchestrator would persist so we can inspect it.
-      return Promise.resolve({ ...buildExistingConsultation(), ...data })
-    })
+    prisma.__tx.consultation.update.mockResolvedValueOnce(
+      buildUpdatedConsultation({ status: "confirmed", meetingLink: null })
+    )
+    // The post-transaction provisioner writes the Meet link via the
+    // top-level prisma.consultation.update mocked at the top of this
+    // file (default impl echoes the patch back). Capture the call.
 
     await adminUpdateConsultation("c_1", { status: "confirmed" }, { adminUserId: "admin_1" })
 
-    const dataPassedToUpdate = prisma.__tx.consultation.update.mock.calls[0][0].data
-    expect(dataPassedToUpdate.meetingLink).toMatch(/^https:\/\/meet\.jit\.si\/ukizuru-/)
+    expect(googleCalendar.createCalendarEvent).toHaveBeenCalledTimes(1)
+    // The provisioner persists the Meet link via prisma.consultation.update
+    expect(prisma.consultation.update).toHaveBeenCalled()
+    const updateCall = prisma.consultation.update.mock.calls.find(
+      (c) => c[0]?.data?.meetingProvider === "google_meet"
+    )
+    expect(updateCall).toBeDefined()
+    expect(updateCall[0].data.meetingLink).toBe("https://meet.google.com/abc-defg-hij")
+    expect(updateCall[0].data.googleEventId).toBe("gcal_evt_123")
+  })
+
+  test("leaves meetingLink null (for admin attention) when Google is NOT configured", async () => {
+    // Default googleCalendar.isConfigured() = false (set at module mock).
+    prisma.consultation.findUnique.mockResolvedValueOnce(buildExistingConsultation({
+      status: "pending", meetingLink: null,
+    }))
+    prisma.__tx.consultation.update.mockResolvedValueOnce(
+      buildUpdatedConsultation({ status: "confirmed", meetingLink: null })
+    )
+
+    await adminUpdateConsultation("c_1", { status: "confirmed" }, { adminUserId: "admin_1" })
+
+    // The "not configured" branch updates the row with meetingLink=null
+    // + meetingProvider="manual" so the admin dashboard surfaces it.
+    expect(prisma.consultation.update).toHaveBeenCalled()
+    const updateCall = prisma.consultation.update.mock.calls.find(
+      (c) => c[0]?.data?.meetingLink === null
+    )
+    expect(updateCall).toBeDefined()
+    expect(updateCall[0].data.meetingProvider).toBe("manual")
+    expect(updateCall[0].data.googleEventId).toBeNull()
   })
 
   test("respects an explicit meetingLink in the patch (manual override wins)", async () => {
@@ -214,12 +300,15 @@ describe("adminUpdateConsultation — auto Jitsi meeting link on first confirm",
       meetingLink: "https://meet.google.com/abc-defg-hij",
     }, { adminUserId: "admin_1" })
 
-    const data = prisma.__tx.consultation.update.mock.calls[0][0].data
-    expect(data.meetingLink).toBe("https://meet.google.com/abc-defg-hij")
-    expect(data.meetingLink).not.toMatch(/jit\.si/)
+    // The transaction's data carries the explicit link from the patch.
+    const txCall = prisma.__tx.consultation.update.mock.calls[0][0].data
+    expect(txCall.meetingLink).toBe("https://meet.google.com/abc-defg-hij")
+    // Provisioner is skipped because patch.meetingLink !== undefined.
+    const googleCalendar = require("../src/lib/googleCalendar")
+    expect(googleCalendar.createCalendarEvent).not.toHaveBeenCalled()
   })
 
-  test("does NOT regenerate a meeting link when one already exists", async () => {
+  test("does NOT regenerate a meeting link when one already exists on the booking", async () => {
     prisma.consultation.findUnique.mockResolvedValueOnce(buildExistingConsultation({
       status: "pending", meetingLink: "https://meet.google.com/existing-link",
     }))
@@ -227,17 +316,30 @@ describe("adminUpdateConsultation — auto Jitsi meeting link on first confirm",
 
     await adminUpdateConsultation("c_1", { status: "confirmed" }, { adminUserId: "admin_1" })
 
+    // before.meetingLink is set → willAutoProvision is false → no Google call
+    const googleCalendar = require("../src/lib/googleCalendar")
+    expect(googleCalendar.createCalendarEvent).not.toHaveBeenCalled()
     const data = prisma.__tx.consultation.update.mock.calls[0][0].data
     expect(data.meetingLink).toBeUndefined()  // not in `allowed` since patch didn't include it
   })
 })
 
 describe("adminUpdateConsultation — confirmation email", () => {
-  test("fires sendTemplateEmail when transitioning to confirmed", async () => {
+  test("fires sendConsultationConfirmationEmail when transitioning to confirmed", async () => {
+    // Phase 11 · simulate the Google-Meet-configured path so the
+    // provisioner produces a real link before the email fires.
+    const googleCalendar = require("../src/lib/googleCalendar")
+    googleCalendar.isConfigured.mockReturnValueOnce(true)
+    googleCalendar.createCalendarEvent.mockResolvedValueOnce({
+      eventId:  "gcal_evt_email_test",
+      meetLink: "https://meet.google.com/abc-defg-hij",
+      htmlLink: null,
+    })
+
     prisma.consultation.findUnique.mockResolvedValueOnce(buildExistingConsultation({ status: "pending" }))
     prisma.__tx.consultation.update.mockResolvedValueOnce(buildUpdatedConsultation({
       status: "confirmed",
-      meetingLink: "https://meet.jit.si/ukizuru-x-y",
+      meetingLink: null,  // link added post-transaction by provisioner
     }))
 
     await adminUpdateConsultation("c_1", { status: "confirmed" }, { adminUserId: "admin_1" })
@@ -246,11 +348,11 @@ describe("adminUpdateConsultation — confirmation email", () => {
     // microtask queued by Promise.catch settle before asserting.
     await new Promise((r) => setImmediate(r))
 
-    expect(sendTemplateEmail).toHaveBeenCalledTimes(1)
-    const args = sendTemplateEmail.mock.calls[0][0]
-    expect(args.templateKey).toBe("consultation.confirmed")
-    expect(args.to).toBe("client@example.com")
-    expect(args.variables.meetingLink).toMatch(/jit\.si/)
+    expect(sendConsultationConfirmationEmail).toHaveBeenCalledTimes(1)
+    const [row, opts] = sendConsultationConfirmationEmail.mock.calls[0]
+    expect(row.user?.email).toBe("client@example.com")
+    expect(row.meetingLink).toBe("https://meet.google.com/abc-defg-hij")
+    expect(opts).toMatchObject({ locale: "en" })
   })
 
   test("does NOT fire email on a non-status patch", async () => {
@@ -262,7 +364,7 @@ describe("adminUpdateConsultation — confirmation email", () => {
     await adminUpdateConsultation("c_1", { summaryNotes: "Updated notes" }, { adminUserId: "admin_1" })
     await new Promise((r) => setImmediate(r))
 
-    expect(sendTemplateEmail).not.toHaveBeenCalled()
+    expect(sendConsultationConfirmationEmail).not.toHaveBeenCalled()
   })
 
   test("does NOT fire email when already in confirmed state (no transition)", async () => {
@@ -272,7 +374,7 @@ describe("adminUpdateConsultation — confirmation email", () => {
     await adminUpdateConsultation("c_1", { status: "confirmed" }, { adminUserId: "admin_1" })
     await new Promise((r) => setImmediate(r))
 
-    expect(sendTemplateEmail).not.toHaveBeenCalled()
+    expect(sendConsultationConfirmationEmail).not.toHaveBeenCalled()
   })
 })
 

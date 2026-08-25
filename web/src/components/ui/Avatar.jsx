@@ -31,12 +31,12 @@ const STATUS_COLOR = {
 const BG_PALETTE = [
   "bg-[var(--color-violet-pale)] text-[var(--color-violet)]",
   "bg-[var(--color-violet-ghost)] text-[var(--color-violet-deep)]",
-  "bg-[#fff1ec] text-[#7c2d12]", // terracotta tint
-  "bg-[#e6f1ff] text-[#1d4ed8]",
-  "bg-[#e8f7ee] text-[#15803d]",
-  "bg-[#fff5d6] text-[#854d0e]",
-  "bg-[#fde7ef] text-[#9d174d]",
-  "bg-[rgba(99,79,64,0.10)] text-[var(--color-charcoal-80)]",
+  "bg-[var(--color-avatar-1-bg)] text-[var(--color-avatar-1-fg)]", // terracotta tint
+  "bg-[var(--color-avatar-2-bg)] text-[var(--color-avatar-2-fg)]", // azure tint
+  "bg-[var(--color-avatar-3-bg)] text-[var(--color-avatar-3-fg)]", // mint tint
+  "bg-[var(--color-avatar-4-bg)] text-[var(--color-avatar-4-fg)]", // amber tint
+  "bg-[var(--color-avatar-5-bg)] text-[var(--color-avatar-5-fg)]", // rose tint
+  "bg-[rgb(var(--color-charcoal-rgb)/0.10)] text-[var(--color-charcoal-80)]",
 ]
 
 function hashCode(str) {

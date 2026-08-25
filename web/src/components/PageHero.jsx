@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { ArrowRight, ChevronDown } from "lucide-react"
 import { Link } from "react-router-dom"
 
@@ -80,7 +80,7 @@ export default function PageHero({
       {isMinimal && <LightAccents />}
 
       <Container className="relative z-10 flex min-h-[inherit] items-center py-16 sm:py-20 lg:py-24">
-        <motion.div
+        <m.div
           variants={stagger}
           initial="hidden"
           animate="show"
@@ -94,7 +94,7 @@ export default function PageHero({
             finalAlign === "center" && "items-center text-center",
           )}>
             {eyebrow && (
-              <motion.span
+              <m.span
                 variants={fadeUp}
                 className={cn(
                   "inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11.5px] font-bold uppercase tracking-[0.18em]",
@@ -105,10 +105,10 @@ export default function PageHero({
               >
                 <span className={cn("h-1.5 w-1.5 rounded-full", onDark ? "bg-terracotta" : "bg-violet")} />
                 {eyebrow}
-              </motion.span>
+              </m.span>
             )}
 
-            <motion.h1
+            <m.h1
               id="page-hero-title"
               variants={fadeUp}
               className={cn(
@@ -118,10 +118,10 @@ export default function PageHero({
               )}
             >
               {titleNode}
-            </motion.h1>
+            </m.h1>
 
             {subtitle && (
-              <motion.p
+              <m.p
                 variants={fadeUp}
                 className={cn(
                   "max-w-[60ch] text-[clamp(15px,1.5vw,18px)] leading-[1.6]",
@@ -130,11 +130,11 @@ export default function PageHero({
                 )}
               >
                 {subtitle}
-              </motion.p>
+              </m.p>
             )}
 
             {(primaryCta || secondaryCta) && (
-              <motion.div
+              <m.div
                 variants={fadeUp}
                 className={cn(
                   "mt-1 flex flex-wrap items-center gap-3",
@@ -143,11 +143,11 @@ export default function PageHero({
               >
                 {primaryCta && <PrimaryCta {...primaryCta} onDark={onDark} />}
                 {secondaryCta && <SecondaryCta {...secondaryCta} onDark={onDark} />}
-              </motion.div>
+              </m.div>
             )}
 
             {Array.isArray(stats) && stats.length > 0 && (
-              <motion.dl
+              <m.dl
                 variants={fadeUp}
                 className={cn(
                   "mt-3 grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3",
@@ -170,21 +170,21 @@ export default function PageHero({
                     </dd>
                   </div>
                 ))}
-              </motion.dl>
+              </m.dl>
             )}
 
-            {children && <motion.div variants={fadeUp}>{children}</motion.div>}
+            {children && <m.div variants={fadeUp}>{children}</m.div>}
           </div>
 
           {isSplit && right && (
-            <motion.div
+            <m.div
               variants={fadeUp}
               className="relative flex items-center justify-center"
             >
               {right}
-            </motion.div>
+            </m.div>
           )}
-        </motion.div>
+        </m.div>
       </Container>
 
       {scrollCue && <ScrollCue onDark={onDark} />}
@@ -249,7 +249,7 @@ function ScrollCue({ onDark }) {
     <div className="pointer-events-none absolute inset-x-0 bottom-6 z-10 flex justify-center">
       <span className={cn(
         "inline-flex flex-col items-center gap-1 text-[11px] font-medium uppercase tracking-[0.22em]",
-        onDark ? "text-white/55" : "text-charcoal-80/45",
+        onDark ? "text-white/85" : "text-charcoal-80/65",
       )}>
         Scroll
         <ChevronDown size={14} className="animate-[bob_1.6s_ease-in-out_infinite]" aria-hidden="true" />

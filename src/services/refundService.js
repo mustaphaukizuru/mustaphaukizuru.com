@@ -58,8 +58,16 @@ const { notifyOrderRefunded }      = require("./notificationService")
 // 365 days. Our policy is stricter so we set our own gate.
 const REFUND_WINDOW_DAYS = 14
 
+// Mirrors the Prisma `RefundStatus` enum (prisma/schema.prisma). Keep these
+// two in sync — any divergence causes silent write failures (Prisma rejects
+// unknown enum values with P2024).
+//
+// The earlier "requested" sentinel lived in this list but was never persisted
+// to Refund.refundStatus — a member's refund request is tracked on a
+// SupportTicket row, not by a phantom Refund row. Including it here used to
+// suggest the value was writable, so it's been removed to avoid that trap.
 const VALID_REFUND_STATUSES = [
-  "requested",   // member raised a ticket — no Refund row yet, only ticket
+  "pending",     // intent recorded, gateway call not started
   "approved",    // admin clicked refund, Refund row created (legacy code path)
   "processing",  // gateway call in flight (this service)
   "succeeded",   // gateway accepted, local state flipped
@@ -232,18 +240,19 @@ async function checkRefundEligibility(orderId) {
  *   4. Call the correct provider (PayPal / MercadoPago)
  *   5. In a single Prisma $transaction:
  *        - Create Refund row (status: succeeded)
- *        - Update Payment row (paymentStatus: refunded if full else stays paid)
- *        - Update Order row (status: refunded if full)
- *        - Revoke UserDownload entitlements (full refund: all rows for the
- *          order; partial refund: rows for the specific orderItemIds)
+ *        - Update Payment row (paymentStatus: refunded)
+ *        - Update Order row (status: refunded)
+ *        - Revoke ALL UserDownload entitlements for the order
  *        - Insert AdminAuditLog row
+ *
+ * Refunds are FULL only. The full remaining paid amount is always refunded;
+ * `amount` / `orderItemIds` are rejected with INVALID_AMOUNT so a caller
+ * can never issue a partial refund by accident.
  *   6. Best-effort post-commit side effects: email, in-app notification,
  *      ActivityLog entry. These never throw.
  *
  * @param {object}   input
  * @param {string}   input.orderId
- * @param {number}  [input.amount]            null/undefined ⇒ full refund
- * @param {string[]} [input.orderItemIds]     restrict revocation to specific items (partial)
  * @param {string}  [input.reason]            audit + email body
  * @param {boolean} [input.force=false]       override Option A per-item gate
  * @param {string}   input.adminUserId        for AdminAuditLog
@@ -251,7 +260,7 @@ async function checkRefundEligibility(orderId) {
  *
  * @returns {Promise<{
  *   refund:        object,
- *   isFull:        boolean,
+ *   isFull:        true,
  *   orderStatus:   string,
  *   providerRaw:   object
  * }>}
@@ -263,7 +272,7 @@ async function checkRefundEligibility(orderId) {
 async function processOrderRefund({
   orderId,
   amount,
-  orderItemIds = [],
+  orderItemIds,
   reason = null,
   force = false,
   adminUserId,
@@ -271,6 +280,11 @@ async function processOrderRefund({
 } = {}) {
   if (!orderId)     throw withCode("orderId is required", "VALIDATION", 400)
   if (!adminUserId) throw withCode("adminUserId is required", "VALIDATION", 400)
+  // Partial refunds are not supported — reject explicit amounts / item subsets
+  // before touching the DB so the failure is obvious to the caller.
+  if (amount != null || (Array.isArray(orderItemIds) && orderItemIds.length > 0)) {
+    throw withCode("Partial refunds are not supported — a refund always covers the full remaining amount", "INVALID_AMOUNT", 400)
+  }
 
   // 1 · Load order + payments + refunds + downloads.
   const order = await prisma.order.findUnique({
@@ -301,26 +315,13 @@ async function processOrderRefund({
     throw withCode("Order has already been fully refunded", "ALREADY_REFUNDED", 409)
   }
 
-  // 3 · Resolve refund amount (default: full remaining).
-  const requestedAmount = amount == null ? refundableAmount : round2(toNumber(amount))
-  if (requestedAmount <= 0) {
-    throw withCode("Refund amount must be greater than zero", "INVALID_AMOUNT", 400)
-  }
-  if (requestedAmount > refundableAmount) {
-    throw withCode(
-      `Refund amount ${requestedAmount} exceeds refundable balance ${refundableAmount}`,
-      "INVALID_AMOUNT",
-      400,
-    )
-  }
-  const isFull = requestedAmount >= refundableAmount
+  // 3 · Refund amount is always the full remaining paid balance.
+  const requestedAmount = refundableAmount
+  const isFull = true
 
   // 4 · Option A enforcement — block refund of any item that's been downloaded
-  //     unless `force: true` is passed. We only inspect items targeted by this
-  //     refund. For a full refund with no orderItemIds, that's every product.
-  const targetItemIds = orderItemIds.length > 0
-    ? new Set(orderItemIds)
-    : new Set((order.items || []).filter((i) => i.itemType === "product").map((i) => i.id))
+  //     unless `force: true` is passed. Every product item is in scope.
+  const targetItemIds = new Set((order.items || []).filter((i) => i.itemType === "product").map((i) => i.id))
 
   const downloadsByItemId = new Map()
   for (const ud of order.userDownloads || []) downloadsByItemId.set(ud.orderItemId, ud)
@@ -401,36 +402,19 @@ async function processOrderRefund({
       },
     })
 
-    // Payment status: 'refunded' on a full refund of this single payment;
-    // for a partial refund leave it 'paid' so downstream logic still treats
-    // the order as paid for non-refunded items.
-    if (isFull) {
-      await tx.payment.update({
-        where: { id: targetPayment.id },
-        data:  { paymentStatus: "refunded" },
-      })
-    }
+    await tx.payment.update({
+      where: { id: targetPayment.id },
+      data:  { paymentStatus: "refunded" },
+    })
 
-    // Order status: only flip to 'refunded' on a true full-order refund.
-    if (isFull) {
-      await tx.order.update({
-        where: { id: order.id },
-        data:  { status: "refunded" },
-      })
-    }
+    await tx.order.update({
+      where: { id: order.id },
+      data:  { status: "refunded" },
+    })
 
-    // Revoke entitlements. Full refund ⇒ revoke all UserDownload rows for
-    // the order. Partial ⇒ revoke only the rows whose orderItemId is in
-    // the targetItemIds set (skipping items the admin chose to keep paid).
-    const revokeWhere = isFull
-      ? { orderId: order.id, downloadAccessStatus: "active" }
-      : {
-          orderId: order.id,
-          downloadAccessStatus: "active",
-          orderItemId: { in: Array.from(targetItemIds) },
-        }
+    // Revoke ALL active UserDownload entitlements for the order.
     const revoked = await tx.userDownload.updateMany({
-      where: revokeWhere,
+      where: { orderId: order.id, downloadAccessStatus: "active" },
       data:  { downloadAccessStatus: "revoked" },
     })
 
@@ -439,7 +423,7 @@ async function processOrderRefund({
     await tx.adminAuditLog.create({
       data: {
         adminUserId,
-        action:     isFull ? "order.refund.full" : "order.refund.partial",
+        action:     "order.refund.full",
         targetType: "Order",
         targetId:   order.id,
         beforeJson: {
@@ -449,8 +433,8 @@ async function processOrderRefund({
           alreadyRefunded,
         },
         afterJson: {
-          orderStatus:     isFull ? "refunded" : "paid",
-          paymentStatus:   isFull ? "refunded" : targetPayment.paymentStatus,
+          orderStatus:     "refunded",
+          paymentStatus:   "refunded",
           refundAmount:    requestedAmount,
           refundedItems:   Array.from(targetItemIds),
           revokedDownloads: revoked.count,
@@ -475,7 +459,7 @@ async function processOrderRefund({
     customerEmail,
     customerName,
     totalAmount,
-    status:        isFull ? "refunded" : "paid",
+    status:        "refunded",
     userId:        order.userId,
     items: (order.items || []).map((i) => ({
       title:    i.title || i.titleSnapshot || "Item",
@@ -493,7 +477,7 @@ async function processOrderRefund({
   recordOrderEvent({
     orderId:     order.id,
     userId:      order.userId,
-    action:      isFull ? "order.refunded" : "order.refunded_partial",
+    action:      "order.refunded",
     description: `Refund ${requestedAmount} ${order.currency || "MXN"} via ${targetPayment.paymentGateway}` +
                  `${reason ? ` — ${reason}` : ""}` +
                  `${force && blockedItems.length ? ` [override: ${blockedItems.length} downloaded item(s)]` : ""}`,
@@ -516,7 +500,7 @@ async function processOrderRefund({
       revokedDownloads: result.revokedCount,
     },
     isFull,
-    orderStatus:  isFull ? "refunded" : "paid",
+    orderStatus:  "refunded",
     providerRaw,
   }
 }

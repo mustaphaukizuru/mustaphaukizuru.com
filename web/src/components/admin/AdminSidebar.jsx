@@ -1,5 +1,7 @@
+/* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { useEffect, useState, useMemo } from "react"
 import { NavLink, useNavigate, Link } from "react-router-dom"
+import ThemeSwitcher from "../ui/ThemeSwitcher"
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -12,8 +14,6 @@ import {
   ChevronDown,
   ShieldCheck,
   Headphones,
-  FileText,
-  Image,
   Mail,
   MailOpen,
   ClipboardList,
@@ -29,7 +29,6 @@ import {
   Star,
   Receipt,
   Activity,
-  Bookmark,
   Newspaper,
   Megaphone,
 } from "lucide-react"
@@ -112,7 +111,6 @@ const navigation = [
       { label: "Blog", to: "/admin/blog", icon: Newspaper, description: "Posts, categories, tags" },
       { label: "Portfolio", to: "/admin/portfolio", icon: FolderOpen, description: "Case studies & gallery" },
       { label: "Bio CMS", to: "/admin/bio", icon: BookUser, description: "Experience · certificates · skills" },
-      { label: "Recommendations", to: "/admin/recommendations", icon: Bookmark, description: "Curated tools, books & partners" },
     ],
   },
   {
@@ -129,8 +127,6 @@ const navigation = [
     section: "Content",
     collapsible: false,
     items: [
-      { label: "Pages", to: "/admin/pages", icon: FileText, description: "CMS & legal" },
-      { label: "Media Library", to: "/admin/media", icon: Image, description: "Uploads & assets" },
     ],
   },
   {
@@ -147,10 +143,10 @@ const navigation = [
     collapsible: false,
     items: [
       { label: "Users", to: "/admin/users", icon: Users, description: "Accounts & roles" },
-      { label: "Roles", to: "/admin/roles", icon: ShieldCheck, description: "Permissions & access control" },
       { label: "Sessions", to: "/admin/sessions", icon: Activity, description: "Active sign-ins & security" },
       { label: "Analytics", to: "/admin/analytics", icon: TrendingUp, description: "Privacy-first traffic & events" },
-      { label: "Audit Log", to: "/admin/audit", icon: ClipboardList, description: "Action history" },
+      { label: "Audit Log",       to: "/admin/audit",       icon: ClipboardList, description: "Action history" },
+      { label: "Self-Audit Leads", to: "/admin/diagnostic",  icon: ClipboardList, description: "Maturity audit submissions" },
     ],
   },
 ]
@@ -173,7 +169,7 @@ function SidebarItem({ item }) {
           "group relative flex items-center gap-3 rounded-lg py-2.5 transition-all duration-150",
           // 4px Royal Violet left border on active per F10.G
           isActive
-            ? "bg-violet-pale border-l-[4px] border-l-violet pl-[calc(0.625rem-4px)] pr-2.5 text-violet shadow-[inset_0_0_0_1px_rgba(93,63,211,0.06)]"
+            ? "bg-violet-pale border-l-[4px] border-l-violet pl-[calc(0.625rem-4px)] pr-2.5 text-violet shadow-[inset_0_0_0_1px_rgb(var(--color-violet-rgb)/0.06)]"
             : "border-l-[4px] border-l-transparent pl-[calc(0.625rem-4px)] pr-2.5 text-charcoal-80 hover:bg-violet-ghost hover:text-violet",
           "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
         ].join(" ")
@@ -181,7 +177,7 @@ function SidebarItem({ item }) {
     >
       {({ isActive }) => (
         <>
-          <Icon className={`h-[16px] w-[16px] shrink-0 ${isActive ? "text-violet" : "text-charcoal-80/55 group-hover:text-violet"}`} aria-hidden="true" />
+          <Icon className={`h-[16px] w-[16px] shrink-0 ${isActive ? "text-violet" : "text-charcoal-80/65 group-hover:text-violet"}`} aria-hidden="true" />
           <span className={`min-w-0 flex-1 truncate text-meta ${isActive ? "font-semibold" : "font-medium"}`}>
             {item.label}
           </span>
@@ -199,7 +195,7 @@ function CollapsibleGroup({ group, collapsed, onToggle, count }) {
   if (!group.collapsible) {
     return (
       <div className="mb-4">
-        <div className="mb-1.5 flex items-center gap-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45">
+        <div className="mb-1.5 flex items-center gap-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65">
           <span>{group.section}</span>
           {count > 0 && (
             <span className="rounded-full bg-violet px-1.5 font-mono text-[9px] font-bold tabular-nums text-white">
@@ -221,7 +217,7 @@ function CollapsibleGroup({ group, collapsed, onToggle, count }) {
         onClick={onToggle}
         aria-expanded={!collapsed}
         aria-controls={`group-${group.section}`}
-        className="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/45 transition hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
+        className="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal-80/65 transition hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
       >
         <span className="flex items-center gap-2">
           {group.section}
@@ -274,7 +270,7 @@ export default function AdminSidebar() {
       const next = new Set(prev)
       if (next.has(section)) next.delete(section)
       else next.add(section)
-      try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...next])) } catch {}
+      try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...next])) } catch { /* ignore */ }
       return next
     })
   }
@@ -310,18 +306,18 @@ export default function AdminSidebar() {
 
   return (
     <aside
-      className="flex h-full min-h-0 w-full flex-col rounded-xl border border-charcoal-80/10 bg-white shadow-[0_14px_40px_rgba(93,63,211,0.06)]"
+      className="flex h-full min-h-0 w-full flex-col rounded-xl border border-charcoal-80/10 bg-white shadow-[0_14px_40px_rgb(var(--color-violet-rgb)/0.06)]"
       aria-label="Admin navigation"
     >
       {/* Brand · sticky top */}
       <div className="border-b border-charcoal-80/10 px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_18px_rgba(93,63,211,0.22)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.22)]">
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
           </div>
           <div className="min-w-0">
             <div className="truncate text-card font-bold tracking-tight text-violet">Admin Console</div>
-            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-charcoal-80/55">v1.0 · Operations</div>
+            <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-charcoal-80/65">v1.0 · Operations</div>
           </div>
         </div>
 
@@ -363,10 +359,18 @@ export default function AdminSidebar() {
               <div className="truncate text-micro text-charcoal-80/65">{user?.email || ""}</div>
             </div>
           </div>
+          {/* Theme switcher — scoped to the admin shell via the
+              data-dashboard-shell attribute on AdminLayout. Toggling dark
+              here flips ONLY the admin subtree; the public website stays
+              on the canonical light brand per Brand v3.1 §00. */}
+          <div className="mt-2.5">
+            <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
+          </div>
+
           <button
             type="button"
             onClick={handleLogout}
-            className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-charcoal-80/10 bg-white px-3 py-2 text-micro font-semibold text-charcoal-80/75 transition hover:border-rose/30 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose-300/40 focus-visible:ring-offset-2"
+            className="mt-2.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-charcoal-80/10 bg-white px-3 py-2 text-micro font-semibold text-charcoal-80/75 transition hover:border-rose/30 hover:bg-rose/10 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
           >
             <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
             Sign out

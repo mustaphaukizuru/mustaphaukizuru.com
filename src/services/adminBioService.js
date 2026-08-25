@@ -12,7 +12,7 @@ const SKILL_CATEGORIES = new Set([
 // ---- Experience -----------------------------------------------
 
 exports.listExperience = async () =>
-  prisma.experience.findMany({ orderBy: [{ displayOrder: "asc" }, { startDate: "desc" }] })
+  prisma.experience.findMany({ orderBy: [{ displayOrder: "asc" }, { startDate: "desc" }], take: 200 })
 
 exports.createExperience = async (data) =>
   prisma.experience.create({
@@ -51,7 +51,7 @@ exports.deleteExperience = async (id) => {
 // ---- Certificate ----------------------------------------------
 
 exports.listCertificates = async () =>
-  prisma.certificate.findMany({ orderBy: [{ displayOrder: "asc" }, { issueDate: "desc" }] })
+  prisma.certificate.findMany({ orderBy: [{ displayOrder: "asc" }, { issueDate: "desc" }], take: 200 })
 
 exports.createCertificate = async (data) =>
   prisma.certificate.create({
@@ -90,7 +90,7 @@ exports.deleteCertificate = async (id) => {
 // ---- Skill ----------------------------------------------------
 
 exports.listSkills = async () =>
-  prisma.skill.findMany({ orderBy: [{ category: "asc" }, { displayOrder: "asc" }, { name: "asc" }] })
+  prisma.skill.findMany({ orderBy: [{ category: "asc" }, { displayOrder: "asc" }, { name: "asc" }], take: 200 })
 
 exports.createSkill = async (data) => {
   if (!SKILL_CATEGORIES.has(data.category)) {
@@ -130,7 +130,7 @@ exports.deleteSkill = async (id) => {
 // ---- Education ------------------------------------------------
 
 exports.listEducation = async () =>
-  prisma.education.findMany({ orderBy: [{ displayOrder: "asc" }, { startDate: "desc" }] })
+  prisma.education.findMany({ orderBy: [{ displayOrder: "asc" }, { startDate: "desc" }], take: 200 })
 
 exports.createEducation = async (data) =>
   prisma.education.create({

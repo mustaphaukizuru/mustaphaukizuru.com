@@ -1,20 +1,57 @@
 const jwt = require("jsonwebtoken")
 const prisma = require("../lib/prisma")
+const { SESSION_COOKIE } = require("../utils/sessionCookie")
+
+/**
+ * A session token is one issued by utils/generateToken: it carries a userId
+ * and NO `purpose` claim. Anything with a purpose (e.g. "2fa-pending") is a
+ * scoped token and must be verified by its own service, never here.
+ */
+function isSessionToken(decoded) {
+  return Boolean(decoded && decoded.userId && decoded.purpose === undefined)
+}
+
+/**
+ * Step 40 · where the session JWT comes from.
+ *
+ * Precedence is COOKIE FIRST, then the `Authorization: Bearer` header:
+ *
+ *   1. `mu_session` httpOnly cookie — the SPA's path from this release on.
+ *      XSS can no longer read it, and CSRF is handled by middleware/csrf.js.
+ *   2. `Authorization: Bearer <jwt>` — kept for the rollout window so any
+ *      already-loaded SPA build, mobile client, or API integration that
+ *      still holds a localStorage/Keychain token keeps working. Drop this
+ *      branch once the old builds have aged out (see CLAUDE.md).
+ *
+ * Cookie-before-header matters for CSRF: middleware/csrf.js enforces the
+ * double-submit token whenever a session cookie is present, precisely
+ * because the cookie is what will actually authenticate the request.
+ *
+ * Returns { token, via } where `via` is "cookie" | "header" | null.
+ */
+function extractSessionToken(req) {
+  const cookieToken = req.cookies?.[SESSION_COOKIE]
+  if (cookieToken) return { token: String(cookieToken), via: "cookie" }
+
+  const authHeader = req.headers.authorization
+  if (authHeader?.startsWith("Bearer ")) {
+    const headerToken = authHeader.slice("Bearer ".length).trim()
+    if (headerToken) return { token: headerToken, via: "header" }
+  }
+
+  return { token: null, via: null }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // protect — validates JWT, loads user, checks status
 // ─────────────────────────────────────────────────────────────────────────────
 async function protect(req, res, next) {
   try {
-    const authHeader = req.headers.authorization
-    if (!authHeader?.startsWith("Bearer ")) {
+    const { token, via } = extractSessionToken(req)
+    if (!token) {
       return res.status(401).json({ success: false, code: "AUTH_MISSING", message: "Authentication token required" })
     }
-
-    const token = authHeader.split(" ")[1]
-    if (!token) {
-      return res.status(401).json({ success: false, code: "AUTH_MISSING", message: "Token is empty" })
-    }
+    req.authVia = via
 
     let decoded
     try {
@@ -22,6 +59,14 @@ async function protect(req, res, next) {
     } catch (jwtErr) {
       const code = jwtErr.name === "TokenExpiredError" ? "AUTH_EXPIRED" : "AUTH_INVALID"
       return res.status(401).json({ success: false, code, message: jwtErr.name === "TokenExpiredError" ? "Session expired, please sign in again" : "Invalid authentication token" })
+    }
+
+    // Security · only plain session tokens authenticate. Purpose-scoped
+    // tokens (2FA-pending, etc.) are signed with the same secret but must
+    // never be accepted as a session — otherwise password-only login would
+    // bypass the second factor.
+    if (!isSessionToken(decoded)) {
+      return res.status(401).json({ success: false, code: "AUTH_INVALID", message: "Invalid authentication token" })
     }
 
     const user = await prisma.user.findUnique({
@@ -107,10 +152,7 @@ function selfOrAdmin(req, res, next) {
 // ─────────────────────────────────────────────────────────────────────────────
 async function attachUserIfPresent(req, _res, next) {
   try {
-    const authHeader = req.headers.authorization
-    if (!authHeader?.startsWith("Bearer ")) return next()
-
-    const token = authHeader.split(" ")[1]
+    const { token, via } = extractSessionToken(req)
     if (!token) return next()
 
     let decoded
@@ -120,6 +162,7 @@ async function attachUserIfPresent(req, _res, next) {
       // Invalid/expired token on a public route is silently ignored.
       return next()
     }
+    if (!isSessionToken(decoded)) return next()
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -136,6 +179,7 @@ async function attachUserIfPresent(req, _res, next) {
       if (!isRevoked) {
         const { tokensValidFrom: _w, ...publicUser } = user
         req.user = publicUser
+        req.authVia = via
       }
     }
     next()
@@ -145,4 +189,4 @@ async function attachUserIfPresent(req, _res, next) {
   }
 }
 
-module.exports = { protect, adminOnly, selfOrAdmin, attachUserIfPresent }
+module.exports = { protect, adminOnly, selfOrAdmin, attachUserIfPresent, extractSessionToken }

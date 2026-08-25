@@ -114,6 +114,22 @@ export async function adminUpdateConsultation(id, patch) {
   return r?.data || r
 }
 
+/**
+ * Re-run the Google Calendar + Meet provisioner on a consultation that
+ * was confirmed without a meeting link (typically because Google was
+ * misconfigured at the time and is now fixed).
+ *
+ * Returns the updated row on success. The backend returns 409 with a
+ * diagnostic message when Google is STILL misconfigured (e.g. refresh
+ * token still wrong) — authPost surfaces that as a thrown Error whose
+ * .message is the backend's `message` field, so the caller catch block
+ * can show it directly.
+ */
+export async function adminRegenerateConsultationLink(id) {
+  const r = await authPost(`/api/v1/admin/consultations/${id}/regenerate-link`, {})
+  return r?.data || r
+}
+
 // ── Helpers (client-side tz utilities, no external deps) ────────────────────
 
 /** The browser's IANA timezone (e.g. "America/Mexico_City"). */
@@ -135,6 +151,32 @@ export function formatTime(utcIso, timezone, opts = {}) {
   } catch {
     return ""
   }
+}
+
+/**
+ * Label a list of slots for display, disambiguating a repeated wall-clock
+ * hour.
+ *
+ * On a DST fall-back day the local clock repeats an hour, so two genuinely
+ * different instants format to the same "1:00 AM". The buttons are keyed on
+ * `startUtc` so the booking is still correct, but the client cannot see which
+ * one they are choosing. When a label collides we append the short timezone
+ * name ("1:00 AM CDT" vs "1:00 AM CST") — and only then, so the other 364
+ * days stay clean.
+ *
+ * @param {Array<{startUtc: string}>} slots
+ * @returns {Array<{startUtc: string, label: string}>}
+ */
+export function labelSlots(slots = [], timezone) {
+  const base = slots.map((s) => ({ startUtc: s.startUtc, label: formatTime(s.startUtc, timezone) }))
+  const seen = new Map()
+  for (const s of base) seen.set(s.label, (seen.get(s.label) || 0) + 1)
+
+  return base.map((s) => {
+    if (seen.get(s.label) < 2) return s
+    const withZone = formatTime(s.startUtc, timezone, { timeZoneName: "short" })
+    return { ...s, label: withZone || s.label }
+  })
 }
 
 /** Format a UTC ISO string as a long date, e.g. "Monday, May 4, 2026". */

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion"
+import Image from "../components/ui/Image"
+import { m, useReducedMotion, useScroll, useTransform } from "framer-motion"
 import { Link } from "react-router-dom"
 import Seo from "../components/seo/Seo"
 import { pageSeo } from "../seo/pageSeo"
@@ -13,6 +14,7 @@ import {
   Briefcase, Mail, Phone,
   Plus, Send, FileText, MoreHorizontal,
   Compass, Languages, Users, Sparkles, Workflow,
+  Award, Globe2, ArrowUpRight,
 } from "lucide-react"
 import {
   FaHtml5, FaCss3Alt, FaJs, FaReact, FaNodeJs,
@@ -29,12 +31,15 @@ import { aboutProjects } from "../data/aboutProjectsData"
 import { listPortfolio } from "../services/portfolioService"
 import { fetchExperience, fetchEducation, fetchCertificates, fetchSkills } from "../services/bioService" // M12 + M12.5 Education
 import PortfolioCard from "../components/PortfolioCard"
+import OrbitingCircles from "../components/motion/OrbitingCircles"
 import AboutHero from "../components/heroes/AboutHero" // V2, universal hero
 import CertificatePreview from "../components/CertificatePreview" // V2, inline PDF
 import SkillsByCapability from "../components/SkillsByCapability" // F06.v4, capability lens
 import SpokenLanguages from "../components/SpokenLanguages" // F06.v4, CEFR strip
 import Counter from "../components/motion/Counter" // Phase 10 · animated number counter
 import Reveal from "../components/motion/Reveal" // Phase 10 · scroll-reveal wrapper
+import AnimatedGradientText from "../components/motion/AnimatedGradientText"
+import MagneticButton from "../components/motion/MagneticButton"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  AboutPage · F06 v2 · Batch 3 (revised)
@@ -66,6 +71,16 @@ const CertGoogleIT = "/documents/certificates/Certificate_Google_IT_Support_Prof
 const CertTechSupport = "/documents/certificates/Certificate_Technical_Support_Fundamentals_UKIZURU_Mustapha.pdf"
 const CertSysAdmin = "/documents/certificates/Certificate_System_Administration_and_IT_Infrastructure_UKIZURU_Mustapha.pdf"
 const CertConstancia = "/documents/certificates/Certificate_Constancia_UKIZURU_Mustapha.pdf"
+
+// Maps /documents/certificates/X.pdf → /documents/certificates/X.png
+// (sibling PNG pre-renders ship next to every PDF for reliable tile previews).
+// Returns null for anything that isn't a same-origin static PDF path, so
+// external Coursera/Credly URLs fall through to the credential-mode tile.
+function derivePngThumbnail(pdfUrl) {
+  if (!pdfUrl || typeof pdfUrl !== "string") return null
+  if (!pdfUrl.startsWith("/documents/certificates/")) return null
+  return pdfUrl.replace(/\.pdf(\?.*)?$/i, ".png$1")
+}
 
 const certifications = [
   { title: "Python 101 for Data Science", description: "IBM / Cognitive Class", pdf: CertPython },
@@ -100,7 +115,7 @@ function Container({ children, className = "" }) {
 function SH({ eyebrow, title, subtitle, align = "center" }) {
   const c = align === "center"
   return (
-    <motion.div
+    <m.div
       variants={stagger}
       initial="hidden"
       whileInView="show"
@@ -108,28 +123,28 @@ function SH({ eyebrow, title, subtitle, align = "center" }) {
       className={`mb-12 flex flex-col gap-3 ${c ? "items-center text-center" : "items-start"}`}
     >
       {eyebrow && (
-        <motion.span
+        <m.span
           variants={fadeUp}
           className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet"
         >
           {eyebrow}
-        </motion.span>
+        </m.span>
       )}
-      <motion.h2
+      <m.h2
         variants={fadeUp}
         className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page lg:text-page"
       >
         {title}
-      </motion.h2>
+      </m.h2>
       {subtitle && (
-        <motion.p
+        <m.p
           variants={fadeUp}
           className={`max-w-2xl text-body leading-7 text-charcoal-80/70 ${c ? "mx-auto" : ""}`}
         >
           {subtitle}
-        </motion.p>
+        </m.p>
       )}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -213,7 +228,7 @@ const CORE_COMPETENCIES = [
 function CoreCompetenciesSection() {
   const { t } = useTranslation("about")
   return (
-    <motion.div
+    <m.div
       variants={stagger}
       initial="hidden"
       whileInView="show"
@@ -230,7 +245,7 @@ function CoreCompetenciesSection() {
         {/* Photo column · square aspect for parallel alignment with the
             competencies list on the right. Sticky on lg+ so the photo
             stays in view while users scan the competencies. */}
-        <motion.figure variants={fadeUp} className="relative lg:col-span-5 lg:sticky lg:top-28">
+        <m.figure variants={fadeUp} className="relative lg:col-span-5 lg:sticky lg:top-28">
           {/* Soft violet halo behind the photo */}
           <div
             aria-hidden="true"
@@ -241,37 +256,42 @@ function CoreCompetenciesSection() {
             aria-hidden="true"
             className="absolute -bottom-3 -right-3 -z-10 h-full w-full rounded-3xl border border-terracotta/40"
           />
-          <div className="relative overflow-hidden rounded-3xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_-20px_rgba(93,63,211,0.30)]">
-            <img
+          <div className="relative overflow-hidden rounded-3xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_-20px_rgb(var(--color-violet-rgb)/0.30)]">
+            <Image
               src="/images/profile/Ukizuru_Mustapha_Photo.jpg"
               alt={t("core.photoAlt")}
-              className="aspect-square w-full object-cover object-center"
+              width={1080}
+              height={1080}
+              widths={[448, 1080]}
+              sizes="(max-width: 1024px) 100vw, 480px"
               loading="lazy"
+              className="block"
+              imgClassName="aspect-square w-full object-cover object-center"
             />
           </div>
-        </motion.figure>
+        </m.figure>
 
         {/* Competencies column · tighter rhythm so the column height
             stays close to the photo height for parallel visual weight. */}
-        <motion.ul
+        <m.ul
           variants={tightStagger}
           className="flex flex-col gap-3.5 lg:col-span-7"
         >
           {CORE_COMPETENCIES.map(({ Icon, keyId }, i) => (
-            <motion.li
+            <m.li
               key={keyId}
               variants={fadeUp}
               className="group flex items-start gap-3.5 border-b border-charcoal-80/8 pb-3.5 last:border-0 last:pb-0"
             >
               <span
                 aria-hidden="true"
-                className="mt-0.5 font-mono text-[11px] font-bold tabular-nums text-violet/40 transition-colors group-hover:text-violet/70"
+                className="mt-0.5 font-mono text-[11px] font-bold tabular-nums text-violet transition-colors group-hover:text-violet-deep"
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
               <span
                 aria-hidden="true"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-pale text-violet transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgba(93,63,211,0.30)]"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-pale text-violet transition-all duration-300 group-hover:bg-violet group-hover:text-white group-hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.30)]"
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={1.85} />
               </span>
@@ -283,11 +303,11 @@ function CoreCompetenciesSection() {
                   {t(`core.items.${keyId}.desc`)}
                 </p>
               </div>
-            </motion.li>
+            </m.li>
           ))}
-        </motion.ul>
+        </m.ul>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -299,14 +319,14 @@ function TechRow({ name, Icon, color, value = 75 }) {
   const reduce = useReducedMotion()
   const safe = Math.max(0, Math.min(100, value))
   return (
-    <motion.li
+    <m.li
       variants={fadeUp}
       className="group flex flex-col gap-1.5"
       title={`${name} · ${safe}%`}
     >
       <div className="flex items-center gap-3">
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-mist transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_18px_rgba(93,63,211,0.10)]"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-mist transition-all duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_8px_18px_rgb(var(--color-violet-rgb)/0.10)]"
           aria-hidden="true"
         >
           <Icon className="h-5 w-5" style={{ color }} aria-hidden="true" />
@@ -326,15 +346,15 @@ function TechRow({ name, Icon, color, value = 75 }) {
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        <motion.div
+        <m.div
           initial={{ width: reduce ? `${safe}%` : "0%" }}
           whileInView={{ width: `${safe}%` }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: reduce ? 0 : 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
-          className="h-full rounded-full bg-gradient-to-r from-violet via-[#6A4FD8] to-terracotta"
+          className="h-full rounded-full bg-gradient-to-r from-violet via-[var(--color-violet-mid)] to-terracotta"
         />
       </div>
-    </motion.li>
+    </m.li>
   )
 }
 
@@ -344,10 +364,10 @@ function SkillBar({ name, value }) {
     <div className="flex flex-col gap-2">
       <div className="flex justify-between text-meta font-medium">
         <span className="text-violet">{name}</span>
-        <span className="font-mono tabular-nums text-charcoal-80/60">{value}%</span>
+        <span className="font-mono tabular-nums text-charcoal-80/65">{value}%</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-violet-pale">
-        <motion.div
+        <m.div
           initial={{ width: 0 }}
           whileInView={{ width: `${value}%` }}
           viewport={{ once: true }}
@@ -361,27 +381,27 @@ function SkillBar({ name, value }) {
 
 function TimelineEntry({ item, index, total, accent }) {
   // Royal Violet accent for Education, Soft Terracotta accent for Experience
-  const dotClass = accent === "violet" ? "bg-violet text-white" : "bg-terracotta text-violet"
+  const dotClass = accent === "violet" ? "bg-violet text-white" : "bg-terracotta text-violet-deep"
   const ringClass = "ring-4 ring-mist"
   const xFrom = accent === "violet" ? -20 : 20
 
   // Light-theme period chip — high contrast on white card
   const chipClass = accent === "violet"
     ? "bg-violet/10 text-violet"
-    : "bg-terracotta/15 text-terracotta-deep"
+    : "bg-terracotta/15 text-terracotta-800"
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: xFrom }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
       className="relative flex gap-5 pl-12"
     >
-      <div className={`absolute left-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-micro font-bold tabular-nums shadow-[0_4px_12px_rgba(93,63,211,0.20)] ${dotClass} ${ringClass}`}>
+      <div className={`absolute left-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-micro font-bold tabular-nums shadow-[0_4px_12px_rgb(var(--color-violet-rgb)/0.20)] ${dotClass} ${ringClass}`}>
         {String(total - index).padStart(2, "0")}
       </div>
-      <div className="flex-1 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgba(93,63,211,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(93,63,211,0.08)]">
+      <div className="flex-1 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgb(var(--color-violet-rgb)/0.08)]">
         <div className={`mb-2 inline-flex rounded-full px-2.5 py-0.5 font-mono text-micro font-semibold tabular-nums tracking-[0.05em] ${chipClass}`}>
           {item.period}
         </div>
@@ -399,7 +419,7 @@ function TimelineEntry({ item, index, total, accent }) {
           </p>
         )}
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -411,7 +431,7 @@ function Timeline({ items, accent }) {
 
   return (
     <div className="relative">
-      <motion.div
+      <m.div
         initial={{ scaleY: 0 }}
         whileInView={{ scaleY: 1 }}
         viewport={{ once: true, margin: "-80px" }}
@@ -430,98 +450,275 @@ function Timeline({ items, accent }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
- *  AboutStatsStrip · Phase 10 · animated counters strip
+ *  AboutStatsStrip · Brand v3.0 "Proof Layer" — asymmetric bento
  *
- *  Four credibility-signal tiles in a single row (2x2 on mobile, 4-up on
- *  lg+). Each tile uses a brand v3.1 status tint (mint/azure/amber/violet)
- *  and an animated counter that climbs from 0 once the strip scrolls into
- *  view. Numbers are anchored to facts from the bio:
+ *  Per Brand Identity v3.0 § 09 "The Proof Layer — Data Visualization":
+ *  every metric we publish is evidence of the engineering. This block
+ *  presents four credibility tiles in a 2-1-1 / lead-bento layout:
  *
- *    6  → years building production software
- *    4  → countries lived/worked in (Rwanda, Turkey, Ethiopia, Mexico)
- *    9  → professional certifications shipped (matches the certificates
- *          section count and is locale-stable)
- *    100→ students taught across CS / STEM cohorts (rounded floor)
+ *    6  → years shipping production work (LEAD tile · 2×2 on lg+)
+ *    4  → countries lived/worked in (Rwanda · Turkey · Ethiopia · Mexico)
+ *    9  → professional certifications on file
+ *    100→ CS / STEM students taught across cohorts
  *
- *  Labels resolve via i18n (`about:stats.*`) with sensible English/Spanish
- *  defaultValues so the strip ships even if the i18n keys aren't added
- *  yet. The tile palette pulls from brand v3.1 status tokens directly.
+ *  Design language: glass-tile bento (21st.dev / Apple discipline) on a
+ *  soft mesh-aurora atmosphere, JetBrains Mono tabular-nums at hero scale,
+ *  scroll-anchored proof-spine on the left edge, live-data dot on the
+ *  lead tile, brand-token accent underline that grows on hover.
  *  ───────────────────────────────────────────────────────────────────── */
 function AboutStatsStrip() {
   const { t } = useTranslation("about")
+  const reduce = useReducedMotion()
+
+  // Proof-spine: a vertical line that scales 0→1 as the section traverses
+  // the viewport. Anchors the section visually and signals "live data."
+  const sectionRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start 85%", "end 30%"],
+  })
+  const spineScale = useTransform(scrollYProgress, [0, 1], [0, 1])
 
   const tiles = [
     {
       key: "years",
-      to:  6,
+      to: 8,
       suffix: "+",
-      label: t("stats.yearsLabel",      { defaultValue: "Years shipping production work" }),
-      tone: "tile-mint",
+      Icon: Briefcase,
+      label: t("stats.yearsLabel",     { defaultValue: "Years shipping production work" }),
+      hint:  t("stats.yearsHint",      { defaultValue: "Rwanda · Turkey · Ethiopia · Mexico" }),
+      tone: "violet",
+      lead: true,
     },
     {
       key: "countries",
-      to:  4,
-      label: t("stats.countriesLabel",  { defaultValue: "Countries lived & worked in" }),
-      tone: "tile-azure",
+      to: 4,
+      Icon: Globe2,
+      label: t("stats.countriesLabel", { defaultValue: "Countries lived & worked in" }),
+      hint:  t("stats.countriesHint",  { defaultValue: "EN · ES · TR · KIN" }),
+      tone: "azure",
     },
     {
       key: "certs",
-      to:  9,
+      to: 9,
       suffix: "+",
-      label: t("stats.certsLabel",      { defaultValue: "Professional certifications" }),
-      tone: "tile-amber",
+      Icon: Award,
+      label: t("stats.certsLabel",     { defaultValue: "Professional certifications" }),
+      hint:  t("stats.certsHint",      { defaultValue: "Google · CompTIA · CS50" }),
+      tone: "terracotta",
     },
     {
       key: "students",
-      to:  100,
+      to: 100,
       suffix: "+",
-      label: t("stats.studentsLabel",   { defaultValue: "CS & STEM students taught" }),
-      tone: "tile-violet",
+      Icon: GraduationCap,
+      label: t("stats.studentsLabel",  { defaultValue: "CS & STEM students taught" }),
+      hint:  t("stats.studentsHint",   { defaultValue: "K-12 · cohort-graded" }),
+      tone: "mint",
     },
   ]
 
-  const tones = {
-    "tile-mint":   "bg-mint-50 text-mint-700",
-    "tile-azure":  "bg-azure-pale text-azure-800",
-    "tile-amber":  "bg-amber-50 text-amber-700",
-    "tile-violet": "bg-violet-pale text-violet-deep",
+  // Token-pure palette — every value resolves through the v3.0 brand tokens.
+  const TONE = {
+    violet: {
+      surface: "bg-violet-pale/70",
+      ring:    "ring-violet/15",
+      number:  "text-violet",
+      icon:    "bg-violet/12 text-violet",
+      hint:    "text-violet",
+      accent:  "bg-violet",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-violet-rgb)/0.18), transparent 70%)",
+    },
+    azure: {
+      surface: "bg-azure-pale/70",
+      ring:    "ring-azure/15",
+      number:  "text-azure-deep",
+      icon:    "bg-azure/12 text-azure",
+      hint:    "text-azure-deep",
+      accent:  "bg-azure",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-azure-rgb)/0.18), transparent 70%)",
+    },
+    terracotta: {
+      surface: "bg-terracotta/15",
+      ring:    "ring-terracotta-deep/30",
+      number:  "text-charcoal",
+      icon:    "bg-terracotta/25 text-charcoal",
+      hint:    "text-charcoal/65",
+      accent:  "bg-terracotta",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-terracotta-rgb)/0.30), transparent 70%)",
+    },
+    mint: {
+      surface: "bg-mint-50/80",
+      ring:    "ring-mint/15",
+      number:  "text-mint-700",
+      icon:    "bg-mint/12 text-mint",
+      hint:    "text-mint-700",
+      accent:  "bg-mint",
+      glow:    "radial-gradient(60% 50% at 50% 0%, rgb(var(--color-mint-rgb)/0.18), transparent 70%)",
+    },
   }
 
   return (
     <section
+      ref={sectionRef}
       aria-label={t("stats.sectionLabel", { defaultValue: "Key stats" })}
-      className="py-12 sm:py-16"
+      className="relative isolate py-[var(--space-section-y)]"
     >
+      {/* Mesh-aurora atmosphere — once per viewport, very low opacity */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-24 left-[12%] h-[420px] w-[420px] rounded-full bg-violet/8 blur-3xl" />
+        <div className="absolute -bottom-32 right-[8%] h-[380px] w-[380px] rounded-full bg-azure/8 blur-3xl" />
+        <div className="absolute top-1/3 right-1/3 h-[220px] w-[220px] rounded-full bg-terracotta/10 blur-3xl" />
+      </div>
+
       <Container>
-        <Reveal>
-          <div className="mb-8 flex flex-col items-center gap-2 text-center sm:mb-10">
-            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-violet">
-              {t("stats.eyebrow", { defaultValue: "By the numbers" })}
-            </span>
-            <h2 className="text-[clamp(22px,2.5vw,32px)] font-bold tracking-tight text-charcoal text-balance">
-              {t("stats.title", { defaultValue: "A track record you can verify" })}
-            </h2>
+        <div className="relative">
+          {/* Proof-spine on the left edge — scales in with scroll progress */}
+          <m.span
+            aria-hidden="true"
+            className="absolute -left-3 top-3 hidden h-20 w-px origin-top bg-gradient-to-b from-violet via-azure to-cyan sm:block"
+            style={reduce ? { scaleY: 1 } : { scaleY: spineScale }}
+          />
+
+          <Reveal>
+            <div className="mb-10 flex flex-col gap-3 sm:mb-14">
+              <span className="eyebrow inline-flex items-center gap-2 self-start text-violet">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className={`absolute inline-flex h-full w-full rounded-full bg-mint opacity-75 ${reduce ? "" : "animate-ping"}`} />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-mint" />
+                </span>
+                {t("stats.eyebrow", { defaultValue: "By the numbers" })}
+              </span>
+
+              <h2 className="text-[var(--text-section)] font-extrabold tracking-tight text-balance">
+                <AnimatedGradientText
+                  className="text-[var(--text-section)] font-extrabold tracking-tight"
+                  from="var(--color-violet)"
+                  via="var(--color-azure)"
+                  to="var(--color-cyan)"
+                  duration={5}
+                >
+                  {t("stats.title", { defaultValue: "A track record you can verify" })}
+                </AnimatedGradientText>
+              </h2>
+
+              <p className="max-w-[var(--measure-tight)] text-[15px] leading-relaxed text-steel">
+                {t("stats.lede", {
+                  defaultValue: "Every figure is anchored to a verifiable artifact — public bio, certifications on file, cohort rosters. No vanity metrics.",
+                })}
+              </p>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* Asymmetric bento — lead tile spans 2×2 on lg+; rest are 1×1.
+            On mobile the lead spans the full row, then 2-up below. */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:auto-rows-[minmax(180px,1fr)]">
+          {tiles.map((tile, idx) => {
+            const palette = TONE[tile.tone]
+            const span = tile.lead ? "col-span-2 lg:col-span-2 lg:row-span-2" : ""
+
+            return (
+              <Reveal key={tile.key} as="div" amount={0.3} delay={idx * 0.06}>
+                <m.div
+                  whileHover={reduce ? undefined : { y: -3 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  className={`group relative isolate flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] ${palette.surface} ring-1 ${palette.ring} p-5 sm:p-6 lg:p-7 ${span}`}
+                >
+                  {/* Radial-glow wash — fades in on hover for premium depth */}
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-[var(--motion-base)] ease-[var(--ease-out-soft)] group-hover:opacity-100"
+                    style={{ background: palette.glow }}
+                  />
+
+                  {/* Countries tile — small orbiting flags around the globe icon */}
+                  {tile.key === "countries" && (
+                    <div className="absolute -right-3 -top-3 h-24 w-24 text-azure/60 sm:h-28 sm:w-28">
+                      <OrbitingCircles radius={32} duration={26} className="inset-0">
+                        <span className="text-base leading-none" title="Rwanda">🇷🇼</span>
+                        <span className="text-base leading-none" title="Turkey">🇹🇷</span>
+                        <span className="text-base leading-none" title="Ethiopia">🇪🇹</span>
+                        <span className="text-base leading-none" title="Mexico">🇲🇽</span>
+                      </OrbitingCircles>
+                    </div>
+                  )}
+
+                  {/* Header row — icon + live dot on the lead tile only */}
+                  <div className="flex items-center justify-between">
+                    <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${palette.icon}`}>
+                      <tile.Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+                    </span>
+                    {tile.lead && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-charcoal/5 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal/65">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className={`absolute inline-flex h-full w-full rounded-full bg-mint opacity-75 ${reduce ? "" : "animate-ping"}`} />
+                          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-mint" />
+                        </span>
+                        {t("stats.liveBadge", { defaultValue: "Live" })}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* KPI number — JetBrains Mono · tabular-nums · hero scale on lead */}
+                  <div className="mt-auto flex items-baseline gap-1.5 pt-6">
+                    <Counter
+                      to={tile.to}
+                      className={`font-mono font-bold leading-[0.9] tracking-tight tabular-nums ${palette.number} ${
+                        tile.lead
+                          ? "text-[clamp(64px,9vw,112px)]"
+                          : "text-[clamp(40px,5.5vw,64px)]"
+                      }`}
+                    />
+                    {tile.suffix && (
+                      <span
+                        className={`font-mono font-semibold ${palette.number} opacity-70 ${
+                          tile.lead ? "text-[clamp(28px,4vw,52px)]" : "text-[clamp(22px,3vw,32px)]"
+                        }`}
+                      >
+                        {tile.suffix}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Label + supporting hint */}
+                  <div className="mt-3 flex flex-col gap-1.5">
+                    <p className={`font-semibold leading-snug text-charcoal ${tile.lead ? "text-[15px] sm:text-[16px]" : "text-[13px] sm:text-[14px]"}`}>
+                      {tile.label}
+                    </p>
+                    <p className={`font-mono uppercase tracking-[0.16em] ${palette.hint} ${tile.lead ? "text-[11px]" : "text-[10.5px]"}`}>
+                      {tile.hint}
+                    </p>
+                  </div>
+
+                  {/* Bottom accent line — grows from 0 → full width on hover */}
+                  <span
+                    aria-hidden="true"
+                    className={`absolute bottom-0 left-0 h-[2px] w-0 ${palette.accent} transition-[width] duration-[var(--motion-base)] ease-[var(--ease-out-soft)] group-hover:w-full`}
+                  />
+                </m.div>
+              </Reveal>
+            )
+          })}
+        </div>
+
+        {/* Methodology caption — Proof Layer per Brand v3.0 § 09 */}
+        <Reveal delay={0.2}>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 sm:mt-8">
+            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-steel/80">
+              {t("stats.source", {
+                defaultValue: "Source: public bio · verified certificates on file · cohort rosters · rolling figures",
+              })}
+            </p>
+            <Link
+              to="/about#certifications"
+              className="link-underline inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-azure-deep transition-colors hover:text-violet"
+            >
+              {t("stats.verifyCta", { defaultValue: "Verify the credentials" })}
+              <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
+            </Link>
           </div>
         </Reveal>
-
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {tiles.map((tile) => (
-            <Reveal key={tile.key} as="div" amount={0.4}>
-              <div
-                className={`flex h-full flex-col justify-between rounded-2xl p-5 sm:p-6 ${tones[tile.tone]} ring-1 ring-charcoal/5`}
-              >
-                <Counter
-                  to={tile.to}
-                  suffix={tile.suffix}
-                  className="font-display text-[clamp(36px,5vw,56px)] font-extrabold leading-none tracking-tight tabular-nums"
-                />
-                <p className="mt-3 text-[12.5px] font-medium leading-snug opacity-85">
-                  {tile.label}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
       </Container>
     </section>
   )
@@ -666,11 +863,17 @@ export default function AboutPage() {
   // that fed external URLs into pdfjs, which couldn't render them and
   // showed broken violet placeholders. The component now degrades
   // gracefully on its own.
+  //
+  // Thumbnails: every hosted PDF in /documents/certificates/ has a sibling
+  // .png pre-rendered for tile previews. PDF.js can choke on certain
+  // streams (Google's Educator cert ships JBIG2 → blank placeholder),
+  // so we hand a static image to the tile and keep the PDF for the modal.
   const apiCertsMapped = bioCertificates.map((c) => ({
     title: c.title,
     issuer: c.issuer || "",
     issueDate: c.issueDate || null,
     pdfUrl: c.pdfUrl || null,
+    thumbnail: derivePngThumbnail(c.pdfUrl),
     credentialUrl: c.credentialUrl || null,
     issuerLogo: c.issuerLogo || null,
   }))
@@ -682,6 +885,7 @@ export default function AboutPage() {
     issuer: c.description,
     issueDate: null,
     pdfUrl: c.pdf,
+    thumbnail: derivePngThumbnail(c.pdf),
     credentialUrl: null,
     issuerLogo: null,
   }))
@@ -709,13 +913,6 @@ export default function AboutPage() {
   }, [])
 
   const displayProjects = apiProjects.length > 0 ? apiProjects : aboutProjects.slice(0, 6)
-
-  // Top row of skill cards (preserved from existing data)
-  const skillTabs = {
-    technical:    { label: t("skills.tabs.technical"),    data: displayedSkills.technical },
-    professional: { label: t("skills.tabs.professional"), data: displayedSkills.professional },
-    language:     { label: t("skills.tabs.language"),     data: displayedSkills.language },
-  }
 
   /* Social rendering lives in <AboutHero /> via the shared SocialLinks
    * component; no page-local SOCIALS array is needed here. */
@@ -749,35 +946,35 @@ export default function AboutPage() {
           ══════════════════════════════════════════════════════════════════ */}
       <section className="py-16 sm:py-20 lg:py-28">
         <Container>
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-80px" }}
             className="mb-12 flex flex-col items-center gap-3 text-center sm:mb-14"
           >
-            <motion.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">{t("mvv.eyebrow")}</motion.span>
-            <motion.h2 variants={fadeUp} className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page">{t("mvv.title")}</motion.h2>
-            <motion.p variants={fadeUp} className="max-w-xl text-body leading-7 text-charcoal-80/70">{t("mvv.subtitle")}</motion.p>
-          </motion.div>
-          <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 lg:grid-cols-3">
+            <m.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">{t("mvv.eyebrow")}</m.span>
+            <m.h2 variants={fadeUp} className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page">{t("mvv.title")}</m.h2>
+            <m.p variants={fadeUp} className="max-w-xl text-body leading-7 text-charcoal-80/70">{t("mvv.subtitle")}</m.p>
+          </m.div>
+          <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 lg:grid-cols-3">
             {aboutMissionVisionValues.map(({ title, description }) => {
               const Icon = MVVIcons[title]
               return (
-                <motion.div
+                <m.div
                   key={title}
                   variants={fadeUp}
-                  className="group rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_8px_24px_rgba(93,63,211,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(93,63,211,0.10)]"
+                  className="group rounded-xl border border-charcoal-80/10 bg-white p-7 shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_rgb(var(--color-violet-rgb)/0.10)]"
                 >
                   <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet transition group-hover:bg-violet group-hover:text-white">
                     {Icon && <Icon className="h-6 w-6" aria-hidden="true" />}
                   </div>
                   <h3 className="mb-2 text-card font-bold text-violet">{title}</h3>
                   <p className="text-meta leading-6 text-charcoal-80/65">{description}</p>
-                </motion.div>
+                </m.div>
               )
             })}
-          </motion.div>
+          </m.div>
         </Container>
       </section>
 
@@ -787,20 +984,20 @@ export default function AboutPage() {
       <section className="py-20 lg:py-28">
         <Container>
           <SH eyebrow={t("expertise.eyebrow")} title={t("expertise.title")} subtitle={t("expertise.subtitle")} />
-          <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {expertiseAreas.map(({ title, description }) => {
               const Icon = ExpertiseIcons[title]
               return (
-                <motion.div key={title} variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 transition hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(93,63,211,0.08)]">
+                <m.div key={title} variants={fadeUp} className="rounded-xl border border-charcoal-80/10 bg-white p-6 transition hover:-translate-y-1 hover:shadow-[0_16px_36px_rgb(var(--color-violet-rgb)/0.08)]">
                   <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-violet-pale text-violet">
                     {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
                   </div>
                   <h3 className="mb-1 text-body font-bold text-violet">{title}</h3>
                   <p className="text-meta leading-6 text-charcoal-80/65">{description}</p>
-                </motion.div>
+                </m.div>
               )
             })}
-          </motion.div>
+          </m.div>
         </Container>
       </section>
 
@@ -812,14 +1009,14 @@ export default function AboutPage() {
         ref={journeyRef}
         id="journey"
         className="scroll-mt-24 relative overflow-hidden py-20 lg:py-28"
-        style={{ background: "linear-gradient(180deg, var(--color-mist) 0%, #f8f3fa 60%, var(--color-mist) 100%)" }}
+        style={{ background: "linear-gradient(180deg, var(--color-mist) 0%, var(--color-violet-ghost) 60%, var(--color-mist) 100%)" }}
       >
         {/* Phase 10 · scrollytelling progress line — a hair-thin violet
             ribbon on the left edge of the journey section that fills
             from 0% to 100% height as the user scrolls through the
             section. Pure visual rhythm marker; aria-hidden because
             screen readers don't need a scroll-progress signal. */}
-        <motion.div
+        <m.div
           aria-hidden="true"
           style={{ scaleY: journeyLineScale, transformOrigin: "0% 0%" }}
           className="pointer-events-none absolute left-3 top-0 hidden h-full w-px origin-top bg-gradient-to-b from-violet via-violet-deep to-violet/0 sm:left-6 lg:block lg:left-8"
@@ -830,26 +1027,26 @@ export default function AboutPage() {
         <div className="pointer-events-none absolute -left-32 bottom-0 h-[300px] w-[300px] rounded-full bg-terracotta/10 blur-3xl" aria-hidden="true" />
 
         <Container className="relative">
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-80px" }}
             className="mb-12 flex flex-col items-center gap-3 text-center sm:mb-14"
           >
-            <motion.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
+            <m.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
               {t("journey.eyebrow")}
-            </motion.span>
-            <motion.h2 variants={fadeUp} className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page">{t("journey.title")}</motion.h2>
-            <motion.p variants={fadeUp} className="max-w-xl text-body leading-7 text-charcoal-80/65">
+            </m.span>
+            <m.h2 variants={fadeUp} className="text-[28px] font-bold tracking-tight text-violet sm:text-section md:text-page">{t("journey.title")}</m.h2>
+            <m.p variants={fadeUp} className="max-w-xl text-body leading-7 text-charcoal-80/65">
               {t("journey.subtitle")}
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
 
           <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.15fr] lg:gap-12 xl:gap-16">
             {/* Education column · sticky on lg+ so the longer Experience
                 column on the right scrolls past while Education stays put. */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               initial="hidden"
               whileInView="show"
@@ -857,19 +1054,19 @@ export default function AboutPage() {
               className="lg:sticky lg:top-28 lg:self-start"
             >
               <div className="mb-8 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_20px_rgba(93,63,211,0.30)]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet text-white shadow-[0_8px_20px_rgb(var(--color-violet-rgb)/0.30)]">
                   <GraduationCap className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
                   <div className="text-card font-bold text-violet">{t("journey.education")}</div>
-                  <div className="text-micro text-charcoal-80/55">{t("journey.educationSubtitle")}</div>
+                  <div className="text-micro text-charcoal-80/65">{t("journey.educationSubtitle")}</div>
                 </div>
               </div>
               <Timeline items={displayedEducation} accent="violet" />
-            </motion.div>
+            </m.div>
 
             {/* Experience column */}
-            <motion.div
+            <m.div
               variants={fadeUp}
               initial="hidden"
               whileInView="show"
@@ -877,16 +1074,16 @@ export default function AboutPage() {
               transition={{ delay: 0.1 }}
             >
               <div className="mb-8 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-terracotta text-violet shadow-[0_8px_20px_rgba(233, 196, 106,0.40)]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-terracotta text-violet shadow-[0_8px_20px_rgb(var(--color-terracotta-rgb)/0.40)]">
                   <Briefcase className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
                   <div className="text-card font-bold text-violet">{t("journey.experience")}</div>
-                  <div className="text-micro text-charcoal-80/55">{t("journey.experienceSubtitle")}</div>
+                  <div className="text-micro text-charcoal-80/65">{t("journey.experienceSubtitle")}</div>
                 </div>
               </div>
               <Timeline items={displayedExperience} accent="terracotta" />
-            </motion.div>
+            </m.div>
           </div>
         </Container>
       </section>
@@ -896,18 +1093,18 @@ export default function AboutPage() {
           ══════════════════════════════════════════════════════════════════ */}
       {/* Dark Credentials section — inline bg guarantees dark surface even
           if `bg-charcoal` utility doesn't generate (Tailwind v4 JIT quirk). */}
-      <section id="certifications" className="scroll-mt-24 py-20 lg:py-28" style={{ backgroundColor: "#1A1B23" }}>
+      <section id="certifications" className="scroll-mt-24 py-20 lg:py-28" style={{ backgroundColor: "var(--color-charcoal)" }}>
         <Container>
           <div className="grid items-start gap-10 lg:grid-cols-[320px_1fr] xl:grid-cols-[380px_1fr] xl:gap-14">
-            <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col items-center gap-5 text-center lg:sticky lg:top-28 lg:items-start lg:text-left">
+            <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col items-center gap-5 text-center lg:sticky lg:top-28 lg:items-start lg:text-left">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
-                style={{ backgroundColor: "rgba(233, 196, 106, 0.16)", color: "#E9C46A", border: "1px solid rgba(233, 196, 106, 0.32)" }}
+                style={{ backgroundColor: "rgb(var(--color-terracotta-rgb)/0.16)", color: "var(--color-terracotta)", border: "1px solid rgb(var(--color-terracotta-rgb)/0.32)" }}
               >
                 {t("credentials.eyebrow")}
               </span>
               <div>
-                <p className="text-body italic" style={{ color: "rgba(233, 196, 106, 0.85)" }}>{t("credentials.italic")}</p>
+                <p className="text-body italic" style={{ color: "rgb(var(--color-terracotta-rgb)/0.85)" }}>{t("credentials.italic")}</p>
                 <h2 className="mt-1 text-[28px] font-bold tracking-tight sm:text-[40px]" style={{ color: "#FFFFFF" }}>{t("credentials.title")}</h2>
               </div>
               <p className="max-w-xs text-meta leading-6" style={{ color: "rgba(255, 255, 255, 0.72)" }}>
@@ -916,18 +1113,18 @@ export default function AboutPage() {
               <Link
                 to="/contact"
                 className="group mt-2 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-meta font-semibold transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2"
-                style={{ color: "#FFFFFF", backgroundColor: "transparent", border: "2px solid #E9C46A" }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(233, 196, 106, 0.12)" }}
+                style={{ color: "#FFFFFF", backgroundColor: "transparent", border: "2px solid var(--color-terracotta)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgb(var(--color-terracotta-rgb)/0.12)" }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
               >
                 {t("credentials.knowMore")}
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" style={{ color: "#8B6FE8" }} aria-hidden="true" />
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" style={{ color: "var(--color-violet-light)" }} aria-hidden="true" />
               </Link>
-            </motion.div>
+            </m.div>
 
 
 
-<motion.div
+<m.div
               variants={stagger}
               initial="hidden"
               whileInView="show"
@@ -935,9 +1132,10 @@ export default function AboutPage() {
               className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
             >
               {displayedCerts.map((c) => (
-                <motion.div key={c.title} variants={fadeUp}>
+                <m.div key={c.title} variants={fadeUp}>
                   <CertificatePreview
                     src={c.pdfUrl}
+                    thumbnail={c.thumbnail}
                     credentialUrl={c.credentialUrl}
                     issuerLogo={c.issuerLogo}
                     title={c.title}
@@ -945,9 +1143,9 @@ export default function AboutPage() {
                     date={c.issueDate}
                     verified
                   />
-                </motion.div>
+                </m.div>
               ))}
-            </motion.div>
+            </m.div>
 
 
           </div>
@@ -970,25 +1168,25 @@ export default function AboutPage() {
 
           {/* 2 · Tech Stack · branded logo wall — kept as-is, full colour
                  by design. Two visual roles, deliberately different. */}
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-80px" }}
             className="flex flex-col items-center gap-3 text-center"
           >
-            <motion.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
+            <m.span variants={fadeUp} className="inline-flex items-center rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
               {t("tech.eyebrow")}
-            </motion.span>
-            <motion.h3 variants={fadeUp} className="text-[24px] font-bold tracking-tight text-violet sm:text-section md:text-page">
+            </m.span>
+            <m.h3 variants={fadeUp} className="text-[24px] font-bold tracking-tight text-violet sm:text-section md:text-page">
               {t("tech.title")}
-            </motion.h3>
-            <motion.p variants={fadeUp} className="max-w-xl text-meta leading-7 text-charcoal-80/75">
+            </m.h3>
+            <m.p variants={fadeUp} className="max-w-xl text-meta leading-7 text-charcoal-80/75">
               {t("tech.subtitle")}
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
 
-          <motion.div
+          <m.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
@@ -996,7 +1194,7 @@ export default function AboutPage() {
             className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
           >
             {techStackByCategory.map(({ labelKey, items }) => (
-              <motion.div
+              <m.div
                 key={labelKey}
                 variants={fadeUp}
                 className="px-1"
@@ -1004,7 +1202,7 @@ export default function AboutPage() {
                 <h4 className="mb-5 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-violet">
                   {t(`tech.categories.${labelKey}`)}
                 </h4>
-                <motion.ul
+                <m.ul
                   variants={tightStagger}
                   initial="hidden"
                   whileInView="show"
@@ -1014,10 +1212,10 @@ export default function AboutPage() {
                   {items.map(({ name, Icon, color, value }) => (
                     <TechRow key={name} name={name} Icon={Icon} color={color} value={value} />
                   ))}
-                </motion.ul>
-              </motion.div>
+                </m.ul>
+              </m.div>
             ))}
-          </motion.div>
+          </m.div>
 
           {/* 3 · Spoken languages · CEFR scale, premium card, real flag SVGs */}
           <SpokenLanguages
@@ -1053,13 +1251,13 @@ export default function AboutPage() {
               ))}
             </div>
           ) : displayProjects.length === 0 ? (
-            <div className="rounded-xl border border-charcoal-80/10 bg-white p-10 text-center text-meta text-charcoal-80/50">
+            <div className="rounded-xl border border-charcoal-80/10 bg-white p-10 text-center text-meta text-charcoal-80/65">
               {projectsError
                 ? t("portfolio.errorState")
                 : t("portfolio.emptyState")}
             </div>
           ) : (
-            <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {displayProjects.map((p, idx) => (
                 <PortfolioCard
                   key={p.id || p.slug || p.title}
@@ -1068,7 +1266,7 @@ export default function AboutPage() {
                   linkLabel={p.tags ? t("portfolio.linkLearnMore") : t("portfolio.linkCaseStudy")}
                 />
               ))}
-            </motion.div>
+            </m.div>
           )}
         </Container>
       </section>
@@ -1087,7 +1285,7 @@ export default function AboutPage() {
             <div className="relative grid items-center gap-10 lg:grid-cols-12 lg:gap-8">
 
               {/* ─────────────── LEFT · Headline + CTA ─────────────── */}
-              <motion.div
+              <m.div
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="show"
@@ -1102,24 +1300,26 @@ export default function AboutPage() {
                   {t("ctaBand.body")}
                 </p>
                 <div className="mt-7">
-                  <Link
-                    to="/contact"
-                    className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-meta font-semibold text-violet shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
-                  >
-                    {t("ctaBand.contactMe")}
-                    <ArrowRight
-                      className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                      aria-hidden="true"
-                    />
-                  </Link>
+                  <MagneticButton>
+                    <Link
+                      to="/contact"
+                      className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-meta font-semibold text-violet shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.25)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
+                    >
+                      {t("ctaBand.contactMe")}
+                      <ArrowRight
+                        className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </MagneticButton>
                 </div>
-              </motion.div>
+              </m.div>
               {/* ─────────────── CENTER · Phone (absolutely positioned on lg+
                                   so the card height is driven only by text;
                                   phone overflows below and is clipped by the
                                   card's `overflow-hidden`) ─────────── */}
               <div className="relative flex justify-center lg:col-span-2 lg:self-stretch">
-                <motion.div
+                <m.div
                   variants={fadeUp}
                   initial="hidden"
                   whileInView="show"
@@ -1127,18 +1327,18 @@ export default function AboutPage() {
                   className="flex w-full justify-center lg:absolute lg:left-1/2 lg:top-3 lg:-translate-x-1/2"
                 >
                   <CtaPhoneMockup />
-                </motion.div>
+                </m.div>
               </div>
 
               {/* ─────────────── RIGHT · Office + Contact info ─────────────── */}
-              <motion.div
+              <m.div
                 variants={stagger}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, margin: "-80px" }}
                 className="space-y-6 lg:col-span-5 lg:pl-2"
               >
-                <motion.div variants={fadeUp}>
+                <m.div variants={fadeUp}>
                   <h3 className="text-[15px] font-bold tracking-tight text-white">
                     {t("ctaBand.officeAddress")}
                   </h3>
@@ -1146,9 +1346,9 @@ export default function AboutPage() {
                     {t("ctaBand.officeAddressBody1")}<br />
                     {t("ctaBand.officeAddressBody2")}
                   </p>
-                </motion.div>
+                </m.div>
 
-                <motion.div variants={fadeUp}>
+                <m.div variants={fadeUp}>
                   <h3 className="text-[15px] font-bold tracking-tight text-white">
                     {t("ctaBand.contactInfo")}
                   </h3>
@@ -1172,8 +1372,8 @@ export default function AboutPage() {
                       </a>
                     </li>
                   </ul>
-                </motion.div>
-              </motion.div>
+                </m.div>
+              </m.div>
             </div>
           </div>
         </Container>
@@ -1187,15 +1387,15 @@ function CtaPhoneMockup() {
   const reduce = useReducedMotion()
   const initials = ["MR", "AC", "DV", "LP", "EK"]
   const tints    = [
-    "from-terracotta to-[#E07A4A]",
-    "from-violet to-[#7B5FE0]",
+    "from-terracotta to-[var(--color-coral)]",
+    "from-violet to-[var(--color-violet-mid)]",
     "from-azure to-[#3E80E0]",
     "from-[#3FB47E] to-[#2D8C5F]",
     "from-[#E94F8B] to-[#B8336A]",
   ]
 
   return (
-    <motion.div
+    <m.div
       animate={reduce ? undefined : { y: [0, -8, 0] }}
       transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       className="relative mx-auto w-[210px] sm:w-[220px] lg:w-[230px]"
@@ -1221,7 +1421,7 @@ function CtaPhoneMockup() {
         <div className="relative h-full w-full overflow-hidden rounded-[37px] bg-[#0a0b0e] p-[2px]">
 
           {/* ── Screen ── */}
-          <div className="relative h-full w-full overflow-hidden rounded-[35px] bg-gradient-to-b from-mist via-[#F2EBF6] to-[#EDE7F6]">
+          <div className="relative h-full w-full overflow-hidden rounded-[35px] bg-gradient-to-b from-mist via-[var(--color-violet-ghost)] to-[var(--color-violet-pale)]">
 
             {/* ── Dynamic Island ── */}
             <div className="absolute left-1/2 top-[8px] z-30 flex h-[22px] w-[80px] -translate-x-1/2 items-center justify-end rounded-full bg-black px-2 ring-1 ring-black/60">
@@ -1266,7 +1466,7 @@ function CtaPhoneMockup() {
             <div className="relative z-10 px-4 pt-2">
 
               {/* Welcome card */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet via-[#6A4FD8] to-[#7B5FE0] p-3.5 text-white shadow-[0_8px_22px_rgba(93, 63, 211,0.28)]">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet via-[var(--color-violet-mid)] to-[var(--color-violet-mid)] p-3.5 text-white shadow-[0_8px_22px_rgb(var(--color-violet-rgb)/0.28)]">
                 {/* Subtle inner sheen */}
                 <div
                   className="pointer-events-none absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/15 blur-xl"
@@ -1291,14 +1491,14 @@ function CtaPhoneMockup() {
                     </p>
                     <p className="font-mono text-[22px] font-bold leading-none tabular-nums">12</p>
                   </div>
-                  <motion.span
+                  <m.span
                     animate={reduce ? undefined : { opacity: [1, 0.55, 1] }}
                     transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                     className="inline-flex items-center gap-1 rounded-full bg-terracotta px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                     Live
-                  </motion.span>
+                  </m.span>
                 </div>
               </div>
 
@@ -1311,7 +1511,7 @@ function CtaPhoneMockup() {
                   { Icon: MoreHorizontal, label: "More"    },
                 ].map(({ Icon, label }) => (
                   <div key={label} className="flex flex-col items-center gap-1">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white shadow-[0_2px_6px_rgba(93, 63, 211,0.10)] ring-1 ring-charcoal/5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white shadow-[0_2px_6px_rgb(var(--color-violet-rgb)/0.10)] ring-1 ring-charcoal/5">
                       <Icon className="h-3.5 w-3.5 text-violet" strokeWidth={2.4} aria-hidden="true" />
                     </span>
                     <span className="text-[8px] font-semibold text-charcoal/75">{label}</span>
@@ -1320,7 +1520,7 @@ function CtaPhoneMockup() {
               </div>
 
               {/* Recent clients */}
-              <div className="mt-3.5 rounded-2xl bg-white p-3 shadow-[0_2px_6px_rgba(93, 63, 211,0.06)] ring-1 ring-charcoal/5">
+              <div className="mt-3.5 rounded-2xl bg-white p-3 shadow-[0_2px_6px_rgb(var(--color-violet-rgb)/0.06)] ring-1 ring-charcoal/5">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-bold text-charcoal">{t("dashboardWidget.recentClients")}</p>
                   <span className="text-[9px] font-semibold text-violet">{t("dashboardWidget.viewAll")}</span>
@@ -1370,6 +1570,6 @@ function CtaPhoneMockup() {
           aria-hidden="true"
         />
       </div>
-    </motion.div>
+    </m.div>
   )
 }

@@ -1,243 +1,117 @@
 /**
- * generate-og-images.mjs · brand-styled OG image generator
- *
- * Renders five 1200x630 PNG OG images from SVG templates and writes them
- * into web/public/og/. The repository previously referenced these files
- * but the directory didn't exist, so every Twitter/Facebook/LinkedIn
- * share preview was 404'ing.
- *
- * Each image is a typographic design (no photo embedding) in brand v3.1
- * tokens: violet field, mist-on-violet headline, soft terracotta accent,
- * tight font stack of Sora-equivalent system fallbacks. Final aesthetic
- * mirrors the OG style used by modern dev brands (Linear, Vercel, Stripe).
+ * generate-og-images.mjs · OG cards + social banners (sharp + SVG, no browser)
  *
  * Usage (from web/):
- *   node scripts/generate-og-images.mjs
+ *   npm run og:build                                   # static route cards + social set
+ *   node scripts/generate-og-images.mjs --from-json entities.json
+ *                                                      # dynamic cards → og/<type>/<slug>.png
  *
- * Requires `sharp` (devDep). Idempotent — overwrites existing PNGs each
- * run, so the file is also the regeneration tool for when the OG art
- * is iterated.
+ * entities.json shape:
+ *   [{ "type": "store"|"blog"|"services"|"projects", "slug": "my-slug",
+ *      "title": "…", "subtitle": "…" (optional), "eyebrow": "…" (optional) }]
+ *
+ * Fonts: Sora is resolved through fontconfig (librsvg ignores @font-face and
+ * FreeType cannot read the site's WOFF2). scripts/og/fonts/ bundles the
+ * static Sora TTFs so output is identical on any machine — see og/fonts.mjs.
+ * Output PNGs are kept ≤ 200 kB (og/render.mjs).
  */
-
 import fs from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import sharp from "sharp"
+import { setupFonts, probeSora } from "./og/fonts.mjs"
+import { renderPng, renderJpg } from "./og/render.mjs"
+import { ogCard, wideBanner, postBanner, squareBanner, SITE } from "./og/templates.mjs"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PUBLIC_OG = path.resolve(__dirname, "..", "public", "og")
 
-const W = 1200
-const H = 630
-
-/* ─── Brand palette (Brand v3.1 · single source of truth, mirrored here
- *      so the script stays standalone and doesn't need to import CSS). ─── */
-const VIOLET       = "#5D3FD3"
-const VIOLET_DEEP  = "#4A2EAB"
-const VIOLET_PALE  = "#EDE9FB"
-const TERRACOTTA   = "#E9C46A"
-const CHARCOAL     = "#1A1B23"
-const MIST         = "#F8FAFC"
-
-/* ─── Reusable visual building blocks ───────────────────────────────────
- *  All templates share a violet ground with two soft radial highlights
- *  and a subtle dot-pattern overlay. Distinguishing elements: page tag,
- *  headline copy, accent dot color.
- */
-function backgroundLayers() {
-  return `
-    <!-- Base field -->
-    <rect width="${W}" height="${H}" fill="${VIOLET_DEEP}" />
-
-    <!-- Top-left soft highlight -->
-    <defs>
-      <radialGradient id="hl1" cx="0.15" cy="0.1" r="0.65">
-        <stop offset="0%" stop-color="${VIOLET}" stop-opacity="0.85" />
-        <stop offset="100%" stop-color="${VIOLET_DEEP}" stop-opacity="0" />
-      </radialGradient>
-      <radialGradient id="hl2" cx="1" cy="1" r="0.7">
-        <stop offset="0%" stop-color="${TERRACOTTA}" stop-opacity="0.22" />
-        <stop offset="100%" stop-color="${VIOLET_DEEP}" stop-opacity="0" />
-      </radialGradient>
-      <pattern id="dotgrid" width="22" height="22" patternUnits="userSpaceOnUse">
-        <circle cx="1" cy="1" r="1" fill="#ffffff" fill-opacity="0.06" />
-      </pattern>
-    </defs>
-    <rect width="${W}" height="${H}" fill="url(#hl1)" />
-    <rect width="${W}" height="${H}" fill="url(#hl2)" />
-    <rect width="${W}" height="${H}" fill="url(#dotgrid)" />
-  `
-}
-
-/* ─── Top-right wordmark · "mustaphaukizuru.com" + accent dot. Keeps every
- *      OG identifiable as belonging to the same brand surface. ─── */
-function wordmark() {
-  return `
-    <g transform="translate(${W - 64}, 56)" text-anchor="end">
-      <circle cx="0" cy="-4" r="6" fill="${TERRACOTTA}" />
-      <text
-        x="-16" y="0"
-        fill="${MIST}"
-        font-family="'Sora', 'Inter', system-ui, sans-serif"
-        font-weight="700"
-        font-size="20"
-        letter-spacing="0.16em"
-        text-rendering="geometricPrecision"
-      >MUSTAPHAUKIZURU.COM</text>
-    </g>
-  `
-}
-
-/* ─── Page tag · small uppercase label in the top-left identifying the
- *      page kind (Home · About · Solutions · Services · Store). ─── */
-function pageTag(label) {
-  return `
-    <g transform="translate(72, 56)">
-      <rect x="0" y="-18" rx="14" ry="14" width="${label.length * 9.5 + 28}" height="30"
-            fill="${VIOLET_PALE}" fill-opacity="0.18"
-            stroke="${VIOLET_PALE}" stroke-opacity="0.32" stroke-width="1" />
-      <text x="14" y="2"
-            fill="${MIST}"
-            font-family="'Sora', 'Inter', system-ui, sans-serif"
-            font-weight="700"
-            font-size="13"
-            letter-spacing="0.22em">${label.toUpperCase()}</text>
-    </g>
-  `
-}
-
-/* ─── Headline group · 2–3 lines, centered vertically in the middle of
- *      the canvas. Word-wrapping is done at the call-site so each line
- *      can be sized and emphasised independently. ─── */
-function headline(lines) {
-  // Vertically centre the block of lines around y=320 (slightly above
-  // canvas middle to leave breathing room for the bottom subline).
-  const totalH = lines.length * 86
-  const startY = 320 - totalH / 2 + 86
-
-  return lines.map((line, i) => {
-    const fill = line.accent ? TERRACOTTA : MIST
-    return `
-      <text
-        x="72" y="${startY + i * 86}"
-        fill="${fill}"
-        font-family="'Sora', 'Inter', system-ui, sans-serif"
-        font-weight="800"
-        font-size="74"
-        letter-spacing="-0.02em"
-      >${escapeXml(line.text)}</text>
-    `
-  }).join("\n")
-}
-
-/* ─── Subline · bottom-left tagline, smaller weight, slightly transparent. ─── */
-function subline(text) {
-  return `
-    <text
-      x="72" y="${H - 64}"
-      fill="${MIST}" fill-opacity="0.78"
-      font-family="'Sora', 'Inter', system-ui, sans-serif"
-      font-weight="500"
-      font-size="22"
-      letter-spacing="-0.005em"
-    >${escapeXml(text)}</text>
-  `
-}
-
-function escapeXml(s = "") {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;")
-}
-
-/* ─── SVG template assembler. Composes the layered visual stack into one
- *      1200x630 SVG document, which sharp then rasterises to PNG. ─── */
-function buildSvg({ tag, lines, sub }) {
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  ${backgroundLayers()}
-  ${pageTag(tag)}
-  ${wordmark()}
-  ${headline(lines)}
-  ${subline(sub)}
-</svg>`
-}
-
-/* ─── Page-by-page content. Each entry maps to one PNG file. ─── */
-const TEMPLATES = [
-  {
-    file: "og-default.png",
-    tag:  "Home",
-    lines: [
-      { text: "Technology consulting," },
-      { text: "digital products,",       accent: true },
-      { text: "STEM solutions." },
-    ],
-    sub: "Mexico · LATAM · Worldwide  ·  Built with care, shipped with intent.",
-  },
-  {
-    file: "og-profile.png",
-    tag:  "About",
-    lines: [
-      { text: "Mustapha Ukizuru" },
-      { text: "Full-Stack Developer", accent: true },
-      { text: "& IT Manager." },
-    ],
-    sub: "6+ years across Rwanda, Turkey, Ethiopia, Mexico.",
-  },
-  {
-    file: "og-solutions.png",
-    tag:  "Solutions",
-    lines: [
-      { text: "Outcomes,"                },
-      { text: "not capabilities.",       accent: true },
-    ],
-    sub: "School IT · Custom software · STEM programs · Cloud · AI adoption.",
-  },
-  {
-    file: "og-services.png",
-    tag:  "Services",
-    lines: [
-      { text: "Premium delivery,"        },
-      { text: "honest price.",           accent: true },
-    ],
-    sub: "IT consulting · EdTech · Web systems · STEM curriculum.",
-  },
-  {
-    file: "og-store.png",
-    tag:  "Store",
-    lines: [
-      { text: "Digital products"         },
-      { text: "for schools & SMBs.",     accent: true },
-    ],
-    sub: "Templates · Toolkits · STEM resources  ·  Instant download.",
-  },
+/* ─── static routes (mirror of web/src/seo/pageSeo.js) ───────────────── */
+const STATIC = [
+  { file: "og-default.png", eyebrow: "Home", title: "Technology consulting, digital products & STEM solutions.", subtitle: "Full-stack delivery for businesses and schools. Mexico · LATAM · Worldwide.", accent: true },
+  { file: "og-profile.png", eyebrow: "About", title: "Mustapha Ukizuru — Full-Stack Developer & IT Manager.", subtitle: "6+ years across Rwanda, Turkey, Ethiopia and Mexico. Available for new projects." },
+  { file: "og-services.png", eyebrow: "Services", title: "IT strategy · AI & automation · Cloud · Product engineering.", subtitle: "Premium delivery, honest pricing. Consulting for businesses and schools." },
+  { file: "og-store.png", eyebrow: "Store", title: "Digital products for schools & SMBs.", subtitle: "Templates · Toolkits · STEM resources · Instant download · PayPal & MercadoPago", accent: true },
+  { file: "og-portfolio.png", eyebrow: "Portfolio", title: "Selected projects, shipped with intent.", subtitle: "School IT transformations · Custom websites · Educational platforms · Product launches", jpgAlias: "og-portfolio.jpg" },
+  { file: "og-contact.png", eyebrow: "Contact", title: "Let's talk about your next project.", subtitle: "Based in Mexico · Responds within 24 hours", jpgAlias: "og-contact.jpg" },
+  { file: "og-blog.png", eyebrow: "Blog", title: "Field notes on IT, full-stack, EdTech & STEM.", subtitle: "Written from Mexico by way of Rwanda." },
+  { file: "og-book.png", eyebrow: "Book a call", title: "Free 30-minute discovery call.", subtitle: "IT consulting · Full-stack development · School technology · STEM programs", accent: true },
+  { file: "og-terms.png", eyebrow: "Legal", title: "Terms of Service.", subtitle: SITE.domain },
+  { file: "og-privacy.png", eyebrow: "Legal", title: "Privacy Policy.", subtitle: SITE.domain },
+  { file: "og-refund.png", eyebrow: "Legal", title: "Refund Policy — 30-day guarantee.", subtitle: SITE.domain },
+  { file: "og-cookies.png", eyebrow: "Legal", title: "Cookie Policy.", subtitle: SITE.domain },
 ]
 
-/* ─── Main · render each template to PNG via sharp ─── */
-async function main() {
-  await fs.mkdir(PUBLIC_OG, { recursive: true })
+/* ─── social banner set ──────────────────────────────────────────────── */
+const SOCIAL = [
+  { file: "social/linkedin-banner-1584x396.png", svg: () => wideBanner(1584, 396, { avatarInset: 0.3 }) },
+  { file: "social/x-header-1500x500.png", svg: () => wideBanner(1500, 500, { avatarInset: 0.26 }) },
+  { file: "social/linkedin-post-1200x627.png", svg: () => postBanner() },
+  { file: "social/instagram-1080x1080.png", svg: () => squareBanner() },
+]
 
-  for (const tpl of TEMPLATES) {
-    const svg     = buildSvg(tpl)
-    const outPath = path.join(PUBLIC_OG, tpl.file)
+const ENTITY_EYEBROW = { store: "Store", blog: "Blog", services: "Services", projects: "Case study" }
+const ENTITY_TYPES = new Set(Object.keys(ENTITY_EYEBROW))
+const SLUG_RE = /^[a-z0-9][a-z0-9._-]*$/i
 
-    const buf = await sharp(Buffer.from(svg, "utf8"))
-      .png({ compressionLevel: 9, adaptiveFiltering: true })
-      .toBuffer()
-
-    await fs.writeFile(outPath, buf)
-    const kb = (buf.byteLength / 1024).toFixed(1)
-    console.log(`  ✓ ${tpl.file.padEnd(20)} ${kb} KB`)
-  }
-
-  console.log(`\nDone — ${TEMPLATES.length} OG images written to ${PUBLIC_OG}`)
+/** Exported for build steps: renders one entity card to <outDir>/<type>/<slug>.png. */
+export async function renderEntityCard(sharp, { type, slug, title, subtitle, eyebrow }, outDir = PUBLIC_OG) {
+  if (!ENTITY_TYPES.has(type)) throw new Error(`unknown entity type "${type}"`)
+  if (!SLUG_RE.test(String(slug)) || String(slug).includes("..")) throw new Error(`unsafe slug "${slug}"`)
+  const svg = ogCard({ title: title || SITE.name, eyebrow: eyebrow || ENTITY_EYEBROW[type], subtitle: subtitle || SITE.tagline })
+  const out = path.join(outDir, type, `${slug}.png`)
+  const res = await renderPng(sharp, svg, out)
+  return { file: path.relative(outDir, out).replace(/\\/g, "/"), ...res }
 }
 
-main().catch((err) => {
-  console.error("[og-images] failed", err)
-  process.exit(1)
-})
+function log(file, bytes, overBudget) {
+  const kb = (bytes / 1024).toFixed(1).padStart(6)
+  console.log(`  ${overBudget ? "!" : "✓"} ${file.padEnd(40)} ${kb} KB${overBudget ? "  (over 200 kB budget)" : ""}`)
+}
+
+async function main() {
+  const args = process.argv.slice(2)
+  const jsonIdx = args.indexOf("--from-json")
+
+  const { confPath, preset } = await setupFonts()
+  const { default: sharp } = await import("sharp")
+  const probe = await probeSora(sharp)
+  console.log(`fonts: ${preset ? "using preset FONTCONFIG_FILE" : "fontconfig → " + confPath}`)
+  if (probe.ok) console.log("fonts: Sora resolved via fontconfig (bundled/system TTF)")
+  else console.warn("fonts: WARNING — Sora not found; text falls back to generic sans-serif")
+
+  await fs.mkdir(PUBLIC_OG, { recursive: true })
+
+  if (jsonIdx !== -1) {
+    const file = args[jsonIdx + 1]
+    if (!file) throw new Error("--from-json requires a file path")
+    const entities = JSON.parse(await fs.readFile(path.resolve(file), "utf8"))
+    if (!Array.isArray(entities)) throw new Error("JSON must be an array of entities")
+    for (const e of entities) {
+      const r = await renderEntityCard(sharp, e)
+      log(r.file, r.bytes, r.overBudget)
+    }
+    console.log(`\nDone — ${entities.length} entity card(s) written under ${PUBLIC_OG}`)
+    return
+  }
+
+  // Obsolete asset from the removed Solutions page.
+  await fs.rm(path.join(PUBLIC_OG, "og-solutions.png"), { force: true })
+
+  for (const t of STATIC) {
+    const svg = ogCard(t)
+    const r = await renderPng(sharp, svg, path.join(PUBLIC_OG, t.file))
+    log(t.file, r.bytes, r.overBudget)
+    if (t.jpgAlias) { // pageSeo.js still references these .jpg names
+      const j = await renderJpg(sharp, svg, path.join(PUBLIC_OG, t.jpgAlias))
+      log(t.jpgAlias, j.bytes, false)
+    }
+  }
+  for (const s of SOCIAL) {
+    const r = await renderPng(sharp, s.svg(), path.join(PUBLIC_OG, s.file))
+    log(s.file, r.bytes, r.overBudget)
+  }
+  console.log(`\nDone — ${STATIC.length} OG cards + ${SOCIAL.length} social banners written to ${PUBLIC_OG}`)
+}
+
+const isCli = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+if (isCli) main().catch((err) => { console.error("[og-images] failed", err); process.exit(1) })
