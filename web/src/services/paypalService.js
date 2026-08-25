@@ -1,9 +1,25 @@
-import { apiRequest } from "../lib/api"
+import { authFetch } from "../lib/api"
 
 // ─────────────────────────────────────────────────────────────
 // PayPal Service
-// Public checkout-related PayPal requests
-// Uses centralized API utility for environment-safe requests
+// Authenticated checkout-related PayPal requests
+//
+// Endpoint contract (matches src/routes/paypalRoutes.js):
+//   POST /api/v1/paypal/create-order/:orderId    → create PayPal Order
+//   POST /api/v1/paypal/capture/:paypalOrderId   → capture after approval
+//
+// Both routes mount the `protect` middleware on the backend, so the
+// frontend MUST send a Bearer token. `authFetch` injects the stored
+// JWT into the Authorization header automatically — `apiRequest`
+// does not, which is why a pre-fix version of this file produced the
+// "Authentication token required" error in the PayPal modal even
+// after the route paths were corrected. MercadoPago's service uses
+// the same `authFetch` pattern; keep them aligned.
+//
+// The orderId / paypalOrderId travel in the URL path, not the body.
+// (Pre-fix versions POSTed to bare /create-order and /capture-order
+// paths, which 404'd against the live backend — the checkout PayPal
+// flow was never fully wired.)
 // ─────────────────────────────────────────────────────────────
 
 export async function createPaypalSession(orderId) {
@@ -11,10 +27,10 @@ export async function createPaypalSession(orderId) {
     throw new Error("Order ID is required")
   }
 
-  const response = await apiRequest("/api/v1/paypal/create-order", {
-    method: "POST",
-    body: JSON.stringify({ orderId }),
-  })
+  const response = await authFetch(
+    `/api/v1/paypal/create-order/${encodeURIComponent(orderId)}`,
+    { method: "POST" },
+  )
 
   return response?.id || response?.data?.id || null
 }
@@ -24,15 +40,16 @@ export async function capturePaypalSession(paypalOrderId, orderId) {
     throw new Error("PayPal order ID is required")
   }
 
-  if (!orderId) {
-    throw new Error("Order ID is required")
-  }
+  // `orderId` is kept as a defensive parameter but no longer required by
+  // the backend — the capture controller derives the local order id from
+  // the PayPal capture response's reference_id/custom_id. Callers that
+  // already pass it are unaffected; new callers can omit it.
 
-  return apiRequest("/api/v1/paypal/capture-order", {
-    method: "POST",
-    body: JSON.stringify({
-      paypalOrderId,
-      orderId,
-    }),
-  })
+  return authFetch(
+    `/api/v1/paypal/capture/${encodeURIComponent(paypalOrderId)}`,
+    {
+      method: "POST",
+      body: JSON.stringify({ orderId }),
+    },
+  )
 }

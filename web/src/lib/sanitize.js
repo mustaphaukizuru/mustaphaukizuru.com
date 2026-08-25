@@ -70,16 +70,28 @@ export function friendlyMessage(input, fallback = "Something went wrong. Please 
 
 /**
  * Map a status code to a human label when the API didn't supply one.
+ *
+ * Every common 4xx is mapped now — previously, an unmapped status
+ * (notably 400 / 408 / 502 / 503 / 504) fell through to the bland
+ * "Request error" string, which is what users were seeing on the
+ * dashboard order detail page when the invoice endpoint returned a
+ * 400 without a JSON body. Specific labels are friendlier and easier
+ * to act on.
  */
 export function statusLabel(status = 0) {
-  if (status === 0) return "Network error"
+  if (status === 0)   return "Network error"
+  if (status === 400) return "Bad request"
   if (status === 401) return "Sign-in required"
   if (status === 403) return "Not allowed"
   if (status === 404) return "Not found"
+  if (status === 408) return "Request timed out"
   if (status === 409) return "Conflict"
   if (status === 413) return "Too large"
   if (status === 422) return "Validation error"
   if (status === 429) return "Too many requests"
-  if (status >= 500) return "Server error"
+  if (status === 502) return "Connection hiccup"
+  if (status === 503) return "Service unavailable"
+  if (status === 504) return "Server took too long"
+  if (status >= 500)  return "Server error"
   return "Request error"
 }
