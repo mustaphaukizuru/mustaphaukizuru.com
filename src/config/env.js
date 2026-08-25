@@ -1,5 +1,55 @@
 const dotenv = require("dotenv")
+const fs = require("fs")
+const path = require("path")
+
+// Local / manual deploys: a .env sitting next to the app.
 dotenv.config()
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Hostinger auto-deploy fallback
+ *
+ * Production deploys via "GitHub master -> Hostinger auto-deploy", which
+ * clones master into a FRESH hbuilds/versions/<uuid>/nodejs/ and starts the
+ * app there. `.env` is gitignored (correctly -- secrets never belong in the
+ * repo), so a freshly cloned deploy directory has no .env at all.
+ *
+ * Hostinger keeps persistent config one level up, at hbuilds/config/.env,
+ * which survives across deploys. Nothing links the two automatically.
+ *
+ * The consequence was a real outage: every API request hung while the SPA
+ * kept serving, because Passenger serves public/ statically without Node,
+ * and the Node app was exiting at boot on "Missing required env var:
+ * DATABASE_URL". A served frontend is NOT evidence that the app booted.
+ *
+ * So: if the local .env did not supply the required vars, walk up from here
+ * looking for an `hbuilds` directory with a `config/.env` inside it, and load
+ * that. The walk is used rather than a fixed "../../../../.." because the
+ * nesting depth is Hostinger's to change, not ours.
+ *
+ * `override: false` is deliberate -- anything already in the real process
+ * environment (hPanel-injected vars, or a local .env) still wins.
+ * ─────────────────────────────────────────────────────────────────────────── */
+function findSharedEnvFile(startDir) {
+  let dir = startDir
+  for (let hops = 0; hops < 10; hops += 1) {
+    if (path.basename(dir) === "hbuilds") {
+      const candidate = path.join(dir, "config", ".env")
+      if (fs.existsSync(candidate)) return candidate
+    }
+    const parent = path.dirname(dir)
+    if (parent === dir) break // reached filesystem root
+    dir = parent
+  }
+  return null
+}
+
+if (!process.env.DATABASE_URL) {
+  const sharedEnv = findSharedEnvFile(__dirname)
+  if (sharedEnv) {
+    dotenv.config({ path: sharedEnv, override: false })
+    console.log(`[env] loaded shared config from ${sharedEnv}`)
+  }
+}
 
 // ─────────────────────────────────────────────────────────────
 // B11 · Validate required variables + crypto soundness
