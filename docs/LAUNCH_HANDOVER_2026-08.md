@@ -162,13 +162,23 @@ arrives. Putting content into the HTML cannot help while that is true.
 Ranked options, with honest expected value:
 
 1. **Render-blocking CSS** (~300 ms, medium effort). One 347 kB / 4245-rule
-   stylesheet (38 kB gzipped) loads on every route, including admin-only rules
-   on public pages. Inline the above-the-fold subset and load the rest async,
-   or split it per entry.
+   stylesheet (38 kB gzipped) blocks first paint for 1055 ms. Two things I
+   checked so you do not repeat them: Lighthouse scores **unused-css-rules at
+   1.00** — nothing is dead, so splitting per route gains almost nothing; and
+   tokenising the repeated arbitrary shadows saves **zero bytes**, because
+   Tailwind emits one rule per *distinct* value, not per usage. The only real
+   lever is inlining the above-the-fold subset and loading the rest async.
+
+   Related design debt: there are **250 distinct arbitrary shadow values**
+   across 499 usages (one appears 69 times) where an elevation scale would
+   have ~8. Collapsing them would cut ~40 kB and make elevation consistent,
+   but it changes shadows site-wide, so it is a design call rather than a
+   refactor.
 2. **JS bootup** (~large, high effort). Home spends 4.5 s in bootup and 10.9 s
-   of main-thread work. The bundle has already been cut hard (framer split out,
-   i18n down to one locale, entry 457 → 264 kB). What remains is React
-   hydrating a big app.
+   of main-thread work. The bundle has been cut hard: framer split out, i18n
+   down to one locale (entry 457 → 258 kB), and react-icons removed from the
+   global path (/terms unused JS 114 → 68 kB, perf 75 → 78). What remains is
+   React hydrating a big app — further gains here are incremental.
 3. **SSR framework** (largest win, largest change). Options 1 and 2 improve the
    numbers; only this changes the shape of the problem. It is a genuine
    re-platform (Next.js / Remix), not a patch — worth costing before choosing.
