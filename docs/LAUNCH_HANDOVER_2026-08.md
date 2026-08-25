@@ -250,3 +250,27 @@ Two things left deliberately, both design decisions:
 - The terracotta accent on light-ground display headings is 1.9:1. Fixing it
   means picking a different accent hue for light heroes (see
   `docs/DESIGN_SYSTEM.md`).
+
+## 8. Dependency vulnerabilities (2026-08-24)
+
+`npm audit --omit=dev` went from **15 to 6**. Everything fixable without a
+breaking change was applied (axios, form-data, multer, ip-address,
+body-parser, morgan, qs), and **nodemailer was upgraded 8 → 9.0.5** — a major
+bump, taken because it was a direct high-severity advisory; verified by the
+full test suite, an app boot, and an emailService/mailer load check.
+
+The remaining 6 were assessed for reachability rather than silenced:
+
+| Package | Severity | Reachable here? |
+|---|---|---|
+| `deepmerge-ts` → `@prisma/config` → `prisma` | high | **No.** The flaw is stack exhaustion when merging recursive object graphs; it runs while Prisma loads its own config file at build time, which is ours and is not attacker-supplied. The fix is a Prisma major on a working MySQL layer. |
+| `uuid` → `gaxios` / `node-cron` | moderate | **No.** Missing buffer bounds check in uuid v3/v5/v6 *when `buf` is provided*. Nothing in `src/` calls uuid directly, and neither googleapis nor node-cron passes caller-controlled buffers. Fix is a node-cron major that changes the `schedule` signature used by four live jobs. |
+
+Note the nodemailer advisory that prompted the upgrade was also **not
+exploitable as used** — it needs the message-level `raw` option, which this
+codebase never passes. It was upgraded anyway because it is a direct
+dependency and the upgrade proved safe.
+
+Re-check with `npm audit --omit=dev` after any dependency change. Do not run
+`npm audit fix --force` blindly: it would take Prisma and node-cron across
+majors and break the DB layer and the scheduler.
