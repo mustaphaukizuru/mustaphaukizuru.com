@@ -20,6 +20,7 @@ import HowItWorks from "../components/services/HowItWorks"
 import ServiceDemo from "../components/services/demos/ServiceDemo"
 import CategoryFaq from "../components/services/CategoryFaq"
 import { BookCallButton, StickyBookBar } from "../components/services/BookCallCta"
+import ServicesLeadCapture from "../components/services/ServicesLeadCapture"
 import { pick, useCatalogueLang } from "../components/services/localize"
 
 export default function ServiceDetailPage() {
@@ -165,6 +166,9 @@ export default function ServiceDetailPage() {
           </div>
         </Container>
       </section>
+
+      {/* Lead capture — the exit for visitors not ready to book (G3) */}
+      <ServicesLeadCapture slug={category.slug} />
 
       {/* Single CTA */}
       <section className="bg-violet py-16 text-white sm:py-20">
