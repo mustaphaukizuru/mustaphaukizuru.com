@@ -234,7 +234,10 @@
     "title": "Error inesperado",
     "body": "Tuvimos un problema renderizando esta vista.",
     "backHome": "Volver al inicio",
-    "devDetail": "Detalle del desarrollador"
+    "devDetail": "Detalle del desarrollador",
+    "sectionBody": "No se pudo mostrar esta parte de la página.",
+    "sectionHint": "El resto del sitio sigue funcionando. Inténtalo de nuevo o vuelve al inicio.",
+    "tryAgain": "Intentar de nuevo"
   },
   "auth": {
     "shell": {

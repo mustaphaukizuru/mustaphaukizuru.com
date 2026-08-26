@@ -113,21 +113,34 @@ async function listTopTags(limit = 14) {
     .slice(0, limit)
 }
 
+/**
+ * Month-by-month post counts for the blog archive nav.
+ *
+ * Grouped in SQL rather than in JS. The previous implementation pulled EVERY
+ * published post (two columns, but every row) and bucketed them in a loop, so
+ * the work and the memory grew with the archive on a request that only ever
+ * returns one row per month. MySQL groups this against the existing
+ * @@index([status, publishedAt]) and hands back a few dozen rows.
+ *
+ * COUNT(*) arrives as BigInt over the wire, hence the Number() coercion —
+ * JSON.stringify throws on BigInt, which would 500 the route.
+ */
 async function listArchive() {
-  const rows = await prisma.blogPost.findMany({
-    where: PUBLIC_WHERE,
-    select: { publishedAt: true, createdAt: true },
+  const rows = await prisma.$queryRaw`
+    SELECT DATE_FORMAT(COALESCE(publishedAt, createdAt), '%Y-%m') AS ym,
+           COUNT(*) AS count
+    FROM BlogPost
+    WHERE status = 'published' AND deletedAt IS NULL
+      AND COALESCE(publishedAt, createdAt) IS NOT NULL
+    GROUP BY ym
+    ORDER BY ym DESC
+  `
+  return rows.map((r) => {
+    const [year, month] = String(r.ym).split("-")
+    const label = new Date(Number(year), Number(month) - 1, 1)
+      .toLocaleString("en-US", { month: "long", year: "numeric" })
+    return { key: r.ym, label, count: Number(r.count) }
   })
-  const groups = new Map()
-  for (const r of rows) {
-    const d = r.publishedAt || r.createdAt
-    if (!d) continue
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
-    const label = d.toLocaleString("en-US", { month: "long", year: "numeric" })
-    if (!groups.has(key)) groups.set(key, { key, label, count: 0 })
-    groups.get(key).count += 1
-  }
-  return [...groups.values()].sort((a, b) => b.key.localeCompare(a.key))
 }
 
 module.exports = {

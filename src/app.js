@@ -13,6 +13,7 @@ const notFound      = require("./middleware/notFound")
 const errorHandler  = require("./middleware/errorHandler")
 const { clientUrl } = require("./config/env")
 const { globalApiLimiter } = require("./middleware/rateLimiter")   // B10
+const { STORAGE_PATHS } = require("./config/storagePaths")
 
 // B11 · Sentry — initialisation lives in src/lib/sentry.js. That module
 // returns `null` if @sentry/node isn't installed or SENTRY_DSN is unset,
@@ -69,13 +70,13 @@ app.use("/images/products", express.static(path.join(__dirname, "../public/image
 // Avatars & media are user uploads — served from storage/ (persists across
 // builds), NOT ../public (wiped by Vite emptyOutDir on every build). The URL
 // prefix stays /images/* so existing database URLs keep resolving.
-app.use("/images/avatars", express.static(path.join(__dirname, "../storage/uploads/avatars"), {
+app.use("/images/avatars", express.static(STORAGE_PATHS.avatars, {
   setHeaders: (res) => {
     res.setHeader("X-Content-Type-Options", "nosniff")
     res.setHeader("Content-Disposition", "inline")
   },
 }))
-app.use("/images/media", express.static(path.join(__dirname, "../storage/uploads/media"), {
+app.use("/images/media", express.static(STORAGE_PATHS.media, {
   setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
 }))
 

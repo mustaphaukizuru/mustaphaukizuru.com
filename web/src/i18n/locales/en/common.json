@@ -234,7 +234,10 @@
     "title": "Unexpected error",
     "body": "We hit a snag rendering this view.",
     "backHome": "Back to home",
-    "devDetail": "Developer detail"
+    "devDetail": "Developer detail",
+    "sectionBody": "This part of the page could not be shown.",
+    "sectionHint": "The rest of the site is still working. Try again, or head back home.",
+    "tryAgain": "Try again"
   },
   "auth": {
     "shell": {

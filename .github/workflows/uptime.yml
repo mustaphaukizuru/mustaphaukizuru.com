@@ -1,0 +1,93 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Uptime + database monitor
+#
+# WHY THIS EXISTS
+# ---------------
+# /api/v1/health has always reported `database: ok|down`. Nothing watched it.
+# On 2026-08-25 production served static pages normally while every DB-backed
+# route hung for 30 s — the site LOOKED alive, nobody could log in or check
+# out, and it was found by opening the site by hand hours later.
+#
+# That failure is invisible to a naive "is the homepage up?" check, because
+# Passenger serves public/ statically WITHOUT Node. So this checks two things
+# that a homepage ping cannot:
+#
+#   1. the API answers at all (it hangs rather than erroring when the app
+#      cannot spawn), and
+#   2. the health payload actually says database: ok — a 200 with
+#      "database":"down" is still an outage for every paying customer.
+#
+# A failed scheduled workflow emails the repo owner through GitHub's own
+# notifications, so this needs no third-party monitoring account.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Uptime
+
+on:
+  schedule:
+    # Every 15 minutes. GitHub queues scheduled runs under load, so treat this
+    # as "roughly every 15 minutes", not a guarantee.
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    name: Probe production health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check API health and database status
+        env:
+          BASE_URL: https://mustaphaukizuru.com
+        run: |
+          set -uo pipefail
+
+          # --max-time is the whole point: the observed failure mode is a hang,
+          # not an error status. Without a timeout this step would sit until the
+          # job times out and report far less clearly.
+          echo "Probing $BASE_URL/api/v1/health"
+          body="$(curl -sS --max-time 25 -w '\n%{http_code}' "$BASE_URL/api/v1/health" || true)"
+
+          code="$(printf '%s' "$body" | tail -n1)"
+          payload="$(printf '%s' "$body" | sed '$d')"
+
+          echo "HTTP: ${code:-<none>}"
+          echo "Body: ${payload:-<empty>}"
+
+          if [ -z "${code:-}" ] || [ "$code" = "000" ]; then
+            echo "::error::API did not respond within 25s — the app is not being spawned. Static pages may still serve, so the site can look fine."
+            exit 1
+          fi
+
+          if [ "$code" != "200" ]; then
+            echo "::error::Health endpoint returned HTTP $code."
+            exit 1
+          fi
+
+          # A 200 that reports the database as down is still a full outage for
+          # anyone trying to browse products, sign in, or check out.
+          case "$payload" in
+            *'"database":"ok"'*)
+              echo "Healthy: API responding and database reachable."
+              ;;
+            *)
+              echo "::error::API responded 200 but the database is not ok. Payload above."
+              exit 1
+              ;;
+          esac
+
+      - name: Check the storefront still serves
+        env:
+          BASE_URL: https://mustaphaukizuru.com
+        run: |
+          set -uo pipefail
+          code="$(curl -sS -o /dev/null --max-time 20 -w '%{http_code}' "$BASE_URL/" || echo 000)"
+          echo "Storefront HTTP: $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Storefront returned $code — static serving is broken too, not just the app."
+            exit 1
+          fi

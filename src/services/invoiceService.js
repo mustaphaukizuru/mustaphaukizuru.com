@@ -3,12 +3,13 @@ const path = require("path")
 const PDFDocument = require("pdfkit")
 const prisma = require("../lib/prisma")
 const generateInvoiceNumber = require("../utils/generateInvoiceNumber")
+const { STORAGE_PATHS } = require("../config/storagePaths")
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Paths & constants
  * ──────────────────────────────────────────────────────────────────────────── */
 
-const INVOICE_DIR = path.resolve(__dirname, "../../storage/invoices")
+const INVOICE_DIR = STORAGE_PATHS.invoices
 
 // Brand palette — matches the royal-violet anchor from Brand v3.0 but uses
 // the legacy compatibility hex so the PDF lands correctly until F02 migrates
