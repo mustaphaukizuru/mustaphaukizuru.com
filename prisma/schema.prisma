@@ -1491,6 +1491,18 @@ model ContactMessage {
   status    ContactMessageStatus @default(new)
   repliedAt DateTime?
   createdAt DateTime  @default(now())
+
+  // T3 · funnel attribution + abuse forensics (all optional, set by the API)
+  intent    String? @db.VarChar(64)   // plan | proposal | service | …  (from ?intent=)
+  audience  String? @db.VarChar(32)   // education | business | professional
+  tier      String? @db.VarChar(32)   // pricing tier the lead was looking at
+  source    String? @db.VarChar(64)   // contact-form | footer | referrer path
+  locale    String? @db.VarChar(8)    // en | es
+  ipAddress String? @db.VarChar(64)
+  userAgent String? @db.VarChar(255)
+
+  @@index([status, createdAt])
+  @@index([createdAt])
 }
 
 model NewsletterSubscriber {
