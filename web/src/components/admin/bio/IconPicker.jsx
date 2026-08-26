@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Search } from "lucide-react"
 import { m, AnimatePresence } from "framer-motion"
-import { ICON_REGISTRY } from "../../SkillsByCapability"
+import { ICON_REGISTRY } from "../../../lib/skillIcons"
 import { inputClass } from "../Field"
 
 export default function IconPicker({ value, onChange }) {

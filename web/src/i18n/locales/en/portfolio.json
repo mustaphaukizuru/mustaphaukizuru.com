@@ -24,7 +24,8 @@
     "caseStudy": "Read case study",
     "live": "Live",
     "outcome": "Outcome",
-    "placeholderShort": "Illustrative figures"
+    "placeholderShort": "Illustrative figures",
+    "stack": "Tech stack"
   },
   "empty": "No projects match your filters.",
   "states": {

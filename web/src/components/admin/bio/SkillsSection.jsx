@@ -2,7 +2,7 @@ import {
   adminListSkills, adminCreateSkill, adminUpdateSkill, adminDeleteSkill,
 } from "../../../services/bioService"
 import { skillSchema, SKILL_CATEGORIES } from "../../../lib/validation/bio"
-import { ICON_REGISTRY } from "../../SkillsByCapability"
+import { ICON_REGISTRY } from "../../../lib/skillIcons"
 import { Field } from "../Field"
 import { TextField, NumberField, SelectField, CheckboxField } from "../forms"
 import BioEntryForm from "./BioEntryForm"
