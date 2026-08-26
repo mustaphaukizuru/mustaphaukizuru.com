@@ -71,10 +71,12 @@ export async function deleteMilestone(projectId, milestoneId) {
 }
 
 /* ── admin · files ──────────────────────────────────────────────────── */
-export async function uploadProjectFile(projectId, file) {
+export async function uploadProjectFile(projectId, file, { milestoneId, isDeliverable } = {}) {
   if (!file) throw new Error("file is required")
   const fd = new FormData()
   fd.append("file", file)
+  if (milestoneId) fd.append("milestoneId", milestoneId)
+  if (isDeliverable) fd.append("isDeliverable", "true")
   // authFetch detects FormData via isFormData() and leaves the
   // Content-Type unset so the browser injects the multipart boundary.
   // Auth header is added automatically — no manual localStorage read.
@@ -86,5 +88,55 @@ export async function uploadProjectFile(projectId, file) {
 }
 export async function deleteProjectFile(projectId, fileId) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}`, { method: "DELETE" })
+  return stripData(r)
+}
+
+/* ── admin · comments ───────────────────────────────────────────────────── */
+export async function postAdminProjectComment(projectId, { body, milestoneId, fileId } = {}) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ body, milestoneId: milestoneId || undefined, fileId: fileId || undefined }),
+  })
+  return stripData(r)
+}
+export async function toggleAdminCommentResolved(projectId, commentId) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/comments/${encodeURIComponent(commentId)}/resolve`, {
+    method: "PATCH",
+  })
+  return stripData(r)
+}
+
+/* ── member · portal writes (Tier 2) ───────────────────────────────────── */
+const memberBase = (projectId) => `/api/v1/member/projects/${encodeURIComponent(projectId)}`
+
+/** Multipart `files[]` upload (≤10 files, 50 MB each). Optional milestone anchor. */
+export async function uploadMyProjectFiles(projectId, files, { milestoneId } = {}) {
+  const list = Array.from(files || [])
+  if (!list.length) throw new Error("At least one file is required")
+  const fd = new FormData()
+  for (const f of list) fd.append("files", f)
+  if (milestoneId) fd.append("milestoneId", milestoneId)
+  const r = await authFetch(`${memberBase(projectId)}/files`, { method: "POST", body: fd })
+  return asArray(r)
+}
+export async function postMyProjectComment(projectId, { body, milestoneId, fileId } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ body, milestoneId: milestoneId || undefined, fileId: fileId || undefined }),
+  })
+  return stripData(r)
+}
+export async function approveMyMilestone(projectId, milestoneId, { note } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/milestones/${encodeURIComponent(milestoneId)}/approve`, {
+    method: "POST",
+    body: JSON.stringify(note ? { note } : {}),
+  })
+  return stripData(r)
+}
+export async function requestMyMilestoneChanges(projectId, milestoneId, { note } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/milestones/${encodeURIComponent(milestoneId)}/request-changes`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  })
   return stripData(r)
 }
