@@ -79,6 +79,7 @@ const pageMeta = {
   "/admin/categories": { title: "Categories", subtitle: "Organize the catalog." },
   "/admin/coupons": { title: "Coupons", subtitle: "Create discount codes, set caps, and track redemptions." },
   "/admin/contact-messages":{ title: "Contact Messages",subtitle: "View, reply to, and manage submissions from the contact form." },
+  "/admin/leads": { title: "Leads Inbox", subtitle: "One row per email across contact messages, self-audits, newsletter sign-ups and bookings (newest 500 per source)." },
   "/admin/newsletter": { title: "Newsletter", subtitle: "Manage subscribers, export the list, or remove entries (GDPR)." },
   "/admin/services": { title: "Services", subtitle: "Consulting and packages." },
   "/admin/availability": { title: "Availability", subtitle: "Recurring rules and date-specific exceptions for the public booking calendar." },
