@@ -91,5 +91,48 @@
     "tocAria": "Tabla de contenidos",
     "tocLabel": "En esta página",
     "anchorAria": "Enlace directo a"
+  },
+  "nda": {
+    "title": "Acuerdo Mutuo de Confidencialidad",
+    "version": "Versión {{version}}",
+    "intro": "Antes de ver los hitos, archivos y conversación de {{project}}, revisa y acepta este acuerdo. Protege a ambas partes: lo que compartes con nosotros y lo que construimos para ti.",
+    "parties": "Este acuerdo se celebra entre Mustapha Ukizuru (\"Consultor\") y tú, el cliente indicado en este proyecto (\"Cliente\"). En conjunto, \"las Partes\".",
+    "clauses": [
+      {
+        "title": "1. Información confidencial",
+        "body": "Información Confidencial es toda información no pública de carácter comercial, técnico, financiero o personal que cualquiera de las Partes revele en relación con este proyecto, incluidos briefs, código fuente, diseños, credenciales, datos, precios, entregables y borradores compartidos en este portal."
+      },
+      {
+        "title": "2. Obligaciones",
+        "body": "Cada Parte usará la Información Confidencial de la otra solo para este proyecto, la protegerá con al menos el mismo cuidado que aplica a su propio material confidencial y la revelará únicamente a personas que la necesiten para el proyecto y estén sujetas a obligaciones equivalentes."
+      },
+      {
+        "title": "3. Exclusiones",
+        "body": "No es confidencial la información que sea o llegue a ser pública sin incumplimiento, que la Parte receptora ya conociera, que se desarrolle de forma independiente o que se obtenga legalmente de un tercero. Se permite la divulgación exigida por ley, previo aviso razonable cuando sea posible."
+      },
+      {
+        "title": "4. Entregables y propiedad",
+        "body": "Los entregables son Información Confidencial hasta que el proyecto se complete y se pague en su totalidad; a partir de entonces la propiedad se transfiere según los Términos del Servicio. El Consultor puede conservar conocimientos genéricos y componentes reutilizables que no contengan datos del Cliente."
+      },
+      {
+        "title": "5. Vigencia",
+        "body": "Estas obligaciones comienzan al aceptar y continúan durante tres (3) años después del cierre del proyecto. Los secretos comerciales quedan protegidos mientras conserven esa condición."
+      },
+      {
+        "title": "6. Devolución o eliminación",
+        "body": "A petición, o cuando el proyecto se purgue de este portal, cada Parte eliminará o devolverá la Información Confidencial de la otra, conservando solo las copias exigidas por ley o las de respaldos rutinarios."
+      },
+      {
+        "title": "7. General",
+        "body": "Este acuerdo no crea licencias ni sociedades. Se rige por la misma ley y jurisdicción que los Términos del Servicio. Al aceptar abajo se registran tu nombre, la hora, la dirección IP y el navegador como tu firma electrónica."
+      }
+    ],
+    "ack": "He leído y acepto el Acuerdo Mutuo de Confidencialidad, versión {{version}}.",
+    "agree": "Acepto",
+    "decline": "Volver a proyectos",
+    "accepting": "Guardando tu aceptación…",
+    "accepted": "NDA aceptado. ¡Gracias!",
+    "failed": "No pudimos registrar tu aceptación. Inténtalo de nuevo.",
+    "gateHint": "Los hitos, archivos y mensajes se desbloquean en cuanto aceptes."
   }
 }

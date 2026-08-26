@@ -284,6 +284,7 @@ model User {
   assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
   projectFiles           ProjectFile[]
   projectComments        ProjectComment[] @relation("UserProjectComments")
+  projectAgreements      ProjectAgreement[]
   supportTickets         SupportTicket[]  @relation("UserSupportTickets")
   assignedTickets        SupportTicket[]  @relation("AssignedSupportTickets")
   supportMessages        SupportMessage[]
@@ -1327,6 +1328,11 @@ model ClientProject {
   /// Set when projectStatus becomes completed/cancelled. Member writes are
   /// refused after this; reads expire PROJECT_ACCESS_GRACE_DAYS later.
   closedAt        DateTime?
+  /// Tier 4 · NDA click-wrap. When true, the member portal hides milestones,
+  /// files, comments and tickets until a ProjectAgreement row exists for
+  /// (userId, "nda", ndaVersion). Bump ndaVersion to force re-acceptance.
+  requiresNda     Boolean       @default(false)
+  ndaVersion      String?       @db.VarChar(16)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1338,6 +1344,7 @@ model ClientProject {
   files         ProjectFile[]
   comments      ProjectComment[]
   tickets       SupportTicket[]
+  agreements    ProjectAgreement[]
 
   @@index([userId])
   @@index([assignedAdminId])
@@ -2134,4 +2141,24 @@ model EmailCampaignRecipient {
   @@unique([campaignId, email])
   @@index([campaignId, status])
   @@index([email])
+}
+
+/// Tier 4 · click-wrap acceptance record (NDA today; `type` leaves room for
+/// SOW / DPA later). One row per (project, user, type, version) so a version
+/// bump on the project asks the client again while keeping the old record.
+model ProjectAgreement {
+  id         String   @id @default(cuid())
+  projectId  String
+  userId     String
+  type       String   @db.VarChar(16)
+  version    String   @db.VarChar(16)
+  acceptedAt DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?  @db.VarChar(512)
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, type, version])
+  @@index([userId])
 }

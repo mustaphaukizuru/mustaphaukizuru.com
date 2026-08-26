@@ -1,15 +1,15 @@
 import { useCallback, useMemo, useRef, useState } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
 import {
   ArrowLeft, Briefcase, Calendar, Download, CheckCircle2, Clock, AlertCircle,
   User as UserIcon, Hourglass, ExternalLink, Eye, UploadCloud, MessageSquare,
-  Lock, ThumbsUp, RotateCcw, Send, Check, X, Loader2, Image as ImageIcon,
+  Lock, ThumbsUp, RotateCcw, Send, Check, X, Loader2, Image as ImageIcon, ShieldCheck,
 } from "lucide-react"
 import {
   fetchMyProject, uploadMyProjectFiles, postMyProjectComment,
-  approveMyMilestone, requestMyMilestoneChanges,
+  approveMyMilestone, requestMyMilestoneChanges, acceptMyProjectAgreement,
 } from "../services/clientProjectService"
 import useApiQuery from "../hooks/useApiQuery"
 import { SkeletonCard, Button, Modal, Textarea, Select, InlineBanner } from "../components/ui/index"
@@ -71,6 +71,7 @@ const EMPTY = "rounded-xl border border-dashed border-charcoal-80/15 bg-violet-p
 
 export default function DashboardProjectDetailPage() {
   const { t } = useTranslation("dashboard")
+  const { t: tLegal } = useTranslation("legal")
   const { id } = useParams()
   const { showSuccess, showError } = useToast()
 
@@ -160,9 +161,21 @@ export default function DashboardProjectDetailPage() {
     else refetch()
   }
 
+  const ndaGate = Boolean(project.nda?.required && !project.nda?.accepted)
+
   return (
     <section className="space-y-6">
       <BackLink t={t} />
+
+      {/* Tier 4 · NDA click-wrap. The API already withholds milestones, files,
+          comments and tickets while the gate is up; the modal is the only way
+          through, and acceptance refetches the full payload. */}
+      {ndaGate && (
+        <NdaGate
+          project={project}
+          onAccepted={() => { showSuccess(tLegal("nda.accepted")); refetch() }}
+        />
+      )}
 
       {access.isClosed && (
         <InlineBanner tone="warning" icon={Lock} title={t("projects.detail.closed.title")}>
@@ -301,6 +314,87 @@ export default function DashboardProjectDetailPage() {
         <ProjectSupportPanel projectId={project.id} readOnly={readOnly} milestones={project.milestones || []} />
       </SectionBlock>
     </section>
+  )
+}
+
+/* ── NDA gate (Tier 4) ─────────────────────────────────────────────────── */
+
+function NdaGate({ project, onAccepted }) {
+  const { t } = useTranslation("legal")
+  const navigate = useNavigate()
+  const [agreed, setAgreed] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState("")
+  const version = project.nda?.version || "1"
+  const clauses = t("nda.clauses", { returnObjects: true })
+  const list = Array.isArray(clauses) ? clauses : []
+
+  const accept = async () => {
+    if (!agreed || busy) return
+    setBusy(true); setError("")
+    try {
+      await acceptMyProjectAgreement(project.id, { type: "nda", version })
+      onAccepted?.()
+    } catch (e) {
+      setError(e?.message || t("nda.failed"))
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal
+      open
+      onClose={() => navigate("/dashboard/projects")}
+      size="lg"
+      title={t("nda.title")}
+      description={t("nda.version", { version })}
+    >
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 rounded-xl bg-violet-pale/50 px-4 py-3 text-meta text-charcoal-80/80">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-violet" aria-hidden="true" />
+          <p>{t("nda.intro", { project: project.projectName })}</p>
+        </div>
+
+        <div className="max-h-[40vh] space-y-4 overflow-y-auto rounded-xl border border-charcoal-80/10 bg-white p-4 text-meta text-charcoal-80/80">
+          <p>{t("nda.parties")}</p>
+          {list.map((c) => (
+            <div key={c.title}>
+              <h3 className="font-semibold text-violet">{c.title}</h3>
+              <p className="mt-1">{c.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <label className="flex cursor-pointer items-start gap-3 text-meta text-charcoal-80/80">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-violet)]"
+          />
+          <span>{t("nda.ack", { version })}</span>
+        </label>
+
+        {error && (
+          <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            {error}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-meta text-charcoal-80/65">{t("nda.gateHint")}</p>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard/projects")} disabled={busy}>
+              {t("nda.decline")}
+            </Button>
+            <Button size="sm" icon={busy ? Loader2 : Check} onClick={accept} disabled={!agreed || busy}>
+              {busy ? t("nda.accepting") : t("nda.agree")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Modal>
   )
 }
 

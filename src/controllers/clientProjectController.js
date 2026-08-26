@@ -7,6 +7,7 @@ const fsp = require("fs/promises")
 const { listMyProjects, getMyProject } = require("../services/clientProjectService")
 const {
   assertReadable, previewCanFrame, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
+  ndaStatus, applyNdaGate, acceptAgreement,
 } = require("../services/projectPortalService")
 const { STORAGE_PATHS } = require("../config/storagePaths")
 const supportService = require("../services/supportService")
@@ -55,17 +56,37 @@ const getMine = asyncHandler(async (req, res) => {
   if (!project) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Project not found" } })
   try {
     const lc = assertReadable(project)
+    // Tier 4 · NDA gate: header stays, everything under NDA is withheld until
+    // the client has accepted the current version.
+    const nda = await ndaStatus(project, userId)
+    const gated = nda.required && !nda.accepted
+    const body = gated ? applyNdaGate(project) : project
     res.status(200).json({
       success: true,
       data: {
-        ...project,
+        ...body,
         access: { readOnly: lc.readOnly, isClosed: lc.isClosed, expiresAt: lc.expiresAt },
-        previewCanFrame: previewCanFrame(project.previewUrl),
+        previewCanFrame: gated ? false : previewCanFrame(project.previewUrl),
+        nda: { required: nda.required, accepted: nda.accepted, version: nda.version, acceptedAt: nda.acceptedAt },
       },
     })
   } catch (e) {
     return portalError(res, e)
   }
+})
+
+/** POST /member/projects/:id/agreements { type: "nda", version } */
+const acceptProjectAgreement = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await acceptAgreement({
+      userId, projectId: req.params.id,
+      type: req.body?.type, version: req.body?.version,
+      ipAddress: req.ip || null, userAgent: req.get?.("user-agent") || null,
+    })
+    res.status(201).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
 })
 
 /* ── Tier 2 · client writes ───────────────────────────────────────────── */
@@ -216,7 +237,7 @@ const streamFile = asyncHandler(async (req, res) => {
   const file = await prisma.projectFile.findFirst({
     where: { id: String(fileId), projectId: String(projectId) },
     include: {
-      project: { select: { id: true, userId: true, projectName: true } },
+      project: { select: { id: true, userId: true, projectName: true, requiresNda: true, ndaVersion: true } },
     },
   })
 
@@ -226,6 +247,11 @@ const streamFile = asyncHandler(async (req, res) => {
   if (file.project?.userId !== userId) {
     // 404 (not 403) so we don't confirm existence to a non-owner.
     return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "File not found" } })
+  }
+  // Tier 4 · deliverables are under NDA until the client has accepted it.
+  const nda = await ndaStatus(file.project, userId)
+  if (nda.required && !nda.accepted) {
+    return res.status(403).json({ success: false, error: { code: "NDA_REQUIRED", message: "Please accept the project NDA before downloading files." } })
   }
 
   return sendProjectFile({ file, req, res, userId, action: "project.file.downloaded" })
@@ -279,6 +305,6 @@ function sendProjectFile({ file, req, res, userId, action }) {
 
 module.exports = {
   listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
-  uploadFiles, addComment, approve, requestChanges,
+  uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
   listTickets, getTicket, createTicket, replyTicket,
 }

@@ -175,6 +175,14 @@ export async function approveMyMilestone(projectId, milestoneId, { note } = {}) 
   })
   return stripData(r)
 }
+/** Tier 4 · NDA click-wrap acceptance. */
+export async function acceptMyProjectAgreement(projectId, { type = "nda", version } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/agreements`, {
+    method: "POST",
+    body: JSON.stringify({ type, version: version || undefined }),
+  })
+  return stripData(r)
+}
 export async function requestMyMilestoneChanges(projectId, milestoneId, { note } = {}) {
   const r = await authFetch(`${memberBase(projectId)}/milestones/${encodeURIComponent(milestoneId)}/request-changes`, {
     method: "POST",

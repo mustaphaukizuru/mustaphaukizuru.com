@@ -102,6 +102,14 @@ async function updateAdminProject(id, data) {
   if ("dueDate"         in data) patch.dueDate         = data.dueDate   ? new Date(data.dueDate)   : null
   if ("assignedAdminId" in data) patch.assignedAdminId = data.assignedAdminId ? String(data.assignedAdminId) : null
   if ("previewUrl"      in data) patch.previewUrl      = validatePreviewUrl(data.previewUrl)
+  // Tier 4 · NDA click-wrap toggles. Version is free text (<=16) so "2026-08"
+  // or "v2" both work; bumping it re-gates the client.
+  if ("requiresNda"     in data) patch.requiresNda     = data.requiresNda === true || data.requiresNda === "true"
+  if ("ndaVersion"      in data) {
+    const v = data.ndaVersion == null ? "" : String(data.ndaVersion).trim()
+    if (v.length > 16) throw new Error("ndaVersion must be 16 characters or fewer")
+    patch.ndaVersion = v || null
+  }
   if ("projectStatus"   in data) {
     if (!VALID_PROJECT_STATUSES.includes(data.projectStatus)) {
       throw new Error(`Invalid project status. Expected one of: ${VALID_PROJECT_STATUSES.join(", ")}`)

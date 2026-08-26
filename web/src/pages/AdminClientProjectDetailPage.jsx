@@ -52,6 +52,7 @@ export default function AdminClientProjectDetailPage() {
     serviceOrderId: "", userId: "", projectName: "",
     description: "", projectStatus: "planning",
     startDate: "", dueDate: "", previewUrl: "",
+    requiresNda: false, ndaVersion: "",
   })
 
   // New-milestone draft
@@ -76,6 +77,8 @@ export default function AdminClientProjectDetailPage() {
         startDate: fmtDate(data.startDate),
         dueDate: fmtDate(data.dueDate),
         previewUrl: data.previewUrl || "",
+        requiresNda: Boolean(data.requiresNda),
+        ndaVersion: data.ndaVersion || "",
       })
     } catch (err) {
       console.error("[ClientProject] load failed:", err)
@@ -225,6 +228,16 @@ export default function AdminClientProjectDetailPage() {
               <Input type="url" value={form.previewUrl} onChange={(v) => setForm({ ...form, previewUrl: v })} placeholder="https://staging.example.com — shown to the client as a live preview" />
             </Field>
           </div>
+          <Field label="NDA click-wrap">
+            <div className="flex flex-col gap-2 pt-1">
+              <Checkbox
+                label="Client must accept the NDA before seeing milestones, files or messages"
+                checked={form.requiresNda}
+                onChange={(checked) => setForm({ ...form, requiresNda: Boolean(checked) })}
+              />
+              <Input value={form.ndaVersion} onChange={(v) => setForm({ ...form, ndaVersion: v })} placeholder="NDA version (e.g. 2026-08) — bump to re-ask the client" />
+            </div>
+          </Field>
           <div className="md:col-span-2">
             <Field label="Description">
               <textarea

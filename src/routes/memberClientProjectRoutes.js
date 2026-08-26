@@ -1,7 +1,7 @@
 const express = require("express")
 const {
   listMine, getMine, streamFile,
-  uploadFiles, addComment, approve, requestChanges,
+  uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
   listTickets, getTicket, createTicket, replyTicket,
 } = require("../controllers/clientProjectController")
 const { protect } = require("../middleware/authMiddleware")
@@ -23,6 +23,8 @@ router.post("/:id/files",                                  uploadRateLimiter, up
 router.post("/:id/comments",                               addComment)
 router.post("/:id/milestones/:milestoneId/approve",         approve)
 router.post("/:id/milestones/:milestoneId/request-changes", requestChanges)
+// Tier 4 · NDA click-wrap acceptance (records ip + user-agent)
+router.post("/:id/agreements",                             acceptProjectAgreement)
 
 // ── Tier 2 · project-scoped support tickets ──────────────────────────────
 // `:id` is the PROJECT id on every ticket route: uploadProjectFile.many stores
