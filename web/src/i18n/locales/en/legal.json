@@ -33,7 +33,7 @@
       {
         "slug": "cookies",
         "title": "4. Cookies",
-        "content": "We use strictly necessary cookies for authentication, session integrity, and security. Analytics and marketing cookies are <strong>off by default</strong> and only fire after you explicitly accept them via the cookie banner. To review every category we use, update your choices, or revoke consent, visit our <link>Cookie Policy</link> page. Browser settings remain a backstop, but the in-app preferences are the primary, granular control."
+        "content": "We use strictly necessary cookies for authentication, session integrity, and security. Analytics and marketing cookies are <strong>off by default</strong> and only fire after you explicitly accept them via the cookie banner. To review every category we use, update your choices, or revoke consent, visit our <cookies>Cookie Policy</cookies> page. Browser settings remain a backstop, but the in-app preferences are the primary, granular control."
       },
       {
         "slug": "data-sharing",

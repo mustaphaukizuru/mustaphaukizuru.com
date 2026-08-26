@@ -33,7 +33,7 @@
       {
         "slug": "cookies",
         "title": "4. Cookies",
-        "content": "Usamos cookies estrictamente necesarias para la autenticación, la integridad de la sesión y la seguridad. Las cookies de analítica y marketing están <strong>desactivadas por defecto</strong> y solo se activan cuando las aceptas explícitamente en el aviso de cookies. Para revisar cada categoría que usamos, cambiar tus preferencias o revocar tu consentimiento, visita nuestra página de <link>Política de cookies</link>. La configuración del navegador sigue siendo un respaldo, pero las preferencias dentro de la app son el control principal y granular."
+        "content": "Usamos cookies estrictamente necesarias para la autenticación, la integridad de la sesión y la seguridad. Las cookies de analítica y marketing están <strong>desactivadas por defecto</strong> y solo se activan cuando las aceptas explícitamente en el aviso de cookies. Para revisar cada categoría que usamos, cambiar tus preferencias o revocar tu consentimiento, visita nuestra página de <cookies>Política de cookies</cookies>. La configuración del navegador sigue siendo un respaldo, pero las preferencias dentro de la app son el control principal y granular."
       },
       {
         "slug": "data-sharing",

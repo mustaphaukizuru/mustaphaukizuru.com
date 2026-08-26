@@ -14,10 +14,13 @@ const PRIVACY_NOTICE_ANCHOR = "aviso-de-privacidad"
  * privacy.notice.sections[]) so en/es stay in lockstep. Each entry carries a
  * stable slug so URLs like /privacy#data-retention deep-link to the exact
  * paragraph (Brand v3 §17 — shareable section IDs). Rich text uses the
- * <strong> / <link> component markers resolved by <Trans> below. */
+ * <strong> / <cookies> component markers resolved by <Trans> below. */
 const RICH_COMPONENTS = {
   strong: <strong />,
-  link: (
+  // NB: the marker must NOT be named `link` — i18next's HTML parser treats
+  // <link> as a void element and drops its children, leaving an <a> with no
+  // accessible name (axe link-name failure on /privacy).
+  cookies: (
     <Link
       to="/cookies"
       className="font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 rounded"
