@@ -7,6 +7,8 @@ import {
   Download, RefreshCw, CreditCard, ShieldCheck,
 } from "lucide-react"
 import { formatPrice } from "../../lib/format"
+import { qualifiesForMsi, MAX_INSTALLMENTS } from "../../lib/installments"
+import Badge from "../ui/Badge"
 import { FileTypeStrip } from "./FileList"
 import { formatCountAbbrev, formatUpdatedDate } from "./utils"
 
@@ -154,6 +156,13 @@ export default function BuyBox({
       <div className="mt-4 flex items-end gap-3">
         <span className="text-page font-bold leading-none text-violet">{formatPrice(price, currency)}</span>
       </div>
+      {qualifiesForMsi(price * qty, currency) && (
+        <div className="mt-2">
+          <Badge tone="info" size="sm" icon={CreditCard} className="normal-case">
+            {t("buyBox.msi", { months: MAX_INSTALLMENTS })}
+          </Badge>
+        </div>
+      )}
 
       <div className="mt-5 flex flex-col gap-3">
         <div className="flex items-center gap-3">

@@ -104,30 +104,6 @@ describe("transitionOrderPayment — shared guards", () => {
     },
   )
 
-  test("a NEW capture id on an already-paid order records the Payment but is NOT a first paid", async () => {
-    // Regression: side effects were keyed on `!existingPaymentRow`, so a
-    // second capture id re-sent the order-confirmed email and re-ran
-    // fulfilment. isFirstPaid is keyed on the order's prior state.
-    const hook = jest.fn()
-    tx.payment.findFirst.mockResolvedValue(null)
-    tx.order.findUnique.mockResolvedValueOnce(current({ status: "paid" })).mockResolvedValueOnce(full("paid"))
-    const result = await transitionOrderPayment({ ...base, gatewayTransactionId: "TX-2", onFirstPaid: hook })
-    expect(tx.payment.create).toHaveBeenCalledTimes(1)
-    expect(result.isFirstTransition).toBe(true)   // new payment row — per-payment dedupe still sees it
-    expect(result.isFirstPaid).toBe(false)        // but the order did not flip → no order-level side effects
-    expect(hook).not.toHaveBeenCalled()
-  })
-
-  test("an OXXO-style pending row that is later approved IS a first paid", async () => {
-    const hook = jest.fn()
-    tx.payment.findFirst.mockResolvedValue({ id: "pay_1", paymentStatus: "pending", orderId: "order_1" })
-    tx.order.findUnique.mockResolvedValue(current({ status: "pending" }))
-    const result = await transitionOrderPayment({ ...base, onFirstPaid: hook })
-    expect(result.isFirstTransition).toBe(false)
-    expect(result.isFirstPaid).toBe(true)
-    expect(hook).toHaveBeenCalledTimes(1)
-  })
-
   test("'refunded' target never touches the Order (owned by refundService)", async () => {
     tx.order.findUnique.mockResolvedValueOnce(current({ status: "pending" })).mockResolvedValueOnce(full("pending"))
     const result = await transitionOrderPayment({ ...base, targetStatus: "refunded" })
@@ -157,21 +133,56 @@ describe("transitionOrderPayment — shared guards", () => {
     const hook = jest.fn()
     const result = await transitionOrderPayment({ ...base, onFirstPaid: hook })
     expect(result.isFirstTransition).toBe(true)
-    expect(result.isFirstPaid).toBe(true)
     expect(hook).toHaveBeenCalledTimes(1)
     expect(hook).toHaveBeenCalledWith(expect.objectContaining({ status: "paid" }))
   })
 
   test("onFirstPaid does NOT fire on replay, mismatch, or non-paid target", async () => {
     const hook = jest.fn()
-    // Replay = same tx id on an already-paid order.
-    tx.payment.findFirst.mockResolvedValueOnce({ id: "pay_1" })
+    // Replay = the Payment row exists AND the order already reached paid in
+    // the earlier transaction (both happen atomically). An existing pending
+    // row on a still-pending order is the OXXO / SPEI shape and MUST fire —
+    // see "pending offline row → later paid" below.
+    tx.payment.findFirst.mockResolvedValueOnce({ id: "pay_1", paymentStatus: "paid" })
     tx.order.findUnique.mockResolvedValueOnce(current({ status: "paid" })).mockResolvedValueOnce(full("paid"))
     await transitionOrderPayment({ ...base, onFirstPaid: hook })
     await transitionOrderPayment({ ...base, gatewayAmount: "1.00", onFirstPaid: hook })
     tx.order.update.mockResolvedValue(full("pending"))
     await transitionOrderPayment({ ...base, targetStatus: "pending", onFirstPaid: hook })
     expect(hook).not.toHaveBeenCalled()
+  })
+
+  test("pending offline row → later paid: isFirstPaid=true and onFirstPaid fires although the Payment row pre-existed", async () => {
+    const hook = jest.fn()
+    tx.payment.findFirst.mockResolvedValueOnce({ id: "pay_1", paymentStatus: "pending", orderId: "order_1" })
+    const result = await transitionOrderPayment({ ...base, onFirstPaid: hook })
+    expect(result.isFirstTransition).toBe(false)
+    expect(result.isFirstPaid).toBe(true)
+    expect(hook).toHaveBeenCalledTimes(1)
+    expect(tx.payment.update).toHaveBeenCalledTimes(1)
+  })
+
+  test("a NEW capture id on an already-paid order records the Payment but is NOT a first paid", async () => {
+    // Regression: side effects were keyed on `!existingPaymentRow`, so a
+    // second capture id re-sent the order-confirmed email and re-ran
+    // fulfilment. isFirstPaid is keyed on the order's prior state.
+    const hook = jest.fn()
+    tx.payment.findFirst.mockResolvedValue(null)
+    tx.order.findUnique.mockResolvedValueOnce(current({ status: "paid" })).mockResolvedValueOnce(full("paid"))
+    const result = await transitionOrderPayment({ ...base, gatewayTransactionId: "TX-2", onFirstPaid: hook })
+    expect(tx.payment.create).toHaveBeenCalledTimes(1)
+    expect(result.isFirstTransition).toBe(true)
+    expect(result.isFirstPaid).toBe(false)
+    expect(hook).not.toHaveBeenCalled()
+  })
+
+  test("pending target with pendingDetails stores the voucher JSON in failureReason", async () => {
+    tx.order.update.mockResolvedValue(full("pending"))
+    const pendingDetails = { type: "ticket", methodId: "oxxo", voucherUrl: "https://mp/ticket", expiresAt: "2026-08-29T10:00:00.000-06:00" }
+    const result = await transitionOrderPayment({ ...base, targetStatus: "pending", pendingDetails })
+    expect(result.isFirstPaid).toBe(false)
+    const data = tx.payment.create.mock.calls[0][0].data
+    expect(JSON.parse(data.failureReason)).toEqual({ kind: "offline_pending", ...pendingDetails })
   })
 
   test("unknown orderId throws an AppError 404 with code ORDER_NOT_FOUND", async () => {

@@ -13,6 +13,8 @@ import { trackServiceOrder } from "../lib/analytics"
 import { createMercadoPagoPreference } from "../services/mercadoPagoService"
 import { createPaypalSession, capturePaypalSession } from "../services/paypalService"
 import AuthErrorBanner from "../components/auth/AuthErrorBanner"
+import Badge from "../components/ui/Badge"
+import { qualifiesForMsi, MAX_INSTALLMENTS } from "../lib/installments"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  ServicesCheckoutPage · /checkout/service?audience=X&tier=Y
@@ -352,6 +354,13 @@ export default function ServicesCheckoutPage() {
                   {plan.currency || "MXN"}
                 </div>
               </div>
+              {qualifiesForMsi(plan.price, plan.currency) && (
+                <div className="mt-3">
+                  <Badge tone="info" size="sm" icon={CreditCard} className="normal-case">
+                    {t("checkout.plan.msi", { months: MAX_INSTALLMENTS })}
+                  </Badge>
+                </div>
+              )}
 
               {plan.includedFeatures?.length > 0 && (
                 <div className="mt-5 border-t border-charcoal-80/10 pt-5">

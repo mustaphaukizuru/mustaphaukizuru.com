@@ -13,21 +13,60 @@
  */
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
+const { parsePendingPaymentDetails } = require("../services/mercadoPagoService")
 
 const DEFAULT_HOURS = 24
 const BATCH = 500
+// Grace after an OXXO / SPEI voucher expires before the order is swept, so
+// a payment made at the last minute has time to reach us via webhook.
+const OFFLINE_GRACE_HOURS = 6
+
+/**
+ * An order whose latest payment is an unexpired OXXO / SPEI voucher is NOT
+ * stale even if it is older than `hours`: the buyer may still pay it at the
+ * store. The voucher's own `date_of_expiration` (persisted on the Payment
+ * row by paymentTransitionService) is the source of truth; when MP did not
+ * send one we fall back to MP_CASH_EXPIRY_HOURS from the payment's creation.
+ */
+function offlineHoldUntil(order, now) {
+  const latest = order.payments?.[0]
+  const details = parsePendingPaymentDetails(latest)
+  if (!details) return null
+  const cashHours = Number(process.env.MP_CASH_EXPIRY_HOURS) > 0 ? Number(process.env.MP_CASH_EXPIRY_HOURS) : 72
+  const expires = details.expiresAt ? new Date(details.expiresAt) : null
+  const base = expires && !Number.isNaN(expires.getTime())
+    ? expires
+    : new Date(new Date(latest.createdAt || now).getTime() + cashHours * 60 * 60 * 1000)
+  return new Date(base.getTime() + OFFLINE_GRACE_HOURS * 60 * 60 * 1000)
+}
 
 async function cancelStaleOrders({ hours = DEFAULT_HOURS, dryRun = false } = {}) {
-  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000)
+  const now    = Date.now()
+  const cutoff = new Date(now - hours * 60 * 60 * 1000)
 
-  const candidates = await prisma.order.findMany({
+  const scanned = await prisma.order.findMany({
     where:   { status: "pending", paidAt: null, createdAt: { lt: cutoff } },
-    select:  { id: true, orderNumber: true, customerEmail: true, couponId: true, createdAt: true },
+    select:  {
+      id: true, orderNumber: true, customerEmail: true, couponId: true, createdAt: true,
+      payments: {
+        orderBy: { createdAt: "desc" },
+        take:    1,
+        select:  { paymentStatus: true, failureReason: true, createdAt: true },
+      },
+    },
     orderBy: { createdAt: "asc" },
     take:    BATCH,
   })
-  if (candidates.length === 0) return { scanned: 0, cancelled: 0, couponsReleased: 0 }
-  if (dryRun) return { scanned: candidates.length, cancelled: 0, couponsReleased: 0, candidates }
+
+  let held = 0
+  const candidates = scanned.filter((o) => {
+    const holdUntil = offlineHoldUntil(o, now)
+    if (holdUntil && holdUntil.getTime() > now) { held += 1; return false }
+    return true
+  })
+
+  if (candidates.length === 0) return { scanned: scanned.length, cancelled: 0, couponsReleased: 0, held }
+  if (dryRun) return { scanned: scanned.length, cancelled: 0, couponsReleased: 0, held, candidates }
 
   let cancelled = 0
   let couponsReleased = 0
@@ -58,8 +97,8 @@ async function cancelStaleOrders({ hours = DEFAULT_HOURS, dryRun = false } = {})
     }
   }
 
-  logger.info(`[janitor] cancelled ${cancelled}/${candidates.length} stale pending orders · coupons released ${couponsReleased}`)
-  return { scanned: candidates.length, cancelled, couponsReleased }
+  logger.info(`[janitor] cancelled ${cancelled}/${candidates.length} stale pending orders · coupons released ${couponsReleased} · held for offline vouchers ${held}`)
+  return { scanned: scanned.length, cancelled, couponsReleased, held }
 }
 
-module.exports = { cancelStaleOrders }
+module.exports = { cancelStaleOrders, offlineHoldUntil }

@@ -136,7 +136,16 @@
       "readyDesc": "Your digital products are available immediately, here and in your dashboard.",
       "accessTitle": "Lifetime access",
       "accessDesc": "Re-download your purchases and future updates any time from your dashboard."
-    }
+    },
+    "paymentPendingTitle": "Payment pending",
+    "paymentPendingSubtitleCash": "Your order is reserved — pay the OXXO voucher to finish.",
+    "paymentPendingSubtitleTransfer": "Your order is reserved — complete the SPEI transfer to finish.",
+    "paymentPendingBodyCash": "Take the voucher to any OXXO store and pay the exact amount. Mercado Pago will confirm the payment, usually within one business day.",
+    "paymentPendingBodyTransfer": "Send the SPEI transfer from your banking app using the details on the payment page. Mercado Pago usually confirms within minutes.",
+    "voucherExpires": "Pay before {{date}}",
+    "openVoucher": "Open your OXXO voucher",
+    "openTransferDetails": "Open transfer details",
+    "paymentPendingAutoUpdate": "This page updates automatically. Your downloads unlock the moment Mercado Pago confirms the payment — we will email you too."
   },
   "misc": {
     "billingAddress": "Billing Address",

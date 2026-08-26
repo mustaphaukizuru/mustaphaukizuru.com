@@ -140,7 +140,8 @@
   "buyBox": {
     "securePayment": "Secure payment via Mercado Pago or PayPal. Your card details never touch our servers.",
     "decreaseQty": "Decrease quantity",
-    "increaseQty": "Increase quantity"
+    "increaseQty": "Increase quantity",
+    "msi": "Up to {{months}} interest-free months with Mercado Pago"
   },
   "license": {
     "title": "License & updates",

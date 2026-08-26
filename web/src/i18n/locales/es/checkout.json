@@ -136,7 +136,16 @@
       "readyDesc": "Tus productos digitales están disponibles de inmediato, aquí y en tu panel.",
       "accessTitle": "Acceso de por vida",
       "accessDesc": "Vuelve a descargar tus compras y futuras actualizaciones cuando quieras desde tu panel."
-    }
+    },
+    "paymentPendingTitle": "Pago pendiente",
+    "paymentPendingSubtitleCash": "Tu pedido está reservado — paga la ficha en OXXO para terminar.",
+    "paymentPendingSubtitleTransfer": "Tu pedido está reservado — completa la transferencia SPEI para terminar.",
+    "paymentPendingBodyCash": "Lleva la ficha a cualquier tienda OXXO y paga el monto exacto. Mercado Pago confirmará el pago, normalmente en un día hábil.",
+    "paymentPendingBodyTransfer": "Envía la transferencia SPEI desde tu app bancaria con los datos de la página de pago. Mercado Pago suele confirmar en minutos.",
+    "voucherExpires": "Paga antes del {{date}}",
+    "openVoucher": "Ver ficha de pago",
+    "openTransferDetails": "Ver datos de la transferencia",
+    "paymentPendingAutoUpdate": "Esta página se actualiza sola. Tus descargas se desbloquean en cuanto Mercado Pago confirme el pago — también te enviaremos un correo."
   },
   "misc": {
     "billingAddress": "Dirección de facturación",

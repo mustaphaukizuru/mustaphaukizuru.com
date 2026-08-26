@@ -106,6 +106,141 @@ function verifyMercadoPagoSignature({ signatureHeader, requestId, dataId }) {
   }
 }
 
+/* ───────────────── domestic payment methods (MSI · OXXO · SPEI) ────────── */
+//
+// Tier 1 §5.2. Mercado Pago Checkout Pro offers card installments, cash
+// (OXXO — payment_type_id "ticket") and bank transfer (SPEI —
+// payment_type_id "bank_transfer") out of the box; the merchant only has to
+// allow them on the preference. MSI ("meses sin intereses") itself is a
+// merchant-side dashboard setting — the app just sets the installment
+// ceiling. Everything here is env-driven so ops can tune it without a deploy.
+
+const OFFLINE_PAYMENT_TYPES = new Set(["ticket", "bank_transfer"])
+
+function envInt(name, fallback) {
+  const n = Number.parseInt(process.env[name] ?? "", 10)
+  return Number.isFinite(n) && n > 0 ? n : fallback
+}
+function envNumber(name, fallback) {
+  const n = Number(process.env[name])
+  return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : fallback
+}
+function envBool(name, fallback) {
+  const raw = process.env[name]
+  if (raw == null || raw === "") return fallback
+  return !["0", "false", "no", "off"].includes(String(raw).trim().toLowerCase())
+}
+
+/**
+ * MP wants ISO-8601 with an explicit UTC offset and millisecond precision,
+ * e.g. "2026-08-29T10:15:00.000-06:00". Date#toISOString() emits a trailing
+ * "Z", which the preference endpoint rejects, so we format by hand using the
+ * process's local offset.
+ */
+function formatMpDate(date) {
+  const d = date instanceof Date ? date : new Date(date)
+  const pad = (n, w = 2) => String(n).padStart(w, "0")
+  const offsetMin = -d.getTimezoneOffset()
+  const sign = offsetMin >= 0 ? "+" : "-"
+  const abs = Math.abs(offsetMin)
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}` +
+    `${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`
+  )
+}
+
+/**
+ * Build the `payment_methods` block (+ `date_of_expiration`) for a preference.
+ *
+ *   MP_MAX_INSTALLMENTS     (12)   installment ceiling once the MSI floor is met
+ *   MP_DEFAULT_INSTALLMENTS (1)    pre-selected installment count
+ *   MP_MSI_MIN_AMOUNT       (1500) below this (order currency) installments = 1
+ *   MP_ENABLE_CASH          (true) false → exclude payment type "ticket" (OXXO)
+ *   MP_ENABLE_BANK_TRANSFER (true) false → exclude "bank_transfer" (SPEI)
+ *   MP_CASH_EXPIRY_HOURS    (72)   voucher lifetime; also the preference expiry
+ *
+ * Pure — takes `now` so tests can pin the expiry.
+ */
+function buildPaymentMethodsConfig({ amount, now = new Date() } = {}) {
+  const maxInstallments     = envInt("MP_MAX_INSTALLMENTS", 12)
+  const defaultInstallments = envInt("MP_DEFAULT_INSTALLMENTS", 1)
+  const msiMinAmount        = envNumber("MP_MSI_MIN_AMOUNT", 1500)
+  const enableCash          = envBool("MP_ENABLE_CASH", true)
+  const enableTransfer      = envBool("MP_ENABLE_BANK_TRANSFER", true)
+  const cashExpiryHours     = envNumber("MP_CASH_EXPIRY_HOURS", 72)
+
+  const total        = decimalToNumber(amount)
+  const installments = total >= msiMinAmount ? maxInstallments : 1
+
+  const excluded_payment_types = []
+  if (!enableCash)     excluded_payment_types.push({ id: "ticket" })
+  if (!enableTransfer) excluded_payment_types.push({ id: "bank_transfer" })
+
+  const payment_methods = {
+    installments,
+    default_installments: Math.min(defaultInstallments, installments),
+    excluded_payment_types,
+  }
+
+  // Cash / transfer vouchers live until date_of_expiration. Without it MP
+  // keeps an OXXO ficha payable for days after cancelStaleOrders has already
+  // released the order + coupon, and the late payment would land on a
+  // cancelled order. With both offline methods disabled there is nothing to
+  // expire, so the preference keeps MP's default lifetime.
+  const offlineEnabled = enableCash || enableTransfer
+  const expiresAt = new Date(now.getTime() + cashExpiryHours * 60 * 60 * 1000)
+
+  return {
+    payment_methods,
+    cashExpiryHours,
+    expiresAt: offlineEnabled ? expiresAt : null,
+    ...(offlineEnabled ? { date_of_expiration: formatMpDate(expiresAt) } : {}),
+  }
+}
+
+/**
+ * Extract what the customer needs to finish an offline (OXXO / SPEI)
+ * payment from an MP payment resource. Returns null for card / wallet
+ * payments or for anything that is not pending, so callers can use it as
+ * "is this a voucher waiting to be paid?".
+ */
+function describePendingPayment(mpPayment) {
+  if (!mpPayment || typeof mpPayment !== "object") return null
+  const status = mpPayment.status
+  const type   = mpPayment.payment_type_id
+  if (!(status === "pending" || status === "in_process")) return null
+  if (!OFFLINE_PAYMENT_TYPES.has(type)) return null
+  return {
+    type,
+    methodId:   mpPayment.payment_method_id || null,
+    voucherUrl: mpPayment.transaction_details?.external_resource_url || null,
+    expiresAt:  mpPayment.date_of_expiration || null,
+  }
+}
+
+/**
+ * Inverse of the Payment-row encoding: the pending-voucher descriptor is
+ * persisted as JSON in Payment.failureReason (the only free-form text column
+ * on the model; see paymentTransitionService). Returns null for anything
+ * that is not that encoding.
+ */
+function parsePendingPaymentDetails(payment) {
+  if (!payment || payment.paymentStatus !== "pending" || !payment.failureReason) return null
+  try {
+    const parsed = JSON.parse(payment.failureReason)
+    if (parsed?.kind !== "offline_pending") return null
+    return {
+      type:       parsed.type || null,
+      methodId:   parsed.methodId || null,
+      voucherUrl: parsed.voucherUrl || null,
+      expiresAt:  parsed.expiresAt || null,
+    }
+  } catch {
+    return null
+  }
+}
+
 /* ───────────────────── create Checkout Pro preference ──────────────────── */
 
 async function createMercadoPagoPreference({ orderId }) {
@@ -142,8 +277,15 @@ async function createMercadoPagoPreference({ orderId }) {
     pending: `${frontendBase}/checkout/success/${order.id}?gateway=mercadopago&pending=true`,
   }
 
+  const orderTotal = order.totalAmount != null
+    ? decimalToNumber(order.totalAmount)
+    : items.reduce((n, i) => n + i.unit_price * i.quantity, 0)
+  const { payment_methods, date_of_expiration } = buildPaymentMethodsConfig({ amount: orderTotal })
+
   const preference = {
     items,
+    payment_methods,
+    ...(date_of_expiration ? { date_of_expiration } : {}),
     payer: {
       name:    (order.customerName || order.billingName || "").split(" ")[0] || "Customer",
       surname: (order.customerName || "").split(" ").slice(1).join(" ") || "",
@@ -219,7 +361,12 @@ async function markOrderPaidByMP({ orderId, paymentId, status, payload, gatewayA
     status === "refunded" || status === "charged_back"  ? "refunded" :
                                                            "failed"
 
-  return transitionOrderPayment({
+  // OXXO / SPEI: the buyer still has to walk to a store or push a transfer.
+  // The voucher descriptor rides along so the Payment row can hand it back
+  // to the success page and the pending-payment email.
+  const pendingDetails = targetStatus === "pending" ? describePendingPayment(payload) : null
+
+  const result = await transitionOrderPayment({
     orderId,
     gatewayTransactionId: paymentId,
     paymentGateway:       "mercadopago",
@@ -228,7 +375,9 @@ async function markOrderPaidByMP({ orderId, paymentId, status, payload, gatewayA
     gatewayAmount,
     gatewayCurrency,
     failureReason:        `MP status: ${status}`,
+    pendingDetails,
   })
+  return { ...result, pendingDetails }
 }
 
 /* ───────────────────────── refund a payment ────────────────────────────── */
@@ -265,6 +414,11 @@ async function refundMercadoPagoPayment({ paymentId, amount, refundId }) {
 }
 
 module.exports = {
+  buildPaymentMethodsConfig,
+  describePendingPayment,
+  parsePendingPaymentDetails,
+  formatMpDate,
+  OFFLINE_PAYMENT_TYPES,
   createMercadoPagoPreference,
   getMercadoPagoPayment,
   markOrderPaidByMP,

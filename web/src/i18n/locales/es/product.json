@@ -140,7 +140,8 @@
   "buyBox": {
     "securePayment": "Pago seguro vía Mercado Pago o PayPal. Los datos de tu tarjeta nunca pasan por nuestros servidores.",
     "decreaseQty": "Disminuir cantidad",
-    "increaseQty": "Aumentar cantidad"
+    "increaseQty": "Aumentar cantidad",
+    "msi": "Hasta {{months}} MSI con Mercado Pago"
   },
   "license": {
     "title": "Licencia y actualizaciones",
