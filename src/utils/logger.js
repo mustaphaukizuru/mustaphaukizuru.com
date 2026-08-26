@@ -19,6 +19,7 @@
 const fs   = require("fs")
 const path = require("path")
 const winston = require("winston")
+const { STORAGE_PATHS } = require("../config/storagePaths")
 require("winston-daily-rotate-file")
 
 // ─── Optional Sentry capture ─────────────────────────────────────────────
@@ -32,7 +33,7 @@ try {
 }
 
 // ─── Filesystem prep ─────────────────────────────────────────────────────
-const LOG_DIR = path.resolve(__dirname, "../../storage/logs")
+const LOG_DIR = STORAGE_PATHS.logs
 try {
   if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true })
 } catch (err) {

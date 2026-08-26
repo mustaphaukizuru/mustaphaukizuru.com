@@ -23,8 +23,9 @@ const path = require("path")
 const PDFDocument = require("pdfkit")
 
 const prisma = require("../lib/prisma")
+const { STORAGE_PATHS } = require("../config/storagePaths")
 
-const DEFAULT_OUT_DIR = path.join(process.cwd(), "storage", "receipts")
+const DEFAULT_OUT_DIR = STORAGE_PATHS.receipts
 
 const COLORS = {
   violet:   "#5D3FD3",

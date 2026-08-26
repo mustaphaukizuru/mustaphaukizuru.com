@@ -4,8 +4,9 @@ const fs = require("fs")
 const asyncHandler = require("../utils/asyncHandler")
 const prisma = require("../lib/prisma")
 const { checkFileEntitlement, recordDownload } = require("../services/downloadService")
+const { STORAGE_PATHS } = require("../config/storagePaths")
 
-const DOWNLOAD_DIR = path.resolve(__dirname, "../../storage/productfile")
+const DOWNLOAD_DIR = STORAGE_PATHS.productFile
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Preserved — legacy entitlement lookup used by /api/downloads/:productId

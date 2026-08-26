@@ -1,8 +1,9 @@
 const fs   = require("fs")
 const path = require("path")
 const multer = require("multer")
+const { STORAGE_PATHS } = require("../config/storagePaths")
 
-const PRODUCT_FILE_DIR = path.resolve(__dirname, "../../storage/productfile")
+const PRODUCT_FILE_DIR = STORAGE_PATHS.productFile
 if (!fs.existsSync(PRODUCT_FILE_DIR)) fs.mkdirSync(PRODUCT_FILE_DIR, { recursive: true })
 
 // Allowed download file types — digital products only

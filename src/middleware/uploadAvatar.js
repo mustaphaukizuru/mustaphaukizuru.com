@@ -1,6 +1,7 @@
 const multer = require("multer")
 const path   = require("path")
 const fs     = require("fs")
+const { STORAGE_PATHS } = require("../config/storagePaths")
 
 // Uploads MUST live outside ../public — that directory is the Vite build
 // output and is wiped on every `npm run build` (vite.config emptyOutDir:true),
@@ -8,8 +9,8 @@ const fs     = require("fs")
 // across builds and deploys (product download files already live there).
 // app.js serves these back under the original /images/* URLs, so the URLs
 // stored in the database never change.
-const AVATAR_DIR = path.join(__dirname, "../../storage/uploads/avatars")
-const MEDIA_DIR  = path.join(__dirname, "../../storage/uploads/media")
+const AVATAR_DIR = STORAGE_PATHS.avatars
+const MEDIA_DIR  = STORAGE_PATHS.media
 
 // Ensure a directory exists. Called at load AND inside each destination
 // callback so a missing folder (fresh deploy, post-build wipe) can never
