@@ -35,6 +35,24 @@ export default class ErrorBoundary extends Component {
     return { error }
   }
 
+  /**
+   * Recover on navigation.
+   *
+   * A class boundary holds its caught error in state, and nothing clears it
+   * when the route changes — so a crash on /about would stay on screen after
+   * the user clicked through to /store, even though /store would have
+   * rendered fine. Callers pass the pathname (or any identity for "what is
+   * being shown") as `resetKey`; when it changes, the boundary retries.
+   *
+   * Deliberately only on CHANGE, not on every update: re-rendering the same
+   * broken subtree would loop straight back into the error.
+   */
+  componentDidUpdate(prevProps) {
+    if (this.state.error && prevProps.resetKey !== this.props.resetKey) {
+      this.handleReset()
+    }
+  }
+
   componentDidCatch(error, info) {
     this.setState({ info })
 
@@ -74,7 +92,12 @@ export default class ErrorBoundary extends Component {
     // takeover) can pass a `fallback` ReactNode. Keeps the default
     // behavior backwards-compatible for the top-level mount.
     if (this.props.fallback !== undefined) {
-      return this.props.fallback
+      // A function fallback receives the reset handler, so a section-level
+      // UI can offer "Try again" without reaching into boundary state. A
+      // plain node is still accepted for the existing static-fallback callers.
+      return typeof this.props.fallback === "function"
+        ? this.props.fallback({ error, onReset: this.handleReset })
+        : this.props.fallback
     }
 
     const message = friendlyMessage(error?.message, "Something went wrong rendering this page.")

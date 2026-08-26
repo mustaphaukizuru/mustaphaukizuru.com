@@ -1,5 +1,8 @@
 import { useTranslation } from "react-i18next"
+import { useLocation } from "react-router-dom"
 import Header from "./Header"
+import ErrorBoundary from "../components/ErrorBoundary"
+import SectionErrorFallback from "../components/SectionErrorFallback"
 import Footer from "./Footer"
 import ScrollProgress from "../components/motion/ScrollProgress"
 
@@ -23,6 +26,7 @@ import ScrollProgress from "../components/motion/ScrollProgress"
    ════════════════════════════════════════════════════════════════════════ */
 export default function PublicShell({ children }) {
   const { t } = useTranslation("common")
+  const { pathname } = useLocation()
 
   return (
     <div className="min-h-screen bg-mist" style={{ color: "var(--color-charcoal-80)" }}>
@@ -43,8 +47,19 @@ export default function PublicShell({ children }) {
           tabIndex=-1 lets the browser focus this region after the user
           activates the skip link, so the next Tab keystroke moves into
           the actual content rather than back to the header. */}
+      {/* Scoped error boundary · a render error inside a page used to bubble
+          to the single top-level boundary in App.jsx and replace EVERYTHING
+          with a full-viewport error page — header, footer, cart, account
+          menu, all gone. Catching it here keeps the chrome alive so the
+          user can still navigate away. The pathname is the reset key: a
+          crash on one route clears itself the moment the user leaves it. */}
       <main id="main-content" tabIndex={-1} className="focus:outline-none">
-        {children}
+        <ErrorBoundary
+          resetKey={pathname}
+          fallback={({ onReset }) => <SectionErrorFallback onReset={onReset} />}
+        >
+          {children}
+        </ErrorBoundary>
       </main>
 
       <Footer />
