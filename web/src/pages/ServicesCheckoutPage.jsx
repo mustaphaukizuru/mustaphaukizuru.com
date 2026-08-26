@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next"
 import { AUDIENCE_PRICING_PLANS } from "../data/servicesCatalogue"
 import { useAuth } from "../context/AuthContext"
 import { orderServiceTier } from "../services/serviceCheckoutService"
+import { fetchServicePlans, indexServicePlans } from "../services/serviceService"
+import useApiQuery from "../hooks/useApiQuery"
 import { trackServiceOrder } from "../lib/analytics"
 import { createMercadoPagoPreference } from "../services/mercadoPagoService"
 import { createPaypalSession, capturePaypalSession } from "../services/paypalService"
@@ -53,29 +55,42 @@ export default function ServicesCheckoutPage() {
   const audience = searchParams.get("audience") || ""
   const tierKey = searchParams.get("tier") || ""
 
-  // Resolve plan from the catalogue. URL is the single source of truth here.
+  // T1 · the DB (GET /services/plans) is the source of truth for the price
+  // and for whether the tier is purchasable at all; the static catalogue only
+  // supplies copy (names, description, included features).
+  const { data: livePlans, loading: plansLoading, error: plansError } = useApiQuery(
+    "service-plans",
+    ({ signal }) => fetchServicePlans({ signal }),
+    { select: indexServicePlans },
+  )
+
+  // Resolve plan: URL picks (audience, tier); the API supplies packageId + price.
   const plan = useMemo(() => {
     const aud = AUDIENCE_PRICING_PLANS[audience]
     if (!aud) return null
     const tier = aud.tiers?.[tierKey]
     if (!tier) return null
-    // Pricing is in MXN (Mexican Peso) — the platform's native currency.
-    // tier.priceMxn comes from the static catalogue; the API merges into the
-    // same path via mergeAudiencePlans on the public ServicesPage.
+    const live = livePlans?.[audience]?.[tierKey] || null
+    // The DB answered and does not sell this tier → treat as not found.
+    if (livePlans && !plansError && !live) return null
     return {
       audienceCode: audience,
       audienceName: aud.name,
       audienceDescription: aud.description,
       audienceFeatures: aud.features,
       tierKey,
-      tierName: tier.name,
-      price: tier.priceMxn,
-      currency: "MXN",
-      period: tier.period,
+      tierName: live?.name || tier.name,
+      // FALLBACK: tier.priceMxn from the static catalogue is display-only,
+      // shown while /services/plans loads or if it failed. The server never
+      // trusts it — orderByTier charges the DB price for `packageId`.
+      price: live ? live.price : tier.priceMxn,
+      currency: live?.currency || "MXN",
+      period: live?.period || tier.period,
+      packageId: live?.packageId || null,
       includedFeatures: aud.features.filter((_, i) => tier.includes[i]),
-      popular: tier.popular,
+      popular: live ? live.popular : tier.popular,
     }
-  }, [audience, tierKey])
+  }, [audience, tierKey, livePlans, plansError])
 
   const [form, setForm] = useState({
     customerName: "",
@@ -120,7 +135,9 @@ export default function ServicesCheckoutPage() {
   }, [paymentMethod])
 
   function validate() {
-    if (!plan) {
+    if (!plan || !plan.packageId) {
+      // No packageId means /services/plans has not answered (or failed) —
+      // the server would reject the order anyway, so stop here.
       setError({
         kind: "error",
         title: t("checkout.errors.planInvalidTitle", { defaultValue: "Plan not found" }),
@@ -161,11 +178,13 @@ export default function ServicesCheckoutPage() {
     let result
     try {
       result = await orderServiceTier({
+        // T1 · packageId (from /services/plans) identifies the plan and the
+        // server charges the DB price. audience/tier are only a fallback
+        // resolver; no price is sent.
+        packageId: plan.packageId,
         audience: plan.audienceCode,
         tier: plan.tierKey,
         planName: `${plan.audienceName} · ${plan.tierName}`,
-        price: plan.price,
-        currency: plan.currency,
         customerName: form.customerName,
         customerEmail: form.customerEmail,
         requirements: form.requirements,
@@ -465,7 +484,7 @@ export default function ServicesCheckoutPage() {
               <div className="mt-5">
                 {paymentMethod === "mercadopago" ? (
                   <button
-                    type="button" onClick={handleMercadoPago} disabled={busy}
+                    type="button" onClick={handleMercadoPago} disabled={busy || plansLoading}
                     className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-violet px-4 py-3 text-sm font-semibold text-white shadow-[var(--shadow-lift-1)] transition hover:bg-violet-deep disabled:opacity-60"
                   >
                     {busy
