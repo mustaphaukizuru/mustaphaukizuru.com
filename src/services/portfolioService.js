@@ -196,7 +196,7 @@ function serializePortfolio(row, locale = "en") {
  * Public reads
  * ──────────────────────────────────────────────────────────────────────────── */
 
-async function listPortfolio({ category, service, isFeatured, page = 1, limit = 24, locale = "en" } = {}) {
+async function listPortfolioUncached({ category, service, isFeatured, page = 1, limit = 24, locale = "en" } = {}) {
   const safePage  = Math.max(1, Number(page) || 1)
   const safeLimit = Math.min(48, Math.max(1, Number(limit) || 24))
 
@@ -245,7 +245,7 @@ async function getPortfolioBySlug(slug, locale = "en") {
   return serializePortfolio(pickLocale(row, locale), locale)
 }
 
-async function getFeaturedPortfolio(limit = 6) {
+async function getFeaturedPortfolioUncached(limit = 6) {
   const items = await prisma.portfolio.findMany({
     where:   { status: "published", isFeatured: true },
     orderBy: [{ displayOrder: "asc" }, { updatedAt: "desc" }],
@@ -289,6 +289,25 @@ async function getAdjacentPortfolio(currentId, locale = "en") {
   }
 }
 
+
+/* ── A5 · in-process read cache ────────────────────────────────────────────
+ * The public list reads are served from lib/ttlCache for PUBLIC_READ_TTL_MS per
+ * distinct argument set, so a hot list costs one MySQL round-trip (~450 ms on
+ * Hostinger) per TTL per process instead of one per request. Every function
+ * above serialises before returning, so a cached value is a plain object and
+ * sharing it across requests is safe. Any write to this namespace's models
+ * clears it immediately (lib/cacheInvalidation.js), so admin edits are
+ * visible on the next request regardless of TTL. The *Uncached originals
+ * stay exported for callers that must bypass the cache.
+ * ─────────────────────────────────────────────────────────────────────────── */
+const { cache } = require("../lib/ttlCache")
+// 0 under test: the unit suites assert one findMany per call and mock prisma
+// per test, and a process-wide cache would silently hand test B the result
+// of test A. A TTL of 0 makes cache.wrap call straight through.
+const PUBLIC_READ_TTL_MS = process.env.NODE_ENV === "test" ? 0 : (Number(process.env.PUBLIC_READ_TTL_MS) || 60_000)
+const listPortfolio = (...args) => cache.wrap("portfolio", args, PUBLIC_READ_TTL_MS, () => listPortfolioUncached(...args))
+const getFeaturedPortfolio = (...args) => cache.wrap("portfolio", args, PUBLIC_READ_TTL_MS, () => getFeaturedPortfolioUncached(...args))
+
 module.exports = {
   listPortfolio,
   getPortfolioBySlug,
@@ -303,4 +322,6 @@ module.exports = {
   composeResults,
   localizeCaseStudy,
   outcomeLine,
+  listPortfolioUncached,
+  getFeaturedPortfolioUncached,
 }

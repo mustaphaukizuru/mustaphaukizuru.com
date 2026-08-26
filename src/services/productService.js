@@ -165,7 +165,7 @@ function parseJsonField(value, fallback = null) {
  *   { category, featured, new, search, page, limit }
  * ──────────────────────────────────────────────────────────────────────────── */
 
-async function getAllProducts(filters = {}) {
+async function getAllProductsUncached(filters = {}) {
   const where = { isActive: true, deletedAt: null }
 
   const categoryFilter = typeof filters === "string" ? filters : (filters.category || "")
@@ -299,7 +299,7 @@ async function getProductBySlug(slug, locale = "en") {
  * getCategories — preserved. Returns distinct category string labels.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-async function getCategories() {
+async function getCategoriesUncached() {
   const rows = await prisma.product.findMany({
     where:    { isActive: true, deletedAt: null, category: { not: null } },
     select:   { category: true },
@@ -350,7 +350,7 @@ async function getRelatedProducts(slug) {
  * Up to 8 products where isFeatured=true. publishedAt DESC.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-async function getFeaturedProducts() {
+async function getFeaturedProductsUncached() {
   const items = await prisma.product.findMany({
     where:   { isFeatured: true, isActive: true, deletedAt: null },
     include: {
@@ -547,6 +547,26 @@ function buildCategoryCandidates(slug) {
  * Exports
  * ──────────────────────────────────────────────────────────────────────────── */
 
+
+/* ── A5 · in-process read cache ────────────────────────────────────────────
+ * The public list reads are served from lib/ttlCache for PUBLIC_READ_TTL_MS per
+ * distinct argument set, so a hot list costs one MySQL round-trip (~450 ms on
+ * Hostinger) per TTL per process instead of one per request. Every function
+ * above serialises before returning, so a cached value is a plain object and
+ * sharing it across requests is safe. Any write to this namespace's models
+ * clears it immediately (lib/cacheInvalidation.js), so admin edits are
+ * visible on the next request regardless of TTL. The *Uncached originals
+ * stay exported for callers that must bypass the cache.
+ * ─────────────────────────────────────────────────────────────────────────── */
+const { cache } = require("../lib/ttlCache")
+// 0 under test: the unit suites assert one findMany per call and mock prisma
+// per test, and a process-wide cache would silently hand test B the result
+// of test A. A TTL of 0 makes cache.wrap call straight through.
+const PUBLIC_READ_TTL_MS = process.env.NODE_ENV === "test" ? 0 : (Number(process.env.PUBLIC_READ_TTL_MS) || 60_000)
+const getAllProducts = (...args) => cache.wrap("products", args, PUBLIC_READ_TTL_MS, () => getAllProductsUncached(...args))
+const getCategories = (...args) => cache.wrap("products", args, PUBLIC_READ_TTL_MS, () => getCategoriesUncached(...args))
+const getFeaturedProducts = (...args) => cache.wrap("products", args, PUBLIC_READ_TTL_MS, () => getFeaturedProductsUncached(...args))
+
 module.exports = {
   // Preserved contract
   getAllProducts,
@@ -559,4 +579,7 @@ module.exports = {
   getProductsByCategory,
   // Constants (used by controller validation)
   SORT_OPTIONS,
+  getAllProductsUncached,
+  getCategoriesUncached,
+  getFeaturedProductsUncached,
 }

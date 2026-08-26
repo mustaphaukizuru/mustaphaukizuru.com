@@ -48,7 +48,7 @@ function serializeCategory(c) {
 
 /* ── Public reads ─────────────────────────────────────────────────────── */
 
-async function listPublicPosts({ category, tag, q, limit = 50, offset = 0 } = {}) {
+async function listPublicPostsUncached({ category, tag, q, limit = 50, offset = 0 } = {}) {
   const where = { ...PUBLIC_WHERE }
   if (category) where.category = { slug: category }
   if (tag)      where.tags = { some: { tag: { slug: tag } } }
@@ -88,7 +88,7 @@ async function getPublicPostBySlug(slug) {
   return serializePost(row)
 }
 
-async function listCategoriesWithCounts() {
+async function listCategoriesWithCountsUncached() {
   const cats = await prisma.blogCategory.findMany({
     where: { isVisible: true },
     orderBy: [{ displayOrder: "asc" }, { label: "asc" }],
@@ -97,7 +97,7 @@ async function listCategoriesWithCounts() {
   return cats.map(serializeCategory)
 }
 
-async function listTopTags(limit = 14) {
+async function listTopTagsUncached(limit = 14) {
   // Tag frequency among published posts only.
   const rows = await prisma.blogTag.findMany({
     include: {
@@ -125,7 +125,7 @@ async function listTopTags(limit = 14) {
  * COUNT(*) arrives as BigInt over the wire, hence the Number() coercion —
  * JSON.stringify throws on BigInt, which would 500 the route.
  */
-async function listArchive() {
+async function listArchiveUncached() {
   const rows = await prisma.$queryRaw`
     SELECT DATE_FORMAT(COALESCE(publishedAt, createdAt), '%Y-%m') AS ym,
            COUNT(*) AS count
@@ -143,6 +143,27 @@ async function listArchive() {
   })
 }
 
+
+/* ── A5 · in-process read cache ────────────────────────────────────────────
+ * The public list reads are served from lib/ttlCache for PUBLIC_READ_TTL_MS per
+ * distinct argument set, so a hot list costs one MySQL round-trip (~450 ms on
+ * Hostinger) per TTL per process instead of one per request. Every function
+ * above serialises before returning, so a cached value is a plain object and
+ * sharing it across requests is safe. Any write to this namespace's models
+ * clears it immediately (lib/cacheInvalidation.js), so admin edits are
+ * visible on the next request regardless of TTL. The *Uncached originals
+ * stay exported for callers that must bypass the cache.
+ * ─────────────────────────────────────────────────────────────────────────── */
+const { cache } = require("../lib/ttlCache")
+// 0 under test: the unit suites assert one findMany per call and mock prisma
+// per test, and a process-wide cache would silently hand test B the result
+// of test A. A TTL of 0 makes cache.wrap call straight through.
+const PUBLIC_READ_TTL_MS = process.env.NODE_ENV === "test" ? 0 : (Number(process.env.PUBLIC_READ_TTL_MS) || 60_000)
+const listPublicPosts = (...args) => cache.wrap("blog", args, PUBLIC_READ_TTL_MS, () => listPublicPostsUncached(...args))
+const listCategoriesWithCounts = (...args) => cache.wrap("blog", args, PUBLIC_READ_TTL_MS, () => listCategoriesWithCountsUncached(...args))
+const listTopTags = (...args) => cache.wrap("blog", args, PUBLIC_READ_TTL_MS, () => listTopTagsUncached(...args))
+const listArchive = (...args) => cache.wrap("blog", args, PUBLIC_READ_TTL_MS, () => listArchiveUncached(...args))
+
 module.exports = {
   serializePost,
   listPublicPosts,
@@ -150,4 +171,8 @@ module.exports = {
   listCategoriesWithCounts,
   listTopTags,
   listArchive,
+  listPublicPostsUncached,
+  listCategoriesWithCountsUncached,
+  listTopTagsUncached,
+  listArchiveUncached,
 }
