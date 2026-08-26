@@ -7,10 +7,11 @@ describe("matchesSpaRoute", () => {
     "/checkout/success/ord_123", "/login", "/reset-password/abc123",
     "/dashboard", "/dashboard/orders/42", "/admin", "/admin/products/9/edit",
     "/es", "/es/about", "/es/store/producto", "/es/blog/hola", "/about?utm=x", "/about/",
+    "/self-audit", "/es/self-audit",
   ])("matches %s", (p) => expect(matchesSpaRoute(p)).toBe(true))
 
   test.each([
     "/nope", "/store/a/b", "/blogs/x", "/es/admin", "/es/dashboard",
-    "/services/x/y", "/checkout/success", "/api/anything", "/wp-admin.php", "/es/self-audit",
+    "/services/x/y", "/checkout/success", "/api/anything", "/wp-admin.php",
   ])("rejects %s", (p) => expect(matchesSpaRoute(p)).toBe(false))
 })

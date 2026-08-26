@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { m } from "framer-motion"
 import {
   ArrowLeft, Briefcase, Calendar, FileText, Download, CheckCircle2,
   Clock, AlertCircle, User as UserIcon, Hourglass,
@@ -105,31 +106,34 @@ export default function DashboardProjectDetailPage() {
             <div className="rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/65">
               {t("projects.detail.noMilestones")}
             </div>
-          ) : project.milestones.map((m, idx) => {
-            const Icon = MILESTONE_ICON[m.status] || Hourglass
-            const tone = m.status === "completed" ? "bg-mint/15 text-mint-700 border-mint/30"
-                       : m.status === "in_progress" ? "bg-amber/10 text-amber-700 border-amber/20"
+          ) : project.milestones.map((ms, idx) => {
+            // NB: loop var is `ms`, not `m` — `m` is framer-motion's element
+            // factory. Shadowing it here made <m.div> resolve to the milestone
+            // object and crashed the page for every project with milestones.
+            const Icon = MILESTONE_ICON[ms.status] || Hourglass
+            const tone = ms.status === "completed" ? "bg-mint/15 text-mint-700 border-mint/30"
+                       : ms.status === "in_progress" ? "bg-amber/10 text-amber-700 border-amber/20"
                        : "bg-charcoal-80/5 text-charcoal-80/65 border-charcoal-80/10"
             return (
               <m.div
-                key={m.id}
+                key={ms.id}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
-                className={`flex items-start gap-3 rounded-xl border p-4 ${tone.replace(/text-\S+|bg-\S+/g, "").trim()} bg-white border-charcoal-80/10`}
+                className="flex items-start gap-3 rounded-xl border border-charcoal-80/10 bg-white p-4"
               >
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tone}`}>
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${tone}`}>
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="truncate text-meta font-semibold text-charcoal-80">{m.title}</h3>
-                    <StatusPill status={m.status} />
+                    <h3 className="truncate text-meta font-semibold text-charcoal-80">{ms.title}</h3>
+                    <StatusPill status={ms.status} />
                   </div>
-                  {m.description && <p className="mt-1 text-micro text-charcoal-80/65">{m.description}</p>}
+                  {ms.description && <p className="mt-1 text-micro text-charcoal-80/65">{ms.description}</p>}
                   <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
-                    {m.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDate(m.dueDate) })}</span>}
-                    {m.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(m.completedAt) })}</span>}
+                    {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDate(ms.dueDate) })}</span>}
+                    {ms.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(ms.completedAt) })}</span>}
                   </div>
                 </div>
               </m.div>

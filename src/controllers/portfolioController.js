@@ -30,7 +30,7 @@ const list = asyncHandler(async (req, res) => {
  */
 const featured = asyncHandler(async (req, res) => {
   const { limit } = req.query
-  const items = await portfolioService.getFeaturedPortfolio(limit ? Number(limit) : 6)
+  const items = await portfolioService.getFeaturedPortfolio(limit ? Number(limit) : 6, resolveUserLocale({ req }))
   res.set("Cache-Control", "public, max-age=120, stale-while-revalidate=240")
   res.json({ success: true, data: items })
 })

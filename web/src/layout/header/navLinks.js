@@ -8,6 +8,7 @@ import {
   Home as HomeIcon,
   User,
   Briefcase,
+  FolderOpen,
   Mail,
 } from "lucide-react"
 
@@ -25,6 +26,8 @@ export const NAV_LINKS = [
     prefetch: () => import("../../pages/AboutPage") },
   { nameKey: "header.services",  to: "/services",  icon: Briefcase,
     prefetch: () => import("../../pages/ServicesPage") },
+  { nameKey: "header.portfolio", to: "/portfolio", icon: FolderOpen,
+    prefetch: () => import("../../pages/PortfolioPage") },
   { nameKey: "header.contact",   to: "/contact",   icon: Mail,
     prefetch: () => import("../../pages/ContactPage") },
 ]

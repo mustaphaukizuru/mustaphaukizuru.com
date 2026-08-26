@@ -223,6 +223,7 @@ export default function AuditModal({ open, onClose }) {
           topPriorities,
           matchedBundle: bundle,
           prequal,
+          website:       emailForm.website || "",   // honeypot — humans leave it empty
           submittedAt:   new Date().toISOString(),
       })
       setEmailStatus("sent")
@@ -968,6 +969,22 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
               value={emailForm.email}
               onChange={(e) => setEmailForm((f) => ({ ...f, email: e.target.value }))}
               className="w-full rounded-xl border border-charcoal/15 bg-white px-4 py-3 text-[14.5px] text-charcoal placeholder-charcoal/30 transition focus:border-azure focus:outline-none focus:shadow-[0_0_0_4px_rgb(var(--color-azure-rgb)/0.15)]"
+            />
+          </div>
+
+          {/* Honeypot — visually hidden, excluded from tab order and AT. Bots
+              that fill every field trip it; the API then silently drops the
+              submission. Same pattern as ContactPage. */}
+          <div className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+            <label htmlFor="ae-website">Website</label>
+            <input
+              id="ae-website"
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={emailForm.website || ""}
+              onChange={(e) => setEmailForm((f) => ({ ...f, website: e.target.value }))}
             />
           </div>
 

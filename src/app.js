@@ -60,12 +60,19 @@ app.use(compression({ level: 6, threshold: 1024 }))
 
 // Static uploads
 // __dirname = mustaphaukizuru.com/src  →  ../public = mustaphaukizuru.com/public ✓
+//
+// Product + portfolio images have TWO sources behind one URL prefix: runtime
+// admin uploads (storage/, persists across deploys) and seed images tracked
+// in git (public/). Storage is mounted first; a miss falls through to public.
+const immutableImageHeaders = (res) => {
+  res.setHeader("X-Content-Type-Options", "nosniff")
+  res.setHeader("Cache-Control", "public, max-age=604800, immutable")
+}
+app.use("/images/products",  express.static(STORAGE_PATHS.productImages,   { maxAge: "7d", setHeaders: immutableImageHeaders }))
+app.use("/images/portfolio", express.static(STORAGE_PATHS.portfolioImages, { maxAge: "7d", setHeaders: immutableImageHeaders }))
 app.use("/images/products", express.static(path.join(__dirname, "../public/images/products"), {
   maxAge: "7d",
-  setHeaders: (res) => {
-    res.setHeader("X-Content-Type-Options", "nosniff")
-    res.setHeader("Cache-Control", "public, max-age=604800, immutable")
-  },
+  setHeaders: immutableImageHeaders,
 }))
 // Avatars & media are user uploads — served from storage/ (persists across
 // builds), NOT ../public (wiped by Vite emptyOutDir on every build). The URL

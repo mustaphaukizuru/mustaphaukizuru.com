@@ -2,7 +2,7 @@ const express = require("express")
 const {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
-  uploadFile, removeFile,
+  uploadFile, removeFile, downloadFile,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -22,5 +22,6 @@ router.delete("/:id/milestones/:milestoneId", removeMilestone)
 
 router.post  ("/:id/files",                 uploadProjectFile, uploadFile)
 router.delete("/:id/files/:fileId",         removeFile)
+router.get   ("/:id/files/:fileId/download", downloadFile)
 
 module.exports = router

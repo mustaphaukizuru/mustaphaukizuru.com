@@ -1,7 +1,8 @@
 const asyncHandler = require("../utils/asyncHandler")
-const path  = require("path")
 const fs    = require("fs/promises")
 const logger = require("../utils/logger")
+const prisma = require("../lib/prisma")
+const { sendProjectFile, resolveSafePath } = require("./clientProjectController")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
@@ -55,7 +56,10 @@ const updateProject = asyncHandler(async (req, res) => {
 const removeProject = asyncHandler(async (req, res) => {
   try {
     const result = await deleteAdminProject(req.params.id)
-    res.status(200).json({ success: true, data: result })
+    // DB cascade removed the ProjectFile rows; remove the bytes too, or the
+    // storage tree slowly fills with orphans nobody can reach.
+    for (const p of result.filePaths || []) await unlinkProjectFile(p)
+    res.status(200).json({ success: true, data: { id: result.id, deleted: true } })
   } catch (e) {
     if (e?.code === "P2025") return notFound(res)
     throw e
@@ -114,12 +118,12 @@ const removeMilestone = asyncHandler(async (req, res) => {
   }
 })
 
-/* ── Files (multer-uploaded; stores under public/files/projects/) ────── */
+/* ── Files (multer-uploaded; stored under <storage>/projects/) ───────── */
 const uploadFile = asyncHandler(async (req, res) => {
   if (!req.file) return badRequest(res, "No file uploaded")
   const projectId = req.params.id
 
-  // Path served at /files/projects/<projectId>/<filename>
+  // Stored as a storage-relative key; resolved by resolveSafePath on read.
   const relPath = `/files/projects/${projectId}/${req.file.filename}`
   try {
     const created = await attachFile(projectId, {
@@ -139,11 +143,7 @@ const uploadFile = asyncHandler(async (req, res) => {
 const removeFile = asyncHandler(async (req, res) => {
   try {
     const result = await deleteFile(req.params.fileId)
-    // Best-effort disk cleanup
-    if (result.filePath?.startsWith("/files/")) {
-      const abs = path.join(__dirname, "../../public", result.filePath)
-      try { await fs.unlink(abs) } catch {} // tolerate already-missing files
-    }
+    await unlinkProjectFile(result.filePath)
     res.status(200).json({ success: true, data: { id: result.id, deleted: true } })
   } catch (e) {
     if (e?.code === "P2025") return notFound(res)
@@ -151,9 +151,30 @@ const removeFile = asyncHandler(async (req, res) => {
   }
 })
 
+/**
+ * GET /api/v1/admin/client-projects/:id/files/:fileId/download
+ * Admin download — no ownership scope, but the same safe-path + stream tail
+ * as the member endpoint. Replaces the direct /files/projects/* link that
+ * app.js now 403s.
+ */
+const downloadFile = asyncHandler(async (req, res) => {
+  const file = await prisma.projectFile.findFirst({
+    where:   { id: String(req.params.fileId), projectId: String(req.params.id) },
+    include: { project: { select: { id: true, projectName: true } } },
+  })
+  if (!file) return notFound(res)
+  return sendProjectFile({ file, req, res, userId: req.user?.id, action: "project.file.downloaded.admin" })
+})
+
+/** Best-effort disk cleanup; tolerates already-missing files and bad paths. */
+async function unlinkProjectFile(filePath) {
+  const abs = resolveSafePath(filePath)
+  if (!abs) return
+  try { await fs.unlink(abs) } catch {}
+}
+
 /* ── helper ──────────────────────────────────────────────────────────── */
 async function fetchUserEmail(userId) {
-  const prisma = require("../lib/prisma")
   const u = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } })
   return u?.email || null
 }
@@ -161,5 +182,5 @@ async function fetchUserEmail(userId) {
 module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
-  uploadFile, removeFile,
+  uploadFile, removeFile, downloadFile,
 }

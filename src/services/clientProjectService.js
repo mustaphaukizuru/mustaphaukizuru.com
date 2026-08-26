@@ -102,8 +102,13 @@ async function updateAdminProject(id, data) {
 
 async function deleteAdminProject(id) {
   if (!id) throw new Error("Project id is required")
+  // Collect file keys BEFORE the cascade deletes the rows, so the controller
+  // can unlink the bytes on disk afterwards.
+  const files = await prisma.projectFile.findMany({
+    where: { projectId: String(id) }, select: { filePath: true },
+  })
   await prisma.clientProject.delete({ where: { id: String(id) } })
-  return { id: String(id), deleted: true }
+  return { id: String(id), deleted: true, filePaths: files.map((f) => f.filePath) }
 }
 
 /* ── Admin · milestone CRUD ──────────────────────────────────────────── */

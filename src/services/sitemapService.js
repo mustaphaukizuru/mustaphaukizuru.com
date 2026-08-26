@@ -18,7 +18,8 @@ const { SERVICE_CATEGORY_SLUGS } = require("../config/serviceCategorySlugs")
  *    Portfolio    — every published PortfolioProject, by /projects/:slug
  *    Blog         — every published BlogPost, by /blog/:slug
  *
- *  /self-audit is deliberately absent: the route is admin-gated.
+ *  /self-audit is listed: it is the public lead magnet (Tier 0 removed the
+ *  accidental admin gate). /admin and /dashboard stay out.
  *
  *  Frequency / priority hints follow Google's modern guidance — most signals
  *  are now ignored except <lastmod>, but we set the others for older crawlers
@@ -40,6 +41,7 @@ const STATIC_PAGES = [
   { path: "/portfolio", changefreq: "weekly",  priority: 0.85 },
   { path: "/blog",      changefreq: "weekly",  priority: 0.85 },
   { path: "/contact",   changefreq: "monthly", priority: 0.7 },
+  { path: "/self-audit", changefreq: "monthly", priority: 0.7 },
   { path: "/book",      changefreq: "weekly",  priority: 0.8 },
   { path: "/privacy",   changefreq: "yearly",  priority: 0.3 },
   { path: "/terms",     changefreq: "yearly",  priority: 0.3 },

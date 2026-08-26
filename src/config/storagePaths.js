@@ -62,6 +62,14 @@ const STORAGE_PATHS = Object.freeze({
   avatars:     path.join(STORAGE_BASE, "uploads", "avatars"),
   media:       path.join(STORAGE_BASE, "uploads", "media"),
   productFile: path.join(STORAGE_BASE, "productfile"),
+  // Runtime image uploads. Served at the SAME public URL prefixes as the
+  // tracked seed images under public/images/* (see app.js), so existing
+  // database URLs keep resolving — but the bytes live outside the deploy dir.
+  productImages:   path.join(STORAGE_BASE, "uploads", "products"),
+  portfolioImages: path.join(STORAGE_BASE, "uploads", "portfolio"),
+  // Private client deliverables — never static-served; streamed through
+  // ownership-checked controllers only.
+  projectFiles:    path.join(STORAGE_BASE, "projects"),
   invoices:    path.join(STORAGE_BASE, "invoices"),
   receipts:    path.join(STORAGE_BASE, "receipts"),
   logs:        path.join(STORAGE_BASE, "logs"),
