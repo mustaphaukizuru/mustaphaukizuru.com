@@ -335,6 +335,19 @@ const twoFactorVerifyRateLimiter = makeLimiter({
   message:      "Too many 2FA attempts. Sign in again to get a fresh code prompt.",
 })
 
+/**
+ * Project support tickets — 10 per hour per user. A ticket fans out to every
+ * admin (notification + email) and may carry up to 10 files, so it needs a
+ * tighter budget than plain comments.
+ */
+const ticketRateLimiter = makeLimiter({
+  name:         "ticket",
+  windowMs:     ONE_HOUR,
+  max:          10,
+  keyGenerator: userKey,
+  message:      "Too many tickets opened. Please wait before opening another one.",
+})
+
 /* ── Backward-compat alias ────────────────────────────────────────────── */
 
 /**
@@ -364,4 +377,5 @@ module.exports = {
   uploadRateLimiter,
   searchRateLimiter,
   downloadRateLimiter,
+  ticketRateLimiter,
 }

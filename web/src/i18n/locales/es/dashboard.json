@@ -139,6 +139,72 @@
         "uploaded": "Archivos subidos.",
         "failed": "Algo salió mal. Inténtalo de nuevo."
       }
+    },
+    "support": {
+      "title": "Soporte",
+      "subtitle": "¿Dudas o problemas con este proyecto? Abre un ticket y el equipo recibe el aviso al instante.",
+      "newTicket": "Nuevo ticket",
+      "readOnly": "Este proyecto está cerrado. Los tickets existentes siguen visibles, pero no se pueden abrir tickets nuevos ni responder.",
+      "empty": "Aún no hay tickets",
+      "emptyBody": "Abre un ticket cuando necesites ayuda con este proyecto. Puedes adjuntar capturas y archivos.",
+      "list": "Tickets",
+      "messages_one": "{{count}} mensaje",
+      "messages_other": "{{count}} mensajes",
+      "lastActivity": "Actualizado {{date}}",
+      "opened": "Abierto {{date}}",
+      "status": {
+        "open": "Abierto",
+        "in_progress": "En curso",
+        "resolved": "Resuelto",
+        "closed": "Cerrado"
+      },
+      "priority": {
+        "low": "Baja",
+        "medium": "Media",
+        "high": "Alta"
+      },
+      "form": {
+        "subject": "Asunto",
+        "subjectPlaceholder": "¿Con qué necesitas ayuda?",
+        "message": "Mensaje",
+        "messagePlaceholder": "Describe el problema o la pregunta con el mayor detalle posible.",
+        "priorityLabel": "Prioridad",
+        "milestone": "Hito relacionado (opcional)",
+        "milestoneNone": "Sin hito asociado",
+        "attachments": "Adjuntos",
+        "attachmentsHint": "Hasta {{max}} archivos de {{size}} MB cada uno. Imágenes, PDF, Office, ZIP y archivos de diseño.",
+        "dropzone": "Suelta los archivos aquí o",
+        "browse": "explora",
+        "remove": "Quitar {{name}}",
+        "submit": "Abrir ticket",
+        "cancel": "Cancelar",
+        "subjectLength": "El asunto debe tener entre 3 y 200 caracteres.",
+        "messageLength": "El mensaje debe tener entre 10 y 5000 caracteres."
+      },
+      "thread": {
+        "back": "Volver a los tickets",
+        "you": "Tú",
+        "team": "Equipo de soporte",
+        "attachments": "Adjuntos",
+        "noMessages": "Aún no hay mensajes.",
+        "reply": "Responder",
+        "replyPlaceholder": "Escribe una respuesta y adjunta archivos si ayuda.",
+        "send": "Enviar respuesta",
+        "closedNotice": "Este ticket está cerrado. Abre uno nuevo si necesitas más ayuda."
+      },
+      "errors": {
+        "load": "No se pudieron cargar los tickets de este proyecto.",
+        "loadOne": "No se pudo cargar este ticket.",
+        "create": "No se pudo abrir el ticket.",
+        "reply": "No se pudo enviar la respuesta.",
+        "tooMany": "Puedes adjuntar hasta {{max}} archivos.",
+        "tooLarge": "{{name}} supera los {{size}} MB.",
+        "badType": "{{name}} no es un tipo de archivo permitido."
+      },
+      "success": {
+        "created": "Ticket abierto. Te responderemos pronto.",
+        "replied": "Respuesta enviada."
+      }
     }
   },
   "serviceOrders": {

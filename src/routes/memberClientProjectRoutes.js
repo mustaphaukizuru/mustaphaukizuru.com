@@ -2,9 +2,10 @@ const express = require("express")
 const {
   listMine, getMine, streamFile,
   uploadFiles, addComment, approve, requestChanges,
+  listTickets, getTicket, createTicket, replyTicket,
 } = require("../controllers/clientProjectController")
 const { protect } = require("../middleware/authMiddleware")
-const { uploadRateLimiter } = require("../middleware/rateLimiter")
+const { uploadRateLimiter, ticketRateLimiter } = require("../middleware/rateLimiter")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
 
 const router = express.Router()
@@ -22,5 +23,16 @@ router.post("/:id/files",                                  uploadRateLimiter, up
 router.post("/:id/comments",                               addComment)
 router.post("/:id/milestones/:milestoneId/approve",         approve)
 router.post("/:id/milestones/:milestoneId/request-changes", requestChanges)
+
+// ── Tier 2 · project-scoped support tickets ──────────────────────────────
+// `:id` is the PROJECT id on every ticket route: uploadProjectFile.many stores
+// files under <storage>/projects/<req.params.id>/, and attachments download
+// through the existing /:id/files/:fileId/download endpoint above.
+// Multipart (`files[]`) and JSON bodies are both accepted — multer skips
+// non-multipart requests, leaving the JSON body parsed by app-level express.json.
+router.get ("/:id/tickets",                              listTickets)
+router.post("/:id/tickets",                              ticketRateLimiter, uploadProjectFile.many, createTicket)
+router.get ("/:id/tickets/:ticketId",                    getTicket)
+router.post("/:id/tickets/:ticketId/messages",           uploadRateLimiter, uploadProjectFile.many, replyTicket)
 
 module.exports = router

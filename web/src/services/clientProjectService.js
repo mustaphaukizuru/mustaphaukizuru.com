@@ -21,6 +21,48 @@ export async function fetchMyProject(id) {
   return stripData(r)
 }
 
+/* ── member · project support tickets (Tier 2) ──────────────────────── */
+const memberProject = (id) => `/api/v1/member/projects/${encodeURIComponent(id)}`
+
+/** Multipart when files are present, JSON otherwise — the API accepts both. */
+function ticketBody(fields, files) {
+  const list = Array.from(files || []).filter(Boolean)
+  if (!list.length) return { body: JSON.stringify(fields) }
+  const fd = new FormData()
+  Object.entries(fields).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== "") fd.append(k, v) })
+  list.forEach((f) => fd.append("files", f))
+  return { body: fd }
+}
+
+export async function fetchMyProjectTickets(projectId) {
+  if (!projectId) throw new Error("Project id is required")
+  const r = await authFetch(`${memberProject(projectId)}/tickets`)
+  return asArray(r)
+}
+export async function fetchMyProjectTicket(projectId, ticketId) {
+  const r = await authFetch(`${memberProject(projectId)}/tickets/${encodeURIComponent(ticketId)}`)
+  return stripData(r)
+}
+export async function createMyProjectTicket(projectId, { subject, message, priority, milestoneId, files } = {}) {
+  if (!projectId) throw new Error("Project id is required")
+  const r = await authFetch(`${memberProject(projectId)}/tickets`, {
+    method: "POST",
+    ...ticketBody({ subject, message, priority, milestoneId }, files),
+  })
+  return stripData(r)
+}
+export async function replyMyProjectTicket(projectId, ticketId, { message, files } = {}) {
+  const r = await authFetch(`${memberProject(projectId)}/tickets/${encodeURIComponent(ticketId)}/messages`, {
+    method: "POST",
+    ...ticketBody({ message }, files),
+  })
+  return stripData(r)
+}
+/** Download URL for a ticket attachment (ownership-scoped by the project). */
+export function projectFileDownloadUrl(projectId, fileId) {
+  return `${memberProject(projectId)}/files/${encodeURIComponent(fileId)}/download`
+}
+
 /* ── admin · projects ───────────────────────────────────────────────── */
 export async function fetchAdminProjects() {
   const r = await authFetch("/api/v1/admin/client-projects")
