@@ -133,6 +133,15 @@ export default function AdminAnalyticsPage() {
             <KpiCard icon={TrendingUp} label="Conversion rate" value={`${(kpis.conversionRate || 0).toFixed(2)}%`} tone="azure" />
           </m.section>
 
+          {/* G4 · Funnel — where sessions drop between view and paid */}
+          <m.section {...fadeUp} className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-lg font-semibold text-charcoal">Store funnel</h2>
+              <span className="text-xs text-charcoal-50">Unique sessions · product view → add to cart → checkout → paid</span>
+            </div>
+            <FunnelPanel funnel={data.funnel} />
+          </m.section>
+
           {/* Sparkline */}
           <m.section {...fadeUp} className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="mb-3 text-lg font-semibold text-charcoal">Daily pageviews</h2>
@@ -195,6 +204,48 @@ function KpiCard({ icon: Icon, label, value, tone = "violet" }) {
       <div className="text-xs font-semibold uppercase tracking-wider text-charcoal-50">{label}</div>
       <div className="mt-0.5 font-mono text-xl font-semibold tabular-nums text-charcoal">{value}</div>
     </div>
+  )
+}
+
+/* ─────────────── Funnel (G4) ─────────────── */
+
+function FunnelPanel({ funnel }) {
+  const steps = funnel?.steps || []
+  if (steps.length === 0 || steps[0].sessions === 0) {
+    return <p className="py-4 text-center text-sm text-charcoal-50">No product views in this range yet.</p>
+  }
+  const top = Math.max(1, steps[0].sessions)
+  return (
+    <ol className="space-y-3">
+      {steps.map((s, i) => {
+        const width = Math.max(2, Math.round((s.sessions / top) * 100))
+        const worst = funnel.biggestDropOff === s.key
+        return (
+          <li key={s.key}>
+            <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-4 text-sm">
+              <span className="font-medium text-charcoal">
+                {i + 1}. {s.label}
+                {worst && (
+                  <span className="ml-2 rounded-md bg-terracotta/15 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-charcoal">
+                    biggest drop
+                  </span>
+                )}
+              </span>
+              <span className="font-mono text-xs tabular-nums text-charcoal-80">
+                {num(s.sessions)} sessions
+                {i > 0 && <> · {s.stepRate.toFixed(1)}% of previous · {s.overallRate.toFixed(1)}% of views · −{num(s.dropOff)}</>}
+              </span>
+            </div>
+            <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`${s.label}: ${s.sessions} sessions`}>
+              <div
+                className={`h-full rounded-full ${worst ? "bg-terracotta" : "bg-violet"}`}
+                style={{ width: `${width}%` }}
+              />
+            </div>
+          </li>
+        )
+      })}
+    </ol>
   )
 }
 

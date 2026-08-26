@@ -1,3 +1,4 @@
+import { trackEvent as internalTrackEvent } from "../services/analyticsService"
 /**
  * analytics.js · GA4 helper · consent-gated
  *
@@ -127,7 +128,17 @@ export function trackEvent(name, params = {}) {
  *
  * All routes through trackEvent above, which checks consent on every call.
  */
+/* G4 · Every money-path helper ALSO records the event server-side. The
+ * admin funnel and aggregateDailyMetrics count AnalyticsEvent rows, and
+ * before this the four helpers below only ever reached GA4 (and had no
+ * callers at all), so those funnel columns were permanently zero. The
+ * internal ping is cookie-less and carries no PII (ids and amounts only). */
 export function trackAddToCart(item, currency = "MXN") {
+  internalTrackEvent("add_to_cart", {
+    productId: item?.id || null,
+    amount:    Number(item?.price || 0) * Number(item?.quantity || 1),
+    path:      typeof window !== "undefined" ? window.location.pathname : null,
+  })
   trackEvent("add_to_cart", {
     currency,
     value: Number(item?.price || 0),
@@ -142,6 +153,11 @@ export function trackAddToCart(item, currency = "MXN") {
 
 export function trackBeginCheckout(cart, currency = "MXN") {
   if (!cart || !Array.isArray(cart.items)) return
+  internalTrackEvent("begin_checkout", {
+    amount: Number(cart.totalAmount || cart.subtotal || 0),
+    path:   "/checkout",
+    meta:   { items: cart.items.length },
+  })
   trackEvent("begin_checkout", {
     currency,
     value: Number(cart.totalAmount || cart.subtotal || 0),
@@ -156,6 +172,12 @@ export function trackBeginCheckout(cart, currency = "MXN") {
 
 export function trackPurchase(order) {
   if (!order) return
+  internalTrackEvent("purchase", {
+    orderId: order.id || null,
+    amount:  order.totalAmount != null ? Number(order.totalAmount) : null,
+    path:    "/checkout/success",
+    meta:    { items: (order.items || []).length, gateway: order.paymentProvider || order.gateway || null },
+  })
   trackEvent("purchase", {
     transaction_id: order.orderNumber || order.id,
     value:          Number(order.totalAmount || 0),
@@ -181,5 +203,6 @@ export function trackContactSubmit() {
 }
 
 export function trackServiceOrder(serviceSlug, packageName) {
+  internalTrackEvent("service_order", { path: "/checkout/service", meta: { serviceSlug, packageName } })
   trackEvent("service_order", { service_slug: serviceSlug, package: packageName })
 }

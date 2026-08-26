@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 import { AUDIENCE_PRICING_PLANS } from "../data/servicesCatalogue"
 import { useAuth } from "../context/AuthContext"
 import { orderServiceTier } from "../services/serviceCheckoutService"
+import { trackServiceOrder } from "../lib/analytics"
 import { createMercadoPagoPreference } from "../services/mercadoPagoService"
 import { createPaypalSession, capturePaypalSession } from "../services/paypalService"
 import AuthErrorBanner from "../components/auth/AuthErrorBanner"
@@ -185,6 +186,8 @@ export default function ServicesCheckoutPage() {
     }
     if (!result?.orderId) throw new Error("Order creation failed, no order id returned")
     orderIdRef.current = result.orderId
+    // G4 · a service order is placed the moment the internal order exists, whichever gateway pays it
+    trackServiceOrder(audience, tierKey)
     return result.orderId
   }
 

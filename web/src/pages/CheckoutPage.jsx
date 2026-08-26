@@ -15,6 +15,7 @@ import { createMercadoPagoPreference } from "../services/mercadoPagoService"
 import { createPaypalSession, capturePaypalSession } from "../services/paypalService"
 import { API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"
+import { trackBeginCheckout } from "../lib/analytics"
 import { fetchAddresses, formatAddressLine, COUNTRY_OPTIONS } from "../services/addressService"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -273,6 +274,16 @@ export default function CheckoutPage() {
       customerEmail: user.email || "",
     }))
   }, [user])
+
+  // G4 · begin_checkout, once per visit, as soon as a non-empty cart is on
+  // screen. Guarded by a ref so coupon edits re-rendering the totals do not
+  // re-fire the step.
+  const checkoutTracked = useRef(false)
+  useEffect(() => {
+    if (checkoutTracked.current || cartLoading || !cartItems?.length) return
+    checkoutTracked.current = true
+    trackBeginCheckout({ items: cartItems, totalAmount: total ?? subtotal }, cartItems[0]?.currency || "MXN")
+  }, [cartItems, cartLoading, total, subtotal])
 
   // B08 · load saved addresses after auth resolves, auto-select default
   useEffect(() => {

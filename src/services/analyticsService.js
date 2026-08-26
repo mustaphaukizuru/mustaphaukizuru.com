@@ -174,3 +174,65 @@ exports.getRecentEvents = async ({ daysBack = 7, limit = 100 } = {}) =>
     orderBy:  { createdAt: "desc" },
     take:     Math.min(500, Math.max(1, Number(limit) || 100)),
   })
+
+/**
+ * G4 · Funnel: view → add to cart → begin checkout → paid, in unique
+ * sessions, with step-to-step conversion and where people drop.
+ *
+ * Counted per session (sessionHash), not per event, so a visitor who adds
+ * three items is one "add to cart" — a funnel is about people, not clicks.
+ * "View" is a pageview on a product page (/store/:slug); the store index
+ * and cart are deliberately excluded so the first step means intent.
+ * Sessions without a hash (very old rows) are ignored rather than merged
+ * into one giant pseudo-session.
+ */
+const FUNNEL_STEPS = [
+  { key: "view",          label: "Product view" },
+  { key: "addToCart",     label: "Add to cart" },
+  { key: "beginCheckout", label: "Begin checkout" },
+  { key: "purchase",      label: "Paid" },
+]
+
+exports.getFunnel = async ({ daysBack = 30 } = {}) => {
+  const where = rangeWhere(daysBack)
+  const distinctSessions = (rows) => new Set(rows.map((r) => r.sessionHash).filter(Boolean)).size
+
+  const [viewRows, cartRows, checkoutRows, paidRows] = await Promise.all([
+    prisma.pageView.findMany({
+      where: { ...where, path: { startsWith: "/store/" } },
+      select: { sessionHash: true }, distinct: ["sessionHash"],
+    }),
+    prisma.analyticsEvent.findMany({
+      where: { ...where, name: "add_to_cart" },
+      select: { sessionHash: true }, distinct: ["sessionHash"],
+    }),
+    prisma.analyticsEvent.findMany({
+      where: { ...where, name: "begin_checkout" },
+      select: { sessionHash: true }, distinct: ["sessionHash"],
+    }),
+    prisma.analyticsEvent.findMany({
+      where: { ...where, name: "purchase" },
+      select: { sessionHash: true }, distinct: ["sessionHash"],
+    }),
+  ])
+
+  const counts = [viewRows, cartRows, checkoutRows, paidRows].map(distinctSessions)
+  const pct = (num, den) => (den > 0 ? Math.round((num / den) * 10_000) / 100 : 0)
+
+  const steps = FUNNEL_STEPS.map((step, i) => ({
+    key:         step.key,
+    label:       step.label,
+    sessions:    counts[i],
+    // Conversion from the previous step; 100 for the first step by definition.
+    stepRate:    i === 0 ? 100 : pct(counts[i], counts[i - 1]),
+    // Conversion from the top of the funnel.
+    overallRate: pct(counts[i], counts[0]),
+    // Sessions lost between the previous step and this one.
+    dropOff:     i === 0 ? 0 : Math.max(0, counts[i - 1] - counts[i]),
+  }))
+
+  // The step with the largest absolute loss is where a fix pays most.
+  const biggest = steps.slice(1).reduce((worst, s) => (s.dropOff > (worst?.dropOff || 0) ? s : worst), null)
+
+  return { steps, biggestDropOff: biggest ? biggest.key : null }
+}

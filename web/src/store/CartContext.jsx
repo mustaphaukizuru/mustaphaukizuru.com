@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { API_BASE_URL } from "../lib/api"
 import { useAuth } from "../context/AuthContext"
+import { trackAddToCart } from "../lib/analytics"
 import {
   fetchCart as apiFetchCart,
   addCartItem as apiAddCartItem,
@@ -165,6 +166,8 @@ export function CartProvider({ children }) {
 
   const addToCart = async (product, quantity = 1) => {
     const qty = Math.max(1, Math.floor(Number(quantity) || 1))
+    // G4 · first funnel step after the product view; fires for guests and members alike
+    trackAddToCart({ ...product, quantity: qty }, product?.currency || "MXN")
 
     if (isAuthenticated) {
       setLoading(true)
