@@ -88,8 +88,36 @@ function serializeOrder(order) {
  */
 const MAX_QUANTITY_PER_ITEM = 50
 
+/**
+ * Replay guard. If this user already created an order with this key, return
+ * it rather than creating a second one. Called INSIDE the write transaction
+ * so the check and the insert see the same snapshot; the @@unique on
+ * (userId, idempotencyKey) backstops the race that snapshot isolation alone
+ * cannot close.
+ */
+async function findReplay(tx, userId, idempotencyKey) {
+  if (!userId || !idempotencyKey) return null
+  return tx.order.findFirst({
+    where: { userId, idempotencyKey },
+    include: ORDER_INCLUDE,
+  })
+}
+
+const ORDER_INCLUDE = {
+  items: {
+    include: {
+      product: {
+        include: {
+          images: { orderBy: { sortOrder: "asc" } },
+          files: true,
+        },
+      },
+    },
+  },
+}
+
 async function createOrder(payload) {
-  const { customerName, customerEmail, userId = null, items, couponCode } = payload
+  const { customerName, customerEmail, userId = null, items, couponCode, idempotencyKey = null } = payload
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     throw AppError.badRequest("Order items are required", "VALIDATION_ERROR")
@@ -175,9 +203,17 @@ async function createOrder(payload) {
   // Atomic order + CouponUsage transaction — if the usage row fails we don't
   // want a half-written order to escape with a coupon that wasn't recorded.
   const order = await prisma.$transaction(async (tx) => {
+    // Idempotent replay: same user + same key => hand back the existing
+    // order. Checked inside the transaction so it shares the insert's
+    // snapshot. Flagged on the returned object so the controller can answer
+    // 200 rather than 201 and skip re-sending the confirmation email.
+    const replay = await findReplay(tx, userId, idempotencyKey)
+    if (replay) return Object.assign(replay, { __idempotentReplay: true })
+
     const created = await tx.order.create({
       data: {
         orderNumber,
+        ...(idempotencyKey ? { idempotencyKey } : {}),
         customerName,
         customerEmail,
         subtotalAmount: subtotal,
@@ -238,9 +274,24 @@ async function createOrder(payload) {
     }
 
     return created
+  }).catch(async (err) => {
+    // Lost the race: two submits with the same key passed findReplay
+    // together and both tried to insert. The @@unique made the second one
+    // fail with P2002. The winner's order exists now, so return it — the
+    // customer double-tapped and should get one order, not an error.
+    if (err?.code === "P2002" && idempotencyKey && userId) {
+      const winner = await prisma.order.findFirst({
+        where: { userId, idempotencyKey },
+        include: ORDER_INCLUDE,
+      })
+      if (winner) return Object.assign(winner, { __idempotentReplay: true })
+    }
+    throw err
   })
 
-  return serializeOrder(order)
+  const serialized = serializeOrder(order)
+  if (order.__idempotentReplay) serialized.idempotentReplay = true
+  return serialized
 }
 
 /* ────────────────────────────────────────────────────────────────────────────

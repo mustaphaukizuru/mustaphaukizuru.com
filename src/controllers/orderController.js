@@ -86,6 +86,16 @@ const createOrder = asyncHandler(async (req, res) => {
     }
   }
 
+  // Idempotency-Key: a client-minted token per checkout ATTEMPT. A retried
+  // or double-submitted request reuses it and gets the same order back.
+  // Bounded and sanitised here so a hostile value cannot become an
+  // arbitrarily long indexed column; anything outside the safe charset is
+  // treated as "no key" rather than rejected, because a missing key must
+  // never block a purchase.
+  const rawKey = req.get("Idempotency-Key")
+  const idempotencyKey =
+    typeof rawKey === "string" && /^[A-Za-z0-9._:-]{8,128}$/.test(rawKey) ? rawKey : null
+
   let order
   try {
     order = await createOrderService({
@@ -94,6 +104,7 @@ const createOrder = asyncHandler(async (req, res) => {
       userId,
       items,
       couponCode,
+      idempotencyKey,
     })
   } catch (err) {
     // Surface coupon-validation failures as 400 with a clean shape so the
@@ -106,6 +117,20 @@ const createOrder = asyncHandler(async (req, res) => {
       })
     }
     throw err
+  }
+
+  // Idempotent replay: this key already produced an order for this user, so
+  // the service handed the existing one back. Return it and STOP — the
+  // confirmation email and in-app notification already fired the first time,
+  // and a double-tap must not produce a second "order placed" email. 200, not
+  // 201: nothing was created by this request.
+  if (order.idempotentReplay) {
+    return res.status(200).json({
+      success: true,
+      message: "Order already created",
+      idempotentReplay: true,
+      data: { ...order, isNewUser: false },
+    })
   }
 
   // Brand-new buyers get a claim-account email with a one-click link to set

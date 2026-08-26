@@ -5,6 +5,25 @@ import { authFetch } from "../lib/api"
 // Uses centralized authFetch → consistent across environments
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * One key per checkout ATTEMPT, not per page load.
+ *
+ * The server treats a repeated Idempotency-Key from the same user as "give
+ * me the order I already created" — which is exactly right when a flaky
+ * mobile connection drops the response and the browser (or the user) retries.
+ * It would be exactly wrong if two genuinely different purchases shared a
+ * key, so the key is minted fresh for each createOrder() call and never
+ * persisted. `crypto.randomUUID` is available in every browser this app
+ * supports; the fallback only exists for very old WebViews and is still
+ * unguessable enough for a value scoped to the caller's own account.
+ */
+function mintIdempotencyKey() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID()
+  }
+  return `k-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
+}
+
 export async function createOrder(payload) {
   if (!payload || typeof payload !== "object") {
     throw new Error("Order payload is required")
@@ -12,6 +31,7 @@ export async function createOrder(payload) {
 
   const response = await authFetch("/api/v1/orders", {
     method: "POST",
+    headers: { "Idempotency-Key": mintIdempotencyKey() },
     body: JSON.stringify(payload),
   })
 
