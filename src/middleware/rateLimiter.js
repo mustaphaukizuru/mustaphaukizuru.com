@@ -248,6 +248,19 @@ const newsletterRateLimiter = makeLimiter({
 })
 
 /**
+ * Self-audit (diagnostic) submission — 5 per hour per IP. Each submission
+ * renders a multi-page PDF and sends two emails, so an unthrottled endpoint
+ * is a CPU + mail amplifier. Same shape as the newsletter limiter.
+ */
+const diagnosticRateLimiter = makeLimiter({
+  name:         "diagnostic",
+  windowMs:     ONE_HOUR,
+  max:          5,
+  keyGenerator: ipKey,
+  message:      "Too many audit submissions. Please wait before trying again.",
+})
+
+/**
  * Payment endpoints — 10 per hour per user. Prevents card testing /
  * preference enumeration. Falls back to per-IP if the route doesn't have
  * `protect` middleware (webhook routes should NOT use this limiter — they
@@ -345,6 +358,7 @@ module.exports = {
   // Contact / newsletter
   contactRateLimiter,
   newsletterRateLimiter,
+  diagnosticRateLimiter,
   // Resource-scoped
   paymentRateLimiter,
   uploadRateLimiter,

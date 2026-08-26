@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom"
 import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { Sparkles, ChevronRight, ExternalLink, Grid3x3, TrendingUp } from "lucide-react"
+import { Sparkles, ChevronRight, ExternalLink, Code2, Grid3x3, TrendingUp } from "lucide-react"
 import { getCaseStudy, responsiveSrcSet, hasPlaceholder } from "./caseStudy"
 
 const fadeUp = {
@@ -88,11 +88,18 @@ export default function CaseStudyCard({ item }) {
             <span className="inline-flex items-center gap-1 text-micro font-semibold text-violet">
               {t("card.caseStudy")} <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
-            {item.liveUrl ? (
-              <span className="inline-flex items-center gap-1 text-micro text-charcoal-80/65">
-                <ExternalLink className="h-3 w-3" aria-hidden="true" /> {t("card.live")}
-              </span>
-            ) : null}
+            <span className="inline-flex items-center gap-3">
+              {item.liveUrl ? (
+                <span className="inline-flex items-center gap-1 text-micro text-charcoal-80/65">
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" /> {t("card.live")}
+                </span>
+              ) : null}
+              {item.repoUrl ? (
+                <span className="inline-flex items-center gap-1 text-micro text-charcoal-80/65">
+                  <Code2 className="h-3 w-3" aria-hidden="true" /> {t("card.repo")}
+                </span>
+              ) : null}
+            </span>
           </div>
         </div>
       </Link>

@@ -53,6 +53,7 @@ function adaptHardcoded(row) {
     tools: row.tools || row.tags || [],
     tags: row.tags || [],
     liveUrl: row.liveUrl || row.website || null,
+    repoUrl: row.repoUrl || null,
     year: row.year || null,
     caseStudy: row.caseStudy || null,
   }

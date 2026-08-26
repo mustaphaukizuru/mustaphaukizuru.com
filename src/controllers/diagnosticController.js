@@ -426,7 +426,15 @@ function buildVisitorEmail(data) {
    CONTROLLER
 ════════════════════════════════════════════════════════════════════════ */
 const submitDiagnostic = asyncHandler(async (req, res) => {
-  const { name, email, organization, audience, scores, sectionScores, overall, topPriorities, matchedBundle, prequal } = req.body || {}
+  const { name, email, organization, audience, scores, sectionScores, overall, topPriorities, matchedBundle, prequal, website } = req.body || {}
+
+  /* Honeypot — `website` is a hidden field humans never see. A filled value
+   * is a bot: answer 200 so it thinks it succeeded, persist nothing, send
+   * nothing. Same contract as contactController. */
+  if (website) {
+    logger.info("[diagnostic] honeypot tripped", { ip: req.ip })
+    return res.status(200).json({ success: true, data: { queued: true } })
+  }
 
   /* Validation */
   if (!email || !audience) {

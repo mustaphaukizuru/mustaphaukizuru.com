@@ -215,7 +215,8 @@ export default function App() {
             <Route path="/about" element={<PublicShell><AboutPage /></PublicShell>} />
             <Route path="/services" element={<PublicShell><ServicesPage /></PublicShell>} />
             <Route path="/services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
-            <Route path="/self-audit" element={<AdminRoute><PublicShell><SelfAuditPage /></PublicShell></AdminRoute>} />
+            {/* Public lead magnet — the Services hero links here for visitors. */}
+            <Route path="/self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
             <Route path="/contact" element={<PublicShell><ContactPage /></PublicShell>} />
             <Route path="/portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />
             <Route path="/projects/:slug" element={<PublicShell><ProjectDetailPage /></PublicShell>} />
@@ -381,6 +382,7 @@ export default function App() {
               <Route path="services" element={<PublicShell><ServicesPage /></PublicShell>} />
               <Route path="services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
               <Route path="contact" element={<PublicShell><ContactPage /></PublicShell>} />
+              <Route path="self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
               <Route path="portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />
               <Route path="projects/:slug" element={<PublicShell><ProjectDetailPage /></PublicShell>} />
               <Route path="store" element={<PublicShell><Store /></PublicShell>} />

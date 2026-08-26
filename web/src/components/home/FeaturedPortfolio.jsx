@@ -35,7 +35,7 @@ export default function FeaturedPortfolio() {
           eyebrow={t("portfolio.eyebrow")}
           title={t("portfolio.title")}
           subtitle={t("portfolio.subtitle")}
-          action={<SectionLink to="/about" onWhite>{t("portfolio.cta")}</SectionLink>}
+          action={<SectionLink to="/portfolio" onWhite>{t("portfolio.cta")}</SectionLink>}
         />
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((p, idx) => (
