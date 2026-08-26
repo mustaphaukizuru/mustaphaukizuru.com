@@ -57,7 +57,7 @@ export default defineConfig([
   // place where it lives. Per-file rules override the global ban above.
   // Vite config runs under Node - `process` etc. are real globals there.
   {
-    files: ['vite.config.js'],
+    files: ['vite.config.js', 'playwright.config.js'],
     languageOptions: { globals: globals.node },
   },
   {
