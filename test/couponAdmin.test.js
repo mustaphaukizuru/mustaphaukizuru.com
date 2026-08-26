@@ -10,11 +10,12 @@
  */
 
 jest.mock("../src/lib/prisma", () => ({
-  coupon: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
+  coupon:      { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
+  couponUsage: { findMany: jest.fn(), count: jest.fn() },
 }))
 
 const prisma = require("../src/lib/prisma")
-const { createCoupon, updateCoupon } = require("../src/services/couponService")
+const { createCoupon, updateCoupon, softDeleteCoupon, listCouponUsage } = require("../src/services/couponService")
 
 const row = (over = {}) => ({
   id: "c1", code: "SAVE10", description: null, discountType: "percentage", discountValue: 10,
@@ -117,5 +118,66 @@ describe("updateCoupon — branches", () => {
     expect(data).toHaveProperty("description", null)
     expect(data).not.toHaveProperty("discountValue")
     expect(data).not.toHaveProperty("code")
+  })
+})
+
+describe("softDeleteCoupon", () => {
+  test("unknown id returns null and writes nothing", async () => {
+    prisma.coupon.findUnique.mockResolvedValue(null)
+    await expect(softDeleteCoupon("nope")).resolves.toBeNull()
+    expect(prisma.coupon.update).not.toHaveBeenCalled()
+  })
+
+  test("is a deactivation, not a hard delete — usage history must survive", async () => {
+    prisma.coupon.findUnique.mockResolvedValue(row())
+    const out = await softDeleteCoupon("c1")
+    expect(prisma.coupon.update).toHaveBeenCalledWith({ where: { id: "c1" }, data: { isActive: false } })
+    expect(out).toMatchObject({ id: "c1" })
+  })
+})
+
+describe("listCouponUsage", () => {
+  beforeEach(() => {
+    prisma.coupon.findUnique.mockResolvedValue({ id: "c1", code: "SAVE10" })
+    prisma.couponUsage.findMany.mockResolvedValue([{ id: "u1" }])
+    prisma.couponUsage.count.mockResolvedValue(1)
+  })
+
+  test("unknown coupon returns null without querying usage", async () => {
+    prisma.coupon.findUnique.mockResolvedValue(null)
+    await expect(listCouponUsage("nope")).resolves.toBeNull()
+    expect(prisma.couponUsage.findMany).not.toHaveBeenCalled()
+  })
+
+  test("defaults: page 1, limit 50, newest first, joined with user + order", async () => {
+    const out = await listCouponUsage("c1")
+    const args = prisma.couponUsage.findMany.mock.calls[0][0]
+    expect(args).toMatchObject({ where: { couponId: "c1" }, orderBy: { usedAt: "desc" }, skip: 0, take: 50 })
+    expect(args.include.user.select).toMatchObject({ email: true })
+    expect(args.include.order.select).toMatchObject({ orderNumber: true, totalAmount: true })
+    expect(out.coupon).toEqual({ id: "c1", code: "SAVE10" })
+    expect(out.pagination).toEqual({ page: 1, limit: 50, total: 1, totalPages: 1 })
+  })
+
+  test.each([
+    ["page below 1", { page: 0, limit: 10 }, { skip: 0, take: 10, page: 1 }],
+    ["limit above the cap", { page: 2, limit: 500 }, { skip: 100, take: 100, page: 2 }],
+    ["garbage values", { page: "x", limit: "y" }, { skip: 0, take: 50, page: 1 }],
+    ["limit below 1", { page: 3, limit: -4 }, { skip: 2, take: 1, page: 3 }],
+  ])("pagination is clamped for %s", async (_label, input, want) => {
+    const out = await listCouponUsage("c1", input)
+    const args = prisma.couponUsage.findMany.mock.calls[0][0]
+    expect(args.skip).toBe(want.skip)
+    expect(args.take).toBe(want.take)
+    expect(out.pagination.page).toBe(want.page)
+    expect(out.pagination.limit).toBe(want.take)
+  })
+
+  test("totalPages is never below 1, even with zero rows", async () => {
+    prisma.couponUsage.findMany.mockResolvedValue([])
+    prisma.couponUsage.count.mockResolvedValue(0)
+    const out = await listCouponUsage("c1")
+    expect(out.items).toEqual([])
+    expect(out.pagination.totalPages).toBe(1)
   })
 })
