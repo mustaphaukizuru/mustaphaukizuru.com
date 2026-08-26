@@ -19,6 +19,12 @@ on:
     branches: [master, develop]
   push:
     branches: [master, develop]
+  # Manual re-trigger. Feature branches only get runs from the pull_request
+  # event; during the 2026-08-26 GitHub Actions outage those events were
+  # dropped and four consecutive pushes produced no run at all, with no way
+  # to ask for one short of closing and reopening the PR. This gives
+  # `gh workflow run ci.yml --ref <branch>` a target.
+  workflow_dispatch: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

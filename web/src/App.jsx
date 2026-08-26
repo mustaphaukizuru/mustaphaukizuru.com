@@ -19,8 +19,20 @@ import FloatingContactButton from "./components/FloatingContactButton";
 
 import PublicShell from "./layout/PublicShell";
 import AuthLayout from "./layout/AuthLayout";
-import AdminLayout from "./layout/AdminLayout";
-import DashboardLayout from "./layout/DashboardLayout";
+// PERF · U1 · the admin and member-dashboard chrome is lazy.
+//
+// Sourcemap attribution of the app entry (index-*.js, 260 KB minified, 81
+// source files) showed ~53 KB of it was AdminLayout, DashboardLayout,
+// AdminSidebar, AdminHeader, NotificationDropdown and UpcomingMeetingBanner —
+// shipped to every public visitor, who never renders any of it. Lighthouse
+// reported the symptom as "28 KB unused JavaScript in index-*.js on /about".
+//
+// Both layouts are single-use route elements that already sit inside the
+// <Suspense> boundary below, so lazy() moves them (and everything only they
+// import) into their own chunks with no other change. Signed-in users pay the
+// extra request once, on their first authenticated route.
+const AdminLayout     = lazy(() => import("./layout/AdminLayout"));
+const DashboardLayout = lazy(() => import("./layout/DashboardLayout"));
 
 function PageLoader() {
   return (

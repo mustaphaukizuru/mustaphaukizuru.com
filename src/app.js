@@ -146,10 +146,40 @@ app.use(helmet({
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
 }))
 
-// Logging
-app.use(process.env.NODE_ENV !== "production"
-  ? morgan("dev")
-  : morgan(":method :url :status :response-time ms"))
+// Request id · FIRST, so every later middleware, controller, service and
+// error handler runs inside this request's context and every log line they
+// emit carries the same id (see lib/requestContext.js). Echoed back as
+// X-Request-Id so a customer can quote it from the browser's network tab.
+const { requestId } = require("./middleware/requestId")
+app.use(requestId)
+
+// Access logging · through Winston, not stdout.
+//
+// morgan used to print its own line to stdout while the application logged
+// through Winston — two streams, no shared id, and on Hostinger only one of
+// them ends up in a file. Routing morgan into logger.info puts the access
+// line in the same JSON log as everything the request triggered, and the
+// :id token plus the enricher in utils/logger.js mean the access line and
+// the service lines it caused all share one requestId.
+//
+// Slow requests are flagged in the SAME line rather than a second one: the
+// 2026-08-25 outage presented as every DB-backed route hanging, and a
+// "slow=1" marker is what makes that pattern greppable after the fact.
+const logger = require("./utils/logger")
+morgan.token("id", (req) => req.id || "-")
+morgan.token("slow", (req) => {
+  // req.startedAt is stamped by the requestId middleware above.
+  const ms = typeof req.startedAt === "number" ? Date.now() - req.startedAt : NaN
+  return Number.isFinite(ms) && ms >= 1000 ? "1" : "0"
+})
+const accessFormat = process.env.NODE_ENV !== "production"
+  ? "dev"
+  : ":method :url :status :response-time ms :res[content-length]b id=:id slow=:slow"
+app.use(morgan(accessFormat, {
+  stream: { write: (line) => logger.info(line.trim()) },
+  // Health probes every 15 minutes would otherwise dominate the access log.
+  skip: (req) => req.path === "/api/v1/health" || req.path === "/api/health",
+}))
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PayPal webhook · RAW body for signature verification

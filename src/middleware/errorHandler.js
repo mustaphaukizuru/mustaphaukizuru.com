@@ -19,6 +19,7 @@
 //   FILE_TOO_LARGE · DB_ERROR · REQUEST_ERROR
 // ─────────────────────────────────────────────────────────────────────────────
 
+const { getRequestId } = require("../lib/requestContext")
 const fs     = require("fs")
 const path   = require("path")
 const logger = require("../utils/logger")
@@ -93,13 +94,19 @@ function isPrismaClientError(err) {
  * @param {object} [extra]  optional extra TOP-LEVEL fields (rare)
  */
 function buildErrorBody(code, message, details = null, extra = null) {
+  // The request id is what turns "something went wrong" into a log query.
+  // It is also in the X-Request-Id response header; putting it in the body
+  // too means a screenshot of the error is enough to find the trace.
+  const requestId = getRequestId()
   return {
     success: false,
     code,            // legacy top-level
     message,         // legacy top-level
+    ...(requestId ? { requestId } : {}),
     error: {         // B10 nested standard shape
       code,
       message,
+      ...(requestId ? { requestId } : {}),
       ...(details ? { details } : {}),
     },
     ...(extra || {}),

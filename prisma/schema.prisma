@@ -936,6 +936,14 @@ model CouponUsage {
 model Order {
   id                      String      @id @default(cuid())
   orderNumber             String      @unique
+  // Idempotency: a client-generated key sent as the Idempotency-Key header
+  // on POST /orders. A retried or double-submitted checkout (flaky mobile
+  // connection, double tap, browser retry on a lost response) reuses the
+  // same key and gets the SAME order back instead of creating a second one.
+  // Scoped per user in the @@unique below so two customers can never collide
+  // and one customer cannot replay another's order. Nullable: legacy and
+  // API-only clients that send no key keep today's behaviour.
+  idempotencyKey          String?
   userId                  String?
   customerName            String
   customerEmail           String
@@ -979,6 +987,13 @@ model Order {
   @@index([createdAt])
   @@index([userId, status]) // compound: member dashboard filter by user+status
   @@index([status, createdAt]) // compound: admin order list sorted by date+status
+  // Idempotency backstop. The service checks for an existing key inside the
+  // transaction, but under REPEATABLE READ two concurrent submits can both see
+  // "no row" and both insert — this constraint makes the second one fail with
+  // P2002 instead of creating a duplicate order. Same pattern as
+  // Payment.payment_gateway_tx_uq, which closes the equivalent race one step
+  // later in the money path.
+  @@unique([userId, idempotencyKey], name: "order_user_idempotency_uq")
 }
 
 model OrderItem {

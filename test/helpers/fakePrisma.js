@@ -79,7 +79,9 @@ const RELATIONS = {
 // field names; a null in any field skips the check (Prisma semantics).
 const UNIQUES = {
   user:           [["email"]],
-  order:          [["orderNumber"]],
+  // (userId, idempotencyKey) mirrors order_user_idempotency_uq. Nulls are
+  // skipped by _checkUnique, matching MySQL, so key-less orders never clash.
+  order:          [["orderNumber"], ["userId", "idempotencyKey"]],
   coupon:         [["code"]],
   consultation:   [["assignedAdminId", "scheduledAt"], ["confirmationToken"]],
   paymentWebhook: [["paymentGateway", "gatewayEventId"]],

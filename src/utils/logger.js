@@ -46,10 +46,22 @@ try {
 const isProd = process.env.NODE_ENV === "production"
 const logLevel = process.env.LOG_LEVEL || (isProd ? "info" : "debug")
 
+// Request correlation. Every log line written while a request is in flight
+// picks up that request's id from AsyncLocalStorage — no call site changes.
+// Outside a request (cron, CLI) the store is empty and the field is omitted.
+// See lib/requestContext.js and middleware/requestId.js.
+const { getRequestId } = require("../lib/requestContext")
+const withRequestId = winston.format((info) => {
+  const id = getRequestId()
+  if (id && info.requestId === undefined) info.requestId = id
+  return info
+})
+
 const baseFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
   winston.format.splat(),
+  withRequestId(),
 )
 
 const jsonFormat = winston.format.combine(
