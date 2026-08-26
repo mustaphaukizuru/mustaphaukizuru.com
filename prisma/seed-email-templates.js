@@ -649,6 +649,35 @@ const TEMPLATES = [
    * ───────────────────────────────────────────────────────────────────── */
 
   // 12 · Order pending (admin moved the order back to pending)
+  // cart.abandoned · S2 · one reminder, once, when a signed-in customer's
+  // cart has had no activity for a few hours. Sent by
+  // src/jobs/abandonedCartJob.js, deduped per user via EmailLog.
+  // Variables: customerName · itemCount · firstItem · itemsSummary · cartTotal · cartUrl
+  {
+    key: "cart.abandoned",
+    subject: "You left {{firstItem}} in your cart",
+    html:
+      heading(`Still thinking it over, {{customerName}}?`) +
+      paragraph(`You have <strong>{{itemCount}}</strong> item(s) waiting in your cart — {{itemsSummary}} — for <strong>{{cartTotal}}</strong>. Your cart is saved exactly as you left it.`) +
+      paragraph(`Digital downloads are delivered instantly after checkout, and every purchase comes with a full-refund guarantee.`) +
+      button("{{cartUrl}}", "Return to your cart"),
+    text: [
+      "Still thinking it over, {{customerName}}?",
+      "",
+      "You have {{itemCount}} item(s) waiting in your cart:",
+      "  {{itemsSummary}}",
+      "for {{cartTotal}}. Your cart is saved exactly as you left it.",
+      "",
+      "Digital downloads are delivered instantly after checkout, and every",
+      "purchase comes with a full-refund guarantee.",
+      "",
+      "Return to your cart:",
+      "  {{cartUrl}}",
+      "",
+      "You are receiving this because you have an account and items in your",
+      "cart. We send at most one reminder a week.",
+    ].join("\n"),
+  },
   // Variables: customerName · orderNumber · orderTotal · orderUrl
   {
     key: "order.pending",
@@ -1311,6 +1340,34 @@ const TEMPLATES_ES = [
 
   /* ── Step 41 · Spanish drafts for the migrated mailer templates ───────── */
 
+  // cart.abandoned · S2 · un recordatorio, una sola vez, cuando el carrito de
+  // un cliente con cuenta lleva unas horas sin actividad.
+  // Variables: customerName · itemCount · firstItem · itemsSummary · cartTotal · cartUrl
+  {
+    key: "cart.abandoned",
+    subject: "Dejaste {{firstItem}} en tu carrito",
+    html:
+      heading(`¿Todavía lo estás pensando, {{customerName}}?`) +
+      paragraph(`Tienes <strong>{{itemCount}}</strong> artículo(s) esperando en tu carrito — {{itemsSummary}} — por <strong>{{cartTotal}}</strong>. Tu carrito está guardado tal como lo dejaste.`) +
+      paragraph(`Las descargas digitales se entregan al instante después del pago, y cada compra incluye garantía de reembolso total.`) +
+      button("{{cartUrl}}", "Volver a mi carrito"),
+    text: [
+      "¿Todavía lo estás pensando, {{customerName}}?",
+      "",
+      "Tienes {{itemCount}} artículo(s) esperando en tu carrito:",
+      "  {{itemsSummary}}",
+      "por {{cartTotal}}. Tu carrito está guardado tal como lo dejaste.",
+      "",
+      "Las descargas digitales se entregan al instante después del pago, y",
+      "cada compra incluye garantía de reembolso total.",
+      "",
+      "Volver a mi carrito:",
+      "  {{cartUrl}}",
+      "",
+      "Recibes este correo porque tienes una cuenta y artículos en tu carrito.",
+      "Enviamos como máximo un recordatorio por semana.",
+    ].join("\n"),
+  },
   {
     key: "order.pending",
     subject: "Tu pedido {{orderNumber}} está pendiente",
