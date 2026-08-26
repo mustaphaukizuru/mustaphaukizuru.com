@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const { SERVICE_CATEGORY_SLUGS } = require("../config/serviceCategorySlugs")
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  sitemapService
@@ -8,11 +9,16 @@ const prisma = require("../lib/prisma")
  *  for 1 hour to keep search-engine traffic from hammering the DB.
  *
  *  Pages included:
- *    Static       — Home, About, Services, Store, Contact, Book,
- *                   Privacy, Terms, Refund
- *    Products     — every active Product, by /store/:slug
- *    Services     — every active Service, by /services/:slug
+ *    Static       — Home, About, Services, Store, Portfolio, Blog, Contact,
+ *                   Book, Privacy, Terms, Refund, Cookies
+ *    Products     — every published + active Product, by /store/:slug
+ *    Services     — the four catalogue categories, by /services/:slug
+ *                   (src/config/serviceCategorySlugs.js — DB Service slugs
+ *                   are not routable on the SPA)
  *    Portfolio    — every published PortfolioProject, by /projects/:slug
+ *    Blog         — every published BlogPost, by /blog/:slug
+ *
+ *  /self-audit is deliberately absent: the route is admin-gated.
  *
  *  Frequency / priority hints follow Google's modern guidance — most signals
  *  are now ignored except <lastmod>, but we set the others for older crawlers
@@ -31,11 +37,14 @@ const STATIC_PAGES = [
   { path: "/about",     changefreq: "monthly", priority: 0.8 },
   { path: "/services",  changefreq: "weekly",  priority: 0.9 },
   { path: "/store",     changefreq: "daily",   priority: 0.9 },
+  { path: "/portfolio", changefreq: "weekly",  priority: 0.85 },
+  { path: "/blog",      changefreq: "weekly",  priority: 0.85 },
   { path: "/contact",   changefreq: "monthly", priority: 0.7 },
   { path: "/book",      changefreq: "weekly",  priority: 0.8 },
   { path: "/privacy",   changefreq: "yearly",  priority: 0.3 },
   { path: "/terms",     changefreq: "yearly",  priority: 0.3 },
   { path: "/refund",    changefreq: "yearly",  priority: 0.3 },
+  { path: "/cookies",   changefreq: "yearly",  priority: 0.3 },
 ]
 
 function escapeXml(s) {
@@ -83,7 +92,9 @@ async function buildSitemapXml() {
     // unbounded scan. If a section ever nears the cap, split into a sitemap
     // index rather than raise it.
     const products = await prisma.product.findMany({
-      where:   { isActive: true, deletedAt: null },
+      // Same visibility rule as the public catalogue: a draft that is
+      // "active" is still not a page anyone can open.
+      where:   { status: "published", isActive: true, deletedAt: null },
       select:  { slug: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
       take:    5000,
@@ -101,29 +112,16 @@ async function buildSitemapXml() {
     console.warn("[sitemap] product query failed:", e.message)
   }
 
-  // Services — published + not soft-deleted. (Service has no `isActive`
-  // column; the previous filter threw on every build and services were
-  // silently missing from the sitemap.)
-  try {
-    const services = await prisma.service.findMany({
-      where:   { status: "published", deletedAt: null },
-      select:  { slug: true, updatedAt: true },
-      orderBy: { updatedAt: "desc" },
-      take:    5000,
-    })
-    services.forEach((s) => {
-      if (!s.slug) return
-      entries.push(urlEntry({
-        loc:        `${SITE_URL}/services/${encodeURIComponent(s.slug)}`,
-        lastmod:    s.updatedAt,
-        changefreq: "monthly",
-        priority:   0.7,
-      }))
-    })
-  } catch (e) {
-    console.warn("[sitemap] service query failed:", e.message)
-  }
-
+  // Services — the routable catalogue categories. The SPA resolves
+  // /services/:slug against the static catalogue, not the Service table.
+  SERVICE_CATEGORY_SLUGS.forEach((slug) => {
+    entries.push(urlEntry({
+      loc:        `${SITE_URL}/services/${encodeURIComponent(slug)}`,
+      lastmod:    today,
+      changefreq: "monthly",
+      priority:   0.8,
+    }))
+  })
   // Portfolio projects — published only
   try {
     if (typeof prisma.portfolioProject?.findMany === "function") {
@@ -145,6 +143,26 @@ async function buildSitemapXml() {
     }
   } catch (e) {
     console.warn("[sitemap] portfolio query failed:", e.message)
+  }
+  // Blog posts — published only (B5: never listed before)
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where:   { status: "published", deletedAt: null },
+      select:  { slug: true, updatedAt: true, publishedAt: true },
+      orderBy: { publishedAt: "desc" },
+      take:    5000,
+    })
+    posts.forEach((p) => {
+      if (!p.slug) return
+      entries.push(urlEntry({
+        loc:        `${SITE_URL}/blog/${encodeURIComponent(p.slug)}`,
+        lastmod:    p.updatedAt || p.publishedAt,
+        changefreq: "weekly",
+        priority:   0.7,
+      }))
+    })
+  } catch (e) {
+    console.warn("[sitemap] blog query failed:", e.message)
   }
 
   return [

@@ -1,5 +1,6 @@
 import fs from "node:fs/promises"
 import path from "node:path"
+import { CATEGORIES } from "../src/data/servicesCatalogue.js"
 
 /* ───────────────────────────── config ──────────────────────────────────── */
 const SITE_URL    = (process.env.VITE_SITE_URL    || "https://mustaphaukizuru.com").replace(/\/$/, "")
@@ -10,6 +11,11 @@ const FETCH_TIMEOUT_MS = 8000        // per-endpoint deadline
 
 const publicDir   = path.resolve(process.cwd(), "public")
 const outDir      = publicDir
+// B5 · `build:seo` runs this AFTER `vite build` has already copied web/public
+// into ../public, so a sitemap written only here reached the served build one
+// deploy late — production kept serving the previous run's 12 URLs. Mirror
+// the file into the build output whenever it exists.
+const buildOutDir = path.resolve(process.cwd(), "..", "public")
 const indexFile   = path.join(outDir, "sitemap.xml")
 const pagesFile   = path.join(outDir, "sitemap-pages.xml")
 const productsXml = path.join(outDir, "sitemap-products.xml")
@@ -25,7 +31,6 @@ const staticRoutes = [
   { path: "/",           changefreq: "weekly",  priority: "1.0" },
   { path: "/about",      changefreq: "monthly", priority: "0.8" },
   { path: "/services",   changefreq: "weekly",  priority: "0.9" },
-  { path: "/self-audit", changefreq: "monthly", priority: "0.85" },
   { path: "/store",      changefreq: "daily",   priority: "0.9" },
   { path: "/portfolio",  changefreq: "weekly",  priority: "0.85" },
   { path: "/blog",       changefreq: "weekly",  priority: "0.85" },
@@ -60,8 +65,11 @@ async function tryFetchList(endpoints) {
   for (const url of endpoints) {
     try {
       const data = await fetchJsonWithTimeout(url)
+      // B5 · the blog list answers { posts, total }; it was silently read as
+      // zero items and no post ever reached the sitemap.
       const items = Array.isArray(data?.items) ? data.items
                   : Array.isArray(data?.data)  ? data.data
+                  : Array.isArray(data?.posts) ? data.posts
                   : Array.isArray(data)        ? data
                   : []
       console.log(`  â ${url} â ${items.length} items`)
@@ -196,12 +204,14 @@ function productEntries(products = []) {
     })
 }
 
-function serviceEntries(services = []) {
-  return services
-    .filter((s) => s && s.slug)
-    .map((s) => ({
-      path:       `/services/${s.slug}`,
-      lastmod:    isoDate(s.updatedAt || s.createdAt),
+// B5 · /services/:slug resolves against the static catalogue CATEGORIES,
+// not the Service table — DB slugs render the "not found" page with
+// noindex, so listing them only invited crawlers to dead ends.
+function serviceEntries() {
+  return CATEGORIES
+    .filter((c) => c && c.slug)
+    .map((c) => ({
+      path:       `/services/${c.slug}`,
       changefreq: "monthly",
       priority:   "0.8",
     }))
@@ -229,18 +239,22 @@ function blogEntries(posts = []) {
     }))
 }
 
+async function writeMirrored(filename, xml) {
+  await fs.writeFile(path.join(outDir, filename), xml, "utf8")
+  const mirrored = path.join(buildOutDir, filename)
+  if (mirrored !== path.join(outDir, filename) && (await fs.stat(buildOutDir).then((st) => st.isDirectory()).catch(() => false))) {
+    await fs.writeFile(mirrored, xml, "utf8")
+    console.log(`[sitemap] mirrored → ${mirrored}`)
+  }
+}
 /* ───────────────────────────── main ────────────────────────────────────── */
 async function main() {
   console.log(`[sitemap] generating from API_BASE=${API_BASE}`)
 
-  const [products, services, portfolio, blogPosts] = await Promise.all([
+  const [products, portfolio, blogPosts] = await Promise.all([
     tryFetchList([
       `${API_BASE}/api/v1/products?limit=500`,
       `${API_BASE}/api/products?limit=500`,
-    ]),
-    tryFetchList([
-      `${API_BASE}/api/v1/services?limit=100`,
-      `${API_BASE}/api/services?limit=100`,
     ]),
     tryFetchList([
       `${API_BASE}/api/v1/portfolio?limit=200`,
@@ -256,7 +270,7 @@ async function main() {
   const legacyExtra  = normalizeEntries(await readJson(productsFile))
 
   const productList   = productEntries(products)
-  const serviceList   = serviceEntries(services)
+  const serviceList   = serviceEntries()
   const portfolioList = portfolioEntries(portfolio)
   const blogList      = blogEntries(blogPosts)
 
@@ -271,7 +285,7 @@ async function main() {
   if (totalCount <= SPLIT_THRESHOLD) {
     const flat = [...allPages, ...productList, ...serviceList, ...portfolioList, ...blogList]
       .sort((a, b) => a.path.localeCompare(b.path))
-    await fs.writeFile(indexFile, urlSetXml(flat), "utf8")
+    await writeMirrored("sitemap.xml", urlSetXml(flat))
     // Clean up split files if they exist from a previous large run.
     for (const f of [pagesFile, productsXml, servicesXml, portfolioXml, blogXml]) {
       try { await fs.unlink(f) } catch { /* not present â fine */ }
