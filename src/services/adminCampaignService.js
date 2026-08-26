@@ -105,40 +105,103 @@ async function deleteCampaign(id) {
 
 /* ── Audience resolution ──────────────────────────────────────────────── */
 
-async function resolveAudience(audience, recipientEmails) {
-  if (audience === "newsletter") {
-    const subs = await prisma.newsletterSubscriber.findMany({
-      where: { status: "subscribed" },
-      select: { email: true, id: true, unsubscribeToken: true },
-    })
-    return subs.map((s) => ({ email: s.email, userId: null, unsubscribeToken: s.unsubscribeToken }))
-  }
-  if (audience === "members") {
-    const users = await prisma.user.findMany({
-      where: { email: { not: null } },
-      select: { id: true, email: true },
-    })
-    // Attach the subscriber token where one exists so the unsubscribe link
-    // in the footer is real for members who are also on the newsletter.
-    const subs = await prisma.newsletterSubscriber.findMany({
-      where: { email: { in: users.map((u) => u.email) } },
-      select: { email: true, unsubscribeToken: true },
-    })
-    const tokenByEmail = new Map(subs.map((s) => [s.email.toLowerCase(), s.unsubscribeToken]))
-    return users.map((u) => ({
-      email: u.email,
-      userId: u.id,
-      unsubscribeToken: tokenByEmail.get(u.email.toLowerCase()) || null,
-    }))
-  }
+/**
+ * Audience access · A1 · paged, never materialised whole.
+ *
+ * resolveAudience() used to load EVERY subscriber (or every user) into an
+ * array, then the caller built one createMany from it. Memory proportional to
+ * the list, one giant INSERT, on a shared host. At a few thousand subscribers
+ * that is fine; at fifty thousand the admin request that starts a campaign
+ * would fall over — at exactly the moment the list is worth something.
+ *
+ * Two primitives replace it:
+ *   countAudience(...)          — cheap COUNT queries, for the preview and
+ *                                 the empty-audience check
+ *   forEachAudiencePage(..., fn) — cursor-pages the audience in AUDIENCE_PAGE
+ *                                 chunks and hands each page to fn; nothing
+ *                                 larger than one page is ever in memory
+ *
+ * The cursor is the unique `id` with a stable id order, so a subscriber added
+ * mid-run cannot shift the pages. The "custom" audience is an explicit list
+ * from the form and is bounded by its input; it goes through as one page.
+ */
+const AUDIENCE_PAGE = 1000
+
+function normaliseCustom(recipientEmails) {
+  const list = (Array.isArray(recipientEmails) ? recipientEmails : [])
+    .map((e) => String(e).trim().toLowerCase())
+    .filter(Boolean)
+  return [...new Set(list)].map((email) => ({ email, userId: null, unsubscribeToken: null }))
+}
+
+async function countAudience(audience, recipientEmails) {
+  if (audience === "newsletter") return prisma.newsletterSubscriber.count({ where: { status: "subscribed" } })
+  if (audience === "members")    return prisma.user.count({ where: { email: { not: null } } })
+  if (audience === "custom")     return normaliseCustom(recipientEmails).length
+  return 0
+}
+
+async function forEachAudiencePage(audience, recipientEmails, fn) {
   if (audience === "custom") {
-    const list = (Array.isArray(recipientEmails) ? recipientEmails : [])
-      .map((e) => String(e).trim().toLowerCase())
-      .filter(Boolean)
-    // Dedupe + keep insertion order
-    return [...new Set(list)].map((email) => ({ email, userId: null }))
+    const list = normaliseCustom(recipientEmails)
+    if (list.length) await fn(list)
+    return
   }
-  return []
+  if (audience !== "newsletter" && audience !== "members") return
+
+  let cursor = null
+  for (;;) {
+    let page
+    if (audience === "newsletter") {
+      const subs = await prisma.newsletterSubscriber.findMany({
+        where:   { status: "subscribed" },
+        orderBy: { id: "asc" },
+        take:    AUDIENCE_PAGE,
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+        select:  { id: true, email: true, unsubscribeToken: true },
+      })
+      page = subs.map((s) => ({ email: s.email, userId: null, unsubscribeToken: s.unsubscribeToken, _cursor: s.id }))
+    } else {
+      const users = await prisma.user.findMany({
+        where:   { email: { not: null } },
+        orderBy: { id: "asc" },
+        take:    AUDIENCE_PAGE,
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+        select:  { id: true, email: true },
+      })
+      // Attach the subscriber token where one exists so the unsubscribe link
+      // in the footer is real for members who are also on the newsletter.
+      // Looked up per PAGE, so this query is bounded by the page too.
+      const subs = users.length
+        ? await prisma.newsletterSubscriber.findMany({
+            where:  { email: { in: users.map((u) => u.email) } },
+            select: { email: true, unsubscribeToken: true },
+          })
+        : []
+      const tokenByEmail = new Map(subs.map((s) => [s.email.toLowerCase(), s.unsubscribeToken]))
+      page = users.map((u) => ({
+        email: u.email,
+        userId: u.id,
+        unsubscribeToken: tokenByEmail.get(u.email.toLowerCase()) || null,
+        _cursor: u.id,
+      }))
+    }
+    if (!page.length) return
+    await fn(page.map(({ _cursor, ...r }) => r))
+    if (page.length < AUDIENCE_PAGE) return
+    cursor = page[page.length - 1]._cursor
+  }
+}
+
+/**
+ * Kept for the test-send path, which needs at most one recipient's token.
+ * NOT for bulk use — returns the whole audience. Bulk callers use
+ * forEachAudiencePage.
+ */
+async function resolveAudience(audience, recipientEmails) {
+  const out = []
+  await forEachAudiencePage(audience, recipientEmails, async (page) => { out.push(...page) })
+  return out
 }
 
 /* ── Render an HTML preview of the campaign (used for test send + UI) ─ */
@@ -180,32 +243,39 @@ async function sendCampaignNow(id) {
     throw Object.assign(new Error("Campaign already sent or in progress."), { statusCode: 400 })
   }
 
-  const audience = await resolveAudience(campaign.audience, campaign.recipientEmails)
-  if (audience.length === 0) {
+  const expected = await countAudience(campaign.audience, campaign.recipientEmails)
+  if (expected === 0) {
     throw Object.assign(new Error("Audience is empty — nothing to send."), { statusCode: 400 })
   }
 
-  // Snapshot recipients (idempotent on re-run via @@unique([campaignId, email]))
-  await prisma.$transaction([
-    prisma.emailCampaign.update({
-      where: { id },
-      data:  {
-        status: "sending",
-        startedAt: new Date(),
-        totalRecipients: audience.length,
-        sentCount: 0,
-        failedCount: 0,
-      },
-    }),
-    prisma.emailCampaignRecipient.createMany({
-      data: audience.map((a) => ({
-        campaignId: id,
-        email:      a.email,
-        userId:     a.userId || null,
-      })),
+  // Snapshot recipients in pages (idempotent on re-run via
+  // @@unique([campaignId, email]) + skipDuplicates). Memory is bounded by
+  // one page regardless of audience size.
+  let queued = 0
+  await forEachAudiencePage(campaign.audience, campaign.recipientEmails, async (page) => {
+    const r = await prisma.emailCampaignRecipient.createMany({
+      data: page.map((a) => ({ campaignId: id, email: a.email, userId: a.userId || null })),
       skipDuplicates: true,
-    }),
-  ])
+    })
+    queued += r?.count ?? page.length
+  })
+
+  // Status flips to "sending" LAST, on purpose. The sender job
+  // (jobs/campaignSenderJob.js) treats "sending with zero queued rows" as
+  // "complete" and marks the campaign sent. Flipping before the recipient
+  // rows exist would let a sender tick in that gap declare a 0-recipient
+  // campaign finished. With the rows already in place, the first tick has
+  // work to do.
+  await prisma.emailCampaign.update({
+    where: { id },
+    data:  {
+      status: "sending",
+      startedAt: new Date(),
+      totalRecipients: queued,
+      sentCount: 0,
+      failedCount: 0,
+    },
+  })
 
   // Delivery is asynchronous: src/jobs/campaignSenderJob.js drains the
   // "queued" recipient rows in batches every minute and flips the campaign
@@ -230,8 +300,9 @@ function unsubscribeUrlFor(unsubscribeToken) {
 /* ── Audience preview · used by the form to show estimated count ──── */
 
 async function getAudienceCount(audience, recipientEmails) {
-  const list = await resolveAudience(audience, recipientEmails)
-  return list.length
+  // COUNT queries — the preview used to materialise the whole list to read
+  // its .length.
+  return countAudience(audience, recipientEmails)
 }
 
 module.exports = {
@@ -245,4 +316,6 @@ module.exports = {
   renderCampaignHtml,
   unsubscribeUrlFor,
   getAudienceCount,
+  countAudience,
+  forEachAudiencePage,
 }
