@@ -19,6 +19,9 @@ const { STORAGE_PATHS } = require("./config/storagePaths")
 // returns `null` if @sentry/node isn't installed or SENTRY_DSN is unset,
 // so the handlers below degrade silently. Init runs once at require time.
 const Sentry = require("./lib/sentry")
+// The SPA's @sentry/react client posts to the DSN host; CSP connect-src must
+// allow it or every browser report is silently dropped (src/lib/sentryCsp.js).
+const { sentryConnectSrc } = require("./lib/sentryCsp")
 
 const app = express()
 
@@ -122,7 +125,8 @@ app.use(helmet({
                     "https://accounts.google.com",
                     "https://oauth2.googleapis.com",
                     "https://api.mercadopago.com",
-                    "https://www.paypal.com"],
+                    "https://www.paypal.com",
+                    ...sentryConnectSrc()],
       imgSrc:      ["'self'", "data:", "https:"],
       styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc:     ["'self'", "https://fonts.gstatic.com", "data:"],
