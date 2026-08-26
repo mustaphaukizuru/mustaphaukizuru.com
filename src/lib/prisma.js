@@ -2,10 +2,50 @@ const { PrismaClient } = require("@prisma/client")
 
 let prisma
 
+/**
+ * Bound the connection pool for shared MySQL.
+ *
+ * Prisma's default pool is (num_cpus * 2 + 1) connections PER CLIENT. That is
+ * a sensible default on a dedicated box and a bad one on Hostinger shared
+ * hosting, where the account has a hard `max_user_connections` quota and a
+ * deploy can leave more than one app instance briefly alive at once. Several
+ * instances x a double-digit pool each exhausts the quota, and the symptom is
+ * not a refusal — new queries simply queue until they time out, so every API
+ * route hangs while static files keep serving. That is precisely the outage
+ * signature this project has hit.
+ *
+ * `pool_timeout` matters as much as the size: without it a starved request
+ * waits indefinitely. Ten seconds turns an invisible hang into a fast, logged
+ * error that says what is wrong.
+ *
+ * Both are appended only when the URL does not already set them, so a value
+ * tuned in .env always wins.
+ */
+function withPoolBounds(rawUrl) {
+  if (!rawUrl) return rawUrl
+  const limit = process.env.DB_CONNECTION_LIMIT || "5"
+  const timeout = process.env.DB_POOL_TIMEOUT || "10"
+  try {
+    const url = new URL(rawUrl)
+    if (!url.searchParams.has("connection_limit")) url.searchParams.set("connection_limit", limit)
+    if (!url.searchParams.has("pool_timeout")) url.searchParams.set("pool_timeout", timeout)
+    return url.toString()
+  } catch {
+    // Passwords with URL-hostile characters make new URL() throw. Fall back to
+    // string append rather than dropping the bounds silently — an unbounded
+    // pool is the thing being prevented.
+    if (/[?&]connection_limit=/.test(rawUrl)) return rawUrl
+    const sep = rawUrl.includes("?") ? "&" : "?"
+    return `${rawUrl}${sep}connection_limit=${limit}&pool_timeout=${timeout}`
+  }
+}
+
 function createClient() {
+  const url = withPoolBounds(process.env.DATABASE_URL)
   return new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
     errorFormat: "pretty",
+    ...(url ? { datasources: { db: { url } } } : {}),
   })
 }
 
@@ -95,3 +135,6 @@ async function recycle() {
 module.exports = prisma
 module.exports.isAlive = isAlive
 module.exports.recycle = recycle
+// Exported for tests: the pool bounds are a safety property, not an
+// implementation detail, so they get pinned like one.
+module.exports.withPoolBounds = withPoolBounds

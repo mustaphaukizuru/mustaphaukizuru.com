@@ -31,6 +31,8 @@ jest.mock("../src/lib/prisma", () => ({
   productImage: mockModel(),
   userDownload: { aggregate: jest.fn() },
   review: { aggregate: jest.fn(), groupBy: jest.fn() },
+  // listArchive groups in SQL — the soft-delete filter lives in this query.
+  $queryRaw: jest.fn().mockResolvedValue([]),
 }))
 jest.mock("../src/middleware/uploadProductFile",  () => ({ PRODUCT_FILE_DIR: "/tmp/x", upload: {} }))
 jest.mock("../src/middleware/uploadProductImage", () => ({ PRODUCT_IMAGE_DIR: "/tmp/y", uploadProductImage: {} }))
@@ -86,8 +88,14 @@ describe("public reads filter deletedAt: null", () => {
     expect(whereOf(prisma.blogPost.findMany)).toMatchObject({ status: "published", deletedAt: null })
     await blogService.getPublicPostBySlug("s")
     expect(whereOf(prisma.blogPost.findFirst)).toMatchObject({ deletedAt: null })
+    // listArchive groups in SQL now (it used to load every published post and
+    // bucket them in JS). The soft-delete guarantee is unchanged but it lives
+    // in the WHERE clause of a raw query, so assert on the SQL rather than on
+    // a findMany that no longer happens.
     await blogService.listArchive()
-    expect(whereOf(prisma.blogPost.findMany, 1)).toMatchObject({ deletedAt: null })
+    const archiveSql = prisma.$queryRaw.mock.calls.at(-1)[0].join("?")
+    expect(archiveSql).toMatch(/deletedAt IS NULL/)
+    expect(archiveSql).toMatch(/status = 'published'/)
     await blogService.listTopTags()
     const inc = prisma.blogTag.findMany.mock.calls[0][0].include._count.select.posts.where
     expect(inc).toEqual({ post: { status: "published", deletedAt: null } })
