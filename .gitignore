@@ -109,3 +109,7 @@ mustaphaukizuru.com*Full-Stack SaaS Platform/
 # Never commit this directory.
 .claude/
 
+
+# Playwright (Q2)
+web/test-results/
+web/playwright-report/
