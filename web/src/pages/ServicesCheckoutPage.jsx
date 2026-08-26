@@ -1,3 +1,4 @@
+import { formatPriceWhole } from "../lib/format"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams, useNavigate, Link } from "react-router-dom"
 import { m } from "framer-motion"
@@ -38,15 +39,9 @@ import AuthErrorBanner from "../components/auth/AuthErrorBanner"
 
 const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || ""
 
+// Whole-peso plan prices in the canonical "MX$5,800" shape (lib/format.js).
 function formatMoney(amount, currency = "MXN") {
-  // Mexican Peso pricing → es-MX locale formats $5,800.00 with the peso glyph.
-  // We trim to 0 fraction digits because we list whole-peso plan prices.
-  const locale = currency === "MXN" ? "es-MX" : "en-US"
-  try {
-    return new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 }).format(Number(amount))
-  } catch {
-    return `$${Number(amount).toLocaleString(locale)} ${currency}`
-  }
+  return formatPriceWhole(amount, currency)
 }
 
 export default function ServicesCheckoutPage() {

@@ -1,4 +1,5 @@
 // web/src/lib/format.js
+import i18next from "i18next";
 // Central money / number / date formatters. Use these everywhere instead
 // of hand-rolling Intl.NumberFormat or string concatenation. The platform
 // stays consistent on a single rule and a single point of change.
@@ -21,12 +22,24 @@ const DEFAULT_CURRENCY = "MXN";
 // the active i18n language. Date/number formatting still respects locale
 // elsewhere — only currency is locale-pinned.
 const PRICE_LOCALE = "en-US";
-// Locale for non-currency number/date formatting (counts, dates, times).
-// Pinned to en-US so the documented output shapes hold everywhere —
-// "1,500" · "May 8, 2026" · "May 8, 2026 · 12:01 PM". Previously this
-// constant was referenced by formatCount/formatDate/formatDateTime but
-// never declared, throwing ReferenceError at every call site.
-const FORMAT_LOCALE = "en-US";
+// Locale for non-currency number/date formatting (counts, dates, times)
+// follows the ACTIVE i18n language: "es" → "es-MX", "en" → "en-US".
+// Examples (en): "1,500" · "May 8, 2026" · "May 8, 2026 · 12:01 PM"
+//          (es): "1,500" · "8 may 2026"  · "8 may 2026 · 12:01 p.m."
+const FORMAT_LOCALES = { en: "en-US", es: "es-MX" };
+const DEFAULT_FORMAT_LOCALE = FORMAT_LOCALES.es; // Spanish-first default
+
+/**
+ * BCP-47 tag for dates/counts. Pass an i18n language ("es", "en-GB") or
+ * omit it to read `i18next.language`. Anything unknown → es-MX.
+ * @param {string} [lang]
+ * @returns {string}
+ */
+export function resolveFormatLocale(lang) {
+  const raw = typeof lang === "string" && lang ? lang : i18next.language;
+  const base = String(raw || "").toLowerCase().split("-")[0];
+  return FORMAT_LOCALES[base] || DEFAULT_FORMAT_LOCALE;
+}
 
 function intlPrice(amount, currency) {
   try {
@@ -39,6 +52,31 @@ function intlPrice(amount, currency) {
   } catch {
     // ICU-less envs (some Node test runs) — fall back to a sane string.
     return `${currency} ${Number(amount).toFixed(2)}`;
+  }
+}
+
+/**
+ * Whole-unit price for compact surfaces (package cards, search results,
+ * recently-viewed strip): "MX$5,800". Same locale pin as formatPrice.
+ *
+ *   formatPriceWhole(5800)        → "MX$5,800"
+ *   formatPriceWhole(95.5, "USD") → "$96"
+ *
+ * @param {number|string|null|undefined} amount
+ * @param {string} [currency]
+ * @returns {string}
+ */
+export function formatPriceWhole(amount, currency = DEFAULT_CURRENCY) {
+  const value = Number(amount);
+  const safe = Number.isFinite(value) ? value : 0;
+  try {
+    return new Intl.NumberFormat(PRICE_LOCALE, {
+      style: "currency",
+      currency: currency || DEFAULT_CURRENCY,
+      maximumFractionDigits: 0,
+    }).format(safe);
+  } catch {
+    return `${currency} ${Math.round(safe)}`;
   }
 }
 
@@ -100,43 +138,49 @@ export function currencyBadge(currency = DEFAULT_CURRENCY) {
  *   formatCount(null)    → "0"
  *
  * @param {number|string|null|undefined} n
+ * @param {string} [lang] i18n language; defaults to the active one.
  * @returns {string}
  */
-export function formatCount(n) {
+export function formatCount(n, lang) {
   const value = Number(n);
   if (!Number.isFinite(value)) return "0";
-  return value.toLocaleString(FORMAT_LOCALE);
+  return value.toLocaleString(resolveFormatLocale(lang));
 }
 
 /**
- * Format a date as "May 8, 2026" (en-US prose).
+ * Format a date as "May 8, 2026" (en) / "8 may 2026" (es).
  * @param {Date|string|number} d
+ * @param {string} [lang] i18n language; defaults to the active one.
+ * @param {Intl.DateTimeFormatOptions} [options] override the default parts.
  * @returns {string}
  */
-export function formatDate(d) {
+export function formatDate(d, lang, options) {
   const date = d instanceof Date ? d : new Date(d);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString(FORMAT_LOCALE, {
+  return date.toLocaleDateString(resolveFormatLocale(lang), {
     year: "numeric",
     month: "short",
     day: "numeric",
+    ...(options || {}),
   });
 }
 
 /**
- * Format a date+time as "May 8, 2026 · 12:01 PM".
+ * Format a date+time as "May 8, 2026 · 12:01 PM" (en) / "8 may 2026 · 12:01 p.m." (es).
  * @param {Date|string|number} d
+ * @param {string} [lang] i18n language; defaults to the active one.
  * @returns {string}
  */
-export function formatDateTime(d) {
+export function formatDateTime(d, lang) {
   const date = d instanceof Date ? d : new Date(d);
   if (Number.isNaN(date.getTime())) return "";
-  const datePart = date.toLocaleDateString(FORMAT_LOCALE, {
+  const locale = resolveFormatLocale(lang);
+  const datePart = date.toLocaleDateString(locale, {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
-  const timePart = date.toLocaleTimeString(FORMAT_LOCALE, {
+  const timePart = date.toLocaleTimeString(locale, {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,

@@ -5,9 +5,10 @@ import { useTranslation } from "react-i18next"
 import { ArrowRight } from "lucide-react"
 import { AUDIENCE_PRICING_PLANS, AUDIENCE_PRICING_ORDER } from "../../data/servicesCatalogue"
 import { SectionHeader } from "./Primitives"
+import { formatPriceWhole } from "../../lib/format"
 
-const fmt = (n) =>
-  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n)
+// Canonical "MX$5,800" — es-MX Intl would drop the "MX" disambiguator.
+const fmt = (n) => formatPriceWhole(n, "MXN")
 
 export default function PackagesStrip() {
   const { t } = useTranslation("services")
