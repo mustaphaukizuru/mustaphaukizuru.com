@@ -1,29 +1,39 @@
 import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import {
-  ArrowLeft, Save, Plus, Trash2, Upload, FileText, Download, Loader2,
-  AlertCircle, Hourglass, Clock, CheckCircle2, X,
+  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2,
+  AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare,
 } from "lucide-react"
 import {
   fetchAdminProject, updateAdminProject, createAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
   uploadProjectFile, deleteProjectFile,
+  postAdminProjectComment, toggleAdminCommentResolved,
 } from "../services/clientProjectService"
 import { useToast } from "../context/ToastContext"
-import { SkeletonCard } from "../components/ui/index"
+import { SkeletonCard, Checkbox } from "../components/ui/index"
 import StatusPill from "../components/admin/StatusPill"
 import { API_BASE_URL } from "../lib/api"
+import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 
 const PROJECT_STATUSES = ["planning", "in_progress", "review", "completed", "cancelled"]
-const MILESTONE_STATUSES = ["pending", "in_progress", "completed"]
+const MILESTONE_STATUSES = [
+  { value: "pending",         label: "Pending" },
+  { value: "in_progress",     label: "In progress" },
+  { value: "awaiting_client", label: "Awaiting client review" },
+  { value: "approved",        label: "Approved by client" },
+  { value: "completed",       label: "Completed" },
+]
 
 const fmtDate = (d) => d ? new Date(d).toISOString().slice(0, 10) : ""
+const fmtWhen = (d) => d ? new Date(d).toLocaleString() : ""
 // Files are private: never link the raw path (app.js 403s /files/projects/*).
 // Go through the admin streaming endpoint; the session cookie authenticates.
 const fileUrl = (projectId, file) =>
   `${(API_BASE_URL || "").replace(/\/$/, "")}/api/v1/admin/client-projects/${projectId}/files/${file.id}/download`
 
-const MILESTONE_ICON = { pending: Hourglass, in_progress: Clock, completed: CheckCircle2 }
+const MILESTONE_ICON = { pending: Hourglass, in_progress: Clock, awaiting_client: Eye, approved: ThumbsUp, completed: CheckCircle2 }
+const SELECT_CLASS = "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-charcoal focus:border-violet focus:outline-none focus:ring-[3px] focus:ring-azure/30"
 
 export default function AdminClientProjectDetailPage() {
   const { id } = useParams()
@@ -41,11 +51,13 @@ export default function AdminClientProjectDetailPage() {
   const [form, setForm] = useState({
     serviceOrderId: "", userId: "", projectName: "",
     description: "", projectStatus: "planning",
-    startDate: "", dueDate: "",
+    startDate: "", dueDate: "", previewUrl: "",
   })
 
   // New-milestone draft
   const [newMs, setNewMs] = useState({ title: "", description: "", dueDate: "" })
+  // Upload options
+  const [uploadOpts, setUploadOpts] = useState({ milestoneId: "", isDeliverable: true })
 
   async function load() {
     if (isNew) return
@@ -63,6 +75,7 @@ export default function AdminClientProjectDetailPage() {
         projectStatus: data.projectStatus || "planning",
         startDate: fmtDate(data.startDate),
         dueDate: fmtDate(data.dueDate),
+        previewUrl: data.previewUrl || "",
       })
     } catch (err) {
       console.error("[ClientProject] load failed:", err)
@@ -126,7 +139,7 @@ export default function AdminClientProjectDetailPage() {
     const file = e.target.files?.[0]
     if (!file) return
     try {
-      await uploadProjectFile(id, file)
+      await uploadProjectFile(id, file, { milestoneId: uploadOpts.milestoneId || undefined, isDeliverable: uploadOpts.isDeliverable })
       showSuccess(`Uploaded ${file.name}`)
       if (fileInputRef.current) fileInputRef.current.value = ""
       load()
@@ -143,6 +156,18 @@ export default function AdminClientProjectDetailPage() {
       showSuccess("File deleted")
       load()
     } catch (err) { showError(err.message || "Could not delete file") }
+  }
+
+  async function handleComment({ body, milestoneId }) {
+    const saved = await postAdminProjectComment(id, { body, milestoneId })
+    setProject((p) => p && { ...p, comments: [...(p.comments || []), saved] })
+  }
+
+  async function handleToggleResolved(comment) {
+    try {
+      const saved = await toggleAdminCommentResolved(id, comment.id)
+      setProject((p) => p && { ...p, comments: (p.comments || []).map((c) => c.id === comment.id ? { ...c, ...saved } : c) })
+    } catch (err) { showError(err.message || "Could not update comment") }
   }
 
   if (loading) return <section><SkeletonCard height="h-[400px]" /></section>
@@ -196,6 +221,11 @@ export default function AdminClientProjectDetailPage() {
             <Input type="date" value={form.dueDate} onChange={(v) => setForm({ ...form, dueDate: v })} />
           </Field>
           <div className="md:col-span-2">
+            <Field label="Preview URL">
+              <Input type="url" value={form.previewUrl} onChange={(v) => setForm({ ...form, previewUrl: v })} placeholder="https://staging.example.com — shown to the client as a live preview" />
+            </Field>
+          </div>
+          <div className="md:col-span-2">
             <Field label="Description">
               <textarea
                 rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -229,6 +259,7 @@ export default function AdminClientProjectDetailPage() {
           <div className="mt-4 space-y-2">
             {project.milestones.map((m) => {
               const Icon = MILESTONE_ICON[m.status] || Hourglass
+              const msComments = (project.comments || []).filter((c) => c.milestoneId === m.id)
               return (
                 <div key={m.id} className="flex items-start gap-3 rounded-lg border border-charcoal-80/10 bg-white px-4 py-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-violet-pale text-violet">
@@ -242,7 +273,22 @@ export default function AdminClientProjectDetailPage() {
                     {m.description && <p className="mt-1 text-micro text-charcoal-80/65">{m.description}</p>}
                     <div className="mt-1.5 font-mono text-[11px] text-charcoal-80/65">
                       {m.dueDate && <>Due {new Date(m.dueDate).toLocaleDateString()} · </>}
+                      {m.approvedAt && <>Approved by client {fmtWhen(m.approvedAt)} · </>}
+                      {m.changesRequestedAt && <>Changes requested {fmtWhen(m.changesRequestedAt)} · </>}
                       {m.completedAt && <>Completed {new Date(m.completedAt).toLocaleDateString()}</>}
+                    </div>
+                    {m.clientNote && (
+                      <div className="mt-2 rounded-md border border-charcoal-80/10 bg-charcoal-80/5 px-3 py-2 text-micro text-charcoal-80">
+                        <span className="inline-flex items-center gap-1 font-semibold">
+                          {m.changesRequestedAt ? <RotateCcw className="h-3 w-3" /> : <ThumbsUp className="h-3 w-3" />}
+                          Client note
+                        </span>
+                        <p className="mt-0.5 whitespace-pre-wrap">{m.clientNote}</p>
+                      </div>
+                    )}
+                    <div className="mt-3 border-t border-charcoal-80/10 pt-3">
+                      <CommentThread comments={msComments} onToggleResolved={handleToggleResolved} />
+                      <ReplyBox className="mt-2" placeholder="Reply on this milestone…" onSubmit={(body) => handleComment({ body, milestoneId: m.id })} />
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
@@ -250,8 +296,9 @@ export default function AdminClientProjectDetailPage() {
                       value={m.status}
                       onChange={(e) => handleMilestoneStatus(m, e.target.value)}
                       className="rounded-md border border-charcoal-80/15 bg-white px-2 py-1 text-[11px] text-charcoal-80 focus:border-violet focus:outline-none"
+                      aria-label={`Status of ${m.title}`}
                     >
-                      {MILESTONE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                      {MILESTONE_STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
                     <button
                       type="button" onClick={() => handleMilestoneDelete(m)}
@@ -305,7 +352,27 @@ export default function AdminClientProjectDetailPage() {
               <h2 className="text-card font-bold text-violet">Deliverables</h2>
               <p className="mt-0.5 text-meta text-charcoal-80/65">{project.files.length} file{project.files.length === 1 ? "" : "s"} · max 50 MB each</p>
             </div>
-            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-violet px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-violet-deep">
+          </div>
+
+          <div className="mt-4 grid gap-3 rounded-lg border border-violet/15 bg-violet-pale/30 p-3 md:grid-cols-[1fr_auto_auto] md:items-end">
+            <Field label="Attach to milestone (optional)">
+              <select
+                value={uploadOpts.milestoneId}
+                onChange={(e) => setUploadOpts({ ...uploadOpts, milestoneId: e.target.value })}
+                className={SELECT_CLASS}
+              >
+                <option value="">No milestone</option>
+                {project.milestones.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
+              </select>
+            </Field>
+            <Checkbox
+              label="Deliverable"
+              description="Shown to the client as a deliverable from the team"
+              checked={uploadOpts.isDeliverable}
+              onChange={(checked) => setUploadOpts({ ...uploadOpts, isDeliverable: checked })}
+              className="pb-1"
+            />
+            <label className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-violet px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-deep">
               <Upload className="h-4 w-4" /> Upload file
               <input ref={fileInputRef} type="file" onChange={handleFileUpload} className="hidden" />
             </label>
@@ -317,16 +384,24 @@ export default function AdminClientProjectDetailPage() {
                 No files uploaded yet.
               </div>
             )}
-            {project.files.map((f) => (
+            {project.files.map((f) => {
+              const { icon: FileIcon, label: typeLabel, chip } = getFileTypeStyles(f.fileName || f.fileType)
+              const milestone = f.milestoneId ? project.milestones.find((m) => m.id === f.milestoneId) : null
+              return (
               <div key={f.id} className="flex items-center justify-between gap-3 rounded-lg border border-charcoal-80/10 bg-white px-4 py-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-violet-pale text-violet">
-                    <FileText className="h-4 w-4" />
+                    <FileIcon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
-                    <div className="truncate text-meta font-semibold text-charcoal-80">{f.fileName}</div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="truncate text-meta font-semibold text-charcoal-80">{f.fileName}</span>
+                      <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{typeLabel}</span>
+                      <StatusPill status={f.uploadedByRole === "client" ? "member" : "admin"} label={f.uploadedByRole === "client" ? "Client" : "Team"} />
+                      {f.isDeliverable && <StatusPill status="delivered" label="Deliverable" />}
+                    </div>
                     <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
-                      {f.fileType || "file"} · {new Date(f.createdAt).toLocaleDateString()}
+                      {[formatFileSize(f.fileSize), f.uploadedBy?.fullName, milestone ? `↳ ${milestone.title}` : null, new Date(f.createdAt).toLocaleDateString()].filter(Boolean).join(" · ")}
                     </div>
                   </div>
                 </div>
@@ -347,11 +422,99 @@ export default function AdminClientProjectDetailPage() {
                   </button>
                 </div>
               </div>
-            ))}
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Project thread */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">Project thread</h2>
+          <p className="mt-0.5 text-meta text-charcoal-80/65">Messages not tied to a milestone. The client is emailed when you reply.</p>
+          <div className="mt-4">
+            <CommentThread
+              comments={(project.comments || []).filter((c) => !c.milestoneId && !c.fileId)}
+              empty="No messages yet."
+              onToggleResolved={handleToggleResolved}
+            />
+            <ReplyBox className="mt-3" placeholder="Write a message to the client…" onSubmit={(body) => handleComment({ body })} />
           </div>
         </div>
       )}
     </section>
+  )
+}
+
+/* ── comments ────────────────────────────────────────────────────────── */
+function CommentThread({ comments, empty, onToggleResolved }) {
+  if (!comments.length) {
+    return empty ? (
+      <div className="flex items-center gap-2 py-2 text-meta text-charcoal-80/65">
+        <MessageSquare className="h-4 w-4" /> {empty}
+      </div>
+    ) : null
+  }
+  return (
+    <ul className="space-y-2">
+      {comments.map((c) => {
+        const isTeam = c.authorRole === "admin"
+        return (
+          <li key={c.id} className={`flex items-start justify-between gap-3 rounded-md px-3 py-2 ${isTeam ? "bg-violet-pale/40" : "bg-charcoal-80/5"}`}>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-charcoal-80/65">
+                <span className="font-semibold text-charcoal-80">{c.author?.fullName || (isTeam ? "Team" : "Client")}</span>
+                <StatusPill status={isTeam ? "admin" : "member"} label={isTeam ? "Team" : "Client"} />
+                <span>{fmtWhen(c.createdAt)}</span>
+                {c.resolvedAt && <StatusPill status="completed" label="Resolved" />}
+              </div>
+              <p className={`mt-1 whitespace-pre-wrap text-micro ${c.resolvedAt ? "text-charcoal-80/65" : "text-charcoal-80"}`}>{c.body}</p>
+            </div>
+            <button
+              type="button" onClick={() => onToggleResolved(c)}
+              className={`shrink-0 rounded-md border p-1.5 transition ${c.resolvedAt ? "border-mint/30 bg-mint/15 text-mint-700" : "border-charcoal-80/15 bg-white text-charcoal-80 hover:bg-mint/10"}`}
+              aria-label={c.resolvedAt ? "Mark as unresolved" : "Mark as resolved"}
+              title={c.resolvedAt ? "Mark as unresolved" : "Mark as resolved"}
+            >
+              <Check className="h-3.5 w-3.5" />
+            </button>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function ReplyBox({ onSubmit, placeholder, className = "" }) {
+  const [body, setBody] = useState("")
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState("")
+  const submit = async (e) => {
+    e.preventDefault()
+    const text = body.trim()
+    if (!text || busy) return
+    setBusy(true); setErr("")
+    try { await onSubmit(text); setBody("") }
+    catch (ex) { setErr(ex?.message || "Could not post comment") }
+    finally { setBusy(false) }
+  }
+  return (
+    <form onSubmit={submit} className={`${className} flex items-start gap-2`}>
+      <textarea
+        rows={1} value={body} onChange={(e) => setBody(e.target.value)} placeholder={placeholder} aria-label={placeholder}
+        maxLength={5000}
+        onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") submit(e) }}
+        className="min-h-[38px] flex-1 resize-y rounded-md border border-charcoal-80/15 bg-white px-3 py-2 text-sm text-charcoal focus:border-violet focus:outline-none"
+      />
+      <button
+        type="submit" disabled={busy || !body.trim()}
+        className="inline-flex h-[38px] items-center gap-1.5 rounded-md bg-violet px-3 text-sm font-semibold text-white transition hover:bg-violet-deep disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Send
+      </button>
+      {err && <span className="text-micro text-rose-700">{err}</span>}
+    </form>
   )
 }
 
