@@ -85,7 +85,7 @@ export default function NewsletterInline({ source = "blog-post", className = "" 
         ) : (
           <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-2.5 sm:flex-row" noValidate>
             <div className="relative w-full sm:max-w-xs">
-              <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" aria-hidden="true" />
+              <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" aria-hidden="true" />
               <input
                 type="email"
                 value={email}
@@ -93,7 +93,7 @@ export default function NewsletterInline({ source = "blog-post", className = "" 
                 placeholder={t("newsletterCta.placeholder")}
                 aria-label={t("newsletterCta.placeholder")}
                 aria-invalid={status === "error"}
-                className="w-full rounded-xl border bg-white/[0.06] py-3 pl-10 pr-3 text-[14px] text-white placeholder-white/35 outline-none transition focus:border-azure focus:ring-[3px] focus:ring-azure/25"
+                className="w-full rounded-xl border bg-white/[0.06] py-3 pl-10 pr-3 text-[14px] text-white placeholder-white/55 outline-none transition focus:border-azure focus:ring-[3px] focus:ring-azure/25"
                 style={{ borderColor: status === "error" ? "rgb(var(--color-rose-rgb)/0.5)" : "rgba(255,255,255,0.12)" }}
               />
             </div>

@@ -107,7 +107,7 @@ export default function ServicesLeadCapture({ slug = "index" }) {
               ) : (
                 <form onSubmit={handleSubmit} className="flex flex-col gap-2.5" noValidate>
                   <div className="relative w-full">
-                    <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" aria-hidden="true" />
+                    <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/55" aria-hidden="true" />
                     <input
                       type="email"
                       value={email}
@@ -116,7 +116,7 @@ export default function ServicesLeadCapture({ slug = "index" }) {
                       aria-label={t("funnel.leadCapture.placeholder")}
                       aria-invalid={status === "error"}
                       autoComplete="email"
-                      className="w-full rounded-xl border bg-white/[0.06] py-3 pl-10 pr-3 text-[14px] text-white placeholder-white/35 outline-none transition focus:border-azure focus:ring-[3px] focus:ring-azure/25"
+                      className="w-full rounded-xl border bg-white/[0.06] py-3 pl-10 pr-3 text-[14px] text-white placeholder-white/55 outline-none transition focus:border-azure focus:ring-[3px] focus:ring-azure/25"
                       style={{ borderColor: status === "error" ? "rgb(var(--color-rose-rgb)/0.5)" : "rgba(255,255,255,0.12)" }}
                     />
                   </div>
@@ -133,7 +133,7 @@ export default function ServicesLeadCapture({ slug = "index" }) {
                   {status === "error" && errMsg && (
                     <p className="text-[12.5px] text-rose-300" role="alert">{errMsg}</p>
                   )}
-                  <p className="text-[12px] leading-5 text-white/45">{t("funnel.leadCapture.privacy")}</p>
+                  <p className="text-[12px] leading-5 text-white/70">{t("funnel.leadCapture.privacy")}</p>
                 </form>
               )}
             </div>
