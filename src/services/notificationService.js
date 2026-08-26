@@ -163,6 +163,68 @@ async function notifyProjectMilestoneCompleted(userId, { project, milestone }) {
   })
 }
 
+/**
+ * Admin moved a milestone to awaiting_client — the client has something
+ * to approve. In-app; the email counterpart is project.approval-requested.
+ */
+async function notifyMilestoneAwaitingClient(userId, { project, milestone }) {
+  if (!userId || !project?.id || !milestone?.title) return null
+  return notify(userId, {
+    type: "system",
+    title: `Your review is needed · ${milestone.title}`,
+    message: `"${milestone.title}" on ${project.projectName || "your project"} is ready for your approval. Approve it or request changes from the project page.`,
+    linkUrl: `/dashboard/projects/${project.id}`,
+  })
+}
+
+/** Admin replied in a project thread — tell the client. */
+async function notifyProjectComment(userId, { project, comment }) {
+  if (!userId || !project?.id) return null
+  return notify(userId, {
+    type: "system",
+    title: `New reply on ${project.projectName || "your project"}`,
+    message: String(comment?.body || "").slice(0, 160),
+    linkUrl: `/dashboard/projects/${project.id}`,
+  })
+}
+
+/**
+ * Tier 2 · admin-directed project activity (client upload / comment /
+ * approval / changes requested). Fans out to the assigned admin first, then
+ * every admin (capped) so nothing a client does goes unseen. Every other
+ * notifier in this file targets the client; this is the only one aimed at
+ * the operator besides notifyContactReceived.
+ */
+const ADMIN_ACTIVITY_TITLES = {
+  upload:   "Client uploaded files",
+  comment:  "Client left a comment",
+  approval: "Client approved a milestone",
+  changes:  "Client requested changes",
+  ticket:   "Client opened a project ticket",
+}
+async function notifyAdminsProjectActivity({ project, kind, summary }) {
+  if (!project?.id) return []
+  try {
+    const admins = await prisma.user.findMany({ where: { role: "admin" }, select: { id: true }, take: 10 })
+    const ids = new Set(admins.map((a) => a.id))
+    if (project.assignedAdminId) ids.add(project.assignedAdminId)
+    const out = []
+    for (const id of ids) {
+      // eslint-disable-next-line no-await-in-loop
+      out.push(await notify(id, {
+        type: "system",
+        title: `${ADMIN_ACTIVITY_TITLES[kind] || "Project activity"} · ${project.projectName || project.id}`,
+        message: String(summary || "").slice(0, 300),
+        linkUrl: `/admin/client-projects/${project.id}`,
+      }))
+    }
+    return out
+  } catch (err) {
+    logger.error("[notifyAdminsProjectActivity]", err.message)
+    return []
+  }
+}
+
 // ── Contact ──
 
 async function notifyContactReceived(email) {
@@ -186,6 +248,9 @@ async function notifyContactReceived(email) {
 
 module.exports = {
   notify,
+  notifyMilestoneAwaitingClient,
+  notifyProjectComment,
+  notifyAdminsProjectActivity,
   notifyWelcome,
   notifyPasswordChanged,
   notifyOrderPlaced,

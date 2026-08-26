@@ -3,7 +3,11 @@ const fs   = require("fs")
 const asyncHandler = require("../utils/asyncHandler")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
+const fsp = require("fs/promises")
 const { listMyProjects, getMyProject } = require("../services/clientProjectService")
+const {
+  assertReadable, previewCanFrame, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
+} = require("../services/projectPortalService")
 const { STORAGE_PATHS } = require("../config/storagePaths")
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -48,7 +52,76 @@ const getMine = asyncHandler(async (req, res) => {
   if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
   const project = await getMyProject({ userId, projectId: req.params.id })
   if (!project) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Project not found" } })
-  res.status(200).json({ success: true, data: project })
+  try {
+    const lc = assertReadable(project)
+    res.status(200).json({
+      success: true,
+      data: {
+        ...project,
+        access: { readOnly: lc.readOnly, isClosed: lc.isClosed, expiresAt: lc.expiresAt },
+        previewCanFrame: previewCanFrame(project.previewUrl),
+      },
+    })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/* ── Tier 2 · client writes ───────────────────────────────────────────── */
+
+function portalError(res, e) {
+  if (e?.statusCode && e?.code) {
+    return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message, ...(e.details ? { details: e.details } : {}) } })
+  }
+  throw e
+}
+
+/** POST /member/projects/:id/files — multipart `files[]` (dropzone). */
+const uploadFiles = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  const files = req.files || (req.file ? [req.file] : [])
+  try {
+    const rows = await attachClientFiles({ userId, projectId: req.params.id, files, milestoneId: req.body?.milestoneId || null })
+    res.status(201).json({ success: true, data: rows })
+  } catch (e) {
+    // Never leave orphaned bytes when the DB refused the rows.
+    await Promise.all(files.map((f) => fsp.unlink(f.path).catch(() => null)))
+    return portalError(res, e)
+  }
+})
+
+/** POST /member/projects/:id/comments */
+const addComment = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const comment = await createComment({
+      projectId: req.params.id, authorId: userId, authorRole: "client",
+      body: req.body?.body, milestoneId: req.body?.milestoneId || null, fileId: req.body?.fileId || null,
+    })
+    res.status(201).json({ success: true, data: comment })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/milestones/:milestoneId/approve */
+const approve = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const ms = await approveMilestone({ userId, projectId: req.params.id, milestoneId: req.params.milestoneId, note: req.body?.note })
+    res.status(200).json({ success: true, data: ms })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/milestones/:milestoneId/request-changes */
+const requestChanges = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const ms = await requestMilestoneChanges({ userId, projectId: req.params.id, milestoneId: req.params.milestoneId, note: req.body?.note })
+    res.status(200).json({ success: true, data: ms })
+  } catch (e) { return portalError(res, e) }
 })
 
 /**
@@ -138,4 +211,7 @@ function sendProjectFile({ file, req, res, userId, action }) {
   stream.pipe(res)
 }
 
-module.exports = { listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT }
+module.exports = {
+  listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
+  uploadFiles, addComment, approve, requestChanges,
+}
