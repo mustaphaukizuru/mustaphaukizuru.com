@@ -66,6 +66,7 @@ const STORAGE_PATHS = Object.freeze({
   receipts:    path.join(STORAGE_BASE, "receipts"),
   logs:        path.join(STORAGE_BASE, "logs"),
   backups:     path.join(STORAGE_BASE, "backups"),
+  cv:          path.join(STORAGE_BASE, "cv"),
 })
 
 /** Create a storage directory on demand. Idempotent; safe to call per write. */
