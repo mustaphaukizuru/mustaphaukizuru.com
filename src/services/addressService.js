@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const { normalizeFiscal } = require("../lib/fiscal")
 
 /**
  * Address service (B08)
@@ -39,13 +40,13 @@ function validate(payload, { partial = false } = {}) {
   }
 }
 
-function normalize(payload) {
+function normalize(payload, existing = null) {
   const out = {}
   const fields = [
     "label", "fullName", "company",
     "line1", "line2",
     "city", "state", "postalCode",
-    "country", "taxId", "phone",
+    "country", "phone",
   ]
   for (const f of fields) {
     if (payload[f] === undefined) continue
@@ -54,6 +55,23 @@ function normalize(payload) {
   }
   if (out.country) out.country = out.country.toUpperCase()
   if (out.isDefault !== undefined) out.isDefault = Boolean(payload.isDefault)
+
+  // Fiscal block (CFDI 4.0 receiver data) — validated against the SAT
+  // catalogs when the address is Mexican. Each field is independently
+  // optional; a provided-but-invalid value is rejected, an empty string
+  // clears the column.
+  const country = out.country || existing?.country || "MX"
+  const fiscalKeys = ["taxId", "legalName", "regimenFiscal", "usoCfdi", "fiscalPostalCode"]
+  const fiscalInput = {}
+  for (const k of fiscalKeys) if (payload[k] !== undefined) fiscalInput[k] = payload[k]
+  if (Object.keys(fiscalInput).length > 0) {
+    const r = normalizeFiscal(fiscalInput, { country })
+    if (!r.ok) throw validationError(r.message)
+    for (const k of fiscalKeys) {
+      if (payload[k] === undefined) continue
+      out[k] = r.data[k] !== undefined ? r.data[k] : null // "" / null → clear
+    }
+  }
   return out
 }
 
@@ -105,7 +123,7 @@ async function update(userId, id, payload) {
   const existing = await prisma.address.findFirst({ where: { id, userId } })
   if (!existing) return null
 
-  const data = normalize(payload)
+  const data = normalize(payload, existing)
   const wantsDefault = data.isDefault === true
   const unDefaulting = data.isDefault === false && existing.isDefault
 

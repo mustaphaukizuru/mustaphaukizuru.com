@@ -1,5 +1,6 @@
 const prisma = require("../lib/prisma")
 const AppError = require("../utils/AppError")
+const { computeOrderTax } = require("../lib/tax")
 
 /**
  * Service orders go through the same Order pipeline as product orders — this
@@ -89,6 +90,10 @@ async function createServiceOrder({ userId, slug, packageId, requirements, prefe
   const unitPrice = safeNum(pkg.price)
   const lineTotal = unitPrice
   const orderNumber = await createUniqueOrderNumber()
+  const tax = computeOrderTax({
+    items: [{ lineTotal, taxExempt: Boolean(pkg.taxExempt ?? service.taxExempt) }],
+    discount: 0,
+  })
 
   // Transaction: Order → OrderItem → ServiceOrder
   const result = await prisma.$transaction(async (tx) => {
@@ -99,6 +104,9 @@ async function createServiceOrder({ userId, slug, packageId, requirements, prefe
         customerName:  resolvedName,
         customerEmail: resolvedEmail,
         subtotalAmount: unitPrice,
+        taxRate:        tax.taxRate,
+        taxAmount:      tax.taxAmount,
+        taxIncluded:    true,
         totalAmount:    unitPrice,
         currency:       pkg.currency || service.currency || "MXN",
         status:         "pending",

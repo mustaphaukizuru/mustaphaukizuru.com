@@ -24,7 +24,16 @@
     "companyPlaceholder": "Acme Inc.",
     "country": "Country",
     "taxId": "Tax ID (optional)",
-    "taxIdPlaceholder": "RFC, EIN, VAT, etc."
+    "taxIdPlaceholder": "RFC, EIN, VAT, etc.",
+    "fiscalTitle": "Invoice (CFDI) details",
+    "fiscalHint": "Needed only if you want a Mexican tax invoice. Copy the values from your Constancia de Situación Fiscal.",
+    "legalName": "Legal name (razón social)",
+    "legalNamePlaceholder": "As printed on your Constancia, without S.A. de C.V.",
+    "regimenFiscal": "Régimen fiscal",
+    "usoCfdi": "Uso CFDI",
+    "fiscalPostalCode": "Fiscal postal code",
+    "fiscalPostalCodePlaceholder": "5 digits",
+    "selectOption": "Select…"
   },
   "validation": {
     "nameRequired": "Please enter your name.",

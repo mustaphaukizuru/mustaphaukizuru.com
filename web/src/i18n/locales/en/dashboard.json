@@ -316,9 +316,16 @@
         "country": "Country *",
         "phone": "Phone",
         "rfc": "RFC (optional)",
-        "taxId": "Tax ID (optional)"
+        "taxId": "Tax ID (optional)",
+        "legalName": "Legal name (razón social)",
+        "regimenFiscal": "Régimen fiscal",
+        "usoCfdi": "Uso CFDI",
+        "fiscalPostalCode": "Fiscal postal code"
       },
       "placeholders": {
+        "legalName": "As on your Constancia, without S.A. de C.V.",
+        "fiscalPostalCode": "5 digits",
+        "select": "Select…",
         "label": "e.g. Home, Office",
         "fullName": "Recipient's full name",
         "company": "(optional)",
@@ -332,6 +339,7 @@
         "taxId": "VAT / EIN / local tax ID"
       },
       "rfcHint": "Registro Federal de Contribuyentes. Only needed for facturación (invoicing).",
+      "fiscalHint": "Copy these from your Constancia de Situación Fiscal; the SAT rejects invoices that don't match it.",
       "useAsDefault": "Use this as my default address for checkout",
       "saveChanges": "Save changes",
       "addAddress": "Add address",

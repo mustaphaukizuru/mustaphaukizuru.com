@@ -24,6 +24,7 @@ const PDFDocument = require("pdfkit")
 
 const prisma = require("../lib/prisma")
 const { STORAGE_PATHS } = require("../config/storagePaths")
+const { orderTaxBreakdown } = require("../lib/tax")
 
 const DEFAULT_OUT_DIR = STORAGE_PATHS.receipts
 
@@ -169,6 +170,15 @@ async function generateReceiptPdf(orderId, opts = {}) {
   }
   if (decimalToNumber(order.serviceFeeAmount) !== 0) {
     totalsRow(doc, "Service fee", formatMoney(order.serviceFeeAmount, order.currency))
+  }
+  {
+    // IVA is contained in the total (src/lib/tax.js) — show the split so the
+    // receipt can back a CFDI later, without changing what was charged.
+    const tb = orderTaxBreakdown(order)
+    if (tb.tax > 0) {
+      totalsRow(doc, "Net (before IVA)", formatMoney(tb.net, order.currency))
+      totalsRow(doc, `IVA ${tb.ratePct}% (included)`, formatMoney(tb.tax, order.currency))
+    }
   }
 
   // Final total — emphasised

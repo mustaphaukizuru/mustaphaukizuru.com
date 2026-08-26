@@ -13,6 +13,7 @@ import { useToast } from "../context/ToastContext"
 import useApiQuery from "../hooks/useApiQuery"
 import { EmptyState, SectionCard, SkeletonCard } from "../components/ui/index"
 import ProfileTabs from "../components/dashboard/ProfileTabs"
+import { REGIMEN_FISCAL, USO_CFDI } from "../lib/fiscalCatalog"
 
 /* I18N · Phase 119C — strings keyed under `dashboard.addresses.*`. The
  * AddressFormModal scopes its own useTranslation hook so all field
@@ -30,6 +31,10 @@ const EMPTY_FORM = {
   postalCode: "",
   country: "MX",
   taxId: "",
+  legalName: "",
+  regimenFiscal: "",
+  usoCfdi: "",
+  fiscalPostalCode: "",
   phone: "",
   isDefault: false,
 }
@@ -358,6 +363,46 @@ function AddressFormModal({ address, onClose, onSaved }) {
                 className="sm:col-span-2"
                 hint={t("addresses.form.rfcHint")}
               />
+            )}
+            {isMexico && form.taxId?.trim() && (
+              <>
+                <Field
+                  label={t("addresses.form.labels.legalName")}
+                  placeholder={t("addresses.form.placeholders.legalName")}
+                  value={form.legalName || ""}
+                  onChange={(v) => update("legalName", v.toUpperCase())}
+                  className="sm:col-span-2"
+                />
+                <div>
+                  <label className="mb-1.5 block text-micro font-semibold text-violet">{t("addresses.form.labels.regimenFiscal")}</label>
+                  <select
+                    value={form.regimenFiscal || ""}
+                    onChange={(e) => update("regimenFiscal", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
+                  >
+                    <option value="">{t("addresses.form.placeholders.select")}</option>
+                    {REGIMEN_FISCAL.map(([code, name]) => <option key={code} value={code}>{code} · {name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-micro font-semibold text-violet">{t("addresses.form.labels.usoCfdi")}</label>
+                  <select
+                    value={form.usoCfdi || ""}
+                    onChange={(e) => update("usoCfdi", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/20 bg-mist px-4 py-3 text-meta text-violet outline-none focus:border-violet/40"
+                  >
+                    <option value="">{t("addresses.form.placeholders.select")}</option>
+                    {USO_CFDI.map(([code, name]) => <option key={code} value={code}>{code} · {name}</option>)}
+                  </select>
+                </div>
+                <Field
+                  label={t("addresses.form.labels.fiscalPostalCode")}
+                  placeholder={t("addresses.form.placeholders.fiscalPostalCode")}
+                  value={form.fiscalPostalCode || ""}
+                  onChange={(v) => update("fiscalPostalCode", v.replace(/\D/g, "").slice(0, 5))}
+                  hint={t("addresses.form.fiscalHint")}
+                />
+              </>
             )}
             {!isMexico && (
               <Field

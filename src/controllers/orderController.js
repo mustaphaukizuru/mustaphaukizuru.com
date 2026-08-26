@@ -35,6 +35,12 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const createOrder = asyncHandler(async (req, res) => {
   const { customerName, customerEmail, items, couponCode } = req.body
+  // Billing / fiscal block — previously collected by the checkout form and
+  // silently dropped here, so no order ever carried an RFC or country.
+  const {
+    country, company, taxId, legalName, regimenFiscal, usoCfdi, fiscalPostalCode,
+    city, state, postalCode,
+  } = req.body.billing || req.body
 
   if (!customerEmail || !String(customerEmail).trim()) {
     return res.status(400).json({
@@ -105,14 +111,15 @@ const createOrder = asyncHandler(async (req, res) => {
       items,
       couponCode,
       idempotencyKey,
+      billing: { country, company, taxId, legalName, regimenFiscal, usoCfdi, fiscalPostalCode, city, state, postalCode },
     })
   } catch (err) {
     // Surface coupon-validation failures as 400 with a clean shape so the
     // frontend can display the message inline without parsing stack traces.
-    if (err?.code === "COUPON_INVALID") {
+    if (err?.code === "COUPON_INVALID" || err?.code === "VALIDATION_ERROR") {
       return res.status(400).json({
         success: false,
-        code:    "COUPON_INVALID",
+        code:    err.code,
         message: err.message,
       })
     }
