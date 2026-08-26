@@ -3,7 +3,7 @@
 # v2.1 · 2026-08-24 · backend tests · frontend lint + build · Lighthouse CI
 #
 # Gates:
-#   - Backend: npm ci → prisma generate → npm audit (moderate+) → npm test
+#   - Backend: npm ci → prisma generate → audit gate (backend + web, moderate+) → npm test
 #   - Frontend: npm ci → npm run lint → npm run build (emits to repo-root public/)
 #   - Lighthouse: `lhci autorun` against the built public/ dir, desktop
 #     (lighthouserc.json, perf ≥ 0.95) and mobile (lighthouserc.mobile.json,
@@ -62,7 +62,11 @@ jobs:
       # docs/LAUNCH_HANDOVER_2026-08.md section 8). Plain
       # `npm audit --audit-level=moderate` fails on those permanently, and a
       # permanently red gate stops catching the advisories that do matter.
-      - name: Audit backend dependencies
+      # Q5: the gate audits web/ too. `npm audit` only needs the lockfile, so
+      # no second install — the frontend job never looked at advisories at
+      # all, which is how 24 advisories (13 high: react-router, vite, postcss,
+      # nanoid) sat in the SPA's production deps unnoticed.
+      - name: Audit dependencies (backend + web)
         run: node scripts/audit-gate.js
 
       - name: Run backend tests

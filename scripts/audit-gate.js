@@ -47,10 +47,24 @@ const ALLOWED = {
   },
 }
 
-function audit() {
+/**
+ * Both package trees are audited from one place. The frontend was not
+ * gated at all until Q5: `web/` had 5 high-severity advisories in its
+ * PRODUCTION deps (24 advisories, 13 high — react-router, vite, postcss,
+ * nanoid; all fixed by within-major bumps) and CI never looked, because this
+ * script ran only for the backend. `npm audit`
+ * needs package.json + package-lock.json, not node_modules, so the web
+ * tree can be audited from the backend job without a second install.
+ */
+const TARGETS = [
+  { dir: ".",   label: "backend"  },
+  { dir: "web", label: "frontend" },
+]
+
+function audit(cwd = ".") {
   try {
     return execFileSync("npm", ["audit", "--omit=dev", "--json"], {
-      encoding: "utf8", maxBuffer: 32 * 1024 * 1024, shell: process.platform === "win32",
+      cwd, encoding: "utf8", maxBuffer: 32 * 1024 * 1024, shell: process.platform === "win32",
     })
   } catch (err) {
     // npm exits non-zero when vulnerabilities exist — the JSON is still on stdout.
@@ -59,14 +73,21 @@ function audit() {
   }
 }
 
-const report = JSON.parse(audit())
+// One advisory map across both trees, keyed by GHSA id. An advisory that
+// appears in both is reported once, tagged with every tree it was found in,
+// and an ALLOWED entry applies wherever that id shows up.
 const found = new Map()
 
-for (const vuln of Object.values(report.vulnerabilities || {})) {
-  for (const via of vuln.via || []) {
-    if (typeof via !== "object" || !via.url) continue
-    const id = via.url.split("/").pop()
-    if (!found.has(id)) found.set(id, { id, name: via.name, severity: via.severity, url: via.url })
+for (const { dir, label } of TARGETS) {
+  const report = JSON.parse(audit(dir))
+  for (const vuln of Object.values(report.vulnerabilities || {})) {
+    for (const via of vuln.via || []) {
+      if (typeof via !== "object" || !via.url) continue
+      const id = via.url.split("/").pop()
+      const entry = found.get(id) || { id, name: via.name, severity: via.severity, url: via.url, trees: new Set() }
+      entry.trees.add(label)
+      found.set(id, entry)
+    }
   }
 }
 
@@ -89,7 +110,7 @@ if (stale.length) {
 
 if (blocking.length) {
   console.error(`\n${blocking.length} advisory(ies) at or above "${MIN_LEVEL}" are NOT allow-listed:\n`)
-  for (const a of blocking) console.error(`  ${a.severity.padEnd(9)} ${a.name.padEnd(18)} ${a.url}`)
+  for (const a of blocking) console.error(`  ${a.severity.padEnd(9)} ${a.name.padEnd(18)} [${[...a.trees].join("+")}]  ${a.url}`)
   console.error("\nFix them, or add an entry to ALLOWED in scripts/audit-gate.js with a written reason.")
   process.exit(1)
 }
