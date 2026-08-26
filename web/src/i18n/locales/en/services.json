@@ -174,6 +174,18 @@
       "offeringsSubtitle": "Pick the closest match; the call refines the scope.",
       "finalTitle": "Ready to talk about {{name}}?",
       "otherCategories": "Other service lines:"
+    },
+    "leadCapture": {
+      "eyebrow": "Not ready to book?",
+      "title": "Take the service catalogue with you",
+      "body": "Every offering, price range and what you get — in one PDF. Leave your email and I will send it now, plus one practical note a month on getting real work out of AI and automation. No spam, unsubscribe in one click.",
+      "placeholder": "you@company.com",
+      "button": "Send me the catalogue",
+      "success": "Check your inbox to confirm — your catalogue is ready below.",
+      "download": "Open the catalogue (PDF)",
+      "invalid": "Please enter a valid email address.",
+      "error": "Something went wrong. Please try again.",
+      "privacy": "Double opt-in: you confirm by email before anything else is sent."
     }
   },
   "booking": {
