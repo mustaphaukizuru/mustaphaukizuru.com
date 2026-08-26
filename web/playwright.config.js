@@ -27,6 +27,11 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:4173",
     trace: "on-first-retry",
+    // The PWA service worker takes over after the first full navigation
+    // (the gateway redirect back to /checkout/success) and answers /api/*
+    // from its own fetch handler, which page.route() never sees — the stubs
+    // silently stop working mid-test. Block it; the SW has its own tests.
+    serviceWorkers: "block",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {

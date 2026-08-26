@@ -11,6 +11,7 @@ import { apiRequest, getStoredUser } from "../lib/api"
 import { formatPrice } from "../lib/format"
 import { fetchMyOrderById } from "../services/orderService"
 import { trackPurchase } from "../lib/analytics"
+import Related from "../components/product/Related"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import { downloadFileById, downloadInvoice, downloadErrorKey } from "../components/product/downloadHelpers"
 import Confetti from "../components/motion/Confetti"
@@ -185,6 +186,24 @@ export default function CheckoutSuccessPage() {
     })()
     return () => { cancelled = true }
   }, [orderId, phase, signedIn, t])
+
+  // S6 · post-purchase upsell. The buyer has just proven intent in this
+  // category, so the same "related" ranking the product page uses is the
+  // cheapest lift available. Best-effort: never blocks the receipt.
+  const [upsell, setUpsell] = useState([])
+  useEffect(() => {
+    const purchased = (order?.items || []).map((it) => it.product?.slug).filter(Boolean)
+    if (phase !== "paid" || purchased.length === 0) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const json = await apiRequest(`/api/products/${encodeURIComponent(purchased[0])}/related`)
+        const items = (Array.isArray(json?.data) ? json.data : []).filter((p) => p?.slug && !purchased.includes(p.slug))
+        if (!cancelled) setUpsell(items)
+      } catch { /* upsell is optional */ }
+    })()
+    return () => { cancelled = true }
+  }, [phase, order])
 
   // G4 · last funnel step. Recorded once per page load, as soon as the
   // gateway confirms payment — with the enriched order when the owner is
@@ -542,6 +561,13 @@ export default function CheckoutSuccessPage() {
                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" /> {t("success.accessDashboard")}
               </Link>
             </m.div>
+
+            {/* S6 · "You may also like" — related to what was just bought */}
+            {upsell.length > 0 && (
+              <m.div variants={fadeUp}>
+                <Related items={upsell} />
+              </m.div>
+            )}
 
             <m.div variants={fadeUp} className="flex items-center justify-center">
               <Link to="/store" className="inline-flex items-center gap-1.5 rounded-md text-meta font-medium text-charcoal-80/65 hover:text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2">

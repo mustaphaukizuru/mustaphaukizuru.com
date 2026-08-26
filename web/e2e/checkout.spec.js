@@ -27,6 +27,8 @@ const PRODUCT = {
   isActive: true,
 }
 
+const UPSELL = { ...PRODUCT, id: "prod_e2e_2", slug: "e2e-toolkit", title: "E2E Ops Toolkit", price: 299 }
+
 const ORDER_ID = "ord_e2e_001"
 
 /** Seed a signed-in session the way the SPA recognises one (auth-user cache + csrf cookie). */
@@ -67,6 +69,7 @@ async function stubApi(page, { orderStatus = 201 } = {}) {
   await page.route("**/api/**/member/addresses**", (route) => route.fulfill(ok([])))
   await page.route("**/api/**/products/featured**", (route) => route.fulfill(ok([PRODUCT])))
   await page.route(`**/api/**/products/${PRODUCT.slug}`, (route) => route.fulfill(ok(PRODUCT)))
+  await page.route(`**/api/**/products/${PRODUCT.slug}/related`, (route) => route.fulfill(ok([UPSELL, PRODUCT])))
   await page.route("**/api/**/products", (route) => route.fulfill(ok([PRODUCT])))
   await page.route("**/api/**/products?**", (route) => route.fulfill(ok([PRODUCT])))
 
@@ -103,7 +106,7 @@ async function stubApi(page, { orderStatus = 201 } = {}) {
     route.fulfill(ok({
       id: ORDER_ID, orderNumber: "MU-E2E-1", status: "paid", totalAmount: PRODUCT.price, currency: "MXN",
       paymentProvider: "mercadopago", createdAt: new Date(0).toISOString(),
-      items: [{ id: "oi_1", productId: PRODUCT.id, titleSnapshot: PRODUCT.title, unitPrice: PRODUCT.price, quantity: 1 }],
+      items: [{ id: "oi_1", productId: PRODUCT.id, titleSnapshot: PRODUCT.title, unitPrice: PRODUCT.price, quantity: 1, product: { id: PRODUCT.id, slug: PRODUCT.slug, title: PRODUCT.title } }],
       downloads: [],
     })))
 
@@ -148,6 +151,11 @@ test.describe("checkout funnel", () => {
     await expect(page).toHaveURL(new RegExp(`/checkout/success/${ORDER_ID}`))
     await expect(page.getByRole("heading", { name: /thank you for your order/i })).toBeVisible()
     await expect(page.getByText("MU-E2E-1").first()).toBeVisible()
+
+    // S6 · post-purchase upsell: related to what was bought, minus what was bought.
+    await expect(page.getByRole("heading", { name: /you may also like/i })).toBeVisible()
+    await expect(page.getByRole("link", { name: new RegExp(UPSELL.title) })).toBeVisible()
+    await expect(page.getByRole("link", { name: new RegExp(`^${PRODUCT.title}`) })).toHaveCount(0)
   })
 
   test("a visitor without a session is sent to login before checkout", async ({ page }) => {
