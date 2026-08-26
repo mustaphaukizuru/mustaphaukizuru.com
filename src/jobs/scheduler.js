@@ -35,6 +35,7 @@ const { runReminderPass } = require("./bookingReminderJob")
 const { cancelStaleOrders } = require("./cancelStaleOrders")
 const { runCampaignSenderPass } = require("./campaignSenderJob")
 const { runEmailRetryPass } = require("./emailRetryJob")
+const { runBackupPass } = require("./backupDatabaseJob")
 
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
@@ -109,6 +110,23 @@ function startScheduler() {
     logger.info("[scheduler] registered email retry pass · every 5 min")
   } catch (err) {
     logger.error("[scheduler] failed to register emailRetryJob", err)
+  }
+
+  // ── D1 · Nightly database backup · 03:30 UTC ────────────────────────
+  // A JSON dump of every table to persistent storage, pruned to the newest
+  // 14. The backup script existed and worked; it just never ran unless
+  // someone remembered — and with .env pointing at production and no dev
+  // database, "a backup exists" and "a backup ran last night" were very
+  // different guarantees. 03:30 UTC is after the 00:15 analytics roll-up
+  // and the quietest hour for a Mexico-based audience. UTC for the same
+  // reason as the aggregation: a TZ change must not silently move it.
+  // The job probes the DB first and skips (loudly) rather than write a
+  // partial file if the connection is dead.
+  try {
+    cron.schedule("30 3 * * *", () => guarded("databaseBackup", () => runBackupPass()), { timezone: "UTC" })
+    logger.info("[scheduler] registered nightly database backup · 03:30 UTC")
+  } catch (err) {
+    logger.error("[scheduler] failed to register backupDatabaseJob", err)
   }
 }
 
