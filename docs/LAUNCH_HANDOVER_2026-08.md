@@ -337,3 +337,28 @@ dependency and the upgrade proved safe.
 Re-check with `npm audit --omit=dev` after any dependency change. Do not run
 `npm audit fix --force` blindly: it would take Prisma and node-cron across
 majors and break the DB layer and the scheduler.
+
+## 9. Index review against real query shapes (D2, 2026-08-26)
+
+The backlog asked for EXPLAIN on the hot queries rather than a schema
+read. `scripts/explain-hot-queries.js` does that: it runs read-only
+`EXPLAIN` on 19 query shapes taken from `src/` (contact inbox, campaign
+audience, notifications, EmailLog dedupe and retry, abandoned carts, member
+cart, payment KPIs, admin/member orders, store listing, related products,
+funnel, reviews, consultations) and prints the access type, chosen key and
+row estimate per table. It resolves `@@map` (Review → `product_reviews`)
+and flags a full scan only on tables over 500 rows.
+
+    node scripts/explain-hot-queries.js
+
+Result on production, 2026-08-26: **0 full scans on tables over 500 rows.**
+Every table except `PageView` (~1,675 rows) has fewer than 10 rows, and the
+three tables that do scan (`ContactMessage`, `NewsletterSubscriber`,
+`Payment`) are scanned because they are empty or nearly so — the optimizer
+prefers a scan to a seek there, and an index would not be used. Adding
+compound indexes now would be guessing; the shapes the data will eventually
+need are already in the script, so re-run it when the tables have real
+volume and add indexes for whatever it flags.
+
+Verified in the same pass: the 72 Prisma models match the 72 production
+tables exactly (no schema drift).
