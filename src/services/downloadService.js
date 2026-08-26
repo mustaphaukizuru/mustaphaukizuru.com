@@ -244,6 +244,7 @@ async function getDownloadLibraryForUser(userId) {
           invoice: { select: { id: true } },
         },
       },
+      orderItem: { select: { licenseTier: true, licenseKey: true } },
       product: {
         select: {
           id: true, title: true, slug: true, isActive: true, updatedAt: true, version: true,
@@ -299,6 +300,8 @@ async function getDownloadLibraryForUser(userId) {
       imageAlt:          e.product.images?.[0]?.altText || null,
       entitlementStatus: e.downloadAccessStatus,
       lastDownloadedAt:  e.lastDownloadedAt,
+      licenseTier:       e.orderItem?.licenseTier || null,
+      licenseKey:        e.orderItem?.licenseKey || null,
       files: files.map((f) => {
         const consumed = consumedByFile.get(f.id) || 0
         return {

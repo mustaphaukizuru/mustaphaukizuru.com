@@ -101,6 +101,23 @@ function serializeProduct(product) {
 
   const primaryFile = files.find((f) => f.isPrimary) || files[0] || null
 
+  // T3 · tiered licences (active only, lowest sortOrder first)
+  const licenses = Array.isArray(product.licenses)
+    ? product.licenses
+        .filter((l) => l && l.isActive !== false)
+        .sort((a, b) => safeNum(a.sortOrder) - safeNum(b.sortOrder))
+        .map((l) => ({
+          id:             l.id,
+          tier:           l.tier,
+          name:           l.name,
+          price:          safeNum(l.price),
+          priceFormatted: formatPrice(l.price, l.currency || product.currency),
+          currency:       l.currency || product.currency || "MXN",
+          seats:          l.seats ?? null,
+          sortOrder:      safeNum(l.sortOrder),
+        }))
+    : []
+
   // Full category object when categoryRef is included, fallback to legacy string.
   const categoryObject = product.categoryRef
     ? {
@@ -128,6 +145,7 @@ function serializeProduct(product) {
     files,
     reviews,
     tags,
+    licenses,
     categoryRef:    categoryObject,
     fileType:       primaryFile?.fileType || product.fileType || null,
     deliveryType:   product.deliveryType || (product.productType === "service" ? "Scheduled service" : "Instant access"),
@@ -227,6 +245,7 @@ async function getProductBySlug(slug, locale = "en") {
       images:      { orderBy: { sortOrder: "asc" } },
       features:    { orderBy: { sortOrder: "asc" } },
       files:       { orderBy: { isPrimary: "desc" } },
+      licenses:    { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
       categoryRef: { select: { id: true, name: true, slug: true } },
       tags:        { include: { tag: { select: { id: true, name: true, slug: true } } } },
       reviews: {
@@ -582,4 +601,6 @@ module.exports = {
   getAllProductsUncached,
   getCategoriesUncached,
   getFeaturedProductsUncached,
+  // T3 · exported for unit tests
+  serializeProduct,
 }

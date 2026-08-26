@@ -419,7 +419,11 @@ export default function CheckoutPage() {
         usoCfdi:          form.usoCfdi || undefined,
         fiscalPostalCode: form.fiscalPostalCode || undefined,
       } : {}),
-      items: cartItems.map((i) => ({ productId: i.id, quantity: i.quantity })),
+      items: cartItems.map((i) => ({
+        productId: i.id,
+        quantity: i.quantity,
+        ...(i.licenseTier ? { licenseTier: i.licenseTier } : {}),
+      })),
       couponCode,
     })
     setOrderCreated(order)

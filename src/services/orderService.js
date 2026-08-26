@@ -1,5 +1,6 @@
 const prisma = require("../lib/prisma")
 const AppError = require("../utils/AppError")
+const { mintLicenseKey } = require("../utils/licenseKey")
 const { countConsumedByFile, computeDownloadsRemaining } = require("./downloadService")
 const { validateCoupon, calculateDiscount } = require("./couponService")
 const { computeOrderTax } = require("../lib/tax")
@@ -153,6 +154,8 @@ async function createOrder(payload) {
   const billingSnapshot = buildBillingSnapshot(billing)
 
   const productIds = items.map((item) => item.productId)
+  // T3 · licence tiers requested per line ("" / null = base price)
+  const wantsTier = items.some((item) => item.licenseTier)
 
   const products = await prisma.product.findMany({
     where: {
@@ -162,6 +165,7 @@ async function createOrder(payload) {
     include: {
       images: { orderBy: { sortOrder: "asc" } },
       files:  true,
+      ...(wantsTier ? { licenses: { where: { isActive: true } } } : {}),
     },
   })
 
@@ -183,7 +187,19 @@ async function createOrder(payload) {
       throw AppError.badRequest(`Quantity for ${product.title} exceeds the maximum of ${MAX_QUANTITY_PER_ITEM}`, "VALIDATION_ERROR")
     }
 
-    const unitPrice = Number(product.price)
+    // T3 · tiered licensing: price from the chosen active licence, never
+    // from the client. An unknown/inactive tier is a hard validation error.
+    let licenseTier = null
+    let unitPrice = Number(product.price)
+    if (item.licenseTier) {
+      const tier = String(item.licenseTier).trim().toLowerCase()
+      const license = (product.licenses || []).find((l) => l.tier === tier && l.isActive)
+      if (!license) {
+        throw AppError.badRequest(`License tier "${tier}" is not available for ${product.title}`, "LICENSE_TIER_INVALID")
+      }
+      licenseTier = license.tier
+      unitPrice   = Number(license.price)
+    }
     const lineTotal = unitPrice * quantity
 
     return {
@@ -196,6 +212,7 @@ async function createOrder(payload) {
       unitPrice,
       lineTotal,
       taxExempt: Boolean(product.taxExempt),
+      licenseTier,
     }
   })
 
@@ -268,6 +285,7 @@ async function createOrder(payload) {
             price:          item.price,
             unitPrice:      item.unitPrice,
             lineTotal:      item.lineTotal,
+            licenseTier:    item.licenseTier,
           })),
         },
       },
@@ -284,6 +302,16 @@ async function createOrder(payload) {
         },
       },
     })
+
+    // T3 · mint licence keys. The key is an HMAC of the order-item id, so it
+    // can only exist once the row does — hence a second write inside the
+    // same transaction rather than a value in the nested create.
+    for (const orderItem of created.items || []) {
+      if (!orderItem.licenseTier || orderItem.licenseKey) continue
+      const licenseKey = mintLicenseKey(orderItem.id)
+      await tx.orderItem.update({ where: { id: orderItem.id }, data: { licenseKey } })
+      orderItem.licenseKey = licenseKey
+    }
 
     if (appliedCoupon) {
       // Race-safe consumption · optimistic lock on usedCount. validateCoupon

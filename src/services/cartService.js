@@ -121,6 +121,7 @@ function serializeCart(cart) {
     serviceId:     item.serviceId,
     titleSnapshot: item.titleSnapshot,
     priceSnapshot: toNumber(item.priceSnapshot),
+    licenseTier:   item.licenseTier || null,
     quantity:      item.quantity,
     product:       item.product
       ? {
@@ -206,8 +207,9 @@ async function getCart(userId) {
  * the cart is stable even if the product price changes later.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-async function addItem(userId, { productId, serviceId, quantity = 1 }) {
+async function addItem(userId, { productId, serviceId, quantity = 1, licenseTier = null }) {
   const qty = Math.max(1, Math.floor(Number(quantity) || 1))
+  const tier = licenseTier ? String(licenseTier).trim().toLowerCase() : null
 
   if (!productId && !serviceId) {
     throw new AppError("productId or serviceId is required", { statusCode: 400, code: "VALIDATION_ERROR" })
@@ -229,7 +231,18 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
     itemType      = "product"
     titleSnapshot = product.title
     priceSnapshot = product.price
+    // T3 · tiered licensing: the tier must be an active licence of this
+    // product and its price replaces the base price in the snapshot.
+    if (tier) {
+      const license = await prisma.productLicense.findFirst({
+        where: { productId, tier, isActive: true },
+        select: { tier: true, price: true },
+      })
+      if (!license) throw new AppError("License tier not available for this product", { statusCode: 400, code: "LICENSE_TIER_INVALID" })
+      priceSnapshot = license.price
+    }
   } else {
+    if (tier) throw new AppError("licenseTier only applies to products", { statusCode: 400, code: "VALIDATION_ERROR" })
     const service = await prisma.service.findUnique({
       where:  { id: serviceId },
       select: { id: true, title: true, basePrice: true, status: true },
@@ -247,6 +260,7 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
       itemType,
       productId: productId || null,
       serviceId: serviceId || null,
+      licenseTier: tier,
     },
   })
 
@@ -264,6 +278,7 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
         serviceId: serviceId || null,
         titleSnapshot,
         priceSnapshot,
+        licenseTier: tier,
         quantity:  qty,
       },
     })
@@ -331,14 +346,14 @@ async function mergeGuestCart(userId, items = []) {
     const qty = Math.max(1, Math.floor(Number(raw.quantity) || 1))
     try {
       if (raw.productId) {
-        await addItem(userId, { productId: raw.productId, quantity: qty })
+        await addItem(userId, { productId: raw.productId, quantity: qty, licenseTier: raw.licenseTier || null })
         results.merged++
       } else if (raw.serviceId) {
         await addItem(userId, { serviceId: raw.serviceId, quantity: qty })
         results.merged++
       } else if (raw.id) {
         // Guest carts traditionally use product id as `id`. Try that path.
-        await addItem(userId, { productId: raw.id, quantity: qty })
+        await addItem(userId, { productId: raw.id, quantity: qty, licenseTier: raw.licenseTier || null })
         results.merged++
       } else {
         results.skipped++

@@ -2,6 +2,7 @@
 const fs = require("fs")
 const path = require("path")
 const prisma = require("../lib/prisma")
+const AppError = require("../utils/AppError")
 const { PRODUCT_FILE_DIR } = require("../middleware/uploadProductFile")
 const { PRODUCT_IMAGE_DIR } = require("../middleware/uploadProductImage")
 
@@ -64,6 +65,45 @@ async function getAdminProducts() {
   return rows.map((p) => ({ ...p, isDeleted: p.deletedAt != null }))
 }
 
+/* ────────────────────────────────────────────────────────────────────────────
+ * T3 · Tiered licences (personal | commercial | enterprise)
+ * The admin form sends `licenses: [{ tier, name, price, currency?, seats?,
+ * isActive?, sortOrder? }]`. Unknown tiers / bad prices are rejected up
+ * front so a half-valid list never lands.
+ * ──────────────────────────────────────────────────────────────────────────── */
+const LICENSE_TIERS = ["personal", "commercial", "enterprise"]
+
+function sanitizeLicenses(licenses) {
+  if (!Array.isArray(licenses)) return undefined
+  const seen = new Set()
+  return licenses
+    .filter((l) => l && typeof l === "object")
+    .map((l, index) => {
+      const tier = String(l.tier || "").trim().toLowerCase()
+      if (!LICENSE_TIERS.includes(tier)) {
+        throw new AppError(`Unknown license tier "${tier}". Use one of: ${LICENSE_TIERS.join(", ")}`, { statusCode: 400, code: "VALIDATION_ERROR" })
+      }
+      if (seen.has(tier)) {
+        throw new AppError(`Duplicate license tier "${tier}"`, { statusCode: 400, code: "VALIDATION_ERROR" })
+      }
+      seen.add(tier)
+      const price = Number(l.price)
+      if (!Number.isFinite(price) || price < 0) {
+        throw new AppError(`Invalid price for license tier "${tier}"`, { statusCode: 400, code: "VALIDATION_ERROR" })
+      }
+      const seats = l.seats === "" || l.seats == null ? null : Math.max(1, Math.floor(Number(l.seats) || 1))
+      return {
+        tier,
+        name:      String(l.name || "").trim() || `${tier.charAt(0).toUpperCase()}${tier.slice(1)} license`,
+        price,
+        currency:  String(l.currency || "MXN").trim().toUpperCase().slice(0, 3) || "MXN",
+        seats,
+        isActive:  l.isActive === undefined ? true : Boolean(l.isActive),
+        sortOrder: Number.isFinite(Number(l.sortOrder)) ? Number(l.sortOrder) : index,
+      }
+    })
+}
+
 async function createAdminProduct(payload) {
   const {
     title,
@@ -81,7 +121,10 @@ async function createAdminProduct(payload) {
     // F04 · I + K — admin form sends these JSON arrays
     specifications,
     productFaqs,
+    licenses,
   } = payload
+
+  const licenseRows = sanitizeLicenses(licenses)
 
   return prisma.product.create({
     data: {
@@ -113,6 +156,7 @@ async function createAdminProduct(payload) {
             sortOrder: index,
           })),
       },
+      ...(licenseRows && licenseRows.length ? { licenses: { create: licenseRows } } : {}),
     },
     include: {
       images: {
@@ -122,6 +166,9 @@ async function createAdminProduct(payload) {
         orderBy: { isPrimary: "desc" },
       },
       features: {
+        orderBy: { sortOrder: "asc" },
+      },
+      licenses: {
         orderBy: { sortOrder: "asc" },
       },
     },
@@ -144,7 +191,10 @@ async function updateAdminProduct(productId, payload) {
     // F04 · I + K — admin form sends these JSON arrays
     specifications,
     productFaqs,
+    licenses,
   } = payload
+
+  const licenseRows = sanitizeLicenses(licenses)
 
   const data = {
     title,
@@ -188,6 +238,17 @@ async function updateAdminProduct(productId, payload) {
     }
   }
 
+  // T3 · licences: replace the full set when the payload includes one.
+  // (`undefined` = field omitted → leave existing rows alone.)
+  if (licenseRows) {
+    await prisma.productLicense.deleteMany({ where: { productId } })
+    if (licenseRows.length > 0) {
+      await prisma.productLicense.createMany({
+        data: licenseRows.map((l) => ({ ...l, productId })),
+      })
+    }
+  }
+
   return prisma.product.update({
     where: { id: productId },
     data,
@@ -199,6 +260,9 @@ async function updateAdminProduct(productId, payload) {
         orderBy: { isPrimary: "desc" },
       },
       features: {
+        orderBy: { sortOrder: "asc" },
+      },
+      licenses: {
         orderBy: { sortOrder: "asc" },
       },
     },
@@ -283,6 +347,9 @@ async function getAdminProductById(productId) {
         orderBy: { isPrimary: "desc" },
       },
       features: {
+        orderBy: { sortOrder: "asc" },
+      },
+      licenses: {
         orderBy: { sortOrder: "asc" },
       },
     },

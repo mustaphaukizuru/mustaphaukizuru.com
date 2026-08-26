@@ -18,4 +18,6 @@ export const productSchema = z.object({
   features: z.array(z.string()).default([]),
   specifications: z.array(z.object({}).passthrough()).default([]),
   productFaqs: z.array(z.object({}).passthrough()).default([]),
+  // T3 · tiered licences: [{ tier, name, price, currency, seats, isActive }]
+  licenses: z.array(z.object({}).passthrough()).default([]),
 }).passthrough()
