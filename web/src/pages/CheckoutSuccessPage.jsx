@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useParams, useSearchParams } from "react-router-dom"
 import { m } from "framer-motion"
@@ -10,6 +10,7 @@ import { useCart } from "../store/CartContext"
 import { apiRequest, getStoredUser } from "../lib/api"
 import { formatPrice } from "../lib/format"
 import { fetchMyOrderById } from "../services/orderService"
+import { trackPurchase } from "../lib/analytics"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import { downloadFileById, downloadInvoice, downloadErrorKey } from "../components/product/downloadHelpers"
 import Confetti from "../components/motion/Confetti"
@@ -184,6 +185,18 @@ export default function CheckoutSuccessPage() {
     })()
     return () => { cancelled = true }
   }, [orderId, phase, signedIn, t])
+
+  // G4 · last funnel step. Recorded once per page load, as soon as the
+  // gateway confirms payment — with the enriched order when the owner is
+  // signed in (amount + items), or bare when only the id is known, so the
+  // purchase is still counted.
+  const purchaseTracked = useRef(false)
+  useEffect(() => {
+    if (phase !== "paid" || purchaseTracked.current) return
+    if (signedIn && orderLoading) return
+    purchaseTracked.current = true
+    trackPurchase(order || { id: orderId })
+  }, [phase, signedIn, orderLoading, order, orderId])
 
   async function handleDownload(dl) {
     const id = dl.productFileId

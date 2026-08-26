@@ -24,16 +24,17 @@ exports.trackEvent = asyncHandler(async (req, res) => {
 exports.adminDashboard = asyncHandler(async (req, res) => {
   const daysBack = Math.min(365, Math.max(1, Number(req.query.days) || 30))
 
-  const [kpis, topPaths, daily, devices] = await Promise.all([
+  const [kpis, topPaths, daily, devices, funnel] = await Promise.all([
     analyticsService.getDashboardKpis({ daysBack }),
     analyticsService.getTopPaths({ daysBack, limit: 10 }),
     analyticsService.getDailyTimeSeries({ daysBack }),
     analyticsService.getDeviceBreakdown({ daysBack }),
+    analyticsService.getFunnel({ daysBack }),
   ])
 
   res.json({
     success: true,
-    data: { kpis, topPaths, daily, devices, daysBack },
+    data: { kpis, topPaths, daily, devices, funnel, daysBack },
   })
 })
 
