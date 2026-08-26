@@ -107,6 +107,14 @@ jobs:
         working-directory: web
         run: npm run lint:contrast
 
+      # U4 — elevation-scale lock. The 249 arbitrary shadow values were
+      # collapsed onto a 14-token scale (PR #55); the 173 deliberate one-offs
+      # that remain are committed as a baseline. This fails only when a NEW
+      # raw `shadow-[...]` value appears instead of a scale step.
+      - name: Shadow ratchet
+        working-directory: web
+        run: npm run lint:shadows
+
       - name: Lint
         working-directory: web
         run: npm run lint
