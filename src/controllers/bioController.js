@@ -45,3 +45,10 @@ exports.cvPdf = asyncHandler(async (req, res) => {
   })
   res.send(buffer)
 })
+
+/** GET /bio/proof — public social-proof counters (Tier 3). */
+exports.proof = asyncHandler(async (_req, res) => {
+  const data = await bioService.getProof()
+  res.set("Cache-Control", "public, max-age=600, stale-while-revalidate=1200")
+  res.json({ success: true, data })
+})

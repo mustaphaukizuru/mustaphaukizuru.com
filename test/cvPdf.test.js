@@ -183,7 +183,8 @@ describe("bioController.cvPdf", () => {
       json: jest.fn(),
     }
     const next = jest.fn()
-    await ctrl.cvPdf({ query: { lang: "es", track: "support" } }, res, next)
+    ctrl.cvPdf({ query: { lang: "es", track: "support" } }, res, next)
+    await new Promise((r) => setImmediate(r))
 
     expect(mocked).toHaveBeenCalledWith({ lang: "es", track: "support" })
     expect(next).not.toHaveBeenCalled()

@@ -34,40 +34,40 @@ export const processSteps = [
   { key: "launch",   icon: Rocket },
 ]
 
-/* Trust layer (step 28) — named testimonials with role + company.
+/* Trust layer (step 28) — testimonials come from the DB.
  *
- * PLACEHOLDER ENTRIES. The previous anonymised quotes ("Aline M.") carried
- * no company attribution, so they could not satisfy the named-testimonial
- * requirement. Each entry below is marked `placeholder: true` and renders a
- * `data-placeholder` attribute; the owner replaces name/role/company/quote
- * in home.json (EN + ES, under testimonials.items.<key>) and flips the flag
- * to false. Never ship these as real social proof. */
-/**
- * Testimonials · home:testimonials.items.<key> holds the quote, name, role
- * and company for each entry.
- *
- * Entries marked `placeholder: true` are INVENTED examples showing the shape
- * of the data. They are filtered out of `testimonials` below so the site
- * never publishes social proof that no real client gave — a fake endorsement
- * on a live page is a lie to buyers, not a styling detail.
- *
- * To go live with a testimonial: replace the copy in BOTH
- * web/src/i18n/locales/en/home.json and es/home.json, then delete
- * `placeholder: true` from its entry here. The section renders as soon as at
- * least one real entry exists, and stays hidden while there are none.
- */
-export const testimonialEntries = [
-  { key: "a", initials: "AM", rating: 5, placeholder: true },
-  { key: "b", initials: "JN", rating: 5, placeholder: true },
-  { key: "c", initials: "CK", rating: 5, placeholder: true },
-]
+ * Home.jsx feeds TestimonialsMarquee from GET /api/v1/reviews/featured
+ * (approved + admin-featured reviews). The section renders nothing until at
+ * least one real review is featured, so the site never publishes social
+ * proof no client gave. There are no placeholder entries to replace. */
 
-export const testimonials = testimonialEntries.filter((entry) => !entry.placeholder)
-
-/* Proof-strip numbers (HomeStatsStrip). Labels via home:stats.<key>Label */
+/* Proof-strip numbers (HomeStatsStrip). Labels via home:stats.<key>Label
+ *
+ * Entries with a `proofKey` are live: HomeStatsStrip reads
+ * GET /api/v1/bio/proof (see hooks/useProof.js) and swaps `to` for the DB
+ * value, hiding the entry when that value is 0. `to` is only the loading
+ * fallback for those. Entries without a `proofKey` are static facts the DB
+ * does not hold. */
 export const stats = [
-  { key: "years",     to: 8,   suffix: "+" },
-  { key: "projects",  to: 47,  suffix: ""  },
+  { key: "years",     to: 8,   suffix: "+", proofKey: "years" },
+  { key: "projects",  to: 47,  suffix: "",  proofKey: "projects" },
+  { key: "clients",   to: 20,  suffix: "+", proofKey: "clients" },
+  { key: "reviews",   to: 10,  suffix: "",  proofKey: "reviews" },
   { key: "countries", to: 4,   suffix: ""  },
   { key: "students",  to: 100, suffix: "+" },
 ]
+
+/**
+ * Merge the live proof payload into the static list. `proof` undefined
+ * (still loading / request failed) → the static numbers; otherwise live
+ * entries take the DB value and entries whose DB value is 0 are dropped.
+ */
+export function resolveStats(proof, list = stats) {
+  if (!proof) return list
+  return list.flatMap((entry) => {
+    if (!entry.proofKey) return [entry]
+    const live = Number(proof[entry.proofKey])
+    if (!Number.isFinite(live) || live <= 0) return []
+    return [{ ...entry, to: live }]
+  })
+}

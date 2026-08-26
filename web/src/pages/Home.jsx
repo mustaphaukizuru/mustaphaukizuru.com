@@ -12,7 +12,8 @@ import Process from "../components/home/Process"
 import LatestPosts from "../components/home/LatestPosts"
 import FinalCta from "../components/home/FinalCta"
 import { RevealSection } from "../components/home/primitives"
-import { testimonials } from "../data/homeData"
+import useApiQuery from "../hooks/useApiQuery"
+import { fetchFeaturedReviews } from "../services/reviewService"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  Home · roadmap steps 24 (one thesis, two paths) + 28 (trust layer)
@@ -24,7 +25,7 @@ import { testimonials } from "../data/homeData"
  *    4. Featured services the 4 catalogue categories
  *    5. Featured products newest per category (API)
  *    6. Selected work     3 portfolio items (API, hidden when empty)
- *    7. Testimonials      named, role + company (placeholders flagged)
+ *    7. Testimonials      featured reviews from the API (hidden when none)
  *    8. How I work        3 steps
  *    9. Latest posts      3 articles
  *   10. Final CTA         book a call
@@ -34,6 +35,13 @@ import { testimonials } from "../data/homeData"
  *  the proof strip. Everything honours prefers-reduced-motion.
  *  ──────────────────────────────────────────────────────────────────── */
 export default function Home() {
+  const featured = useApiQuery(
+    "reviews:featured",
+    ({ signal }) => fetchFeaturedReviews({ limit: 6, signal }),
+    { staleTime: 5 * 60_000 },
+  )
+  const testimonials = Array.isArray(featured.data) ? featured.data : []
+
   return (
     <>
       <Seo
