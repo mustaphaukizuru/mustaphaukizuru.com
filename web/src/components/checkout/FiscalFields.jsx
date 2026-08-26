@@ -23,7 +23,7 @@ function Select({ id, label, value, onChange, options, placeholder }) {
             <option key={code} value={code}>{code} · {name}</option>
           ))}
         </select>
-        <ChevronRight className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-charcoal-80/40" aria-hidden="true" />
+        <ChevronRight className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-charcoal-80" aria-hidden="true" />
       </div>
     </div>
   )
@@ -38,7 +38,7 @@ export default function FiscalFields({ form, onChange, t }) {
         <div className="sm:col-span-2">
           <label htmlFor="legalName" className="mb-1.5 block text-micro font-semibold text-violet">{t("form.legalName")}</label>
           <div className="relative">
-            <Building2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35" aria-hidden="true" />
+            <Building2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80" aria-hidden="true" />
             <input
               id="legalName" type="text" value={form.legalName}
               onChange={(e) => onChange("legalName", e.target.value.toUpperCase())}
@@ -53,7 +53,7 @@ export default function FiscalFields({ form, onChange, t }) {
         <div>
           <label htmlFor="fiscalPostalCode" className="mb-1.5 block text-micro font-semibold text-violet">{t("form.fiscalPostalCode")}</label>
           <div className="relative">
-            <MapPin className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35" aria-hidden="true" />
+            <MapPin className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80" aria-hidden="true" />
             <input
               id="fiscalPostalCode" type="text" inputMode="numeric" maxLength={5} value={form.fiscalPostalCode}
               onChange={(e) => onChange("fiscalPostalCode", e.target.value.replace(/\D/g, "").slice(0, 5))}
