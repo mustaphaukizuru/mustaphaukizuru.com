@@ -22,7 +22,7 @@
  * are listed under EXEMPT with the reason they are out of scope — they are
  * documented, not checked as body text.
  */
-import { readFileSync, readdirSync, existsSync } from "node:fs"
+import { readFileSync, readdirSync, existsSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -271,6 +271,117 @@ if (diluted.length) {
   for (const d of diluted) console.error("    " + d)
   console.error("\n  The -600/-700/-800 steps are the AA-passing choice; an alpha puts them back under 4.5:1.")
   console.error("  Use the solid token for text. Alpha is fine on bg-* and ring-*.\n")
+  process.exit(1)
+}
+
+/* ── Rule: text tokens meant for light grounds must clear AA on white ──────
+ * U5. Everything above checks pairs someone DECLARED. The 3.86:1 miss that
+ * reached CI (`text-mint-700/75` at 10.5px) was a pair nobody had thought to
+ * declare. This scan derives candidates from USAGE instead:
+ *
+ *   for every `text-<token>[/alpha]` in a className, where the token is a
+ *   dark-scale step or a brand anchor (i.e. one that exists to be read on a
+ *   light ground), compute its ratio against white — unless the SAME
+ *   className also paints a dark fill (a dark section), or the class list
+ *   marks the text as display/large (3:1 applies), or the exact spec is
+ *   already declared in PAIRS.
+ *
+ * "Against white" is the honest default: ancestors are not resolvable from
+ * a static scan, and public pages sit on white/mist. Light tokens (white,
+ * *-pale, *-ghost, *-50/100, mist) are skipped — they are for dark grounds
+ * and would only produce noise. This is a floor, not a proof; it catches the
+ * class of bug that actually shipped.
+ * ------------------------------------------------------------------------- */
+function scanUndeclaredTextOnLight() {
+  const LIGHT = /^(white|black|mist|slate-100|[a-z]+-(pale|ghost|50|100|light|mid)|[a-z]+-rgb)$/
+  const DARK_FILL = /\bbg-(charcoal|charcoal-deep|charcoal-light|charcoal-80|violet|violet-deep|violet-mid|azure-deep|black|slate-[6-9]00)\b/
+  const LARGE = /\b(text-display|text-page|text-(3|4|5|6)xl|text-\[clamp\((2|3|4)|text-\[(2|3|4)\d?px\]|text-hero)\b/
+  const CLASS_RE = /className\s*=\s*(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})/g
+  const TEXT_RE = /\btext-([a-z]+(?:-[a-z0-9]+)*)(?:\/(\d{1,3}))?\b/g
+
+  const declaredOnLight = new Set(
+    PAIRS.filter(([, bg]) => /^(white|mist)$/.test(bg)).map(([fg]) => fg)
+  )
+  const offenders = []
+  const seen = new Set()
+
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = `${dir}/${entry.name}`
+      if (entry.isDirectory()) { walk(full); continue }
+      if (!/\.(jsx?|tsx?)$/.test(entry.name)) continue
+      const text = readFileSync(full, "utf8")
+      for (const cm of text.matchAll(CLASS_RE)) {
+        const cls = cm[1] ?? cm[2] ?? cm[3] ?? ""
+        if (DARK_FILL.test(cls)) continue
+        const min = LARGE.test(cls) ? MIN.large : MIN.body
+        for (const tm of cls.matchAll(TEXT_RE)) {
+          const [, name, alpha] = tm
+          if (!(name in TOKENS) || LIGHT.test(name)) continue
+          const spec = alpha ? `${name}/${alpha} on white` : name
+          if (declaredOnLight.has(spec)) continue
+          let hex
+          try { hex = resolve(spec) } catch { continue }
+          const r = ratio(hex, TOKENS.white)
+          if (r >= min) continue
+          const line = text.slice(0, cm.index).split("\n").length
+          const key = `${full}:${line}:${spec}`
+          if (seen.has(key)) continue
+          seen.add(key)
+          offenders.push(`${full.replace(SRC + "/", "src/")}:${line}  text-${name}${alpha ? "/" + alpha : ""} on white = ${r.toFixed(2)}:1 (needs ${min}:1)`)
+        }
+      }
+    }
+  }
+  walk(SRC)
+  return offenders
+}
+
+/* Ratchet, not a cliff.
+ *
+ * The first run of the usage scan surfaced 307 findings: real debt
+ * (text-charcoal-80/35 body copy at 2.2:1) mixed with things a static scan
+ * cannot judge (text-violet/0 as an animation start state; terracotta on a
+ * dark ANCESTOR ground). Failing CI on all of it would block every PR on
+ * three years of history; hiding it would defeat the scan. So the current
+ * findings are committed as a baseline and shown as debt, and the gate fails
+ * only on a NEW finding — a usage that was not there before. The debt can
+ * then be paid down file by file, and `--update-baseline` re-snapshots.
+ *
+ * The key is file + spec, not line, so moving code does not create "new"
+ * findings; adding the same bad token in a new file does. */
+const BASELINE_PATH = join(WEB, "scripts", "contrast-baseline.json")
+const undeclared = scanUndeclaredTextOnLight()
+const undeclaredKey = (o) => o.replace(/^(src\/[^:]+):\d+\s+(text-[^ ]+) on white.*$/, "$1 $2")
+
+if (process.argv.includes("--update-baseline")) {
+  const keys = [...new Set(undeclared.map(undeclaredKey))].sort()
+  writeFileSync(BASELINE_PATH, JSON.stringify(keys, null, 2) + "\n")
+  console.log(`  baseline written: ${keys.length} known findings → ${BASELINE_PATH}`)
+}
+
+const baseline = new Set(existsSync(BASELINE_PATH) ? JSON.parse(readFileSync(BASELINE_PATH, "utf8")) : [])
+const fresh = undeclared.filter((o) => !baseline.has(undeclaredKey(o)))
+const known = undeclared.length - fresh.length
+
+if (known) {
+  const byToken = {}
+  for (const o of undeclared) {
+    if (fresh.includes(o)) continue
+    const t = o.replace(/.*  (text-[a-z0-9-]+)(?:\/\d+)? on white.*/, "$1")
+    byToken[t] = (byToken[t] || 0) + 1
+  }
+  const top = Object.entries(byToken).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t, n]) => `${t} ×${n}`).join(", ")
+  console.log(`  ⚠ ${known} known text-on-light findings in the baseline (debt, not a failure): ${top}`)
+}
+
+if (fresh.length) {
+  console.error("\n\x1b[31m✖ Contrast gate failed\x1b[0m — NEW text colour usage that does not clear AA on a light ground.\n")
+  for (const o of fresh) console.error("    " + o)
+  console.error("\n  Either swap the usage site for the darker sibling (*-deep / *-700 / *-800),")
+  console.error("  or — if the element really sits on a dark ground the scan cannot see —")
+  console.error("  put a bg-* token on the same element, or declare the pair in PAIRS with its ground.")
+  console.error("  (Known pre-existing findings live in scripts/contrast-baseline.json.)\n")
   process.exit(1)
 }
 
