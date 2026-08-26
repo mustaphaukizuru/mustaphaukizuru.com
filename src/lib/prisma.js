@@ -42,11 +42,18 @@ function withPoolBounds(rawUrl) {
 
 function createClient() {
   const url = withPoolBounds(process.env.DATABASE_URL)
-  return new PrismaClient({
+  const client = new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
     errorFormat: "pretty",
     ...(url ? { datasources: { db: { url } } } : {}),
   })
+  // Every write to a catalogue model clears the matching read cache
+  // (lib/ttlCache.js) — one hook here rather than a call in each of the
+  // admin services' 21 write functions. See lib/cacheInvalidation.js.
+  // Returns the plain client when $extends is unavailable (stubbed clients
+  // in tests), so this can never stop the app from booting.
+  const { extendWithInvalidation } = require("./cacheInvalidation")
+  return extendWithInvalidation(client)
 }
 
 if (process.env.NODE_ENV === "production") {

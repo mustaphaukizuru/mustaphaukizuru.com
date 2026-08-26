@@ -108,7 +108,7 @@ function serializeService(service) {
  * Public reads
  * ──────────────────────────────────────────────────────────────────────────── */
 
-async function listServices({ isFeatured, page = 1, limit = 24, locale = "en" } = {}) {
+async function listServicesUncached({ isFeatured, page = 1, limit = 24, locale = "en" } = {}) {
   const safePage  = Math.max(1, Number(page) || 1)
   const safeLimit = Math.min(48, Math.max(1, Number(limit) || 24))
 
@@ -160,7 +160,7 @@ async function getServiceBySlug(slug, locale = "en") {
   return serializeService(pickLocale(service, locale, [["fullDescription", "descriptionEs"]]))
 }
 
-async function getFeaturedServices() {
+async function getFeaturedServicesUncached() {
   const items = await prisma.service.findMany({
     where:   { status: "published", isFeatured: true, deletedAt: null },
     orderBy: [{ updatedAt: "desc" }],
@@ -191,10 +191,31 @@ async function getRelatedServices(currentServiceId, limit = 3) {
   return items.map(serializeService)
 }
 
+
+/* ── A5 · in-process read cache ────────────────────────────────────────────
+ * The public list reads are served from lib/ttlCache for PUBLIC_READ_TTL_MS per
+ * distinct argument set, so a hot list costs one MySQL round-trip (~450 ms on
+ * Hostinger) per TTL per process instead of one per request. Every function
+ * above serialises before returning, so a cached value is a plain object and
+ * sharing it across requests is safe. Any write to this namespace's models
+ * clears it immediately (lib/cacheInvalidation.js), so admin edits are
+ * visible on the next request regardless of TTL. The *Uncached originals
+ * stay exported for callers that must bypass the cache.
+ * ─────────────────────────────────────────────────────────────────────────── */
+const { cache } = require("../lib/ttlCache")
+// 0 under test: the unit suites assert one findMany per call and mock prisma
+// per test, and a process-wide cache would silently hand test B the result
+// of test A. A TTL of 0 makes cache.wrap call straight through.
+const PUBLIC_READ_TTL_MS = process.env.NODE_ENV === "test" ? 0 : (Number(process.env.PUBLIC_READ_TTL_MS) || 60_000)
+const listServices = (...args) => cache.wrap("services", args, PUBLIC_READ_TTL_MS, () => listServicesUncached(...args))
+const getFeaturedServices = (...args) => cache.wrap("services", args, PUBLIC_READ_TTL_MS, () => getFeaturedServicesUncached(...args))
+
 module.exports = {
   listServices,
   getServiceBySlug,
   getFeaturedServices,
   getRelatedServices,
   serializeService,
+  listServicesUncached,
+  getFeaturedServicesUncached,
 }
