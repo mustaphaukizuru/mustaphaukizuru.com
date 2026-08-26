@@ -108,7 +108,8 @@ async function transitionOrderPayment({
       }
     }
 
-    const skipOrderWrite = TERMINAL_ORDER_STATES.has(current.status) || targetStatus === "refunded"
+    const wasTerminal    = TERMINAL_ORDER_STATES.has(current.status)
+    const skipOrderWrite = wasTerminal || targetStatus === "refunded"
     const order = skipOrderWrite
       ? (await tx.order.findUnique({ where: { id: orderId }, include: { items: true } })) || current
       : await tx.order.update({
@@ -137,7 +138,12 @@ async function transitionOrderPayment({
       await tx.payment.create({ data: { ...paymentData, orderId, userId: order.userId } })
     }
 
-    return { order, isFirstTransition: !existing, payload, amountMismatch: null }
+    // "First transition" is a property of the ORDER, not of the Payment row.
+    // A brand-new capture id on an already-paid order (PayPal re-capture,
+    // MP duplicate charge, manual mark-paid followed by a late webhook) used
+    // to report true here and re-fire the confirmation email + fulfilment.
+    // The Payment row is still recorded for audit; the side effects are not.
+    return { order, isFirstTransition: !existing && !wasTerminal, payload, amountMismatch: null }
   })
 
   if (

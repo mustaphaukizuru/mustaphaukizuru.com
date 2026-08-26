@@ -104,6 +104,19 @@ describe("transitionOrderPayment — shared guards", () => {
     },
   )
 
+  test("a NEW capture id on an already-paid order records the Payment but is not a first transition", async () => {
+    // Regression: isFirstTransition was `!existing` (payment-row keyed), so a
+    // second capture id re-sent the order-confirmed email and re-ran
+    // fulfilment. It must be keyed on the order's prior state.
+    const hook = jest.fn()
+    tx.payment.findFirst.mockResolvedValue(null)
+    tx.order.findUnique.mockResolvedValueOnce(current({ status: "paid" })).mockResolvedValueOnce(full("paid"))
+    const result = await transitionOrderPayment({ ...base, gatewayTransactionId: "TX-2", onFirstPaid: hook })
+    expect(tx.payment.create).toHaveBeenCalledTimes(1)
+    expect(result.isFirstTransition).toBe(false)
+    expect(hook).not.toHaveBeenCalled()
+  })
+
   test("'refunded' target never touches the Order (owned by refundService)", async () => {
     tx.order.findUnique.mockResolvedValueOnce(current({ status: "pending" })).mockResolvedValueOnce(full("pending"))
     const result = await transitionOrderPayment({ ...base, targetStatus: "refunded" })
