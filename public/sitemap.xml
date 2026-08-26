@@ -16,6 +16,66 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://mustaphaukizuru.com/blog/ai-coding-agents-productivity-paradox-2026</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/blog/designing-an-it-strategy-for-a-school-in-mexico</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/blog/edtech-that-actually-helps-teachers</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/blog/first-robotics-class-from-scratch</loc>
+    <lastmod>2026-02-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/blog/mercadopago-paypal-side-by-side-latam</loc>
+    <lastmod>2026-02-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/blog/moving-from-rwanda-to-mexico-in-tech</loc>
+    <lastmod>2026-01-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/blog/react-django-stack-tradeoffs-2026</loc>
+    <lastmod>2026-03-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/blog/self-hosting-a-react-app-on-hostinger-vps</loc>
+    <lastmod>2026-01-30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/blog/shipping-mustaphaukizuru-com-from-zero-to-saas</loc>
+    <lastmod>2026-04-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/blog/wcag-quick-wins-for-marketing-pages</loc>
+    <lastmod>2025-12-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mustaphaukizuru.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -36,14 +96,27 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://mustaphaukizuru.com/projects/colegio-raindrop-website</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/projects/educational-digital-resources</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/projects/mustaphaukizuru-digital-platform</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mustaphaukizuru.com/refund</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://mustaphaukizuru.com/self-audit</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
   </url>
   <url>
     <loc>https://mustaphaukizuru.com/services</loc>
@@ -51,9 +124,35 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://mustaphaukizuru.com/services/ai-automation</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/services/cloud-architecture-migration</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/services/digital-product-engineering</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/services/it-strategy-consulting</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://mustaphaukizuru.com/store</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://mustaphaukizuru.com/store/brand-identity-kit-for-startups-bilingual-en-es</loc>
+    <lastmod>2026-06-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mustaphaukizuru.com/terms</loc>
