@@ -172,6 +172,31 @@
       "setSubmit": "Set password",
       "setSaving": "Saving…",
       "passwordSet": "Password set"
+    },
+    "privacy": {
+      "title": "Privacy & data",
+      "subtitle": "Your ARCO rights under Mexican law: download or delete everything we hold about you.",
+      "exportTitle": "Download my data",
+      "exportDesc": "A JSON file with your account, addresses, orders, bookings, tickets and more.",
+      "exportButton": "Download my data",
+      "exporting": "Preparing…",
+      "exportSuccess": "Your data file is downloading",
+      "exportFailed": "Could not export your data",
+      "deleteTitle": "Delete account",
+      "deleteDesc": "Anonymises your profile, removes your addresses and newsletter subscription, and signs you out everywhere. Order and invoice records are kept as the tax law requires.",
+      "deleteButton": "Delete account",
+      "modalTitle": "Delete your account?",
+      "modalDesc": "This cannot be undone. You will lose access to your downloads, bookings and support history.",
+      "passwordLabel": "Confirm with your password",
+      "passwordRequired": "Enter your password to continue",
+      "cancel": "Keep my account",
+      "confirm": "Delete permanently",
+      "deleting": "Deleting…",
+      "deleted": "Your account has been deleted",
+      "deleteFailed": "Could not delete your account",
+      "openActivity": "You still have orders, projects or bookings in progress. Complete or cancel them first.",
+      "wrongPassword": "Password is incorrect",
+      "learnMore": "Read the Privacy Notice"
     }
   },
   "products": {

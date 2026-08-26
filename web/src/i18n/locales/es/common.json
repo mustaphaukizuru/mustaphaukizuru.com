@@ -109,7 +109,9 @@
     "legalTermsShort": "Términos",
     "legalPrivacyShort": "Privacidad",
     "legalCookiesShort": "Cookies",
-    "legalRefundShort": "Reembolsos"
+    "legalRefundShort": "Reembolsos",
+    "legalNotice": "Aviso de Privacidad",
+    "legalNoticeShort": "Aviso"
   },
   "language": {
     "english": "Inglés",

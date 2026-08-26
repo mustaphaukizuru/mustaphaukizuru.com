@@ -8,7 +8,120 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "subtitle": "How we collect, use, and protect your personal information."
+    "subtitle": "How we collect, use, and protect your personal information.",
+    "lastUpdated": "Last updated: August 2026",
+    "tocAria": "Table of contents",
+    "tocLabel": "On this page",
+    "anchorAria": "Direct link to",
+    "questions": "Privacy questions?",
+    "sections": [
+      {
+        "slug": "information-we-collect",
+        "title": "1. Information We Collect",
+        "content": "We collect information you provide directly, including name, email address, and payment information during account registration and checkout. We also collect usage data such as pages visited and interactions with the platform."
+      },
+      {
+        "slug": "how-we-use-your-information",
+        "title": "2. How We Use Your Information",
+        "content": "Your information is used to process orders, deliver digital products, send order confirmations, provide member dashboard access, and improve our platform. We do not sell your personal information to third parties."
+      },
+      {
+        "slug": "payment-security",
+        "title": "3. Payment Security",
+        "content": "Payment information is processed exclusively by our payment partners (Mercado Pago and PayPal). We do not store your full card details on our servers. All transactions are SSL encrypted."
+      },
+      {
+        "slug": "cookies",
+        "title": "4. Cookies",
+        "content": "We use strictly necessary cookies for authentication, session integrity, and security. Analytics and marketing cookies are <strong>off by default</strong> and only fire after you explicitly accept them via the cookie banner. To review every category we use, update your choices, or revoke consent, visit our <link>Cookie Policy</link> page. Browser settings remain a backstop, but the in-app preferences are the primary, granular control."
+      },
+      {
+        "slug": "data-sharing",
+        "title": "5. Data Sharing",
+        "content": "We may share limited information with payment processors, email service providers, and analytics services strictly necessary to operate the platform. These partners are contractually bound to protect your data."
+      },
+      {
+        "slug": "data-retention",
+        "title": "6. Data Retention",
+        "content": "Account data is retained as long as your account is active. Order records are kept for legal and accounting purposes. You may request data deletion from your dashboard or by contacting us, subject to applicable legal requirements."
+      },
+      {
+        "slug": "your-rights",
+        "title": "7. Your Rights",
+        "content": "You have the right to access, correct, or request deletion of your personal data. You may also opt out of marketing communications at any time using the unsubscribe link in emails. See the Privacy Notice below for how to exercise these rights under Mexican law."
+      },
+      {
+        "slug": "security",
+        "title": "8. Security",
+        "content": "We implement industry-standard security measures to protect your data, including encrypted storage, HTTPS enforcement, and access controls. However, no online transmission is 100% secure."
+      },
+      {
+        "slug": "childrens-privacy",
+        "title": "9. Children's Privacy",
+        "content": "Our platform is not directed to children under 13. We do not knowingly collect personal information from children. If you believe a child has provided us data, please contact us immediately."
+      },
+      {
+        "slug": "contact-us",
+        "title": "10. Contact Us",
+        "content": "For privacy-related inquiries or data requests, contact us at hello@mustaphaukizuru.com."
+      }
+    ],
+    "notice": {
+      "title": "Privacy Notice (Aviso de Privacidad Integral)",
+      "intro": "This notice is issued in compliance with articles 15 to 17 of Mexico's Federal Law on the Protection of Personal Data Held by Private Parties (LFPDPPP) and its Regulations. It applies to every user of mustaphaukizuru.com, wherever they are located.",
+      "sections": [
+        {
+          "slug": "responsable",
+          "title": "A. Identity and address of the data controller",
+          "content": "The party responsible for processing your personal data (responsable) is Mustapha Ukizuru, operating as mustaphaukizuru.com, with address for notices at Tlalnepantla de Baz, Estado de México, Mexico. Contact for all privacy matters: hello@mustaphaukizuru.com."
+        },
+        {
+          "slug": "datos-recabados",
+          "title": "B. Personal data we collect",
+          "content": "Depending on how you use the platform we collect: account data (name, email, phone, company, avatar, sign-in provider); billing data and addresses, including your RFC or other tax ID when you ask for an invoice; order and payment history (amounts, currency, gateway, payment status — never full card numbers); consultation bookings (date, time zone, notes you add); client-project records and files you share with us; support tickets and messages; product reviews; newsletter subscription status; and technical data collected through cookies and analytics (IP address, device and browser, pages visited) as described in the Cookie Policy. We do not request sensitive personal data as defined by law."
+        },
+        {
+          "slug": "finalidades-primarias",
+          "title": "C. Primary purposes",
+          "content": "We process your data to: create and manage your account; process orders, payments, invoices and refunds; deliver digital products and services you purchased; schedule and hold consultations; manage client projects; answer support requests; issue tax receipts when required; keep the platform secure and prevent fraud; and comply with legal obligations. These purposes are necessary for the relationship between you and us."
+        },
+        {
+          "slug": "finalidades-secundarias",
+          "title": "D. Secondary purposes",
+          "content": "Only if you agree, we also use your data to: send you the newsletter and marketing emails; measure campaign performance and personalise recommendations; and publish reviews you submit. You may decline these purposes at any time, without affecting the primary services, by unsubscribing from emails, changing your cookie preferences, or writing to hello@mustaphaukizuru.com."
+        },
+        {
+          "slug": "transferencias",
+          "title": "E. Transfers of personal data",
+          "content": "Your data is shared only with providers that need it to deliver the service, under contracts that oblige them to keep it confidential: Mercado Pago and PayPal (payment processing); Google (Google Calendar and Google Meet for bookings, and Google Sign-In if you use it); our transactional email provider (order and account emails); and Hostinger (hosting and database infrastructure). Some of these providers process data outside Mexico. No other transfer is made without your consent, except where the law requires it (art. 37 LFPDPPP)."
+        },
+        {
+          "slug": "derechos-arco",
+          "title": "F. ARCO rights, revocation of consent and limitation of use",
+          "content": "You have the right to Access your personal data, Rectify it when inaccurate, request its Cancellation, and Oppose its processing (ARCO rights), as well as to revoke the consent you have given us and to limit the use or disclosure of your data. From your member dashboard (Profile → Privacy & data) you can download a copy of everything we hold about you and delete your account on your own. For any other request, email hello@mustaphaukizuru.com with: your full name, a copy of an official ID or the account email we can verify, a clear description of the right you wish to exercise and the data concerned, and any documents supporting the request."
+        },
+        {
+          "slug": "plazo-de-respuesta",
+          "title": "G. Response time",
+          "content": "We will answer your request within a maximum of 20 business days from the date we receive it, in line with article 32 of the LFPDPPP, and, if it is upheld, we will act on it within the following 15 business days. Responses are sent by email to the address on file. Order and invoice records must be kept for the period required by Mexican tax law, so deletion of an account anonymises your identity while those records are preserved."
+        },
+        {
+          "slug": "autoridad",
+          "title": "H. Competent authority",
+          "content": "If you believe your right to data protection has been infringed, you may file a complaint with the National Institute for Transparency, Access to Information and Protection of Personal Data (INAI) at inai.org.mx."
+        },
+        {
+          "slug": "cookies-en-el-aviso",
+          "title": "I. Cookies and tracking technologies",
+          "content": "We use cookies and similar technologies to keep you signed in, remember your preferences and, only with your consent, measure use of the site and campaigns. Section 4 above and the Cookie Policy describe every category and how to disable it."
+        },
+        {
+          "slug": "cambios-al-aviso",
+          "title": "J. Changes to this notice",
+          "content": "We may update this notice to reflect legal changes or new features. The current version is always published at this page and the \"Last updated\" date at the top changes with every revision. When a change affects the purposes for which we process your data we will notify you by email or by a notice on the platform before it takes effect."
+        }
+      ]
+    }
   },
   "refund": {
     "title": "Refund Policy",
@@ -90,6 +203,67 @@
     "questions": "Cookie or privacy questions?",
     "tocAria": "Table of contents",
     "tocLabel": "On this page",
-    "anchorAria": "Direct link to"
+    "anchorAria": "Direct link to",
+    "lastUpdated": "Last updated: August 2026",
+    "consentRecorded": "Your current consent was recorded{{when}}.",
+    "consentOn": " on {{date}}",
+    "noChoiceYet": "You have not made a choice yet; the consent banner will be shown shortly.",
+    "sections": [
+      {
+        "slug": "what-cookies-are",
+        "title": "1. What cookies are",
+        "content": "Cookies are small text files placed on your device by websites you visit. We also use related technologies, including local storage, session storage, and pixel tags, under the same name in this policy. They allow the platform to remember information about your visit such as authentication, language, and cart contents."
+      },
+      {
+        "slug": "how-we-use-cookies",
+        "title": "2. How we use cookies",
+        "content": "mustaphaukizuru.com uses cookies for four purposes: keeping you signed in, remembering your preferences, measuring how the platform performs, and understanding which content and campaigns are reaching the right audiences. We do not sell personal information."
+      },
+      {
+        "slug": "strictly-necessary-cookies",
+        "title": "3. Strictly necessary cookies",
+        "content": "These cookies enable core functions: authentication, account session continuity, cart and checkout integrity, CSRF protection, and load-balancing. The platform cannot function without them, so they are always on. Examples: mu_session, mu_csrf, mu_cookie_consent_v1."
+      },
+      {
+        "slug": "functional-cookies",
+        "title": "4. Functional cookies",
+        "content": "These remember non-essential preferences across visits, including language, time zone, theme, saved filters, and consent decisions. You can disable these and the site will still work; you will simply need to set those preferences again on each visit."
+      },
+      {
+        "slug": "analytics-cookies",
+        "title": "5. Analytics cookies",
+        "content": "Anonymous, aggregate usage measurement so we know which pages load slowly, which CTAs convert, and where visitors drop off. IP addresses are pseudonymised, retention is capped at 26 months, and we never resell this data. You can opt out and the platform will continue to function normally."
+      },
+      {
+        "slug": "marketing-cookies",
+        "title": "6. Marketing cookies",
+        "content": "Used to measure the performance of campaigns on LinkedIn, Meta, Google, X, and similar platforms, and to tailor recommendations. You can disable these completely; you may then see less relevant advertising elsewhere on the web, but nothing on this site changes."
+      },
+      {
+        "slug": "third-party-services",
+        "title": "7. Third-party services",
+        "content": "Some pages embed services that may set their own cookies, including payment processors (Mercado Pago, PayPal), Google Sign-In, and embedded media. These services are governed by their own privacy and cookie policies; we link to them where relevant."
+      },
+      {
+        "slug": "your-choices",
+        "title": "8. Your choices",
+        "content": "When you first visit the site we ask you to accept all, reject optional cookies, or fine-tune by category. You can change your decision any time using the 'Cookie preferences' link in the footer. Resetting will re-show the consent banner so you can choose again."
+      },
+      {
+        "slug": "browser-controls",
+        "title": "9. Browser controls",
+        "content": "Most browsers let you block or delete cookies via Settings → Privacy. Doing so site-wide may break parts of this and other sites. We honour the Global Privacy Control (GPC) signal where it is sent; it is treated as an explicit reject-all for optional categories."
+      },
+      {
+        "slug": "updates-to-this-policy",
+        "title": "10. Updates to this policy",
+        "content": "When we materially change how we use cookies, for example by adding a new analytics partner, we increment the policy version (CONSENT_VERSION) which triggers the consent banner again so you can review and re-consent. The 'Last updated' date above always reflects the most recent revision."
+      },
+      {
+        "slug": "contact",
+        "title": "11. Contact",
+        "content": "For cookie or privacy questions, write to hello@mustaphaukizuru.com. We respond to verifiable requests under the GDPR, ePrivacy Directive, and Mexico's Federal Law on the Protection of Personal Data Held by Private Parties (LFPDPPP) within 20 business days."
+      }
+    ]
   }
 }
