@@ -51,3 +51,9 @@ export async function adminFetchAnalyticsEvents({ days = 7, limit = 100 } = {}) 
   )
   return Array.isArray(r?.data) ? r.data : []
 }
+
+/* Tier 4 · revenue reporting — GET /admin/analytics/revenue?months=12 */
+export async function adminFetchRevenueReport({ months = 12 } = {}) {
+  const r = await authFetch(`/api/v1/admin/analytics/revenue?months=${encodeURIComponent(months)}`, { method: "GET" })
+  return r?.data || null
+}

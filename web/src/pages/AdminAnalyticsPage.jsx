@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react"
 import {
   Activity, BarChart3, MousePointerClick, ShoppingCart,
   CreditCard, DollarSign, TrendingUp, Smartphone, Monitor, Tablet, Bot,
-  Loader2, AlertCircle,
+  Loader2, AlertCircle, Receipt, Undo2, Package, Briefcase, Info,
 } from "lucide-react"
 import { m } from "framer-motion"
 
-import { adminFetchAnalyticsDashboard, adminFetchAnalyticsEvents } from "../services/analyticsService"
+import { adminFetchAnalyticsDashboard, adminFetchAnalyticsEvents, adminFetchRevenueReport } from "../services/analyticsService"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  AdminAnalyticsPage · M14
@@ -22,6 +22,8 @@ import { adminFetchAnalyticsDashboard, adminFetchAnalyticsEvents } from "../serv
  *    4. Top paths table
  *    5. Device breakdown
  *    6. Recent events feed
+ *    7. Revenue panel (Tier 4) — monthly paid-order series, service /
+ *       package performance, top products. Own month range, own fetch.
  *  ──────────────────────────────────────────────────────────────────── */
 
 const RANGES = [
@@ -169,6 +171,9 @@ export default function AdminAnalyticsPage() {
             </m.section>
           </div>
 
+          {/* Tier 4 · Revenue reporting */}
+          <RevenuePanel />
+
           {/* Recent events */}
           <m.section {...fadeUp} className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="mb-3 text-lg font-semibold text-charcoal">Recent events</h2>
@@ -299,6 +304,208 @@ function Sparkline({ points }) {
           </circle>
         ))}
       </svg>
+    </div>
+  )
+}
+
+/* ─────────────── Revenue panel (Tier 4) ─────────────── */
+
+const REVENUE_RANGES = [
+  { value: 6, label: "6 months" },
+  { value: 12, label: "12 months" },
+  { value: 24, label: "24 months" },
+]
+
+function RevenuePanel() {
+  const [months, setMonths] = useState(12)
+  const [report, setReport] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets fetch state before syncing with the revenue API
+    setLoading(true); setError("")
+    adminFetchRevenueReport({ months })
+      .then((r) => { if (!cancelled) setReport(r) })
+      .catch((e) => { if (!cancelled) setError(e?.message || "Failed to load revenue report.") })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [months])
+
+  const kpis = report?.kpis || {}
+  const currency = report?.currency || "MXN"
+
+  return (
+    <m.section {...fadeUp} className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-charcoal">Revenue</h2>
+          <p className="text-xs text-charcoal-50">Paid orders by payment month · refunds are full-only and net out of the month they were paid in</p>
+        </div>
+        <div role="tablist" aria-label="Revenue range" className="inline-flex rounded-xl border border-slate-200 bg-white p-1">
+          {REVENUE_RANGES.map((r) => (
+            <button
+              key={r.value}
+              role="tab"
+              aria-selected={months === r.value}
+              onClick={() => setMonths(r.value)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 ${
+                months === r.value ? "bg-violet text-white" : "text-charcoal-80 hover:bg-slate-50"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <div role="alert" className="mb-4 flex items-start gap-2 rounded-lg border border-rose/30 bg-rose/5 p-3 text-sm text-rose">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {loading || !report ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-violet" />
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+            <KpiCard icon={DollarSign} label="Gross" value={money(kpis.gross, currency)} tone="violet" />
+            <KpiCard icon={Undo2} label="Refunded" value={money(kpis.refunded, currency)} tone="terracotta" />
+            <KpiCard icon={TrendingUp} label="Net" value={money(kpis.net, currency)} tone="mint" />
+            <KpiCard icon={Receipt} label="Paid orders" value={num(kpis.orders)} tone="azure" />
+            <KpiCard icon={CreditCard} label="Avg order value" value={money(kpis.aov, currency)} tone="cyan" />
+            <KpiCard icon={Undo2} label="Refund rate" value={`${(kpis.refundRate || 0).toFixed(1)}%`} tone="terracotta" />
+          </div>
+
+          <p className="mt-3 flex items-start gap-1.5 text-xs text-charcoal-50">
+            <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" strokeWidth={1.75} />
+            <span>MRR: not available — {kpis.mrrNote}</span>
+          </p>
+          {report.truncated && (
+            <p className="mt-1 text-xs text-charcoal-80">Only the newest 5,000 paid orders were counted; older months may be incomplete.</p>
+          )}
+
+          <div className="mt-5">
+            <h3 className="mb-2 text-sm font-semibold text-charcoal">Monthly gross vs net</h3>
+            <RevenueBars series={report.series} currency={currency} />
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <RevenueTable
+              icon={Briefcase}
+              title="Services"
+              empty="No service revenue in this range."
+              rows={report.services.map((s) => ({ key: s.serviceId || s.name, name: s.name, revenue: s.revenue, count: s.count }))}
+              currency={currency}
+            />
+            <RevenueTable
+              icon={Package}
+              title="Packages"
+              empty="No package revenue in this range."
+              rows={report.packages.map((p) => ({ key: p.servicePackageId, name: p.name, sub: p.serviceName, revenue: p.revenue, count: p.count }))}
+              currency={currency}
+            />
+            <RevenueTable
+              icon={ShoppingCart}
+              title="Top products"
+              empty="No product revenue in this range."
+              rows={report.topProducts.map((p) => ({ key: p.productId || p.title, name: p.title, revenue: p.revenue, count: p.count }))}
+              currency={currency}
+            />
+          </div>
+        </>
+      )}
+    </m.section>
+  )
+}
+
+/* Grouped bars, inline SVG — same no-chart-lib approach as Sparkline. */
+function RevenueBars({ series, currency }) {
+  const W = 800, H = 220, PAD_X = 16, PAD_Y = 18, LABEL_H = 22
+
+  if (!Array.isArray(series) || series.length === 0) {
+    return <p className="py-8 text-center text-sm text-charcoal-50">No revenue data yet.</p>
+  }
+  const max = Math.max(1, ...series.map((s) => s.gross))
+  const plotH = H - 2 * PAD_Y - LABEL_H
+  const slot = (W - 2 * PAD_X) / series.length
+  const barW = Math.max(3, Math.min(28, slot * 0.34))
+  const baseY = PAD_Y + plotH
+  const hOf = (v) => (v / max) * plotH
+
+  return (
+    <div className="-mx-1 overflow-x-auto text-charcoal">
+      <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label="Monthly gross and net revenue">
+        {[0.25, 0.5, 0.75, 1].map((t, i) => {
+          const y = baseY - t * plotH
+          return <line key={i} x1={PAD_X} y1={y} x2={W - PAD_X} y2={y} stroke="currentColor" strokeOpacity="0.10" strokeDasharray="2 4" />
+        })}
+        <line x1={PAD_X} y1={baseY} x2={W - PAD_X} y2={baseY} stroke="currentColor" strokeOpacity="0.25" />
+        {series.map((s, i) => {
+          const cx = PAD_X + slot * (i + 0.5)
+          const gH = hOf(s.gross), nH = hOf(Math.max(0, s.net))
+          return (
+            <g key={s.month}>
+              <rect x={cx - barW - 1} y={baseY - gH} width={barW} height={gH} rx="2" fill="var(--color-violet)" fillOpacity="0.35">
+                <title>{`${s.month} · gross ${money(s.gross, currency)} · ${s.count} orders`}</title>
+              </rect>
+              <rect x={cx + 1} y={baseY - nH} width={barW} height={nH} rx="2" fill="var(--color-violet)">
+                <title>{`${s.month} · net ${money(s.net, currency)} · refunded ${money(s.refunded, currency)}`}</title>
+              </rect>
+              <text x={cx} y={H - 6} textAnchor="middle" fontSize="10" fill="currentColor" fillOpacity="0.6" fontFamily="var(--font-mono, monospace)">
+                {s.month.slice(2)}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+      <div className="mt-1 flex gap-4 text-xs text-charcoal-50">
+        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-violet/35" />Gross</span>
+        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-violet" />Net</span>
+      </div>
+    </div>
+  )
+}
+
+function RevenueTable({ icon: Icon, title, rows, empty, currency }) {
+  return (
+    <div className="rounded-xl border border-slate-200 p-4">
+      <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-charcoal">
+        <Icon className="h-4 w-4 text-violet" strokeWidth={1.75} />
+        {title}
+      </h3>
+      {rows.length === 0 ? (
+        <p className="py-4 text-center text-sm text-charcoal-50">{empty}</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-charcoal-50">
+                <th className="py-1 pr-2 font-semibold">Name</th>
+                <th className="py-1 pr-2 text-right font-semibold">Revenue</th>
+                <th className="py-1 text-right font-semibold">Sold</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {rows.map((r) => (
+                <tr key={r.key}>
+                  <td className="py-1.5 pr-2">
+                    <div className="truncate font-medium text-charcoal">{r.name}</div>
+                    {r.sub && <div className="truncate text-xs text-charcoal-50">{r.sub}</div>}
+                  </td>
+                  <td className="py-1.5 pr-2 text-right font-mono tabular-nums text-charcoal">{money(r.revenue, currency)}</td>
+                  <td className="py-1.5 text-right font-mono tabular-nums text-charcoal-80">{num(r.count)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

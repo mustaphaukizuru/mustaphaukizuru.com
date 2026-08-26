@@ -13,4 +13,5 @@ const router = Router()
 router.use(protect, adminOnly)
 router.get("/dashboard", ctrl.adminDashboard)
 router.get("/events",    ctrl.adminEvents)
+router.get("/revenue",   ctrl.adminRevenue)   // Tier 4 · ?months=12
 module.exports = router
