@@ -194,29 +194,54 @@ async function deleteSubscriber(id) {
   return { id, deleted: true }
 }
 
+/**
+ * CSV export of subscribers.
+ *
+ * A1 · paged, not one findMany. An admin export legitimately needs every row,
+ * but "every row" used to mean one unbounded query materialising the whole
+ * table as Prisma objects before a single line of CSV existed — memory
+ * proportional to the list, on a shared host. Rows are now pulled 1,000 at a
+ * time by cursor and appended as they arrive; only the CSV text accumulates.
+ *
+ * Cursor on the unique `id` with a stable (subscribedAt desc, id desc) order,
+ * so a subscriber added mid-export cannot shift the pages and duplicate or
+ * skip a row.
+ */
+const EXPORT_PAGE = 1000
+
 async function exportSubscribersCsv({ status } = {}) {
   const where = {}
   if (status && NEWSLETTER_STATUSES.includes(status)) where.status = status
 
-  const rows = await prisma.newsletterSubscriber.findMany({
-    where,
-    orderBy: { subscribedAt: "desc" },
-  })
-
   const header = "email,name,status,source,subscribed_at,unsubscribed_at\n"
-  const csv = rows.map((r) => {
-    const fields = [
-      r.email,
-      r.name || "",
-      r.status,
-      r.source || "",
-      r.subscribedAt ? new Date(r.subscribedAt).toISOString() : "",
-      r.unsubscribedAt ? new Date(r.unsubscribedAt).toISOString() : "",
-    ].map(csvEscape)
-    return fields.join(",")
-  }).join("\n")
+  const lines = []
+  let cursor = null
+  let count = 0
 
-  return { csv: header + csv, count: rows.length }
+  for (;;) {
+    const page = await prisma.newsletterSubscriber.findMany({
+      where,
+      orderBy: [{ subscribedAt: "desc" }, { id: "desc" }],
+      take: EXPORT_PAGE,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      select: { id: true, email: true, name: true, status: true, source: true, subscribedAt: true, unsubscribedAt: true },
+    })
+    for (const r of page) {
+      lines.push([
+        r.email,
+        r.name || "",
+        r.status,
+        r.source || "",
+        r.subscribedAt ? new Date(r.subscribedAt).toISOString() : "",
+        r.unsubscribedAt ? new Date(r.unsubscribedAt).toISOString() : "",
+      ].map(csvEscape).join(","))
+    }
+    count += page.length
+    if (page.length < EXPORT_PAGE) break
+    cursor = page[page.length - 1].id
+  }
+
+  return { csv: header + lines.join("\n"), count }
 }
 
 function csvEscape(v) {

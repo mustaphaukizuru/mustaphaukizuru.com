@@ -77,9 +77,16 @@ async function buildSitemapXml() {
 
   // Products — only active and visible
   try {
+    // A1 · a sitemap legitimately lists everything, but "everything" must
+    // still be bounded: newest first and capped well under the 50,000-URL
+    // sitemap limit, so a runaway catalogue cannot turn this into an
+    // unbounded scan. If a section ever nears the cap, split into a sitemap
+    // index rather than raise it.
     const products = await prisma.product.findMany({
-      where:  { isActive: true, deletedAt: null },
-      select: { slug: true, updatedAt: true },
+      where:   { isActive: true, deletedAt: null },
+      select:  { slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+      take:    5000,
     })
     products.forEach((p) => {
       if (!p.slug) return
@@ -99,8 +106,10 @@ async function buildSitemapXml() {
   // silently missing from the sitemap.)
   try {
     const services = await prisma.service.findMany({
-      where:  { status: "published", deletedAt: null },
-      select: { slug: true, updatedAt: true },
+      where:   { status: "published", deletedAt: null },
+      select:  { slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+      take:    5000,
     })
     services.forEach((s) => {
       if (!s.slug) return
@@ -119,8 +128,10 @@ async function buildSitemapXml() {
   try {
     if (typeof prisma.portfolioProject?.findMany === "function") {
       const projects = await prisma.portfolioProject.findMany({
-        where:  { status: "published" },
-        select: { slug: true, updatedAt: true },
+        where:   { status: "published" },
+        select:  { slug: true, updatedAt: true },
+        orderBy: { updatedAt: "desc" },
+        take:    5000,
       })
       projects.forEach((p) => {
         if (!p.slug) return
