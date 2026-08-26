@@ -94,7 +94,15 @@ async function ensureInvoice(orderId) {
 
   if (!order) return null
 
-  // 1 · Find or create Invoice row
+  // 1 · Find or create Invoice row.
+  //     Storefront invoices only ever exist for paid orders, so a fresh row
+  //     is born `paid`. A pre-existing manual invoice (issued / overdue) whose
+  //     order has since been paid is flipped to `paid` here — fulfillOrder
+  //     calls ensureInvoice on every paid transition, so this is the single
+  //     place the invoice learns about the payment. Late fees already
+  //     accrued are kept on the row for the record.
+  const isPaid = order.status === "paid" || order.status === "completed"
+  const paidAt = order.paidAt || order.payments?.[0]?.paidAt || new Date()
   let invoice = await prisma.invoice.findUnique({ where: { orderId: order.id } })
 
   if (!invoice) {
@@ -104,7 +112,13 @@ async function ensureInvoice(orderId) {
         orderId:       order.id,
         invoiceNumber,
         invoicePdfUrl: publicInvoiceUrl(order.id),
+        ...(isPaid ? { status: "paid", paidAt } : {}),
       },
+    })
+  } else if (isPaid && invoice.status !== "paid") {
+    invoice = await prisma.invoice.update({
+      where: { id: invoice.id },
+      data:  { status: "paid", paidAt: invoice.paidAt || paidAt },
     })
   }
 
@@ -212,7 +226,15 @@ function renderMeta(doc, invoice, order) {
 
     .font("Helvetica-Bold").fillColor(BRAND.text).text("Status")
     .font("Helvetica").fillColor(BRAND.muted)
-    .text(humanStatus(order.status))
+    .text(humanStatus(invoice.status === "paid" ? "paid" : invoice.status || order.status))
+
+  if (invoice.dueDate) {
+    doc
+      .moveDown(0.5)
+      .font("Helvetica-Bold").fillColor(BRAND.text).text("Due date")
+      .font("Helvetica").fillColor(BRAND.muted)
+      .text(formatDate(invoice.dueDate))
+  }
 
   // Move cursor below whichever column is taller
   doc.y = Math.max(doc.y, topY + 100)
@@ -406,7 +428,7 @@ function formatMoney(n, currency = "MXN") {
 
 function humanStatus(status) {
   if (!status) return "—"
-  const map = { paid: "Paid", pending: "Pending", failed: "Failed", cancelled: "Cancelled", refunded: "Refunded" }
+  const map = { paid: "Paid", pending: "Pending", failed: "Failed", cancelled: "Cancelled", refunded: "Refunded", issued: "Issued", overdue: "Overdue", void: "Void" }
   return map[status] || String(status).replace(/_/g, " ")
 }
 

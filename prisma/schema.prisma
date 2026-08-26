@@ -1039,12 +1039,29 @@ model Invoice {
   orderId       String
   invoiceNumber String   @unique
   invoicePdfUrl String?
-  issuedAt      DateTime @default(now())
+  /// Tier 4 billing. Storefront invoices are born `paid` (they are only
+  /// generated after payment). Admin-issued manual invoices start `issued`,
+  /// move to `overdue` by src/jobs/invoiceDunningJob.js once past dueDate,
+  /// and to `paid` when the pending Order is paid. `void` is admin-only.
+  /// Values: issued | paid | overdue | void.
+  status            String   @default("issued") @db.VarChar(16)
+  /// Manual invoices are raised against a ServiceOrder (plain id, no
+  /// relation — read through Order.serviceOrders / ClientProject when needed).
+  serviceOrderId    String?
+  issuedAt          DateTime @default(now())
+  dueDate           DateTime?
+  paidAt            DateTime?
+  /// Fraction applied ONCE when the invoice turns overdue (0.02 = 2 %).
+  lateFeeRate       Decimal  @default(0) @db.Decimal(5, 4)
+  lateFeeAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  overdueNotifiedAt DateTime?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@unique([orderId])
   @@index([orderId])
+  @@index([status, dueDate])
+  @@index([serviceOrderId])
 }
 
 model Payment {

@@ -530,6 +530,18 @@
       "failed": "Failed",
       "ariaLabel": "Order {{label}}"
     },
+    "invoice": {
+      "due": "Due {{date}}",
+      "overdue": "Overdue · was due {{date}}",
+      "paid": "Paid {{date}}",
+      "title": "Invoice {{number}}",
+      "body": "This invoice is payable online. Once paid, your project access and deliverables are released automatically.",
+      "dueOn": "Due on {{date}}",
+      "lateFee": "Late fee applied: {{amount}}",
+      "payMp": "Pay with Mercado Pago",
+      "payHint": "Prefer PayPal or a bank transfer? Reply to the invoice email and we'll arrange it.",
+      "payError": "Could not start the payment. Please try again."
+    },
     "table": {
       "title": "All Orders",
       "subtitle": "Click a column header to sort. Most recent orders appear first by default.",

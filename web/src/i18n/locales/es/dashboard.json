@@ -530,6 +530,18 @@
       "failed": "Fallido",
       "ariaLabel": "Pedido {{label}}"
     },
+    "invoice": {
+      "due": "Vence {{date}}",
+      "overdue": "Vencida · vencía el {{date}}",
+      "paid": "Pagada {{date}}",
+      "title": "Factura {{number}}",
+      "body": "Esta factura se paga en línea. Al pagarla, el acceso a tu proyecto y los entregables se liberan automáticamente.",
+      "dueOn": "Vence el {{date}}",
+      "lateFee": "Recargo aplicado: {{amount}}",
+      "payMp": "Pagar con Mercado Pago",
+      "payHint": "¿Prefieres PayPal o transferencia? Responde al correo de la factura y lo arreglamos.",
+      "payError": "No se pudo iniciar el pago. Inténtalo de nuevo."
+    },
     "table": {
       "title": "Todos los pedidos",
       "subtitle": "Haz clic en el encabezado de una columna para ordenar. Los más recientes aparecen primero por defecto.",

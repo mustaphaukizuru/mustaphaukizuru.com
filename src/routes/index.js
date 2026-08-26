@@ -53,6 +53,7 @@ const addressRoutes = require("./addressRoutes")                      // B08
 
 // Priority #8 · Client project management (milestones + files)
 const adminClientProjectRoutes  = require("./adminClientProjectRoutes")
+const adminInvoiceRoutes = require("./adminInvoiceRoutes")
 const memberClientProjectRoutes = require("./memberClientProjectRoutes")
 const portalRoutes              = require("./portalRoutes")           // Tier 4 — magic-link + PIN portal
 
@@ -174,6 +175,7 @@ v1.use("/admin/newsletter",       adminNewsletterRoutes)
 v1.use("/admin/media",            adminMediaRoutes)
 v1.use("/admin/service-orders",   adminServiceOrdersRoutes)
 v1.use("/admin/client-projects",  adminClientProjectRoutes)
+v1.use("/admin/invoices",         adminInvoiceRoutes)             // Tier 4 — manual invoices + dunning
 v1.use("/admin/services",         adminServiceRoutes)
 v1.use("/admin/portfolio",        adminPortfolioRoutes)
 v1.use("/admin/reviews",          adminReviewRoutes)
