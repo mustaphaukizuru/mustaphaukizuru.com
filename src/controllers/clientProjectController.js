@@ -4,21 +4,23 @@ const asyncHandler = require("../utils/asyncHandler")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { listMyProjects, getMyProject } = require("../services/clientProjectService")
+const { STORAGE_PATHS } = require("../config/storagePaths")
 
 /* ────────────────────────────────────────────────────────────────────────
  * SECURITY · resolveProjectFilePath
  *
- * Project files live at `public/files/projects/<projectId>/<filename>`. The
- * static catch-all in app.js used to serve them WITHOUT authentication —
- * anyone who guessed or leaked a URL could download another customer's
- * deliverables. The streaming endpoint below replaces that; the deny
- * middleware mounted in app.js blocks the static path.
+ * Project files live at `<storage>/projects/<projectId>/<filename>` —
+ * outside the versioned deploy directory (see storagePaths.js) and outside
+ * public/, so express.static can never serve them. The DB keeps the
+ * legacy-shaped relative path `/files/projects/<id>/<name>`; rows written
+ * before the storage move resolve against the same root, so moving the
+ * old directory into storage/projects/ is the only migration step.
  *
  * This helper resolves the on-disk absolute path with a startsWith()
  * guard so a malicious filePath like `/files/projects/../etc/passwd`
  * cannot escape the safe root. Same pattern used in downloadController.
  * ──────────────────────────────────────────────────────────────────── */
-const PROJECT_FILES_ROOT = path.resolve(__dirname, "../../public/files/projects")
+const PROJECT_FILES_ROOT = path.resolve(STORAGE_PATHS.projectFiles)
 
 function resolveSafePath(filePath) {
   if (!filePath) return null
@@ -87,6 +89,15 @@ const streamFile = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "File not found" } })
   }
 
+  return sendProjectFile({ file, req, res, userId, action: "project.file.downloaded" })
+})
+
+/**
+ * Shared streaming tail used by the member endpoint above and the admin
+ * download endpoint. Authorisation is the CALLER's job — this only resolves
+ * the safe path, logs, and streams.
+ */
+function sendProjectFile({ file, req, res, userId, action }) {
   const abs = resolveSafePath(file.filePath)
   if (!abs) {
     logger.warn("[project file] suspicious path rejected", { fileId: file.id, filePath: file.filePath })
@@ -102,10 +113,10 @@ const streamFile = asyncHandler(async (req, res) => {
     .create({
       data: {
         userId,
-        action:      "project.file.downloaded",
+        action,
         entityType:  "ProjectFile",
         entityId:    file.id,
-        description: `Downloaded ${file.fileName} from project ${file.project.projectName}`,
+        description: `Downloaded ${file.fileName} from project ${file.project?.projectName || file.projectId}`,
         ipAddress:   req.ip || null,
       },
     })
@@ -125,6 +136,6 @@ const streamFile = asyncHandler(async (req, res) => {
     }
   })
   stream.pipe(res)
-})
+}
 
-module.exports = { listMine, getMine, streamFile }
+module.exports = { listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT }

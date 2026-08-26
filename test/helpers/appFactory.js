@@ -123,9 +123,6 @@ function buildApp({ prisma = createFakePrisma() } = {}) {
     const real = jest.requireActual(SRC("services/productService.js"))
     return { ...real, getProductBySlug: mocks.productService.getProductBySlug }
   })
-  // The download rate limiter schedules an un-unref'd setInterval at require
-  // time which would keep the jest worker alive; swap in a pass-through.
-  jest.doMock(SRC("middleware/downloadRateLimiter.js"), () => ({ downloadRateLimiter: (_req, _res, next) => next() }))
   // nodemailer must never be touched even if a real mailer path leaks in.
   jest.doMock("nodemailer", () => ({ createTransport: () => ({ sendMail: jest.fn(async () => ({ messageId: "x" })) }) }))
 

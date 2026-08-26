@@ -18,7 +18,10 @@ const PROJECT_STATUSES = ["planning", "in_progress", "review", "completed", "can
 const MILESTONE_STATUSES = ["pending", "in_progress", "completed"]
 
 const fmtDate = (d) => d ? new Date(d).toISOString().slice(0, 10) : ""
-const fileUrl = (path) => path ? (path.startsWith("http") ? path : `${(API_BASE_URL || "").replace(/\/$/, "")}${path}`) : "#"
+// Files are private: never link the raw path (app.js 403s /files/projects/*).
+// Go through the admin streaming endpoint; the session cookie authenticates.
+const fileUrl = (projectId, file) =>
+  `${(API_BASE_URL || "").replace(/\/$/, "")}/api/v1/admin/client-projects/${projectId}/files/${file.id}/download`
 
 const MILESTONE_ICON = { pending: Hourglass, in_progress: Clock, completed: CheckCircle2 }
 
@@ -329,7 +332,7 @@ export default function AdminClientProjectDetailPage() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <a
-                    href={fileUrl(f.filePath)} target="_blank" rel="noopener noreferrer"
+                    href={fileUrl(project.id, f)} target="_blank" rel="noopener noreferrer"
                     className="rounded-md border border-violet/15 bg-white p-1.5 text-violet hover:bg-violet-pale"
                     aria-label={`Download ${f.fileName}`}
                   >

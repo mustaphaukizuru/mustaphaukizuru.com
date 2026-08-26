@@ -1,12 +1,11 @@
-const fs = require("fs")
 const path = require("path")
 const multer = require("multer")
+const { STORAGE_PATHS, ensureDir } = require("../config/storagePaths")
 
-const PRODUCT_IMAGE_DIR = path.resolve(__dirname, "../../public/images/products")
-
-if (!fs.existsSync(PRODUCT_IMAGE_DIR)) {
-  fs.mkdirSync(PRODUCT_IMAGE_DIR, { recursive: true })
-}
+// Runtime uploads live OUTSIDE the deploy directory (storagePaths.js) and
+// are served at /images/products by app.js. Seed images tracked in git stay
+// under public/images/products — both mounts share the URL prefix.
+const PRODUCT_IMAGE_DIR = ensureDir(STORAGE_PATHS.productImages)
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
