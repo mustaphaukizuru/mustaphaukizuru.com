@@ -10,6 +10,7 @@ import { useToast } from "../context/ToastContext"
 import { MetricCard } from "../components/ui/index"
 import DataTable from "../components/admin/DataTable"
 import StatusPill from "../components/admin/StatusPill"
+import { ConfirmModal } from "../components/admin/forms"
 
 /**
  * AdminContactsPage

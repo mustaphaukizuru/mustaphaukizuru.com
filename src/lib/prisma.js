@@ -23,7 +23,9 @@ let prisma
  */
 function withPoolBounds(rawUrl) {
   if (!rawUrl) return rawUrl
-  const limit = process.env.DB_CONNECTION_LIMIT || "5"
+  // 10 (was 5): the admin console fans out 5-8 queries per page and the pool
+  // timed out (P2024 → "Database operation failed"). max_user_connections is 75.
+  const limit = process.env.DB_CONNECTION_LIMIT || "10"
   const timeout = process.env.DB_POOL_TIMEOUT || "10"
   try {
     const url = new URL(rawUrl)
