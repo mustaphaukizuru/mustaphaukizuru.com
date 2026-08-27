@@ -5,7 +5,7 @@
 
 jest.mock("../src/lib/prisma", () => ({
   emailCampaign:          { findMany: jest.fn(), update: jest.fn().mockResolvedValue({}) },
-  emailCampaignRecipient: { findMany: jest.fn(), count: jest.fn(), update: jest.fn().mockResolvedValue({}) },
+  emailCampaignRecipient: { findMany: jest.fn(), count: jest.fn(), update: jest.fn().mockResolvedValue({}), updateMany: jest.fn().mockResolvedValue({ count: 2 }) },
   newsletterSubscriber:   { findMany: jest.fn().mockResolvedValue([]) },
 }))
 jest.mock("../src/utils/logger", () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() }))
@@ -58,7 +58,7 @@ test("sends a batch, marks sent/failed, increments counters", async () => {
 test("completes the campaign when the queue is empty", async () => {
   prisma.emailCampaign.findMany.mockResolvedValue([campaign])
   prisma.emailCampaignRecipient.findMany.mockResolvedValue([])
-  prisma.emailCampaignRecipient.count.mockResolvedValueOnce(5).mockResolvedValueOnce(1)
+  prisma.emailCampaignRecipient.count.mockResolvedValueOnce(0).mockResolvedValueOnce(5).mockResolvedValueOnce(1)
 
   await runCampaignSenderPass()
 

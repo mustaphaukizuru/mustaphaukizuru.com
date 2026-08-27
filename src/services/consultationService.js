@@ -280,8 +280,8 @@ async function bookConsultation({
     // When the booking is auto-confirmed (client picked from published
     // availability → no admin review needed), wire the same side-effects
     // the manual admin-confirm path runs:
-    //   1. Create a Google Calendar event with a Meet link (or fall back
-    //      to a Jitsi room if Google isn't configured).
+    //   1. Create a Google Calendar event with a Meet link (no fallback
+    //      provider — if Google isn't configured the link stays empty).
     //   2. Persist the meeting link + provider + event id back onto the row.
     //   3. Fire the confirmation email so the client gets the join link
     //      immediately, plus the Calendar invite Google itself sends.
@@ -625,8 +625,8 @@ async function adminListConsultations({ status, from, to, hostUserId, page = 1, 
  *   1. If Google Calendar is configured, try to create an event + Meet
  *      link via the Calendar API. On success, persist meetingProvider =
  *      google_meet, meetingLink = <Meet URL>, googleEventId = <event id>.
- *   2. If Google fails (or isn't configured), fall back to a Jitsi room
- *      with meetingProvider = manual.
+ *   2. If Google fails (or isn't configured), the booking is kept with
+ *      meetingLink = null — there is deliberately no fallback provider.
  *   3. Regardless of which provider was used, fire the existing
  *      consultation.confirmed email — the template substitutes the link
  *      so the client always gets something they can click on.
