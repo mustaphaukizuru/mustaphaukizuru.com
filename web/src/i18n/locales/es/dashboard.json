@@ -1038,5 +1038,37 @@
       "support": "Ayuda y tickets",
       "profile": "Datos, direcciones, seguridad"
     }
+  },
+  "portal": {
+    "eyebrow": "Portal del cliente",
+    "title": "Portal del proyecto",
+    "intro": "Una vista de solo lectura de tu proyecto. Enviaremos un PIN de un solo uso al correo registrado para confirmar que eres tú.",
+    "loading": "Verificando tu enlace…",
+    "readOnly": "Vista de solo lectura. Inicia sesión en tu panel para subir archivos, comentar o aprobar hitos.",
+    "ndaGate": "Este proyecto requiere un NDA. Inicia sesión en tu panel para revisarlo y aceptarlo — los hitos y archivos permanecen ocultos hasta entonces.",
+    "noFiles": "Aún no hay archivos compartidos.",
+    "purged": "Eliminado",
+    "download": "Descargar {{name}}",
+    "invalid": {
+      "title": "Este enlace no funciona",
+      "body": "Puede haber caducado o haber sido reemplazado. Pide a tu responsable de proyecto un enlace nuevo."
+    },
+    "step1": {
+      "body": "Pulsa el botón y enviaremos un PIN de 6 dígitos al correo de este proyecto. El PIN funciona una vez y caduca en 10 minutos.",
+      "cta": "Enviarme un PIN",
+      "sending": "Enviando…"
+    },
+    "step2": {
+      "body": "Enviamos un PIN a {{email}}. Escríbelo abajo para abrir el proyecto.",
+      "label": "PIN de 6 dígitos",
+      "cta": "Abrir proyecto",
+      "verifying": "Verificando…",
+      "resend": "Enviar un PIN nuevo"
+    },
+    "errors": {
+      "invalid": "Este enlace no es válido.",
+      "pinSend": "No pudimos enviar el PIN. Inténtalo de nuevo.",
+      "pinInvalid": "Ese PIN es incorrecto o ha caducado."
+    }
   }
 }

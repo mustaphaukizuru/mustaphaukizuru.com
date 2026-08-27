@@ -54,6 +54,7 @@ const addressRoutes = require("./addressRoutes")                      // B08
 // Priority #8 · Client project management (milestones + files)
 const adminClientProjectRoutes  = require("./adminClientProjectRoutes")
 const memberClientProjectRoutes = require("./memberClientProjectRoutes")
+const portalRoutes              = require("./portalRoutes")           // Tier 4 — magic-link + PIN portal
 
 // M15 · Refunds — admin orchestrator + member-side visibility
 const adminRefundRoutes  = require("./adminRefundRoutes")
@@ -155,6 +156,7 @@ v1.use("/availability",  availabilityRoutes)        // Public read — slot list
 v1.use("/consultations", consultationRoutes)        // Member booking lifecycle
 v1.use("/blog",          blogRoutes)                // M16 — Public blog list + detail
 v1.use("/",              diagnosticRoutes)          // Self-audit: POST /diagnostic-submission + GET /admin/diagnostic
+v1.use("/portal",        portalRoutes)              // Tier 4 — no-login client portal (magic link + emailed PIN)
 
 // Admin
 v1.use("/admin/dashboard",        adminDashboardRoutes)

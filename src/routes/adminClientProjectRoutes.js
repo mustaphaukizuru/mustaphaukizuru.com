@@ -4,6 +4,7 @@ const {
   addMilestone, patchMilestone, removeMilestone,
   uploadFile, removeFile, downloadFile,
   addAdminComment, toggleResolveComment, replyProjectTicket,
+  createPortalLink,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -16,6 +17,8 @@ router.post  ("/",                          createProject)
 router.get   ("/:id",                       getProject)
 router.patch ("/:id",                       updateProject)
 router.delete("/:id",                       removeProject)
+// Tier 4 · magic-link portal (no-login, PIN-verified) — mint / rotate
+router.post  ("/:id/portal-link",           createPortalLink)
 
 router.post  ("/:id/milestones",            addMilestone)
 router.patch ("/:id/milestones/:milestoneId", patchMilestone)

@@ -87,6 +87,11 @@ export async function updateAdminProject(id, payload) {
   })
   return stripData(r)
 }
+/** Tier 4 · mint / rotate the no-login portal link. Returns { url, expiresAt }. */
+export async function createAdminPortalLink(id) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/portal-link`, { method: "POST", body: JSON.stringify({}) })
+  return stripData(r)
+}
 export async function deleteAdminProject(id) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}`, { method: "DELETE" })
   return stripData(r)

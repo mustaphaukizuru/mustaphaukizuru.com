@@ -1333,6 +1333,10 @@ model ClientProject {
   /// (userId, "nda", ndaVersion). Bump ndaVersion to force re-acceptance.
   requiresNda     Boolean       @default(false)
   ndaVersion      String?       @db.VarChar(16)
+  /// Tier 4 · magic-link portal. 32 random bytes hex; FRONTEND_URL/portal/<token>.
+  /// Re-minting rotates it. Expires with the grace window (closed) or +90 d.
+  portalToken          String?   @unique @db.VarChar(64)
+  portalTokenExpiresAt DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 

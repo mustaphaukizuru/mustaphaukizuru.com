@@ -454,6 +454,32 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // 4c · Portal PIN (Tier 4 magic-link portal, no login)
+  {
+    key: "portal.pin",
+    subject: "Your access PIN for {{projectName}}: {{pin}}",
+    html: chrome({
+      preheader: "Your one-time PIN to open the project portal.",
+      eyebrow:   "Project portal",
+      bodyHtml:
+        heading(`Your PIN: {{pin}}`) +
+        paragraph(`Someone opened the portal link for <strong>{{projectName}}</strong>. Enter this PIN on the page to see the project's milestones, files and preview:`) +
+        calloutCard(`<span style="font-family:monospace;font-size:28px;letter-spacing:6px;font-weight:700">{{pin}}</span>`) +
+        paragraph(`The PIN expires in {{expiresMinutes}} minutes and works once. If you did not open the link, you can ignore this email — nothing is shared without the PIN.`),
+    }),
+    text: [
+      "Your PIN: {{pin}}",
+      "",
+      "Someone opened the portal link for {{projectName}}. Enter this PIN on the",
+      "page to see the project's milestones, files and preview.",
+      "",
+      "The PIN expires in {{expiresMinutes}} minutes and works once. If you did",
+      "not open the link, ignore this email.",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // 5 · Support reply
   {
     key: "support.reply",
@@ -1178,6 +1204,32 @@ const TEMPLATES_ES = [
       "El hito {{milestoneTitle}} de {{projectName}} ya fue entregado y",
       "espera tu visto bueno. Apruébalo o solicita cambios aquí:",
       "  {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // portal.pin
+  {
+    key: "portal.pin",
+    subject: "Tu PIN de acceso para {{projectName}}: {{pin}}",
+    html: chrome({
+      preheader: "Tu PIN de un solo uso para abrir el portal del proyecto.",
+      eyebrow:   "Portal del proyecto",
+      bodyHtml:
+        heading(`Tu PIN: {{pin}}`) +
+        paragraph(`Alguien abrió el enlace del portal de <strong>{{projectName}}</strong>. Escribe este PIN en la página para ver los hitos, archivos y la vista previa del proyecto:`) +
+        calloutCard(`<span style="font-family:monospace;font-size:28px;letter-spacing:6px;font-weight:700">{{pin}}</span>`) +
+        paragraph(`El PIN caduca en {{expiresMinutes}} minutos y funciona una sola vez. Si no abriste el enlace, ignora este correo — nada se comparte sin el PIN.`),
+    }),
+    text: [
+      "Tu PIN: {{pin}}",
+      "",
+      "Alguien abrió el enlace del portal de {{projectName}}. Escribe este PIN en",
+      "la página para ver los hitos, archivos y la vista previa del proyecto.",
+      "",
+      "El PIN caduca en {{expiresMinutes}} minutos y funciona una sola vez. Si no",
+      "abriste el enlace, ignora este correo.",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),

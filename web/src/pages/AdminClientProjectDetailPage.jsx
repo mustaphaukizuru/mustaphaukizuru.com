@@ -3,9 +3,10 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import {
   ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2,
   AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare,
+  Link2, Copy,
 } from "lucide-react"
 import {
-  fetchAdminProject, updateAdminProject, createAdminProject,
+  fetchAdminProject, updateAdminProject, createAdminProject, createAdminPortalLink,
   createMilestone, updateMilestone, deleteMilestone,
   uploadProjectFile, deleteProjectFile,
   postAdminProjectComment, toggleAdminCommentResolved,
@@ -54,6 +55,26 @@ export default function AdminClientProjectDetailPage() {
     startDate: "", dueDate: "", previewUrl: "",
     requiresNda: false, ndaVersion: "",
   })
+
+  // Tier 4 · magic-link portal
+  const [portalLink, setPortalLink] = useState(null)
+  const [mintingLink, setMintingLink] = useState(false)
+
+  async function handlePortalLink() {
+    setMintingLink(true)
+    try {
+      const data = await createAdminPortalLink(id)
+      setPortalLink(data)
+      showSuccess("Portal link ready — copy it and send it to the client")
+    } catch (err) {
+      console.error("[ClientProject] portal link failed:", err)
+      showError(err.message || "Could not create the portal link")
+    } finally { setMintingLink(false) }
+  }
+  async function copyPortalLink() {
+    try { await navigator.clipboard.writeText(portalLink.url); showSuccess("Link copied") }
+    catch { showError("Copy failed — select the link and copy it manually") }
+  }
 
   // New-milestone draft
   const [newMs, setNewMs] = useState({ title: "", description: "", dueDate: "" })
@@ -258,6 +279,39 @@ export default function AdminClientProjectDetailPage() {
           </button>
         </div>
       </div>
+
+      {/* Tier 4 · no-login portal link */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-card font-bold text-violet">Client portal link</h2>
+              <p className="mt-0.5 text-meta text-charcoal-80/65">
+                Read-only access without an account: the client opens the link, receives a 6-digit PIN by email, and sees milestones, files and the preview.
+                {project.portalTokenExpiresAt ? ` Current link expires ${fmtDate(project.portalTokenExpiresAt)}.` : " No link has been issued yet."}
+              </p>
+            </div>
+            <button
+              type="button" onClick={handlePortalLink} disabled={mintingLink}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-violet/30 bg-white px-3 py-2 text-sm font-semibold text-violet transition hover:bg-violet-pale disabled:opacity-60"
+            >
+              {mintingLink ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+              {project.portalTokenExpiresAt ? "Rotate link" : "Generate link"}
+            </button>
+          </div>
+          {portalLink?.url && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <code className="min-w-0 flex-1 truncate rounded-lg bg-charcoal-80/5 px-3 py-2 font-mono text-[12px] text-charcoal">{portalLink.url}</code>
+              <button
+                type="button" onClick={copyPortalLink}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3 py-2 text-sm font-semibold text-white transition hover:bg-violet-deep"
+              >
+                <Copy className="h-4 w-4" /> Copy
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Milestones */}
       {!isNew && project && (

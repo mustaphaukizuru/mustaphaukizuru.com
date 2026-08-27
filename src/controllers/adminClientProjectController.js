@@ -4,6 +4,7 @@ const logger = require("../utils/logger")
 const prisma = require("../lib/prisma")
 const { sendProjectFile, resolveSafePath } = require("./clientProjectController")
 const { createComment, resolveComment, onMilestoneAwaitingClient } = require("../services/projectPortalService")
+const { mintPortalLink } = require("../services/portalAccessService")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
@@ -64,6 +65,20 @@ const removeProject = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: { id: result.id, deleted: true } })
   } catch (e) {
     if (e?.code === "P2025") return notFound(res)
+    throw e
+  }
+})
+
+/**
+ * POST /admin/client-projects/:id/portal-link
+ * Mints (or rotates) the no-login magic link for this project.
+ */
+const createPortalLink = asyncHandler(async (req, res) => {
+  try {
+    const data = await mintPortalLink(req.params.id)
+    res.status(201).json({ success: true, data })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
     throw e
   }
 })
@@ -249,4 +264,5 @@ module.exports = {
   addMilestone, patchMilestone, removeMilestone,
   uploadFile, removeFile, downloadFile,
   addAdminComment, toggleResolveComment, replyProjectTicket,
+  createPortalLink,
 }

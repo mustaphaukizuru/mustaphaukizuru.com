@@ -113,6 +113,8 @@ const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const UnsubscribedPage = lazy(() => import("./pages/UnsubscribedPage"));
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 const BookConsultationPage = lazy(() => import("./pages/BookConsultationPage"));
+// Tier 4 · no-login client portal (magic link + emailed PIN)
+const PortalPage = lazy(() => import("./pages/PortalPage"));
 
 // Internal · design-system preview catalogue (always registered, gated
 // inside the page itself — see SystemPreviewPage.jsx).
@@ -264,6 +266,9 @@ export default function App() {
             {/* Booking */}
             <Route path="/book" element={<PublicShell><BookConsultationPage /></PublicShell>} />
             <Route path="/book/:serviceSlug" element={<PublicShell><BookConsultationPage /></PublicShell>} />
+
+            {/* Client portal · magic link + PIN, no account needed */}
+            <Route path="/portal/:token" element={<PublicShell><PortalPage /></PublicShell>} />
 
             {/* Internal · design-system preview catalogue — admin only */}
             <Route path="/_system" element={<AdminRoute><SystemPreviewPage /></AdminRoute>} />
@@ -422,6 +427,7 @@ export default function App() {
 
               <Route path="book" element={<PublicShell><BookConsultationPage /></PublicShell>} />
               <Route path="book/:serviceSlug" element={<PublicShell><BookConsultationPage /></PublicShell>} />
+              <Route path="portal/:token" element={<PublicShell><PortalPage /></PublicShell>} />
 
               {/* Auth — mirrored under /es/ */}
               <Route path="login" element={<AuthLayout><LoginPage /></AuthLayout>} />

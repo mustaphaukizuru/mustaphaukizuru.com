@@ -37,6 +37,8 @@ const PUBLIC_ROUTES = [
   "/book",
   "/book/:serviceSlug",
   "/_system",
+  // Tier 4 · no-login client portal (magic link + PIN)
+  "/portal/:token",
   // Auth
   "/login",
   "/signup",

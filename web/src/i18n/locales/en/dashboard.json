@@ -1038,5 +1038,37 @@
       "support": "Help and tickets",
       "profile": "Details, addresses, security"
     }
+  },
+  "portal": {
+    "eyebrow": "Client portal",
+    "title": "Project portal",
+    "intro": "A read-only view of your project. We will email a one-time PIN to the address on file to confirm it is you.",
+    "loading": "Checking your link…",
+    "readOnly": "Read-only view. Sign in to your dashboard to upload files, comment or approve milestones.",
+    "ndaGate": "This project requires an NDA. Sign in to your dashboard to review and accept it — milestones and files stay hidden until then.",
+    "noFiles": "No files shared yet.",
+    "purged": "Removed",
+    "download": "Download {{name}}",
+    "invalid": {
+      "title": "This link does not work",
+      "body": "It may have expired or been replaced. Ask your project lead for a new link."
+    },
+    "step1": {
+      "body": "Press the button and we will send a 6-digit PIN to the email address on this project. The PIN works once and expires in 10 minutes.",
+      "cta": "Email me a PIN",
+      "sending": "Sending…"
+    },
+    "step2": {
+      "body": "We sent a PIN to {{email}}. Enter it below to open the project.",
+      "label": "6-digit PIN",
+      "cta": "Open project",
+      "verifying": "Checking…",
+      "resend": "Send a new PIN"
+    },
+    "errors": {
+      "invalid": "This link is not valid.",
+      "pinSend": "We could not send the PIN. Please try again.",
+      "pinInvalid": "That PIN is wrong or has expired."
+    }
   }
 }

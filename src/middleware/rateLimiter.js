@@ -348,6 +348,26 @@ const ticketRateLimiter = makeLimiter({
   message:      "Too many tickets opened. Please wait before opening another one.",
 })
 
+/**
+ * Tier 4 · magic-link portal PIN. Each request emails the project owner, so
+ * the budget is tight per IP; the verify step gets a slightly larger one so
+ * a mistyped PIN does not lock the visitor out before the email arrives.
+ */
+const portalPinRateLimiter = makeLimiter({
+  name:         "portal-pin",
+  windowMs:     FIFTEEN_MIN,
+  max:          5,
+  keyGenerator: ipKey,
+  message:      "Too many PIN requests. Please wait 15 minutes and try again.",
+})
+const portalVerifyRateLimiter = makeLimiter({
+  name:         "portal-verify",
+  windowMs:     FIFTEEN_MIN,
+  max:          10,
+  keyGenerator: ipKey,
+  message:      "Too many PIN attempts. Please wait 15 minutes and request a new PIN.",
+})
+
 /* ── Backward-compat alias ────────────────────────────────────────────── */
 
 /**
@@ -378,4 +398,6 @@ module.exports = {
   searchRateLimiter,
   downloadRateLimiter,
   ticketRateLimiter,
+  portalPinRateLimiter,
+  portalVerifyRateLimiter,
 }
