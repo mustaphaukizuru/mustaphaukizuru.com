@@ -4,7 +4,10 @@
     "subtitle": "Last updated {{date}}",
     "lastUpdated": "Last updated",
     "intro": "Please read these terms carefully before using our platform or purchasing digital products.",
-    "questions": "Questions about these Terms?"
+    "questions": "Questions about these Terms?",
+    "tocAria": "Table of contents",
+    "tocLabel": "On this page",
+    "anchorAria": "Direct link to"
   },
   "privacy": {
     "title": "Privacy Policy",

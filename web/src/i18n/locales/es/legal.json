@@ -4,7 +4,10 @@
     "subtitle": "Última actualización {{date}}",
     "lastUpdated": "Última actualización",
     "intro": "Por favor lee estos términos cuidadosamente antes de usar nuestra plataforma o comprar productos digitales.",
-    "questions": "¿Tienes preguntas sobre los Términos?"
+    "questions": "¿Tienes preguntas sobre los Términos?",
+    "tocAria": "Tabla de contenido",
+    "tocLabel": "En esta página",
+    "anchorAria": "Enlace directo a"
   },
   "privacy": {
     "title": "Política de Privacidad",

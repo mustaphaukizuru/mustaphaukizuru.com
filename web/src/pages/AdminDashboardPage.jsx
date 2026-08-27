@@ -449,6 +449,32 @@ function DateRangeSelector({ value, onChange }) {
 /* ──────────────────────────────────────────────────────────────────────── */
 /* Main */
 /* ──────────────────────────────────────────────────────────────────────── */
+/** Flatten a list of plain objects to CSV and trigger a browser download. */
+function downloadCsv(rows, filename) {
+  if (!Array.isArray(rows) || rows.length === 0) return
+  const flat = rows.map((r) => {
+    const out = {}
+    for (const [k, v] of Object.entries(r || {})) {
+      if (v == null) out[k] = ""
+      else if (typeof v === "object") out[k] = Array.isArray(v) ? v.length : (v.name ?? v.email ?? v.id ?? JSON.stringify(v))
+      else out[k] = v
+    }
+    return out
+  })
+  const headers = [...new Set(flat.flatMap((r) => Object.keys(r)))]
+  const esc = (v) => `"${String(v).replace(/"/g, '""')}"`
+  const csv = [headers.map(esc).join(","), ...flat.map((r) => headers.map((h) => esc(r[h] ?? "")).join(","))].join("\r\n")
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 export default function AdminDashboardPage() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -618,9 +644,10 @@ export default function AdminDashboardPage() {
           </button>
           <button
             type="button"
-            disabled
-            title="Export coming soon"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-3 py-1.5 text-micro font-semibold text-charcoal-80/65 transition disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={recentOrders.length === 0}
+            title={recentOrders.length === 0 ? "Nothing to export yet" : "Download recent orders as CSV"}
+            onClick={() => downloadCsv(recentOrders, `orders-${new Date().toISOString().slice(0, 10)}.csv`)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-3 py-1.5 text-micro font-semibold text-charcoal-80/65 transition hover:border-violet/20 hover:bg-violet-pale hover:text-violet disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Download className="h-3.5 w-3.5" aria-hidden="true" />
             Export

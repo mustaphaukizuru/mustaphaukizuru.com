@@ -180,6 +180,7 @@ const AdminClientProjectDetailPage = lazy(() => import("./pages/AdminClientProje
 // Phase B · Placeholders (backend pending — see each page for the API plan)
 const AdminReviewsPage = lazy(() => import("./pages/AdminReviewsPage"));
 const AdminRefundsPage = lazy(() => import("./pages/AdminRefundsPage"));
+const AdminInvoicesPage = lazy(() => import("./pages/AdminInvoicesPage"));
 const AdminSessionsPage = lazy(() => import("./pages/AdminSessionsPage"));
 
 // M16 · Blog admin
@@ -360,6 +361,7 @@ export default function App() {
               {/* Phase B, placeholders (backend pending) */}
               <Route path="reviews" element={<AdminReviewsPage />} />
               <Route path="refunds" element={<AdminRefundsPage />} />
+              <Route path="invoices" element={<AdminInvoicesPage />} />
               <Route path="sessions" element={<AdminSessionsPage />} />
 
               {/* M16 · Blog admin */}

@@ -1184,5 +1184,27 @@
       "pinSend": "No pudimos enviar el PIN. Inténtalo de nuevo.",
       "pinInvalid": "Ese PIN es incorrecto o ha caducado."
     }
+  },
+  "meetingBanner": {
+    "live": "Reunión en curso",
+    "startingNow": "Empieza ahora",
+    "startsIn_one": "Empieza en {{count}} minuto",
+    "startsIn_other": "Empieza en {{count}} minutos",
+    "fallbackTitle": "Consultoría",
+    "joinGoogleMeet": "Unirse a Google Meet",
+    "joinMeeting": "Unirse a la reunión",
+    "regionLabel": "Próxima reunión",
+    "startsIn": "Empieza en {{count}} min"
+  },
+  "orderDetail": {
+    "invoiceUnavailable": "Factura no disponible.",
+    "backToOrders": "Volver al historial de pedidos",
+    "notFound": "Pedido no encontrado.",
+    "title": "Pedido",
+    "invoice": "Factura",
+    "items": "Artículos",
+    "subtotal": "Subtotal",
+    "discount": "Descuento",
+    "total": "Total"
   }
 }
