@@ -14,7 +14,8 @@
  *
  * Graceful degradation:
  *   - If any required env var is missing, `isConfigured()` returns false and
- *     the consultation flow falls back to the legacy Jitsi link generator.
+ *     the consultation is confirmed WITHOUT a meeting link (no Jitsi fallback —
+ *     Meet links come only from Google Calendar; the admin regenerates it).
  *   - The caller (consultationService) NEVER blows up because Google is
  *     misconfigured — bookings always succeed, you just lose the Meet
  *     auto-link until env vars are set.
@@ -218,7 +219,7 @@ async function createCalendarEvent(input) {
     if (!meetLink) {
       // Event created but no Meet link came back — likely a Calendar API
       // hiccup or an unsupported scope. Log loudly so we notice; throw so
-      // the caller's catch block can fall back to Jitsi.
+      // the caller's catch block records the failure (no fallback provider).
       logger.error("[gcal] event created but no Meet link in response", { eventId: event.id })
       throw Object.assign(new Error("No Meet link in event response"), { code: "GCAL_NO_MEET_LINK" })
     }

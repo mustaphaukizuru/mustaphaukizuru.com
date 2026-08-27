@@ -44,13 +44,27 @@ const { runFulfillmentReconcilePass } = require("./fulfillmentReconcileJob")
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
 const running = new Set()
+const { isAlive, recycle } = require("../lib/prisma")
+
+// DB pre-flight shared by every job: a cron firing on a dead engine used to
+// be the classic trigger for the Prisma "timer has gone away" panic. Probe,
+// recycle once, and skip the tick if the database is still unreachable —
+// the same pattern the individual jobs used to duplicate by hand.
+async function dbReady(name) {
+  if (await isAlive()) return true
+  await recycle()
+  if (await isAlive()) return true
+  logger.warn(`[scheduler] ${name}: database unreachable — skipping this tick`)
+  return false
+}
+
 async function guarded(name, fn) {
   if (running.has(name)) {
     logger.warn(`[scheduler] ${name} still running — skipping this tick`)
     return
   }
   running.add(name)
-  try { await fn() }
+  try { if (await dbReady(name)) await fn() }
   catch (err) { logger.error(`[scheduler] ${name} failed`, err) }
   finally { running.delete(name) }
 }
