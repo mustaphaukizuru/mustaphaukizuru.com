@@ -97,7 +97,7 @@ async function alreadyPurchased(cart) {
   const order = await prisma.order.findFirst({
     where: {
       userId:    cart.userId,
-      status:    { in: ["paid", "completed"] },
+      status:    "paid",
       createdAt: { gte: cart.updatedAt },
       items:     { some: { productId: { in: productIds } } },
     },

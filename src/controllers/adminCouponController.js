@@ -92,6 +92,10 @@ function shapeCouponInput(body, { isCreate }) {
     if (data.usageLimit === undefined)     data.usageLimit     = 1
     if (data.maxUsesPerUser === undefined) data.maxUsesPerUser = 1
   }
+  // Business rule: coupons are single-use per customer. An empty field on
+  // create OR update used to store null, which disables the per-customer cap
+  // entirely; null is never a valid value for this column.
+  if (data.maxUsesPerUser === null) data.maxUsesPerUser = 1
   return { data }
 }
 

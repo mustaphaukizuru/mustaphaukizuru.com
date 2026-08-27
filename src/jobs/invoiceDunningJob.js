@@ -44,7 +44,7 @@ function fmtDate(d) {
 
 async function reconcilePaid(now) {
   const rows = await prisma.invoice.findMany({
-    where:  { status: { in: ["issued", "overdue"] }, order: { status: { in: ["paid", "completed"] } } },
+    where:  { status: { in: ["issued", "overdue"] }, order: { status: "paid" } },
     select: { id: true, order: { select: { paidAt: true } } },
     take:   BATCH,
   })
@@ -68,7 +68,7 @@ async function markOverdue(now, { dryRun } = {}) {
         select: {
           id: true, orderNumber: true, status: true, totalAmount: true, currency: true,
           customerName: true, customerEmail: true, userId: true,
-          user: { select: { id: true, fullName: true, email: true, profile: { select: { locale: true } } } },
+          user: { select: { id: true, fullName: true, email: true, profile: { select: { country: true } } } },
         },
       },
     },

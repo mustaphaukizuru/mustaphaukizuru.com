@@ -492,7 +492,7 @@ export default function AdminDashboardPage() {
         setSupport({ openCount: items.length, items: items.slice(0, 3) })
       }
       if (u.status === "fulfilled") {
-        const items = Array.isArray(u.value?.data) ? u.value.data : []
+        const items = Array.isArray(u.value?.data?.users) ? u.value.data.users : Array.isArray(u.value?.data) ? u.value.data : []
         setSignups(items.slice(0, 5))
       }
       if (sp.status === "fulfilled") {

@@ -349,7 +349,7 @@ export function CartProvider({ children }) {
     ? serverCart.totals.total || 0
     : Math.max(0, subtotal - discount + tax)
 
-  const appliedCoupon = isAuthenticated ? serverCart?.coupons?.[0] || null : null
+  const appliedCoupon = isAuthenticated ? serverCart?.appliedCoupon || serverCart?.coupons?.[0] || null : null
 
   const value = {
     cartItems,

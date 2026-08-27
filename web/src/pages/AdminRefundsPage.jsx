@@ -78,9 +78,9 @@ export default function AdminRefundsPage() {
     const term = search.toLowerCase()
     return refunds.filter((r) =>
       (r.order?.id || r.orderId || "").toLowerCase().includes(term) ||
-      (r.order?.number || "").toString().toLowerCase().includes(term) ||
+      (r.orderNumber || r.order?.number || "").toString().toLowerCase().includes(term) ||
       (r.gatewayRefundId || "").toLowerCase().includes(term) ||
-      (r.user?.email || "").toLowerCase().includes(term) ||
+      (r.customerEmail || r.user?.email || "").toLowerCase().includes(term) ||
       (r.reason || "").toLowerCase().includes(term)
     )
   }, [refunds, search])
@@ -90,8 +90,9 @@ export default function AdminRefundsPage() {
     for (const r of refunds) {
       const amt = Number(r.amount) || 0
       total += amt
-      if (r.status === "pending") pending += amt
-      if (r.status === "succeeded") succeeded += amt
+      const st = r.refundStatus || r.status
+      if (st === "pending" || st === "approved" || st === "processing") pending += amt
+      if (st === "succeeded") succeeded += amt
     }
     return { total, pending, succeeded, count: refunds.length }
   }, [refunds])
@@ -171,19 +172,19 @@ export default function AdminRefundsPage() {
                   <td className="px-4 py-3">
                     {orderId ? (
                       <Link to={`/admin/orders/${orderId}`} className="inline-flex items-center gap-1 font-mono text-[12px] font-semibold text-violet hover:underline">
-                        #{r.order?.number ?? orderId.slice(0, 8)}
+                        #{r.orderNumber ?? r.order?.number ?? orderId.slice(0, 8)}
                         <ExternalLink className="h-3 w-3" />
                       </Link>
                     ) : "-"}
-                    {r.user?.email ? <div className="text-[11.5px] text-charcoal-80/65">{r.user.email}</div> : null}
+                    {(r.customerEmail || r.user?.email) ? <div className="text-[11.5px] text-charcoal-80/65">{r.customerEmail || r.user?.email}</div> : null}
                   </td>
                   <td className="hidden px-4 py-3 text-charcoal-80/70 sm:table-cell">
-                    {GATEWAY_LABELS[r.gateway] || r.gateway || "-"}
+                    {GATEWAY_LABELS[r.provider || r.gateway] || r.provider || r.gateway || "-"}
                     {r.gatewayRefundId ? <div className="font-mono text-[10.5px] text-charcoal-80/65">{r.gatewayRefundId}</div> : null}
                   </td>
                   <td className="px-4 py-3 font-mono tabular-nums">{formatCurrency(r.amount, r.currency || "USD")}</td>
                   <td className="hidden px-4 py-3 text-charcoal-80/70 lg:table-cell"><span className="line-clamp-1 max-w-[260px]">{r.reason || "-"}</span></td>
-                  <td className="px-4 py-3"><StatusPill status={r.status} /></td>
+                  <td className="px-4 py-3"><StatusPill status={r.refundStatus || r.status} /></td>
                   <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{formatDate(r.createdAt)}</td>
                 </tr>
               )

@@ -938,6 +938,25 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // 15b · Account deleted (confirmation after self-service deletion)
+  // Variables: name
+  {
+    key: "account.deleted",
+    subject: "Your account has been deleted",
+    html:
+      heading(`Account deleted.`) +
+      paragraph(`Hi {{name}}, your account and personal data at mustaphaukizuru.com have been removed as you requested. Purchase records required for tax purposes are kept anonymised.`) +
+      paragraph(`If you did <strong>not</strong> request this, reply to this email right away.`),
+    text: [
+      "Hi {{name}}, your account at mustaphaukizuru.com has been deleted as requested.",
+      "",
+      "Purchase records required for tax purposes are kept anonymised.",
+      "If you did NOT request this, reply to this email right away.",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // 16 · Support ticket created
   // Variables: customerName · ticketNumber · subject · priority · supportTicketUrl
   {
@@ -1786,6 +1805,22 @@ const TEMPLATES_ES = [
       "Si NO cambiaste tu contraseña, responde a este correo de inmediato.",
       "",
       "Iniciar sesión: {{loginUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "account.deleted",
+    subject: "Tu cuenta ha sido eliminada",
+    html:
+      heading(`Cuenta eliminada.`) +
+      paragraph(`Hola {{name}}, tu cuenta y tus datos personales en mustaphaukizuru.com se eliminaron como lo solicitaste. Los registros de compra requeridos por motivos fiscales se conservan de forma anonimizada.`) +
+      paragraph(`Si <strong>no</strong> solicitaste esto, responde a este correo de inmediato.`),
+    text: [
+      "Hola {{name}}, tu cuenta en mustaphaukizuru.com fue eliminada como lo solicitaste.",
+      "",
+      "Los registros de compra requeridos por motivos fiscales se conservan anonimizados.",
+      "Si NO solicitaste esto, responde a este correo de inmediato.",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),

@@ -110,7 +110,7 @@ async function quoteRequest({ projectId, crId, amount, note, currency, adminId, 
     where:   { id: String(projectId) },
     select:  {
       id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true, assignedAdminId: true,
-      user: { select: { id: true, fullName: true, email: true, profile: { select: { locale: true } } } },
+      user: { select: { id: true, fullName: true, email: true, profile: { select: { country: true } } } },
       serviceOrder: { select: { order: { select: { currency: true } } } },
     },
   })

@@ -161,7 +161,6 @@ const updateTemplate = asyncHandler(async (req, res) => {
       htmlBody: htmlBody ?? baseline.htmlBody,
       textBody: textBody ?? baseline.textBody,
       isActive: isActive ?? baseline.isActive,
-      variables: baseline.variables ?? [],
     },
   })
   res.json({ success: true, data: shape(updated) })

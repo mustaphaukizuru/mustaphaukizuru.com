@@ -126,8 +126,8 @@ async function buildSitemapXml() {
   })
   // Portfolio projects — published only
   try {
-    if (typeof prisma.portfolioProject?.findMany === "function") {
-      const projects = await prisma.portfolioProject.findMany({
+    if (typeof prisma.portfolio?.findMany === "function") {
+      const projects = await prisma.portfolio.findMany({
         where:   { status: "published" },
         select:  { slug: true, updatedAt: true },
         orderBy: { updatedAt: "desc" },

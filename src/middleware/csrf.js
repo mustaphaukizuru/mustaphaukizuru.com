@@ -55,7 +55,9 @@ const { SESSION_COOKIE, CSRF_COOKIE } = require("../utils/sessionCookie")
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"])
 
 // /api/paypal/webhook, /api/v1/paypal/webhook, /api/mercadopago/webhook, …
-const WEBHOOK_PATH_RE = /^\/api\/(?:v\d+\/)?(?:paypal|mercadopago)\/webhook(?:\/|$)/i
+// Anchored to the webhook path itself — never a sub-path — so a router
+// mounted under ".../webhook" cannot accidentally exempt admin routes.
+const WEBHOOK_PATH_RE = /^\/api\/(?:v\d+\/)?(?:paypal|mercadopago)\/webhook\/?$/i
 
 // Pre-session auth endpoints — see the "Exemptions" note above.
 const PRE_SESSION_AUTH_RE =

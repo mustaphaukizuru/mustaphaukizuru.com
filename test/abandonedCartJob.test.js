@@ -169,7 +169,7 @@ describe("touch 1 · per-cart awareness", () => {
     expect(r).toMatchObject({ sent: 0, purchased: 1 })
     expect(sendTemplateEmail).not.toHaveBeenCalled()
     const where = prisma.order.findFirst.mock.calls[0][0].where
-    expect(where).toMatchObject({ userId: "u1", status: { in: ["paid", "completed"] }, items: { some: { productId: { in: ["p1"] } } } })
+    expect(where).toMatchObject({ userId: "u1", status: "paid", items: { some: { productId: { in: ["p1"] } } } })
   })
 
   test("money is formatted in the cart's currency and the customer's locale", () => {

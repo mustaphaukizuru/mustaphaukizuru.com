@@ -272,7 +272,7 @@ async function getDownloadLibraryForUser(userId) {
         select: {
           id: true, orderNumber: true, status: true, currency: true,
           createdAt: true, paidAt: true,
-          invoice: { select: { id: true } },
+          invoices: { select: { id: true }, take: 1 },
         },
       },
       orderItem: { select: { licenseTier: true, licenseKey: true } },
@@ -307,7 +307,7 @@ async function getDownloadLibraryForUser(userId) {
         status:        e.order.status,
         currency:      e.order.currency,
         purchasedAt:   e.order.paidAt || e.order.createdAt,
-        invoicePdfUrl: e.order.invoice ? `/api/orders/${e.order.id}/invoice.pdf` : null,
+        invoicePdfUrl: e.order.invoices?.length ? `/api/orders/${e.order.id}/invoice.pdf` : null,
         products:      [],
       })
     }
