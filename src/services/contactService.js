@@ -7,6 +7,13 @@ async function createContactMessage(payload) {
       email: payload.email,
       subject: payload.subject || null,
       message: payload.message,
+      intent:    payload.intent    || null,
+      audience:  payload.audience  || null,
+      tier:      payload.tier      || null,
+      source:    payload.source    || null,
+      locale:    payload.locale    || null,
+      ipAddress: payload.ipAddress || null,
+      userAgent: payload.userAgent || null,
     },
   });
 }

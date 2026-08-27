@@ -310,7 +310,7 @@ describe("addItem", () => {
     expect(prisma.cartItem.create).toHaveBeenCalledWith({
       data: {
         cartId: "cart_1", itemType: "product", productId: "p_1", serviceId: null,
-        titleSnapshot: "Starter Kit", priceSnapshot: PRODUCT.price, quantity: 2,
+        titleSnapshot: "Starter Kit", priceSnapshot: PRODUCT.price, licenseTier: null, quantity: 2,
       },
     })
   })

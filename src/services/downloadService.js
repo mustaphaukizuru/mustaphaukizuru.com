@@ -1,8 +1,16 @@
 const prisma = require("../lib/prisma")
+const logger = require("../utils/logger")
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Preserved — legacy helper used by older dashboard code paths
+ *
+ * T3 · Prefers ProductFile rows (the primary file first) and resolves to the
+ * gated `/api/downloads/:fileId` URL. Falls back to the legacy
+ * `product.downloadUrl` column only when the product has no files, and warns
+ * once per product so the operator can migrate the stragglers.
  * ──────────────────────────────────────────────────────────────────────────── */
+
+const legacyDownloadWarned = new Set()
 
 async function getDownloadForUser(userId, productId) {
   const orderItem = await prisma.orderItem.findFirst({
@@ -10,15 +18,38 @@ async function getDownloadForUser(userId, productId) {
       productId,
       order: { userId, status: "paid" },
     },
-    include: { product: true },
+    include: {
+      product: {
+        include: {
+          files: { orderBy: { isPrimary: "desc" }, take: 1 },
+        },
+      },
+    },
   })
 
   if (!orderItem) throw new Error("You have not purchased this product")
-  if (!orderItem.product.downloadUrl) throw new Error("Download not available")
+
+  const product = orderItem.product
+  const file = product?.files?.[0] || null
+  if (file) {
+    return {
+      url:      `/api/downloads/${file.id}`,
+      fileName: file.fileName || product.fileName || product.title,
+      fileId:   file.id,
+    }
+  }
+
+  if (!product?.downloadUrl) throw new Error("Download not available")
+
+  if (!legacyDownloadWarned.has(product.id)) {
+    legacyDownloadWarned.add(product.id)
+    logger.warn(`[download] product ${product.id} has no ProductFile rows — serving legacy downloadUrl. Upload a file to migrate.`)
+  }
 
   return {
-    url:      orderItem.product.downloadUrl,
-    fileName: orderItem.product.fileName || orderItem.product.title,
+    url:      product.downloadUrl,
+    fileName: product.fileName || product.title,
+    fileId:   null,
   }
 }
 
@@ -244,6 +275,7 @@ async function getDownloadLibraryForUser(userId) {
           invoice: { select: { id: true } },
         },
       },
+      orderItem: { select: { licenseTier: true, licenseKey: true } },
       product: {
         select: {
           id: true, title: true, slug: true, isActive: true, updatedAt: true, version: true,
@@ -299,6 +331,8 @@ async function getDownloadLibraryForUser(userId) {
       imageAlt:          e.product.images?.[0]?.altText || null,
       entitlementStatus: e.downloadAccessStatus,
       lastDownloadedAt:  e.lastDownloadedAt,
+      licenseTier:       e.orderItem?.licenseTier || null,
+      licenseKey:        e.orderItem?.licenseKey || null,
       files: files.map((f) => {
         const consumed = consumedByFile.get(f.id) || 0
         return {

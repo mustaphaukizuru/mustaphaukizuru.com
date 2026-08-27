@@ -530,7 +530,11 @@
       "unlimited": "Unlimited downloads",
       "used": "{{used}} of {{max}} downloads used",
       "revoked": "Access revoked",
-      "redownload": "Re-download"
+      "redownload": "Re-download",
+      "licenseTier": "{{tier}} license",
+      "licenseKey": "License key",
+      "copyKey": "Copy key",
+      "keyCopied": "Copied"
     },
     "order": {
       "title": "Order #{{number}}",

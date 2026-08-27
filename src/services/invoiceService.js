@@ -340,6 +340,18 @@ function renderLineItems(doc, order) {
       .text(String(qty),          colQty,      rowY, { width: 60, align: "right" })
       .text(formatMoney(unit, currency),  colPrice, rowY, { width: 60, align: "right" })
       .text(formatMoney(total, currency), colTotal, rowY, { width: 60, align: "right" })
+
+    // T3 · licence tier + key under the line title (digital products only)
+    if (item.licenseTier || item.licenseKey) {
+      const tierLabel = item.licenseTier
+        ? `${String(item.licenseTier).charAt(0).toUpperCase()}${String(item.licenseTier).slice(1)} licence`
+        : "Licence"
+      doc.fillColor(BRAND.muted).font("Helvetica").fontSize(8)
+        .text(
+          [tierLabel, item.licenseKey ? `Key: ${item.licenseKey}` : null].filter(Boolean).join("  ·  "),
+          colItem + 8, doc.y, { width: colQty - colItem - 16 },
+        )
+    }
     doc.moveDown(0.6)
   })
 

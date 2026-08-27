@@ -140,7 +140,11 @@
   "buyBox": {
     "securePayment": "Pago seguro vía Mercado Pago o PayPal. Los datos de tu tarjeta nunca pasan por nuestros servidores.",
     "decreaseQty": "Disminuir cantidad",
-    "increaseQty": "Aumentar cantidad"
+    "increaseQty": "Aumentar cantidad",
+    "licenseTier": "Licencia",
+    "licenseTierAria": "Elige un nivel de licencia",
+    "seats_one": "{{count}} puesto",
+    "seats_other": "{{count}} puestos"
   },
   "license": {
     "title": "Licencia y actualizaciones",
@@ -162,6 +166,14 @@
       "body": "Recibes actualizaciones gratuitas de por vida para la versión mayor que compraste. Cada nueva versión aparece en tu panel, lista para volver a descargar.",
       "versionNote": "Una futura versión mayor podría ofrecerse como mejora de pago con descuento para clientes existentes."
     },
-    "fullTerms": "Leer los términos completos"
+    "fullTerms": "Leer los términos completos",
+    "tiersTitle": "Licencias disponibles",
+    "tiersSubtitle": "Elige el nivel que corresponde a cómo usarás los archivos. El precio se actualiza en la caja de compra.",
+    "seatsUnlimited": "Puestos ilimitados",
+    "tierNames": {
+      "personal": "Personal",
+      "commercial": "Comercial",
+      "enterprise": "Empresarial"
+    }
   }
 }

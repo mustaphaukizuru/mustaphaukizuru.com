@@ -20,7 +20,7 @@
    boundaries — see hook-shadow incident in earlier phases).
    ════════════════════════════════════════════════════════════════════════ */
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { m } from "framer-motion"
@@ -206,6 +206,60 @@ const INITIAL_FORM = {
   website: "", // honeypot
 }
 
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || ""
+const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+
+/**
+ * T3 · Cloudflare Turnstile widget. Loads the script lazily (only when the
+ * form is actually rendered with a site key), renders explicitly into a
+ * div and hands the token up. Remount (via `key`) to force a fresh
+ * challenge after a submit or a CAPTCHA_FAILED response.
+ */
+function TurnstileWidget({ siteKey, onToken }) {
+  const ref = useRef(null)
+  const { i18n } = useTranslation()
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !ref.current) return undefined
+    let widgetId = null
+    let cancelled = false
+
+    function render() {
+      if (cancelled || !window.turnstile || !ref.current) return
+      widgetId = window.turnstile.render(ref.current, {
+        sitekey: siteKey,
+        language: i18n.language?.startsWith("es") ? "es" : "en",
+        callback: (token) => onToken(token),
+        "expired-callback": () => onToken(""),
+        "error-callback": () => onToken(""),
+      })
+    }
+
+    if (window.turnstile) {
+      render()
+    } else {
+      let script = document.querySelector(`script[src="${TURNSTILE_SCRIPT}"]`)
+      if (!script) {
+        script = document.createElement("script")
+        script.src = TURNSTILE_SCRIPT
+        script.async = true
+        script.defer = true
+        document.head.appendChild(script)
+      }
+      script.addEventListener("load", render)
+    }
+
+    return () => {
+      cancelled = true
+      if (widgetId !== null && window.turnstile) {
+        try { window.turnstile.remove(widgetId) } catch { /* already gone */ }
+      }
+    }
+  }, [siteKey, onToken, i18n.language])
+
+  return <div ref={ref} className="min-h-[65px]" />
+}
+
 function ContactSection() {
   // I18N hook scope · ContactSection renders the form, which calls t()
   // for placeholder text, error messages, and the "Sending…" / "Send message"
@@ -223,6 +277,12 @@ function ContactSection() {
   // Strings are kept for backward compatibility with i18n-driven fallbacks.
   const [error, setError] = useState(null)
   const [paramContext, setParamContext] = useState(null)
+  // T3 · submit-timing signal: stamped when the form mounts, sent as
+  // `formStartedAt`. The API silently drops posts made < 3 s after this.
+  const [formStartedAt, setFormStartedAt] = useState(() => Date.now())
+  // T3 · Cloudflare Turnstile — only rendered when the site key is set.
+  const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileNonce, setTurnstileNonce] = useState(0)
 
   /* ──────────────────────────────────────────────────────────────────
    * Read URL params on mount and pre-fill the form.
@@ -369,12 +429,28 @@ function ContactSection() {
           paramContext?.intent && `Source intent: ${paramContext.intent}`,
         ].filter(Boolean).join("\n"),
         website: form.website,
+        // T3 · structured funnel attribution (also embedded in the message
+        // body above for the plain-text admin email).
+        intent: paramContext?.intent || "",
+        audience: form.audience,
+        tier: form.tier,
+        source: "contact-form",
+        formStartedAt,
+        turnstileToken: turnstileToken || undefined,
       }
       await apiRequest("/api/contact", { method: "POST", body: JSON.stringify(payload) })
       setSuccess(true)
       setForm(INITIAL_FORM)
       setTouched({})
+      setFormStartedAt(Date.now())
+      setTurnstileToken("")
+      setTurnstileNonce((n) => n + 1)
     } catch (err) {
+      // A rejected/expired Turnstile token must be re-solved before retry.
+      if (err?.code === "CAPTCHA_FAILED" || /CAPTCHA_FAILED/.test(err?.message || "")) {
+        setTurnstileToken("")
+        setTurnstileNonce((n) => n + 1)
+      }
       // Server-side failure — surface a brand-aligned card with a
       // brief recovery hint pointing to the WhatsApp / email fallback so
       // the visitor never hits a dead end.
@@ -666,6 +742,14 @@ function ContactSection() {
                 )}
 
                 {/* Submit */}
+                {TURNSTILE_SITE_KEY ? (
+                  <TurnstileWidget
+                    key={turnstileNonce}
+                    siteKey={TURNSTILE_SITE_KEY}
+                    onToken={setTurnstileToken}
+                  />
+                ) : null}
+
                 <m.div variants={fadeUp} className="pt-2">
                   <button
                     type="submit"

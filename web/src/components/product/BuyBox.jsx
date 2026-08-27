@@ -126,8 +126,52 @@ function TrustBadges() {
   )
 }
 
+/* T3 · licence tier picker — only rendered when the product carries more
+ * than one active licence. Single-licence products keep the flat price. */
+function LicenseTierPicker({ licenses, selectedTier, onChange, currency }) {
+  const { t } = useTranslation("product")
+  if (!Array.isArray(licenses) || licenses.length < 2) return null
+  return (
+    <fieldset className="mt-5">
+      <legend className="mb-2 text-micro font-semibold text-violet">{t("buyBox.licenseTier")}</legend>
+      <div role="radiogroup" aria-label={t("buyBox.licenseTierAria")} className="grid gap-2">
+        {licenses.map((lic) => {
+          const active = lic.tier === selectedTier
+          return (
+            <button
+              key={lic.tier}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onChange(lic.tier)}
+              className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${
+                active
+                  ? "border-violet bg-violet-pale shadow-[var(--shadow-lift-1)]"
+                  : "border-charcoal-80/15 bg-mist hover:border-violet/40"
+              }`}
+            >
+              <span className="min-w-0">
+                <span className="block text-meta font-bold text-violet">
+                  {lic.name || t(`license.tierNames.${lic.tier}`, { defaultValue: lic.tier })}
+                </span>
+                <span className="block text-micro text-charcoal-80/65">
+                  {lic.seats ? t("buyBox.seats", { count: lic.seats }) : t("license.seatsUnlimited")}
+                </span>
+              </span>
+              <span className="shrink-0 text-meta font-bold tabular-nums text-violet">
+                {formatPrice(lic.price, lic.currency || currency)}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
+}
+
 export default function BuyBox({
   product, price, currency, qty, onQtyChange, added, onAddToCart, onBuyNow, onShare, onReviewClick,
+  licenses = [], selectedTier = null, onTierChange = () => {},
 }) {
   const { t } = useTranslation("product")
 
@@ -154,6 +198,8 @@ export default function BuyBox({
       <div className="mt-4 flex items-end gap-3">
         <span className="text-page font-bold leading-none text-violet">{formatPrice(price, currency)}</span>
       </div>
+
+      <LicenseTierPicker licenses={licenses} selectedTier={selectedTier} onChange={onTierChange} currency={currency} />
 
       <div className="mt-5 flex flex-col gap-3">
         <div className="flex items-center gap-3">

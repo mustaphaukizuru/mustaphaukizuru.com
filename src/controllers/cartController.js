@@ -12,7 +12,7 @@ const getCart = asyncHandler(async (req, res) => {
 })
 
 const addItem = asyncHandler(async (req, res) => {
-  const { productId, serviceId, quantity } = req.body || {}
+  const { productId, serviceId, quantity, licenseTier } = req.body || {}
 
   if (!productId && !serviceId) {
     return res.status(400).json({
@@ -36,7 +36,16 @@ const addItem = asyncHandler(async (req, res) => {
     }
   }
 
-  const cart = await cartService.addItem(req.user.id, { productId, serviceId, quantity })
+  if (licenseTier !== undefined && licenseTier !== null && licenseTier !== "") {
+    if (typeof licenseTier !== "string" || !/^[a-z]{1,16}$/i.test(licenseTier)) {
+      return res.status(400).json({
+        success: false, code: "VALIDATION_ERROR",
+        message: "licenseTier must be a short alphabetic identifier",
+      })
+    }
+  }
+
+  const cart = await cartService.addItem(req.user.id, { productId, serviceId, quantity, licenseTier: licenseTier || null })
   res.status(201).json({ success: true, data: cart })
 })
 

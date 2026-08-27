@@ -101,6 +101,23 @@ function serializeProduct(product) {
 
   const primaryFile = files.find((f) => f.isPrimary) || files[0] || null
 
+  // T3 · tiered licences (active only, lowest sortOrder first)
+  const licenses = Array.isArray(product.licenses)
+    ? product.licenses
+        .filter((l) => l && l.isActive !== false)
+        .sort((a, b) => safeNum(a.sortOrder) - safeNum(b.sortOrder))
+        .map((l) => ({
+          id:             l.id,
+          tier:           l.tier,
+          name:           l.name,
+          price:          safeNum(l.price),
+          priceFormatted: formatPrice(l.price, l.currency || product.currency),
+          currency:       l.currency || product.currency || "MXN",
+          seats:          l.seats ?? null,
+          sortOrder:      safeNum(l.sortOrder),
+        }))
+    : []
+
   // Full category object when categoryRef is included, fallback to legacy string.
   const categoryObject = product.categoryRef
     ? {
@@ -109,13 +126,6 @@ function serializeProduct(product) {
         slug: product.categoryRef.slug,
       }
     : null
-
-  const tags = Array.isArray(product.tags)
-    ? product.tags
-        .map((t) => t.tag)
-        .filter(Boolean)
-        .map((t) => ({ id: t.id, name: t.name, slug: t.slug }))
-    : []
 
   return {
     ...product,
@@ -127,7 +137,7 @@ function serializeProduct(product) {
     features,
     files,
     reviews,
-    tags,
+    licenses,
     categoryRef:    categoryObject,
     fileType:       primaryFile?.fileType || product.fileType || null,
     deliveryType:   product.deliveryType || (product.productType === "service" ? "Scheduled service" : "Instant access"),
@@ -227,8 +237,8 @@ async function getProductBySlug(slug, locale = "en") {
       images:      { orderBy: { sortOrder: "asc" } },
       features:    { orderBy: { sortOrder: "asc" } },
       files:       { orderBy: { isPrimary: "desc" } },
+      licenses:    { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
       categoryRef: { select: { id: true, name: true, slug: true } },
-      tags:        { include: { tag: { select: { id: true, name: true, slug: true } } } },
       reviews: {
         orderBy: { createdAt: "desc" },
         take: 20,
@@ -392,7 +402,6 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
             { title:            { contains: trimmed } },
             { shortDescription: { contains: trimmed } },
             { category:         { contains: trimmed } },
-            { tags:             { some: { tag: { name: { contains: trimmed } } } } },
             { categoryRef:      { name: { contains: trimmed } } },
           ],
         },
@@ -403,7 +412,6 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
       features:    { orderBy: { sortOrder: "asc" }, take: 3 },
       files:       { orderBy: { isPrimary: "desc" }, take: 1, select: { id: true, fileName: true, fileType: true, fileSize: true, isPrimary: true, version: true } },
       categoryRef: { select: { id: true, name: true, slug: true } },
-      tags:        { include: { tag: { select: { id: true, name: true, slug: true } } } },
     },
     take: SEARCH_CANDIDATE_CAP,
   })
@@ -413,7 +421,6 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
     let score = 0
     if (p.title?.toLowerCase().includes(needle))            score += 3
     if (p.shortDescription?.toLowerCase().includes(needle)) score += 2
-    if (p.tags?.some((tm) => tm.tag?.name?.toLowerCase().includes(needle))) score += 1
     if (p.category?.toLowerCase().includes(needle))         score += 1
     if (p.categoryRef?.name?.toLowerCase().includes(needle)) score += 1
     return { p, score }
@@ -447,7 +454,7 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function getProductsByCategory(categorySlug, opts = {}) {
-  const { page = 1, limit = 12, sort = "newest", tag } = opts
+  const { page = 1, limit = 12, sort = "newest" } = opts
 
   const safePage  = Math.max(1, Number(page) || 1)
   const safeLimit = Math.min(48, Math.max(1, Number(limit) || 12))
@@ -476,8 +483,6 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     category = { id: null, name: match.category, slug: categorySlug, description: null, isActive: true }
   }
 
-  if (tag) where.tags = { some: { tag: { slug: tag } } }
-
   const orderBy = resolveOrderBy(safeSort)
 
   const [items, total] = await Promise.all([
@@ -501,7 +506,6 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     items:      items.map(serializeProduct),
     pagination: buildPagination(safePage, safeLimit, total),
     sort:       safeSort,
-    tag:        tag || null,
   }
 }
 
@@ -582,4 +586,6 @@ module.exports = {
   getAllProductsUncached,
   getCategoriesUncached,
   getFeaturedProductsUncached,
+  // T3 · exported for unit tests
+  serializeProduct,
 }

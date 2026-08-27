@@ -530,7 +530,11 @@
       "unlimited": "Descargas ilimitadas",
       "used": "{{used}} de {{max}} descargas usadas",
       "revoked": "Acceso revocado",
-      "redownload": "Volver a descargar"
+      "redownload": "Volver a descargar",
+      "licenseTier": "Licencia {{tier}}",
+      "licenseKey": "Clave de licencia",
+      "copyKey": "Copiar clave",
+      "keyCopied": "Copiada"
     },
     "order": {
       "title": "Pedido #{{number}}",

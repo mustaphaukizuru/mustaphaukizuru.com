@@ -110,6 +110,10 @@ app.use(cors({
 // ─────────────────────────────────────────────────────────────────────────────
 // B10 · Security headers — extended CSP + HSTS preload + Referrer-Policy
 // ─────────────────────────────────────────────────────────────────────────────
+// T3 · Cloudflare Turnstile is opt-in: the widget (and its CSP allowance)
+// only exist when the operator has configured the server-side secret.
+const turnstileHosts = process.env.TURNSTILE_SECRET_KEY ? ["https://challenges.cloudflare.com"] : [];
+
 app.use(helmet({
   crossOriginEmbedderPolicy: false,     // PayPal iframe requires this
   crossOriginOpenerPolicy:   false,
@@ -122,7 +126,8 @@ app.use(helmet({
                     "https://www.paypal.com",
                     "https://www.paypalobjects.com",
                     "https://sdk.mercadopago.com",
-                    "https://http2.mlstatic.com"],
+                    "https://http2.mlstatic.com",
+                    ...turnstileHosts],
       frameSrc:    ["'self'",                       // CSP · same-origin iframes (e.g. inline PDF certificates)
                     "https://accounts.google.com",
                     "https://www.paypal.com",
@@ -130,13 +135,15 @@ app.use(helmet({
                     "https://www.mercadopago.com.br",
                     // Tier 2 · client-project live previews. Operator-declared
                     // origins only (PREVIEW_FRAME_HOSTS); everything else is a link.
-                    ...String(process.env.PREVIEW_FRAME_HOSTS || "").split(",").map((s) => s.trim()).filter(Boolean)],
+                                        ...String(process.env.PREVIEW_FRAME_HOSTS || "").split(",").map((s) => s.trim()).filter(Boolean),
+                    ...turnstileHosts],
       connectSrc:  ["'self'",
                     "https://accounts.google.com",
                     "https://oauth2.googleapis.com",
                     "https://api.mercadopago.com",
                     "https://www.paypal.com",
-                    ...sentryConnectSrc()],
+                    ...sentryConnectSrc(),
+                    ...turnstileHosts],
       imgSrc:      ["'self'", "data:", "https:"],
       styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc:     ["'self'", "https://fonts.gstatic.com", "data:"],

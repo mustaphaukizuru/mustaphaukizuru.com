@@ -294,7 +294,6 @@ model User {
   updatedPages           Page[]           @relation("UpdatedPages")
   activityLogs           ActivityLog[]
   adminAuditLogs         AdminAuditLog[]
-  wishlist               Wishlist?
   addresses              Address[]
   twoFactorAuth          TwoFactorAuth?
 
@@ -496,15 +495,14 @@ model Product {
   createdBy       User?            @relation("CreatedProducts", fields: [createdById], references: [id], onDelete: SetNull)
   images          ProductImage[]
   files           ProductFile[]
+  licenses        ProductLicense[]
   features        ProductFeature[]
   orderItems      OrderItem[]
   downloadLogs    DownloadLog[]
   userDownloads   UserDownload[]
-  tags            ProductTagMap[]
   reviews         Review[]
   recommendations Recommendation[]
   cartItems       CartItem[]
-  wishlistItems   WishlistItem[]
 
   @@index([categoryId])
   @@index([createdById])
@@ -512,6 +510,27 @@ model Product {
   @@index([isActive])
   @@index([isFeatured])
   @@index([deletedAt])
+}
+
+/// T3 · Tiered licensing. One row per (product, tier); the buyer picks a
+/// tier in the BuyBox and the cart/order snapshot the tier's price.
+model ProductLicense {
+  id        String   @id @default(cuid())
+  productId String
+  tier      String   @db.VarChar(16) // personal | commercial | enterprise
+  name      String
+  price     Decimal  @db.Decimal(12, 2)
+  currency  String   @default("MXN")
+  seats     Int?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, tier])
+  @@index([productId])
 }
 
 model ProductFeature {
@@ -557,33 +576,6 @@ model ProductImage {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
-}
-
-/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
-/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
-/// backed-up migration once you have confirmed nothing else depends on it.
-model ProductTag {
-  id   String @id @default(cuid())
-  name String @unique
-  slug String @unique
-
-  products ProductTagMap[]
-}
-
-/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
-/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
-/// backed-up migration once you have confirmed nothing else depends on it.
-model ProductTagMap {
-  id        String @id @default(cuid())
-  productId String
-  tagId     String
-
-  product Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
-  tag     ProductTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, tagId])
-  @@index([productId])
-  @@index([tagId])
 }
 
 /// =============================================================
@@ -889,6 +881,7 @@ model CartItem {
   serviceId     String?
   titleSnapshot String
   priceSnapshot Decimal  @db.Decimal(12, 2)
+  licenseTier   String?  @db.VarChar(16) // T3 · chosen ProductLicense.tier
   quantity      Int      @default(1)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -1037,6 +1030,9 @@ model OrderItem {
   unitPrice           Decimal? @db.Decimal(12, 2)
   quantity            Int
   lineTotal           Decimal? @db.Decimal(12, 2)
+  /// T3 · licensing snapshot: tier bought + key minted at order creation
+  licenseTier         String?  @db.VarChar(16)
+  licenseKey          String?  @db.VarChar(64)
   createdAt           DateTime @default(now())
 
   order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -1559,6 +1555,18 @@ model ContactMessage {
   status    ContactMessageStatus @default(new)
   repliedAt DateTime?
   createdAt DateTime  @default(now())
+
+  // T3 · funnel attribution + abuse forensics (all optional, set by the API)
+  intent    String? @db.VarChar(64)   // plan | proposal | service | …  (from ?intent=)
+  audience  String? @db.VarChar(32)   // education | business | professional
+  tier      String? @db.VarChar(32)   // pricing tier the lead was looking at
+  source    String? @db.VarChar(64)   // contact-form | footer | referrer path
+  locale    String? @db.VarChar(8)    // en | es
+  ipAddress String? @db.VarChar(64)
+  userAgent String? @db.VarChar(255)
+
+  @@index([status, createdAt])
+  @@index([createdAt])
 }
 
 model NewsletterSubscriber {
@@ -1777,35 +1785,8 @@ model Portfolio {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// B08 · Wishlist + Saved Addresses
+// B08 · Saved Addresses (Wishlist models dropped in T3 — feature was removed)
 // ═══════════════════════════════════════════════════════════════════════════════
-
-/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
-/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
-/// backed-up migration once you have confirmed nothing else depends on it.
-model Wishlist {
-  id        String         @id @default(cuid())
-  userId    String         @unique
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     WishlistItem[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-}
-
-/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
-/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
-/// backed-up migration once you have confirmed nothing else depends on it.
-model WishlistItem {
-  id         String   @id @default(cuid())
-  wishlistId String
-  productId  String
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  addedAt    DateTime @default(now())
-
-  @@unique([wishlistId, productId])
-  @@index([productId])
-}
 
 model Address {
   id     String @id @default(cuid())
