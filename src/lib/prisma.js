@@ -1,6 +1,5 @@
 const { PrismaClient } = require("@prisma/client")
 
-let prisma
 
 /**
  * Bound the connection pool for shared MySQL.
@@ -56,31 +55,33 @@ function createClient() {
   return extendWithInvalidation(client)
 }
 
+/*
+ * The exported object is a Proxy over a *replaceable* client. Recycling a
+ * panicked engine by $disconnect()/$connect() on the same instance does not
+ * work with the library engine — once its tokio runtime is torn down every
+ * later query fails with "PANIC: timer has gone away" until the process is
+ * restarted (prod incident 2026-08-27). So recycle() builds a brand-new
+ * PrismaClient and swaps it in; every module that did `require("../lib/prisma")`
+ * keeps working because they hold the Proxy, not the instance.
+ */
+let current
 if (process.env.NODE_ENV === "production") {
-  prisma = createClient()
+  current = createClient()
 } else {
   if (!global.__prisma) {
     global.__prisma = createClient()
   }
-  prisma = global.__prisma
+  current = global.__prisma
 }
 
-// Non-blocking connect with retries
-;(async () => {
-  for (let i = 1; i <= 5; i++) {
-    try {
-      await prisma.$connect()
-      console.log("Database connected")
-      return
-    } catch (e) {
-      console.error(`DB attempt ${i}/5: ${e.message}`)
-      if (i < 5) {
-        await new Promise((resolve) => setTimeout(resolve, 3000))
-      }
-    }
-  }
-  console.warn("DB unavailable — server running, DB operations will retry")
-})()
+const prisma = new Proxy({}, {
+  get(_t, prop) {
+    const v = current[prop]
+    return typeof v === "function" ? v.bind(current) : v
+  },
+  set(_t, prop, value) { current[prop] = value; return true },
+  has(_t, prop) { return prop in current },
+})
 
 /* ─────────────────────────── connection-health helpers ─────────────────
  * Why this exists:
@@ -135,8 +136,13 @@ async function isAlive() {
 // try $connect() to bring a new one online. NEVER throws; if reconnect
 // fails the next isAlive() will return false and the caller can decide.
 async function recycle() {
-  try { await prisma.$disconnect() } catch { /* engine may already be dead */ }
-  try { await prisma.$connect()    } catch { /* will retry on next call */ }
+  const old = current
+  const fresh = createClient()
+  try { await fresh.$connect() } catch { /* will retry on next call */ }
+  current = fresh
+  if (process.env.NODE_ENV !== "production") global.__prisma = fresh
+  // Best-effort teardown of the dead engine; it may already have panicked.
+  old.$disconnect().catch(() => {})
 }
 
 /* ─────────────────────────── self-healing (HTTP path) ───────────────────
@@ -146,8 +152,8 @@ async function recycle() {
  * with "PANIC: timer has gone away" while /health reported database=down.
  *
  * Two layers fix that:
- *   1. keepalive  — a cheap SELECT 1 every KEEPALIVE_MS (< MySQL wait_timeout
- *                   ≈ 60s) so pooled sockets never sit idle long enough for
+ *   1. keepalive  — a cheap SELECT 1 every KEEPALIVE_MS (< MySQL wait_timeout,
+ *                   20s on Hostinger) so pooled sockets never sit idle long enough for
  *                   the server to drop them; if the ping fails the engine is
  *                   recycled immediately, before a real request hits it.
  *   2. recoverIfPanicked(err) — called from the global error handler: when a
@@ -155,7 +161,9 @@ async function recycle() {
  *                   the engine (debounced) so the *next* request succeeds.
  * ──────────────────────────────────────────────────────────────────── */
 
-const KEEPALIVE_MS = Number(process.env.DB_KEEPALIVE_MS || 30_000)
+// Hostinger MariaDB reports wait_timeout=20s, so the ping must be well under
+// that or pooled sockets die between pings (which is what caused the panic).
+const KEEPALIVE_MS = Number(process.env.DB_KEEPALIVE_MS || 10_000)
 
 let recycling = null
 function recycleOnce() {
