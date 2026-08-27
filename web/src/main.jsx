@@ -1,3 +1,9 @@
+// Telemetry first: anything that throws while the modules below evaluate
+// (a bad locale chunk, a provider crash) should already be reported. No-op
+// without VITE_SENTRY_DSN — see lib/sentry.js.
+import { initSentry } from "./lib/sentry";
+initSentry();
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";

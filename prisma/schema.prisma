@@ -123,6 +123,10 @@ enum ProjectStatus {
 enum MilestoneStatus {
   pending
   in_progress
+  /// Work delivered; waiting for the client's one-click approval.
+  awaiting_client
+  /// Client approved (approvedAt / approvedById on the row).
+  approved
   completed
 }
 
@@ -279,6 +283,7 @@ model User {
   clientProjects         ClientProject[]  @relation("UserClientProjects")
   assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
   projectFiles           ProjectFile[]
+  projectComments        ProjectComment[] @relation("UserProjectComments")
   supportTickets         SupportTicket[]  @relation("UserSupportTickets")
   assignedTickets        SupportTicket[]  @relation("AssignedSupportTickets")
   supportMessages        SupportMessage[]
@@ -1352,6 +1357,12 @@ model ClientProject {
   startDate       DateTime?
   dueDate         DateTime?
   description     String?       @db.Text
+  /// Client portal (Tier 2). previewUrl is shown as a card/link; it is
+  /// framed only when its host is in PREVIEW_FRAME_HOSTS (CSP frame-src).
+  previewUrl      String?
+  /// Set when projectStatus becomes completed/cancelled. Member writes are
+  /// refused after this; reads expire PROJECT_ACCESS_GRACE_DAYS later.
+  closedAt        DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1361,6 +1372,8 @@ model ClientProject {
   assignedAdmin User?              @relation("AssignedClientProjects", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   milestones    ProjectMilestone[]
   files         ProjectFile[]
+  comments      ProjectComment[]
+  tickets       SupportTicket[]
 
   @@index([userId])
   @@index([assignedAdminId])
@@ -1374,9 +1387,17 @@ model ProjectMilestone {
   status      MilestoneStatus @default(pending)
   dueDate     DateTime?
   completedAt DateTime?
+  /// One-click client approval (Tier 2). approvedById is the client user.
+  approvedAt         DateTime?
+  approvedById       String?
+  /// Client pressed "request changes": when + what they said.
+  changesRequestedAt DateTime?
+  clientNote         String?   @db.Text
   sortOrder   Int             @default(0)
 
-  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project  ClientProject    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments ProjectComment[]
+  files    ProjectFile[]
 
   @@index([projectId])
 }
@@ -1385,16 +1406,55 @@ model ProjectFile {
   id           String   @id @default(cuid())
   projectId    String
   uploadedById String?
+  /// "admin" | "client" — who put the file there (gallery grouping, purge).
+  uploadedByRole   String?  @db.VarChar(16)
+  /// Optional anchors: a milestone the file belongs to, or the support
+  /// message it was attached to (tickets reuse this table for attachments).
+  milestoneId      String?
+  supportMessageId String?
   fileName     String
   filePath     String
   fileType     String?
+  fileSize     Int?
+  /// Tier 4 handover gate: deliverables are served only when the project
+  /// has no outstanding balance. Default false = plain shared file.
+  isDeliverable    Boolean  @default(false)
   createdAt    DateTime @default(now())
 
-  project    ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploadedBy User?         @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  project        ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy     User?             @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  milestone      ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  supportMessage SupportMessage?   @relation(fields: [supportMessageId], references: [id], onDelete: SetNull)
+  comments       ProjectComment[]
 
   @@index([projectId])
   @@index([uploadedById])
+  @@index([milestoneId])
+  @@index([supportMessageId])
+}
+
+/// Tier 2 · threaded feedback on a project, optionally anchored to a
+/// milestone or a file ("visual commenting" = comment on the thing, not
+/// pixel pins). Both sides write; admins can resolve.
+model ProjectComment {
+  id          String    @id @default(cuid())
+  projectId   String
+  milestoneId String?
+  fileId      String?
+  authorId    String
+  authorRole  String    @db.VarChar(16) // "admin" | "client"
+  body        String    @db.Text
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  project   ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  file      ProjectFile?      @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  author    User              @relation("UserProjectComments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([milestoneId])
+  @@index([authorId])
 }
 
 /// =============================================================
@@ -1417,6 +1477,9 @@ model SupportTicket {
   /// via the "Request refund" flow on DashboardOrders so admins can jump
   /// straight to AdminOrderDetail without copy-pasting the order number.
   orderId         String?
+  /// Tier 2 — ticket opened from inside a client project (status shown next
+  /// to the project's; attachments land in ProjectFile via supportMessageId).
+  projectId       String?
   assignedAdminId String?
   resolvedAt      DateTime?
   closedAt        DateTime?
@@ -1426,6 +1489,7 @@ model SupportTicket {
   user          User             @relation("UserSupportTickets", fields: [userId], references: [id], onDelete: Cascade)
   assignedAdmin User?            @relation("AssignedSupportTickets", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   order         Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  project       ClientProject?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
   messages      SupportMessage[]
 
   @@index([userId])
@@ -1433,6 +1497,7 @@ model SupportTicket {
   @@index([status])
   @@index([category])
   @@index([orderId])
+  @@index([projectId])
 }
 
 model SupportMessage {
@@ -1448,6 +1513,9 @@ model SupportMessage {
 
   ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   sender User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  /// Multi-file attachments (Tier 2) — stored as ProjectFile rows so they
+  /// share the private storage path, scan and stream endpoint.
+  attachments ProjectFile[]
 
   @@index([ticketId])
   @@index([senderId])

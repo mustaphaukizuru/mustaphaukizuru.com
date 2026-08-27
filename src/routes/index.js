@@ -70,6 +70,7 @@ const adminSessionRoutes = require("./adminSessionRoutes")
 
 // M19 · Marketing campaigns
 const adminCampaignRoutes = require("./adminCampaignRoutes")
+const adminLeadRoutes = require("./adminLeadRoutes")                // T3 — unified leads inbox
 
 const router = express.Router()
 
@@ -184,6 +185,7 @@ v1.use("/admin",                  adminRefundRoutes)              // M15 — /ad
 v1.use("/admin/blog",             adminBlogRoutes)                // M16 — Blog CRUD (posts + categories + tags)
 v1.use("/admin/sessions",         adminSessionRoutes)             // M17 — Active sessions, revoke individual / revoke-all
 v1.use("/admin/campaigns",        adminCampaignRoutes)            // M19 — Marketing email campaigns
+v1.use("/admin/leads",            adminLeadRoutes)                // T3 — unified leads inbox
 
 // Member
 v1.use("/member/profile",         profileRoutes)

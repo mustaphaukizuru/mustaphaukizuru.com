@@ -429,6 +429,31 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // 4b · Milestone awaiting client approval (Tier 2 client portal)
+  {
+    key: "project.approval-requested",
+    subject: "Your review is needed: {{milestoneTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "A milestone is ready for your approval.",
+      eyebrow:   "Review requested",
+      bodyHtml:
+        heading(`Ready for your review: {{milestoneTitle}}`) +
+        paragraph(`The milestone <strong>{{milestoneTitle}}</strong> on <strong>{{projectName}}</strong> has been delivered and is waiting for your sign-off.`) +
+        paragraph(`Open the project, look at the deliverables, and either approve it with one click or tell us what should change. Approving moves the work to the next phase.`) +
+        button("{{dashboardUrl}}", "Review and approve") +
+        calloutCard(`Nothing to approve yet? Leave a comment on the milestone instead — it lands directly with the project owner.`),
+    }),
+    text: [
+      "Ready for your review: {{milestoneTitle}}",
+      "",
+      "The milestone {{milestoneTitle}} on {{projectName}} has been delivered",
+      "and is waiting for your sign-off. Approve it or request changes here:",
+      "  {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // 5 · Support reply
   {
     key: "support.reply",
@@ -676,6 +701,30 @@ const TEMPLATES = [
       "",
       "You are receiving this because you have an account and items in your",
       "cart. We send at most one reminder a week.",
+    ].join("\n"),
+  },
+  // Variables: customerName · itemCount · firstItem · itemsSummary · cartTotal · cartUrl · couponCode · discountPct · offerExpires
+  {
+    key: "cart.abandoned-offer",
+    subject: "{{discountPct}}% off {{firstItem}} — a small thank-you for coming back",
+    html:
+      heading(`Here's {{discountPct}}% off, {{customerName}}.`) +
+      paragraph(`Your cart — {{itemsSummary}} — is still saved. Use the code below at checkout and take <strong>{{discountPct}}%</strong> off the <strong>{{cartTotal}}</strong> total.`) +
+      calloutCard(`<span style="font-family:monospace;font-size:20px;letter-spacing:0.08em;"><strong>{{couponCode}}</strong></span><br>Single use, just for you. Valid until {{offerExpires}}.`) +
+      button("{{cartUrl}}", "Finish my order") +
+      paragraph(`Digital downloads unlock the moment your payment clears, and every purchase is covered by a full-refund guarantee.`),
+    text: [
+      "Here's {{discountPct}}% off, {{customerName}}.",
+      "",
+      "Your cart — {{itemsSummary}} — is still saved.",
+      "Use this code at checkout for {{discountPct}}% off {{cartTotal}}:",
+      "",
+      "  {{couponCode}}",
+      "",
+      "Single use, just for you. Valid until {{offerExpires}}.",
+      "Finish your order: {{cartUrl}}",
+      "",
+      "This is the last reminder we'll send for this cart.",
     ].join("\n"),
   },
   // Variables: customerName · orderNumber · orderTotal · orderUrl
@@ -1133,6 +1182,31 @@ const TEMPLATES_ES = [
     ].join("\n"),
   },
 
+  // project.approval-requested
+  {
+    key: "project.approval-requested",
+    subject: "Necesitamos tu revisión: {{milestoneTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "Un hito está listo para tu aprobación.",
+      eyebrow:   "Revisión solicitada",
+      bodyHtml:
+        heading(`Listo para tu revisión: {{milestoneTitle}}`) +
+        paragraph(`El hito <strong>{{milestoneTitle}}</strong> de <strong>{{projectName}}</strong> ya fue entregado y espera tu visto bueno.`) +
+        paragraph(`Abre el proyecto, revisa los entregables y apruébalo con un clic o dinos qué debería cambiar. Al aprobar, el trabajo pasa a la siguiente fase.`) +
+        button("{{dashboardUrl}}", "Revisar y aprobar") +
+        calloutCard(`¿Aún no hay nada que aprobar? Deja un comentario en el hito — llega directo al responsable del proyecto.`),
+    }),
+    text: [
+      "Listo para tu revisión: {{milestoneTitle}}",
+      "",
+      "El hito {{milestoneTitle}} de {{projectName}} ya fue entregado y",
+      "espera tu visto bueno. Apruébalo o solicita cambios aquí:",
+      "  {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // support.reply
   {
     key: "support.reply",
@@ -1403,6 +1477,29 @@ const TEMPLATES_ES = [
       "Tienda: " + SITE_URL + "/es/store",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "cart.abandoned-offer",
+    subject: "{{discountPct}}% de descuento en {{firstItem}} — un detalle por volver",
+    html:
+      heading(`Aquí tienes {{discountPct}}% de descuento, {{customerName}}.`) +
+      paragraph(`Tu carrito — {{itemsSummary}} — sigue guardado. Usa el código de abajo al pagar y obtén <strong>{{discountPct}}%</strong> de descuento sobre el total de <strong>{{cartTotal}}</strong>.`) +
+      calloutCard(`<span style="font-family:monospace;font-size:20px;letter-spacing:0.08em;"><strong>{{couponCode}}</strong></span><br>De un solo uso, solo para ti. Válido hasta el {{offerExpires}}.`) +
+      button("{{cartUrl}}", "Terminar mi pedido") +
+      paragraph(`Las descargas digitales se liberan en cuanto se confirma el pago, y cada compra incluye garantía de reembolso total.`),
+    text: [
+      "Aquí tienes {{discountPct}}% de descuento, {{customerName}}.",
+      "",
+      "Tu carrito — {{itemsSummary}} — sigue guardado.",
+      "Usa este código al pagar para {{discountPct}}% de descuento sobre {{cartTotal}}:",
+      "",
+      "  {{couponCode}}",
+      "",
+      "De un solo uso, solo para ti. Válido hasta el {{offerExpires}}.",
+      "Terminar mi pedido: {{cartUrl}}",
+      "",
+      "Este es el último recordatorio que enviaremos por este carrito.",
     ].join("\n"),
   },
   {

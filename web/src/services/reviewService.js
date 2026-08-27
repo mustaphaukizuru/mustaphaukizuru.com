@@ -67,8 +67,11 @@ export async function deleteServiceReview(slug, reviewId) {
  * Fetch the top-N admin-curated featured reviews across products + services.
  * Used by the FeaturedReviewsRibbon on Home / About pages.
  */
-export async function fetchFeaturedReviews({ limit = 6 } = {}) {
-  const response = await apiRequest(`/api/v1/reviews/featured?limit=${encodeURIComponent(limit)}`)
+export async function fetchFeaturedReviews({ limit = 6, signal } = {}) {
+  const response = await apiRequest(
+    `/api/v1/reviews/featured?limit=${encodeURIComponent(limit)}`,
+    signal ? { signal } : {},
+  )
   return response?.data || []
 }
 

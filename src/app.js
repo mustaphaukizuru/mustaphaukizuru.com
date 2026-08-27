@@ -19,6 +19,9 @@ const { STORAGE_PATHS } = require("./config/storagePaths")
 // returns `null` if @sentry/node isn't installed or SENTRY_DSN is unset,
 // so the handlers below degrade silently. Init runs once at require time.
 const Sentry = require("./lib/sentry")
+// The SPA's @sentry/react client posts to the DSN host; CSP connect-src must
+// allow it or every browser report is silently dropped (src/lib/sentryCsp.js).
+const { sentryConnectSrc } = require("./lib/sentryCsp")
 
 const app = express()
 
@@ -130,12 +133,16 @@ app.use(helmet({
                     "https://www.paypal.com",
                     "https://www.mercadopago.com",
                     "https://www.mercadopago.com.br",
+                    // Tier 2 · client-project live previews. Operator-declared
+                    // origins only (PREVIEW_FRAME_HOSTS); everything else is a link.
+                                        ...String(process.env.PREVIEW_FRAME_HOSTS || "").split(",").map((s) => s.trim()).filter(Boolean),
                     ...turnstileHosts],
       connectSrc:  ["'self'",
                     "https://accounts.google.com",
                     "https://oauth2.googleapis.com",
                     "https://api.mercadopago.com",
                     "https://www.paypal.com",
+                    ...sentryConnectSrc(),
                     ...turnstileHosts],
       imgSrc:      ["'self'", "data:", "https:"],
       styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],

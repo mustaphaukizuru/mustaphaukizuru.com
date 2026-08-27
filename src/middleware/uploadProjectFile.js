@@ -48,3 +48,5 @@ const upload = multer({
 
 module.exports = upload.single("file")
 module.exports.ALLOWED_EXT = ALLOWED_EXT
+// Client dropzone + ticket attachments: several files per request.
+module.exports.many = upload.array("files", 10)

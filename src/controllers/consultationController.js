@@ -17,11 +17,23 @@ const {
   sendConsultationCancelledEmail,
 } = require("../utils/mailer")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
+const { findOrCreateUserForCheckout } = require("../services/authService")
+const { sendTemplateEmail } = require("../services/emailService")
+const logger = require("../utils/logger")
 
-// POST /api/v1/consultations
+// Same pragmatic RFC 5322 check as orderController.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/**
+ * POST /api/v1/consultations — soft-auth (attachUserIfPresent). Mirrors
+ * POST /orders (orderController.createOrder):
+ *   1. Signed-in member → books as req.user
+ *   2. Guest, new email  → passwordless "checkout" account + claim email
+ *   3. Guest, email of a claimed account → 401 ACCOUNT_EXISTS (must sign in)
+ */
 const create = asyncHandler(async (req, res) => {
-  const userId = req.user?.id
-  const { serviceId, startUtc, timezone, clientNotes, serviceOrderId } = req.body
+  let userId = req.user?.id || null
+  const { serviceId, startUtc, timezone, clientNotes, serviceOrderId, customerName, customerEmail } = req.body
 
   if (!startUtc || !timezone) {
     return res.status(400).json({
@@ -29,6 +41,63 @@ const create = asyncHandler(async (req, res) => {
       code:    "BAD_REQUEST",
       message: "startUtc and timezone are required",
     })
+  }
+
+  let isNewUser  = false
+  let claimToken = null
+  let guestEmail = null
+  let guestName  = null
+
+  if (!userId) {
+    // Paid bookings need the serviceOrder ownership check, which only makes
+    // sense against a real session — never auto-create an account for that.
+    if (serviceOrderId) {
+      return res.status(401).json({
+        success: false, code: "LOGIN_REQUIRED_FOR_PAID_BOOKING",
+        message: "Please sign in to book a session against a paid order.",
+      })
+    }
+    const email = String(customerEmail || "").trim()
+    if (!email) {
+      return res.status(400).json({
+        success: false, code: "VALIDATION_ERROR",
+        message: "customerEmail is required",
+      })
+    }
+    if (!EMAIL_RE.test(email)) {
+      return res.status(400).json({
+        success: false, code: "VALIDATION_ERROR",
+        message: "customerEmail is not a valid email address",
+      })
+    }
+    const name = String(customerName || "").trim()
+    if (!name) {
+      return res.status(400).json({
+        success: false, code: "VALIDATION_ERROR",
+        message: "customerName is required",
+      })
+    }
+
+    try {
+      const result = await findOrCreateUserForCheckout({ fullName: name, email })
+      if (result.requiresLogin) {
+        return res.status(401).json({
+          success: false, code: "ACCOUNT_EXISTS",
+          message: "An account already exists for this email. Please sign in to complete your purchase.",
+        })
+      }
+      userId     = result.user.id
+      isNewUser  = Boolean(result.isNew)
+      claimToken = result.claimToken || null
+      guestEmail = result.user.email || email
+      guestName  = result.user.fullName || name
+    } catch (err) {
+      logger.error("[booking] auto-account failed:", err.message)
+      return res.status(500).json({
+        success: false, code: "AUTO_ACCOUNT_FAILED",
+        message: "Could not create your account. Please try signing up first.",
+      })
+    }
   }
 
   const consultation = await bookConsultation({
@@ -48,10 +117,29 @@ const create = asyncHandler(async (req, res) => {
     console.error("[booking] confirmation email failed:", err.message),
   )
 
+  // Brand-new guests also get the claim-account email (same template as
+  // checkout) so they can set a password and see the booking in /dashboard.
+  // The confirmation email above already carries the confirmationToken
+  // manage link, so reschedule/cancel work before the account is claimed.
+  if (isNewUser && claimToken) {
+    const claimUrl = `${(process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")}/reset-password/${claimToken}?source=booking`
+    sendTemplateEmail({
+      locale,
+      to:          guestEmail,
+      templateKey: "auth.account-claim",
+      userId,
+      variables: {
+        customerName: guestName?.split(" ")[0] || "there",
+        orderNumber:  consultation.id,
+        claimUrl,
+      },
+    }).catch((err) => logger.error("[booking] claim email failed:", err.message))
+  }
+
   return res.status(201).json({
     success: true,
     message: "Consultation booked",
-    data:    consultation,
+    data:    { ...consultation, isNewUser },
   })
 })
 

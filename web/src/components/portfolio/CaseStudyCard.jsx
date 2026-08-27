@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next"
 import { Sparkles, ChevronRight, ExternalLink, Code2, Grid3x3, TrendingUp } from "lucide-react"
 import { getCaseStudy, responsiveSrcSet, hasPlaceholder } from "./caseStudy"
 
+const MAX_STACK = 4
+
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
@@ -21,6 +23,9 @@ export default function CaseStudyCard({ item }) {
     || (outcomes.length ? outcomes.slice(0, 2).map((o) => [o.value, o.label].filter(Boolean).join(" ")).join(" · ") : null)
   const placeholder = hasPlaceholder(outcomes)
   const service = cs?.serviceSlug
+  // Plain-text chips on purpose: the icon registry would drag react-icons
+  // into the portfolio chunk for a decorative hint.
+  const stack = (cs?.stack || []).filter((s) => typeof s === "string" && s.trim()).slice(0, MAX_STACK)
 
   return (
     <m.article
@@ -83,6 +88,19 @@ export default function CaseStudyCard({ item }) {
           <p className="mt-3 line-clamp-2 flex-1 text-meta leading-6 text-charcoal-80/70">
             {cs?.problem || item.shortDescription}
           </p>
+
+          {stack.length ? (
+            <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={t("card.stack")}>
+              {stack.map((tech) => (
+                <li
+                  key={tech}
+                  className="rounded-md border border-charcoal-80/10 bg-mist px-2 py-0.5 font-mono text-[10.5px] font-semibold uppercase tracking-[0.08em] text-charcoal-80/70"
+                >
+                  {tech}
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           <div className="mt-4 flex items-center justify-between">
             <span className="inline-flex items-center gap-1 text-micro font-semibold text-violet">

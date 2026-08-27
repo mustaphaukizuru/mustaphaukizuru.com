@@ -14,6 +14,8 @@ const prisma        = require("../lib/prisma")
 const logger        = require("../utils/logger")
 const PDFDocument   = require("pdfkit")
 const emailService  = require("../services/emailService")
+const newsletterService = require("../services/newsletterService")
+const { resolveUserLocale } = require("../utils/resolveUserLocale")
 
 /* ── SMTP: single shared transport + EmailLog + retry via emailService ── */
 
@@ -294,7 +296,7 @@ function buildAdminEmail(data) {
 }
 
 function buildVisitorEmail(data) {
-  const { name, email, audience, overallScore, tier, topPriorities, matchedBundle, sectionScores } = data
+  const { name, email, audience, overallScore, tier, topPriorities, matchedBundle, sectionScores, newsletterOptIn } = data
   const firstName = (name || "there").split(" ")[0]
   const tc = tierHex(tier)
   const avgMap = { EDU: 36, SMB: 41, IND: 32 }
@@ -415,7 +417,9 @@ function buildVisitorEmail(data) {
     <div style="padding:20px 40px;background:#F8FAFC;border-top:1px solid #EFF1F5;text-align:center;">
       <div style="font-size:13px;font-weight:700;color:#5D3FD3;margin-bottom:3px;">Mustapha Ukizuru</div>
       <div style="font-size:11px;color:#64748B;">Complexity, simplified. · <a href="${SITE_URL}" style="color:#0284C7;text-decoration:none;">${SITE_URL.replace("https://","")}</a></div>
-      <p style="font-size:10px;color:#A0A8B8;margin-top:10px;">One-time report. You won't receive any newsletter. <a href="${SITE_URL}/privacy" style="color:#A0A8B8;">Privacy policy</a></p>
+      <p style="font-size:10px;color:#A0A8B8;margin-top:10px;">${newsletterOptIn
+        ? "You asked to hear from us — a separate email is on its way so you can confirm your newsletter subscription. Nothing is sent until you confirm."
+        : "One-time report. You won't receive any newsletter."} <a href="${SITE_URL}/privacy" style="color:#A0A8B8;">Privacy policy</a></p>
     </div>
   </div>
 </div></body></html>`,
@@ -426,7 +430,7 @@ function buildVisitorEmail(data) {
    CONTROLLER
 ════════════════════════════════════════════════════════════════════════ */
 const submitDiagnostic = asyncHandler(async (req, res) => {
-  const { name, email, organization, audience, scores, sectionScores, overall, topPriorities, matchedBundle, prequal, website } = req.body || {}
+  const { name, email, organization, audience, scores, sectionScores, overall, topPriorities, matchedBundle, prequal, website, newsletterOptIn } = req.body || {}
 
   /* Honeypot — `website` is a hidden field humans never see. A filled value
    * is a bot: answer 200 so it thinks it succeeded, persist nothing, send
@@ -454,6 +458,8 @@ const submitDiagnostic = asyncHandler(async (req, res) => {
 
   const overallScore = Math.round(Number(overall?.pct || 0))
   const tier         = getTier(overallScore).name
+  // Opt-in is an explicit boolean true only — never a default, never "truthy".
+  const optIn        = newsletterOptIn === true
 
   /* Persist first — leads are never lost on email failure */
   let record
@@ -495,6 +501,7 @@ const submitDiagnostic = asyncHandler(async (req, res) => {
     sectionScores: sectionScores || {},
     topPriorities: topPriorities || [],
     matchedBundle, prequal: prequal || {},
+    newsletterOptIn: optIn,
   }
 
   const adminMail   = buildAdminEmail(emailData)
@@ -517,7 +524,28 @@ const submitDiagnostic = asyncHandler(async (req, res) => {
     }
   })
 
-  logger.info(`[diagnostic] ${cleanEmail} · ${cleanAud} · ${overallScore}/100 · ${tier}`)
+  /* Nurture opt-in → newsletter double opt-in (pending + confirm email).
+     Same path as POST /newsletter/subscribe; the address is never marked
+     "subscribed" here — only GET /newsletter/confirm/:token does that. */
+  if (optIn) {
+    try {
+      const { subscriber, sendConfirmation, confirmUrl } = await newsletterService.subscribe({
+        email: cleanEmail, name: cleanName, source: "diagnostic",
+      })
+      if (sendConfirmation) {
+        emailService.sendTemplateEmail({
+          locale:      resolveUserLocale({ req }),
+          to:          subscriber.email,
+          templateKey: "newsletter.confirm",
+          variables:   { email: subscriber.email, name: subscriber.name || "", confirmUrl },
+        }).catch((e) => logger.error("[diagnostic] newsletter confirm email failed", e))
+      }
+    } catch (err) {
+      logger.error("[diagnostic] newsletter opt-in failed", err)
+    }
+  }
+
+  logger.info(`[diagnostic] ${cleanEmail} · ${cleanAud} · ${overallScore}/100 · ${tier}${optIn ? " · newsletter opt-in" : ""}`)
   return res.status(200).json({ success: true, message: "Report submitted. Check your inbox shortly." })
 })
 

@@ -16,6 +16,8 @@
     "eyebrow": "Track record",
     "yearsLabel": "years shipping production software",
     "projectsLabel": "projects delivered",
+    "clientsLabel": "clients served",
+    "reviewsLabel": "client reviews",
     "countriesLabel": "countries worked in",
     "studentsLabel": "people trained",
     "stackLabel": "Built with"
@@ -90,27 +92,9 @@
     "eyebrow": "What clients say",
     "title": "In their own words",
     "subtitle": "From people who hired me and shipped with me.",
-    "placeholderNote": "Placeholder testimonial — replace before launch",
-    "items": {
-      "a": {
-        "quote": "[Placeholder] Replace with a verbatim client quote about a concrete result, e.g. cloud costs cut by a percentage or a launch date met.",
-        "name": "Client name",
-        "role": "Role",
-        "company": "Company"
-      },
-      "b": {
-        "quote": "[Placeholder] Replace with a verbatim quote about how the engagement was run: communication, scope, no surprises.",
-        "name": "Client name",
-        "role": "Role",
-        "company": "Company"
-      },
-      "c": {
-        "quote": "[Placeholder] Replace with a verbatim quote about a digital product or training that the client used and recommends.",
-        "name": "Client name",
-        "role": "Role",
-        "company": "Company"
-      }
-    }
+    "anonymous": "Anonymous client",
+    "client": "Client",
+    "verified": "Verified purchase"
   },
   "process": {
     "eyebrow": "How I work",

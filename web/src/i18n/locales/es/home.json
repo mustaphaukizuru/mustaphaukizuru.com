@@ -16,6 +16,8 @@
     "eyebrow": "Trayectoria",
     "yearsLabel": "años entregando software en producción",
     "projectsLabel": "proyectos entregados",
+    "clientsLabel": "clientes atendidos",
+    "reviewsLabel": "reseñas de clientes",
     "countriesLabel": "países donde he trabajado",
     "studentsLabel": "personas capacitadas",
     "stackLabel": "Construido con"
@@ -90,27 +92,9 @@
     "eyebrow": "Lo que dicen los clientes",
     "title": "En sus propias palabras",
     "subtitle": "De personas que me contrataron y lanzaron conmigo.",
-    "placeholderNote": "Testimonio de relleno — reemplazar antes del lanzamiento",
-    "items": {
-      "a": {
-        "quote": "[Placeholder] Reemplaza con una cita textual del cliente sobre un resultado concreto, p. ej. costos de nube reducidos en un porcentaje o una fecha de lanzamiento cumplida.",
-        "name": "Nombre del cliente",
-        "role": "Cargo",
-        "company": "Empresa"
-      },
-      "b": {
-        "quote": "[Placeholder] Reemplaza con una cita textual sobre cómo se llevó el proyecto: comunicación, alcance, sin sorpresas.",
-        "name": "Nombre del cliente",
-        "role": "Cargo",
-        "company": "Empresa"
-      },
-      "c": {
-        "quote": "[Placeholder] Reemplaza con una cita textual sobre un producto digital o capacitación que el cliente usó y recomienda.",
-        "name": "Nombre del cliente",
-        "role": "Cargo",
-        "company": "Empresa"
-      }
-    }
+    "anonymous": "Cliente anónimo",
+    "client": "Cliente",
+    "verified": "Compra verificada"
   },
   "process": {
     "eyebrow": "Cómo trabajo",
