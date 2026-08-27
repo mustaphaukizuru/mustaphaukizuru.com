@@ -67,3 +67,34 @@ describe("errorHandler on engine panic", () => {
     expect(res.json.mock.calls[0][0].code).toBe("DB_UNAVAILABLE")
   })
 })
+
+describe("exitIfUnrecoverable", () => {
+  test("exits only in production, only for a panic signature, only after 60s uptime", () => {
+    jest.resetModules()
+    jest.useFakeTimers()
+    const exit = jest.spyOn(process, "exit").mockImplementation(() => {})
+    const uptime = jest.spyOn(process, "uptime").mockReturnValue(120)
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    const prev = process.env.NODE_ENV
+    process.env.NODE_ENV = "test"
+    jest.dontMock("../src/lib/prisma")
+    const { exitIfUnrecoverable } = require("../src/lib/prisma")
+    exitIfUnrecoverable("PANIC: timer has gone away"); jest.runAllTimers()
+    expect(exit).not.toHaveBeenCalled()                       // not production
+
+    process.env.NODE_ENV = "production"
+    exitIfUnrecoverable("Can't reach database server"); jest.runAllTimers()
+    expect(exit).not.toHaveBeenCalled()                       // connectivity, not a panic
+
+    uptime.mockReturnValue(10)
+    exitIfUnrecoverable("PANIC: timer has gone away"); jest.runAllTimers()
+    expect(exit).not.toHaveBeenCalled()                       // just booted
+
+    uptime.mockReturnValue(120)
+    exitIfUnrecoverable("PANIC: timer has gone away"); jest.runAllTimers()
+    expect(exit).toHaveBeenCalledWith(1)                      // the real case
+    process.env.NODE_ENV = prev
+    jest.useRealTimers()
+    exit.mockRestore(); uptime.mockRestore()
+  })
+})
