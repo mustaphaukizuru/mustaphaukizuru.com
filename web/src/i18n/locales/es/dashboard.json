@@ -60,7 +60,85 @@
       "files_one": "{{count}} archivo",
       "files_other": "{{count}} archivos",
       "noFiles": "Aún no se han compartido archivos.",
-      "fileFallback": "archivo"
+      "fileFallback": "archivo",
+      "milestoneApproved": "Aprobado {{date}}",
+      "changesRequestedOn": "Cambios solicitados {{date}}",
+      "yourNote": "Tu nota",
+      "status": {
+        "pending": "Pendiente",
+        "in_progress": "En progreso",
+        "awaiting_client": "Esperando tu revisión",
+        "approved": "Aprobado",
+        "completed": "Completado"
+      },
+      "actions": {
+        "approve": "Aprobar",
+        "requestChanges": "Solicitar cambios",
+        "approveNoteLabel": "Agrega una nota (opcional)",
+        "approveNotePlaceholder": "¿Algo que el equipo deba saber?",
+        "confirmApprove": "Confirmar aprobación",
+        "cancel": "Cancelar",
+        "requestChangesTitle": "Solicitar cambios en \"{{title}}\"",
+        "requestChangesBody": "Cuéntale al equipo qué debe cambiar. El hito vuelve a «en progreso» y se les notifica de inmediato.",
+        "changesNoteLabel": "¿Qué debería cambiar?",
+        "changesNotePlaceholder": "Describe los cambios que necesitas…",
+        "noteRequired": "Describe los cambios que necesitas.",
+        "send": "Enviar solicitud"
+      },
+      "closed": {
+        "title": "Este proyecto está cerrado",
+        "body": "Este proyecto está cerrado — solo lectura hasta el {{date}}. Aún puedes ver y descargar todo."
+      },
+      "expired": {
+        "title": "Este proyecto ya no está disponible",
+        "body": "Su período de acceso terminó. Contacta a soporte si necesitas alguno de sus archivos."
+      },
+      "preview": {
+        "title": "Vista previa",
+        "subtitle": "Un vistazo en vivo al trabajo en curso.",
+        "open": "Abrir vista previa",
+        "frameTitle": "Vista previa de {{name}}"
+      },
+      "gallery": {
+        "team": "Entregables del equipo",
+        "teamEmpty": "Aún no se han compartido entregables.",
+        "yours": "Tus archivos",
+        "yoursEmpty": "Todavía no has subido nada.",
+        "deliverable": "Entregable",
+        "byTeam": "Equipo",
+        "byYou": "Tú"
+      },
+      "upload": {
+        "title": "Suelta archivos aquí o haz clic para buscar",
+        "hint": "Hasta {{max}} archivos, {{size}} cada uno.",
+        "imagesHint": "Las imágenes se muestran como miniaturas; el resto se lista por tipo.",
+        "uploading": "Subiendo…",
+        "milestoneLabel": "Asociar a un hito (opcional)",
+        "noMilestone": "Sin hito",
+        "tooMany": "Puedes subir como máximo {{max}} archivos a la vez.",
+        "badType": "\"{{name}}\" no es un tipo de archivo permitido.",
+        "tooBig": "\"{{name}}\" supera los {{size}}."
+      },
+      "thread": {
+        "title": "Hilo del proyecto",
+        "subtitle": "Preguntas y novedades sobre el proyecto en general.",
+        "empty": "Aún no hay mensajes. Inicia la conversación abajo.",
+        "placeholder": "Escribe un mensaje al equipo…",
+        "milestonePlaceholder": "Responder en este hito…",
+        "send": "Enviar",
+        "you": "Tú",
+        "team": "Equipo",
+        "roleTeam": "Equipo",
+        "roleClient": "Cliente",
+        "resolved": "Resuelto",
+        "readOnly": "Este proyecto es de solo lectura; los mensajes nuevos están deshabilitados."
+      },
+      "toast": {
+        "approved": "Hito aprobado. ¡Gracias!",
+        "changesRequested": "Tu solicitud de cambios fue enviada al equipo.",
+        "uploaded": "Archivos subidos.",
+        "failed": "Algo salió mal. Inténtalo de nuevo."
+      }
     }
   },
   "serviceOrders": {

@@ -33,6 +33,13 @@ const STATUS_MAP = {
   open: { bg: "bg-azure/10", text: "text-azure-deep", label: "Open" },
   closed: { bg: "bg-charcoal-80/10", text: "text-charcoal-80", label: "Closed" },
 
+  // Project / milestone lifecycle (client portal)
+  planning: { bg: "bg-charcoal-80/10", text: "text-charcoal-80", label: "Planning" },
+  in_progress: { bg: "bg-amber/10", text: "text-amber-700", label: "In progress" },
+  review: { bg: "bg-azure/10", text: "text-azure-deep", label: "In review" },
+  awaiting_client: { bg: "bg-violet-pale", text: "text-violet", label: "Awaiting client" },
+  approved: { bg: "bg-mint/15", text: "text-mint-700", label: "Approved" },
+
   // Role taxonomy
   admin: { bg: "bg-violet-pale", text: "text-violet", label: "Admin" },
   member: { bg: "bg-azure/10", text: "text-azure-deep", label: "Member" },

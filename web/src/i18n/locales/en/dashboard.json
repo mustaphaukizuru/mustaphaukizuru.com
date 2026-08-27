@@ -60,7 +60,85 @@
       "files_one": "{{count}} file",
       "files_other": "{{count}} files",
       "noFiles": "No files shared yet.",
-      "fileFallback": "file"
+      "fileFallback": "file",
+      "milestoneApproved": "Approved {{date}}",
+      "changesRequestedOn": "Changes requested {{date}}",
+      "yourNote": "Your note",
+      "status": {
+        "pending": "Pending",
+        "in_progress": "In progress",
+        "awaiting_client": "Awaiting your review",
+        "approved": "Approved",
+        "completed": "Completed"
+      },
+      "actions": {
+        "approve": "Approve",
+        "requestChanges": "Request changes",
+        "approveNoteLabel": "Add a note (optional)",
+        "approveNotePlaceholder": "Anything you'd like the team to know?",
+        "confirmApprove": "Confirm approval",
+        "cancel": "Cancel",
+        "requestChangesTitle": "Request changes on \"{{title}}\"",
+        "requestChangesBody": "Tell the team what needs to change. The milestone goes back to in progress and they are notified right away.",
+        "changesNoteLabel": "What should change?",
+        "changesNotePlaceholder": "Describe the changes you need…",
+        "noteRequired": "Please describe the changes you need.",
+        "send": "Send request"
+      },
+      "closed": {
+        "title": "This project is closed",
+        "body": "This project is closed — read-only until {{date}}. You can still view and download everything."
+      },
+      "expired": {
+        "title": "This project is no longer available",
+        "body": "Its access window has ended. Contact support if you need any of its files."
+      },
+      "preview": {
+        "title": "Preview",
+        "subtitle": "A live look at the work in progress.",
+        "open": "Open preview",
+        "frameTitle": "Preview of {{name}}"
+      },
+      "gallery": {
+        "team": "Deliverables from the team",
+        "teamEmpty": "No deliverables shared yet.",
+        "yours": "Your uploads",
+        "yoursEmpty": "You haven't uploaded anything yet.",
+        "deliverable": "Deliverable",
+        "byTeam": "Team",
+        "byYou": "You"
+      },
+      "upload": {
+        "title": "Drop files here or click to browse",
+        "hint": "Up to {{max}} files, {{size}} each.",
+        "imagesHint": "Images show as thumbnails; everything else is listed by type.",
+        "uploading": "Uploading…",
+        "milestoneLabel": "Attach to a milestone (optional)",
+        "noMilestone": "No milestone",
+        "tooMany": "You can upload at most {{max}} files at a time.",
+        "badType": "\"{{name}}\" is not an allowed file type.",
+        "tooBig": "\"{{name}}\" is larger than {{size}}."
+      },
+      "thread": {
+        "title": "Project thread",
+        "subtitle": "Questions and updates about the project as a whole.",
+        "empty": "No messages yet. Start the conversation below.",
+        "placeholder": "Write a message to the team…",
+        "milestonePlaceholder": "Reply on this milestone…",
+        "send": "Send",
+        "you": "You",
+        "team": "Team",
+        "roleTeam": "Team",
+        "roleClient": "Client",
+        "resolved": "Resolved",
+        "readOnly": "This project is read-only; new messages are disabled."
+      },
+      "toast": {
+        "approved": "Milestone approved. Thank you!",
+        "changesRequested": "Your change request was sent to the team.",
+        "uploaded": "Files uploaded.",
+        "failed": "Something went wrong. Please try again."
+      }
     }
   },
   "serviceOrders": {
