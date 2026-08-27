@@ -166,10 +166,14 @@ function makeLimiter({ windowMs, max, keyGenerator, message, name }) {
  * Webhooks (PayPal, MercadoPago) bypass this — they have their own routes
  * outside the limiter chain or are exempt via skip rules at the route level.
  */
+// 100/15min was hit by a single admin session in normal use (each console
+// page fans out several requests and polls), locking the operator out of
+// the whole API with RATE_LIMITED. Abuse-sensitive endpoints keep their own
+// tight limiters below; the global one is only a backstop.
 const globalApiLimiter = makeLimiter({
   name:         "global",
   windowMs:     FIFTEEN_MIN,
-  max:          100,
+  max:          Number(process.env.RATE_LIMIT_GLOBAL_MAX || 1500),
   keyGenerator: ipKey,
   message:      "Too many requests from this IP. Please slow down.",
 })

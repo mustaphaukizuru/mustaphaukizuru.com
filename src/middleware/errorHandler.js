@@ -76,11 +76,15 @@ function readErrorHtml(filePath) {
   }
 }
 
-const PRISMA_CONNECTION_MSGS = ["Can't reach database", "Connection refused", "ECONNREFUSED", "P1001", "P1002", "P1003"]
+// P1008 operation timed out · P1017 server closed the connection ·
+// P2024 timed out fetching a connection from the pool — all transient and
+// retryable, so they are answered 503 rather than a misleading 400.
+const PRISMA_CONNECTION_MSGS = ["Can't reach database", "Connection refused", "ECONNREFUSED", "P1001", "P1002", "P1003", "P1008", "P1017", "P2024", "Timed out fetching a new connection", "Server has closed the connection"]
 const PRISMA_CLIENT_NAMES    = ["PrismaClientKnownRequestError","PrismaClientUnknownRequestError","PrismaClientRustPanicError","PrismaClientInitializationError","PrismaClientValidationError"]
 
 function isDbConnectionError(err) {
   const msg = err?.message || ""
+  if (["P1001", "P1002", "P1003", "P1008", "P1017", "P2024"].includes(err?.code)) return true
   return PRISMA_CONNECTION_MSGS.some((m) => msg.includes(m))
 }
 
