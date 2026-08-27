@@ -398,6 +398,23 @@ function NdaGate({ project, onAccepted }) {
   )
 }
 
+/** Tier 4 · retention: bytes are gone, the row remains for the record. */
+function PurgedTile({ file: f, t }) {
+  const { icon: Icon, label, chip } = getFileTypeStyles(f.fileName || f.fileType)
+  return (
+    <li className="flex h-full flex-col overflow-hidden rounded-xl border border-dashed border-charcoal-80/15 bg-charcoal-80/5 opacity-80">
+      <div className="relative flex aspect-[4/3] items-center justify-center">
+        <Icon className="h-10 w-10 text-charcoal-80/40" aria-hidden="true" />
+        <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
+      </div>
+      <div className="px-3 py-2">
+        <p className="truncate text-meta font-semibold text-charcoal-80/65">{f.fileName}</p>
+        <p className="font-mono text-[11px] text-charcoal-80/65">{t("projects.detail.gallery.purged", { date: fmtDate(f.purgedAt) })}</p>
+      </div>
+    </li>
+  )
+}
+
 /* ── layout bits ───────────────────────────────────────────────────────── */
 
 function BackLink({ t }) {
@@ -650,6 +667,7 @@ function FileGallery({ projectId, files, title, empty, t }) {
 function FileTile({ projectId, file: f, t }) {
   const [imgFailed, setImgFailed] = useState(false)
   const href = fileDownloadUrl(projectId, f.id)
+  if (f.purgedAt) return <PurgedTile file={f} t={t} />
   const ext = extOf(f.fileName)
   const isImage = !imgFailed && (IMAGE_EXT.has(ext) || /^image\/(png|jpe?g|gif|webp)/i.test(f.fileType || ""))
   const { icon: Icon, label, chip, iconColor } = getFileTypeStyles(f.fileName || f.fileType)

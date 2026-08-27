@@ -37,6 +37,7 @@ const { runCampaignSenderPass } = require("./campaignSenderJob")
 const { runEmailRetryPass } = require("./emailRetryJob")
 const { runBackupPass } = require("./backupDatabaseJob")
 const { runAbandonedCartPass } = require("./abandonedCartJob")
+const { runProjectPurgePass } = require("./projectPurgeJob")
 
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
@@ -142,6 +143,18 @@ function startScheduler() {
     logger.info("[scheduler] registered abandoned-cart reminder · every 30 min")
   } catch (err) {
     logger.error("[scheduler] failed to register abandonedCartJob", err)
+  }
+
+  // ── Tier 4 · Project file purge · 04:00 UTC ─────────────────────────
+  // Unlinks deliverables of projects closed for PROJECT_PURGE_DAYS (60) and
+  // stamps purgedAt on the rows; metadata stays. After the 03:30 backup so
+  // the last snapshot still lists the files. UTC for the same reason as
+  // the other nightly jobs — a TZ change must not move it.
+  try {
+    cron.schedule("0 4 * * *", () => guarded("projectPurge", () => runProjectPurgePass()), { timezone: "UTC" })
+    logger.info("[scheduler] registered project file purge · 04:00 UTC")
+  } catch (err) {
+    logger.error("[scheduler] failed to register projectPurgeJob", err)
   }
 }
 

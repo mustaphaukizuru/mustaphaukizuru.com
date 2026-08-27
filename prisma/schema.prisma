@@ -1337,6 +1337,9 @@ model ClientProject {
   /// Re-minting rotates it. Expires with the grace window (closed) or +90 d.
   portalToken          String?   @unique @db.VarChar(64)
   portalTokenExpiresAt DateTime?
+  /// Tier 4 · retention. Set by projectPurgeJob once every file's bytes are
+  /// gone (closedAt + PROJECT_PURGE_DAYS). Metadata rows are kept.
+  purgedAt        DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1394,6 +1397,8 @@ model ProjectFile {
   /// Tier 4 handover gate: deliverables are served only when the project
   /// has no outstanding balance. Default false = plain shared file.
   isDeliverable    Boolean  @default(false)
+  /// Tier 4 · retention. Bytes unlinked by projectPurgeJob; row kept as audit.
+  purgedAt     DateTime?
   createdAt    DateTime @default(now())
 
   project        ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)

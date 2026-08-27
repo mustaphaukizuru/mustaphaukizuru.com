@@ -105,6 +105,7 @@
         "yours": "Tus archivos",
         "yoursEmpty": "Todavía no has subido nada.",
         "deliverable": "Entregable",
+        "purged": "Eliminado el {{date}} según nuestra política de retención",
         "byTeam": "Equipo",
         "byYou": "Tú"
       },
