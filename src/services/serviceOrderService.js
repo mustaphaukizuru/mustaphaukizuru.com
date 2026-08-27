@@ -451,6 +451,7 @@ async function adminUpdateServiceOrder(id, patch = {}, ctx = {}) {
 }
 
 module.exports = {
+  createUniqueOrderNumber,
   createServiceOrder,
   orderByTier,
   listUserServiceOrders,

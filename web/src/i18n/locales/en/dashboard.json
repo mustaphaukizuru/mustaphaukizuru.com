@@ -60,7 +60,216 @@
       "files_one": "{{count}} file",
       "files_other": "{{count}} files",
       "noFiles": "No files shared yet.",
-      "fileFallback": "file"
+      "fileFallback": "file",
+      "milestoneApproved": "Approved {{date}}",
+      "changesRequestedOn": "Changes requested {{date}}",
+      "yourNote": "Your note",
+      "status": {
+        "pending": "Pending",
+        "in_progress": "In progress",
+        "awaiting_client": "Awaiting your review",
+        "approved": "Approved",
+        "completed": "Completed"
+      },
+      "actions": {
+        "approve": "Approve",
+        "requestChanges": "Request changes",
+        "approveNoteLabel": "Add a note (optional)",
+        "approveNotePlaceholder": "Anything you'd like the team to know?",
+        "confirmApprove": "Confirm approval",
+        "cancel": "Cancel",
+        "requestChangesTitle": "Request changes on \"{{title}}\"",
+        "requestChangesBody": "Tell the team what needs to change. The milestone goes back to in progress and they are notified right away.",
+        "changesNoteLabel": "What should change?",
+        "changesNotePlaceholder": "Describe the changes you need…",
+        "noteRequired": "Please describe the changes you need.",
+        "send": "Send request"
+      },
+      "closed": {
+        "title": "This project is closed",
+        "body": "This project is closed — read-only until {{date}}. You can still view and download everything."
+      },
+      "expired": {
+        "title": "This project is no longer available",
+        "body": "Its access window has ended. Contact support if you need any of its files."
+      },
+      "preview": {
+        "title": "Preview",
+        "subtitle": "A live look at the work in progress.",
+        "open": "Open preview",
+        "frameTitle": "Preview of {{name}}"
+      },
+      "gallery": {
+        "team": "Deliverables from the team",
+        "teamEmpty": "No deliverables shared yet.",
+        "yours": "Your uploads",
+        "yoursEmpty": "You haven't uploaded anything yet.",
+        "deliverable": "Deliverable",
+        "purged": "Removed {{date}} under our retention policy",
+        "byTeam": "Team",
+        "byYou": "You"
+      },
+      "upload": {
+        "title": "Drop files here or click to browse",
+        "hint": "Up to {{max}} files, {{size}} each.",
+        "imagesHint": "Images show as thumbnails; everything else is listed by type.",
+        "uploading": "Uploading…",
+        "milestoneLabel": "Attach to a milestone (optional)",
+        "noMilestone": "No milestone",
+        "tooMany": "You can upload at most {{max}} files at a time.",
+        "badType": "\"{{name}}\" is not an allowed file type.",
+        "tooBig": "\"{{name}}\" is larger than {{size}}."
+      },
+      "thread": {
+        "title": "Project thread",
+        "subtitle": "Questions and updates about the project as a whole.",
+        "empty": "No messages yet. Start the conversation below.",
+        "placeholder": "Write a message to the team…",
+        "milestonePlaceholder": "Reply on this milestone…",
+        "send": "Send",
+        "you": "You",
+        "team": "Team",
+        "roleTeam": "Team",
+        "roleClient": "Client",
+        "resolved": "Resolved",
+        "readOnly": "This project is read-only; new messages are disabled."
+      },
+      "access": {
+        "suspendedTitle": "Project paused — an invoice is overdue",
+        "suspendedBody": "The live preview and deliverables are on hold until the outstanding invoice is paid. Open your orders to settle it; access comes back automatically.",
+        "openOrders": "Go to my orders",
+        "handoverTitle": "Handover complete",
+        "handoverBody": "Everything is paid and delivered. Your final files are below — download and keep them somewhere safe.",
+        "locked": "On hold"
+      },
+      "handover": {
+        "title": "Handover",
+        "subtitle": "Final deliverables for this project.",
+        "empty": "No deliverables have been marked for handover yet."
+      },
+      "toast": {
+        "approved": "Milestone approved. Thank you!",
+        "changesRequested": "Your change request was sent to the team.",
+        "uploaded": "Files uploaded.",
+        "failed": "Something went wrong. Please try again."
+      }
+    },
+    "review": {
+      "title": "How did this project go?",
+      "subtitle": "Leave a short review of {{service}}. It is published under your first name after a quick check.",
+      "ratingLabel": "Your rating",
+      "stars_one": "{{count}} star",
+      "stars_other": "{{count}} stars",
+      "placeholder": "What worked well? What would you tell the next client?",
+      "submit": "Submit review",
+      "sending": "Sending…",
+      "thanks": "Thank you — your review has been received.",
+      "failed": "We could not save your review. Please try again.",
+      "doneTitle": "Thanks for your review",
+      "doneBody": "You rated this project {{rating}}/5."
+    },
+    "changeRequests": {
+      "title": "Request extra work",
+      "subtitle": "Need something beyond the original scope? Describe it, get a quote, and accept it to add a paid milestone to this project.",
+      "new": "New request",
+      "empty": "No extra-work requests yet.",
+      "readOnly": "This project is closed — new requests are disabled.",
+      "form": {
+        "title": "What do you need?",
+        "titlePlaceholder": "e.g. Add a Spanish version of the landing page",
+        "description": "Details",
+        "descriptionPlaceholder": "Describe the outcome you expect, references, deadlines…",
+        "submit": "Send request",
+        "cancel": "Cancel",
+        "titleRequired": "Give the request a short title.",
+        "descriptionRequired": "Describe the extra work you need."
+      },
+      "status": {
+        "requested": "Awaiting quote",
+        "quoted": "Quote ready",
+        "accepted": "Accepted · awaiting payment",
+        "declined": "Declined",
+        "done": "Done"
+      },
+      "quote": "Quote: {{amount}}",
+      "quoteNote": "Notes from the team",
+      "requestedOn": "Requested {{date}}",
+      "quotedOn": "Quoted {{date}}",
+      "accept": "Accept and pay",
+      "decline": "Decline",
+      "viewOrder": "View order",
+      "toast": {
+        "created": "Request sent. We'll get back to you with a quote.",
+        "accepted": "Quote accepted — complete the payment to start the work.",
+        "declined": "Quote declined.",
+        "failed": "Something went wrong. Please try again."
+      }
+    },
+    "support": {
+      "title": "Support",
+      "subtitle": "Questions or issues about this project? Open a ticket and the team gets notified right away.",
+      "newTicket": "New ticket",
+      "readOnly": "This project is closed. Existing tickets stay visible, but new tickets and replies are disabled.",
+      "empty": "No tickets yet",
+      "emptyBody": "Open a ticket whenever you need a hand with this project. You can attach screenshots and files.",
+      "list": "Tickets",
+      "messages_one": "{{count}} message",
+      "messages_other": "{{count}} messages",
+      "lastActivity": "Updated {{date}}",
+      "opened": "Opened {{date}}",
+      "status": {
+        "open": "Open",
+        "in_progress": "In progress",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "form": {
+        "subject": "Subject",
+        "subjectPlaceholder": "What do you need help with?",
+        "message": "Message",
+        "messagePlaceholder": "Describe the issue or question in as much detail as you can.",
+        "priorityLabel": "Priority",
+        "milestone": "Related milestone (optional)",
+        "milestoneNone": "Not tied to a milestone",
+        "attachments": "Attachments",
+        "attachmentsHint": "Up to {{max}} files, {{size}} MB each. Images, PDF, Office, ZIP and design files.",
+        "dropzone": "Drop files here or",
+        "browse": "browse",
+        "remove": "Remove {{name}}",
+        "submit": "Open ticket",
+        "cancel": "Cancel",
+        "subjectLength": "Subject must be 3-200 characters.",
+        "messageLength": "Message must be 10-5000 characters."
+      },
+      "thread": {
+        "back": "Back to tickets",
+        "you": "You",
+        "team": "Support team",
+        "attachments": "Attachments",
+        "noMessages": "No messages yet.",
+        "reply": "Reply",
+        "replyPlaceholder": "Write a reply, attach files if it helps.",
+        "send": "Send reply",
+        "closedNotice": "This ticket is closed. Open a new ticket if you need further help."
+      },
+      "errors": {
+        "load": "Could not load tickets for this project.",
+        "loadOne": "Could not load this ticket.",
+        "create": "Could not open the ticket.",
+        "reply": "Could not send the reply.",
+        "tooMany": "You can attach up to {{max}} files.",
+        "tooLarge": "{{name}} is larger than {{size}} MB.",
+        "badType": "{{name}} is not an allowed file type."
+      },
+      "success": {
+        "created": "Ticket opened. We'll get back to you soon.",
+        "replied": "Reply sent."
+      }
     }
   },
   "serviceOrders": {
@@ -403,6 +612,18 @@
       "cancelled": "Cancelled",
       "failed": "Failed",
       "ariaLabel": "Order {{label}}"
+    },
+    "invoice": {
+      "due": "Due {{date}}",
+      "overdue": "Overdue · was due {{date}}",
+      "paid": "Paid {{date}}",
+      "title": "Invoice {{number}}",
+      "body": "This invoice is payable online. Once paid, your project access and deliverables are released automatically.",
+      "dueOn": "Due on {{date}}",
+      "lateFee": "Late fee applied: {{amount}}",
+      "payMp": "Pay with Mercado Pago",
+      "payHint": "Prefer PayPal or a bank transfer? Reply to the invoice email and we'll arrange it.",
+      "payError": "Could not start the payment. Please try again."
     },
     "table": {
       "title": "All Orders",
@@ -930,6 +1151,38 @@
       "projects": "Milestones, files, timeline",
       "support": "Help and tickets",
       "profile": "Details, addresses, security"
+    }
+  },
+  "portal": {
+    "eyebrow": "Client portal",
+    "title": "Project portal",
+    "intro": "A read-only view of your project. We will email a one-time PIN to the address on file to confirm it is you.",
+    "loading": "Checking your link…",
+    "readOnly": "Read-only view. Sign in to your dashboard to upload files, comment or approve milestones.",
+    "ndaGate": "This project requires an NDA. Sign in to your dashboard to review and accept it — milestones and files stay hidden until then.",
+    "noFiles": "No files shared yet.",
+    "purged": "Removed",
+    "download": "Download {{name}}",
+    "invalid": {
+      "title": "This link does not work",
+      "body": "It may have expired or been replaced. Ask your project lead for a new link."
+    },
+    "step1": {
+      "body": "Press the button and we will send a 6-digit PIN to the email address on this project. The PIN works once and expires in 10 minutes.",
+      "cta": "Email me a PIN",
+      "sending": "Sending…"
+    },
+    "step2": {
+      "body": "We sent a PIN to {{email}}. Enter it below to open the project.",
+      "label": "6-digit PIN",
+      "cta": "Open project",
+      "verifying": "Checking…",
+      "resend": "Send a new PIN"
+    },
+    "errors": {
+      "invalid": "This link is not valid.",
+      "pinSend": "We could not send the PIN. Please try again.",
+      "pinInvalid": "That PIN is wrong or has expired."
     }
   }
 }

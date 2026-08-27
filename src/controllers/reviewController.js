@@ -130,7 +130,18 @@ const addServiceReview = asyncHandler(async (req, res) => {
   if (!service) return res.status(404).json({ success: false, message: "Service not found" })
 
   const { rating, reviewText } = req.body
-  const review = await createReview({ serviceId: service.id, userId, rating, reviewText })
+  // Tier 4 · project-linked review: the project must be the caller's and
+  // must have been ordered for THIS service, otherwise the link is dropped.
+  let projectId = null
+  if (req.body?.projectId) {
+    const project = await prisma.clientProject.findFirst({
+      where:  { id: String(req.body.projectId), userId, serviceOrder: { serviceId: service.id } },
+      select: { id: true },
+    })
+    if (!project) return res.status(400).json({ success: false, message: "That project does not belong to you or to this service" })
+    projectId = project.id
+  }
+  const review = await createReview({ serviceId: service.id, userId, rating, reviewText, projectId })
 
   notifyReviewPosted(userId, service.title).catch(() => {})
 

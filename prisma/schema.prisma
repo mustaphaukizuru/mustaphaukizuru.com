@@ -284,6 +284,7 @@ model User {
   assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
   projectFiles           ProjectFile[]
   projectComments        ProjectComment[] @relation("UserProjectComments")
+  projectAgreements      ProjectAgreement[]
   supportTickets         SupportTicket[]  @relation("UserSupportTickets")
   assignedTickets        SupportTicket[]  @relation("AssignedSupportTickets")
   supportMessages        SupportMessage[]
@@ -602,6 +603,8 @@ model Review {
   /// The OrderItem that produced this review (anti-fake-review pin).
   /// Required for verified-purchase reviews; null for legacy / unverified.
   orderItemId        String?
+  /// Tier 4 · review collected from a completed ClientProject (portal form).
+  projectId          String?
   userId             String
   rating             Int
   reviewText         String?      @db.Text
@@ -632,10 +635,12 @@ model Review {
   user         User         @relation("AuthoredReviews", fields: [userId], references: [id], onDelete: Cascade)
   adminReplyBy User?        @relation("AdminReviewReplies", fields: [adminReplyById], references: [id], onDelete: SetNull)
   orderItem    OrderItem?   @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+  project      ClientProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   votes        ReviewVote[]
 
   @@index([productId])
   @@index([serviceId])
+  @@index([projectId])
   @@index([userId])
   @@index([status])
   @@index([featured])
@@ -1053,12 +1058,26 @@ model Invoice {
   orderId       String
   invoiceNumber String   @unique
   invoicePdfUrl String?
-  issuedAt      DateTime @default(now())
+  /// Tier 4 billing. Storefront invoices are born `paid` (they are only
+  /// generated after payment). Admin-issued manual invoices start `issued`,
+  /// move to `overdue` by src/jobs/invoiceDunningJob.js once past dueDate,
+  /// and to `paid` when the pending Order is paid. `void` is admin-only.
+  /// Values: issued | paid | overdue | void.
+  status            String   @default("issued") @db.VarChar(16)
+  /// Manual invoices are raised against a ServiceOrder (plain id, no
+  /// relation — read through Order.serviceOrders / ClientProject when needed).
+  serviceOrderId    String?
+  issuedAt          DateTime @default(now())
+  dueDate           DateTime?
+  paidAt            DateTime?
+  /// Fraction applied ONCE when the invoice turns overdue (0.02 = 2 %).
+  lateFeeRate       Decimal  @default(0) @db.Decimal(5, 4)
+  lateFeeAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  overdueNotifiedAt DateTime?
 
   /// Money snapshot at issue time — an invoice must not change when the
   /// order row later does (refund, edit). Mirrors Order at ensureInvoice().
   serie          String   @default("A") @db.VarChar(8)
-  status         String   @default("issued") @db.VarChar(16) // issued | cancelled
   currency       String   @default("MXN")
   subtotalAmount Decimal  @default(0.00) @db.Decimal(12, 2)  // net, before IVA
   taxRate        Decimal  @default(0.0000) @db.Decimal(5, 4)
@@ -1076,6 +1095,8 @@ model Invoice {
 
   @@unique([orderId])
   @@index([orderId])
+  @@index([status, dueDate])
+  @@index([serviceOrderId])
 }
 
 model Payment {
@@ -1130,12 +1151,17 @@ model Refund {
   amount       Decimal      @db.Decimal(12, 2)
   reason       String?      @db.Text
   refundStatus RefundStatus
+  /// Tier 4 idempotency anchor: the provider's refund id (PayPal refund id,
+  /// Mercado Pago refund id). Webhooks match on it before falling back to
+  /// an amount match; the unique below makes a replayed webhook a no-op.
+  gatewayRefundId String?   @db.VarChar(128)
   processedAt  DateTime?
   createdAt    DateTime     @default(now())
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
+  @@unique([paymentId, gatewayRefundId], name: "refund_gateway_uq")
   @@index([paymentId])
   @@index([orderId])
 }
@@ -1363,6 +1389,20 @@ model ClientProject {
   /// Set when projectStatus becomes completed/cancelled. Member writes are
   /// refused after this; reads expire PROJECT_ACCESS_GRACE_DAYS later.
   closedAt        DateTime?
+  /// Tier 4 · NDA click-wrap. When true, the member portal hides milestones,
+  /// files, comments and tickets until a ProjectAgreement row exists for
+  /// (userId, "nda", ndaVersion). Bump ndaVersion to force re-acceptance.
+  requiresNda     Boolean       @default(false)
+  ndaVersion      String?       @db.VarChar(16)
+  /// Tier 4 · magic-link portal. 32 random bytes hex; FRONTEND_URL/portal/<token>.
+  /// Re-minting rotates it. Expires with the grace window (closed) or +90 d.
+  portalToken          String?   @unique @db.VarChar(64)
+  portalTokenExpiresAt DateTime?
+  /// Tier 4 · retention. Set by projectPurgeJob once every file's bytes are
+  /// gone (closedAt + PROJECT_PURGE_DAYS). Metadata rows are kept.
+  purgedAt        DateTime?
+  /// Tier 4 kill switch / handover gate: active | suspended | handover (invoiceDunningJob + admin PATCH).
+  accessState     String        @default("active") @db.VarChar(16)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1374,6 +1414,9 @@ model ClientProject {
   files         ProjectFile[]
   comments      ProjectComment[]
   tickets       SupportTicket[]
+  agreements    ProjectAgreement[]
+  reviews       Review[]
+  changeRequests ChangeRequest[]
 
   @@index([userId])
   @@index([assignedAdminId])
@@ -1419,6 +1462,8 @@ model ProjectFile {
   /// Tier 4 handover gate: deliverables are served only when the project
   /// has no outstanding balance. Default false = plain shared file.
   isDeliverable    Boolean  @default(false)
+  /// Tier 4 · retention. Bytes unlinked by projectPurgeJob; row kept as audit.
+  purgedAt     DateTime?
   createdAt    DateTime @default(now())
 
   project        ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -2160,4 +2205,61 @@ model EmailCampaignRecipient {
   @@unique([campaignId, email])
   @@index([campaignId, status])
   @@index([email])
+}
+
+/// Tier 4 · click-wrap acceptance record (NDA today; `type` leaves room for
+/// SOW / DPA later). One row per (project, user, type, version) so a version
+/// bump on the project asks the client again while keeping the old record.
+model ProjectAgreement {
+  id         String   @id @default(cuid())
+  projectId  String
+  userId     String
+  type       String   @db.VarChar(16)
+  version    String   @db.VarChar(16)
+  acceptedAt DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?  @db.VarChar(512)
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, type, version])
+  @@index([userId])
+}
+
+/// =============================================================
+/// TIER 4 · BILLING SAFEGUARDS
+/// =============================================================
+
+/// Client-initiated extra work on a project (src/services/changeRequestService.js).
+/// requested → quoted (admin) → accepted (client; creates the payable Order +
+/// ServiceOrder + a milestone) → done, or declined. requestedById / orderId /
+/// milestoneId are plain ids: their owning models are not touched by this
+/// tier, so there are no back-relations — resolve them via prisma.user /
+/// prisma.order / prisma.projectMilestone when needed.
+model ChangeRequest {
+  id            String    @id @default(cuid())
+  projectId     String
+  requestedById String
+  title         String
+  description   String    @db.Text
+  /// requested | quoted | accepted | declined | done
+  status        String    @default("requested") @db.VarChar(16)
+  quoteAmount   Decimal?  @db.Decimal(12, 2)
+  quoteCurrency String    @default("MXN")
+  quoteNote     String?   @db.Text
+  quotedAt      DateTime?
+  acceptedAt    DateTime?
+  declinedAt    DateTime?
+  orderId       String?
+  milestoneId   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([requestedById])
+  @@index([orderId])
+  @@index([status])
 }

@@ -265,5 +265,48 @@
         "content": "For cookie or privacy questions, write to hello@mustaphaukizuru.com. We respond to verifiable requests under the GDPR, ePrivacy Directive, and Mexico's Federal Law on the Protection of Personal Data Held by Private Parties (LFPDPPP) within 20 business days."
       }
     ]
+  },
+  "nda": {
+    "title": "Mutual Non-Disclosure Agreement",
+    "version": "Version {{version}}",
+    "intro": "Before you can see the milestones, files and conversation for {{project}}, please review and accept this agreement. It protects both sides: what you share with us and what we build for you.",
+    "parties": "This agreement is between Mustapha Ukizuru (\"Consultant\") and you, the client named on this project (\"Client\"). Together, \"the Parties\".",
+    "clauses": [
+      {
+        "title": "1. Confidential information",
+        "body": "Confidential Information means any non-public business, technical, financial or personal information disclosed by either Party in connection with this project, including briefs, source code, designs, credentials, data, pricing, deliverables and drafts shared through this portal."
+      },
+      {
+        "title": "2. Obligations",
+        "body": "Each Party will use the other's Confidential Information only for this project, protect it with at least the care it uses for its own confidential material, and disclose it only to people who need it for the project and are bound by equivalent obligations."
+      },
+      {
+        "title": "3. Exclusions",
+        "body": "Information is not confidential if it is or becomes public without breach, was already known to the receiving Party, is independently developed, or is lawfully obtained from a third party. Disclosure required by law is permitted after reasonable notice where allowed."
+      },
+      {
+        "title": "4. Deliverables and ownership",
+        "body": "Deliverables are Confidential Information until the project is completed and paid in full, after which ownership transfers as described in the Terms of Service. The Consultant may keep generic know-how and reusable components that contain no Client data."
+      },
+      {
+        "title": "5. Term",
+        "body": "These obligations start when you accept and continue for three (3) years after the project closes. Trade secrets stay protected for as long as they remain trade secrets."
+      },
+      {
+        "title": "6. Return or deletion",
+        "body": "On request, or when the project is purged from this portal, each Party will delete or return the other's Confidential Information, keeping only copies required by law or routine backups."
+      },
+      {
+        "title": "7. General",
+        "body": "No licence or partnership is created by this agreement. It is governed by the same law and venue as the Terms of Service. Accepting below records your name, the time, IP address and browser as your electronic signature."
+      }
+    ],
+    "ack": "I have read and agree to the Mutual Non-Disclosure Agreement, version {{version}}.",
+    "agree": "I agree",
+    "decline": "Back to projects",
+    "accepting": "Saving your acceptance…",
+    "accepted": "NDA accepted. Thank you!",
+    "failed": "We could not record your acceptance. Please try again.",
+    "gateHint": "Milestones, files and messages unlock as soon as you accept."
   }
 }

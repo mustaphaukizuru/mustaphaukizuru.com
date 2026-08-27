@@ -19,6 +19,8 @@ jest.mock("../src/lib/prisma", () => ({
   serviceOrder:     { findMany: jest.fn() },
   clientProject:    { create: jest.fn() },
   projectMilestone: { createMany: jest.fn() },
+  // Tier 4 · orders born from an accepted change request keep their project
+  changeRequest:    { findFirst: jest.fn().mockResolvedValue(null) },
 }))
 jest.mock("../src/services/invoiceService", () => ({ ensureInvoice: jest.fn() }))
 jest.mock("../src/services/notificationService", () => ({ notifyProjectCreated: jest.fn() }))
@@ -151,6 +153,15 @@ describe("fulfillOrder", () => {
 })
 
 describe("autoCreateClientProjectsForOrder", () => {
+  test("an order created by an accepted change request never opens a second project", async () => {
+    prisma.changeRequest.findFirst.mockResolvedValueOnce({ id: "cr1" })
+    prisma.serviceOrder.findMany.mockResolvedValue([{ id: "so9", service: { id: "s1", title: "Audit" } }])
+    const created = await autoCreateClientProjectsForOrder("o9", "u1")
+    expect(created).toBe(0)
+    expect(prisma.clientProject.create).not.toHaveBeenCalled()
+    expect(prisma.changeRequest.findFirst).toHaveBeenCalledWith({ where: { orderId: "o9" }, select: { id: true } })
+  })
+
   test("creates a project per service order, seeds the milestone scaffold, and notifies", async () => {
     prisma.serviceOrder.findMany.mockResolvedValue([
       { id: "so1", service: { id: "s1", title: "Audit" } },

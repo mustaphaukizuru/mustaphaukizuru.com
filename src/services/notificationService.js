@@ -201,6 +201,9 @@ const ADMIN_ACTIVITY_TITLES = {
   approval: "Client approved a milestone",
   changes:  "Client requested changes",
   ticket:   "Client opened a project ticket",
+  changeRequest:         "Client requested extra work",
+  changeRequestAccepted: "Client accepted a quote",
+  changeRequestDeclined: "Client declined a quote",
 }
 async function notifyAdminsProjectActivity({ project, kind, summary }) {
   if (!project?.id) return []

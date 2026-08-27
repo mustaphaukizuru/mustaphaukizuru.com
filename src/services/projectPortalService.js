@@ -20,6 +20,8 @@ const logger = require("../utils/logger")
 const { notifyAdminsProjectActivity, notifyProjectComment, notifyMilestoneAwaitingClient } = require("./notificationService")
 
 const CLOSED_STATUSES = new Set(["completed", "cancelled"])
+const ACCESS_STATES = ["active", "suspended", "handover"]
+const UNPAID_INVOICE_STATUSES = ["issued", "overdue"]
 
 function graceDays() {
   const n = Number(process.env.PROJECT_ACCESS_GRACE_DAYS)
@@ -62,13 +64,174 @@ function assertWritable(project) {
   return lc
 }
 
-async function loadOwnedProject({ userId, projectId }) {
+async function loadOwnedProject({ userId, projectId, skipNda = false }) {
   const project = await prisma.clientProject.findFirst({
     where:  { id: String(projectId), userId: String(userId) },
-    select: { id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true, assignedAdminId: true },
+    select: {
+      id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true, assignedAdminId: true,
+      requiresNda: true, ndaVersion: true, accessState: true,
+    },
   })
   if (!project) throw err("Project not found", "NOT_FOUND", 404)
+  // Tier 4 · every client write (upload, comment, approval, ticket) goes
+  // through here, so the NDA gate is enforced once, centrally.
+  if (!skipNda) await assertNdaAccepted(project, userId)
   return project
+}
+
+/* ── NDA click-wrap (Tier 4) ───────────────────────────────────────────── */
+
+const NDA_TYPE = "nda"
+const NDA_DEFAULT_VERSION = "1"
+const AGREEMENT_TYPES = new Set([NDA_TYPE])
+
+/** Effective NDA version for a project — admins may leave ndaVersion empty. */
+function ndaVersionOf(project) {
+  return String(project?.ndaVersion || NDA_DEFAULT_VERSION).trim().slice(0, 16)
+}
+
+/**
+ * @returns {{ required:boolean, accepted:boolean, version:string|null, acceptedAt:Date|null }}
+ * A project that does not require an NDA reports accepted=true so callers
+ * can branch on `required && !accepted` without a second check.
+ */
+async function ndaStatus(project, userId) {
+  if (!project?.requiresNda) return { required: false, accepted: true, version: null, acceptedAt: null }
+  const version = ndaVersionOf(project)
+  const row = await prisma.projectAgreement.findFirst({
+    where:  { projectId: project.id, userId: String(userId), type: NDA_TYPE, version },
+    select: { acceptedAt: true },
+  })
+  return { required: true, accepted: Boolean(row), version, acceptedAt: row?.acceptedAt || null }
+}
+
+async function assertNdaAccepted(project, userId) {
+  const nda = await ndaStatus(project, userId)
+  if (nda.required && !nda.accepted) {
+    throw err("Please accept the project NDA before continuing.", "NDA_REQUIRED", 403, { version: nda.version })
+  }
+  return nda
+}
+
+/**
+ * Strip everything covered by the NDA from a member project payload.
+ * Header data (name, status, dates, lead) stays so the gate has context.
+ */
+function applyNdaGate(project) {
+  return { ...project, milestones: [], files: [], comments: [], tickets: [], previewUrl: null, ndaGate: true }
+}
+
+/** POST /member/projects/:id/agreements — idempotent per (project, user, type, version). */
+async function acceptAgreement({ userId, projectId, type, version, ipAddress = null, userAgent = null }) {
+  const kind = String(type || "").trim().toLowerCase()
+  if (!AGREEMENT_TYPES.has(kind)) throw err("Unsupported agreement type", "VALIDATION_ERROR", 400)
+  const project = await loadOwnedProject({ userId, projectId, skipNda: true })
+  assertReadable(project)
+  if (!project.requiresNda) throw err("This project does not require an NDA", "INVALID_STATE", 409)
+  const expected = ndaVersionOf(project)
+  const given = String(version || "").trim()
+  if (given && given !== expected) {
+    throw err(`NDA version mismatch — please reload and accept version ${expected}`, "NDA_VERSION_MISMATCH", 409, { version: expected })
+  }
+  const row = await prisma.projectAgreement.upsert({
+    where:  { projectId_userId_type_version: { projectId: project.id, userId: String(userId), type: kind, version: expected } },
+    update: {},
+    create: {
+      projectId: project.id, userId: String(userId), type: kind, version: expected,
+      ipAddress: ipAddress ? String(ipAddress).slice(0, 64) : null,
+      userAgent: userAgent ? String(userAgent).slice(0, 512) : null,
+    },
+  })
+  await prisma.activityLog.create({
+    data: {
+      userId: String(userId), action: "project.nda.accepted", entityType: "ClientProject", entityId: project.id,
+      description: `Client accepted NDA v${expected} on ${project.projectName}`, ipAddress: ipAddress || null,
+    },
+  }).catch(() => null)
+  return { type: kind, version: expected, acceptedAt: row.acceptedAt }
+}
+
+/* ── Access state (Tier 4 kill switch / handover gate) ─────────────────── */
+
+function suspendGraceDays() {
+  const n = Number(process.env.PROJECT_SUSPEND_GRACE_DAYS)
+  return Number.isFinite(n) && n >= 0 ? n : 14
+}
+
+/**
+ * Invoices that belong to a project = manual invoices raised against its
+ * ServiceOrder + invoices on any order linked to it (the original service
+ * order, accepted change-request orders). Unpaid = issued | overdue.
+ */
+function unpaidInvoiceWhere({ serviceOrderId, orderIds }) {
+  const or = []
+  if (serviceOrderId) or.push({ serviceOrderId })
+  if (orderIds.length) or.push({ orderId: { in: orderIds } })
+  if (!or.length) return null
+  return { status: { in: UNPAID_INVOICE_STATUSES }, OR: or }
+}
+
+async function loadBillingLinks(projectId) {
+  const p = await prisma.clientProject.findUnique({
+    where:  { id: String(projectId) },
+    select: {
+      id: true, serviceOrderId: true, accessState: true,
+      serviceOrder:   { select: { orderId: true } },
+      changeRequests: { where: { orderId: { not: null } }, select: { orderId: true } },
+    },
+  })
+  if (!p) return null
+  const orderIds = [p.serviceOrder?.orderId, ...(p.changeRequests || []).map((c) => c.orderId)].filter(Boolean)
+  return { ...p, orderIds }
+}
+
+/** Number of issued/overdue invoices on the project's linked orders. */
+async function countUnpaidInvoices(projectId) {
+  const links = await loadBillingLinks(projectId)
+  if (!links) throw err("Project not found", "NOT_FOUND", 404)
+  const where = unpaidInvoiceWhere(links)
+  if (!where) return 0
+  return prisma.invoice.count({ where })
+}
+
+/** Admin gate: handover only with a zero balance. Returns the validated state. */
+async function assertAccessStateChange(projectId, next) {
+  if (!ACCESS_STATES.includes(next)) throw err(`Invalid accessState. Expected one of: ${ACCESS_STATES.join(", ")}`, "VALIDATION_ERROR", 400)
+  if (next === "handover") {
+    const unpaid = await countUnpaidInvoices(projectId)
+    if (unpaid > 0) throw err(`Handover is blocked: ${unpaid} unpaid invoice${unpaid === 1 ? "" : "s"} on this project`, "UNPAID_INVOICES", 409, { unpaid })
+  }
+  return next
+}
+
+/** 402 for deliverables while the project is suspended. */
+function assertDeliverableAccess(project, file) {
+  if (file?.isDeliverable && project?.accessState === "suspended") {
+    throw err("This deliverable is on hold until the outstanding invoice is paid.", "PAYMENT_REQUIRED", 402)
+  }
+}
+
+/**
+ * Member-facing projection: while suspended the live preview is withheld
+ * (URL omitted entirely, not just hidden) and `access` carries the state.
+ */
+function presentForMember(project, lc) {
+  const state = ACCESS_STATES.includes(project?.accessState) ? project.accessState : "active"
+  const suspended = state === "suspended"
+  const { previewUrl, ...rest } = project
+  return {
+    ...rest,
+    previewUrl:      suspended ? null : previewUrl || null,
+    previewCanFrame: suspended ? false : previewCanFrame(previewUrl),
+    access: {
+      readOnly:  lc.readOnly,
+      isClosed:  lc.isClosed,
+      expiresAt: lc.expiresAt,
+      state,
+      suspended,
+      handover:  state === "handover",
+    },
+  }
 }
 
 /* ── Preview URL ───────────────────────────────────────────────────────── */
@@ -291,6 +454,10 @@ async function onMilestoneAwaitingClient({ project, milestone }) {
 
 module.exports = {
   lifecycle, assertReadable, assertWritable, loadOwnedProject,
+  ndaStatus, assertNdaAccepted, applyNdaGate, acceptAgreement, ndaVersionOf, NDA_DEFAULT_VERSION,
+  ACCESS_STATES, UNPAID_INVOICE_STATUSES, suspendGraceDays,
+  loadBillingLinks, unpaidInvoiceWhere, countUnpaidInvoices, assertAccessStateChange,
+  assertDeliverableAccess, presentForMember,
   validatePreviewUrl, previewCanFrame, previewFrameHosts,
   attachClientFiles,
   listComments, createComment, resolveComment,

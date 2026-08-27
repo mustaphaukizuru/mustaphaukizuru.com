@@ -38,9 +38,13 @@ const getInvoicePdf = asyncHandler(async (req, res) => {
   }
 
   // 2 · Only settled orders get invoices (prevent leakage of unfinished
-  //     transactions). A refunded order keeps its invoice — the customer
-  //     still needs the document that was issued; the refund is separate.
-  if (!INVOICEABLE_STATUSES.has(order.status)) {
+  //     transactions). A refunded order keeps its invoice. Manual invoices
+  //     (Tier 4) exist as a row before payment and are exactly what the
+  //     client needs to pay, so they are served pre-payment.
+  const manual = !INVOICEABLE_STATUSES.has(order.status)
+    ? await prisma.invoice.findUnique({ where: { orderId: order.id }, select: { id: true } })
+    : null
+  if (!INVOICEABLE_STATUSES.has(order.status) && !manual) {
     return res.status(400).json({
       success: false, code: "INVOICE_NOT_READY",
       message: "Invoice is only available for paid orders",

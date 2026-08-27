@@ -20,8 +20,10 @@ const BATCH = 500
 async function cancelStaleOrders({ hours = DEFAULT_HOURS, dryRun = false } = {}) {
   const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000)
 
+  // Manual invoices (Tier 4) are pending orders by design — they live until
+  // their due date and the dunning job, never this janitor.
   const candidates = await prisma.order.findMany({
-    where:   { status: "pending", paidAt: null, createdAt: { lt: cutoff } },
+    where:   { status: "pending", paidAt: null, createdAt: { lt: cutoff }, invoices: { none: {} } },
     select:  { id: true, orderNumber: true, customerEmail: true, couponId: true, createdAt: true },
     orderBy: { createdAt: "asc" },
     take:    BATCH,

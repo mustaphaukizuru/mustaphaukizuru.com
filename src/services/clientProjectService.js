@@ -1,5 +1,5 @@
 const prisma = require("../lib/prisma")
-const { validatePreviewUrl } = require("./projectPortalService")
+const { validatePreviewUrl, assertAccessStateChange } = require("./projectPortalService")
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  clientProjectService
@@ -37,14 +37,25 @@ const PROJECT_INCLUDE = {
     take:    50,
     select:  { id: true, ticketNumber: true, subject: true, status: true, priority: true, updatedAt: true, createdAt: true },
   },
+  // Tier 4 · extra-work requests (quotes are Decimal — serialised by the
+  // JSON layer; the change-request endpoints return numbers).
+  changeRequests: { orderBy: { createdAt: "desc" }, take: 100 },
   user:       { select: { id: true, fullName: true, email: true } },
   assignedAdmin: { select: { id: true, fullName: true, email: true } },
   serviceOrder: {
     select: {
       id: true,
       status: true,
-      order: { select: { id: true, orderNumber: true } },
+      order:   { select: { id: true, orderNumber: true } },
+      // Tier 4 · the member review form posts to /services/:slug/reviews
+      service: { select: { id: true, slug: true, title: true } },
     },
+  },
+  // Tier 4 · reviews collected for this project (client-side "already reviewed")
+  reviews: {
+    orderBy: { createdAt: "desc" },
+    take:    5,
+    select:  { id: true, userId: true, rating: true, status: true, createdAt: true },
   },
 }
 
@@ -102,6 +113,17 @@ async function updateAdminProject(id, data) {
   if ("dueDate"         in data) patch.dueDate         = data.dueDate   ? new Date(data.dueDate)   : null
   if ("assignedAdminId" in data) patch.assignedAdminId = data.assignedAdminId ? String(data.assignedAdminId) : null
   if ("previewUrl"      in data) patch.previewUrl      = validatePreviewUrl(data.previewUrl)
+  // Tier 4 · NDA click-wrap toggles. Version is free text (<=16) so "2026-08"
+  // or "v2" both work; bumping it re-gates the client.
+  if ("requiresNda"     in data) patch.requiresNda     = data.requiresNda === true || data.requiresNda === "true"
+  if ("ndaVersion"      in data) {
+    const v = data.ndaVersion == null ? "" : String(data.ndaVersion).trim()
+    if (v.length > 16) throw new Error("ndaVersion must be 16 characters or fewer")
+    patch.ndaVersion = v || null
+  }
+  // Tier 4 · kill switch / handover gate. Throws 409 UNPAID_INVOICES when
+  // moving to handover with an outstanding balance.
+  if ("accessState"     in data) patch.accessState     = await assertAccessStateChange(String(id), String(data.accessState || ""))
   if ("projectStatus"   in data) {
     if (!VALID_PROJECT_STATUSES.includes(data.projectStatus)) {
       throw new Error(`Invalid project status. Expected one of: ${VALID_PROJECT_STATUSES.join(", ")}`)

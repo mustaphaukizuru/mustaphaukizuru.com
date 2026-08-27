@@ -348,6 +348,39 @@ const twoFactorVerifyRateLimiter = makeLimiter({
   message:      "Too many 2FA attempts. Sign in again to get a fresh code prompt.",
 })
 
+/**
+ * Project support tickets — 10 per hour per user. A ticket fans out to every
+ * admin (notification + email) and may carry up to 10 files, so it needs a
+ * tighter budget than plain comments.
+ */
+const ticketRateLimiter = makeLimiter({
+  name:         "ticket",
+  windowMs:     ONE_HOUR,
+  max:          10,
+  keyGenerator: userKey,
+  message:      "Too many tickets opened. Please wait before opening another one.",
+})
+
+/**
+ * Tier 4 · magic-link portal PIN. Each request emails the project owner, so
+ * the budget is tight per IP; the verify step gets a slightly larger one so
+ * a mistyped PIN does not lock the visitor out before the email arrives.
+ */
+const portalPinRateLimiter = makeLimiter({
+  name:         "portal-pin",
+  windowMs:     FIFTEEN_MIN,
+  max:          5,
+  keyGenerator: ipKey,
+  message:      "Too many PIN requests. Please wait 15 minutes and try again.",
+})
+const portalVerifyRateLimiter = makeLimiter({
+  name:         "portal-verify",
+  windowMs:     FIFTEEN_MIN,
+  max:          10,
+  keyGenerator: ipKey,
+  message:      "Too many PIN attempts. Please wait 15 minutes and request a new PIN.",
+})
+
 /* ── Backward-compat alias ────────────────────────────────────────────── */
 
 /**
@@ -377,5 +410,8 @@ module.exports = {
   uploadRateLimiter,
   searchRateLimiter,
   downloadRateLimiter,
+  ticketRateLimiter,
+  portalPinRateLimiter,
+  portalVerifyRateLimiter,
   profileDataRateLimiter,
 }

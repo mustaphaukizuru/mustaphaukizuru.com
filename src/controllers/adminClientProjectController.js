@@ -4,12 +4,16 @@ const logger = require("../utils/logger")
 const prisma = require("../lib/prisma")
 const { sendProjectFile, resolveSafePath } = require("./clientProjectController")
 const { createComment, resolveComment, onMilestoneAwaitingClient } = require("../services/projectPortalService")
+const { mintPortalLink } = require("../services/portalAccessService")
+const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
   attachFile, deleteFile,
   VALID_PROJECT_STATUSES, VALID_MILESTONE_STATUSES,
 } = require("../services/clientProjectService")
+const { addAdminMessage } = require("../services/supportService")
+const changeRequestService = require("../services/changeRequestService")
 const { sendTemplateEmail } = require("../services/emailService")
 const { notifyProjectMilestoneCompleted } = require("../services/notificationService")
 
@@ -45,10 +49,20 @@ const createProject = asyncHandler(async (req, res) => {
 
 const updateProject = asyncHandler(async (req, res) => {
   try {
+    // Tier 4 · review collector: fire once, on the transition into completed.
+    const movingToCompleted = req.body?.projectStatus === "completed"
+    const before = movingToCompleted
+      ? await prisma.clientProject.findUnique({ where: { id: String(req.params.id) }, select: { projectStatus: true } })
+      : null
     const updated = await updateAdminProject(req.params.id, req.body)
+    if (movingToCompleted && before && before.projectStatus !== "completed") {
+      sendReviewRequest({ req, project: updated })
+        .catch((err) => logger.error("[project] review-request email failed:", err.message))
+    }
     res.status(200).json({ success: true, data: updated })
   } catch (e) {
     if (e?.code === "P2025") return notFound(res)
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message, ...(e.details ? { details: e.details } : {}) } })
     if (e?.message?.startsWith("Invalid project status")) return badRequest(res, e.message)
     throw e
   }
@@ -63,6 +77,52 @@ const removeProject = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: { id: result.id, deleted: true } })
   } catch (e) {
     if (e?.code === "P2025") return notFound(res)
+    throw e
+  }
+})
+
+/** Email the client asking for a review of the just-completed project. */
+async function sendReviewRequest({ req, project }) {
+  const to = project.user?.email || (await fetchUserEmail(project.userId))
+  if (!to) return
+  const base = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+  return sendTemplateEmail({
+    locale:      resolveUserLocale({ req }),
+    to,
+    templateKey: "project.review-request",
+    userId:      project.userId,
+    variables: {
+      projectName: project.projectName,
+      serviceName: project.serviceOrder?.service?.title || project.projectName,
+      reviewUrl:   `${base}/dashboard/projects/${project.id}?review=1`,
+    },
+  })
+}
+
+/**
+ * POST /admin/client-projects/:id/case-study-draft
+ * Creates a draft Portfolio row from the project and returns the edit URL.
+ */
+const createCaseStudy = asyncHandler(async (req, res) => {
+  try {
+    const data = await createCaseStudyDraft(req.params.id, req.user?.id)
+    res.status(201).json({ success: true, data })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
+    throw e
+  }
+})
+
+/**
+ * POST /admin/client-projects/:id/portal-link
+ * Mints (or rotates) the no-login magic link for this project.
+ */
+const createPortalLink = asyncHandler(async (req, res) => {
+  try {
+    const data = await mintPortalLink(req.params.id)
+    res.status(201).json({ success: true, data })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
     throw e
   }
 })
@@ -198,10 +258,60 @@ const addAdminComment = asyncHandler(async (req, res) => {
   }
 })
 
+/**
+ * POST /admin/client-projects/:id/tickets/:ticketId/messages
+ * Admin reply with attachments (multipart `files[]`, stored under the
+ * project's folder). The service verifies the ticket belongs to project :id.
+ */
+const replyProjectTicket = asyncHandler(async (req, res) => {
+  const files = req.files || (req.file ? [req.file] : [])
+  const message = String(req.body?.message || "").trim()
+  if (!message) {
+    await Promise.all(files.map((f) => fs.unlink(f.path).catch(() => null)))
+    return badRequest(res, "Message is required")
+  }
+  try {
+    const msg = await addAdminMessage({ ticketId: req.params.ticketId, projectId: req.params.id, adminId: req.user?.id, message, files })
+    res.status(201).json({ success: true, data: msg })
+  } catch (e) {
+    await Promise.all(files.map((f) => fs.unlink(f.path).catch(() => null)))
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
+    throw e
+  }
+})
+
 const toggleResolveComment = asyncHandler(async (req, res) => {
   try {
     const comment = await resolveComment({ commentId: req.params.commentId, adminId: req.user?.id })
     res.status(200).json({ success: true, data: comment })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
+    throw e
+  }
+})
+
+/* ── Tier 4 · change requests (admin side) ───────────────────────────── */
+
+/** POST /admin/client-projects/:id/change-requests/:crId/quote { amount, note, currency? } */
+const quoteChangeRequest = asyncHandler(async (req, res) => {
+  try {
+    const data = await changeRequestService.quoteRequest({
+      projectId: req.params.id, crId: req.params.crId,
+      amount: req.body?.amount, note: req.body?.note, currency: req.body?.currency,
+      adminId: req.user?.id, req,
+    })
+    res.status(200).json({ success: true, data })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
+    throw e
+  }
+})
+
+/** POST /admin/client-projects/:id/change-requests/:crId/done */
+const completeChangeRequest = asyncHandler(async (req, res) => {
+  try {
+    const data = await changeRequestService.markDone({ projectId: req.params.id, crId: req.params.crId })
+    res.status(200).json({ success: true, data })
   } catch (e) {
     if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
     throw e
@@ -225,5 +335,7 @@ module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
   uploadFile, removeFile, downloadFile,
-  addAdminComment, toggleResolveComment,
+  addAdminComment, toggleResolveComment, replyProjectTicket,
+  createPortalLink, createCaseStudy, sendReviewRequest,
+  quoteChangeRequest, completeChangeRequest,
 }

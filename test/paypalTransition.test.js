@@ -73,7 +73,7 @@ jest.mock("../src/services/orderFulfillmentService", () => ({
   fulfillOrder:     jest.fn(),
   recordOrderEvent: jest.fn(),
 }))
-jest.mock("../src/services/refundService", () => ({ processOrderRefund: jest.fn() }))
+jest.mock("../src/services/refundService", () => ({ processOrderRefund: jest.fn(), recordExternalRefund: jest.fn() }))
 jest.mock("../src/services/receiptPdfService", () => ({ generateReceiptPdf: jest.fn() }))
 jest.mock("../src/utils/logger", () => ({
   info: jest.fn(), warn: jest.fn(), error: jest.fn(),
