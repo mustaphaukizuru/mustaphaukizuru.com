@@ -167,6 +167,19 @@ function errorHandler(err, req, res, next) {
     ))
   }
 
+  // ── Prisma engine could not start (missing/incompatible engine binary,
+  //    bad DATABASE_URL) — retryable from the client's point of view, and a
+  //    503 is what uptime monitors + the SPA expect, not a 400.
+  if (err?.name === "PrismaClientInitializationError") {
+    logger.error("[Prisma] engine initialisation failed:", String(err.message || "").split("\n").find(Boolean))
+    if (sendHtmlError(req, res, 503)) return
+    return res.status(503).json(buildErrorBody(
+      "DB_UNAVAILABLE",
+      "Service temporarily unavailable. Please try again shortly.",
+      { prismaCode: err.errorCode || null },
+    ))
+  }
+
   // ── Prisma known errors ────────────────────────────────────────────────
   if (isPrismaClientError(err)) {
     logger.error("[Prisma]", err.name, err.code, err.message)
