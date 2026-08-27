@@ -9,6 +9,7 @@ const {
   assertReadable, previewCanFrame, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
 } = require("../services/projectPortalService")
 const { STORAGE_PATHS } = require("../config/storagePaths")
+const supportService = require("../services/supportService")
 
 /* ────────────────────────────────────────────────────────────────────────
  * SECURITY · resolveProjectFilePath
@@ -124,6 +125,71 @@ const requestChanges = asyncHandler(async (req, res) => {
   } catch (e) { return portalError(res, e) }
 })
 
+/* ── Tier 2 · project-scoped support tickets ─────────────────────────── */
+
+function uploadedFiles(req) {
+  return req.files || (req.file ? [req.file] : [])
+}
+async function discardUploads(files) {
+  await Promise.all(files.map((f) => fsp.unlink(f.path).catch(() => null)))
+}
+
+/** GET /member/projects/:id/tickets */
+const listTickets = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await supportService.listProjectTicketsForUser({ userId, projectId: req.params.id })
+    res.status(200).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** GET /member/projects/:id/tickets/:ticketId — thread with attachments. */
+const getTicket = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await supportService.getProjectTicketForUser({ userId, projectId: req.params.id, ticketId: req.params.ticketId })
+    res.status(200).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/tickets — multipart (`files[]`) or JSON. */
+const createTicket = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  const files = uploadedFiles(req)
+  try {
+    const ticket = await supportService.createProjectTicket({
+      userId, projectId: req.params.id, files,
+      subject:     req.body?.subject,
+      message:     req.body?.message,
+      priority:    req.body?.priority,
+      milestoneId: req.body?.milestoneId || null,
+    })
+    res.status(201).json({ success: true, data: ticket })
+  } catch (e) {
+    await discardUploads(files)
+    return portalError(res, e)
+  }
+})
+
+/** POST /member/projects/:id/tickets/:ticketId/messages — multipart or JSON. */
+const replyTicket = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  const files = uploadedFiles(req)
+  try {
+    const msg = await supportService.createProjectTicketMessage({
+      userId, projectId: req.params.id, ticketId: req.params.ticketId, message: req.body?.message, files,
+    })
+    res.status(201).json({ success: true, data: msg })
+  } catch (e) {
+    await discardUploads(files)
+    return portalError(res, e)
+  }
+})
+
 /**
  * GET /api/v1/member/projects/:id/files/:fileId/download
  *
@@ -214,4 +280,5 @@ function sendProjectFile({ file, req, res, userId, action }) {
 module.exports = {
   listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
   uploadFiles, addComment, approve, requestChanges,
+  listTickets, getTicket, createTicket, replyTicket,
 }

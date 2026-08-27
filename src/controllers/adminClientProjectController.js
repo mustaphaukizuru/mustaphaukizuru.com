@@ -10,6 +10,7 @@ const {
   attachFile, deleteFile,
   VALID_PROJECT_STATUSES, VALID_MILESTONE_STATUSES,
 } = require("../services/clientProjectService")
+const { addAdminMessage } = require("../services/supportService")
 const { sendTemplateEmail } = require("../services/emailService")
 const { notifyProjectMilestoneCompleted } = require("../services/notificationService")
 
@@ -198,6 +199,28 @@ const addAdminComment = asyncHandler(async (req, res) => {
   }
 })
 
+/**
+ * POST /admin/client-projects/:id/tickets/:ticketId/messages
+ * Admin reply with attachments (multipart `files[]`, stored under the
+ * project's folder). The service verifies the ticket belongs to project :id.
+ */
+const replyProjectTicket = asyncHandler(async (req, res) => {
+  const files = req.files || (req.file ? [req.file] : [])
+  const message = String(req.body?.message || "").trim()
+  if (!message) {
+    await Promise.all(files.map((f) => fs.unlink(f.path).catch(() => null)))
+    return badRequest(res, "Message is required")
+  }
+  try {
+    const msg = await addAdminMessage({ ticketId: req.params.ticketId, projectId: req.params.id, adminId: req.user?.id, message, files })
+    res.status(201).json({ success: true, data: msg })
+  } catch (e) {
+    await Promise.all(files.map((f) => fs.unlink(f.path).catch(() => null)))
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
+    throw e
+  }
+})
+
 const toggleResolveComment = asyncHandler(async (req, res) => {
   try {
     const comment = await resolveComment({ commentId: req.params.commentId, adminId: req.user?.id })
@@ -225,5 +248,5 @@ module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
   uploadFile, removeFile, downloadFile,
-  addAdminComment, toggleResolveComment,
+  addAdminComment, toggleResolveComment, replyProjectTicket,
 }

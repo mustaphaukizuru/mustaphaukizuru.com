@@ -139,6 +139,72 @@
         "uploaded": "Files uploaded.",
         "failed": "Something went wrong. Please try again."
       }
+    },
+    "support": {
+      "title": "Support",
+      "subtitle": "Questions or issues about this project? Open a ticket and the team gets notified right away.",
+      "newTicket": "New ticket",
+      "readOnly": "This project is closed. Existing tickets stay visible, but new tickets and replies are disabled.",
+      "empty": "No tickets yet",
+      "emptyBody": "Open a ticket whenever you need a hand with this project. You can attach screenshots and files.",
+      "list": "Tickets",
+      "messages_one": "{{count}} message",
+      "messages_other": "{{count}} messages",
+      "lastActivity": "Updated {{date}}",
+      "opened": "Opened {{date}}",
+      "status": {
+        "open": "Open",
+        "in_progress": "In progress",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "form": {
+        "subject": "Subject",
+        "subjectPlaceholder": "What do you need help with?",
+        "message": "Message",
+        "messagePlaceholder": "Describe the issue or question in as much detail as you can.",
+        "priorityLabel": "Priority",
+        "milestone": "Related milestone (optional)",
+        "milestoneNone": "Not tied to a milestone",
+        "attachments": "Attachments",
+        "attachmentsHint": "Up to {{max}} files, {{size}} MB each. Images, PDF, Office, ZIP and design files.",
+        "dropzone": "Drop files here or",
+        "browse": "browse",
+        "remove": "Remove {{name}}",
+        "submit": "Open ticket",
+        "cancel": "Cancel",
+        "subjectLength": "Subject must be 3-200 characters.",
+        "messageLength": "Message must be 10-5000 characters."
+      },
+      "thread": {
+        "back": "Back to tickets",
+        "you": "You",
+        "team": "Support team",
+        "attachments": "Attachments",
+        "noMessages": "No messages yet.",
+        "reply": "Reply",
+        "replyPlaceholder": "Write a reply, attach files if it helps.",
+        "send": "Send reply",
+        "closedNotice": "This ticket is closed. Open a new ticket if you need further help."
+      },
+      "errors": {
+        "load": "Could not load tickets for this project.",
+        "loadOne": "Could not load this ticket.",
+        "create": "Could not open the ticket.",
+        "reply": "Could not send the reply.",
+        "tooMany": "You can attach up to {{max}} files.",
+        "tooLarge": "{{name}} is larger than {{size}} MB.",
+        "badType": "{{name}} is not an allowed file type."
+      },
+      "success": {
+        "created": "Ticket opened. We'll get back to you soon.",
+        "replied": "Reply sent."
+      }
     }
   },
   "serviceOrders": {

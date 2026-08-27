@@ -17,6 +17,7 @@ import StatusPill from "../components/admin/StatusPill"
 import { API_BASE_URL } from "../lib/api"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import { useToast } from "../context/ToastContext"
+import ProjectSupportPanel from "../components/projects/ProjectSupportPanel"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
 const MAX_FILES = 10
@@ -292,6 +293,12 @@ export default function DashboardProjectDetailPage() {
             t={t}
           />
         </div>
+      </SectionBlock>
+
+      {/* Support tickets scoped to this project — status next to the
+          project's, attachments via the same private file pipeline. */}
+      <SectionBlock title={t("projects.support.title")} subtitle={t("projects.support.subtitle")}>
+        <ProjectSupportPanel projectId={project.id} readOnly={readOnly} milestones={project.milestones || []} />
       </SectionBlock>
     </section>
   )
