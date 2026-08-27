@@ -129,3 +129,24 @@ export async function adminDeleteEducation(id) {
   const r = await authFetch(`/api/v1/admin/bio/education/${encodeURIComponent(id)}`, { method: "DELETE" })
   return r?.data || null
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Tier 3 · proof numbers (Home stats strip + About hero)
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * GET /api/v1/bio/proof → { projects, clients, reviews, avgRating, years }.
+ * Every field is a number (0 when the table is empty).
+ */
+export async function fetchProof(options = {}) {
+  const response = await apiRequest(`/api/v1/bio/proof`, options)
+  const d = response?.data || {}
+  const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0)
+  return {
+    projects:  n(d.projects),
+    clients:   n(d.clients),
+    reviews:   n(d.reviews),
+    avgRating: n(d.avgRating),
+    years:     n(d.years),
+  }
+}

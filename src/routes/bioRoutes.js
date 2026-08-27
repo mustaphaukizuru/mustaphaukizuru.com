@@ -11,4 +11,6 @@ router.get("/experience",   ctrl.experience)
 router.get("/education",    ctrl.education)
 router.get("/certificates", ctrl.certificates)
 router.get("/skills",       ctrl.skills)
+router.get("/cv.pdf",       ctrl.cvPdf)
+router.get("/proof",        ctrl.proof)
 module.exports = router
