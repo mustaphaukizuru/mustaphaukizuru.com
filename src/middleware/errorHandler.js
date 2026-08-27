@@ -24,6 +24,11 @@ const fs     = require("fs")
 const path   = require("path")
 const logger = require("../utils/logger")
 const AppError = require("../utils/AppError")
+// Tests mock ../lib/prisma with a bare model stub, so read the helpers lazily
+// and tolerate their absence.
+const prismaLib = require("../lib/prisma")
+const isEnginePanic     = (err) => typeof prismaLib.isEnginePanic === "function" && prismaLib.isEnginePanic(err)
+const recoverIfPanicked = (err) => typeof prismaLib.recoverIfPanicked === "function" && prismaLib.recoverIfPanicked(err)
 
 BigInt.prototype.toJSON = function () { return this.toString() }
 
@@ -137,6 +142,20 @@ function errorHandler(err, req, res, next) {
   // ── DB unreachable ─────────────────────────────────────────────────────
   if (isDbConnectionError(err)) {
     logger.error("[DB] Connection error:", err.message)
+    if (sendHtmlError(req, res, 503)) return
+    return res.status(503).json(buildErrorBody(
+      "DB_UNAVAILABLE",
+      "Service temporarily unavailable. Please try again shortly.",
+    ))
+  }
+
+  // ── Prisma engine panic ("timer has gone away") ────────────────────────
+  // The Rust engine is dead for every subsequent query until it is
+  // recycled. Trigger the recycle here so the next request succeeds, and
+  // answer 503 (retryable) rather than a 400/500 with the raw panic text.
+  if (isEnginePanic(err)) {
+    logger.error("[Prisma] engine panic — recycling:", String(err.message || "").split("\n").find(Boolean))
+    recoverIfPanicked(err)
     if (sendHtmlError(req, res, 503)) return
     return res.status(503).json(buildErrorBody(
       "DB_UNAVAILABLE",

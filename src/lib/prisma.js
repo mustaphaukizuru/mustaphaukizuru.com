@@ -139,9 +139,64 @@ async function recycle() {
   try { await prisma.$connect()    } catch { /* will retry on next call */ }
 }
 
+/* ─────────────────────────── self-healing (HTTP path) ───────────────────
+ * The isAlive/recycle helpers above are only called by cron jobs. On the
+ * HTTP path a panicked engine used to stay dead until someone touched
+ * tmp/restart.txt — every request (login, Google OAuth callback, …) failed
+ * with "PANIC: timer has gone away" while /health reported database=down.
+ *
+ * Two layers fix that:
+ *   1. keepalive  — a cheap SELECT 1 every KEEPALIVE_MS (< MySQL wait_timeout
+ *                   ≈ 60s) so pooled sockets never sit idle long enough for
+ *                   the server to drop them; if the ping fails the engine is
+ *                   recycled immediately, before a real request hits it.
+ *   2. recoverIfPanicked(err) — called from the global error handler: when a
+ *                   request still trips a PrismaClientRustPanicError, recycle
+ *                   the engine (debounced) so the *next* request succeeds.
+ * ──────────────────────────────────────────────────────────────────── */
+
+const KEEPALIVE_MS = Number(process.env.DB_KEEPALIVE_MS || 30_000)
+
+let recycling = null
+function recycleOnce() {
+  if (!recycling) {
+    recycling = recycle().finally(() => { recycling = null })
+  }
+  return recycling
+}
+
+function isEnginePanic(err) {
+  return err?.name === "PrismaClientRustPanicError"
+      || /timer has gone away|Query Engine has a panic/i.test(err?.message || "")
+}
+
+// Returns true when a recycle was triggered for this error. Never throws.
+function recoverIfPanicked(err) {
+  if (!isEnginePanic(err)) return false
+  console.error("[prisma] query engine panicked — recycling connection:", String(err?.message || "").split("\n").find(Boolean))
+  recycleOnce()
+  return true
+}
+
+let keepaliveTimer = null
+function startKeepalive() {
+  if (keepaliveTimer || process.env.NODE_ENV === "test" || process.env.DISABLE_DB_KEEPALIVE === "1") return
+  keepaliveTimer = setInterval(async () => {
+    if (await isAlive()) return
+    console.warn("[prisma] keepalive ping failed — recycling engine")
+    await recycleOnce()
+    if (!(await isAlive())) console.error("[prisma] engine still unreachable after recycle")
+  }, KEEPALIVE_MS)
+  // Never keep the process alive just for the ping (one-shot scripts, tests).
+  if (typeof keepaliveTimer.unref === "function") keepaliveTimer.unref()
+}
+startKeepalive()
+
 module.exports = prisma
 module.exports.isAlive = isAlive
 module.exports.recycle = recycle
+module.exports.recoverIfPanicked = recoverIfPanicked
+module.exports.isEnginePanic = isEnginePanic
 // Exported for tests: the pool bounds are a safety property, not an
 // implementation detail, so they get pinned like one.
 module.exports.withPoolBounds = withPoolBounds
