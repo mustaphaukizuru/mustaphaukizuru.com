@@ -134,6 +134,19 @@
         "resolved": "Resuelto",
         "readOnly": "Este proyecto es de solo lectura; los mensajes nuevos están deshabilitados."
       },
+      "access": {
+        "suspendedTitle": "Proyecto en pausa — hay una factura vencida",
+        "suspendedBody": "La vista previa y los entregables quedan en espera hasta que se pague la factura pendiente. Ve a tus pedidos para liquidarla; el acceso se restablece automáticamente.",
+        "openOrders": "Ir a mis pedidos",
+        "handoverTitle": "Entrega completada",
+        "handoverBody": "Todo está pagado y entregado. Tus archivos finales están abajo — descárgalos y guárdalos en un lugar seguro.",
+        "locked": "En espera"
+      },
+      "handover": {
+        "title": "Entrega final",
+        "subtitle": "Entregables finales de este proyecto.",
+        "empty": "Aún no se han marcado entregables para la entrega final."
+      },
       "toast": {
         "approved": "Hito aprobado. ¡Gracias!",
         "changesRequested": "Tu solicitud de cambios fue enviada al equipo.",

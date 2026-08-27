@@ -3,10 +3,7 @@ import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
 import {
-  ArrowLeft, Briefcase, Calendar, Download, CheckCircle2, Clock, AlertCircle,
-  User as UserIcon, Hourglass, ExternalLink, Eye, UploadCloud, MessageSquare,
-  Lock, ThumbsUp, RotateCcw, Send, Check, X, Loader2, Image as ImageIcon, ShieldCheck, Star,
-  Plus, Receipt, CreditCard,
+  ArrowLeft, Briefcase, Calendar, Download, CheckCircle2, Clock, AlertCircle, User as UserIcon, Hourglass, ExternalLink, Eye, UploadCloud, MessageSquare, Lock, ThumbsUp, RotateCcw, Send, Check, X, Loader2, Image as ImageIcon, ShieldCheck, Star, Plus, Receipt, CreditCard, PackageCheck, ShieldAlert,
 } from "lucide-react"
 import {
   fetchMyProject, uploadMyProjectFiles, postMyProjectComment,
@@ -125,10 +122,13 @@ export default function DashboardProjectDetailPage() {
     )
   }
 
-  const access = project.access || { readOnly: false, isClosed: false, expiresAt: null }
+  const access = project.access || { readOnly: false, isClosed: false, expiresAt: null, state: "active" }
   const readOnly = Boolean(access.readOnly)
+  const suspended = access.state === "suspended"
+  const handover = access.state === "handover"
   const milestones = project.milestones || []
   const files = project.files || []
+  const deliverables = files.filter((f) => f.isDeliverable)
   const comments = project.comments || []
   const done = milestones.filter((ms) => ms.status === "completed" || ms.status === "approved").length
   const pct = milestones.length > 0 ? Math.round((done / milestones.length) * 100) : 0
@@ -179,6 +179,18 @@ export default function DashboardProjectDetailPage() {
           project={project}
           onAccepted={() => { showSuccess(tLegal("nda.accepted")); refetch() }}
         />
+      {suspended && (
+        <InlineBanner tone="danger" icon={ShieldAlert} title={t("projects.detail.access.suspendedTitle")}>
+          <p>{t("projects.detail.access.suspendedBody")}</p>
+          <Link to="/dashboard/orders" className="mt-2 inline-flex items-center gap-1 text-meta font-semibold underline-offset-2 hover:underline">
+            <CreditCard className="h-3.5 w-3.5" aria-hidden="true" /> {t("projects.detail.access.openOrders")}
+          </Link>
+        </InlineBanner>
+      )}
+      {handover && (
+        <InlineBanner tone="success" icon={PackageCheck} title={t("projects.detail.access.handoverTitle")}>
+          {t("projects.detail.access.handoverBody")}
+        </InlineBanner>
       )}
 
       {access.isClosed && (
@@ -287,6 +299,19 @@ export default function DashboardProjectDetailPage() {
         </SectionBlock>
       )}
 
+      {/* Tier 4 · handover: final deliverables, served only with a zero balance */}
+      {handover && (
+        <SectionBlock title={t("projects.detail.handover.title")} subtitle={t("projects.detail.handover.subtitle")}>
+          <FileGallery
+            projectId={project.id}
+            files={deliverables}
+            title={t("projects.detail.gallery.deliverable")}
+            empty={t("projects.detail.handover.empty")}
+            t={t}
+          />
+        </SectionBlock>
+      )}
+
       {/* Files */}
       <SectionBlock title={t("projects.detail.deliverables")} subtitle={t("projects.detail.files", { count: files.length })}>
         {!readOnly && (
@@ -299,9 +324,10 @@ export default function DashboardProjectDetailPage() {
         )}
         <FileGallery
           projectId={project.id}
-          files={files.filter((f) => f.uploadedByRole !== "client")}
+          files={files.filter((f) => f.uploadedByRole !== "client" && !(handover && f.isDeliverable))}
           title={t("projects.detail.gallery.team")}
           empty={t("projects.detail.gallery.teamEmpty")}
+          locked={suspended}
           t={t}
         />
         <FileGallery
@@ -763,7 +789,7 @@ function ReplyBox({ onSubmit, readOnly, placeholder, compact = false, className 
 
 /* ── files ─────────────────────────────────────────────────────────────── */
 
-function FileGallery({ projectId, files, title, empty, t }) {
+function FileGallery({ projectId, files, title, empty, locked = false, t }) {
   return (
     <div>
       <h3 className="mb-2 font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{title} · {files.length}</h3>
@@ -771,37 +797,43 @@ function FileGallery({ projectId, files, title, empty, t }) {
         <div className={EMPTY}>{empty}</div>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {files.map((f) => <FileTile key={f.id} projectId={projectId} file={f} t={t} />)}
+          {files.map((f) => <FileTile key={f.id} projectId={projectId} file={f} locked={locked && f.isDeliverable} t={t} />)}
         </ul>
       )}
     </div>
   )
 }
 
-function FileTile({ projectId, file: f, t }) {
+function FileTile({ projectId, file: f, locked = false, t }) {
   const [imgFailed, setImgFailed] = useState(false)
   const href = fileDownloadUrl(projectId, f.id)
   if (f.purgedAt) return <PurgedTile file={f} t={t} />
+  // Suspended project: deliverables are listed but not linked (the API
+  // answers 402 anyway) — the tile explains why instead of failing.
+  const Wrapper = locked ? "div" : "a"
+  const wrapperProps = locked
+    ? { "aria-disabled": true, title: t("projects.detail.access.locked") }
+    : { href, target: "_blank", rel: "noopener noreferrer" }
   const ext = extOf(f.fileName)
   const isImage = !imgFailed && (IMAGE_EXT.has(ext) || /^image\/(png|jpe?g|gif|webp)/i.test(f.fileType || ""))
   const { icon: Icon, label, chip, iconColor } = getFileTypeStyles(f.fileName || f.fileType)
   const isTeam = f.uploadedByRole !== "client"
   return (
     <li>
-      <a
-        href={href} target="_blank" rel="noopener noreferrer"
-        className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white transition hover:border-violet/30 hover:shadow-[var(--shadow-e3)]"
+      <Wrapper
+        {...wrapperProps}
+        className={`group flex h-full flex-col overflow-hidden rounded-xl border bg-white transition ${locked ? "cursor-not-allowed border-rose/20 opacity-70" : "border-charcoal-80/10 hover:border-violet/30 hover:shadow-[var(--shadow-e3)]"}`}
       >
         <div className="relative flex aspect-[4/3] items-center justify-center bg-charcoal-80/5">
-          {isImage ? (
+          {isImage && !locked ? (
             <img src={href} alt={f.fileName} loading="lazy" decoding="async" onError={() => setImgFailed(true)} className="h-full w-full object-cover" />
           ) : (
             <Icon className={`h-10 w-10 ${iconColor}`} aria-hidden="true" />
           )}
           <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
           {f.isDeliverable && (
-            <span className="absolute right-2 top-2 rounded-full bg-mint/15 px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-mint-700">
-              {t("projects.detail.gallery.deliverable")}
+            <span className={`absolute right-2 top-2 rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${locked ? "bg-rose-50 text-rose-600" : "bg-mint/15 text-mint-700"}`}>
+              {locked ? t("projects.detail.access.locked") : t("projects.detail.gallery.deliverable")}
             </span>
           )}
         </div>
@@ -812,9 +844,11 @@ function FileTile({ projectId, file: f, t }) {
               {[formatFileSize(f.fileSize), isTeam ? t("projects.detail.gallery.byTeam") : t("projects.detail.gallery.byYou"), fmtDate(f.createdAt)].filter(Boolean).join(" · ")}
             </div>
           </div>
-          <Download className="mt-0.5 h-4 w-4 shrink-0 text-violet" aria-hidden="true" />
+          {locked
+            ? <Lock className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" aria-hidden="true" />
+            : <Download className="mt-0.5 h-4 w-4 shrink-0 text-violet" aria-hidden="true" />}
         </div>
-      </a>
+      </Wrapper>
     </li>
   )
 }

@@ -8,6 +8,7 @@ const { listMyProjects, getMyProject } = require("../services/clientProjectServi
 const {
   assertReadable, previewCanFrame, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
   ndaStatus, applyNdaGate, acceptAgreement,
+  presentForMember, assertDeliverableAccess,
 } = require("../services/projectPortalService")
 const { STORAGE_PATHS } = require("../config/storagePaths")
 const supportService = require("../services/supportService")
@@ -71,6 +72,8 @@ const getMine = asyncHandler(async (req, res) => {
         nda: { required: nda.required, accepted: nda.accepted, version: nda.version, acceptedAt: nda.acceptedAt },
       },
     })
+    // Tier 4 · suspended projects get no previewUrl; access.state drives the UI.
+    res.status(200).json({ success: true, data: presentForMember(project, lc) })
   } catch (e) {
     return portalError(res, e)
   }
@@ -281,6 +284,7 @@ const streamFile = asyncHandler(async (req, res) => {
     where: { id: String(fileId), projectId: String(projectId) },
     include: {
       project: { select: { id: true, userId: true, projectName: true, requiresNda: true, ndaVersion: true } },
+      project: { select: { id: true, userId: true, projectName: true, accessState: true } },
     },
   })
 
@@ -296,6 +300,8 @@ const streamFile = asyncHandler(async (req, res) => {
   if (nda.required && !nda.accepted) {
     return res.status(403).json({ success: false, error: { code: "NDA_REQUIRED", message: "Please accept the project NDA before downloading files." } })
   }
+  // Tier 4 · kill switch: deliverables are withheld (402) while suspended.
+  try { assertDeliverableAccess(file.project, file) } catch (e) { return portalError(res, e) }
 
   return sendProjectFile({ file, req, res, userId, action: "project.file.downloaded" })
 })

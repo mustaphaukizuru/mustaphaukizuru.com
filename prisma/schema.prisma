@@ -1361,6 +1361,8 @@ model ClientProject {
   /// Tier 4 · retention. Set by projectPurgeJob once every file's bytes are
   /// gone (closedAt + PROJECT_PURGE_DAYS). Metadata rows are kept.
   purgedAt        DateTime?
+  /// Tier 4 kill switch / handover gate: active | suspended | handover (invoiceDunningJob + admin PATCH).
+  accessState     String        @default("active") @db.VarChar(16)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 

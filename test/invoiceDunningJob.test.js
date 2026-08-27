@@ -5,7 +5,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 jest.mock("../src/lib/prisma", () => ({
-  invoice: { findMany: jest.fn(), updateMany: jest.fn() },
+  invoice:       { findMany: jest.fn(), updateMany: jest.fn(), count: jest.fn().mockResolvedValue(0) },
+  // project access pass (covered in projectAccessGate.test.js) — inert here
+  clientProject: { findMany: jest.fn().mockResolvedValue([]), updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
 }))
 jest.mock("../src/utils/logger", () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() }))
 jest.mock("../src/services/emailService", () => ({ sendTemplateEmail: jest.fn().mockResolvedValue({ ok: true }) }))
@@ -37,7 +39,8 @@ beforeEach(() => {
 })
 
 function queue({ paid = [], due = [] } = {}) {
-  prisma.invoice.findMany.mockResolvedValueOnce(paid).mockResolvedValueOnce(due)
+  // reconcile → dunning → (access pass: stale-overdue lookup returns [])
+  prisma.invoice.findMany.mockResolvedValueOnce(paid).mockResolvedValueOnce(due).mockResolvedValueOnce([])
 }
 
 test("issued invoice past due → overdue with 2 % late fee (default), one email, one notification", async () => {

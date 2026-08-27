@@ -62,6 +62,7 @@ const updateProject = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: updated })
   } catch (e) {
     if (e?.code === "P2025") return notFound(res)
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message, ...(e.details ? { details: e.details } : {}) } })
     if (e?.message?.startsWith("Invalid project status")) return badRequest(res, e.message)
     throw e
   }

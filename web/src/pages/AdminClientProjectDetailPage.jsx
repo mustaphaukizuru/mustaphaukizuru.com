@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import {
-  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2,
-  AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare,
-  Link2, Copy, BookOpen,
+  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2, AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare, Link2, Copy, BookOpen,
 } from "lucide-react"
 import {
   fetchAdminProject, updateAdminProject, createAdminProject, createAdminPortalLink, createAdminCaseStudyDraft,
@@ -19,6 +17,11 @@ import { API_BASE_URL } from "../lib/api"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 
 const PROJECT_STATUSES = ["planning", "in_progress", "review", "completed", "cancelled"]
+const ACCESS_STATES = [
+  { value: "active",    label: "Active — full client access" },
+  { value: "suspended", label: "Suspended — preview hidden, deliverables on hold (402)" },
+  { value: "handover",  label: "Handover — final deliverables released (requires zero balance)" },
+]
 const MILESTONE_STATUSES = [
   { value: "pending",         label: "Pending" },
   { value: "in_progress",     label: "In progress" },
@@ -55,6 +58,7 @@ export default function AdminClientProjectDetailPage() {
     description: "", projectStatus: "planning",
     startDate: "", dueDate: "", previewUrl: "",
     requiresNda: false, ndaVersion: "",
+    startDate: "", dueDate: "", previewUrl: "", accessState: "active",
   })
 
   // Tier 4 · magic-link portal
@@ -115,6 +119,7 @@ export default function AdminClientProjectDetailPage() {
         previewUrl: data.previewUrl || "",
         requiresNda: Boolean(data.requiresNda),
         ndaVersion: data.ndaVersion || "",
+        accessState: data.accessState || "active",
       })
     } catch (err) {
       console.error("[ClientProject] load failed:", err)
@@ -259,6 +264,18 @@ export default function AdminClientProjectDetailPage() {
           <Field label="Due date">
             <Input type="date" value={form.dueDate} onChange={(v) => setForm({ ...form, dueDate: v })} />
           </Field>
+          {!isNew && (
+            <div className="md:col-span-2">
+              <Field label="Client access (kill switch / handover)">
+                <select value={form.accessState} onChange={(e) => setForm({ ...form, accessState: e.target.value })} className={SELECT_CLASS}>
+                  {ACCESS_STATES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+                <p className="mt-1 text-[11px] text-charcoal-80/65">
+                  The nightly dunning job suspends a project whose invoice has been overdue longer than the grace period and reinstates it once paid. Handover is refused (409) while any invoice is unpaid.
+                </p>
+              </Field>
+            </div>
+          )}
           <div className="md:col-span-2">
             <Field label="Preview URL">
               <Input type="url" value={form.previewUrl} onChange={(v) => setForm({ ...form, previewUrl: v })} placeholder="https://staging.example.com — shown to the client as a live preview" />

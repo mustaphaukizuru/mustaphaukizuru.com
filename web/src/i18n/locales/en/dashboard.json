@@ -134,6 +134,19 @@
         "resolved": "Resolved",
         "readOnly": "This project is read-only; new messages are disabled."
       },
+      "access": {
+        "suspendedTitle": "Project paused — an invoice is overdue",
+        "suspendedBody": "The live preview and deliverables are on hold until the outstanding invoice is paid. Open your orders to settle it; access comes back automatically.",
+        "openOrders": "Go to my orders",
+        "handoverTitle": "Handover complete",
+        "handoverBody": "Everything is paid and delivered. Your final files are below — download and keep them somewhere safe.",
+        "locked": "On hold"
+      },
+      "handover": {
+        "title": "Handover",
+        "subtitle": "Final deliverables for this project.",
+        "empty": "No deliverables have been marked for handover yet."
+      },
       "toast": {
         "approved": "Milestone approved. Thank you!",
         "changesRequested": "Your change request was sent to the team.",
