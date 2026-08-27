@@ -29,7 +29,7 @@
     "test:integration": "jest test/integration",
     "test:unit": "jest --testPathIgnorePatterns=test/integration",
     "db:guard": "node scripts/guard-prod-db.js",
-    "db:push": "node scripts/guard-prod-db.js \"prisma db push\" && npx prisma db push && npx prisma generate"
+    "db:push": "node scripts/guard-prod-db.js \"prisma db push\" && node scripts/db-push.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
