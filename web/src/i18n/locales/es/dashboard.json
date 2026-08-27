@@ -155,6 +155,43 @@
       "doneTitle": "Gracias por tu reseña",
       "doneBody": "Calificaste este proyecto con {{rating}}/5."
     },
+    "changeRequests": {
+      "title": "Solicitar trabajo adicional",
+      "subtitle": "¿Necesitas algo fuera del alcance original? Descríbelo, recibe una cotización y acéptala para añadir un hito pagado a este proyecto.",
+      "new": "Nueva solicitud",
+      "empty": "Aún no hay solicitudes de trabajo adicional.",
+      "readOnly": "Este proyecto está cerrado — no se admiten nuevas solicitudes.",
+      "form": {
+        "title": "¿Qué necesitas?",
+        "titlePlaceholder": "p. ej. Añadir una versión en inglés de la landing",
+        "description": "Detalles",
+        "descriptionPlaceholder": "Describe el resultado que esperas, referencias, plazos…",
+        "submit": "Enviar solicitud",
+        "cancel": "Cancelar",
+        "titleRequired": "Ponle un título corto a la solicitud.",
+        "descriptionRequired": "Describe el trabajo adicional que necesitas."
+      },
+      "status": {
+        "requested": "Esperando cotización",
+        "quoted": "Cotización lista",
+        "accepted": "Aceptada · pendiente de pago",
+        "declined": "Rechazada",
+        "done": "Hecho"
+      },
+      "quote": "Cotización: {{amount}}",
+      "quoteNote": "Notas del equipo",
+      "requestedOn": "Solicitada el {{date}}",
+      "quotedOn": "Cotizada el {{date}}",
+      "accept": "Aceptar y pagar",
+      "decline": "Rechazar",
+      "viewOrder": "Ver pedido",
+      "toast": {
+        "created": "Solicitud enviada. Te responderemos con una cotización.",
+        "accepted": "Cotización aceptada — completa el pago para iniciar el trabajo.",
+        "declined": "Cotización rechazada.",
+        "failed": "Algo salió mal. Inténtalo de nuevo."
+      }
+    },
     "support": {
       "title": "Soporte",
       "subtitle": "¿Dudas o problemas con este proyecto? Abre un ticket y el equipo recibe el aviso al instante.",

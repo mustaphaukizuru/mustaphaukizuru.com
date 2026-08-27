@@ -156,6 +156,7 @@ function startScheduler() {
     logger.info("[scheduler] registered project file purge · 04:00 UTC")
   } catch (err) {
     logger.error("[scheduler] failed to register projectPurgeJob", err)
+  }
   // ── Tier 4 · Invoice dunning · 08:00 UTC ────────────────────────────
   // Manual invoices past their due date turn overdue (late fee recorded
   // once, one email), paid orders reconcile their invoice, and projects

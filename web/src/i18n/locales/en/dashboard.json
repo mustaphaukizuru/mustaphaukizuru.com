@@ -155,6 +155,43 @@
       "doneTitle": "Thanks for your review",
       "doneBody": "You rated this project {{rating}}/5."
     },
+    "changeRequests": {
+      "title": "Request extra work",
+      "subtitle": "Need something beyond the original scope? Describe it, get a quote, and accept it to add a paid milestone to this project.",
+      "new": "New request",
+      "empty": "No extra-work requests yet.",
+      "readOnly": "This project is closed — new requests are disabled.",
+      "form": {
+        "title": "What do you need?",
+        "titlePlaceholder": "e.g. Add a Spanish version of the landing page",
+        "description": "Details",
+        "descriptionPlaceholder": "Describe the outcome you expect, references, deadlines…",
+        "submit": "Send request",
+        "cancel": "Cancel",
+        "titleRequired": "Give the request a short title.",
+        "descriptionRequired": "Describe the extra work you need."
+      },
+      "status": {
+        "requested": "Awaiting quote",
+        "quoted": "Quote ready",
+        "accepted": "Accepted · awaiting payment",
+        "declined": "Declined",
+        "done": "Done"
+      },
+      "quote": "Quote: {{amount}}",
+      "quoteNote": "Notes from the team",
+      "requestedOn": "Requested {{date}}",
+      "quotedOn": "Quoted {{date}}",
+      "accept": "Accept and pay",
+      "decline": "Decline",
+      "viewOrder": "View order",
+      "toast": {
+        "created": "Request sent. We'll get back to you with a quote.",
+        "accepted": "Quote accepted — complete the payment to start the work.",
+        "declined": "Quote declined.",
+        "failed": "Something went wrong. Please try again."
+      }
+    },
     "support": {
       "title": "Support",
       "subtitle": "Questions or issues about this project? Open a ticket and the team gets notified right away.",

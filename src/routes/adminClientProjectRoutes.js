@@ -5,6 +5,7 @@ const {
   uploadFile, removeFile, downloadFile,
   addAdminComment, toggleResolveComment, replyProjectTicket,
   createPortalLink, createCaseStudy,
+  quoteChangeRequest, completeChangeRequest,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -39,5 +40,9 @@ router.patch ("/:id/comments/:commentId/resolve",    toggleResolveComment)
 // <storage>/projects/<req.params.id>/ — `:id` must be the project id.
 // Plain-text admin replies keep using POST /admin/support/tickets/:id/messages.
 router.post  ("/:id/tickets/:ticketId/messages",     uploadProjectFile.many, replyProjectTicket)
+
+// Tier 4 · quote / close a client change request
+router.post  ("/:id/change-requests/:crId/quote",    quoteChangeRequest)
+router.post  ("/:id/change-requests/:crId/done",     completeChangeRequest)
 
 module.exports = router

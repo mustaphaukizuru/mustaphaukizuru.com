@@ -1374,6 +1374,7 @@ model ClientProject {
   tickets       SupportTicket[]
   agreements    ProjectAgreement[]
   reviews       Review[]
+  changeRequests ChangeRequest[]
 
   @@index([userId])
   @@index([assignedAdminId])
@@ -2192,4 +2193,41 @@ model ProjectAgreement {
 
   @@unique([projectId, userId, type, version])
   @@index([userId])
+}
+
+/// =============================================================
+/// TIER 4 · BILLING SAFEGUARDS
+/// =============================================================
+
+/// Client-initiated extra work on a project (src/services/changeRequestService.js).
+/// requested → quoted (admin) → accepted (client; creates the payable Order +
+/// ServiceOrder + a milestone) → done, or declined. requestedById / orderId /
+/// milestoneId are plain ids: their owning models are not touched by this
+/// tier, so there are no back-relations — resolve them via prisma.user /
+/// prisma.order / prisma.projectMilestone when needed.
+model ChangeRequest {
+  id            String    @id @default(cuid())
+  projectId     String
+  requestedById String
+  title         String
+  description   String    @db.Text
+  /// requested | quoted | accepted | declined | done
+  status        String    @default("requested") @db.VarChar(16)
+  quoteAmount   Decimal?  @db.Decimal(12, 2)
+  quoteCurrency String    @default("MXN")
+  quoteNote     String?   @db.Text
+  quotedAt      DateTime?
+  acceptedAt    DateTime?
+  declinedAt    DateTime?
+  orderId       String?
+  milestoneId   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([requestedById])
+  @@index([orderId])
+  @@index([status])
 }

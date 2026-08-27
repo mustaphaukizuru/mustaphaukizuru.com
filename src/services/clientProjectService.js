@@ -37,6 +37,9 @@ const PROJECT_INCLUDE = {
     take:    50,
     select:  { id: true, ticketNumber: true, subject: true, status: true, priority: true, updatedAt: true, createdAt: true },
   },
+  // Tier 4 · extra-work requests (quotes are Decimal — serialised by the
+  // JSON layer; the change-request endpoints return numbers).
+  changeRequests: { orderBy: { createdAt: "desc" }, take: 100 },
   user:       { select: { id: true, fullName: true, email: true } },
   assignedAdmin: { select: { id: true, fullName: true, email: true } },
   serviceOrder: {

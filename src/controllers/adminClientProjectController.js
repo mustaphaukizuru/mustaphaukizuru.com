@@ -13,6 +13,7 @@ const {
   VALID_PROJECT_STATUSES, VALID_MILESTONE_STATUSES,
 } = require("../services/clientProjectService")
 const { addAdminMessage } = require("../services/supportService")
+const changeRequestService = require("../services/changeRequestService")
 const { sendTemplateEmail } = require("../services/emailService")
 const { notifyProjectMilestoneCompleted } = require("../services/notificationService")
 
@@ -288,6 +289,34 @@ const toggleResolveComment = asyncHandler(async (req, res) => {
   }
 })
 
+/* ── Tier 4 · change requests (admin side) ───────────────────────────── */
+
+/** POST /admin/client-projects/:id/change-requests/:crId/quote { amount, note, currency? } */
+const quoteChangeRequest = asyncHandler(async (req, res) => {
+  try {
+    const data = await changeRequestService.quoteRequest({
+      projectId: req.params.id, crId: req.params.crId,
+      amount: req.body?.amount, note: req.body?.note, currency: req.body?.currency,
+      adminId: req.user?.id, req,
+    })
+    res.status(200).json({ success: true, data })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
+    throw e
+  }
+})
+
+/** POST /admin/client-projects/:id/change-requests/:crId/done */
+const completeChangeRequest = asyncHandler(async (req, res) => {
+  try {
+    const data = await changeRequestService.markDone({ projectId: req.params.id, crId: req.params.crId })
+    res.status(200).json({ success: true, data })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
+    throw e
+  }
+})
+
 /** Best-effort disk cleanup; tolerates already-missing files and bad paths. */
 async function unlinkProjectFile(filePath) {
   const abs = resolveSafePath(filePath)
@@ -307,4 +336,5 @@ module.exports = {
   uploadFile, removeFile, downloadFile,
   addAdminComment, toggleResolveComment, replyProjectTicket,
   createPortalLink, createCaseStudy, sendReviewRequest,
+  quoteChangeRequest, completeChangeRequest,
 }

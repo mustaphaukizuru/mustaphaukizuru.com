@@ -582,6 +582,31 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // Tier 4 · change request quoted
+  {
+    key: "project.change-request-quoted",
+    subject: "Quote ready: {{requestTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "Your extra-work request has been quoted.",
+      eyebrow:   "Quote ready",
+      bodyHtml:
+        heading(`Hi {{customerName}}, your quote is ready.`) +
+        paragraph(`We reviewed <strong>{{requestTitle}}</strong> on <strong>{{projectName}}</strong>. The extra work comes to <strong>{{quoteAmount}}</strong>.`) +
+        calloutCard(`<strong>Notes from the team:</strong><br/>{{quoteNote}}`) +
+        paragraph(`Accept the quote from the project page and you'll get a payable order right away — work on the new milestone starts once it's paid. You can also decline it; nothing changes on the project.`) +
+        button("{{dashboardUrl}}", "Review the quote"),
+    }),
+    text: [
+      "Quote ready: {{requestTitle}} — {{projectName}}",
+      "",
+      "Hi {{customerName}}, the extra work \"{{requestTitle}}\" comes to {{quoteAmount}}.",
+      "Notes: {{quoteNote}}",
+      "Accept or decline it here: {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   {
     key: "order.refunded",
     subject: "Refund processed — order {{orderNumber}}",
@@ -1406,6 +1431,31 @@ const TEMPLATES_ES = [
       "Hola {{customerName}}, la factura {{invoiceNumber}} por {{orderTotal}} venció",
       "el {{dueDate}} y sigue pendiente. Recargo aplicado: {{lateFee}}.",
       "Saldo: {{amountDue}}. Pagar ahora: {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.change-request-quoted
+  {
+    key: "project.change-request-quoted",
+    subject: "Cotización lista: {{requestTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "Tu solicitud de trabajo adicional ya tiene cotización.",
+      eyebrow:   "Cotización lista",
+      bodyHtml:
+        heading(`Hola {{customerName}}, tu cotización está lista.`) +
+        paragraph(`Revisamos <strong>{{requestTitle}}</strong> en <strong>{{projectName}}</strong>. El trabajo adicional tiene un costo de <strong>{{quoteAmount}}</strong>.`) +
+        calloutCard(`<strong>Notas del equipo:</strong><br/>{{quoteNote}}`) +
+        paragraph(`Acepta la cotización desde la página del proyecto y recibirás un pedido listo para pagar; el trabajo en el nuevo hito empieza al confirmarse el pago. También puedes rechazarla; el proyecto no cambia.`) +
+        button("{{dashboardUrl}}", "Revisar la cotización"),
+    }),
+    text: [
+      "Cotización lista: {{requestTitle}} — {{projectName}}",
+      "",
+      "Hola {{customerName}}, el trabajo adicional \"{{requestTitle}}\" cuesta {{quoteAmount}}.",
+      "Notas: {{quoteNote}}",
+      "Acéptala o recházala aquí: {{dashboardUrl}}",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),

@@ -3,6 +3,7 @@ const {
   listMine, getMine, streamFile,
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
   listTickets, getTicket, createTicket, replyTicket,
+  listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
 } = require("../controllers/clientProjectController")
 const { protect } = require("../middleware/authMiddleware")
 const { uploadRateLimiter, ticketRateLimiter } = require("../middleware/rateLimiter")
@@ -36,5 +37,11 @@ router.get ("/:id/tickets",                              listTickets)
 router.post("/:id/tickets",                              ticketRateLimiter, uploadProjectFile.many, createTicket)
 router.get ("/:id/tickets/:ticketId",                    getTicket)
 router.post("/:id/tickets/:ticketId/messages",           uploadRateLimiter, uploadProjectFile.many, replyTicket)
+
+// ── Tier 4 · extra work (change requests) ────────────────────────────────
+router.get ("/:id/change-requests",                      listChangeRequests)
+router.post("/:id/change-requests",                      ticketRateLimiter, createChangeRequest)
+router.post("/:id/change-requests/:crId/accept",         acceptChangeRequest)
+router.post("/:id/change-requests/:crId/decline",        declineChangeRequest)
 
 module.exports = router

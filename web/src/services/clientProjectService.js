@@ -208,3 +208,39 @@ export async function requestMyMilestoneChanges(projectId, milestoneId, { note }
   })
   return stripData(r)
 }
+
+/* ── Tier 4 · change requests (extra work) ─────────────────────────────── */
+export async function fetchMyChangeRequests(projectId) {
+  const r = await authFetch(`${memberBase(projectId)}/change-requests`)
+  return asArray(r)
+}
+export async function createMyChangeRequest(projectId, { title, description } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/change-requests`, {
+    method: "POST",
+    body: JSON.stringify({ title, description }),
+  })
+  return stripData(r)
+}
+/** Resolves to { orderId, redirectUrl, ... } — the caller sends the client to pay. */
+export async function acceptMyChangeRequest(projectId, crId) {
+  const r = await authFetch(`${memberBase(projectId)}/change-requests/${encodeURIComponent(crId)}/accept`, { method: "POST", body: "{}" })
+  return stripData(r)
+}
+export async function declineMyChangeRequest(projectId, crId, { note } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/change-requests/${encodeURIComponent(crId)}/decline`, {
+    method: "POST",
+    body: JSON.stringify(note ? { note } : {}),
+  })
+  return stripData(r)
+}
+export async function quoteChangeRequest(projectId, crId, { amount, note, currency } = {}) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/change-requests/${encodeURIComponent(crId)}/quote`, {
+    method: "POST",
+    body: JSON.stringify({ amount, note, currency: currency || undefined }),
+  })
+  return stripData(r)
+}
+export async function completeChangeRequest(projectId, crId) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/change-requests/${encodeURIComponent(crId)}/done`, { method: "POST", body: "{}" })
+  return stripData(r)
+}
