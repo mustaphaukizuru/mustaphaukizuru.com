@@ -1082,7 +1082,6 @@ model Invoice {
   /// Money snapshot at issue time — an invoice must not change when the
   /// order row later does (refund, edit). Mirrors Order at ensureInvoice().
   serie          String   @default("A") @db.VarChar(8)
-  status         String   @default("issued") @db.VarChar(16) // issued | cancelled
   currency       String   @default("MXN")
   subtotalAmount Decimal  @default(0.00) @db.Decimal(12, 2)  // net, before IVA
   taxRate        Decimal  @default(0.0000) @db.Decimal(5, 4)
