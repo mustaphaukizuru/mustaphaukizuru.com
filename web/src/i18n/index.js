@@ -24,7 +24,13 @@ import {
  * switches. Nothing else about the runtime behaviour changed.
  *
  * Detection order: `path` (URL prefix /es/*) → `localStorage` → browser
- * `navigator`. The `path` detector reads `lookupFromPathIndex: 0`, which
+ * `navigator`. Fallback is Spanish (FALLBACK_LANGUAGE) — see resources.js.
+ *
+ * NOTE · the language the ROUTER renders is decided by <LanguageWrapper>
+ * (`detectLanguageFromPath`): `/es/*` is Spanish and an unprefixed path is
+ * ALWAYS English. The detection below therefore only governs (a) which
+ * bundle is preloaded for the first frame and (b) the first-visit redirect
+ * in LanguageWrapper that sends a non-English browser from `/` to `/es`. The `path` detector reads `lookupFromPathIndex: 0`, which
  * extracts the first path segment and matches it against `supportedLngs`.
  * `detectInitialLanguage()` below mirrors that order EXACTLY so we know
  * which bundle to preload before `init()` runs; the LanguageDetector plugin
@@ -37,7 +43,7 @@ import {
  *
  * To opt the entire site in/out at runtime, set `VITE_I18N_ENABLED=false`
  * in env. When disabled the app stays English-only (i18n still initialises
- * so `t()` calls work, but the language detector defaults to "en").
+ * so `t()` calls work, but the language detector defaults to the fallback).
  */
 
 const I18N_ENABLED = import.meta.env.VITE_I18N_ENABLED !== "false"
@@ -80,7 +86,11 @@ async function ensureBundle(lng) {
 // memory when i18next initialises. A direct hit on `/es/...` therefore paints
 // Spanish on the very first frame — never English-then-swap. Any disagreement
 // with the real detector plugin is caught by the post-init check below.
-const initialLanguage = detectInitialLanguage(detection.order, browserDetectionEnv())
+// VITE_I18N_ENABLED=false keeps the site English-only regardless of the
+// Spanish-first fallback.
+const initialLanguage = I18N_ENABLED
+  ? detectInitialLanguage(detection.order, browserDetectionEnv())
+  : "en"
 
 /**
  * `i18nReady` resolves once i18next is initialised AND the active language's
@@ -100,7 +110,7 @@ const i18nReady = loadLanguageBundle(initialLanguage)
         // i18next mark namespaces as pending against a loader that does not
         // exist.
         resources: { [initialLanguage]: bundle },
-        fallbackLng: FALLBACK_LANGUAGE,
+        fallbackLng: I18N_ENABLED ? FALLBACK_LANGUAGE : "en",
         supportedLngs: SUPPORTED_LANGUAGES,
         defaultNS: "common",
         ns: NAMESPACES,
@@ -117,9 +127,9 @@ const i18nReady = loadLanguageBundle(initialLanguage)
       await ensureBundle(i18n.language)
       await i18n.changeLanguage(normalizeLanguage(i18n.language))
     }
-    // `fallbackLng` lookups need English present. It is the initial language
-    // for the overwhelming majority of visits; when it is not, warm it in the
-    // background so a missing Spanish key can still fall back to real copy.
+    // `fallbackLng` lookups need the fallback bundle present. When the active
+    // language is not the fallback, warm it in the background so a missing
+    // key can still fall back to real copy instead of the raw key.
     if (normalizeLanguage(i18n.language) !== FALLBACK_LANGUAGE) {
       ensureBundle(FALLBACK_LANGUAGE).catch(() => { /* non-fatal */ })
     }

@@ -1,3 +1,4 @@
+import { formatDate } from "../lib/format"
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import Image from "../components/ui/Image"
@@ -775,7 +776,7 @@ export default function AboutPage() {
   function fmtMonthYear(iso) {
     if (!iso) return null
     try {
-      return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short" })
+      return formatDate(iso, undefined, { year: "numeric", month: "short", day: undefined })
     } catch {
       return null
     }

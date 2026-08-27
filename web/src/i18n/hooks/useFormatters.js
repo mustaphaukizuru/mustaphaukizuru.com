@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { useLanguage } from "./useLanguage"
 import * as F from "../utils/formatters"
+import { formatPrice, formatPriceWhole, formatDate, formatDateTime, formatCount } from "../../lib/format"
 
 /**
  * useFormatters() · I18N04
@@ -21,6 +22,13 @@ export function useFormatters() {
   return useMemo(
     () => ({
       currency: (amount, currency = "MXN") => F.formatCurrency(amount, currency, lang),
+      // lib/format.js canonical helpers — prices stay locale-pinned ("MX$"),
+      // dates/counts follow `lang` (es → es-MX, en → en-US).
+      price:      (amount, currency) => formatPrice(amount, currency),
+      priceWhole: (amount, currency) => formatPriceWhole(amount, currency),
+      dateTag:    (d, opts) => formatDate(d, lang, opts),
+      dateTime:   (d) => formatDateTime(d, lang),
+      count:      (n) => formatCount(n, lang),
       date:     (d, opts) => F.formatDate(d, lang, opts),
       dateShort:(d) => F.formatDateShort(d, lang),
       relative: (d) => F.formatRelativeTime(d, lang),

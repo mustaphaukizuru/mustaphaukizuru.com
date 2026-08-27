@@ -10,15 +10,25 @@
  *   3. `req.query.locale`                  — URL override
  *   4. `req.user?.profile?.locale`         — stored preference (if profile loaded)
  *   5. Referer URL — if it starts with `/es` or contains `/es/`, use "es"
- *   6. `Accept-Language` header — Spanish-prefix → "es"
+ *   6. `Accept-Language` header — "en*" → "en"; anything else → "es"
+ *      (Mexico-first: a browser that asks for pt-BR/fr/de is far more
+ *      likely to be a LATAM visitor than an English one)
  *   6b. `user.profile.locale` — webhook fallback when no req scope
- *   7. Fallback: "en"
+ *   6c. `user.profile.country` — Spanish-speaking country → "es"
+ *   7. Fallback: "es" (Spanish-first default — Mexico is the home market)
  *
  * Always returns a valid locale string from the supported set.
  */
 
 const SUPPORTED = ["en", "es"]
-const DEFAULT_LOCALE = "en"
+const DEFAULT_LOCALE = "es"
+
+// ISO 3166-1 alpha-2 codes where Spanish is the primary language. Used as a
+// proxy for the missing `UserProfile.locale` column (see step 6c below).
+const SPANISH_COUNTRIES = new Set([
+  "MX", "ES", "AR", "BO", "CL", "CO", "CR", "CU", "DO", "EC", "SV", "GT",
+  "HN", "NI", "PA", "PY", "PE", "PR", "UY", "VE", "GQ",
+])
 
 function isSupported(value) {
   return typeof value === "string" && SUPPORTED.includes(value.toLowerCase())
@@ -72,6 +82,10 @@ function resolveUserLocale({ locale, req, user } = {}) {
     if (typeof accept === "string" && accept.length > 0) {
       const first = (accept.split(",")[0] || "").trim().toLowerCase()
       if (first.startsWith("es")) return "es"
+      if (first.startsWith("en")) return "en"
+      // Any other explicit preference (pt, fr, de…) — Spanish is the safer
+      // guess for this site's audience than English.
+      return "es"
     }
   }
 
@@ -83,6 +97,15 @@ function resolveUserLocale({ locale, req, user } = {}) {
   if (user && typeof user === "object") {
     const userProfile = pick(user.profile?.locale)
     if (userProfile) return userProfile
+
+    // 6c. Country proxy. TODO(schema): `UserProfile` has NO `locale` column
+    // today (only country/timezone), so step 6b never matches for real rows
+    // and every job-originated email (abandoned cart, booking reminders)
+    // used to fall through to the default. Persist the signup locale in a
+    // real `UserProfile.locale` column once a deliberate prod `db:push` is
+    // scheduled, then drop this proxy.
+    const country = String(user.profile?.country || "").trim().toUpperCase()
+    if (country) return SPANISH_COUNTRIES.has(country) ? "es" : "en"
   }
 
   // 7. Default

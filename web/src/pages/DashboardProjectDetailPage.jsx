@@ -1,3 +1,4 @@
+import { formatDate } from "../lib/format"
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { m } from "framer-motion"
@@ -11,7 +12,7 @@ import { SkeletonCard } from "../components/ui/index"
 import StatusPill from "../components/admin/StatusPill"
 import { API_BASE_URL } from "../lib/api"
 
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : ","
+const fmtDate = (d) => d ? formatDate(d) : "—"
 
 const MILESTONE_ICON = {
   pending: Hourglass,

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { Clock, ArrowRight } from "lucide-react"
 import { m } from "framer-motion"
+import { formatPriceWhole } from "../lib/format"
 
 import { useTranslation } from "react-i18next"
 /**
@@ -90,15 +91,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
 
   function fmtPrice(price, currency) {
     if (price == null) return ""
-    try {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: currency || "MXN",
-        maximumFractionDigits: 0,
-      }).format(Number(price))
-    } catch {
-      return `$${price}`
-    }
+    return formatPriceWhole(price, currency)
   }
 
   function clear() {
