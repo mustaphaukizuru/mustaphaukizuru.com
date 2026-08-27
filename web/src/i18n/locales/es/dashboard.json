@@ -172,6 +172,31 @@
       "setSubmit": "Establecer contraseña",
       "setSaving": "Guardando…",
       "passwordSet": "Contraseña establecida"
+    },
+    "privacy": {
+      "title": "Privacidad y datos",
+      "subtitle": "Tus derechos ARCO conforme a la ley mexicana: descarga o elimina todo lo que conservamos sobre ti.",
+      "exportTitle": "Descargar mis datos",
+      "exportDesc": "Un archivo JSON con tu cuenta, direcciones, pedidos, reservas, tickets y más.",
+      "exportButton": "Descargar mis datos",
+      "exporting": "Preparando…",
+      "exportSuccess": "Tu archivo de datos se está descargando",
+      "exportFailed": "No se pudieron exportar tus datos",
+      "deleteTitle": "Eliminar cuenta",
+      "deleteDesc": "Anonimiza tu perfil, elimina tus direcciones y tu suscripción al boletín y cierra tu sesión en todos los dispositivos. Los registros de pedidos y facturas se conservan como exige la ley fiscal.",
+      "deleteButton": "Eliminar cuenta",
+      "modalTitle": "¿Eliminar tu cuenta?",
+      "modalDesc": "Esta acción no se puede deshacer. Perderás el acceso a tus descargas, reservas e historial de soporte.",
+      "passwordLabel": "Confirma con tu contraseña",
+      "passwordRequired": "Ingresa tu contraseña para continuar",
+      "cancel": "Conservar mi cuenta",
+      "confirm": "Eliminar definitivamente",
+      "deleting": "Eliminando…",
+      "deleted": "Tu cuenta ha sido eliminada",
+      "deleteFailed": "No se pudo eliminar tu cuenta",
+      "openActivity": "Aún tienes pedidos, proyectos o reservas en curso. Complétalos o cancélalos primero.",
+      "wrongPassword": "La contraseña es incorrecta",
+      "learnMore": "Leer el Aviso de Privacidad"
     }
   },
   "products": {
