@@ -393,7 +393,7 @@ function ReviewCard({ project, highlighted, onSubmitted, t }) {
                 onMouseLeave={() => setHover(0)}
                 className="rounded-md p-1 transition hover:bg-violet-pale focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
               >
-                <Star className={`h-6 w-6 ${(hover || rating) >= n ? "fill-amber text-amber" : "text-charcoal-80"}`} aria-hidden="true" />
+                <Star className={`h-6 w-6 ${(hover || rating) >= n ? "fill-amber text-amber-700" : "text-charcoal-80"}`} aria-hidden="true" />
               </button>
             ))}
           </div>
