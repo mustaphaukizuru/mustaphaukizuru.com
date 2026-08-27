@@ -4,6 +4,7 @@ import { AlertTriangle, Home, RefreshCw } from "lucide-react"
 
 import markViolet from "../assets/logo-mark/m-mark-violet.svg"
 import { friendlyMessage } from "../lib/sanitize"
+import { captureException } from "../lib/sentry"
 import i18next from "i18next"
 
 /**
@@ -13,7 +14,7 @@ import i18next from "i18next"
  * brand-aligned fallback so users never see a white screen. Errors are
  * forwarded to:
  *   - console.error (development)
- *   - window.Sentry?.captureException (production, if Sentry is loaded)
+ *   - lib/sentry.js captureException (production, when VITE_SENTRY_DSN is set)
  *   - the optional `onError` prop for app-level telemetry hooks
  *
  * Mount once at the very top of the tree, OUTSIDE the router, so router
@@ -56,13 +57,9 @@ export default class ErrorBoundary extends Component {
   componentDidCatch(error, info) {
     this.setState({ info })
 
-    // Forward to Sentry if it's loaded (we use @sentry/node on the backend
-    // and may add @sentry/browser later — both attach to window.Sentry).
-    if (typeof window !== "undefined" && window.Sentry?.captureException) {
-      try {
-        window.Sentry.captureException(error, { contexts: { react: { componentStack: info?.componentStack } } })
-      } catch { /* swallow telemetry errors */ }
-    }
+    // Forward to Sentry (lib/sentry.js is a no-op when VITE_SENTRY_DSN is
+    // unset, and never throws).
+    captureException(error, { contexts: { react: { componentStack: info?.componentStack } } })
 
     // Telemetry hook for the host app.
     this.props.onError?.(error, info)

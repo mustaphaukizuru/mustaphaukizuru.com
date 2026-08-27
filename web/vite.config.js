@@ -1,3 +1,4 @@
+import fs from "node:fs"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
@@ -59,7 +60,14 @@ function seoVerificationReplacePlugin() {
   }
 }
 
+// Telemetry · src/lib/sentry.js tags every event with the release. Read
+// package.json here (not via import assertions, which older Node lacks).
+const APP_VERSION = JSON.parse(fs.readFileSync(new URL("./package.json", import.meta.url), "utf8")).version
+
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
   plugins: [
     react(),
     gaIdReplacePlugin(),

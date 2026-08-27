@@ -25,7 +25,8 @@
     "live": "En vivo",
     "repo": "Código",
     "outcome": "Resultado",
-    "placeholderShort": "Cifras ilustrativas"
+    "placeholderShort": "Cifras ilustrativas",
+    "stack": "Stack tecnológico"
   },
   "empty": "Ningún proyecto coincide con tus filtros.",
   "states": {
