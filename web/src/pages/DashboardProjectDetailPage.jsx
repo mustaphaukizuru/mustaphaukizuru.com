@@ -3,16 +3,15 @@ import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
 import {
-  ArrowLeft, Briefcase, Calendar, Download, CheckCircle2, Clock, AlertCircle,
-  User as UserIcon, Hourglass, ExternalLink, Eye, UploadCloud, MessageSquare,
-  Lock, ThumbsUp, RotateCcw, Send, Check, X, Loader2, Image as ImageIcon, ShieldCheck, Star,
+  ArrowLeft, Briefcase, Calendar, Download, CheckCircle2, Clock, AlertCircle, User as UserIcon, Hourglass, ExternalLink, Eye, UploadCloud, MessageSquare, Lock, ThumbsUp, RotateCcw, Send, Check, X, Loader2, Image as ImageIcon, ShieldCheck, Star, Plus, Receipt, CreditCard, PackageCheck, ShieldAlert,
 } from "lucide-react"
 import {
   fetchMyProject, uploadMyProjectFiles, postMyProjectComment,
   approveMyMilestone, requestMyMilestoneChanges, acceptMyProjectAgreement, postProjectReview,
+  fetchMyChangeRequests, createMyChangeRequest, acceptMyChangeRequest, declineMyChangeRequest,
 } from "../services/clientProjectService"
 import useApiQuery from "../hooks/useApiQuery"
-import { SkeletonCard, Button, Modal, Textarea, Select, InlineBanner } from "../components/ui/index"
+import { SkeletonCard, Button, Modal, Textarea, Select, Input, InlineBanner } from "../components/ui/index"
 import StatusPill from "../components/admin/StatusPill"
 import { API_BASE_URL } from "../lib/api"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
@@ -123,10 +122,13 @@ export default function DashboardProjectDetailPage() {
     )
   }
 
-  const access = project.access || { readOnly: false, isClosed: false, expiresAt: null }
+  const access = project.access || { readOnly: false, isClosed: false, expiresAt: null, state: "active" }
   const readOnly = Boolean(access.readOnly)
+  const suspended = access.state === "suspended"
+  const handover = access.state === "handover"
   const milestones = project.milestones || []
   const files = project.files || []
+  const deliverables = files.filter((f) => f.isDeliverable)
   const comments = project.comments || []
   const done = milestones.filter((ms) => ms.status === "completed" || ms.status === "approved").length
   const pct = milestones.length > 0 ? Math.round((done / milestones.length) * 100) : 0
@@ -177,6 +179,19 @@ export default function DashboardProjectDetailPage() {
           project={project}
           onAccepted={() => { showSuccess(tLegal("nda.accepted")); refetch() }}
         />
+      )}
+      {suspended && (
+        <InlineBanner tone="danger" icon={ShieldAlert} title={t("projects.detail.access.suspendedTitle")}>
+          <p>{t("projects.detail.access.suspendedBody")}</p>
+          <Link to="/dashboard/orders" className="mt-2 inline-flex items-center gap-1 text-meta font-semibold underline-offset-2 hover:underline">
+            <CreditCard className="h-3.5 w-3.5" aria-hidden="true" /> {t("projects.detail.access.openOrders")}
+          </Link>
+        </InlineBanner>
+      )}
+      {handover && (
+        <InlineBanner tone="success" icon={PackageCheck} title={t("projects.detail.access.handoverTitle")}>
+          {t("projects.detail.access.handoverBody")}
+        </InlineBanner>
       )}
 
       {access.isClosed && (
@@ -285,6 +300,19 @@ export default function DashboardProjectDetailPage() {
         </SectionBlock>
       )}
 
+      {/* Tier 4 · handover: final deliverables, served only with a zero balance */}
+      {handover && (
+        <SectionBlock title={t("projects.detail.handover.title")} subtitle={t("projects.detail.handover.subtitle")}>
+          <FileGallery
+            projectId={project.id}
+            files={deliverables}
+            title={t("projects.detail.gallery.deliverable")}
+            empty={t("projects.detail.handover.empty")}
+            t={t}
+          />
+        </SectionBlock>
+      )}
+
       {/* Files */}
       <SectionBlock title={t("projects.detail.deliverables")} subtitle={t("projects.detail.files", { count: files.length })}>
         {!readOnly && (
@@ -297,9 +325,10 @@ export default function DashboardProjectDetailPage() {
         )}
         <FileGallery
           projectId={project.id}
-          files={files.filter((f) => f.uploadedByRole !== "client")}
+          files={files.filter((f) => f.uploadedByRole !== "client" && !(handover && f.isDeliverable))}
           title={t("projects.detail.gallery.team")}
           empty={t("projects.detail.gallery.teamEmpty")}
+          locked={suspended}
           t={t}
         />
         <FileGallery
@@ -309,6 +338,11 @@ export default function DashboardProjectDetailPage() {
           empty={t("projects.detail.gallery.yoursEmpty")}
           t={t}
         />
+      </SectionBlock>
+
+      {/* Tier 4 · extra work (change requests) */}
+      <SectionBlock title={t("projects.changeRequests.title")} subtitle={t("projects.changeRequests.subtitle")}>
+        <ChangeRequestsPanel projectId={project.id} readOnly={readOnly} currency={project.serviceOrder?.order?.currency} t={t} />
       </SectionBlock>
 
       {/* Project thread */}
@@ -756,7 +790,7 @@ function ReplyBox({ onSubmit, readOnly, placeholder, compact = false, className 
 
 /* ── files ─────────────────────────────────────────────────────────────── */
 
-function FileGallery({ projectId, files, title, empty, t }) {
+function FileGallery({ projectId, files, title, empty, locked = false, t }) {
   return (
     <div>
       <h3 className="mb-2 font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{title} · {files.length}</h3>
@@ -764,37 +798,43 @@ function FileGallery({ projectId, files, title, empty, t }) {
         <div className={EMPTY}>{empty}</div>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {files.map((f) => <FileTile key={f.id} projectId={projectId} file={f} t={t} />)}
+          {files.map((f) => <FileTile key={f.id} projectId={projectId} file={f} locked={locked && f.isDeliverable} t={t} />)}
         </ul>
       )}
     </div>
   )
 }
 
-function FileTile({ projectId, file: f, t }) {
+function FileTile({ projectId, file: f, locked = false, t }) {
   const [imgFailed, setImgFailed] = useState(false)
   const href = fileDownloadUrl(projectId, f.id)
   if (f.purgedAt) return <PurgedTile file={f} t={t} />
+  // Suspended project: deliverables are listed but not linked (the API
+  // answers 402 anyway) — the tile explains why instead of failing.
+  const Wrapper = locked ? "div" : "a"
+  const wrapperProps = locked
+    ? { "aria-disabled": true, title: t("projects.detail.access.locked") }
+    : { href, target: "_blank", rel: "noopener noreferrer" }
   const ext = extOf(f.fileName)
   const isImage = !imgFailed && (IMAGE_EXT.has(ext) || /^image\/(png|jpe?g|gif|webp)/i.test(f.fileType || ""))
   const { icon: Icon, label, chip, iconColor } = getFileTypeStyles(f.fileName || f.fileType)
   const isTeam = f.uploadedByRole !== "client"
   return (
     <li>
-      <a
-        href={href} target="_blank" rel="noopener noreferrer"
-        className="group flex h-full flex-col overflow-hidden rounded-xl border border-charcoal-80/10 bg-white transition hover:border-violet/30 hover:shadow-[var(--shadow-e3)]"
+      <Wrapper
+        {...wrapperProps}
+        className={`group flex h-full flex-col overflow-hidden rounded-xl border bg-white transition ${locked ? "cursor-not-allowed border-rose/20 opacity-70" : "border-charcoal-80/10 hover:border-violet/30 hover:shadow-[var(--shadow-e3)]"}`}
       >
         <div className="relative flex aspect-[4/3] items-center justify-center bg-charcoal-80/5">
-          {isImage ? (
+          {isImage && !locked ? (
             <img src={href} alt={f.fileName} loading="lazy" decoding="async" onError={() => setImgFailed(true)} className="h-full w-full object-cover" />
           ) : (
             <Icon className={`h-10 w-10 ${iconColor}`} aria-hidden="true" />
           )}
           <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
           {f.isDeliverable && (
-            <span className="absolute right-2 top-2 rounded-full bg-mint/15 px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-mint-700">
-              {t("projects.detail.gallery.deliverable")}
+            <span className={`absolute right-2 top-2 rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${locked ? "bg-rose-50 text-rose-600" : "bg-mint/15 text-mint-700"}`}>
+              {locked ? t("projects.detail.access.locked") : t("projects.detail.gallery.deliverable")}
             </span>
           )}
         </div>
@@ -805,9 +845,11 @@ function FileTile({ projectId, file: f, t }) {
               {[formatFileSize(f.fileSize), isTeam ? t("projects.detail.gallery.byTeam") : t("projects.detail.gallery.byYou"), fmtDate(f.createdAt)].filter(Boolean).join(" · ")}
             </div>
           </div>
-          <Download className="mt-0.5 h-4 w-4 shrink-0 text-violet" aria-hidden="true" />
+          {locked
+            ? <Lock className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" aria-hidden="true" />
+            : <Download className="mt-0.5 h-4 w-4 shrink-0 text-violet" aria-hidden="true" />}
         </div>
-      </a>
+      </Wrapper>
     </li>
   )
 }
@@ -906,6 +948,164 @@ function Dropzone({ projectId, milestones, onUploaded, t }) {
       <p className="flex items-center gap-1.5 text-micro text-charcoal-80/65">
         <ImageIcon className="h-3 w-3" aria-hidden="true" /> {t("projects.detail.upload.imagesHint")}
       </p>
+    </div>
+  )
+}
+
+/* ── Tier 4 · change requests ──────────────────────────────────────────── */
+
+const CR_TONE = {
+  requested: "bg-amber/10 text-amber-700",
+  quoted:    "bg-violet-pale text-violet",
+  accepted:  "bg-azure/10 text-azure-deep",
+  declined:  "bg-charcoal-80/5 text-charcoal-80",
+  done:      "bg-mint/15 text-mint-700",
+}
+const fmtMoney = (v, currency) => {
+  try { return new Intl.NumberFormat(undefined, { style: "currency", currency: currency || "MXN", maximumFractionDigits: 2 }).format(Number(v || 0)) }
+  catch { return `${Number(v || 0).toFixed(2)} ${currency || "MXN"}` }
+}
+
+function ChangeRequestsPanel({ projectId, readOnly, t }) {
+  const navigate = useNavigate()
+  const { showSuccess, showError } = useToast()
+  const [formOpen, setFormOpen] = useState(false)
+  const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
+  const [formError, setFormError] = useState({})
+  const [busyId, setBusyId] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const { data: requests = [], loading, refetch, setData } = useApiQuery(
+    `projects:${projectId}:change-requests`,
+    () => fetchMyChangeRequests(projectId),
+    { enabled: Boolean(projectId), select: (d) => (Array.isArray(d) ? d : []) },
+  )
+
+  const reset = () => { setTitle(""); setDescription(""); setFormError({}); setFormOpen(false) }
+
+  const submit = async (e) => {
+    e.preventDefault()
+    const errs = {}
+    if (!title.trim()) errs.title = t("projects.changeRequests.form.titleRequired")
+    if (!description.trim()) errs.description = t("projects.changeRequests.form.descriptionRequired")
+    setFormError(errs)
+    if (Object.keys(errs).length) return
+    setSubmitting(true)
+    try {
+      const created = await createMyChangeRequest(projectId, { title: title.trim(), description: description.trim() })
+      if (created?.id) setData((prev) => [created, ...(prev || [])])
+      else refetch()
+      showSuccess(t("projects.changeRequests.toast.created"))
+      reset()
+    } catch (ex) {
+      showError(ex?.message || t("projects.changeRequests.toast.failed"))
+    } finally { setSubmitting(false) }
+  }
+
+  const accept = async (cr) => {
+    setBusyId(cr.id)
+    try {
+      const r = await acceptMyChangeRequest(projectId, cr.id)
+      showSuccess(t("projects.changeRequests.toast.accepted"))
+      if (r?.orderId) navigate(`/dashboard/orders/${r.orderId}`)
+      else refetch()
+    } catch (ex) {
+      showError(ex?.message || t("projects.changeRequests.toast.failed"))
+      setBusyId(null)
+    }
+  }
+  const decline = async (cr) => {
+    setBusyId(cr.id)
+    try {
+      const saved = await declineMyChangeRequest(projectId, cr.id)
+      setData((prev) => (prev || []).map((x) => x.id === cr.id ? { ...x, ...(saved?.id ? saved : { status: "declined" }) } : x))
+      showSuccess(t("projects.changeRequests.toast.declined"))
+    } catch (ex) {
+      showError(ex?.message || t("projects.changeRequests.toast.failed"))
+    } finally { setBusyId(null) }
+  }
+
+  return (
+    <div className={`${CARD} space-y-4`}>
+      {readOnly ? (
+        <p className="flex items-center gap-1.5 text-micro text-charcoal-80/65">
+          <Lock className="h-3 w-3" aria-hidden="true" /> {t("projects.changeRequests.readOnly")}
+        </p>
+      ) : !formOpen ? (
+        <Button size="sm" variant="secondary" icon={Plus} onClick={() => setFormOpen(true)}>
+          {t("projects.changeRequests.new")}
+        </Button>
+      ) : (
+        <form onSubmit={submit} className="space-y-3 rounded-lg border border-violet/15 bg-violet-pale/30 p-4">
+          <Input
+            label={t("projects.changeRequests.form.title")} value={title} maxLength={160} required
+            placeholder={t("projects.changeRequests.form.titlePlaceholder")} error={formError.title}
+            onChange={(e) => { setTitle(e.target.value); setFormError((f) => ({ ...f, title: "" })) }}
+          />
+          <Textarea
+            rows={4} value={description} maxLength={5000} required
+            label={t("projects.changeRequests.form.description")}
+            placeholder={t("projects.changeRequests.form.descriptionPlaceholder")} error={formError.description}
+            onChange={(e) => { setDescription(e.target.value); setFormError((f) => ({ ...f, description: "" })) }}
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" size="sm" icon={Send} loading={submitting}>{t("projects.changeRequests.form.submit")}</Button>
+            <Button type="button" size="sm" variant="ghost" icon={X} onClick={reset} disabled={submitting}>{t("projects.changeRequests.form.cancel")}</Button>
+          </div>
+        </form>
+      )}
+
+      {loading ? (
+        <SkeletonCard height="h-20" />
+      ) : requests.length === 0 ? (
+        <div className={EMPTY}>{t("projects.changeRequests.empty")}</div>
+      ) : (
+        <ul className="space-y-3">
+          {requests.map((cr) => {
+            const tone = CR_TONE[cr.status] || CR_TONE.requested
+            const busy = busyId === cr.id
+            return (
+              <li key={cr.id} className={`rounded-lg border p-4 ${cr.status === "quoted" && !readOnly ? "border-violet/40" : "border-charcoal-80/10"}`}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Receipt className="h-4 w-4 text-violet" aria-hidden="true" />
+                  <h3 className="text-meta font-semibold text-charcoal-80">{cr.title}</h3>
+                  <span className={`rounded-full px-2 py-px text-[10px] font-bold uppercase tracking-wider ${tone}`}>
+                    {t(`projects.changeRequests.status.${cr.status}`, { defaultValue: cr.status })}
+                  </span>
+                </div>
+                <p className="mt-1 whitespace-pre-wrap text-micro text-charcoal-80/75">{cr.description}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
+                  <span>{t("projects.changeRequests.requestedOn", { date: fmtDate(cr.createdAt) })}</span>
+                  {cr.quotedAt && <span>{t("projects.changeRequests.quotedOn", { date: fmtDate(cr.quotedAt) })}</span>}
+                  {cr.quoteAmount != null && (
+                    <span className="font-semibold text-violet">{t("projects.changeRequests.quote", { amount: fmtMoney(cr.quoteAmount, cr.quoteCurrency) })}</span>
+                  )}
+                </div>
+                {cr.quoteNote && (
+                  <div className="mt-3 rounded-lg bg-violet-pale/40 px-3 py-2 text-micro text-charcoal-80">
+                    <span className="font-semibold">{t("projects.changeRequests.quoteNote")}</span>
+                    <p className="mt-0.5 whitespace-pre-wrap">{cr.quoteNote}</p>
+                  </div>
+                )}
+                {cr.status === "quoted" && !readOnly && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button size="sm" icon={CreditCard} loading={busy} onClick={() => accept(cr)}>{t("projects.changeRequests.accept")}</Button>
+                    <Button size="sm" variant="secondary" icon={X} disabled={busy} onClick={() => decline(cr)}>{t("projects.changeRequests.decline")}</Button>
+                  </div>
+                )}
+                {cr.orderId && (
+                  <div className="mt-3">
+                    <Link to={`/dashboard/orders/${cr.orderId}`} className="inline-flex items-center gap-1 text-micro font-semibold text-violet hover:underline">
+                      <ExternalLink className="h-3 w-3" aria-hidden="true" /> {t("projects.changeRequests.viewOrder")}
+                    </Link>
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </div>
   )
 }

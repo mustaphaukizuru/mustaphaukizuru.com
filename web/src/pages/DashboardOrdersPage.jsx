@@ -45,6 +45,24 @@ const STATUS_VISUAL = {
   failed:    { bg: "bg-rose-50",         text: "text-rose-600",     ring: "ring-rose-300/40" },
 }
 
+/* Tier 4 · due / overdue chip for manual invoices (pending orders only). */
+function InvoiceChip({ invoice, status, localeTag }) {
+  const { t } = useTranslation("dashboard")
+  if (!invoice || status !== "pending" || !invoice.dueDate) return null
+  const overdue = invoice.status === "overdue"
+  const date = new Date(invoice.dueDate).toLocaleDateString(localeTag, { year: "numeric", month: "short", day: "numeric" })
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset ${
+        overdue ? "bg-rose-50 text-rose-600 ring-rose-300/40" : "bg-amber/10 text-amber-700 ring-amber-300/40"
+      }`}
+    >
+      <Clock3 className="h-3 w-3" aria-hidden="true" />
+      {overdue ? t("orders.invoice.overdue", { date }) : t("orders.invoice.due", { date })}
+    </span>
+  )
+}
+
 function StatusPill({ status }) {
   const { t } = useTranslation("dashboard")
   const visual = STATUS_VISUAL[status] || STATUS_VISUAL.cancelled
@@ -318,8 +336,9 @@ export default function DashboardOrdersPage() {
                         {formatPrice(Number(order.totalAmount || 0), order.currency || "MXN")}
                       </div>
 
-                      <div>
+                      <div className="flex flex-col items-start gap-1.5">
                         <StatusPill status={order.status} />
+                        <InvoiceChip invoice={order.invoice} status={order.status} localeTag={localeTag} />
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2">

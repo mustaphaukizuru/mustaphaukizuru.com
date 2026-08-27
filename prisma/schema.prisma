@@ -1039,12 +1039,29 @@ model Invoice {
   orderId       String
   invoiceNumber String   @unique
   invoicePdfUrl String?
-  issuedAt      DateTime @default(now())
+  /// Tier 4 billing. Storefront invoices are born `paid` (they are only
+  /// generated after payment). Admin-issued manual invoices start `issued`,
+  /// move to `overdue` by src/jobs/invoiceDunningJob.js once past dueDate,
+  /// and to `paid` when the pending Order is paid. `void` is admin-only.
+  /// Values: issued | paid | overdue | void.
+  status            String   @default("issued") @db.VarChar(16)
+  /// Manual invoices are raised against a ServiceOrder (plain id, no
+  /// relation — read through Order.serviceOrders / ClientProject when needed).
+  serviceOrderId    String?
+  issuedAt          DateTime @default(now())
+  dueDate           DateTime?
+  paidAt            DateTime?
+  /// Fraction applied ONCE when the invoice turns overdue (0.02 = 2 %).
+  lateFeeRate       Decimal  @default(0) @db.Decimal(5, 4)
+  lateFeeAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  overdueNotifiedAt DateTime?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@unique([orderId])
   @@index([orderId])
+  @@index([status, dueDate])
+  @@index([serviceOrderId])
 }
 
 model Payment {
@@ -1099,12 +1116,17 @@ model Refund {
   amount       Decimal      @db.Decimal(12, 2)
   reason       String?      @db.Text
   refundStatus RefundStatus
+  /// Tier 4 idempotency anchor: the provider's refund id (PayPal refund id,
+  /// Mercado Pago refund id). Webhooks match on it before falling back to
+  /// an amount match; the unique below makes a replayed webhook a no-op.
+  gatewayRefundId String?   @db.VarChar(128)
   processedAt  DateTime?
   createdAt    DateTime     @default(now())
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
+  @@unique([paymentId, gatewayRefundId], name: "refund_gateway_uq")
   @@index([paymentId])
   @@index([orderId])
 }
@@ -1344,6 +1366,8 @@ model ClientProject {
   /// Tier 4 · retention. Set by projectPurgeJob once every file's bytes are
   /// gone (closedAt + PROJECT_PURGE_DAYS). Metadata rows are kept.
   purgedAt        DateTime?
+  /// Tier 4 kill switch / handover gate: active | suspended | handover (invoiceDunningJob + admin PATCH).
+  accessState     String        @default("active") @db.VarChar(16)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1357,6 +1381,7 @@ model ClientProject {
   tickets       SupportTicket[]
   agreements    ProjectAgreement[]
   reviews       Review[]
+  changeRequests ChangeRequest[]
 
   @@index([userId])
   @@index([assignedAdminId])
@@ -2175,4 +2200,41 @@ model ProjectAgreement {
 
   @@unique([projectId, userId, type, version])
   @@index([userId])
+}
+
+/// =============================================================
+/// TIER 4 · BILLING SAFEGUARDS
+/// =============================================================
+
+/// Client-initiated extra work on a project (src/services/changeRequestService.js).
+/// requested → quoted (admin) → accepted (client; creates the payable Order +
+/// ServiceOrder + a milestone) → done, or declined. requestedById / orderId /
+/// milestoneId are plain ids: their owning models are not touched by this
+/// tier, so there are no back-relations — resolve them via prisma.user /
+/// prisma.order / prisma.projectMilestone when needed.
+model ChangeRequest {
+  id            String    @id @default(cuid())
+  projectId     String
+  requestedById String
+  title         String
+  description   String    @db.Text
+  /// requested | quoted | accepted | declined | done
+  status        String    @default("requested") @db.VarChar(16)
+  quoteAmount   Decimal?  @db.Decimal(12, 2)
+  quoteCurrency String    @default("MXN")
+  quoteNote     String?   @db.Text
+  quotedAt      DateTime?
+  acceptedAt    DateTime?
+  declinedAt    DateTime?
+  orderId       String?
+  milestoneId   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([requestedById])
+  @@index([orderId])
+  @@index([status])
 }

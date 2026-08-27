@@ -134,6 +134,19 @@
         "resolved": "Resolved",
         "readOnly": "This project is read-only; new messages are disabled."
       },
+      "access": {
+        "suspendedTitle": "Project paused — an invoice is overdue",
+        "suspendedBody": "The live preview and deliverables are on hold until the outstanding invoice is paid. Open your orders to settle it; access comes back automatically.",
+        "openOrders": "Go to my orders",
+        "handoverTitle": "Handover complete",
+        "handoverBody": "Everything is paid and delivered. Your final files are below — download and keep them somewhere safe.",
+        "locked": "On hold"
+      },
+      "handover": {
+        "title": "Handover",
+        "subtitle": "Final deliverables for this project.",
+        "empty": "No deliverables have been marked for handover yet."
+      },
       "toast": {
         "approved": "Milestone approved. Thank you!",
         "changesRequested": "Your change request was sent to the team.",
@@ -154,6 +167,43 @@
       "failed": "We could not save your review. Please try again.",
       "doneTitle": "Thanks for your review",
       "doneBody": "You rated this project {{rating}}/5."
+    },
+    "changeRequests": {
+      "title": "Request extra work",
+      "subtitle": "Need something beyond the original scope? Describe it, get a quote, and accept it to add a paid milestone to this project.",
+      "new": "New request",
+      "empty": "No extra-work requests yet.",
+      "readOnly": "This project is closed — new requests are disabled.",
+      "form": {
+        "title": "What do you need?",
+        "titlePlaceholder": "e.g. Add a Spanish version of the landing page",
+        "description": "Details",
+        "descriptionPlaceholder": "Describe the outcome you expect, references, deadlines…",
+        "submit": "Send request",
+        "cancel": "Cancel",
+        "titleRequired": "Give the request a short title.",
+        "descriptionRequired": "Describe the extra work you need."
+      },
+      "status": {
+        "requested": "Awaiting quote",
+        "quoted": "Quote ready",
+        "accepted": "Accepted · awaiting payment",
+        "declined": "Declined",
+        "done": "Done"
+      },
+      "quote": "Quote: {{amount}}",
+      "quoteNote": "Notes from the team",
+      "requestedOn": "Requested {{date}}",
+      "quotedOn": "Quoted {{date}}",
+      "accept": "Accept and pay",
+      "decline": "Decline",
+      "viewOrder": "View order",
+      "toast": {
+        "created": "Request sent. We'll get back to you with a quote.",
+        "accepted": "Quote accepted — complete the payment to start the work.",
+        "declined": "Quote declined.",
+        "failed": "Something went wrong. Please try again."
+      }
     },
     "support": {
       "title": "Support",
@@ -529,6 +579,18 @@
       "cancelled": "Cancelled",
       "failed": "Failed",
       "ariaLabel": "Order {{label}}"
+    },
+    "invoice": {
+      "due": "Due {{date}}",
+      "overdue": "Overdue · was due {{date}}",
+      "paid": "Paid {{date}}",
+      "title": "Invoice {{number}}",
+      "body": "This invoice is payable online. Once paid, your project access and deliverables are released automatically.",
+      "dueOn": "Due on {{date}}",
+      "lateFee": "Late fee applied: {{amount}}",
+      "payMp": "Pay with Mercado Pago",
+      "payHint": "Prefer PayPal or a bank transfer? Reply to the invoice email and we'll arrange it.",
+      "payError": "Could not start the payment. Please try again."
     },
     "table": {
       "title": "All Orders",

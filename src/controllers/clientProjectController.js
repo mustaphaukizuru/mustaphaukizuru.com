@@ -8,9 +8,11 @@ const { listMyProjects, getMyProject } = require("../services/clientProjectServi
 const {
   assertReadable, previewCanFrame, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
   ndaStatus, applyNdaGate, acceptAgreement,
+  presentForMember, assertDeliverableAccess,
 } = require("../services/projectPortalService")
 const { STORAGE_PATHS } = require("../config/storagePaths")
 const supportService = require("../services/supportService")
+const changeRequestService = require("../services/changeRequestService")
 
 /* ────────────────────────────────────────────────────────────────────────
  * SECURITY · resolveProjectFilePath
@@ -70,6 +72,8 @@ const getMine = asyncHandler(async (req, res) => {
         nda: { required: nda.required, accepted: nda.accepted, version: nda.version, acceptedAt: nda.acceptedAt },
       },
     })
+    // Tier 4 · suspended projects get no previewUrl; access.state drives the UI.
+    res.status(200).json({ success: true, data: presentForMember(project, lc) })
   } catch (e) {
     return portalError(res, e)
   }
@@ -211,6 +215,48 @@ const replyTicket = asyncHandler(async (req, res) => {
   }
 })
 
+/* ── Tier 4 · change requests (extra work) ───────────────────────────── */
+
+/** GET /member/projects/:id/change-requests */
+const listChangeRequests = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await changeRequestService.listMine({ userId, projectId: req.params.id })
+    res.status(200).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/change-requests { title, description } */
+const createChangeRequest = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await changeRequestService.createRequest({ userId, projectId: req.params.id, title: req.body?.title, description: req.body?.description })
+    res.status(201).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/change-requests/:crId/accept → { orderId, redirectUrl } */
+const acceptChangeRequest = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await changeRequestService.acceptRequest({ userId, projectId: req.params.id, crId: req.params.crId })
+    res.status(201).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/change-requests/:crId/decline */
+const declineChangeRequest = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await changeRequestService.declineRequest({ userId, projectId: req.params.id, crId: req.params.crId, note: req.body?.note || null })
+    res.status(200).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
 /**
  * GET /api/v1/member/projects/:id/files/:fileId/download
  *
@@ -238,6 +284,7 @@ const streamFile = asyncHandler(async (req, res) => {
     where: { id: String(fileId), projectId: String(projectId) },
     include: {
       project: { select: { id: true, userId: true, projectName: true, requiresNda: true, ndaVersion: true } },
+      project: { select: { id: true, userId: true, projectName: true, accessState: true } },
     },
   })
 
@@ -253,6 +300,8 @@ const streamFile = asyncHandler(async (req, res) => {
   if (nda.required && !nda.accepted) {
     return res.status(403).json({ success: false, error: { code: "NDA_REQUIRED", message: "Please accept the project NDA before downloading files." } })
   }
+  // Tier 4 · kill switch: deliverables are withheld (402) while suspended.
+  try { assertDeliverableAccess(file.project, file) } catch (e) { return portalError(res, e) }
 
   return sendProjectFile({ file, req, res, userId, action: "project.file.downloaded" })
 })
@@ -307,4 +356,5 @@ module.exports = {
   listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
   listTickets, getTicket, createTicket, replyTicket,
+  listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
 }

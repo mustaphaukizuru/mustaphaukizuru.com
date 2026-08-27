@@ -35,8 +35,13 @@ const getInvoicePdf = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, code: "FORBIDDEN", message: "You do not have access to this invoice" })
   }
 
-  // 2 · Only paid orders get invoices (prevent leakage of unfinished transactions).
-  if (order.status !== "paid") {
+  // 2 · Only paid orders get invoices (prevent leakage of unfinished
+  //     transactions) — except manual invoices (Tier 4), which exist as a
+  //     row before payment and are exactly what the client needs to pay.
+  const manual = order.status !== "paid"
+    ? await prisma.invoice.findUnique({ where: { orderId: order.id }, select: { id: true } })
+    : null
+  if (order.status !== "paid" && !manual) {
     return res.status(400).json({
       success: false, code: "INVOICE_NOT_READY",
       message: "Invoice is only available for paid orders",

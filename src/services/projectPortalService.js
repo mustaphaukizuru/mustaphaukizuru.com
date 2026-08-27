@@ -20,6 +20,8 @@ const logger = require("../utils/logger")
 const { notifyAdminsProjectActivity, notifyProjectComment, notifyMilestoneAwaitingClient } = require("./notificationService")
 
 const CLOSED_STATUSES = new Set(["completed", "cancelled"])
+const ACCESS_STATES = ["active", "suspended", "handover"]
+const UNPAID_INVOICE_STATUSES = ["issued", "overdue"]
 
 function graceDays() {
   const n = Number(process.env.PROJECT_ACCESS_GRACE_DAYS)
@@ -67,7 +69,7 @@ async function loadOwnedProject({ userId, projectId, skipNda = false }) {
     where:  { id: String(projectId), userId: String(userId) },
     select: {
       id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true, assignedAdminId: true,
-      requiresNda: true, ndaVersion: true,
+      requiresNda: true, ndaVersion: true, accessState: true,
     },
   })
   if (!project) throw err("Project not found", "NOT_FOUND", 404)
@@ -147,6 +149,89 @@ async function acceptAgreement({ userId, projectId, type, version, ipAddress = n
     },
   }).catch(() => null)
   return { type: kind, version: expected, acceptedAt: row.acceptedAt }
+}
+
+/* ── Access state (Tier 4 kill switch / handover gate) ─────────────────── */
+
+function suspendGraceDays() {
+  const n = Number(process.env.PROJECT_SUSPEND_GRACE_DAYS)
+  return Number.isFinite(n) && n >= 0 ? n : 14
+}
+
+/**
+ * Invoices that belong to a project = manual invoices raised against its
+ * ServiceOrder + invoices on any order linked to it (the original service
+ * order, accepted change-request orders). Unpaid = issued | overdue.
+ */
+function unpaidInvoiceWhere({ serviceOrderId, orderIds }) {
+  const or = []
+  if (serviceOrderId) or.push({ serviceOrderId })
+  if (orderIds.length) or.push({ orderId: { in: orderIds } })
+  if (!or.length) return null
+  return { status: { in: UNPAID_INVOICE_STATUSES }, OR: or }
+}
+
+async function loadBillingLinks(projectId) {
+  const p = await prisma.clientProject.findUnique({
+    where:  { id: String(projectId) },
+    select: {
+      id: true, serviceOrderId: true, accessState: true,
+      serviceOrder:   { select: { orderId: true } },
+      changeRequests: { where: { orderId: { not: null } }, select: { orderId: true } },
+    },
+  })
+  if (!p) return null
+  const orderIds = [p.serviceOrder?.orderId, ...(p.changeRequests || []).map((c) => c.orderId)].filter(Boolean)
+  return { ...p, orderIds }
+}
+
+/** Number of issued/overdue invoices on the project's linked orders. */
+async function countUnpaidInvoices(projectId) {
+  const links = await loadBillingLinks(projectId)
+  if (!links) throw err("Project not found", "NOT_FOUND", 404)
+  const where = unpaidInvoiceWhere(links)
+  if (!where) return 0
+  return prisma.invoice.count({ where })
+}
+
+/** Admin gate: handover only with a zero balance. Returns the validated state. */
+async function assertAccessStateChange(projectId, next) {
+  if (!ACCESS_STATES.includes(next)) throw err(`Invalid accessState. Expected one of: ${ACCESS_STATES.join(", ")}`, "VALIDATION_ERROR", 400)
+  if (next === "handover") {
+    const unpaid = await countUnpaidInvoices(projectId)
+    if (unpaid > 0) throw err(`Handover is blocked: ${unpaid} unpaid invoice${unpaid === 1 ? "" : "s"} on this project`, "UNPAID_INVOICES", 409, { unpaid })
+  }
+  return next
+}
+
+/** 402 for deliverables while the project is suspended. */
+function assertDeliverableAccess(project, file) {
+  if (file?.isDeliverable && project?.accessState === "suspended") {
+    throw err("This deliverable is on hold until the outstanding invoice is paid.", "PAYMENT_REQUIRED", 402)
+  }
+}
+
+/**
+ * Member-facing projection: while suspended the live preview is withheld
+ * (URL omitted entirely, not just hidden) and `access` carries the state.
+ */
+function presentForMember(project, lc) {
+  const state = ACCESS_STATES.includes(project?.accessState) ? project.accessState : "active"
+  const suspended = state === "suspended"
+  const { previewUrl, ...rest } = project
+  return {
+    ...rest,
+    previewUrl:      suspended ? null : previewUrl || null,
+    previewCanFrame: suspended ? false : previewCanFrame(previewUrl),
+    access: {
+      readOnly:  lc.readOnly,
+      isClosed:  lc.isClosed,
+      expiresAt: lc.expiresAt,
+      state,
+      suspended,
+      handover:  state === "handover",
+    },
+  }
 }
 
 /* ── Preview URL ───────────────────────────────────────────────────────── */
@@ -370,6 +455,9 @@ async function onMilestoneAwaitingClient({ project, milestone }) {
 module.exports = {
   lifecycle, assertReadable, assertWritable, loadOwnedProject,
   ndaStatus, assertNdaAccepted, applyNdaGate, acceptAgreement, ndaVersionOf, NDA_DEFAULT_VERSION,
+  ACCESS_STATES, UNPAID_INVOICE_STATUSES, suspendGraceDays,
+  loadBillingLinks, unpaidInvoiceWhere, countUnpaidInvoices, assertAccessStateChange,
+  assertDeliverableAccess, presentForMember,
   validatePreviewUrl, previewCanFrame, previewFrameHosts,
   attachClientFiles,
   listComments, createComment, resolveComment,

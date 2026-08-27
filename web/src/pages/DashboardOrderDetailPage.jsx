@@ -1,8 +1,9 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useParams } from "react-router-dom"
-import { ArrowLeft, Package, Loader2, AlertCircle, FileDown } from "lucide-react"
+import { ArrowLeft, Package, Loader2, AlertCircle, FileDown, CalendarClock, CreditCard } from "lucide-react"
 import { fetchMyOrderById } from "../services/orderService"
+import { createMercadoPagoPreference } from "../services/mercadoPagoService"
 import { authFetch, API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"
 import { triggerBrowserDownload } from "../services/downloadService"
@@ -136,6 +137,11 @@ export default function DashboardOrderDetailPage() {
         </div>
       </div>
 
+      {/* Tier 4 · manual invoice — pay online */}
+      {order.status === "pending" && order.invoice && (
+        <InvoicePayCard order={order} invoice={order.invoice} />
+      )}
+
       {/* Items */}
       <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e4)]">
         <h2 className="text-card font-bold text-violet">
@@ -191,5 +197,67 @@ export default function DashboardOrderDetailPage() {
         </div>
       </div>
     </section>
+  )
+}
+
+/* ── Tier 4 · invoice pay card ───────────────────────────────────────── */
+function InvoicePayCard({ order, invoice }) {
+  const { t, i18n } = useTranslation("dashboard")
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState("")
+  const overdue = invoice.status === "overdue"
+  const dueDate = invoice.dueDate
+    ? new Date(invoice.dueDate).toLocaleDateString(i18n.language, { year: "numeric", month: "short", day: "numeric" })
+    : null
+  const lateFee = Number(invoice.lateFeeAmount || 0)
+
+  const payWithMp = async () => {
+    setBusy(true); setErr("")
+    try {
+      const pref = await createMercadoPagoPreference(order.id)
+      const url = pref?.initPoint || pref?.sandboxPoint
+      if (!url) throw new Error(t("orders.invoice.payError"))
+      window.location.href = url
+    } catch (e) {
+      setErr(e?.message || t("orders.invoice.payError"))
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className={`rounded-xl border p-6 shadow-[var(--shadow-e4)] ${overdue ? "border-rose/30 bg-rose/5" : "border-violet/20 bg-violet-pale/30"}`}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="text-card font-bold text-violet">{t("orders.invoice.title", { number: invoice.invoiceNumber })}</h2>
+          <p className="mt-1 text-meta text-charcoal-80/75">{t("orders.invoice.body")}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-[11px]">
+            {dueDate && (
+              <span className={`inline-flex items-center gap-1 ${overdue ? "font-semibold text-rose-700" : "text-charcoal-80/65"}`}>
+                <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
+                {overdue ? t("orders.invoice.overdue", { date: dueDate }) : t("orders.invoice.dueOn", { date: dueDate })}
+              </span>
+            )}
+            {lateFee > 0 && (
+              <span className="text-rose-700">{t("orders.invoice.lateFee", { amount: formatPrice(lateFee, order.currency || "MXN") })}</span>
+            )}
+          </div>
+        </div>
+        <div className="shrink-0">
+          <button
+            type="button" onClick={payWithMp} disabled={busy}
+            className="inline-flex items-center gap-2 rounded-lg bg-violet px-4 py-2.5 text-meta font-semibold text-white transition hover:bg-violet/90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <CreditCard className="h-4 w-4" aria-hidden="true" />}
+            {t("orders.invoice.payMp")}
+          </button>
+        </div>
+      </div>
+      <p className="mt-3 text-micro text-charcoal-80/65">{t("orders.invoice.payHint")}</p>
+      {err && (
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-rose/30 bg-white px-3 py-2 text-meta text-rose-700" role="alert">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /> {err}
+        </div>
+      )}
+    </div>
   )
 }

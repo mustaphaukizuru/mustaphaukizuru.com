@@ -134,6 +134,19 @@
         "resolved": "Resuelto",
         "readOnly": "Este proyecto es de solo lectura; los mensajes nuevos están deshabilitados."
       },
+      "access": {
+        "suspendedTitle": "Proyecto en pausa — hay una factura vencida",
+        "suspendedBody": "La vista previa y los entregables quedan en espera hasta que se pague la factura pendiente. Ve a tus pedidos para liquidarla; el acceso se restablece automáticamente.",
+        "openOrders": "Ir a mis pedidos",
+        "handoverTitle": "Entrega completada",
+        "handoverBody": "Todo está pagado y entregado. Tus archivos finales están abajo — descárgalos y guárdalos en un lugar seguro.",
+        "locked": "En espera"
+      },
+      "handover": {
+        "title": "Entrega final",
+        "subtitle": "Entregables finales de este proyecto.",
+        "empty": "Aún no se han marcado entregables para la entrega final."
+      },
       "toast": {
         "approved": "Hito aprobado. ¡Gracias!",
         "changesRequested": "Tu solicitud de cambios fue enviada al equipo.",
@@ -154,6 +167,43 @@
       "failed": "No pudimos guardar tu reseña. Inténtalo de nuevo.",
       "doneTitle": "Gracias por tu reseña",
       "doneBody": "Calificaste este proyecto con {{rating}}/5."
+    },
+    "changeRequests": {
+      "title": "Solicitar trabajo adicional",
+      "subtitle": "¿Necesitas algo fuera del alcance original? Descríbelo, recibe una cotización y acéptala para añadir un hito pagado a este proyecto.",
+      "new": "Nueva solicitud",
+      "empty": "Aún no hay solicitudes de trabajo adicional.",
+      "readOnly": "Este proyecto está cerrado — no se admiten nuevas solicitudes.",
+      "form": {
+        "title": "¿Qué necesitas?",
+        "titlePlaceholder": "p. ej. Añadir una versión en inglés de la landing",
+        "description": "Detalles",
+        "descriptionPlaceholder": "Describe el resultado que esperas, referencias, plazos…",
+        "submit": "Enviar solicitud",
+        "cancel": "Cancelar",
+        "titleRequired": "Ponle un título corto a la solicitud.",
+        "descriptionRequired": "Describe el trabajo adicional que necesitas."
+      },
+      "status": {
+        "requested": "Esperando cotización",
+        "quoted": "Cotización lista",
+        "accepted": "Aceptada · pendiente de pago",
+        "declined": "Rechazada",
+        "done": "Hecho"
+      },
+      "quote": "Cotización: {{amount}}",
+      "quoteNote": "Notas del equipo",
+      "requestedOn": "Solicitada el {{date}}",
+      "quotedOn": "Cotizada el {{date}}",
+      "accept": "Aceptar y pagar",
+      "decline": "Rechazar",
+      "viewOrder": "Ver pedido",
+      "toast": {
+        "created": "Solicitud enviada. Te responderemos con una cotización.",
+        "accepted": "Cotización aceptada — completa el pago para iniciar el trabajo.",
+        "declined": "Cotización rechazada.",
+        "failed": "Algo salió mal. Inténtalo de nuevo."
+      }
     },
     "support": {
       "title": "Soporte",
@@ -529,6 +579,18 @@
       "cancelled": "Cancelado",
       "failed": "Fallido",
       "ariaLabel": "Pedido {{label}}"
+    },
+    "invoice": {
+      "due": "Vence {{date}}",
+      "overdue": "Vencida · vencía el {{date}}",
+      "paid": "Pagada {{date}}",
+      "title": "Factura {{number}}",
+      "body": "Esta factura se paga en línea. Al pagarla, el acceso a tu proyecto y los entregables se liberan automáticamente.",
+      "dueOn": "Vence el {{date}}",
+      "lateFee": "Recargo aplicado: {{amount}}",
+      "payMp": "Pagar con Mercado Pago",
+      "payHint": "¿Prefieres PayPal o transferencia? Responde al correo de la factura y lo arreglamos.",
+      "payError": "No se pudo iniciar el pago. Inténtalo de nuevo."
     },
     "table": {
       "title": "Todos los pedidos",

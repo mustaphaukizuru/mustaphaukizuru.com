@@ -1,5 +1,5 @@
 const prisma = require("../lib/prisma")
-const { validatePreviewUrl } = require("./projectPortalService")
+const { validatePreviewUrl, assertAccessStateChange } = require("./projectPortalService")
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  clientProjectService
@@ -37,6 +37,9 @@ const PROJECT_INCLUDE = {
     take:    50,
     select:  { id: true, ticketNumber: true, subject: true, status: true, priority: true, updatedAt: true, createdAt: true },
   },
+  // Tier 4 · extra-work requests (quotes are Decimal — serialised by the
+  // JSON layer; the change-request endpoints return numbers).
+  changeRequests: { orderBy: { createdAt: "desc" }, take: 100 },
   user:       { select: { id: true, fullName: true, email: true } },
   assignedAdmin: { select: { id: true, fullName: true, email: true } },
   serviceOrder: {
@@ -118,6 +121,9 @@ async function updateAdminProject(id, data) {
     if (v.length > 16) throw new Error("ndaVersion must be 16 characters or fewer")
     patch.ndaVersion = v || null
   }
+  // Tier 4 · kill switch / handover gate. Throws 409 UNPAID_INVOICES when
+  // moving to handover with an outstanding balance.
+  if ("accessState"     in data) patch.accessState     = await assertAccessStateChange(String(id), String(data.accessState || ""))
   if ("projectStatus"   in data) {
     if (!VALID_PROJECT_STATUSES.includes(data.projectStatus)) {
       throw new Error(`Invalid project status. Expected one of: ${VALID_PROJECT_STATUSES.join(", ")}`)

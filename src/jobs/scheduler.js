@@ -38,6 +38,7 @@ const { runEmailRetryPass } = require("./emailRetryJob")
 const { runBackupPass } = require("./backupDatabaseJob")
 const { runAbandonedCartPass } = require("./abandonedCartJob")
 const { runProjectPurgePass } = require("./projectPurgeJob")
+const { runInvoiceDunningPass } = require("./invoiceDunningJob")
 
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
@@ -155,6 +156,17 @@ function startScheduler() {
     logger.info("[scheduler] registered project file purge · 04:00 UTC")
   } catch (err) {
     logger.error("[scheduler] failed to register projectPurgeJob", err)
+  }
+  // ── Tier 4 · Invoice dunning · 08:00 UTC ────────────────────────────
+  // Manual invoices past their due date turn overdue (late fee recorded
+  // once, one email), paid orders reconcile their invoice, and projects
+  // with long-overdue balances are suspended / reinstated. Daily in the
+  // morning (Mexico) so the client reads the reminder during the day.
+  try {
+    cron.schedule("0 8 * * *", () => guarded("invoiceDunning", () => runInvoiceDunningPass()), { timezone: "UTC" })
+    logger.info("[scheduler] registered invoice dunning · 08:00 UTC")
+  } catch (err) {
+    logger.error("[scheduler] failed to register invoiceDunningJob", err)
   }
 }
 

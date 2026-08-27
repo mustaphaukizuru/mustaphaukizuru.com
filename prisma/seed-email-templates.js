@@ -534,6 +534,79 @@ const TEMPLATES = [
   },
 
   // 6 · Order refunded
+  // Tier 4 · manual invoice issued
+  {
+    key: "invoice.issued",
+    subject: "Invoice {{invoiceNumber}} — {{orderTotal}} due {{dueDate}}",
+    html: chrome({
+      preheader: "A new invoice is ready for you.",
+      eyebrow:   "Invoice",
+      bodyHtml:
+        heading(`Hi {{customerName}}, you have a new invoice.`) +
+        paragraph(`Invoice <strong>{{invoiceNumber}}</strong> for <strong>{{description}}</strong> is ready. The amount is <strong>{{orderTotal}}</strong>, due on <strong>{{dueDate}}</strong>.`) +
+        button("{{orderUrl}}", "View and pay invoice") +
+        calloutCard(`Pay online with Mercado Pago or PayPal from the link above. Invoices paid after the due date incur a late fee; questions or a different arrangement — just reply to this email.`),
+    }),
+    text: [
+      "Invoice {{invoiceNumber}} — {{orderTotal}} due {{dueDate}}",
+      "",
+      "Hi {{customerName}}, invoice {{invoiceNumber}} for {{description}}",
+      "is ready. Amount: {{orderTotal}}. Due: {{dueDate}}.",
+      "View and pay: {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // Tier 4 · invoice overdue (sent once by invoiceDunningJob)
+  {
+    key: "invoice.overdue",
+    subject: "Invoice {{invoiceNumber}} is overdue",
+    html: chrome({
+      preheader: "Your invoice was due {{dueDate}}.",
+      eyebrow:   "Payment reminder",
+      bodyHtml:
+        heading(`Invoice {{invoiceNumber}} is past due.`) +
+        paragraph(`Hi {{customerName}}, invoice <strong>{{invoiceNumber}}</strong> for <strong>{{orderTotal}}</strong> was due on <strong>{{dueDate}}</strong> and is still unpaid. A late fee of <strong>{{lateFee}}</strong> has been applied, bringing the balance to <strong>{{amountDue}}</strong>.`) +
+        button("{{orderUrl}}", "Pay now") +
+        calloutCard(`Project access is paused while a balance stays overdue, and deliverables are released once it is settled. Already paid? Ignore this message — it can take a few hours to reconcile.`),
+    }),
+    text: [
+      "Invoice {{invoiceNumber}} is overdue",
+      "",
+      "Hi {{customerName}}, invoice {{invoiceNumber}} for {{orderTotal}} was due",
+      "on {{dueDate}} and is still unpaid. Late fee applied: {{lateFee}}.",
+      "Balance: {{amountDue}}. Pay now: {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // Tier 4 · change request quoted
+  {
+    key: "project.change-request-quoted",
+    subject: "Quote ready: {{requestTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "Your extra-work request has been quoted.",
+      eyebrow:   "Quote ready",
+      bodyHtml:
+        heading(`Hi {{customerName}}, your quote is ready.`) +
+        paragraph(`We reviewed <strong>{{requestTitle}}</strong> on <strong>{{projectName}}</strong>. The extra work comes to <strong>{{quoteAmount}}</strong>.`) +
+        calloutCard(`<strong>Notes from the team:</strong><br/>{{quoteNote}}`) +
+        paragraph(`Accept the quote from the project page and you'll get a payable order right away — work on the new milestone starts once it's paid. You can also decline it; nothing changes on the project.`) +
+        button("{{dashboardUrl}}", "Review the quote"),
+    }),
+    text: [
+      "Quote ready: {{requestTitle}} — {{projectName}}",
+      "",
+      "Hi {{customerName}}, the extra work \"{{requestTitle}}\" comes to {{quoteAmount}}.",
+      "Notes: {{quoteNote}}",
+      "Accept or decline it here: {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   {
     key: "order.refunded",
     subject: "Refund processed — order {{orderNumber}}",
@@ -1315,6 +1388,79 @@ const TEMPLATES_ES = [
   },
 
   // order.refunded
+  // invoice.issued
+  {
+    key: "invoice.issued",
+    subject: "Factura {{invoiceNumber}} — {{orderTotal}} vence el {{dueDate}}",
+    html: chrome({
+      preheader: "Tienes una nueva factura lista.",
+      eyebrow:   "Factura",
+      bodyHtml:
+        heading(`Hola {{customerName}}, tienes una nueva factura.`) +
+        paragraph(`La factura <strong>{{invoiceNumber}}</strong> por <strong>{{description}}</strong> ya está lista. El importe es <strong>{{orderTotal}}</strong> y vence el <strong>{{dueDate}}</strong>.`) +
+        button("{{orderUrl}}", "Ver y pagar factura") +
+        calloutCard(`Paga en línea con Mercado Pago o PayPal desde el enlace de arriba. Las facturas pagadas después de la fecha de vencimiento generan un recargo; si tienes dudas o necesitas otro arreglo, responde a este correo.`),
+    }),
+    text: [
+      "Factura {{invoiceNumber}} — {{orderTotal}} vence el {{dueDate}}",
+      "",
+      "Hola {{customerName}}, la factura {{invoiceNumber}} por {{description}}",
+      "ya está lista. Importe: {{orderTotal}}. Vence: {{dueDate}}.",
+      "Ver y pagar: {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // invoice.overdue
+  {
+    key: "invoice.overdue",
+    subject: "La factura {{invoiceNumber}} está vencida",
+    html: chrome({
+      preheader: "Tu factura venció el {{dueDate}}.",
+      eyebrow:   "Recordatorio de pago",
+      bodyHtml:
+        heading(`La factura {{invoiceNumber}} está vencida.`) +
+        paragraph(`Hola {{customerName}}, la factura <strong>{{invoiceNumber}}</strong> por <strong>{{orderTotal}}</strong> venció el <strong>{{dueDate}}</strong> y sigue pendiente. Se aplicó un recargo de <strong>{{lateFee}}</strong>, por lo que el saldo es <strong>{{amountDue}}</strong>.`) +
+        button("{{orderUrl}}", "Pagar ahora") +
+        calloutCard(`El acceso al proyecto se pausa mientras haya un saldo vencido y los entregables se liberan al liquidarlo. ¿Ya pagaste? Ignora este mensaje — la conciliación puede tardar unas horas.`),
+    }),
+    text: [
+      "La factura {{invoiceNumber}} está vencida",
+      "",
+      "Hola {{customerName}}, la factura {{invoiceNumber}} por {{orderTotal}} venció",
+      "el {{dueDate}} y sigue pendiente. Recargo aplicado: {{lateFee}}.",
+      "Saldo: {{amountDue}}. Pagar ahora: {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.change-request-quoted
+  {
+    key: "project.change-request-quoted",
+    subject: "Cotización lista: {{requestTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "Tu solicitud de trabajo adicional ya tiene cotización.",
+      eyebrow:   "Cotización lista",
+      bodyHtml:
+        heading(`Hola {{customerName}}, tu cotización está lista.`) +
+        paragraph(`Revisamos <strong>{{requestTitle}}</strong> en <strong>{{projectName}}</strong>. El trabajo adicional tiene un costo de <strong>{{quoteAmount}}</strong>.`) +
+        calloutCard(`<strong>Notas del equipo:</strong><br/>{{quoteNote}}`) +
+        paragraph(`Acepta la cotización desde la página del proyecto y recibirás un pedido listo para pagar; el trabajo en el nuevo hito empieza al confirmarse el pago. También puedes rechazarla; el proyecto no cambia.`) +
+        button("{{dashboardUrl}}", "Revisar la cotización"),
+    }),
+    text: [
+      "Cotización lista: {{requestTitle}} — {{projectName}}",
+      "",
+      "Hola {{customerName}}, el trabajo adicional \"{{requestTitle}}\" cuesta {{quoteAmount}}.",
+      "Notas: {{quoteNote}}",
+      "Acéptala o recházala aquí: {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   {
     key: "order.refunded",
     subject: "Reembolso procesado — pedido {{orderNumber}}",

@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import {
-  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2,
-  AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare,
-  Link2, Copy, BookOpen,
+  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2, AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare, Link2, Copy, BookOpen,
 } from "lucide-react"
 import {
   fetchAdminProject, updateAdminProject, createAdminProject, createAdminPortalLink, createAdminCaseStudyDraft,
   createMilestone, updateMilestone, deleteMilestone,
   uploadProjectFile, deleteProjectFile,
   postAdminProjectComment, toggleAdminCommentResolved,
+  quoteChangeRequest, completeChangeRequest,
 } from "../services/clientProjectService"
 import { useToast } from "../context/ToastContext"
 import { SkeletonCard, Checkbox } from "../components/ui/index"
@@ -18,6 +17,11 @@ import { API_BASE_URL } from "../lib/api"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 
 const PROJECT_STATUSES = ["planning", "in_progress", "review", "completed", "cancelled"]
+const ACCESS_STATES = [
+  { value: "active",    label: "Active — full client access" },
+  { value: "suspended", label: "Suspended — preview hidden, deliverables on hold (402)" },
+  { value: "handover",  label: "Handover — final deliverables released (requires zero balance)" },
+]
 const MILESTONE_STATUSES = [
   { value: "pending",         label: "Pending" },
   { value: "in_progress",     label: "In progress" },
@@ -53,7 +57,7 @@ export default function AdminClientProjectDetailPage() {
     serviceOrderId: "", userId: "", projectName: "",
     description: "", projectStatus: "planning",
     startDate: "", dueDate: "", previewUrl: "",
-    requiresNda: false, ndaVersion: "",
+    requiresNda: false, ndaVersion: "", accessState: "active",
   })
 
   // Tier 4 · magic-link portal
@@ -114,6 +118,7 @@ export default function AdminClientProjectDetailPage() {
         previewUrl: data.previewUrl || "",
         requiresNda: Boolean(data.requiresNda),
         ndaVersion: data.ndaVersion || "",
+        accessState: data.accessState || "active",
       })
     } catch (err) {
       console.error("[ClientProject] load failed:", err)
@@ -258,6 +263,18 @@ export default function AdminClientProjectDetailPage() {
           <Field label="Due date">
             <Input type="date" value={form.dueDate} onChange={(v) => setForm({ ...form, dueDate: v })} />
           </Field>
+          {!isNew && (
+            <div className="md:col-span-2">
+              <Field label="Client access (kill switch / handover)">
+                <select value={form.accessState} onChange={(e) => setForm({ ...form, accessState: e.target.value })} className={SELECT_CLASS}>
+                  {ACCESS_STATES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+                <p className="mt-1 text-[11px] text-charcoal-80/65">
+                  The nightly dunning job suspends a project whose invoice has been overdue longer than the grace period and reinstates it once paid. Handover is refused (409) while any invoice is unpaid.
+                </p>
+              </Field>
+            </div>
+          )}
           <div className="md:col-span-2">
             <Field label="Preview URL">
               <Input type="url" value={form.previewUrl} onChange={(v) => setForm({ ...form, previewUrl: v })} placeholder="https://staging.example.com — shown to the client as a live preview" />
@@ -519,6 +536,33 @@ export default function AdminClientProjectDetailPage() {
         </div>
       )}
 
+      {/* Tier 4 · change requests (client-initiated extra work) */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">Change requests</h2>
+          <p className="mt-0.5 text-meta text-charcoal-80/65">
+            Extra work the client asked for. Send a quote — the client is emailed and can accept it (creates a payable order + a milestone) or decline it.
+          </p>
+          <div className="mt-4 space-y-3">
+            {(project.changeRequests || []).length === 0 ? (
+              <div className="rounded-xl border border-dashed border-charcoal-80/15 px-4 py-6 text-center text-meta text-charcoal-80/65">No change requests yet.</div>
+            ) : (project.changeRequests || []).map((cr) => (
+              <ChangeRequestRow
+                key={cr.id} cr={cr} currency={project.serviceOrder?.order?.currency || "MXN"}
+                onQuote={async (payload) => {
+                  try { await quoteChangeRequest(id, cr.id, payload); showSuccess("Quote sent to the client"); load() }
+                  catch (err) { showError(err.message || "Could not send quote") }
+                }}
+                onDone={async () => {
+                  try { await completeChangeRequest(id, cr.id); showSuccess("Marked done"); load() }
+                  catch (err) { showError(err.message || "Could not update") }
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Project thread */}
       {!isNew && project && (
         <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
@@ -535,6 +579,68 @@ export default function AdminClientProjectDetailPage() {
         </div>
       )}
     </section>
+  )
+}
+
+/* ── Tier 4 · change request row ─────────────────────────────────────── */
+const CR_STATUS_LABEL = { requested: "Awaiting quote", quoted: "Quoted", accepted: "Accepted · awaiting payment", declined: "Declined", done: "Done" }
+const CR_STATUS_PILL  = { requested: "pending", quoted: "processing", accepted: "active", declined: "inactive", done: "completed" }
+
+function ChangeRequestRow({ cr, currency, onQuote, onDone }) {
+  const [amount, setAmount] = useState(cr.quoteAmount != null ? String(cr.quoteAmount) : "")
+  const [note, setNote] = useState(cr.quoteNote || "")
+  const [busy, setBusy] = useState(false)
+  const open = cr.status === "requested" || cr.status === "quoted"
+  const send = async () => {
+    if (!(Number(amount) > 0)) return
+    setBusy(true)
+    try { await onQuote({ amount: Number(amount), note, currency: cr.quoteCurrency || currency }) } finally { setBusy(false) }
+  }
+  return (
+    <div className={`rounded-xl border p-4 ${cr.status === "requested" ? "border-amber-300/60" : "border-charcoal-80/10"}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="text-meta font-semibold text-charcoal-80">{cr.title}</h3>
+        <StatusPill status={CR_STATUS_PILL[cr.status] || "pending"} label={CR_STATUS_LABEL[cr.status] || cr.status} />
+        <span className="font-mono text-[11px] text-charcoal-80/65">{fmtWhen(cr.createdAt)}</span>
+        {cr.quoteAmount != null && (
+          <span className="font-mono text-[11px] font-semibold text-violet">
+            {Number(cr.quoteAmount).toFixed(2)} {cr.quoteCurrency || currency}
+          </span>
+        )}
+      </div>
+      <p className="mt-1 whitespace-pre-wrap text-micro text-charcoal-80/75">{cr.description}</p>
+      {cr.orderId && (
+        <Link to={`/admin/orders/${cr.orderId}`} className="mt-2 inline-block text-micro font-semibold text-violet hover:underline">Open order →</Link>
+      )}
+      {open && (
+        <div className="mt-3 grid gap-3 md:grid-cols-[160px_1fr_auto] md:items-end">
+          <Field label={`Quote (${cr.quoteCurrency || currency})`} required>
+            <Input type="number" value={amount} onChange={setAmount} placeholder="0.00" />
+          </Field>
+          <Field label="Note to the client">
+            <textarea
+              rows={2} value={note} onChange={(e) => setNote(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-charcoal focus:border-violet focus:outline-none focus:ring-[3px] focus:ring-azure/30"
+            />
+          </Field>
+          <button
+            type="button" onClick={send} disabled={busy || !(Number(amount) > 0)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-violet px-4 py-2.5 text-meta font-semibold text-white transition hover:bg-violet/90 disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {cr.status === "quoted" ? "Re-send quote" : "Send quote"}
+          </button>
+        </div>
+      )}
+      {cr.status === "accepted" && (
+        <button
+          type="button" onClick={onDone}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-mint/30 bg-white px-3 py-1.5 text-micro font-semibold text-mint-700 hover:bg-mint/10"
+        >
+          <Check className="h-3.5 w-3.5" /> Mark done
+        </button>
+      )}
+    </div>
   )
 }
 

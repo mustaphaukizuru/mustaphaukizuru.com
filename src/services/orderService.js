@@ -64,10 +64,26 @@ function serializeOrderItem(item) {
   }
 }
 
+function serializeInvoice(inv) {
+  if (!inv) return null
+  return {
+    id:            inv.id,
+    invoiceNumber: inv.invoiceNumber,
+    status:        inv.status || "paid",
+    issuedAt:      inv.issuedAt,
+    dueDate:       inv.dueDate || null,
+    paidAt:        inv.paidAt || null,
+    lateFeeAmount: safeNumber(inv.lateFeeAmount),
+  }
+}
+
 function serializeOrder(order) {
   if (!order) return null
+  const { invoices, ...rest } = order
   return {
-    ...order,
+    ...rest,
+    // Tier 4 · due / overdue chip on the member orders page.
+    invoice: Array.isArray(invoices) ? serializeInvoice(invoices[0]) : undefined,
     subtotalAmount: safeNumber(order.subtotalAmount),
     discountAmount: safeNumber(order.discountAmount),
     serviceFeeAmount: safeNumber(order.serviceFeeAmount),
@@ -342,6 +358,11 @@ async function getOrdersByUserId(userId) {
           },
         },
       },
+      invoices: {
+        orderBy: { issuedAt: "desc" },
+        take: 1,
+        select: { id: true, invoiceNumber: true, status: true, issuedAt: true, dueDate: true, paidAt: true, lateFeeAmount: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   })
@@ -548,9 +569,9 @@ async function getEnrichedOrderById(id) {
 
   const base = serializeOrder(order)
 
-  // Strip payments/invoices raw from the base so clients consume our named fields
+  // Strip payments raw from the base so clients consume our named fields
+  // (serializeOrder already folded `invoices` into `invoice`).
   delete base.payments
-  delete base.invoices
 
   return {
     ...base,

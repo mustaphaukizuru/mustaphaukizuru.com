@@ -169,6 +169,14 @@ async function autoCreateClientProjectsForOrder(orderId, userId) {
   if (!orderId || !userId) return 0
   let created = 0
   try {
+    // Tier 4 · an order born from an accepted change request belongs to an
+    // EXISTING project (the quote's milestone already lives there) — never
+    // open a second workspace for it.
+    const fromChangeRequest = await prisma.changeRequest
+      .findFirst({ where: { orderId }, select: { id: true } })
+      .catch(() => null)
+    if (fromChangeRequest) return 0
+
     const serviceOrders = await prisma.serviceOrder.findMany({
       where:   { orderId },
       include: { service: { select: { id: true, title: true } } },
