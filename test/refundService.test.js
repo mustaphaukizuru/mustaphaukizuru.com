@@ -28,8 +28,10 @@ jest.mock("../src/lib/prisma", () => {
       findUnique: jest.fn(),
     },
     refund: {
-      findMany: jest.fn(),
-      count:    jest.fn(),
+      findMany:  jest.fn(),
+      findFirst: jest.fn(),
+      update:    jest.fn(),
+      count:     jest.fn(),
     },
     // $transaction(callback) — invoke with our `tx` mock so the orchestrator's
     // tx.<model>.<method> calls are captured for assertions.
@@ -236,6 +238,8 @@ describe("processOrderRefund — happy paths", () => {
       amount:       100,
       reason:       "Customer service exception",
       refundStatus: "succeeded",
+      // Tier 4 · provider refund id is the idempotency anchor for webhooks
+      gatewayRefundId: "PAYPAL-REFUND-1",
     })
 
     expect(prisma.__tx.payment.update).toHaveBeenCalledWith(
@@ -490,5 +494,75 @@ describe("processOrderRefund — input validation", () => {
   test("requires adminUserId", async () => {
     await expect(processOrderRefund({ orderId: "order_1" }))
       .rejects.toMatchObject({ code: "VALIDATION" })
+  })
+})
+
+/* ──────────────── recordExternalRefund — webhook idempotency (Tier 4) ──── */
+
+describe("recordExternalRefund", () => {
+  const { recordExternalRefund } = require("../src/services/refundService")
+  const input = { paymentId: "pay_1", orderId: "order_1", amount: 100, gatewayRefundId: "PP-R-1", reason: "PayPal webhook refund" }
+
+  beforeEach(() => {
+    prisma.refund.findFirst.mockReset()
+    prisma.refund.update.mockReset().mockResolvedValue({})
+    prisma.$transaction.mockClear()
+  })
+
+  test("matches on gatewayRefundId first → no writes", async () => {
+    prisma.refund.findFirst.mockResolvedValueOnce({ id: "r_existing" })
+    const r = await recordExternalRefund(input)
+    expect(r).toEqual({ created: false, matchedBy: "gatewayRefundId", refundId: "r_existing", revokedDownloads: 0 })
+    expect(prisma.refund.findFirst.mock.calls[0][0].where).toEqual({ paymentId: "pay_1", gatewayRefundId: "PP-R-1" })
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
+  test("falls back to an amount match and backfills the provider id on a legacy row", async () => {
+    prisma.refund.findFirst
+      .mockResolvedValueOnce(null)                                   // by id
+      .mockResolvedValueOnce({ id: "r_legacy", gatewayRefundId: null }) // by amount
+    const r = await recordExternalRefund(input)
+    expect(r).toMatchObject({ created: false, matchedBy: "amount", refundId: "r_legacy" })
+    expect(prisma.refund.findFirst.mock.calls[1][0].where).toEqual({
+      paymentId: "pay_1", amount: 100, refundStatus: { in: ["approved", "processing", "succeeded"] },
+    })
+    expect(prisma.refund.update).toHaveBeenCalledWith({ where: { id: "r_legacy" }, data: { gatewayRefundId: "PP-R-1" } })
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
+  test("out-of-band refund: writes the Refund row, flips Payment + Order to refunded and revokes entitlements", async () => {
+    prisma.refund.findFirst.mockResolvedValue(null)
+    prisma.$transaction.mockImplementationOnce(async (cb) => {
+      const tx = prisma.__tx
+      tx.refund.create.mockResolvedValue({ id: "r_new", processedAt: new Date() })
+      tx.userDownload.updateMany.mockResolvedValue({ count: 3 })
+      return cb(tx)
+    })
+    const r = await recordExternalRefund(input)
+    expect(r).toEqual({ created: true, matchedBy: null, refundId: "r_new", revokedDownloads: 3 })
+    expect(prisma.__tx.refund.create.mock.calls[0][0].data).toMatchObject({
+      paymentId: "pay_1", orderId: "order_1", amount: 100, refundStatus: "succeeded", gatewayRefundId: "PP-R-1", reason: "PayPal webhook refund",
+    })
+    expect(prisma.__tx.payment.update).toHaveBeenCalledWith({ where: { id: "pay_1" }, data: { paymentStatus: "refunded" } })
+    expect(prisma.__tx.order.update).toHaveBeenCalledWith({ where: { id: "order_1" }, data: { status: "refunded" } })
+    expect(prisma.__tx.userDownload.updateMany).toHaveBeenCalledWith({
+      where: { orderId: "order_1", downloadAccessStatus: "active" },
+      data:  { downloadAccessStatus: "revoked" },
+    })
+  })
+
+  test("a racing duplicate (P2002 on refund_gateway_uq) is reported as already recorded", async () => {
+    prisma.refund.findFirst
+      .mockResolvedValueOnce(null).mockResolvedValueOnce(null)   // pre-checks
+      .mockResolvedValueOnce({ id: "r_race" })                    // post-P2002 lookup
+    prisma.$transaction.mockImplementationOnce(async () => { const e = new Error("dup"); e.code = "P2002"; throw e })
+    const r = await recordExternalRefund(input)
+    expect(r).toEqual({ created: false, matchedBy: "gatewayRefundId", refundId: "r_race", revokedDownloads: 0 })
+  })
+
+  test("rejects a non-positive amount when nothing matches", async () => {
+    prisma.refund.findFirst.mockResolvedValue(null)
+    await expect(recordExternalRefund({ ...input, amount: 0 })).rejects.toMatchObject({ code: "INVALID_AMOUNT" })
+    expect(prisma.$transaction).not.toHaveBeenCalled()
   })
 })

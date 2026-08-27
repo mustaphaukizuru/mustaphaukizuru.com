@@ -20,7 +20,7 @@ const { generateReceiptPdf } = require("../services/receiptPdfService")
 const { transitionOrderPayment } = require("../services/paymentTransitionService")
 // M15+M19 — refund orchestrator (Option A enforcement, audit logging,
 // download revocation, email/notification side effects).
-const { processOrderRefund } = require("../services/refundService")
+const { processOrderRefund, recordExternalRefund } = require("../services/refundService")
 
 /**
  * PayPal controller · V2
@@ -269,40 +269,23 @@ const webhook = async (req, res) => {
         select: { id: true, orderId: true, userId: true },
       })
       if (payment) {
-        // For refund events, also persist a local Refund row so out-of-band
-        // PayPal-dashboard refunds are reflected in our order history.
-        //
-        // Idempotency · the Refund model has no `gatewayRefundId` column
-        // yet, so we can't unique-index against PayPal's refund id. The
-        // previous implementation overrode Refund.id with the PayPal refund
-        // id, which collided with the cuid-keyed rows the admin refund path
-        // creates — so the webhook produced duplicate rows whenever an
-        // admin had already triggered the refund.
-        // Use a (paymentId, amount, status) match to detect prior writes
-        // (covers both the admin path and our own webhook retries).
+        // Refund events · Tier 4 idempotency. resource.id is PayPal's refund
+        // id: recordExternalRefund matches on Refund.gatewayRefundId first
+        // (the admin path stores it; so does an earlier delivery of this
+        // webhook), falls back to an amount match for legacy rows, and only
+        // for a genuinely out-of-band refund (PayPal dashboard) writes the
+        // Refund row AND flips Payment/Order to refunded + revokes every
+        // UserDownload entitlement — same writes as the admin path.
         if (eventType === "PAYMENT.CAPTURE.REFUNDED") {
           const refundAmount = Number(resource?.amount?.value || 0)
           if (refundAmount > 0) {
-            const existing = await prisma.refund.findFirst({
-              where: {
-                paymentId:    payment.id,
-                amount:       refundAmount,
-                refundStatus: { in: ["approved", "processing", "succeeded"] },
-              },
-              select: { id: true },
-            })
-            if (!existing) {
-              await prisma.refund.create({
-                data: {
-                  paymentId:    payment.id,
-                  orderId:      payment.orderId,
-                  amount:       refundAmount,
-                  reason:       "PayPal webhook refund",
-                  refundStatus: "succeeded",
-                  processedAt:  new Date(),
-                },
-              }).catch((e) => logger.warn("[PayPal webhook refund create]", e.message))
-            }
+            await recordExternalRefund({
+              paymentId:       payment.id,
+              orderId:         payment.orderId,
+              amount:          refundAmount,
+              gatewayRefundId: resource?.id || null,
+              reason:          "PayPal webhook refund",
+            }).catch((e) => logger.warn("[PayPal webhook refund record]", e.message))
           }
         }
         await recordOrderEvent({

@@ -1116,12 +1116,17 @@ model Refund {
   amount       Decimal      @db.Decimal(12, 2)
   reason       String?      @db.Text
   refundStatus RefundStatus
+  /// Tier 4 idempotency anchor: the provider's refund id (PayPal refund id,
+  /// Mercado Pago refund id). Webhooks match on it before falling back to
+  /// an amount match; the unique below makes a replayed webhook a no-op.
+  gatewayRefundId String?   @db.VarChar(128)
   processedAt  DateTime?
   createdAt    DateTime     @default(now())
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
+  @@unique([paymentId, gatewayRefundId], name: "refund_gateway_uq")
   @@index([paymentId])
   @@index([orderId])
 }
