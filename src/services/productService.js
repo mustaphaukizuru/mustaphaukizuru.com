@@ -127,13 +127,6 @@ function serializeProduct(product) {
       }
     : null
 
-  const tags = Array.isArray(product.tags)
-    ? product.tags
-        .map((t) => t.tag)
-        .filter(Boolean)
-        .map((t) => ({ id: t.id, name: t.name, slug: t.slug }))
-    : []
-
   return {
     ...product,
     price:          safeNum(product.price),
@@ -144,7 +137,6 @@ function serializeProduct(product) {
     features,
     files,
     reviews,
-    tags,
     licenses,
     categoryRef:    categoryObject,
     fileType:       primaryFile?.fileType || product.fileType || null,
@@ -247,7 +239,6 @@ async function getProductBySlug(slug, locale = "en") {
       files:       { orderBy: { isPrimary: "desc" } },
       licenses:    { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
       categoryRef: { select: { id: true, name: true, slug: true } },
-      tags:        { include: { tag: { select: { id: true, name: true, slug: true } } } },
       reviews: {
         orderBy: { createdAt: "desc" },
         take: 20,
@@ -411,7 +402,6 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
             { title:            { contains: trimmed } },
             { shortDescription: { contains: trimmed } },
             { category:         { contains: trimmed } },
-            { tags:             { some: { tag: { name: { contains: trimmed } } } } },
             { categoryRef:      { name: { contains: trimmed } } },
           ],
         },
@@ -422,7 +412,6 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
       features:    { orderBy: { sortOrder: "asc" }, take: 3 },
       files:       { orderBy: { isPrimary: "desc" }, take: 1, select: { id: true, fileName: true, fileType: true, fileSize: true, isPrimary: true, version: true } },
       categoryRef: { select: { id: true, name: true, slug: true } },
-      tags:        { include: { tag: { select: { id: true, name: true, slug: true } } } },
     },
     take: SEARCH_CANDIDATE_CAP,
   })
@@ -432,7 +421,6 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
     let score = 0
     if (p.title?.toLowerCase().includes(needle))            score += 3
     if (p.shortDescription?.toLowerCase().includes(needle)) score += 2
-    if (p.tags?.some((tm) => tm.tag?.name?.toLowerCase().includes(needle))) score += 1
     if (p.category?.toLowerCase().includes(needle))         score += 1
     if (p.categoryRef?.name?.toLowerCase().includes(needle)) score += 1
     return { p, score }
@@ -466,7 +454,7 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function getProductsByCategory(categorySlug, opts = {}) {
-  const { page = 1, limit = 12, sort = "newest", tag } = opts
+  const { page = 1, limit = 12, sort = "newest" } = opts
 
   const safePage  = Math.max(1, Number(page) || 1)
   const safeLimit = Math.min(48, Math.max(1, Number(limit) || 12))
@@ -495,8 +483,6 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     category = { id: null, name: match.category, slug: categorySlug, description: null, isActive: true }
   }
 
-  if (tag) where.tags = { some: { tag: { slug: tag } } }
-
   const orderBy = resolveOrderBy(safeSort)
 
   const [items, total] = await Promise.all([
@@ -520,7 +506,6 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     items:      items.map(serializeProduct),
     pagination: buildPagination(safePage, safeLimit, total),
     sort:       safeSort,
-    tag:        tag || null,
   }
 }
 

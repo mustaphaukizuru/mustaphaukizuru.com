@@ -8,7 +8,7 @@ import {
 import { Link } from "react-router-dom"
 import { m } from "framer-motion"
 import { useCart } from "../store/CartContext"
-import { fetchProducts, fetchFeaturedProducts } from "../services/productService"
+import { fetchProducts, fetchFeaturedProducts, fetchCategories } from "../services/productService"
 import StoreHero from "../components/heroes/StoreHero"
 import { API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"
@@ -45,21 +45,40 @@ import StaggerGrid from "../components/motion/StaggerGrid"
  *    - fetchProducts API call (B02)
  *  ──────────────────────────────────────────────────────────────────── */
 
+// CATEGORY PRESENTATION — T3 · the list itself comes from the API
+// (GET /api/products/categories = distinct active `Product.category`
+// values). This map only decorates the names we know with an i18n label,
+// icon and colour; anything new the admin creates still shows up, using the
+// raw name and a neutral icon. "All" is always first.
 // ─────────────────────────────────────────────────────────────────────────────
-// CANONICAL CATEGORY DEFINITIONS — exactly 6 store categories
-// ─────────────────────────────────────────────────────────────────────────────
-// Brand v3 §05 — category chip palette uses sanctioned feedback tiers
-// (info = azure, warning = amber, success = mint) plus brand anchor
-// (violet). Mirrors AdminCategoriesPage's VISUAL_STYLES exactly so admin
-// preview and public store render with identical tone language.
-const CATEGORIES = [
-  { labelKey: "categories.all",          value: "",                              icon: Sparkles,     color: "bg-violet-pale text-violet" },
-  { labelKey: "categories.templates",    value: "Templates",                     icon: BookOpen,     color: "bg-azure-pale text-azure" },
-  { labelKey: "categories.itToolkits",   value: "Digital & IT Toolkits",         icon: Cpu,          color: "bg-amber/12 text-amber-700" },
-  { labelKey: "categories.csResources",  value: "Computer Science Resources",    icon: FlaskConical, color: "bg-mint/12 text-emerald-700" },
-  { labelKey: "categories.stemRobotics", value: "STEM & Robotics Kits",          icon: Wrench,       color: "bg-terracotta/20 text-charcoal" },
-  { labelKey: "categories.businessRes",  value: "Digital Business Resources",    icon: Briefcase,    color: "bg-azure/10 text-azure" },
-]
+const ALL_CATEGORY = { labelKey: "categories.all", value: "", icon: Sparkles, color: "bg-violet-pale text-violet" }
+
+const CATEGORY_PRESETS = {
+  "Templates":                    { labelKey: "categories.templates",    icon: BookOpen,     color: "bg-azure-pale text-azure" },
+  "Digital & IT Toolkits":        { labelKey: "categories.itToolkits",   icon: Cpu,          color: "bg-amber/12 text-amber-700" },
+  "Computer Science Resources":   { labelKey: "categories.csResources",  icon: FlaskConical, color: "bg-mint/12 text-emerald-700" },
+  "STEM & Robotics Kits":         { labelKey: "categories.stemRobotics", icon: Wrench,       color: "bg-terracotta/20 text-charcoal" },
+  "Digital Business Resources":   { labelKey: "categories.businessRes",  icon: Briefcase,    color: "bg-azure/10 text-azure" },
+}
+
+function buildCategoryList(names) {
+  const seen = new Set()
+  const items = []
+  for (const raw of Array.isArray(names) ? names : []) {
+    const name = String(raw || "").trim()
+    if (!name || seen.has(name)) continue
+    seen.add(name)
+    const preset = CATEGORY_PRESETS[name]
+    items.push({
+      value: name,
+      labelKey: preset?.labelKey || null,
+      label: name,
+      icon: preset?.icon || Package,
+      color: preset?.color || "bg-mist text-charcoal-80/75",
+    })
+  }
+  return [ALL_CATEGORY, ...items]
+}
 
 const SORT_OPTIONS = [
   { labelKey: "sortOptions.priceLow",  value: "price-low" },
@@ -97,7 +116,7 @@ function getFileTypeChips(product) {
 // ─────────────────────────────────────────────────────────────────────────────
 // TOOLBAR — F05.B · refined focus rings, consistent sizing
 // ─────────────────────────────────────────────────────────────────────────────
-function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, sort, setSort, viewMode, setViewMode, total, onReset }) {
+function StoreToolbar({ search, setSearch, categories, activeCategory, setActiveCategory, sort, setSort, viewMode, setViewMode, total, onReset }) {
   const { t } = useTranslation("store")
   const hasFilters = activeCategory !== "" || search.trim() || sort !== "price-low"
 
@@ -158,7 +177,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
           {t("toolbar.categoryHeader")}
         </h3>
         <div className="flex flex-col gap-1">
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const active = activeCategory === cat.value
             return (
               <button
@@ -172,7 +191,7 @@ function StoreToolbar({ search, setSearch, activeCategory, setActiveCategory, so
                     : "text-charcoal-80/75 hover:bg-violet-pale hover:text-violet"
                 }`}
               >
-                <span>{t(cat.labelKey)}</span>
+                <span>{cat.labelKey ? t(cat.labelKey) : cat.label}</span>
                 {active && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
               </button>
             )
@@ -553,6 +572,8 @@ export default function Store() {
   const { t } = useTranslation("store")
   const [products, setProducts] = useState([])
   const [featuredProducts, setFeaturedProducts] = useState([])
+  // T3 · categories come from the API; "All" is always present
+  const [categories, setCategories] = useState(() => buildCategoryList([]))
   const [activeCategory, setCategory] = useState("")
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState("price-low")
@@ -563,6 +584,14 @@ export default function Store() {
 
   // Reset page when filters change
   useEffect(() => { setPage(1) }, [activeCategory, search, sort])
+
+  useEffect(() => {
+    let cancelled = false
+    fetchCategories()
+      .then((names) => { if (!cancelled) setCategories(buildCategoryList(names)) })
+      .catch(() => { /* keep "All" only — the listing still works unfiltered */ })
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -636,6 +665,7 @@ export default function Store() {
         <div className="grid gap-6 lg:grid-cols-[280px_1fr] lg:gap-8">
           <StoreToolbar
             search={search} setSearch={setSearch}
+            categories={categories}
             activeCategory={activeCategory} setActiveCategory={setCategory}
             sort={sort} setSort={setSort}
             viewMode={viewMode} setViewMode={setViewMode}

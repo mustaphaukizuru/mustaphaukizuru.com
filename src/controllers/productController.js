@@ -125,7 +125,7 @@ const searchProducts = asyncHandler(async (req, res) => {
 })
 
 /**
- * GET /api/products/categories/:categorySlug?sort=&page=&limit=&tag=
+ * GET /api/products/categories/:categorySlug?sort=&page=&limit=
  * Category-filtered catalog with sort + pagination.
  */
 const getByCategory = asyncHandler(async (req, res) => {
@@ -146,7 +146,6 @@ const getByCategory = asyncHandler(async (req, res) => {
     page:  pageParsed.value,
     limit: limitParsed.value,
     sort:  sortParsed.value,
-    tag:   req.query.tag || undefined,
   })
 
   if (!result) return notFound(res, "Category not found")
@@ -156,7 +155,6 @@ const getByCategory = asyncHandler(async (req, res) => {
     category:   result.category,
     pagination: result.pagination,
     sort:       result.sort,
-    tag:        result.tag,
   })
 })
 
