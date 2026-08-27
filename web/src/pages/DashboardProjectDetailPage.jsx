@@ -179,6 +179,7 @@ export default function DashboardProjectDetailPage() {
           project={project}
           onAccepted={() => { showSuccess(tLegal("nda.accepted")); refetch() }}
         />
+      )}
       {suspended && (
         <InlineBanner tone="danger" icon={ShieldAlert} title={t("projects.detail.access.suspendedTitle")}>
           <p>{t("projects.detail.access.suspendedBody")}</p>

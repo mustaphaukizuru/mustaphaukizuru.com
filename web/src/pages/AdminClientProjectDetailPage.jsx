@@ -57,8 +57,7 @@ export default function AdminClientProjectDetailPage() {
     serviceOrderId: "", userId: "", projectName: "",
     description: "", projectStatus: "planning",
     startDate: "", dueDate: "", previewUrl: "",
-    requiresNda: false, ndaVersion: "",
-    startDate: "", dueDate: "", previewUrl: "", accessState: "active",
+    requiresNda: false, ndaVersion: "", accessState: "active",
   })
 
   // Tier 4 · magic-link portal
