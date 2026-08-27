@@ -14,7 +14,7 @@
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 
-const DEFAULT_HOURS = 24
+const DEFAULT_HOURS = Number(process.env.STALE_ORDER_HOURS || 24) // kept in sync with the Mercado Pago preference TTL
 const BATCH = 500
 
 async function cancelStaleOrders({ hours = DEFAULT_HOURS, dryRun = false } = {}) {

@@ -222,7 +222,11 @@ router.use("/v1", v1)
 // (the request became "" inside the sub-router). Keeping the comment so we
 // don't reintroduce the same mount.
 router.use("/health",                 healthRoutes)
-router.use("/mercadopago/webhook",    mercadoPagoRoutes)       // narrow exempt
+// Mercado Pago's narrow mount was removed for the same reason AND because
+// mounting the whole router under "/mercadopago/webhook" exposed
+// /api/mercadopago/webhook/refund + /create-preference on a path the CSRF
+// guard treats as a webhook. The webhook itself is served by the
+// deprecated parent mount below (inner "/webhook") and by /api/v1.
 
 // Public (deprecated) — order matters: webhook subroutes already mounted above
 //

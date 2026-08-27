@@ -66,7 +66,7 @@ function decimalToNumber(value) {
  */
 function verifyMercadoPagoSignature({ signatureHeader, requestId, dataId }) {
   const secret = WEBHOOK_SECRET()
-  if (!secret) return true                         // dev mode
+  if (!secret) return process.env.NODE_ENV !== "production"   // dev: skip · prod: fail closed
   if (!signatureHeader || !requestId || !dataId) return false
 
   const parts = String(signatureHeader)
@@ -108,13 +108,18 @@ function verifyMercadoPagoSignature({ signatureHeader, requestId, dataId }) {
 
 /* ───────────────────── create Checkout Pro preference ──────────────────── */
 
-async function createMercadoPagoPreference({ orderId }) {
+const PREFERENCE_TTL_HOURS = Number(process.env.STALE_ORDER_HOURS || 24)
+
+async function createMercadoPagoPreference({ orderId, userId = null, isAdmin = false }) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { items: true },
   })
 
   if (!order)               throw new Error("Order not found")
+  // Ownership: a member may only start payment for their own order
+  // (PayPal's controller enforces the same; this closed an IDOR).
+  if (!isAdmin && userId && order.userId && order.userId !== userId) throw new Error("Order not found")
   if (!order.items?.length) throw new Error("Order has no items")
 
   const token = ACCESS_TOKEN()
@@ -150,10 +155,17 @@ async function createMercadoPagoPreference({ orderId }) {
       email:   order.customerEmail || order.billingEmail || "customer@example.com",
     },
     back_urls,
+    // Expire the preference when the stale-order janitor (jobs/cancelStaleOrders,
+    // 24 h) would cancel the order. Without this an OXXO/SPEI voucher stayed
+    // payable for ~3 days after the order was already cancelled, and the late
+    // "approved" webhook then hit the terminal-state guard: payment recorded,
+    // order never fulfilled. MP wants an offset timestamp, not "Z".
+    expires: true,
+    expiration_date_to: new Date(Date.now() + PREFERENCE_TTL_HOURS * 60 * 60 * 1000).toISOString().replace("Z", "+00:00"),
     ...(isLocal ? {} : { auto_return: "approved" }),
     external_reference:    order.id,
     statement_descriptor:  "MustaphaUkizuru",
-    ...(isLocal ? {} : { notification_url: `${apiBase}/api/mercadopago/webhook` }),
+    ...(isLocal ? {} : { notification_url: `${apiBase}/api/v1/mercadopago/webhook` }),
     metadata: { orderId: order.id },
   }
 

@@ -23,8 +23,8 @@ const listServiceOrders = asyncHandler(async (req, res) => {
       include: {
         user:           { select: { id: true, fullName: true, email: true } },
         service:        { select: { id: true, title: true } },
-        servicePackage: { select: { id: true, name: true, price: true } },
-        order:          { select: { id: true, orderNumber: true, totalAmount: true, status: true } },
+        servicePackage: { select: { id: true, name: true, price: true, currency: true } },
+        order:          { select: { id: true, orderNumber: true, totalAmount: true, currency: true, status: true, paidAt: true } },
         consultations:  { orderBy: { scheduledAt: "asc" }, take: 1 },
         clientProject:  { select: { id: true, projectName: true, projectStatus: true } },
       },
@@ -32,8 +32,25 @@ const listServiceOrders = asyncHandler(async (req, res) => {
     prisma.serviceOrder.count({ where }).catch(() => 0),
   ])
 
-  return res.status(200).json({ success: true, data: orders, meta: { total } })
+  return res.status(200).json({ success: true, data: orders.map(withDerived), meta: { total } })
 })
+
+/**
+ * ServiceOrder has no money/paidAt columns of its own — they live on the
+ * linked Order (or the package price before an order exists) — and the
+ * project is the `clientProject` relation. Flatten what the admin pages read.
+ */
+function withDerived(so) {
+  if (!so) return so
+  const pkgPrice = so.servicePackage?.price
+  return {
+    ...so,
+    totalAmount: so.order?.totalAmount ?? (pkgPrice != null ? pkgPrice : null),
+    currency:    so.order?.currency ?? so.servicePackage?.currency ?? "MXN",
+    paidAt:      so.order?.paidAt ?? null,
+    projectId:   so.clientProject?.id ?? null,
+  }
+}
 
 const getServiceOrder = asyncHandler(async (req, res) => {
   const so = await prisma.serviceOrder.findUnique({
@@ -42,13 +59,13 @@ const getServiceOrder = asyncHandler(async (req, res) => {
       user:           { select: { id: true, fullName: true, email: true, phone: true } },
       service:        true,
       servicePackage: true,
-      order:          { select: { id: true, orderNumber: true, totalAmount: true, status: true, createdAt: true } },
+      order:          { select: { id: true, orderNumber: true, totalAmount: true, currency: true, status: true, createdAt: true, paidAt: true } },
       consultations:  { orderBy: { scheduledAt: "asc" } },
       clientProject:  { include: { milestones: { orderBy: { sortOrder: "asc" } }, files: true } },
     },
   })
   if (!so) return res.status(404).json({ success: false, message: "Service order not found" })
-  return res.status(200).json({ success: true, data: so })
+  return res.status(200).json({ success: true, data: withDerived(so) })
 })
 
 const updateServiceOrder = asyncHandler(async (req, res) => {

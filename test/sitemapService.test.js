@@ -16,7 +16,7 @@
 jest.mock("../src/lib/prisma", () => ({
   product:          { findMany: jest.fn() },
   service:          { findMany: jest.fn() },
-  portfolioProject: { findMany: jest.fn() },
+  portfolio: { findMany: jest.fn() },
   blogPost:         { findMany: jest.fn() },
 }))
 
@@ -34,7 +34,7 @@ beforeEach(() => {
   jest.spyOn(console, "warn").mockImplementation(() => {})
   prisma.product.findMany.mockResolvedValue([{ slug: "brand-kit", updatedAt: new Date("2026-08-01") }])
   prisma.service.findMany.mockResolvedValue([{ slug: "cloud-migration-automation", updatedAt: new Date() }])
-  prisma.portfolioProject.findMany.mockResolvedValue([{ slug: "raindrop", updatedAt: new Date("2026-07-01") }])
+  prisma.portfolio.findMany.mockResolvedValue([{ slug: "raindrop", updatedAt: new Date("2026-07-01") }])
   prisma.blogPost.findMany.mockResolvedValue([
     { slug: "hello-world", updatedAt: new Date("2026-06-17"), publishedAt: new Date("2026-06-17") },
   ])

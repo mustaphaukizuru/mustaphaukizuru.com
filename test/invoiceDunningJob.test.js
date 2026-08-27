@@ -93,7 +93,7 @@ test("reconcile: issued/overdue invoices on paid orders become paid with the ord
     data:  { status: "paid", paidAt },
   })
   const where = prisma.invoice.findMany.mock.calls[0][0].where
-  expect(where).toEqual({ status: { in: ["issued", "overdue"] }, order: { status: { in: ["paid", "completed"] } } })
+  expect(where).toEqual({ status: { in: ["issued", "overdue"] }, order: { status: "paid" } })
 })
 
 test("dry run lists candidates and writes nothing", async () => {

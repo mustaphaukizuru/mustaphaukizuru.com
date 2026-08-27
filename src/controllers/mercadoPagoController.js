@@ -42,7 +42,7 @@ const createPreference = asyncHandler(async (req, res) => {
   if (!orderId) {
     return res.status(400).json({ success: false, message: "orderId is required" })
   }
-  const result = await createMercadoPagoPreference({ orderId })
+  const result = await createMercadoPagoPreference({ orderId, userId: req.user?.id || null, isAdmin: req.user?.role === "admin" })
   return res.status(200).json({
     success: true,
     data: {

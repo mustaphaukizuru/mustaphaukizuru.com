@@ -127,7 +127,7 @@ async function createManualInvoice({ serviceOrderId, amount, dueDate, descriptio
   const so = await prisma.serviceOrder.findUnique({
     where:   { id: String(serviceOrderId) },
     include: {
-      user:    { select: { id: true, fullName: true, email: true, profile: { select: { locale: true } } } },
+      user:    { select: { id: true, fullName: true, email: true, profile: { select: { country: true } } } },
       service: { select: { id: true, title: true } },
       order:   { select: { id: true, currency: true } },
     },

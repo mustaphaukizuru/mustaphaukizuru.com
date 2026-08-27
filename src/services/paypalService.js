@@ -184,6 +184,11 @@ async function refundPaypalCapture(captureId, { amount, currency = "MXN", note }
 async function verifyPaypalWebhookSignature({ headers, body }) {
   const webhookId = PAYPAL_WEBHOOK_ID()
   if (!webhookId) {
+    if (process.env.NODE_ENV === "production") {
+      // Fail closed: an unverified "approved" event would mark orders paid.
+      logger.error("[PayPal webhook] PAYPAL_WEBHOOK_ID not set in production — rejecting webhook")
+      return false
+    }
     logger.warn("[PayPal webhook] PAYPAL_WEBHOOK_ID not set — skipping signature verification (dev mode)")
     return true
   }
