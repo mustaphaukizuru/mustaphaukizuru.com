@@ -4,6 +4,12 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Production is Hostinger on CloudLinux 8 (RHEL family). The client that
+  // hPanel built shipped only a debian-openssl-1.1.x engine, which failed to
+  // initialise on the host (every query -> PrismaClientInitializationError,
+  // health database:down from boot). Bundle the RHEL engines too so the
+  // right one is always present, whatever machine ran `prisma generate`.
+  binaryTargets = ["native", "rhel-openssl-1.1.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
