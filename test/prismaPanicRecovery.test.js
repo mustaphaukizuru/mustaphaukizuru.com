@@ -38,8 +38,13 @@ describe("prisma engine panic recovery", () => {
     expect(prisma.recoverIfPanicked(panic)).toBe(true)
     expect(prisma.recoverIfPanicked(panic)).toBe(true) // concurrent — debounced
     await new Promise((r) => setImmediate(r))
+    // A fresh client is built and the dead one torn down — never reconnected.
+    const { PrismaClient } = require("@prisma/client")
+    expect(PrismaClient.mock.calls.length).toBeGreaterThanOrEqual(2)
     expect(client.$disconnect).toHaveBeenCalledTimes(1)
     expect(client.$connect.mock.calls.length).toBeGreaterThanOrEqual(1)
+    // Queries through the exported proxy still work after the swap.
+    await expect(prisma.$queryRaw`SELECT 1`).resolves.toBeTruthy()
   })
 })
 
