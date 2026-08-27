@@ -429,6 +429,31 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // 4b · Milestone awaiting client approval (Tier 2 client portal)
+  {
+    key: "project.approval-requested",
+    subject: "Your review is needed: {{milestoneTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "A milestone is ready for your approval.",
+      eyebrow:   "Review requested",
+      bodyHtml:
+        heading(`Ready for your review: {{milestoneTitle}}`) +
+        paragraph(`The milestone <strong>{{milestoneTitle}}</strong> on <strong>{{projectName}}</strong> has been delivered and is waiting for your sign-off.`) +
+        paragraph(`Open the project, look at the deliverables, and either approve it with one click or tell us what should change. Approving moves the work to the next phase.`) +
+        button("{{dashboardUrl}}", "Review and approve") +
+        calloutCard(`Nothing to approve yet? Leave a comment on the milestone instead — it lands directly with the project owner.`),
+    }),
+    text: [
+      "Ready for your review: {{milestoneTitle}}",
+      "",
+      "The milestone {{milestoneTitle}} on {{projectName}} has been delivered",
+      "and is waiting for your sign-off. Approve it or request changes here:",
+      "  {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // 5 · Support reply
   {
     key: "support.reply",
@@ -1151,6 +1176,31 @@ const TEMPLATES_ES = [
       "{{projectName}} se marcó como completado.",
       "",
       "Ver el panel del proyecto:",
+      "  {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.approval-requested
+  {
+    key: "project.approval-requested",
+    subject: "Necesitamos tu revisión: {{milestoneTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "Un hito está listo para tu aprobación.",
+      eyebrow:   "Revisión solicitada",
+      bodyHtml:
+        heading(`Listo para tu revisión: {{milestoneTitle}}`) +
+        paragraph(`El hito <strong>{{milestoneTitle}}</strong> de <strong>{{projectName}}</strong> ya fue entregado y espera tu visto bueno.`) +
+        paragraph(`Abre el proyecto, revisa los entregables y apruébalo con un clic o dinos qué debería cambiar. Al aprobar, el trabajo pasa a la siguiente fase.`) +
+        button("{{dashboardUrl}}", "Revisar y aprobar") +
+        calloutCard(`¿Aún no hay nada que aprobar? Deja un comentario en el hito — llega directo al responsable del proyecto.`),
+    }),
+    text: [
+      "Listo para tu revisión: {{milestoneTitle}}",
+      "",
+      "El hito {{milestoneTitle}} de {{projectName}} ya fue entregado y",
+      "espera tu visto bueno. Apruébalo o solicita cambios aquí:",
       "  {{dashboardUrl}}",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,

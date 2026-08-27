@@ -127,7 +127,10 @@ app.use(helmet({
                     "https://accounts.google.com",
                     "https://www.paypal.com",
                     "https://www.mercadopago.com",
-                    "https://www.mercadopago.com.br"],
+                    "https://www.mercadopago.com.br",
+                    // Tier 2 · client-project live previews. Operator-declared
+                    // origins only (PREVIEW_FRAME_HOSTS); everything else is a link.
+                    ...String(process.env.PREVIEW_FRAME_HOSTS || "").split(",").map((s) => s.trim()).filter(Boolean)],
       connectSrc:  ["'self'",
                     "https://accounts.google.com",
                     "https://oauth2.googleapis.com",
