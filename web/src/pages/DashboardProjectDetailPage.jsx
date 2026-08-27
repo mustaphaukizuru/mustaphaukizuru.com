@@ -393,7 +393,7 @@ function ReviewCard({ project, highlighted, onSubmitted, t }) {
                 onMouseLeave={() => setHover(0)}
                 className="rounded-md p-1 transition hover:bg-violet-pale focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
               >
-                <Star className={`h-6 w-6 ${(hover || rating) >= n ? "fill-amber text-amber" : "text-charcoal-80/30"}`} aria-hidden="true" />
+                <Star className={`h-6 w-6 ${(hover || rating) >= n ? "fill-amber text-amber" : "text-charcoal-80"}`} aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -511,7 +511,7 @@ function PurgedTile({ file: f, t }) {
   return (
     <li className="flex h-full flex-col overflow-hidden rounded-xl border border-dashed border-charcoal-80/15 bg-charcoal-80/5 opacity-80">
       <div className="relative flex aspect-[4/3] items-center justify-center">
-        <Icon className="h-10 w-10 text-charcoal-80/40" aria-hidden="true" />
+        <Icon className="h-10 w-10 text-charcoal-80" aria-hidden="true" />
         <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
       </div>
       <div className="px-3 py-2">
