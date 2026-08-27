@@ -5,6 +5,7 @@ const prisma = require("../lib/prisma")
 const { sendProjectFile, resolveSafePath } = require("./clientProjectController")
 const { createComment, resolveComment, onMilestoneAwaitingClient } = require("../services/projectPortalService")
 const { mintPortalLink } = require("../services/portalAccessService")
+const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
@@ -47,7 +48,16 @@ const createProject = asyncHandler(async (req, res) => {
 
 const updateProject = asyncHandler(async (req, res) => {
   try {
+    // Tier 4 · review collector: fire once, on the transition into completed.
+    const movingToCompleted = req.body?.projectStatus === "completed"
+    const before = movingToCompleted
+      ? await prisma.clientProject.findUnique({ where: { id: String(req.params.id) }, select: { projectStatus: true } })
+      : null
     const updated = await updateAdminProject(req.params.id, req.body)
+    if (movingToCompleted && before && before.projectStatus !== "completed") {
+      sendReviewRequest({ req, project: updated })
+        .catch((err) => logger.error("[project] review-request email failed:", err.message))
+    }
     res.status(200).json({ success: true, data: updated })
   } catch (e) {
     if (e?.code === "P2025") return notFound(res)
@@ -65,6 +75,38 @@ const removeProject = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: { id: result.id, deleted: true } })
   } catch (e) {
     if (e?.code === "P2025") return notFound(res)
+    throw e
+  }
+})
+
+/** Email the client asking for a review of the just-completed project. */
+async function sendReviewRequest({ req, project }) {
+  const to = project.user?.email || (await fetchUserEmail(project.userId))
+  if (!to) return
+  const base = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+  return sendTemplateEmail({
+    locale:      resolveUserLocale({ req }),
+    to,
+    templateKey: "project.review-request",
+    userId:      project.userId,
+    variables: {
+      projectName: project.projectName,
+      serviceName: project.serviceOrder?.service?.title || project.projectName,
+      reviewUrl:   `${base}/dashboard/projects/${project.id}?review=1`,
+    },
+  })
+}
+
+/**
+ * POST /admin/client-projects/:id/case-study-draft
+ * Creates a draft Portfolio row from the project and returns the edit URL.
+ */
+const createCaseStudy = asyncHandler(async (req, res) => {
+  try {
+    const data = await createCaseStudyDraft(req.params.id, req.user?.id)
+    res.status(201).json({ success: true, data })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
     throw e
   }
 })
@@ -264,5 +306,5 @@ module.exports = {
   addMilestone, patchMilestone, removeMilestone,
   uploadFile, removeFile, downloadFile,
   addAdminComment, toggleResolveComment, replyProjectTicket,
-  createPortalLink,
+  createPortalLink, createCaseStudy, sendReviewRequest,
 }

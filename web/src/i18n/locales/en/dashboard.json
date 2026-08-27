@@ -141,6 +141,20 @@
         "failed": "Something went wrong. Please try again."
       }
     },
+    "review": {
+      "title": "How did this project go?",
+      "subtitle": "Leave a short review of {{service}}. It is published under your first name after a quick check.",
+      "ratingLabel": "Your rating",
+      "stars_one": "{{count}} star",
+      "stars_other": "{{count}} stars",
+      "placeholder": "What worked well? What would you tell the next client?",
+      "submit": "Submit review",
+      "sending": "Sending…",
+      "thanks": "Thank you — your review has been received.",
+      "failed": "We could not save your review. Please try again.",
+      "doneTitle": "Thanks for your review",
+      "doneBody": "You rated this project {{rating}}/5."
+    },
     "support": {
       "title": "Support",
       "subtitle": "Questions or issues about this project? Open a ticket and the team gets notified right away.",

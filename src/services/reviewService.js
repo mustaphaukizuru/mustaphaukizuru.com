@@ -96,7 +96,7 @@ async function refreshProductAggregate(productId) {
  *   4. Persists with the resulting status + flaggedReason.
  *   5. Recalculates the product aggregate when status === "approved".
  */
-async function createReview({ productId, serviceId, userId, rating, reviewText }) {
+async function createReview({ productId, serviceId, userId, rating, reviewText, projectId = null }) {
   if (!productId && !serviceId) throw new Error("productId or serviceId is required")
   if (productId && serviceId)   throw new Error("Cannot review a product and service in one row")
   if (!rating || rating < 1 || rating > 5) throw new Error("Rating must be between 1 and 5")
@@ -146,6 +146,7 @@ async function createReview({ productId, serviceId, userId, rating, reviewText }
       serviceId: serviceId || null,
       userId,
       orderItemId: orderItem?.id || null,
+      projectId: projectId ? String(projectId) : null,
       rating: Number(rating),
       reviewText: reviewText ? String(reviewText).trim().slice(0, 5000) : null,
       isVerifiedPurchase,

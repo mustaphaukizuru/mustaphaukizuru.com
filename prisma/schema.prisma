@@ -607,6 +607,8 @@ model Review {
   /// The OrderItem that produced this review (anti-fake-review pin).
   /// Required for verified-purchase reviews; null for legacy / unverified.
   orderItemId        String?
+  /// Tier 4 · review collected from a completed ClientProject (portal form).
+  projectId          String?
   userId             String
   rating             Int
   reviewText         String?      @db.Text
@@ -637,10 +639,12 @@ model Review {
   user         User         @relation("AuthoredReviews", fields: [userId], references: [id], onDelete: Cascade)
   adminReplyBy User?        @relation("AdminReviewReplies", fields: [adminReplyById], references: [id], onDelete: SetNull)
   orderItem    OrderItem?   @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+  project      ClientProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   votes        ReviewVote[]
 
   @@index([productId])
   @@index([serviceId])
+  @@index([projectId])
   @@index([userId])
   @@index([status])
   @@index([featured])
@@ -1352,6 +1356,7 @@ model ClientProject {
   comments      ProjectComment[]
   tickets       SupportTicket[]
   agreements    ProjectAgreement[]
+  reviews       Review[]
 
   @@index([userId])
   @@index([assignedAdminId])

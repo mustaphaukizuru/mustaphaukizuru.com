@@ -141,6 +141,20 @@
         "failed": "Algo salió mal. Inténtalo de nuevo."
       }
     },
+    "review": {
+      "title": "¿Cómo fue este proyecto?",
+      "subtitle": "Deja una reseña breve de {{service}}. Se publica con tu nombre de pila tras una revisión rápida.",
+      "ratingLabel": "Tu calificación",
+      "stars_one": "{{count}} estrella",
+      "stars_other": "{{count}} estrellas",
+      "placeholder": "¿Qué funcionó bien? ¿Qué le dirías al próximo cliente?",
+      "submit": "Enviar reseña",
+      "sending": "Enviando…",
+      "thanks": "Gracias — recibimos tu reseña.",
+      "failed": "No pudimos guardar tu reseña. Inténtalo de nuevo.",
+      "doneTitle": "Gracias por tu reseña",
+      "doneBody": "Calificaste este proyecto con {{rating}}/5."
+    },
     "support": {
       "title": "Soporte",
       "subtitle": "¿Dudas o problemas con este proyecto? Abre un ticket y el equipo recibe el aviso al instante.",

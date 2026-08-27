@@ -480,6 +480,32 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // 4d · Review request when a project is completed (Tier 4)
+  {
+    key: "project.review-request",
+    subject: "{{projectName}} is complete — how did we do?",
+    html: chrome({
+      preheader: "Two minutes to share how the project went.",
+      eyebrow:   "Project complete",
+      bodyHtml:
+        heading(`{{projectName}} is done`) +
+        paragraph(`Thank you for working with me on <strong>{{projectName}}</strong>. The project is now marked complete and your files stay available in your dashboard for a while longer.`) +
+        paragraph(`If you have two minutes, a short review of <strong>{{serviceName}}</strong> helps the next client decide — and tells me what to keep doing.`) +
+        button("{{reviewUrl}}", "Leave a review") +
+        calloutCard(`Prefer to say it privately? Just reply to this email.`),
+    }),
+    text: [
+      "{{projectName}} is done",
+      "",
+      "Thank you for working with me on {{projectName}}. The project is now",
+      "marked complete. If you have two minutes, a short review helps the",
+      "next client decide:",
+      "  {{reviewUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // 5 · Support reply
   {
     key: "support.reply",
@@ -1230,6 +1256,32 @@ const TEMPLATES_ES = [
       "",
       "El PIN caduca en {{expiresMinutes}} minutos y funciona una sola vez. Si no",
       "abriste el enlace, ignora este correo.",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.review-request
+  {
+    key: "project.review-request",
+    subject: "{{projectName}} está completo — ¿cómo lo hicimos?",
+    html: chrome({
+      preheader: "Dos minutos para contar cómo fue el proyecto.",
+      eyebrow:   "Proyecto completado",
+      bodyHtml:
+        heading(`{{projectName}} está listo`) +
+        paragraph(`Gracias por trabajar conmigo en <strong>{{projectName}}</strong>. El proyecto ya está marcado como completado y tus archivos seguirán disponibles en tu panel un tiempo más.`) +
+        paragraph(`Si tienes dos minutos, una reseña breve de <strong>{{serviceName}}</strong> ayuda al próximo cliente a decidir — y me dice qué debo seguir haciendo.`) +
+        button("{{reviewUrl}}", "Dejar una reseña") +
+        calloutCard(`¿Prefieres decirlo en privado? Responde a este correo.`),
+    }),
+    text: [
+      "{{projectName}} está listo",
+      "",
+      "Gracias por trabajar conmigo en {{projectName}}. El proyecto ya está",
+      "marcado como completado. Si tienes dos minutos, una reseña breve ayuda",
+      "al próximo cliente a decidir:",
+      "  {{reviewUrl}}",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),

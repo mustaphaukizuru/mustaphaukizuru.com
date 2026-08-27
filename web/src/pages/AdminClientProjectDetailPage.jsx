@@ -3,10 +3,10 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import {
   ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2,
   AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare,
-  Link2, Copy,
+  Link2, Copy, BookOpen,
 } from "lucide-react"
 import {
-  fetchAdminProject, updateAdminProject, createAdminProject, createAdminPortalLink,
+  fetchAdminProject, updateAdminProject, createAdminProject, createAdminPortalLink, createAdminCaseStudyDraft,
   createMilestone, updateMilestone, deleteMilestone,
   uploadProjectFile, deleteProjectFile,
   postAdminProjectComment, toggleAdminCommentResolved,
@@ -74,6 +74,20 @@ export default function AdminClientProjectDetailPage() {
   async function copyPortalLink() {
     try { await navigator.clipboard.writeText(portalLink.url); showSuccess("Link copied") }
     catch { showError("Copy failed — select the link and copy it manually") }
+  }
+
+  // Tier 4 · case-study draft
+  const [draftingCase, setDraftingCase] = useState(false)
+  async function handleCaseStudyDraft() {
+    setDraftingCase(true)
+    try {
+      const data = await createAdminCaseStudyDraft(id)
+      showSuccess("Draft case study created — opening the editor")
+      navigate(`/admin/portfolio/${data.id}/edit`)
+    } catch (err) {
+      console.error("[ClientProject] case-study draft failed:", err)
+      showError(err.message || "Could not create the case study draft")
+    } finally { setDraftingCase(false) }
   }
 
   // New-milestone draft
@@ -269,7 +283,17 @@ export default function AdminClientProjectDetailPage() {
           </div>
         </div>
 
-        <div className="mt-5 flex justify-end">
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          {!isNew && project && (
+            <button
+              type="button" onClick={handleCaseStudyDraft} disabled={draftingCase}
+              title="Creates a draft Portfolio entry (context, problem, milestones as approach) you can edit before publishing"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-violet/30 bg-white px-4 py-2 text-sm font-semibold text-violet transition hover:bg-violet-pale disabled:opacity-60"
+            >
+              {draftingCase ? <Loader2 className="h-4 w-4 animate-spin" /> : <BookOpen className="h-4 w-4" />}
+              Draft case study
+            </button>
+          )}
           <button
             type="button" onClick={handleSave} disabled={saving}
             className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-4 py-2 text-sm font-semibold text-white shadow-[var(--shadow-lift-1)] transition hover:bg-violet-deep disabled:opacity-60"

@@ -1,15 +1,15 @@
 import { useCallback, useMemo, useRef, useState } from "react"
-import { useParams, Link, useNavigate } from "react-router-dom"
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
 import {
   ArrowLeft, Briefcase, Calendar, Download, CheckCircle2, Clock, AlertCircle,
   User as UserIcon, Hourglass, ExternalLink, Eye, UploadCloud, MessageSquare,
-  Lock, ThumbsUp, RotateCcw, Send, Check, X, Loader2, Image as ImageIcon, ShieldCheck,
+  Lock, ThumbsUp, RotateCcw, Send, Check, X, Loader2, Image as ImageIcon, ShieldCheck, Star,
 } from "lucide-react"
 import {
   fetchMyProject, uploadMyProjectFiles, postMyProjectComment,
-  approveMyMilestone, requestMyMilestoneChanges, acceptMyProjectAgreement,
+  approveMyMilestone, requestMyMilestoneChanges, acceptMyProjectAgreement, postProjectReview,
 } from "../services/clientProjectService"
 import useApiQuery from "../hooks/useApiQuery"
 import { SkeletonCard, Button, Modal, Textarea, Select, InlineBanner } from "../components/ui/index"
@@ -73,6 +73,8 @@ export default function DashboardProjectDetailPage() {
   const { t } = useTranslation("dashboard")
   const { t: tLegal } = useTranslation("legal")
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const reviewRequested = searchParams.get("review") === "1"
   const { showSuccess, showError } = useToast()
 
   const { data: project = null, loading, error, refetch, setData } = useApiQuery(
@@ -181,6 +183,21 @@ export default function DashboardProjectDetailPage() {
         <InlineBanner tone="warning" icon={Lock} title={t("projects.detail.closed.title")}>
           {t("projects.detail.closed.body", { date: fmtDate(access.expiresAt) })}
         </InlineBanner>
+      )}
+
+      {/* Tier 4 · review collector: compact form once the project is
+          completed (or when the email link carries ?review=1). Posts to the
+          existing service review endpoint with projectId. */}
+      {!ndaGate && (project.projectStatus === "completed" || reviewRequested) && project.serviceOrder?.service?.slug && (
+        <ReviewCard
+          project={project}
+          highlighted={reviewRequested}
+          onSubmitted={(review) => {
+            setData((prev) => prev && { ...prev, reviews: [review, ...(prev.reviews || [])] })
+            showSuccess(t("projects.review.thanks"))
+          }}
+          t={t}
+        />
       )}
 
       {/* Header */}
@@ -314,6 +331,96 @@ export default function DashboardProjectDetailPage() {
         <ProjectSupportPanel projectId={project.id} readOnly={readOnly} milestones={project.milestones || []} />
       </SectionBlock>
     </section>
+  )
+}
+
+/* ── review collector (Tier 4) ─────────────────────────────────────────── */
+
+function ReviewCard({ project, highlighted, onSubmitted, t }) {
+  const existing = (project.reviews || [])[0] || null
+  const [rating, setRating] = useState(0)
+  const [hover, setHover] = useState(0)
+  const [text, setText] = useState("")
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState("")
+  const service = project.serviceOrder?.service
+
+  if (existing) {
+    return (
+      <div className={`${CARD} flex items-center gap-3`}>
+        <CheckCircle2 className="h-5 w-5 shrink-0 text-mint-700" aria-hidden="true" />
+        <div>
+          <p className="text-meta font-semibold text-violet">{t("projects.review.doneTitle")}</p>
+          <p className="text-meta text-charcoal-80/65">{t("projects.review.doneBody", { rating: existing.rating })}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const submit = async (e) => {
+    e.preventDefault()
+    if (!rating || busy) return
+    setBusy(true); setError("")
+    try {
+      const saved = await postProjectReview(service.slug, { projectId: project.id, rating, reviewText: text.trim() || undefined })
+      onSubmitted?.(saved?.id ? { id: saved.id, rating: saved.rating, status: saved.status, createdAt: saved.createdAt } : { id: "local", rating })
+    } catch (e2) {
+      setError(e2?.message || t("projects.review.failed"))
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className={`${CARD} ${highlighted ? "ring-2 ring-violet/30" : ""}`}>
+      <div className="flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-pale text-violet">
+          <Star className="h-4 w-4" aria-hidden="true" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-card font-bold text-violet">{t("projects.review.title")}</h2>
+          <p className="mt-0.5 text-meta text-charcoal-80/65">{t("projects.review.subtitle", { service: service.title })}</p>
+
+          <div className="mt-3 flex items-center gap-1" role="radiogroup" aria-label={t("projects.review.ratingLabel")}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                role="radio"
+                aria-checked={rating === n}
+                aria-label={t("projects.review.stars", { count: n })}
+                onClick={() => setRating(n)}
+                onMouseEnter={() => setHover(n)}
+                onMouseLeave={() => setHover(0)}
+                className="rounded-md p-1 transition hover:bg-violet-pale focus:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+              >
+                <Star className={`h-6 w-6 ${(hover || rating) >= n ? "fill-amber text-amber" : "text-charcoal-80/30"}`} aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+
+          <Textarea
+            className="mt-3"
+            rows={3}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={t("projects.review.placeholder")}
+            maxLength={5000}
+          />
+
+          {error && (
+            <div className="mt-3 flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/5 px-4 py-3 text-meta text-rose-700" role="alert">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
+            </div>
+          )}
+
+          <div className="mt-3 flex justify-end">
+            <Button type="submit" size="sm" icon={busy ? Loader2 : Send} disabled={!rating || busy}>
+              {busy ? t("projects.review.sending") : t("projects.review.submit")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </form>
   )
 }
 

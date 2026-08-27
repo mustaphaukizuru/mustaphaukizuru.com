@@ -92,6 +92,11 @@ export async function createAdminPortalLink(id) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/portal-link`, { method: "POST", body: JSON.stringify({}) })
   return stripData(r)
 }
+/** Tier 4 · create a draft Portfolio case study from the project. Returns { id, slug, editUrl }. */
+export async function createAdminCaseStudyDraft(id) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/case-study-draft`, { method: "POST", body: JSON.stringify({}) })
+  return stripData(r)
+}
 export async function deleteAdminProject(id) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}`, { method: "DELETE" })
   return stripData(r)
@@ -177,6 +182,14 @@ export async function approveMyMilestone(projectId, milestoneId, { note } = {}) 
   const r = await authFetch(`${memberBase(projectId)}/milestones/${encodeURIComponent(milestoneId)}/approve`, {
     method: "POST",
     body: JSON.stringify(note ? { note } : {}),
+  })
+  return stripData(r)
+}
+/** Tier 4 · review a completed project (existing service review endpoint + projectId). */
+export async function postProjectReview(serviceSlug, { projectId, rating, reviewText } = {}) {
+  const r = await authFetch(`/api/v1/services/${encodeURIComponent(serviceSlug)}/reviews`, {
+    method: "POST",
+    body: JSON.stringify({ projectId, rating, reviewText }),
   })
   return stripData(r)
 }

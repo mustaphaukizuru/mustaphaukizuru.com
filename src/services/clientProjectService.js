@@ -43,8 +43,16 @@ const PROJECT_INCLUDE = {
     select: {
       id: true,
       status: true,
-      order: { select: { id: true, orderNumber: true } },
+      order:   { select: { id: true, orderNumber: true } },
+      // Tier 4 · the member review form posts to /services/:slug/reviews
+      service: { select: { id: true, slug: true, title: true } },
     },
+  },
+  // Tier 4 · reviews collected for this project (client-side "already reviewed")
+  reviews: {
+    orderBy: { createdAt: "desc" },
+    take:    5,
+    select:  { id: true, userId: true, rating: true, status: true, createdAt: true },
   },
 }
 
