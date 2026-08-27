@@ -131,7 +131,7 @@ const webhook = async (req, res) => {
     //    can validate against our local total and refuse to mark paid on
     //    a mismatch. The destructure also picks up any amountMismatch
     //    returned by the service.
-    const { order, isFirstTransition, amountMismatch } = await markOrderPaidByMP({
+    const { order, isFirstPaid, amountMismatch } = await markOrderPaidByMP({
       orderId,
       paymentId,
       status:           mpPayment.status,
@@ -155,8 +155,8 @@ const webhook = async (req, res) => {
       return res.status(200).json({ received: true, error: "amount_mismatch" })
     }
 
-    // 5. Fire side-effects ONLY on the first paid transition.
-    if (mpPayment.status === "approved" && isFirstTransition) {
+    // 5. Fire side-effects ONLY when the order flipped to paid in this call.
+    if (mpPayment.status === "approved" && isFirstPaid) {
       // PDF receipt — attached to the email. Generated in-memory; if it
       // fails we still send the email without an attachment rather than
       // block the customer-facing confirmation.

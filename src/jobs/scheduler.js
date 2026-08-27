@@ -39,6 +39,7 @@ const { runBackupPass } = require("./backupDatabaseJob")
 const { runAbandonedCartPass } = require("./abandonedCartJob")
 const { runProjectPurgePass } = require("./projectPurgeJob")
 const { runInvoiceDunningPass } = require("./invoiceDunningJob")
+const { runFulfillmentReconcilePass } = require("./fulfillmentReconcileJob")
 
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
@@ -167,6 +168,18 @@ function startScheduler() {
     logger.info("[scheduler] registered invoice dunning · 08:00 UTC")
   } catch (err) {
     logger.error("[scheduler] failed to register invoiceDunningJob", err)
+  }
+
+  // ── Fulfilment reconciliation · every 15 minutes ────────────────────
+  // fulfillOrder() is fire-and-forget after the webhook is acknowledged; a
+  // process death in that window leaves a paid order with no entitlements
+  // and no retry from the gateway. This pass re-runs fulfilment for paid
+  // orders that never wrote their `order.fulfilled` marker. Idempotent.
+  try {
+    cron.schedule("*/15 * * * *", () => guarded("fulfillmentReconcile", () => runFulfillmentReconcilePass()))
+    logger.info("[scheduler] registered fulfilment reconciliation · every 15 min")
+  } catch (err) {
+    logger.error("[scheduler] failed to register fulfillmentReconcileJob", err)
   }
 }
 

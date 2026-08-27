@@ -317,6 +317,25 @@ async function processOrderRefund({
     throw withCode("Order has already been fully refunded", "ALREADY_REFUNDED", 409)
   }
 
+  // 2b · Refund window. REFUND_WINDOW_DAYS was declared and surfaced by
+  //      checkRefundEligibility but never enforced here — an admin could
+  //      refund a six-month-old order with no warning. Outside the window
+  //      the refund needs the same explicit `force` as a downloaded item,
+  //      and the bypass is recorded in the audit row.
+  const paidAtMs     = order.paidAt ? new Date(order.paidAt).getTime() : null
+  const anchorMs     = paidAtMs || (order.createdAt ? new Date(order.createdAt).getTime() : null)
+  const windowEnds   = anchorMs ? new Date(anchorMs + REFUND_WINDOW_DAYS * 24 * 60 * 60 * 1000) : null
+  const withinWindow = !windowEnds || Date.now() <= windowEnds.getTime()
+  if (!withinWindow && !force) {
+    const err = withCode(
+      `The ${REFUND_WINDOW_DAYS}-day refund window closed on ${windowEnds.toISOString().slice(0, 10)}. Use the override to refund anyway.`,
+      "REFUND_WINDOW_EXPIRED",
+      409,
+    )
+    err.details = { refundWindowDays: REFUND_WINDOW_DAYS, windowEnds }
+    throw err
+  }
+
   // 3 · Refund amount is always the full remaining paid balance.
   const requestedAmount = refundableAmount
   const isFull = true
@@ -423,6 +442,7 @@ async function processOrderRefund({
           revokedDownloads: revoked.count,
           force,
           blockedItemsBypassed: force ? blockedItems : [],
+          refundWindowBypassed: !withinWindow,
           provider:        targetPayment.paymentGateway,
           providerRefundId: providerRaw?.id || null,
         },

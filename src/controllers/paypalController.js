@@ -122,9 +122,10 @@ const captureOrder = asyncHandler(async (req, res) => {
     })
   }
 
-  // Side-effects only on first transition. Pass the request scope so
+  // Side-effects only when the ORDER flipped to paid in this call (not for a
+  // second capture id on an already-paid order). Pass the request scope so
   // `fireSideEffects` can resolve the user's locale for the email template.
-  if (result.isFirstTransition) {
+  if (result.isFirstPaid) {
     fireSideEffects(result.order, captureId, "PayPal", { req }).catch((e) => logger.error("[PayPal sideEffects]", e.message))
   }
 
@@ -226,7 +227,7 @@ const webhook = async (req, res) => {
         if (result.amountMismatch) {
           logger.error(`[PayPal webhook] amount mismatch order=${orderId}: ${JSON.stringify(result.amountMismatch)}`)
           // Don't fire side-effects — the order is NOT marked paid in this case.
-        } else if (result.isFirstTransition) {
+        } else if (result.isFirstPaid) {
           // Webhook has no req scope — fireSideEffects falls back to the
           // user's profile locale via resolveUserLocale's default branch.
           fireSideEffects(result.order, captureId, "PayPal", { req: null }).catch((e) => logger.error("[PayPal sideEffects]", e.message))

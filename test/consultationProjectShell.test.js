@@ -12,12 +12,18 @@
 //   5. bookConsultation wires the helper after create.
 // ─────────────────────────────────────────────────────────────────────────────
 
-jest.mock("../src/lib/prisma", () => ({
-  clientProject: { findFirst: jest.fn(), create: jest.fn() },
-  service:       { findUnique: jest.fn() },
-  serviceOrder:  { findUnique: jest.fn() },
-  consultation:  { create: jest.fn(), update: jest.fn() },
-}))
+jest.mock("../src/lib/prisma", () => {
+  const prisma = {
+    clientProject: { findFirst: jest.fn(), create: jest.fn() },
+    service:       { findUnique: jest.fn() },
+    serviceOrder:  { findUnique: jest.fn() },
+    consultation:  { create: jest.fn(), update: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+  }
+  // bookConsultation runs the overlap guard + create inside a transaction;
+  // hand the same mocks back as the tx client.
+  prisma.$transaction = jest.fn(async (cb) => cb(prisma))
+  return prisma
+})
 
 jest.mock("../src/lib/googleCalendar", () => ({
   isConfigured: jest.fn(() => false),

@@ -1,6 +1,7 @@
 /**
  * AdminDiagnosticPage — /admin/diagnostic
  * View and manage self-audit lead submissions.
+ * Also hosts the Tier 4 ops runbook card (GET /admin/diagnostic/ops).
  */
 
 import { useEffect, useState } from "react"
@@ -10,6 +11,7 @@ import {
   GraduationCap, User, Download, ExternalLink, RefreshCw,
 } from "lucide-react"
 import { authGet } from "../lib/api"
+import OpsRunbookCard from "../components/OpsRunbookCard"
 
 const TIER_COLORS = {
   Foundation:  "bg-rose/10 text-rose",
@@ -50,6 +52,9 @@ export default function AdminDiagnosticPage() {
 
   return (
     <div className="space-y-6">
+      {/* Tier 4 · Ops runbook */}
+      <OpsRunbookCard />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

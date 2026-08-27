@@ -15,6 +15,7 @@
     "smoke": "bash scripts/smoke-test.sh",
     "deploy": "bash scripts/deploy.sh",
     "seed:email": "node scripts/guard-prod-db.js \"seed:email\" && node prisma/seed-email-templates.js",
+    "seed:plans": "node scripts/guard-prod-db.js \"seed:plans\" && node prisma/seed-service-plans.js",
     "seed:bio": "node scripts/guard-prod-db.js \"seed:bio\" && node prisma/seed-bio.js",
     "seed:audience-plans": "node scripts/guard-prod-db.js \"seed:audience-plans\" && node prisma/seed-audience-plans.js",
     "janitor:orders": "node scripts/cancel-stale-orders.js",

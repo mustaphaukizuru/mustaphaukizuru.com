@@ -2,6 +2,8 @@ const prisma = require("../lib/prisma")
 const AppError = require("../utils/AppError")
 const { countConsumedByFile, computeDownloadsRemaining } = require("./downloadService")
 const { validateCoupon, calculateDiscount } = require("./couponService")
+const { computeOrderTax } = require("../lib/tax")
+const { normalizeFiscal } = require("../lib/fiscal")
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Helpers (preserved)
@@ -132,12 +134,39 @@ const ORDER_INCLUDE = {
   },
 }
 
+/**
+ * Billing / fiscal snapshot for the order row. Everything optional; MX
+ * fiscal fields are validated against the SAT catalogs (src/lib/fiscal.js)
+ * and rejected with 400 rather than stored dirty — a bad RFC found at
+ * stamping time is far more expensive than one found at checkout.
+ */
+function buildBillingSnapshot(billing = {}) {
+  const country = billing.country ? String(billing.country).trim().toUpperCase().slice(0, 2) : null
+  const fiscal = normalizeFiscal(billing, { country: country || "MX" })
+  if (!fiscal.ok) throw AppError.badRequest(fiscal.message, "VALIDATION_ERROR")
+  const str = (v, max = 200) => (v == null || String(v).trim() === "" ? null : String(v).trim().slice(0, max))
+  return {
+    billingCountry:          country,
+    billingCity:             str(billing.city),
+    billingStateRegion:      str(billing.state),
+    billingPostalCode:       str(billing.postalCode, 20),
+    billingCompany:          str(billing.company),
+    billingTaxId:            fiscal.data.taxId || null,
+    billingLegalName:        fiscal.data.legalName || null,
+    billingRegimenFiscal:    fiscal.data.regimenFiscal || null,
+    billingUsoCfdi:          fiscal.data.usoCfdi || null,
+    billingFiscalPostalCode: fiscal.data.fiscalPostalCode || null,
+  }
+}
+
 async function createOrder(payload) {
-  const { customerName, customerEmail, userId = null, items, couponCode, idempotencyKey = null } = payload
+  const { customerName, customerEmail, userId = null, items, couponCode, idempotencyKey = null, billing = {} } = payload
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     throw AppError.badRequest("Order items are required", "VALIDATION_ERROR")
   }
+
+  const billingSnapshot = buildBillingSnapshot(billing)
 
   const productIds = items.map((item) => item.productId)
 
@@ -182,6 +211,7 @@ async function createOrder(payload) {
       price: unitPrice,
       unitPrice,
       lineTotal,
+      taxExempt: Boolean(product.taxExempt),
     }
   })
 
@@ -213,6 +243,8 @@ async function createOrder(payload) {
   }
 
   const totalAmount = Math.max(0, Number((subtotal - discountAmount).toFixed(2)))
+  // IVA contained in the total — a breakdown, never an add-on (src/lib/tax.js).
+  const tax = computeOrderTax({ items: normalizedItems, discount: discountAmount })
 
   const orderNumber = await createUniqueOrderNumber()
 
@@ -234,8 +266,12 @@ async function createOrder(payload) {
         customerEmail,
         subtotalAmount: subtotal,
         discountAmount,
+        taxRate:     tax.taxRate,
+        taxAmount:   tax.taxAmount,
+        taxIncluded: true,
         totalAmount,
         currency: "MXN",
+        ...billingSnapshot,
         ...(userId ? { user: { connect: { id: userId } } } : {}),
         ...(appliedCoupon ? { coupon: { connect: { id: appliedCoupon.id } } } : {}),
         items: {

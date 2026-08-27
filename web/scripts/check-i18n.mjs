@@ -240,16 +240,33 @@ await check("detector precedence: path > localStorage > navigator", () => {
     "navigator es-MX should resolve to es",
   )
   assert.equal(
-    detectInitialLanguage(ORDER, { pathname: "/about", getStored: noStore, navigatorLanguages: ["fr-FR", "de"] }),
+    detectInitialLanguage(ORDER, { pathname: "/about", getStored: noStore, navigatorLanguages: ["en-GB", "es"] }),
     "en",
-    "unsupported navigator languages fall back to en",
+    "navigator en-GB should resolve to en",
   )
   assert.equal(
-    detectInitialLanguage([], { pathname: "/es/about", getStored: () => "es", navigatorLanguages: ["es"] }),
-    "en",
-    "VITE_I18N_ENABLED=false (empty order) must stay English-only",
+    detectInitialLanguage(ORDER, { pathname: "/about", getStored: noStore, navigatorLanguages: ["fr-FR", "de"] }),
+    "es",
+    "non-en navigator languages resolve to es (Spanish-first)",
   )
-  return "all 5 precedence cases correct"
+  assert.equal(
+    detectInitialLanguage(ORDER, { pathname: "/about", getStored: noStore, navigatorLanguages: ["pt-BR", "en"] }),
+    "es",
+    "only the FIRST navigator language counts — pt-BR then en is still es",
+  )
+  assert.equal(
+    detectInitialLanguage(ORDER, { pathname: "/about", getStored: noStore, navigatorLanguages: [] }),
+    "es",
+    "no signal at all falls back to es",
+  )
+  // VITE_I18N_ENABLED=false is handled in i18n/index.js (it hard-codes "en"
+  // and never calls the detector); the pure function just returns the fallback.
+  assert.equal(
+    detectInitialLanguage([], { pathname: "/es/about", getStored: () => "es", navigatorLanguages: ["es"] }),
+    "es",
+    "empty order returns the fallback language",
+  )
+  return "all 8 precedence cases correct"
 })
 
 await check("localStorage throwing (private mode) does not break detection", () => {

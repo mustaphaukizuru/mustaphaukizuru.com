@@ -302,8 +302,12 @@ describe("transitionOrderToPaid — idempotency + state-regression guard", () =>
       gatewayCurrency:      "MXN",
     })
 
-    // Order not regressed; Payment row IS created (different captureId, valid record)
+    // Order not regressed; Payment row IS created (different captureId, valid
+    // record) — a first transition for that row, but NOT a first paid: the
+    // order was already paid, so the controller (which keys on isFirstPaid)
+    // must not re-send the confirmation email or re-run fulfilment.
     expect(result.isFirstTransition).toBe(true)
+    expect(result.isFirstPaid).toBe(false)
     expect(prisma.__tx.order.update).not.toHaveBeenCalled()
     expect(prisma.__tx.payment.create).toHaveBeenCalledTimes(1)
   })

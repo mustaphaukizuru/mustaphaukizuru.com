@@ -23,6 +23,7 @@ import {
   BookUser, TrendingUp,
   Tag,
   MessageSquare,
+  Inbox,
   Calendar,
   CalendarCheck,
   ClipboardCheck,
@@ -120,6 +121,7 @@ const navigation = [
     items: [
       { label: "Support Tickets", to: "/admin/support", icon: Headphones, description: "Member requests" },
       { label: "Contact Messages", to: "/admin/contact-messages", icon: MessageSquare, description: "Contact form submissions" },
+      { label: "Leads Inbox", to: "/admin/leads", icon: Inbox, description: "Every contact, audit, sign-up & booking by email" },
       { label: "Newsletter", to: "/admin/newsletter", icon: Mail, description: "Subscribers & exports" },
     ],
   },

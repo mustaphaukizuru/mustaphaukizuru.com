@@ -46,6 +46,8 @@ const QUICK_LINKS = [
 const LEGAL_LINKS = [
   { nameKey: "footer.legalTerms",   shortKey: "footer.legalTermsShort",   path: "/terms" },
   { nameKey: "footer.legalPrivacy", shortKey: "footer.legalPrivacyShort", path: "/privacy" },
+  // Aviso de Privacidad Integral (LFPDPPP) — anchor inside PrivacyPage.
+  { nameKey: "footer.legalNotice",  shortKey: "footer.legalNoticeShort",  path: "/privacy#aviso-de-privacidad" },
   { nameKey: "footer.legalCookies", shortKey: "footer.legalCookiesShort", path: "/cookies" },
   { nameKey: "footer.legalRefund",  shortKey: "footer.legalRefundShort",  path: "/refund" },
 ]

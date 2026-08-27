@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
+import { formatDate } from "../lib/format"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
 import {
@@ -31,7 +32,7 @@ const ALLOWED_EXT = new Set([
 const IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp"])
 const EXPIRED = Symbol("expired")
 
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—"
+const fmtDate = (d) => d ? formatDate(d) : "—"
 const fmtDateTime = (d) => d ? new Date(d).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""
 const extOf = (name) => {
   const i = String(name || "").lastIndexOf(".")

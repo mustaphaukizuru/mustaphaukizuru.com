@@ -33,9 +33,11 @@ export default function LanguageWrapper({ children }) {
     }
   }, [location.pathname, i18n])
 
-  // First-visit auto-redirect: if the user lands on root with a Spanish
-  // browser preference AND no localStorage override exists, send them to
-  // /es. We only do this once per session.
+  // First-visit auto-redirect (Spanish-first): if the user lands on root
+  // with a browser whose first language is NOT English AND no localStorage
+  // override exists, send them to /es. Unprefixed URLs always render
+  // English (see detectLanguageFromPath), so this redirect is the only way
+  // an ambiguous visitor reaches Spanish. Once per session.
   useEffect(() => {
     if (typeof window === "undefined") return
     if (location.pathname !== "/") return
@@ -44,7 +46,7 @@ export default function LanguageWrapper({ children }) {
       if (stored) return
       if (window.sessionStorage.getItem("ukz:lang-redirected") === "1") return
       const browser = (window.navigator?.language || "").toLowerCase()
-      if (browser.startsWith("es")) {
+      if (!browser.startsWith("en")) {
         window.sessionStorage.setItem("ukz:lang-redirected", "1")
         window.location.replace("/es")
       }

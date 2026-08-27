@@ -1,3 +1,4 @@
+import { formatDate } from "../lib/format"
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import Image from "../components/ui/Image"
@@ -34,7 +35,6 @@ import PortfolioCard from "../components/PortfolioCard"
 import OrbitingCircles from "../components/motion/OrbitingCircles"
 import AboutHero from "../components/heroes/AboutHero" // V2, universal hero
 import CertificatePreview from "../components/CertificatePreview" // V2, inline PDF
-import SkillsByCapability from "../components/SkillsByCapability" // F06.v4, capability lens
 import SpokenLanguages from "../components/SpokenLanguages" // F06.v4, CEFR strip
 import Counter from "../components/motion/Counter" // Phase 10 · animated number counter
 import Reveal from "../components/motion/Reveal" // Phase 10 · scroll-reveal wrapper
@@ -775,7 +775,7 @@ export default function AboutPage() {
   function fmtMonthYear(iso) {
     if (!iso) return null
     try {
-      return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short" })
+      return formatDate(iso, undefined, { year: "numeric", month: "short", day: undefined })
     } catch {
       return null
     }
@@ -1154,7 +1154,7 @@ export default function AboutPage() {
 
       {/* ══════════════════════════════════════════════════════════════════
            SKILLS · F06.v4 · Three sections, one cohesive narrative:
-             1. SkillsByCapability  — what I deliver (capability lens)
+             1. CoreCompetencies    — what I deliver (capability lens)
              2. Tech Stack          — what I use     (brand logo wall)
              3. SpokenLanguages     — how I work     (CEFR scale)
            All three are admin-controlled via /admin/bio (Skills tab).

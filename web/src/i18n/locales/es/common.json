@@ -109,7 +109,9 @@
     "legalTermsShort": "Términos",
     "legalPrivacyShort": "Privacidad",
     "legalCookiesShort": "Cookies",
-    "legalRefundShort": "Reembolsos"
+    "legalRefundShort": "Reembolsos",
+    "legalNotice": "Aviso de Privacidad",
+    "legalNoticeShort": "Aviso"
   },
   "language": {
     "english": "Inglés",
@@ -363,7 +365,23 @@
     "minutesLong": "minutos.",
     "minutes": "minutos",
     "optionalTag": "(opcional)",
-    "confirmBooking": "Confirmar reserva"
+    "confirmBooking": "Confirmar reserva",
+    "guestDetails": "Tus datos",
+    "guestIntro": "No necesitas cuenta: crearemos una para ti para que puedas gestionar esta reserva. ¿Ya tienes una?",
+    "guestSignIn": "Iniciar sesión",
+    "guestName": "Nombre completo",
+    "guestEmail": "Correo electrónico",
+    "guestNameRequired": "Por favor escribe tu nombre.",
+    "guestEmailInvalid": "Por favor escribe un correo válido.",
+    "accountExists": "Ya tienes una cuenta: inicia sesión para reservar.",
+    "accountExistsCta": "Iniciar sesión",
+    "accountCreated": "Creamos una cuenta para ti: revisa tu correo para definir una contraseña y gestionar tus reservas.",
+    "yourInbox": "tu bandeja de entrada",
+    "bookedToast": "Reservado",
+    "bookedToastBody": "Te enviaremos un correo de confirmación en breve.",
+    "bookingFailed": "No se pudo reservar",
+    "bookingFailedBody": "No se pudo completar la reserva",
+    "tryAgain": "Inténtalo de nuevo"
   },
   "fab": {
     "openLabel": "Contacto rápido",

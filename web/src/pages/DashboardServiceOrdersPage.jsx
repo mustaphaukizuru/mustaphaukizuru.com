@@ -1,3 +1,4 @@
+import { formatDate } from "../lib/format"
 import { useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
@@ -42,7 +43,7 @@ const fadeUp = {
 function fmtDate(iso) {
   if (!iso) return ","
   try {
-    return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+    return formatDate(iso)
   } catch {
     return String(iso)
   }

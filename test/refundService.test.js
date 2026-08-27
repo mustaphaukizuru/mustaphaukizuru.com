@@ -321,6 +321,33 @@ describe("processOrderRefund — happy paths", () => {
   })
 })
 
+describe("processOrderRefund — refund window", () => {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+  test("outside the 14-day window → 409 REFUND_WINDOW_EXPIRED, no provider call", async () => {
+    prisma.order.findUnique.mockResolvedValueOnce(buildOrder({ paidAt: thirtyDaysAgo }))
+    await expect(processOrderRefund({ orderId: "order_1", adminUserId: "admin_1" }))
+      .rejects.toMatchObject({ code: "REFUND_WINDOW_EXPIRED" })
+    expect(refundPaypalCapture).not.toHaveBeenCalled()
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
+  test("force=true refunds outside the window and records the bypass", async () => {
+    prisma.order.findUnique.mockResolvedValueOnce(buildOrder({ paidAt: thirtyDaysAgo }))
+    await processOrderRefund({ orderId: "order_1", adminUserId: "admin_1", force: true, reason: "goodwill" })
+    expect(refundPaypalCapture).toHaveBeenCalled()
+    const auditData = prisma.__tx.adminAuditLog.create.mock.calls[0][0].data
+    expect(auditData.afterJson.refundWindowBypassed).toBe(true)
+  })
+
+  test("inside the window the audit row says the window was not bypassed", async () => {
+    prisma.order.findUnique.mockResolvedValueOnce(buildOrder())
+    await processOrderRefund({ orderId: "order_1", adminUserId: "admin_1" })
+    const auditData = prisma.__tx.adminAuditLog.create.mock.calls[0][0].data
+    expect(auditData.afterJson.refundWindowBypassed).toBe(false)
+  })
+})
+
 describe("processOrderRefund — Option A enforcement", () => {
   test("blocks refund of a downloaded item with INELIGIBLE_DOWNLOADED when force=false", async () => {
     prisma.order.findUnique.mockResolvedValueOnce(buildOrder({

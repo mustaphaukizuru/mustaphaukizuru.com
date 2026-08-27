@@ -109,7 +109,9 @@
     "legalTermsShort": "Terms",
     "legalPrivacyShort": "Privacy",
     "legalCookiesShort": "Cookies",
-    "legalRefundShort": "Refund"
+    "legalRefundShort": "Refund",
+    "legalNotice": "Privacy notice",
+    "legalNoticeShort": "Privacy notice"
   },
   "language": {
     "english": "English",
@@ -372,6 +374,22 @@
     "minutesLong": "minutes long.",
     "minutes": "minutes",
     "optionalTag": "(optional)",
-    "confirmBooking": "Confirm booking"
+    "confirmBooking": "Confirm booking",
+    "guestDetails": "Your details",
+    "guestIntro": "No account needed — we'll create one for you so you can manage this booking. Already have one?",
+    "guestSignIn": "Sign in",
+    "guestName": "Full name",
+    "guestEmail": "Email",
+    "guestNameRequired": "Please enter your name.",
+    "guestEmailInvalid": "Please enter a valid email address.",
+    "accountExists": "You already have an account — sign in to book.",
+    "accountExistsCta": "Sign in",
+    "accountCreated": "We created an account for you — check your email to set a password and manage your bookings.",
+    "yourInbox": "your inbox",
+    "bookedToast": "Booked",
+    "bookedToastBody": "We'll send a confirmation email shortly.",
+    "bookingFailed": "Booking failed",
+    "bookingFailedBody": "Could not complete the booking",
+    "tryAgain": "Please try again"
   }
 }

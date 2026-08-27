@@ -311,6 +311,19 @@ const downloadRateLimiter = makeLimiter({
 })
 
 /**
+ * ARCO self-service (data export + account deletion) — 3 per hour per user.
+ * Both endpoints are expensive (export fans out to ~12 tables) and neither
+ * needs to be called more than once in practice.
+ */
+const profileDataRateLimiter = makeLimiter({
+  name:         "profile-data",
+  windowMs:     ONE_HOUR,
+  max:          3,
+  keyGenerator: userKey,
+  message:      "Too many data requests. Please try again in an hour.",
+})
+
+/**
  * 2FA login-verify — 5 attempts per 5 minutes per (IP + twoFactorToken).
  *
  * The 5-minute window mirrors the twoFactorToken's own lifetime, so the
@@ -400,4 +413,5 @@ module.exports = {
   ticketRateLimiter,
   portalPinRateLimiter,
   portalVerifyRateLimiter,
+  profileDataRateLimiter,
 }

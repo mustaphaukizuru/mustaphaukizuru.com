@@ -5,6 +5,7 @@
 
 import {
   apiGet,
+  apiPost,
   authGet,
   authPost,
   authPatch,
@@ -31,9 +32,15 @@ export async function fetchAvailableDays({ serviceId, year, month, timezone }) {
 
 // ── Member booking lifecycle ────────────────────────────────────────────────
 
-/** POST /api/v1/consultations — book a slot. */
+/**
+ * POST /api/v1/consultations — book a slot. Soft-auth: a signed-in member
+ * books as themselves (session cookie travels automatically); a guest sends
+ * `customerName` + `customerEmail` and the API creates a claimable account.
+ * Uses apiPost (not authPost) so the client-side "no session" pre-flight
+ * does not block guests.
+ */
 export async function bookConsultation(payload) {
-  const r = await authPost("/api/v1/consultations", payload)
+  const r = await apiPost("/api/v1/consultations", payload)
   return r?.data || r
 }
 

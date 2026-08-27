@@ -8,7 +8,120 @@
   },
   "privacy": {
     "title": "Política de Privacidad",
-    "subtitle": "Cómo recopilamos, usamos y protegemos tu información personal."
+    "subtitle": "Cómo recopilamos, usamos y protegemos tu información personal.",
+    "lastUpdated": "Última actualización: agosto 2026",
+    "tocAria": "Tabla de contenido",
+    "tocLabel": "En esta página",
+    "anchorAria": "Enlace directo a",
+    "questions": "¿Preguntas sobre privacidad?",
+    "sections": [
+      {
+        "slug": "information-we-collect",
+        "title": "1. Información que recopilamos",
+        "content": "Recopilamos la información que nos proporcionas directamente, incluyendo nombre, correo electrónico e información de pago durante el registro de la cuenta y el proceso de compra. También recopilamos datos de uso, como las páginas visitadas y las interacciones con la plataforma."
+      },
+      {
+        "slug": "how-we-use-your-information",
+        "title": "2. Cómo usamos tu información",
+        "content": "Tu información se utiliza para procesar pedidos, entregar productos digitales, enviar confirmaciones de compra, dar acceso al panel de miembro y mejorar nuestra plataforma. No vendemos tu información personal a terceros."
+      },
+      {
+        "slug": "payment-security",
+        "title": "3. Seguridad en los pagos",
+        "content": "La información de pago es procesada exclusivamente por nuestros socios de pago (Mercado Pago y PayPal). No almacenamos los datos completos de tu tarjeta en nuestros servidores. Todas las transacciones están cifradas con SSL."
+      },
+      {
+        "slug": "cookies",
+        "title": "4. Cookies",
+        "content": "Usamos cookies estrictamente necesarias para la autenticación, la integridad de la sesión y la seguridad. Las cookies de analítica y marketing están <strong>desactivadas por defecto</strong> y solo se activan cuando las aceptas explícitamente en el aviso de cookies. Para revisar cada categoría que usamos, cambiar tus preferencias o revocar tu consentimiento, visita nuestra página de <cookies>Política de cookies</cookies>. La configuración del navegador sigue siendo un respaldo, pero las preferencias dentro de la app son el control principal y granular."
+      },
+      {
+        "slug": "data-sharing",
+        "title": "5. Compartición de datos",
+        "content": "Podemos compartir información limitada con procesadores de pago, proveedores de correo electrónico y servicios de analítica estrictamente necesarios para operar la plataforma. Estos socios están obligados contractualmente a proteger tus datos."
+      },
+      {
+        "slug": "data-retention",
+        "title": "6. Conservación de datos",
+        "content": "Los datos de la cuenta se conservan mientras tu cuenta esté activa. Los registros de pedidos se conservan por motivos legales y contables. Puedes solicitar la eliminación de tus datos desde tu panel o contactándonos, sujeto a los requisitos legales aplicables."
+      },
+      {
+        "slug": "your-rights",
+        "title": "7. Tus derechos",
+        "content": "Tienes derecho a acceder, rectificar o solicitar la eliminación de tus datos personales. También puedes darte de baja de las comunicaciones de marketing en cualquier momento con el enlace de cancelación de los correos. Consulta el Aviso de Privacidad más abajo para saber cómo ejercer estos derechos conforme a la ley mexicana."
+      },
+      {
+        "slug": "security",
+        "title": "8. Seguridad",
+        "content": "Aplicamos medidas de seguridad estándar de la industria para proteger tus datos, incluyendo almacenamiento cifrado, HTTPS obligatorio y controles de acceso. Sin embargo, ninguna transmisión en línea es 100 % segura."
+      },
+      {
+        "slug": "childrens-privacy",
+        "title": "9. Privacidad de menores",
+        "content": "Nuestra plataforma no está dirigida a menores de 13 años. No recopilamos a sabiendas información personal de menores. Si crees que un menor nos ha proporcionado datos, contáctanos de inmediato."
+      },
+      {
+        "slug": "contact-us",
+        "title": "10. Contacto",
+        "content": "Para consultas relacionadas con privacidad o solicitudes sobre tus datos, escríbenos a hello@mustaphaukizuru.com."
+      }
+    ],
+    "notice": {
+      "title": "Aviso de Privacidad Integral",
+      "intro": "Este aviso se emite en cumplimiento de los artículos 15 a 17 de la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y su Reglamento. Aplica a toda persona usuaria de mustaphaukizuru.com, sin importar dónde se encuentre.",
+      "sections": [
+        {
+          "slug": "responsable",
+          "title": "A. Identidad y domicilio del responsable",
+          "content": "El responsable del tratamiento de tus datos personales es Mustapha Ukizuru, quien opera como mustaphaukizuru.com, con domicilio para oír y recibir notificaciones en Tlalnepantla de Baz, Estado de México, México. Contacto para todo asunto de privacidad: hello@mustaphaukizuru.com."
+        },
+        {
+          "slug": "datos-recabados",
+          "title": "B. Datos personales que recabamos",
+          "content": "Según cómo uses la plataforma recabamos: datos de cuenta (nombre, correo electrónico, teléfono, empresa, avatar, proveedor de inicio de sesión); datos de facturación y direcciones, incluido tu RFC u otro identificador fiscal cuando solicitas factura; historial de pedidos y pagos (importes, moneda, pasarela, estado del pago — nunca el número completo de tu tarjeta); reservas de consultoría (fecha, zona horaria, notas que agregues); registros y archivos de proyectos que compartes con nosotros; tickets y mensajes de soporte; reseñas de productos; estado de suscripción al boletín; y datos técnicos obtenidos mediante cookies y analítica (dirección IP, dispositivo y navegador, páginas visitadas) conforme a la Política de cookies. No solicitamos datos personales sensibles en los términos de la ley."
+        },
+        {
+          "slug": "finalidades-primarias",
+          "title": "C. Finalidades primarias",
+          "content": "Tratamos tus datos para: crear y administrar tu cuenta; procesar pedidos, pagos, facturas y reembolsos; entregar los productos digitales y servicios que compraste; agendar y celebrar consultorías; gestionar proyectos de cliente; atender solicitudes de soporte; emitir comprobantes fiscales cuando se requieran; mantener la plataforma segura y prevenir fraudes; y cumplir obligaciones legales. Estas finalidades son necesarias para la relación jurídica entre tú y nosotros."
+        },
+        {
+          "slug": "finalidades-secundarias",
+          "title": "D. Finalidades secundarias",
+          "content": "Solo si lo aceptas, también usamos tus datos para: enviarte el boletín y correos de marketing; medir el desempeño de campañas y personalizar recomendaciones; y publicar las reseñas que envías. Puedes negarte a estas finalidades en cualquier momento, sin que ello afecte los servicios primarios, dándote de baja de los correos, cambiando tus preferencias de cookies o escribiendo a hello@mustaphaukizuru.com."
+        },
+        {
+          "slug": "transferencias",
+          "title": "E. Transferencias de datos personales",
+          "content": "Tus datos se comparten únicamente con proveedores que los necesitan para prestar el servicio, bajo contratos que los obligan a mantenerlos confidenciales: Mercado Pago y PayPal (procesamiento de pagos); Google (Google Calendar y Google Meet para las reservas, y Google Sign-In si lo utilizas); nuestro proveedor de correo transaccional (correos de pedidos y de cuenta); y Hostinger (infraestructura de alojamiento y base de datos). Algunos de estos proveedores tratan datos fuera de México. No se realiza ninguna otra transferencia sin tu consentimiento, salvo en los casos previstos por la ley (art. 37 LFPDPPP)."
+        },
+        {
+          "slug": "derechos-arco",
+          "title": "F. Derechos ARCO, revocación del consentimiento y limitación de uso",
+          "content": "Tienes derecho a Acceder a tus datos personales, Rectificarlos cuando sean inexactos, solicitar su Cancelación y Oponerte a su tratamiento (derechos ARCO), así como a revocar el consentimiento que nos hayas otorgado y a limitar el uso o divulgación de tus datos. Desde tu panel de miembro (Perfil → Privacidad y datos) puedes descargar una copia de todo lo que conservamos sobre ti y eliminar tu cuenta por tu propia cuenta. Para cualquier otra solicitud, escribe a hello@mustaphaukizuru.com indicando: tu nombre completo, copia de una identificación oficial o el correo de la cuenta que podamos verificar, una descripción clara del derecho que deseas ejercer y de los datos en cuestión, y cualquier documento que respalde la solicitud."
+        },
+        {
+          "slug": "plazo-de-respuesta",
+          "title": "G. Plazo de respuesta",
+          "content": "Responderemos tu solicitud en un plazo máximo de 20 días hábiles contados desde la fecha en que la recibamos, conforme al artículo 32 de la LFPDPPP, y, de resultar procedente, la haremos efectiva dentro de los 15 días hábiles siguientes. Las respuestas se envían por correo electrónico a la dirección registrada. Los registros de pedidos y facturas deben conservarse durante el plazo que exige la legislación fiscal mexicana, por lo que la eliminación de una cuenta anonimiza tu identidad mientras esos registros se preservan."
+        },
+        {
+          "slug": "autoridad",
+          "title": "H. Autoridad competente",
+          "content": "Si consideras que tu derecho a la protección de datos ha sido vulnerado, puedes presentar una queja ante el Instituto Nacional de Transparencia, Acceso a la Información y Protección de Datos Personales (INAI) en inai.org.mx."
+        },
+        {
+          "slug": "cookies-en-el-aviso",
+          "title": "I. Cookies y tecnologías de rastreo",
+          "content": "Usamos cookies y tecnologías similares para mantener tu sesión iniciada, recordar tus preferencias y, solo con tu consentimiento, medir el uso del sitio y de las campañas. La sección 4 anterior y la Política de cookies describen cada categoría y cómo desactivarla."
+        },
+        {
+          "slug": "cambios-al-aviso",
+          "title": "J. Cambios al aviso de privacidad",
+          "content": "Podemos actualizar este aviso para reflejar cambios legales o nuevas funciones. La versión vigente se publica siempre en esta página y la fecha de «Última actualización» en la parte superior cambia con cada revisión. Cuando un cambio afecte las finalidades para las que tratamos tus datos, te lo notificaremos por correo electrónico o mediante un aviso en la plataforma antes de que entre en vigor."
+        }
+      ]
+    }
   },
   "refund": {
     "title": "Política de Reembolso",
@@ -90,7 +203,68 @@
     "questions": "¿Preguntas sobre cookies o privacidad?",
     "tocAria": "Tabla de contenidos",
     "tocLabel": "En esta página",
-    "anchorAria": "Enlace directo a"
+    "anchorAria": "Enlace directo a",
+    "lastUpdated": "Última actualización: agosto 2026",
+    "consentRecorded": "Tu consentimiento actual se registró{{when}}.",
+    "consentOn": " el {{date}}",
+    "noChoiceYet": "Aún no has tomado una decisión; el aviso de consentimiento se mostrará en breve.",
+    "sections": [
+      {
+        "slug": "what-cookies-are",
+        "title": "1. Qué son las cookies",
+        "content": "Las cookies son pequeños archivos de texto que los sitios web que visitas colocan en tu dispositivo. En esta política usamos el mismo nombre para tecnologías relacionadas, como el almacenamiento local, el almacenamiento de sesión y las etiquetas de píxel. Permiten que la plataforma recuerde información sobre tu visita, como la autenticación, el idioma y el contenido del carrito."
+      },
+      {
+        "slug": "how-we-use-cookies",
+        "title": "2. Cómo usamos las cookies",
+        "content": "mustaphaukizuru.com usa cookies con cuatro fines: mantener tu sesión iniciada, recordar tus preferencias, medir el rendimiento de la plataforma y entender qué contenidos y campañas llegan a las audiencias correctas. No vendemos información personal."
+      },
+      {
+        "slug": "strictly-necessary-cookies",
+        "title": "3. Cookies estrictamente necesarias",
+        "content": "Estas cookies habilitan funciones esenciales: autenticación, continuidad de la sesión, integridad del carrito y del pago, protección CSRF y balanceo de carga. La plataforma no puede funcionar sin ellas, por lo que siempre están activas. Ejemplos: mu_session, mu_csrf, mu_cookie_consent_v1."
+      },
+      {
+        "slug": "functional-cookies",
+        "title": "4. Cookies funcionales",
+        "content": "Recuerdan preferencias no esenciales entre visitas, como idioma, zona horaria, tema, filtros guardados y decisiones de consentimiento. Puedes desactivarlas y el sitio seguirá funcionando; solo tendrás que volver a configurar esas preferencias en cada visita."
+      },
+      {
+        "slug": "analytics-cookies",
+        "title": "5. Cookies de analítica",
+        "content": "Medición de uso anónima y agregada para saber qué páginas cargan lento, qué llamadas a la acción convierten y dónde abandonan los visitantes. Las direcciones IP se seudonimizan, la retención se limita a 26 meses y nunca revendemos estos datos. Puedes rechazarlas y la plataforma seguirá funcionando con normalidad."
+      },
+      {
+        "slug": "marketing-cookies",
+        "title": "6. Cookies de marketing",
+        "content": "Se usan para medir el rendimiento de campañas en LinkedIn, Meta, Google, X y plataformas similares, y para personalizar recomendaciones. Puedes desactivarlas por completo; quizá veas publicidad menos relevante en otros sitios, pero nada cambia en este."
+      },
+      {
+        "slug": "third-party-services",
+        "title": "7. Servicios de terceros",
+        "content": "Algunas páginas integran servicios que pueden colocar sus propias cookies, como los procesadores de pago (Mercado Pago, PayPal), Google Sign-In y contenido multimedia incrustado. Estos servicios se rigen por sus propias políticas de privacidad y cookies; enlazamos a ellas cuando corresponde."
+      },
+      {
+        "slug": "your-choices",
+        "title": "8. Tus opciones",
+        "content": "En tu primera visita te pedimos aceptar todas, rechazar las opcionales o ajustar por categoría. Puedes cambiar tu decisión en cualquier momento con el enlace «Preferencias de cookies» del pie de página. Al restablecer, el aviso de consentimiento vuelve a mostrarse para que elijas de nuevo."
+      },
+      {
+        "slug": "browser-controls",
+        "title": "9. Controles del navegador",
+        "content": "La mayoría de los navegadores permiten bloquear o eliminar cookies en Configuración → Privacidad. Hacerlo para todos los sitios puede romper partes de este y de otros sitios. Respetamos la señal Global Privacy Control (GPC) cuando se envía; se trata como un rechazo explícito de todas las categorías opcionales."
+      },
+      {
+        "slug": "updates-to-this-policy",
+        "title": "10. Actualizaciones de esta política",
+        "content": "Cuando cambiamos de forma sustancial el uso de cookies, por ejemplo al añadir un nuevo socio de analítica, incrementamos la versión de la política (CONSENT_VERSION), lo que vuelve a mostrar el aviso de consentimiento para que revises y consientas de nuevo. La fecha de «Última actualización» de arriba siempre refleja la revisión más reciente."
+      },
+      {
+        "slug": "contact",
+        "title": "11. Contacto",
+        "content": "Para preguntas sobre cookies o privacidad, escribe a hello@mustaphaukizuru.com. Respondemos a las solicitudes verificables conforme al RGPD, la Directiva ePrivacy y la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) de México en un plazo de 20 días hábiles."
+      }
+    ]
   },
   "nda": {
     "title": "Acuerdo Mutuo de Confidencialidad",

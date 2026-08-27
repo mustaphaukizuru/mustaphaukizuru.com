@@ -4,6 +4,8 @@ const asyncHandler = require("../utils/asyncHandler")
 const prisma = require("../lib/prisma")
 const { ensureInvoice, invoicePathFor } = require("../services/invoiceService")
 
+const INVOICEABLE_STATUSES = new Set(["paid", "refunded"])
+
 /**
  * GET /api/orders/:id/invoice.pdf
  * Streams the invoice PDF for a given order.
@@ -35,13 +37,14 @@ const getInvoicePdf = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, code: "FORBIDDEN", message: "You do not have access to this invoice" })
   }
 
-  // 2 · Only paid orders get invoices (prevent leakage of unfinished
-  //     transactions) — except manual invoices (Tier 4), which exist as a
-  //     row before payment and are exactly what the client needs to pay.
-  const manual = order.status !== "paid"
+  // 2 · Only settled orders get invoices (prevent leakage of unfinished
+  //     transactions). A refunded order keeps its invoice. Manual invoices
+  //     (Tier 4) exist as a row before payment and are exactly what the
+  //     client needs to pay, so they are served pre-payment.
+  const manual = !INVOICEABLE_STATUSES.has(order.status)
     ? await prisma.invoice.findUnique({ where: { orderId: order.id }, select: { id: true } })
     : null
-  if (order.status !== "paid" && !manual) {
+  if (!INVOICEABLE_STATUSES.has(order.status) && !manual) {
     return res.status(400).json({
       success: false, code: "INVOICE_NOT_READY",
       message: "Invoice is only available for paid orders",

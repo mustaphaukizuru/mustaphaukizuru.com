@@ -158,6 +158,7 @@ const AdminPaymentsPage = lazy(() => import("./pages/AdminPaymentsPage"));
 const AdminCategoriesPage = lazy(() => import("./pages/AdminCategoriesPage"));
 const AdminCouponsPage = lazy(() => import("./pages/AdminCouponsPage"));
 const AdminContactsPage = lazy(() => import("./pages/AdminContactsPage"));
+const AdminLeadsPage = lazy(() => import("./pages/AdminLeadsPage"));
 const AdminNewsletterPage = lazy(() => import("./pages/AdminNewsletterPage"));
 const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage"));
 const AdminServicesPage = lazy(() => import("./pages/AdminServicesPage"));
@@ -329,6 +330,7 @@ export default function App() {
               <Route path="categories" element={<AdminCategoriesPage />} />
               <Route path="coupons" element={<AdminCouponsPage />} />
               <Route path="contact-messages" element={<AdminContactsPage />} />
+              <Route path="leads" element={<AdminLeadsPage />} />
               <Route path="newsletter" element={<AdminNewsletterPage />} />
               {/* /admin/services manages the catalogue (Service + Pricing Plan + Feature CRUD).
                   /admin/service-orders (mounted below) handles paid service orders. */}

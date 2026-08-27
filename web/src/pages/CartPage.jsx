@@ -11,6 +11,7 @@ import { useCart } from "../store/CartContext"
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"
+import { includedTax, TAX_RATE_PCT } from "../lib/tax"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  CartPage · F08.A · Batch 5
@@ -286,8 +287,8 @@ function OrderSummary({ items, subtotal, discount = 0, total, appliedCoupon, isA
           )}
 
           <div className="flex justify-between text-charcoal-80/65">
-            <span>{t("summary.taxLabel")}</span>
-            <span className="font-semibold text-mint-700">{formatPrice(0)}</span>
+            <span>{t("summary.taxIncluded", { rate: TAX_RATE_PCT })}</span>
+            <span className="font-mono tabular-nums">{formatPrice(includedTax(total ?? subtotal))}</span>
           </div>
 
           {/* Total, F08.A · large JetBrains Mono bold */}

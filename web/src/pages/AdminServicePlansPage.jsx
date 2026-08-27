@@ -40,7 +40,7 @@ import {
   removeAdminServiceFeature,
 } from "../services/serviceService"
 import { useToast } from "../context/ToastContext"
-import { Modal } from "../components/ui"
+import { Modal, InlineBanner } from "../components/ui"
 import useForm from "../hooks/useForm"
 import { serviceSchema } from "../lib/validation/servicePlan"
 import {
@@ -878,6 +878,15 @@ export default function AdminServicePlansPage() {
 
   return (
     <div className="space-y-6">
+      {/* T1 · these rows back GET /services/plans and orderByTier pricing */}
+      <InlineBanner tone="info" title="Public pricing reads from these rows">
+        Prices and tier availability for the audience plans (Service{" "}
+        <code>&lt;audience&gt;-plan</code> + packages with a tier key) are served
+        from this table. Marketing copy lives in{" "}
+        <code>web/src/data/servicesCatalogue.js</code>. Missing rows: run{" "}
+        <code>npm run seed:plans</code>.
+      </InlineBanner>
+
       {/* ── Header ───────────────────────────────────────────────────── */}
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>

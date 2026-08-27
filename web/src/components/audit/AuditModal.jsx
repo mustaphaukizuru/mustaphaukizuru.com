@@ -109,7 +109,7 @@ export default function AuditModal({ open, onClose }) {
   const [scores, setScores]       = useState({})
   const [sectionIdx, setSectionIdx] = useState(0)
   const [tooltip, setTooltip]     = useState(null)          // { itemId, score }
-  const [emailForm, setEmailForm] = useState({ email: "", name: "", org: "" })
+  const [emailForm, setEmailForm] = useState({ email: "", name: "", org: "", newsletterOptIn: false })
   const [emailStatus, setEmailStatus] = useState("idle")    // idle | sending | sent | error
   const [resumePrompt, setResumePrompt] = useState(false)
   const scrollRef = useRef(null)
@@ -224,6 +224,7 @@ export default function AuditModal({ open, onClose }) {
           matchedBundle: bundle,
           prequal,
           website:       emailForm.website || "",   // honeypot — humans leave it empty
+          newsletterOptIn: emailForm.newsletterOptIn === true,
           submittedAt:   new Date().toISOString(),
       })
       setEmailStatus("sent")
@@ -947,7 +948,10 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
         <div className="text-center py-8">
           <CheckCircle2 className="h-14 w-14 text-mint mx-auto mb-4" />
           <h3 className="text-[20px] font-bold text-charcoal mb-2">Report on its way!</h3>
-          <p className="text-[14px] text-charcoal/65">Check your inbox — your PDF report will arrive within a few minutes.</p>
+          <p className="text-[14px] text-charcoal/65">
+            Check your inbox — your PDF report will arrive within a few minutes.
+            {emailForm.newsletterOptIn && " We also sent a separate email to confirm your newsletter subscription."}
+          </p>
           <button onClick={onSkip} className="cursor-pointer mt-6 text-[13px] text-violet underline underline-offset-2">
             Back to results
           </button>
@@ -1018,6 +1022,21 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
             </div>
           </div>
 
+          {/* Nurture opt-in — unchecked by default; double opt-in on the API side */}
+          <label htmlFor="ae-newsletter" className="mb-6 flex cursor-pointer items-start gap-3 rounded-xl border border-charcoal/12 bg-white px-4 py-3">
+            <input
+              id="ae-newsletter"
+              type="checkbox"
+              checked={emailForm.newsletterOptIn}
+              onChange={(e) => setEmailForm((f) => ({ ...f, newsletterOptIn: e.target.checked }))}
+              className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-charcoal/30 accent-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+            />
+            <span className="text-[13px] leading-snug text-charcoal/75">
+              Also send me occasional tips on fixing what this audit found.{" "}
+              <span className="text-charcoal/65">You&apos;ll get a confirmation email first — nothing is sent until you confirm, and you can unsubscribe any time.</span>
+            </span>
+          </label>
+
           {emailStatus === "error" && (
             <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose/8 border border-rose/20 px-4 py-3 text-[13px] text-rose">
               <AlertCircle className="h-4 w-4 shrink-0" />
@@ -1041,7 +1060,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
           <div className="mt-4 flex items-center justify-between">
             <p className="text-[11px] text-charcoal/35">
               <Shield className="h-3 w-3 inline mr-1" />
-              One report, no newsletter.{" "}
+              {emailForm.newsletterOptIn ? "One report, plus a confirmation email." : "One report, no newsletter."}{" "}
               <a href="/privacy" className="cursor-pointer underline hover:text-charcoal/65" target="_blank" rel="noopener noreferrer">Privacy policy</a>
             </p>
             <button
