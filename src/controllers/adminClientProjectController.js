@@ -3,6 +3,7 @@ const fs    = require("fs/promises")
 const logger = require("../utils/logger")
 const prisma = require("../lib/prisma")
 const { sendProjectFile, resolveSafePath } = require("./clientProjectController")
+const { createComment, resolveComment, onMilestoneAwaitingClient } = require("../services/projectPortalService")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
@@ -80,7 +81,21 @@ const addMilestone = asyncHandler(async (req, res) => {
 
 const patchMilestone = asyncHandler(async (req, res) => {
   try {
-    const { milestone, project, isNewlyComplete } = await updateMilestone(req.params.milestoneId, req.body)
+    const { milestone, project, isNewlyComplete, isNewlyAwaitingClient } = await updateMilestone(req.params.milestoneId, req.body)
+    // Delivered for review → client gets an in-app notification + email so
+    // the one-click approval actually reaches them.
+    if (isNewlyAwaitingClient) {
+      const dashboardUrl = `${(process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")}/dashboard/projects/${project.id}`
+      onMilestoneAwaitingClient({ project, milestone })
+        .catch((err) => logger.error("[milestone] awaiting-client notification failed:", err.message))
+      sendTemplateEmail({
+        locale: resolveUserLocale({ req }),
+        to:          (await fetchUserEmail(project.userId)),
+        templateKey: "project.approval-requested",
+        userId:      project.userId,
+        variables: { projectName: project.projectName, milestoneTitle: milestone.title, dashboardUrl },
+      }).catch((err) => logger.error("[milestone] approval-requested email failed:", err.message))
+    }
     // Fire customer email + in-app notification when admin marks a milestone
     // done — first transition only so a re-save with no change doesn't spam.
     if (isNewlyComplete) {
@@ -127,10 +142,13 @@ const uploadFile = asyncHandler(async (req, res) => {
   const relPath = `/files/projects/${projectId}/${req.file.filename}`
   try {
     const created = await attachFile(projectId, {
-      fileName:     req.file.originalname,
-      filePath:     relPath,
-      fileType:     req.file.mimetype,
-      uploadedById: req.user?.id,
+      fileName:      req.file.originalname,
+      filePath:      relPath,
+      fileType:      req.file.mimetype,
+      fileSize:      req.file.size,
+      uploadedById:  req.user?.id,
+      milestoneId:   req.body?.milestoneId || null,
+      isDeliverable: String(req.body?.isDeliverable || "") === "true",
     })
     res.status(201).json({ success: true, data: created })
   } catch (e) {
@@ -166,6 +184,30 @@ const downloadFile = asyncHandler(async (req, res) => {
   return sendProjectFile({ file, req, res, userId: req.user?.id, action: "project.file.downloaded.admin" })
 })
 
+/* ── Tier 2 · comments (admin side) ──────────────────────────────────── */
+const addAdminComment = asyncHandler(async (req, res) => {
+  try {
+    const comment = await createComment({
+      projectId: req.params.id, authorId: req.user?.id, authorRole: "admin",
+      body: req.body?.body, milestoneId: req.body?.milestoneId || null, fileId: req.body?.fileId || null,
+    })
+    res.status(201).json({ success: true, data: comment })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
+    throw e
+  }
+})
+
+const toggleResolveComment = asyncHandler(async (req, res) => {
+  try {
+    const comment = await resolveComment({ commentId: req.params.commentId, adminId: req.user?.id })
+    res.status(200).json({ success: true, data: comment })
+  } catch (e) {
+    if (e?.statusCode && e?.code) return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message } })
+    throw e
+  }
+})
+
 /** Best-effort disk cleanup; tolerates already-missing files and bad paths. */
 async function unlinkProjectFile(filePath) {
   const abs = resolveSafePath(filePath)
@@ -183,4 +225,5 @@ module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
   uploadFile, removeFile, downloadFile,
+  addAdminComment, toggleResolveComment,
 }

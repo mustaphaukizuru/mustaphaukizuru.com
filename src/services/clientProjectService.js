@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const { validatePreviewUrl } = require("./projectPortalService")
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  clientProjectService
@@ -17,11 +18,25 @@ const prisma = require("../lib/prisma")
  *  ──────────────────────────────────────────────────────────────────── */
 
 const VALID_PROJECT_STATUSES   = ["planning", "in_progress", "review", "completed", "cancelled"]
-const VALID_MILESTONE_STATUSES = ["pending", "in_progress", "completed"]
+const VALID_MILESTONE_STATUSES = ["pending", "in_progress", "awaiting_client", "approved", "completed"]
+const CLOSED_PROJECT_STATUSES  = new Set(["completed", "cancelled"])
 
 const PROJECT_INCLUDE = {
   milestones: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] },
-  files:      { orderBy: { createdAt: "desc" } },
+  files:      {
+    orderBy: { createdAt: "desc" },
+    include: { uploadedBy: { select: { id: true, fullName: true, role: true } } },
+  },
+  comments:   {
+    orderBy: { createdAt: "asc" },
+    take:    500,
+    include: { author: { select: { id: true, fullName: true, role: true } } },
+  },
+  tickets:    {
+    orderBy: { createdAt: "desc" },
+    take:    50,
+    select:  { id: true, ticketNumber: true, subject: true, status: true, priority: true, updatedAt: true, createdAt: true },
+  },
   user:       { select: { id: true, fullName: true, email: true } },
   assignedAdmin: { select: { id: true, fullName: true, email: true } },
   serviceOrder: {
@@ -86,11 +101,20 @@ async function updateAdminProject(id, data) {
   if ("startDate"       in data) patch.startDate       = data.startDate ? new Date(data.startDate) : null
   if ("dueDate"         in data) patch.dueDate         = data.dueDate   ? new Date(data.dueDate)   : null
   if ("assignedAdminId" in data) patch.assignedAdminId = data.assignedAdminId ? String(data.assignedAdminId) : null
+  if ("previewUrl"      in data) patch.previewUrl      = validatePreviewUrl(data.previewUrl)
   if ("projectStatus"   in data) {
     if (!VALID_PROJECT_STATUSES.includes(data.projectStatus)) {
       throw new Error(`Invalid project status. Expected one of: ${VALID_PROJECT_STATUSES.join(", ")}`)
     }
     patch.projectStatus = data.projectStatus
+    // Lifecycle: stamp closedAt on the first move into a closed state, clear
+    // it if the project is reopened. Member writes key off this column.
+    if (CLOSED_PROJECT_STATUSES.has(data.projectStatus)) {
+      const existing = await prisma.clientProject.findUnique({ where: { id: String(id) }, select: { closedAt: true } })
+      if (!existing?.closedAt) patch.closedAt = new Date()
+    } else {
+      patch.closedAt = null
+    }
   }
 
   return prisma.clientProject.update({
@@ -160,6 +184,7 @@ async function updateMilestone(milestoneId, data) {
   if ("sortOrder"   in data) patch.sortOrder   = Number(data.sortOrder)
 
   let isNewlyComplete = false
+  let isNewlyAwaitingClient = false
   if ("status" in data) {
     if (!VALID_MILESTONE_STATUSES.includes(data.status)) {
       throw new Error(`Invalid milestone status. Expected one of: ${VALID_MILESTONE_STATUSES.join(", ")}`)
@@ -171,6 +196,16 @@ async function updateMilestone(milestoneId, data) {
     } else if (data.status !== "completed") {
       patch.completedAt = null
     }
+    // Delivered for review → the client gets a notification + email once.
+    if (data.status === "awaiting_client" && existing.status !== "awaiting_client") {
+      isNewlyAwaitingClient = true
+      patch.changesRequestedAt = null
+    }
+    // Admin reset to an earlier stage clears a stale approval.
+    if (["pending", "in_progress", "awaiting_client"].includes(data.status)) {
+      patch.approvedAt = null
+      patch.approvedById = null
+    }
   }
 
   const updated = await prisma.projectMilestone.update({
@@ -178,7 +213,7 @@ async function updateMilestone(milestoneId, data) {
     data:  patch,
   })
 
-  return { milestone: updated, project: existing.project, isNewlyComplete }
+  return { milestone: updated, project: existing.project, isNewlyComplete, isNewlyAwaitingClient }
 }
 
 async function deleteMilestone(milestoneId) {
@@ -189,16 +224,20 @@ async function deleteMilestone(milestoneId) {
 
 /* ── Admin · file management ─────────────────────────────────────────── */
 
-async function attachFile(projectId, { fileName, filePath, fileType, uploadedById }) {
+async function attachFile(projectId, { fileName, filePath, fileType, fileSize, uploadedById, milestoneId, isDeliverable }) {
   if (!projectId) throw new Error("Project id is required")
   if (!fileName || !filePath) throw new Error("fileName and filePath are required")
   return prisma.projectFile.create({
     data: {
-      projectId:    String(projectId),
-      uploadedById: uploadedById ? String(uploadedById) : null,
-      fileName:     String(fileName).trim(),
-      filePath:     String(filePath),
-      fileType:     fileType || null,
+      projectId:      String(projectId),
+      uploadedById:   uploadedById ? String(uploadedById) : null,
+      uploadedByRole: "admin",
+      milestoneId:    milestoneId ? String(milestoneId) : null,
+      fileName:       String(fileName).trim(),
+      filePath:       String(filePath),
+      fileType:       fileType || null,
+      fileSize:       Number.isFinite(Number(fileSize)) ? Number(fileSize) : null,
+      isDeliverable:  Boolean(isDeliverable),
     },
   })
 }

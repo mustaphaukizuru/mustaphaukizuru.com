@@ -3,6 +3,7 @@ const {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
   uploadFile, removeFile, downloadFile,
+  addAdminComment, toggleResolveComment,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -23,5 +24,9 @@ router.delete("/:id/milestones/:milestoneId", removeMilestone)
 router.post  ("/:id/files",                 uploadProjectFile, uploadFile)
 router.delete("/:id/files/:fileId",         removeFile)
 router.get   ("/:id/files/:fileId/download", downloadFile)
+
+// Tier 2 · comment thread (admin side)
+router.post  ("/:id/comments",                       addAdminComment)
+router.patch ("/:id/comments/:commentId/resolve",    toggleResolveComment)
 
 module.exports = router
