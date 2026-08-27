@@ -121,11 +121,14 @@ const prisma = new Proxy({}, {
 // engine can't talk to MySQL right now (closed socket, network blip,
 // MySQL paused for maintenance, etc.). NEVER throws — catches every
 // possible error class so the caller can branch on a clean boolean.
+let lastPanicMessage = ""   // last isAlive() failure text, read by exitIfUnrecoverable
 async function isAlive() {
   try {
     await prisma.$queryRaw`SELECT 1`
+    lastPanicMessage = ""
     return true
   } catch (err) {
+    lastPanicMessage = String(err?.message || "")
     // We deliberately don't log here — callers (mostly crons) decide
     // whether a failed ping is worth surfacing. A noisy ping log would
     // drown the actual error in any 5-minute cron loop.
@@ -138,13 +141,23 @@ async function isAlive() {
 // try $connect() to bring a new one online. NEVER throws; if reconnect
 // fails the next isAlive() will return false and the caller can decide.
 async function recycle() {
+  // Must NEVER throw or reject: it runs from a setInterval and from the
+  // error handler, where an escaped rejection would take the whole process
+  // down (server.js treats unhandled rejections as fatal) and put Passenger
+  // into a restart loop.
   const old = current
-  const fresh = createClient()
+  let fresh
+  try {
+    fresh = createClient()
+  } catch (err) {
+    console.error("[prisma] recycle: could not construct a new client:", err?.message)
+    return
+  }
   try { await fresh.$connect() } catch { /* will retry on next call */ }
   current = fresh
   if (process.env.NODE_ENV !== "production") global.__prisma = fresh
   // Best-effort teardown of the dead engine; it may already have panicked.
-  old.$disconnect().catch(() => {})
+  try { Promise.resolve(old.$disconnect()).catch(() => {}) } catch { /* ignore */ }
 }
 
 /* ─────────────────────────── self-healing (HTTP path) ───────────────────
@@ -188,14 +201,42 @@ function recoverIfPanicked(err) {
   return true
 }
 
+/*
+ * Last resort. "PANIC: timer has gone away" is a crash of the tokio runtime
+ * inside the native query-engine library. That library is loaded once per
+ * process, so constructing a fresh PrismaClient in the same process does
+ * NOT bring it back — every query keeps failing until the process itself
+ * restarts. On Passenger a clean exit is exactly what triggers a fresh
+ * process, so after a failed recycle we exit(1) (graceful: logs flush,
+ * inflight requests get a moment). Guarded so a merely unreachable MySQL
+ * (a connectivity error, not a panic) never causes a restart loop.
+ */
+let exiting = false
+function exitIfUnrecoverable(reason) {
+  if (exiting) return
+  if (process.env.NODE_ENV !== "production" || process.env.DB_PANIC_EXIT === "0") return
+  if (!/timer has gone away|Query Engine has a panic|PrismaClientRustPanicError/i.test(String(reason || ""))) return
+  if (process.uptime() < 60) return   // never tight-loop a process that just booted
+  exiting = true
+  console.error("[prisma] query engine panicked and did not recover after recycle — exiting so Passenger starts a fresh process")
+  setTimeout(() => process.exit(1), 1500).unref()
+}
+
 let keepaliveTimer = null
 function startKeepalive() {
   if (keepaliveTimer || process.env.NODE_ENV === "test" || process.env.DISABLE_DB_KEEPALIVE === "1") return
   keepaliveTimer = setInterval(async () => {
-    if (await isAlive()) return
-    console.warn("[prisma] keepalive ping failed — recycling engine")
-    await recycleOnce()
-    if (!(await isAlive())) console.error("[prisma] engine still unreachable after recycle")
+    try {
+      if (await isAlive()) return
+      console.warn("[prisma] keepalive ping failed — recycling engine")
+      await recycleOnce()
+      if (!(await isAlive())) {
+        console.error("[prisma] engine still unreachable after recycle")
+        exitIfUnrecoverable(lastPanicMessage)
+      }
+    } catch (err) {
+      console.error("[prisma] keepalive error (ignored):", err?.message)
+    }
   }, KEEPALIVE_MS)
   // Never keep the process alive just for the ping (one-shot scripts, tests).
   if (typeof keepaliveTimer.unref === "function") keepaliveTimer.unref()
@@ -207,6 +248,7 @@ module.exports.isAlive = isAlive
 module.exports.recycle = recycle
 module.exports.recoverIfPanicked = recoverIfPanicked
 module.exports.isEnginePanic = isEnginePanic
+module.exports.exitIfUnrecoverable = exitIfUnrecoverable
 // Exported for tests: the pool bounds are a safety property, not an
 // implementation detail, so they get pinned like one.
 module.exports.withPoolBounds = withPoolBounds

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate || echo \"[postinstall] prisma generate failed — run it manually (non-fatal so the host install still completes)\"",
     "build": "cd web && npm run build:seo",
     "test": "jest",
     "test:watch": "jest --watch",
