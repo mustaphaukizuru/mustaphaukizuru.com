@@ -6,6 +6,7 @@ import { fetchMyProjects } from "../services/clientProjectService"
 import useApiQuery from "../hooks/useApiQuery"
 import { MetricCard, SkeletonCard } from "../components/ui/index"
 import StatusPill from "../components/admin/StatusPill"
+import { formatDate } from "../lib/format"
 
 /* I18N · Phase 119A — strings keyed under `dashboard.projects.*`.
  * StatusPill maps an internal status to a chip label internally; we
@@ -13,7 +14,7 @@ import StatusPill from "../components/admin/StatusPill"
  * machines stays in one place (StatusPill consumes the same status
  * strings everywhere else). */
 
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : ","
+const fmtDate = (d) => d ? formatDate(d) : "—"
 
 function progressPct(milestones = []) {
   if (milestones.length === 0) return 0

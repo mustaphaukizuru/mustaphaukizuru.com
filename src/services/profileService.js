@@ -10,6 +10,7 @@ const path   = require("path")
 const fs     = require("fs")
 const bcrypt = require("bcryptjs")
 const prisma = require("../lib/prisma")
+const logger = require("../utils/logger")
 
 const PUBLIC_DIR   = path.join(__dirname, "../../public")
 const BCRYPT_ROUNDS = 12
@@ -92,6 +93,184 @@ async function writePassword(userId, newPassword) {
   })
 }
 
+/* ────────────────────────── ARCO · data export ────────────────────────── */
+
+/**
+ * Tier 1 (LFPDPPP arts. 22-28) · right of Access. Bundles every row that
+ * belongs to the caller into one JSON object. Secrets never leave: no
+ * passwordHash / reset tokens / 2FA secrets on the user row, no gateway
+ * session ids on payments, only metadata for client projects. Every list is
+ * bounded (`take`) and newest-first so a very old account can't produce an
+ * unbounded response.
+ */
+const EXPORT_TAKE = 500
+
+const EXPORT_USER_SELECT = {
+  id: true, fullName: true, email: true, role: true, phone: true, company: true,
+  avatarUrl: true, authProvider: true, status: true, emailVerifiedAt: true,
+  lastLoginAt: true, createdAt: true, updatedAt: true,
+}
+
+const EXPORT_PAYMENT_SELECT = {
+  id: true, orderId: true, paymentGateway: true, amount: true, currency: true,
+  paymentStatus: true, paidAt: true, createdAt: true,
+}
+
+async function exportUserData(userId) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: EXPORT_USER_SELECT })
+  if (!user) return null
+
+  const newest = { createdAt: "desc" }
+  const byUser = { where: { userId }, orderBy: newest, take: EXPORT_TAKE }
+
+  const [
+    profile, addresses, orders, serviceOrders, consultations, clientProjects,
+    supportTickets, reviews, newsletter, notifications, downloads,
+  ] = await Promise.all([
+    prisma.userProfile.findUnique({ where: { userId } }),
+    prisma.address.findMany(byUser),
+    prisma.order.findMany({
+      ...byUser,
+      include: { items: true, payments: { select: EXPORT_PAYMENT_SELECT } },
+    }),
+    prisma.serviceOrder.findMany(byUser),
+    prisma.consultation.findMany({
+      ...byUser,
+      select: {
+        id: true, serviceId: true, scheduledAt: true, endsAt: true, durationMin: true,
+        timezone: true, meetingProvider: true, status: true, clientNotes: true,
+        cancellationReason: true, cancelledAt: true, confirmedAt: true,
+        completedAt: true, createdAt: true,
+      },
+    }),
+    prisma.clientProject.findMany({
+      ...byUser,
+      select: {
+        id: true, projectName: true, projectStatus: true, startDate: true,
+        dueDate: true, createdAt: true, updatedAt: true,
+      },
+    }),
+    prisma.supportTicket.findMany({
+      ...byUser,
+      include: { messages: { orderBy: { createdAt: "asc" }, take: EXPORT_TAKE } },
+    }),
+    prisma.review.findMany(byUser),
+    prisma.newsletterSubscriber.findUnique({ where: { email: user.email } }),
+    prisma.notification.findMany(byUser),
+    prisma.userDownload.findMany(byUser),
+  ])
+
+  return {
+    exportedAt: new Date().toISOString(),
+    user, profile, addresses, orders, serviceOrders, consultations, clientProjects,
+    supportTickets, reviews, newsletter, notifications, downloads,
+  }
+}
+
+/* ───────────────────── ARCO · cancellation (delete) ───────────────────── */
+
+const OPEN_SERVICE_ORDER = ["new", "active", "on_hold"]
+const OPEN_PROJECT       = ["planning", "in_progress", "review"]
+const OPEN_CONSULTATION  = ["pending", "confirmed", "scheduled", "rescheduled"]
+
+/**
+ * Anything that still needs to be delivered or attended blocks deletion:
+ * an unpaid order, a paid order whose service work is still open, an active
+ * client project, or an upcoming consultation. Returns a short reason list
+ * (empty array = nothing open).
+ */
+async function getOpenActivity(userId) {
+  const [pendingOrders, openServiceOrders, openProjects, upcoming] = await Promise.all([
+    prisma.order.count({ where: { userId, status: "pending" } }),
+    prisma.serviceOrder.count({ where: { userId, status: { in: OPEN_SERVICE_ORDER }, order: { status: "paid" } } }),
+    prisma.clientProject.count({ where: { userId, projectStatus: { in: OPEN_PROJECT } } }),
+    prisma.consultation.count({ where: { userId, status: { in: OPEN_CONSULTATION }, scheduledAt: { gte: new Date() } } }),
+  ])
+  const reasons = []
+  if (pendingOrders)     reasons.push("pending_order")
+  if (openServiceOrders) reasons.push("open_service_order")
+  if (openProjects)      reasons.push("active_project")
+  if (upcoming)          reasons.push("upcoming_consultation")
+  return reasons
+}
+
+/**
+ * Right of Cancellation. Orders, payments and invoices must survive for
+ * fiscal reasons (CFF art. 30 · five years), so the account is anonymised
+ * rather than hard-deleted: PII on the user row is scrubbed, addresses are
+ * removed, the newsletter row is dropped and every session is revoked.
+ *
+ * `UserStatus` has no `deleted` member (active | suspended | pending) and
+ * this tier makes no schema changes, so the row is parked as `suspended`
+ * — the `@anonymized.invalid` email is the durable marker that it was a
+ * self-service deletion.
+ */
+async function deleteAccount(userId, { ipAddress } = {}) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, fullName: true, avatarUrl: true },
+  })
+  if (!user) return null
+
+  const anonEmail = `deleted+${userId}@anonymized.invalid`
+  removeAvatarFile(user.avatarUrl)
+
+  await prisma.$transaction(async (tx) => {
+    await tx.address.deleteMany({ where: { userId } })
+    await tx.userProfile.deleteMany({ where: { userId } })
+    await tx.newsletterSubscriber.deleteMany({ where: { email: user.email } })
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        email:        anonEmail,
+        fullName:     "Deleted user",
+        phone:        null,
+        company:      null,
+        avatarUrl:    null,
+        googleId:     null,
+        microsoftId:  null,
+        facebookId:   null,
+        passwordHash: null,
+        resetPasswordToken:   null,
+        resetPasswordExpires: null,
+        status:       "suspended",
+        tokensValidFrom: new Date(),
+      },
+    })
+    await tx.activityLog.create({
+      data: {
+        userId,
+        action:      "account.deleted",
+        entityType:  "User",
+        entityId:    userId,
+        description: "Self-service account deletion (ARCO · cancelación)",
+        ipAddress:   ipAddress || null,
+      },
+    })
+  })
+
+  // Belt and braces: the transaction already bumped the watermark, but
+  // revokeUserSessions is the one canonical sign-out-everywhere primitive.
+  await require("./authService").revokeUserSessions(userId)
+
+  // Confirmation email only when an operator has seeded a template for it;
+  // there is none in prisma/seed-email-templates.js today, so this is a
+  // silent no-op until `account.deleted` exists.
+  try {
+    const template = await prisma.emailTemplate.findFirst({ where: { key: "account.deleted", isActive: true } })
+    if (template) {
+      await require("./emailService").sendTemplateEmail({
+        to: user.email, templateKey: "account.deleted",
+        variables: { name: user.fullName },
+      })
+    }
+  } catch (err) {
+    logger.warn(`[profile] account.deleted email skipped: ${err.message}`)
+  }
+
+  return { id: userId, email: anonEmail }
+}
+
 module.exports = {
   getProfile,
   updateProfile,
@@ -100,4 +279,7 @@ module.exports = {
   getPasswordHash,
   verifyCurrentPassword,
   writePassword,
+  exportUserData,
+  getOpenActivity,
+  deleteAccount,
 }

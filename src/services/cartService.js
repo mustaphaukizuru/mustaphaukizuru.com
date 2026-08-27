@@ -1,6 +1,7 @@
 const prisma = require("../lib/prisma")
 const AppError = require("../utils/AppError")
 const { validateCoupon, calculateDiscount } = require("./couponService")
+const { computeOrderTax } = require("../lib/tax")
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Helpers
@@ -47,7 +48,7 @@ const CART_INCLUDE = {
 }
 
 /**
- * Compute totals for a cart. Digital-goods tax policy = 0.
+ * Compute totals for a cart. `tax` is the IVA contained in `total`.
  *
  * @param {Array} items       cart items (with prismaed product/service relations)
  * @param {object|null} coupon applied coupon row or null
@@ -86,14 +87,24 @@ function computeTotals(items, coupon) {
     discount = calculateDiscount(coupon, subtotal)
   }
 
-  const tax = 0 // Digital goods — zero tax under current policy.
-  const total = Math.max(0, subtotal - discount + tax)
+  // IVA is CONTAINED in listed prices (src/lib/tax.js) — it never changes
+  // the total, only how it is broken down for the customer and the invoice.
+  const total = Math.max(0, subtotal - discount)
+  const { taxRate, taxAmount } = computeOrderTax({
+    items:    items.map((item) => ({
+      lineTotal: toNumber(item.priceSnapshot) * (item.quantity || 1),
+      taxExempt: Boolean(item.product?.taxExempt || item.service?.taxExempt),
+    })),
+    discount,
+  })
 
   return {
-    subtotal: Number(subtotal.toFixed(2)),
-    discount: Number(discount.toFixed(2)),
-    tax:      Number(tax.toFixed(2)),
-    total:    Number(total.toFixed(2)),
+    subtotal:    Number(subtotal.toFixed(2)),
+    discount:    Number(discount.toFixed(2)),
+    tax:         taxAmount,
+    taxRate,
+    taxIncluded: true,
+    total:       Number(total.toFixed(2)),
   }
 }
 

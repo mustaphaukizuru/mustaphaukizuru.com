@@ -1,5 +1,7 @@
 const prisma = require("../lib/prisma")
 const AppError = require("../utils/AppError")
+const { computeOrderTax } = require("../lib/tax")
+const logger = require("../utils/logger")
 
 /**
  * Service orders go through the same Order pipeline as product orders — this
@@ -89,6 +91,10 @@ async function createServiceOrder({ userId, slug, packageId, requirements, prefe
   const unitPrice = safeNum(pkg.price)
   const lineTotal = unitPrice
   const orderNumber = await createUniqueOrderNumber()
+  const tax = computeOrderTax({
+    items: [{ lineTotal, taxExempt: Boolean(pkg.taxExempt ?? service.taxExempt) }],
+    discount: 0,
+  })
 
   // Transaction: Order → OrderItem → ServiceOrder
   const result = await prisma.$transaction(async (tx) => {
@@ -99,6 +105,9 @@ async function createServiceOrder({ userId, slug, packageId, requirements, prefe
         customerName:  resolvedName,
         customerEmail: resolvedEmail,
         subtotalAmount: unitPrice,
+        taxRate:        tax.taxRate,
+        taxAmount:      tax.taxAmount,
+        taxIncluded:    true,
         totalAmount:    unitPrice,
         currency:       pkg.currency || service.currency || "MXN",
         status:         "pending",
@@ -273,25 +282,79 @@ function serializeServiceOrder(row, { detailed = false } = {}) {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 /* ────────────────────────────────────────────────────────────────────────
- *  orderByTier · public-facing "Choose Plan" entry point
- *  Auto-provisions Service + ServicePackage on first hit + supports guest checkout.
+ *  orderByTier · public-facing "Choose Plan" entry point (guest-friendly)
+ *
+ *  T1 · the DB is the source of truth for prices. The package is resolved by
+ *  `packageId` (preferred — what the SPA gets from GET /services/plans) or by
+ *  (audience, tier) → Service "<audience>-plan" + ServicePackage.tierKey.
+ *  Nothing is auto-provisioned any more: a missing row is a 404
+ *  PLAN_NOT_FOUND until the operator runs `npm run seed:plans`.
+ *
+ *  `price` / `priceUsd` / `currency` / `planName` are still accepted so SPA
+ *  builds from before T1 keep working, but they are NEVER trusted — the
+ *  charged amount is pkg.price. A client price that drifts by more than one
+ *  cent is logged at warn so a stale build or a tampered payload is visible.
  *  ──────────────────────────────────────────────────────────────────── */
 
+const PLAN_NOT_FOUND_HINT = "Run `npm run seed:plans` to create the pricing plans."
+
+async function resolvePlanPackage({ packageId, audience, tier }) {
+  const activePublished = { isActive: true, service: { status: "published", deletedAt: null } }
+
+  if (packageId) {
+    const pkg = await prisma.servicePackage.findFirst({
+      where:   { id: String(packageId), ...activePublished },
+      include: { service: { select: { id: true, slug: true } } },
+    })
+    if (pkg) return pkg
+    // Fall through to (audience, tier) only when the caller also sent it —
+    // a bare stale packageId is a 404, not an excuse to guess.
+    if (!audience || !tier) {
+      throw new AppError(`Plan package '${packageId}' not found or inactive. ${PLAN_NOT_FOUND_HINT}`,
+        { statusCode: 404, code: "PLAN_NOT_FOUND" })
+    }
+  }
+
+  const serviceSlug = `${String(audience).toLowerCase()}-plan`
+  const tierKey     = String(tier).toLowerCase()
+  const pkg = await prisma.servicePackage.findFirst({
+    where:   { tierKey, ...activePublished, service: { ...activePublished.service, slug: serviceSlug } },
+    orderBy: { sortOrder: "asc" },
+    include: { service: { select: { id: true, slug: true } } },
+  })
+  if (!pkg) {
+    throw new AppError(`No pricing plan for audience '${audience}' tier '${tier}'. ${PLAN_NOT_FOUND_HINT}`,
+      { statusCode: 404, code: "PLAN_NOT_FOUND" })
+  }
+  return pkg
+}
+
 async function orderByTier({
-  audience, tier, planName, price, priceUsd, currency = "MXN",
+  packageId, audience, tier, planName, price, priceUsd, currency,
   customerName, customerEmail, requirements, userId,
 }) {
-  if (!audience) throw new AppError("audience is required", { statusCode: 400, code: "VALIDATION_ERROR" })
-  if (!tier)     throw new AppError("tier is required", { statusCode: 400, code: "VALIDATION_ERROR" })
-  if (!planName) throw new AppError("planName is required", { statusCode: 400, code: "VALIDATION_ERROR" })
-
-  // Accept either `price` (canonical) or the legacy `priceUsd` field.
-  // Pricing is denominated in MXN by default — see currency arg.
-  const planPrice = price != null ? price : priceUsd
-  if (planPrice == null || isNaN(Number(planPrice))) {
-    throw new AppError("price is required and must be numeric", { statusCode: 400, code: "VALIDATION_ERROR" })
+  if (!packageId && (!audience || !tier)) {
+    throw new AppError("packageId or (audience, tier) is required", { statusCode: 400, code: "VALIDATION_ERROR" })
   }
   if (!customerEmail) throw new AppError("customerEmail is required", { statusCode: 400, code: "VALIDATION_ERROR" })
+
+  // Resolve the plan BEFORE touching the user table so a stale/missing plan
+  // never leaves a freshly auto-created guest account behind.
+  const pkg = await resolvePlanPackage({ packageId, audience, tier })
+
+  // Drift check only — the client value is never used for the charge.
+  const clientPrice = price != null ? price : priceUsd
+  if (clientPrice != null && Number.isFinite(Number(clientPrice))) {
+    const drift = Math.abs(Number(clientPrice) - safeNum(pkg.price))
+    const currencyDiffers = currency && String(currency).toUpperCase() !== String(pkg.currency || "MXN").toUpperCase()
+    if (drift > 0.01 || currencyDiffers) {
+      logger.warn("[orderByTier] client price drift ignored; charging DB price", {
+        packageId: pkg.id, tierKey: pkg.tierKey, planName: planName || null,
+        clientPrice: Number(clientPrice), clientCurrency: currency || null,
+        dbPrice: safeNum(pkg.price), dbCurrency: pkg.currency,
+      })
+    }
+  }
 
   // Resolve user — auto-account flow for guests.
   let resolvedUserId = userId || null
@@ -304,61 +367,10 @@ async function orderByTier({
     resolvedUserId = result.user.id
   }
 
-  // Find-or-create Service per audience.
-  const audienceLabel = audience.charAt(0).toUpperCase() + audience.slice(1)
-  const serviceSlug   = `${audience.toLowerCase()}-plan`
-
-  let service = await prisma.service.findUnique({ where: { slug: serviceSlug } })
-  if (!service) {
-    service = await prisma.service.create({
-      data: {
-        slug:             serviceSlug,
-        title:            `${audienceLabel} Plan`,
-        shortDescription: `Recurring engagement plans for ${audienceLabel.toLowerCase()} clients. Auto-provisioned from the public pricing matrix.`,
-        basePrice:        Number(planPrice),
-        currency,
-        deliveryType:     "subscription",
-        // BUGFIX: ServiceStatus enum is { draft, published, archived }.
-        // "active" raised a Prisma validation error on every checkout, which
-        // surfaced on the public Choose Plan page as "Request error".
-        // "published" is also required because createServiceOrder (the next
-        // step in this flow) filters by `status: "published"` only.
-        status:           "published",
-      },
-    })
-  } else if (service.status !== "published") {
-    // If a stale "draft" or other non-published row exists from a previous
-    // half-broken run, promote it so createServiceOrder can find it.
-    service = await prisma.service.update({
-      where: { id: service.id },
-      data:  { status: "published" },
-    })
-  }
-
-  // Find-or-create ServicePackage per tier.
-  let pkg = await prisma.servicePackage.findFirst({
-    where: { serviceId: service.id, name: planName },
-  })
-  if (!pkg) {
-    pkg = await prisma.servicePackage.create({
-      data: {
-        serviceId: service.id,
-        name:      planName,
-        price:     Number(planPrice),
-        currency,
-        isActive:  true,
-      },
-    })
-  } else if (Number(pkg.price) !== Number(planPrice)) {
-    console.warn(
-      `[orderByTier] price mismatch for ${planName}: client=${planPrice} ${currency} DB=${pkg.price} ${pkg.currency}. Honoring DB price.`
-    )
-  }
-
-  // Delegate to the existing createServiceOrder transaction.
+  // Delegate to the existing createServiceOrder transaction (DB price).
   return createServiceOrder({
     userId:        resolvedUserId,
-    slug:          serviceSlug,
+    slug:          pkg.service.slug,
     packageId:     pkg.id,
     requirements,
     customerName,

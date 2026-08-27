@@ -11,7 +11,7 @@ import { SUPPORTED_LANGUAGES, FALLBACK_LANGUAGE, normalizeLanguage } from "./res
  *   order: ["path", "localStorage", "navigator"]
  *   lookupFromPathIndex: 0
  *   lookupLocalStorage: "preferred-language"
- *   supportedLngs: ["en", "es"] · fallbackLng: "en"
+ *   supportedLngs: ["en", "es"] · fallbackLng: "es"
  *
  * WHY IT EXISTS · locale bundles are now split per language and loaded with
  * `import()`, so we must know the language BEFORE `i18n.init()` runs in
@@ -57,10 +57,13 @@ export function detectInitialLanguage(order = [], env = {}) {
         if (SUPPORTED_LANGUAGES.includes(base)) return base
       }
     } else if (source === "navigator") {
-      for (const candidate of navigatorLanguages) {
-        if (typeof candidate !== "string" || !candidate) continue
-        const base = candidate.toLowerCase().split("-")[0]
-        if (SUPPORTED_LANGUAGES.includes(base)) return base
+      // Spanish-first: the browser's FIRST language decides. `en*` → en,
+      // anything else (es, pt-BR, fr…) → es. We deliberately do not scan
+      // further down the list — a pt-BR user with en as a distant second
+      // choice is a LATAM visitor, not an English one.
+      const first = navigatorLanguages.find((c) => typeof c === "string" && c)
+      if (first) {
+        return first.toLowerCase().split("-")[0] === "en" ? "en" : "es"
       }
     }
   }

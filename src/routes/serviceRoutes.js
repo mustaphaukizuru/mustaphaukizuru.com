@@ -10,6 +10,7 @@ const router = express.Router()
  *
  *   GET  /featured            → before /:slug
  *   GET  /audience-plans      → public Choose-Your-Plan matrix (DB-backed)
+ *   GET  /plans               → DB prices + tier availability (T1 source of truth)
  *   GET  /                    → list
  *   POST /order-by-tier       → guest-friendly Choose-Plan checkout (before /:slug)
  *   POST /:slug/order         → auth-protected detail-page order creation
@@ -18,6 +19,7 @@ const router = express.Router()
 
 router.get("/featured",        c.getFeatured)
 router.get("/audience-plans",  c.getAudiencePlans)
+router.get("/plans",           c.getPlans)
 router.get("/",                c.listServices)
 router.post("/order-by-tier",  attachUserIfPresent, c.orderByTier)
 

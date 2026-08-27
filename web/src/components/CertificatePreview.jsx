@@ -1,3 +1,4 @@
+import { formatDate } from "../lib/format"
 import { useEffect, useRef, useState } from "react"
 import { Modal } from "./ui/Modal"
 import {
@@ -89,7 +90,7 @@ function deriveYear(year, date) {
 function deriveIssuedLine(date) {
   if (!date) return null
   try {
-    return new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "short" })
+    return formatDate(date, undefined, { year: "numeric", month: "short", day: undefined })
   } catch { return null }
 }
 

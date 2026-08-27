@@ -1,12 +1,16 @@
 import { useMemo, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
+import { Link, useNavigate } from "react-router-dom"
 import {
   Mail, ShieldCheck, User, CalendarDays, Edit3, Save, X,
-  Phone, Building, Lock, Camera, Trash2, CheckCircle2, AlertCircle, Eye, EyeOff
+  Phone, Building, Lock, Camera, Trash2, AlertCircle, Eye, EyeOff,
+  Download, FileLock2, ExternalLink
 } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { authFetch, API_BASE_URL } from "../lib/api"
 import { useToast } from "../context/ToastContext"
+import { triggerBrowserDownload } from "../services/downloadService"
+import { Modal, ModalFooter, Button } from "../components/ui"
 import ProfileTabs from "../components/dashboard/ProfileTabs"
 
 /* I18N · Phase 119B — strings keyed under `dashboard.profile.*`. The
@@ -30,8 +34,17 @@ function InfoRow({ label, value, icon: Icon }) {
 
 export default function DashboardProfilePage() {
   const { t, i18n } = useTranslation("dashboard")
-  const { user, updateUser } = useAuth()
+  const { user, updateUser, logout } = useAuth()
   const { showSuccess, showError } = useToast()
+  const navigate = useNavigate()
+
+  // ARCO · Privacy & data (LFPDPPP). Export = right of Access, delete =
+  // right of Cancellation. Both hit the member profile router.
+  const [exporting, setExporting] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deletePw, setDeletePw] = useState("")
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState("")
 
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ fullName: user?.fullName || "", phone: user?.phone || "", company: user?.company || "" })
@@ -178,6 +191,55 @@ export default function DashboardProfilePage() {
       setPwError(err.message || t("profile.toast.passwordFailed"))
     } finally {
       setSavingPw(false)
+    }
+  }
+
+  async function handleExportData() {
+    setExporting(true)
+    try {
+      const res = await authFetch("/api/v1/member/profile/export")
+      // Attachment responses come back as { data: Blob }; anything else
+      // (older API build) is the JSON itself — wrap it so the download
+      // still works.
+      const blob = res?.data instanceof Blob
+        ? res.data
+        : new Blob([JSON.stringify(res, null, 2)], { type: "application/json" })
+      triggerBrowserDownload(blob, "my-data.json")
+      showSuccess(t("profile.privacy.exportSuccess"))
+    } catch (err) {
+      showError(err?.toUserMessage?.() || err?.message || t("profile.privacy.exportFailed"))
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  function openDeleteDialog() {
+    setDeletePw("")
+    setDeleteError("")
+    setDeleteOpen(true)
+  }
+
+  async function handleDeleteAccount(e) {
+    e?.preventDefault?.()
+    setDeleteError("")
+    if (hasPassword && !deletePw) { setDeleteError(t("profile.privacy.passwordRequired")); return }
+    setDeleting(true)
+    try {
+      await authFetch("/api/v1/member/profile", {
+        method: "DELETE",
+        body: JSON.stringify(hasPassword ? { password: deletePw } : {}),
+      })
+      showSuccess(t("profile.privacy.deleted"))
+      setDeleteOpen(false)
+      await logout()
+      navigate("/", { replace: true })
+    } catch (err) {
+      const code = err?.code || err?.details?.code
+      if (code === "HAS_OPEN_ACTIVITY" || err?.status === 409) setDeleteError(t("profile.privacy.openActivity"))
+      else if (err?.status === 401) setDeleteError(t("profile.privacy.wrongPassword"))
+      else setDeleteError(err?.toUserMessage?.() || err?.message || t("profile.privacy.deleteFailed"))
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -400,6 +462,93 @@ export default function DashboardProfilePage() {
               </form>
             )}
           </div>
+
+          {/* Privacy & data · ARCO self-service (LFPDPPP arts. 22-28).
+              "Download my data" streams GET /member/profile/export as a
+              JSON attachment; "Delete account" confirms in a Modal (with a
+              password field only for local-credential accounts), then
+              signs out and returns to the home page. */}
+          <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-pale text-violet">
+                <FileLock2 className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-meta font-bold text-violet">{t("profile.privacy.title")}</div>
+                <div className="text-micro text-charcoal-80/65">{t("profile.privacy.subtitle")}</div>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-col justify-between gap-3 rounded-xl border border-charcoal-80/8 bg-mist p-4">
+                <div>
+                  <div className="text-meta font-semibold text-violet">{t("profile.privacy.exportTitle")}</div>
+                  <p className="mt-1 text-micro leading-5 text-charcoal-80/65">{t("profile.privacy.exportDesc")}</p>
+                </div>
+                <Button variant="secondary" size="sm" onClick={handleExportData} loading={exporting} disabled={exporting}
+                  icon={Download}
+                >
+                  {exporting ? t("profile.privacy.exporting") : t("profile.privacy.exportButton")}
+                </Button>
+              </div>
+
+              <div className="flex flex-col justify-between gap-3 rounded-xl border border-rose/15 bg-rose/5 p-4">
+                <div>
+                  <div className="text-meta font-semibold text-rose-700">{t("profile.privacy.deleteTitle")}</div>
+                  <p className="mt-1 text-micro leading-5 text-charcoal-80/65">{t("profile.privacy.deleteDesc")}</p>
+                </div>
+                <Button variant="destructive" size="sm" onClick={openDeleteDialog}
+                  icon={Trash2}
+                >
+                  {t("profile.privacy.deleteButton")}
+                </Button>
+              </div>
+            </div>
+
+            <Link to="/privacy#aviso-de-privacidad"
+              className="mt-4 inline-flex items-center gap-1.5 text-micro font-semibold text-violet underline-offset-2 hover:underline"
+            >
+              {t("profile.privacy.learnMore")} <ExternalLink className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <Modal
+            open={deleteOpen}
+            onClose={() => !deleting && setDeleteOpen(false)}
+            title={t("profile.privacy.modalTitle")}
+            description={t("profile.privacy.modalDesc")}
+            size="sm"
+          >
+            <form id="delete-account-form" onSubmit={handleDeleteAccount} className="flex flex-col gap-4">
+              {deleteError && (
+                <div className="flex items-start gap-2 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {deleteError}
+                </div>
+              )}
+              {hasPassword && (
+                <div>
+                  <label htmlFor="delete-account-password" className="mb-1.5 block text-micro font-semibold text-violet">
+                    {t("profile.privacy.passwordLabel")}
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-charcoal-80/35" />
+                    <input id="delete-account-password" type="password" autoComplete="current-password"
+                      value={deletePw} onChange={(e) => setDeletePw(e.target.value)}
+                      className="w-full rounded-xl border border-charcoal-80/15 bg-mist py-3 pl-10 pr-4 text-meta text-violet outline-none focus:border-violet/40"
+                    />
+                  </div>
+                </div>
+              )}
+            </form>
+            <ModalFooter>
+              <Button variant="ghost" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+                {t("profile.privacy.cancel")}
+              </Button>
+              <Button variant="destructive" type="submit" form="delete-account-form" loading={deleting} disabled={deleting}>
+                {deleting ? t("profile.privacy.deleting") : t("profile.privacy.confirm")}
+              </Button>
+            </ModalFooter>
+          </Modal>
         </div>
       </div>
     </section>

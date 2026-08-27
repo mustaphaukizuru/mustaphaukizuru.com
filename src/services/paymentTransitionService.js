@@ -13,7 +13,8 @@
  *      Order here either (refund bookkeeping is owned by refundService).
  *   3. Idempotent Payment upsert keyed on [paymentGateway, gatewayTransactionId].
  *   4. Optional `onFirstPaid(order)` hook fired AFTER the transaction commits,
- *      only on the first transition to paid (entitlement fulfilment).
+ *      only when the ORDER flipped to paid in this call (`isFirstPaid`) —
+ *      never again for a second capture id on an already-paid order.
  */
 
 const prisma   = require("../lib/prisma")
@@ -104,7 +105,7 @@ async function transitionOrderPayment({
     if (targetStatus === "paid") {
       const amountMismatch = checkAmount(current, gatewayAmount, gatewayCurrency)
       if (amountMismatch) {
-        return { order: current, isFirstTransition: false, payload, amountMismatch }
+        return { order: current, isFirstTransition: false, isFirstPaid: false, payload, amountMismatch }
       }
     }
 
@@ -137,12 +138,28 @@ async function transitionOrderPayment({
       await tx.payment.create({ data: { ...paymentData, orderId, userId: order.userId } })
     }
 
-    return { order, isFirstTransition: !existing, payload, amountMismatch: null }
+    // isFirstTransition: first time this gateway tx id was seen (Payment row
+    //   created) — the dedupe key for per-payment side effects.
+    // isFirstPaid: the Order actually flipped to paid in THIS call. This is
+    //   what order-level side effects (confirmation email, fulfilment) must
+    //   key on. A brand-new capture id on an already-paid order (PayPal
+    //   re-capture, duplicate MP charge, manual mark-paid then a late
+    //   webhook) is a first transition but NOT a first paid — it used to
+    //   re-send the email and re-run fulfilment. Conversely an OXXO/SPEI
+    //   payment creates its row while pending, so its later approval is a
+    //   first paid but not a first transition.
+    return {
+      order,
+      isFirstTransition: !existing,
+      isFirstPaid:       !skipOrderWrite && targetStatus === "paid",
+      payload,
+      amountMismatch:    null,
+    }
   })
 
   if (
     typeof onFirstPaid === "function" &&
-    result.isFirstTransition &&
+    result.isFirstPaid &&
     !result.amountMismatch &&
     targetStatus === "paid"
   ) {

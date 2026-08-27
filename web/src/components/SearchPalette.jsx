@@ -1,3 +1,4 @@
+import { formatPrice as formatPriceCanonical } from "../lib/format"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
@@ -50,15 +51,7 @@ function isMac() {
 
 function formatPrice(value, currency) {
   if (value == null || value === "") return ""
-  try {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency || "MXN",
-      maximumFractionDigits: 2,
-    }).format(Number(value))
-  } catch {
-    return "$" + Number(value).toFixed(2)
-  }
+  return formatPriceCanonical(value, currency || "MXN")
 }
 
 function resolveImage(url) {

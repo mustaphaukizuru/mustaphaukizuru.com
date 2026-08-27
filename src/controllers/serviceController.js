@@ -36,6 +36,19 @@ const getFeatured = asyncHandler(async (req, res) => {
 })
 
 /**
+ * GET /api/services/plans — DB-backed prices + tier availability for the
+ * public pricing matrix. Shape:
+ *   { audiences: [{ code, serviceSlug, tiers: [{ tierKey, name, price,
+ *     currency, period, popular, saveLabel, packageId }] }] }
+ * Empty `audiences` means `npm run seed:plans` has not been run.
+ */
+const getPlans = asyncHandler(async (req, res) => {
+  const data = await serviceService.listAudiencePlans()
+  res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120")
+  res.json({ success: true, data })
+})
+
+/**
  * GET /api/services/:slug
  * Returns the detailed service plus related services[].
  */
@@ -88,20 +101,22 @@ const orderService = asyncHandler(async (req, res) => {
 
 /**
  * POST /api/services/order-by-tier   (soft-auth — guest checkout supported)
- * Body: { audience, tier, planName, priceUsd, currency?, customerName,
- *         customerEmail, requirements? }
+ * Body: { packageId?, audience?, tier?, customerName, customerEmail,
+ *         requirements?, planName?, price?, priceUsd?, currency? }
  *
- * Auto-provisions Service + ServicePackage on first hit.
+ * The package is resolved by `packageId` (preferred) or (audience, tier); it
+ * must already exist (see prisma/seed-service-plans.js). `price` / `priceUsd`
+ * / `currency` / `planName` are accepted so pre-T1 SPA builds keep working,
+ * but the charged amount is ALWAYS the DB price.
  */
 const orderByTier = asyncHandler(async (req, res) => {
   const result = await serviceOrderService.orderByTier({
+    packageId:     req.body?.packageId,
     audience:      req.body?.audience,
     tier:          req.body?.tier,
     planName:      req.body?.planName,
-    // Accept both `price` (canonical, currency-agnostic) and the legacy
-    // `priceUsd` field for backward-compat with any older clients.
     price:         req.body?.price ?? req.body?.priceUsd,
-    currency:      req.body?.currency || "MXN",
+    currency:      req.body?.currency,
     customerName:  req.body?.customerName,
     customerEmail: req.body?.customerEmail,
     requirements:  req.body?.requirements,
@@ -198,4 +213,5 @@ module.exports = {
   orderService,
   orderByTier,
   getAudiencePlans,
+  getPlans,
 }

@@ -454,6 +454,10 @@ model Product {
   fullDescription    String?       @db.Text
   price              Decimal       @db.Decimal(12, 2)
   currency           String        @default("MXN")
+  /// IVA / SAT classification (src/lib/fiscal.js SAT_DEFAULTS when null).
+  taxExempt          Boolean       @default(false)
+  satProductCode     String?       @db.VarChar(8)  // c_ClaveProdServ
+  satUnitCode        String?       @db.VarChar(3)  // c_ClaveUnidad, e.g. E48
   productType        String        @default("downloadable")
   status             ProductStatus @default(draft)
   sku                String?       @unique
@@ -734,6 +738,10 @@ model Service {
   fullDescription  String?       @db.Text
   basePrice        Decimal       @default(0.00) @db.Decimal(12, 2)
   currency         String        @default("MXN")
+  /// IVA / SAT classification (src/lib/fiscal.js SAT_DEFAULTS when null).
+  taxExempt        Boolean       @default(false)
+  satProductCode   String?       @db.VarChar(8)
+  satUnitCode      String?       @db.VarChar(3)
   deliveryType     String
   status           ServiceStatus @default(draft)
   isFeatured       Boolean       @default(false)
@@ -959,10 +967,25 @@ model Order {
   billingCity             String?
   billingStateRegion      String?
   billingPostalCode       String?
+  /// Fiscal snapshot at purchase time — CFDI 4.0 "Receptor" data. Copied
+  /// from the checkout form / saved Address so a later edit to the address
+  /// never rewrites what an issued invoice must say. See src/lib/fiscal.js.
+  billingCompany          String?
+  billingTaxId            String?     @db.VarChar(40)   // RFC (MX) or foreign tax id
+  billingLegalName        String?     // razón social, uppercase per Constancia
+  billingRegimenFiscal    String?     @db.VarChar(3)    // SAT c_RegimenFiscal, e.g. 612
+  billingUsoCfdi          String?     @db.VarChar(4)    // SAT c_UsoCFDI, e.g. G03
+  billingFiscalPostalCode String?     @db.VarChar(12)   // DomicilioFiscalReceptor
   status                  OrderStatus @default(pending)
   subtotalAmount          Decimal     @default(0.00) @db.Decimal(12, 2)
   discountAmount          Decimal     @default(0.00) @db.Decimal(12, 2)
   serviceFeeAmount        Decimal     @default(0.00) @db.Decimal(12, 2)
+  /// IVA snapshot (src/lib/tax.js). Prices are tax-INCLUSIVE: taxAmount is
+  /// the IVA contained in totalAmount, not added on top. taxIncluded records
+  /// that policy per order so history survives a future pricing change.
+  taxRate                 Decimal     @default(0.0000) @db.Decimal(5, 4)
+  taxAmount               Decimal     @default(0.00) @db.Decimal(12, 2)
+  taxIncluded             Boolean     @default(true)
   totalAmount             Decimal     @db.Decimal(12, 2)
   currency                String      @default("MXN")
   couponId                String?
@@ -1035,6 +1058,23 @@ model Invoice {
   invoiceNumber String   @unique
   invoicePdfUrl String?
   issuedAt      DateTime @default(now())
+
+  /// Money snapshot at issue time — an invoice must not change when the
+  /// order row later does (refund, edit). Mirrors Order at ensureInvoice().
+  serie          String   @default("A") @db.VarChar(8)
+  status         String   @default("issued") @db.VarChar(16) // issued | cancelled
+  currency       String   @default("MXN")
+  subtotalAmount Decimal  @default(0.00) @db.Decimal(12, 2)  // net, before IVA
+  taxRate        Decimal  @default(0.0000) @db.Decimal(5, 4)
+  taxAmount      Decimal  @default(0.00) @db.Decimal(12, 2)
+  totalAmount    Decimal  @default(0.00) @db.Decimal(12, 2)
+  cancelledAt    DateTime?
+
+  /// CFDI 4.0 stamping (filled by a PAC adapter — not wired yet; see
+  /// src/services/cfdiProvider.js). Null = comprobante simple, not a CFDI.
+  cfdiUuid       String?  @unique @db.VarChar(36)
+  cfdiXmlUrl     String?
+  cfdiStampedAt  DateTime?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -1781,7 +1821,12 @@ model Address {
   state      String?
   postalCode String
   country    String // ISO 3166-1 alpha-2, e.g. "MX"
-  taxId      String? // Mexican RFC or country-specific tax ID
+  taxId      String? // Mexican RFC (validated when country = MX) or country-specific tax ID
+  /// CFDI 4.0 receiver data (MX only; see src/lib/fiscal.js for catalogs).
+  legalName        String?  // razón social exactly as on the Constancia (uppercase)
+  regimenFiscal    String?  @db.VarChar(3)
+  usoCfdi          String?  @db.VarChar(4)
+  fiscalPostalCode String?  @db.VarChar(12) // domicilio fiscal CP when it differs from postalCode
   phone      String?
   isDefault  Boolean @default(false)
 

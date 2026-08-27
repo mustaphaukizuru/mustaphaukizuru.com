@@ -124,6 +124,35 @@ export async function fetchAudiencePlans() {
   }
 }
 
+/* ────────────────────────────────────────────────────────────────────────
+   Public · DB prices + tier availability (T1 source of truth)
+   Backend: GET /api/v1/services/plans
+   Returns { audiences: [{ code, serviceSlug, tiers: [{ tierKey, name,
+             price, currency, period, popular, saveLabel, packageId }] }] }
+
+   Marketing copy stays in web/src/data/servicesCatalogue.js; callers overlay
+   these prices onto the static matrix by (audience, tierKey). Throws on
+   failure so useApiQuery can surface `error` and the caller can fall back.
+   ──────────────────────────────────────────────────────────────────────── */
+export async function fetchServicePlans(options = {}) {
+  const res = await apiGet("/api/v1/services/plans", options)
+  const payload = res?.data || res
+  return { audiences: Array.isArray(payload?.audiences) ? payload.audiences : [] }
+}
+
+/** { [audience]: { [tierKey]: tier } } lookup built from fetchServicePlans(). */
+export function indexServicePlans(plans) {
+  const map = {}
+  for (const aud of plans?.audiences || []) {
+    if (!aud?.code) continue
+    map[aud.code] = {}
+    for (const tier of aud.tiers || []) {
+      if (tier?.tierKey) map[aud.code][tier.tierKey] = tier
+    }
+  }
+  return map
+}
+
 export async function getServiceBySlug(slug) {
   if (!slug) return null
   try {
