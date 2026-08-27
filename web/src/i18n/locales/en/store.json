@@ -20,7 +20,8 @@
     "guaranteesAria": "Store guarantees",
     "instantDownload": "Instant download",
     "secureCheckout": "Secure checkout",
-    "headlineAccent": "Real-World Results"
+    "headlineAccent": "Real-World Results",
+    "ratingAria": "Rated five out of five stars"
   },
   "toolbar": {
     "filtersAria": "Store filters",

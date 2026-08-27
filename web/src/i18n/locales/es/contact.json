@@ -68,7 +68,9 @@
       "consent": "Confirma que aceptas que te contactemos.",
       "fixFields": "Corrige los campos resaltados e inténtalo de nuevo.",
       "sendFailed": "No se pudo enviar. Inténtalo de nuevo.",
-      "subjectFallback": "Consulta desde el formulario de contacto"
+      "subjectFallback": "Consulta desde el formulario de contacto",
+      "fixTitle": "Algunos campos necesitan tu atención",
+      "sendFailedTitle": "No pudimos enviar tu mensaje"
     }
   },
   "info": {

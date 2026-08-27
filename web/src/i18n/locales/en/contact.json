@@ -68,7 +68,9 @@
       "consent": "Please confirm you agree to be contacted.",
       "fixFields": "Please fix the highlighted fields and try again.",
       "sendFailed": "Failed to send. Please try again.",
-      "subjectFallback": "Contact form inquiry"
+      "subjectFallback": "Contact form inquiry",
+      "fixTitle": "A few fields need your attention",
+      "sendFailedTitle": "Couldn't send your message"
     }
   },
   "info": {

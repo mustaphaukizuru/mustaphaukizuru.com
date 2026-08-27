@@ -416,5 +416,8 @@
     "emailLabel": "Enviar un correo",
     "bookLabel": "Reservar consultoría",
     "contactLabel": "Página de contacto"
+  },
+  "a11y": {
+    "skipToContent": "Saltar al contenido principal"
   }
 }

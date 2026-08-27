@@ -20,7 +20,8 @@
     "guaranteesAria": "Garantías de la tienda",
     "instantDownload": "Descarga inmediata",
     "secureCheckout": "Pago seguro",
-    "headlineAccent": "resultados reales"
+    "headlineAccent": "resultados reales",
+    "ratingAria": "Calificado con cinco de cinco estrellas"
   },
   "toolbar": {
     "filtersAria": "Filtros de la tienda",

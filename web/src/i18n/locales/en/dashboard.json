@@ -1184,5 +1184,27 @@
       "pinSend": "We could not send the PIN. Please try again.",
       "pinInvalid": "That PIN is wrong or has expired."
     }
+  },
+  "meetingBanner": {
+    "live": "Meeting in progress",
+    "startingNow": "Starting now",
+    "startsIn_one": "Starts in {{count}} minute",
+    "startsIn_other": "Starts in {{count}} minutes",
+    "fallbackTitle": "Consultation",
+    "joinGoogleMeet": "Join Google Meet",
+    "joinMeeting": "Join meeting",
+    "regionLabel": "Upcoming meeting",
+    "startsIn": "Starts in {{count}} min"
+  },
+  "orderDetail": {
+    "invoiceUnavailable": "Invoice not available.",
+    "backToOrders": "Back to Order History",
+    "notFound": "Order not found.",
+    "title": "Order",
+    "invoice": "Invoice",
+    "items": "Items",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "total": "Total"
   }
 }

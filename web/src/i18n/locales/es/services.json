@@ -49,7 +49,14 @@
       "mpFailed": "No pudimos iniciar el pago con Mercado Pago.",
       "mpNoUrl": "Mercado Pago no devolvió una URL de pago.",
       "paypalCancel": "Pago con PayPal cancelado.",
-      "paypalFailed": "El pago con PayPal falló."
+      "paypalFailed": "El pago con PayPal falló.",
+      "planInvalidTitle": "Plan no encontrado",
+      "nameRequiredTitle": "El nombre es obligatorio",
+      "emailInvalidTitle": "El formato del correo no parece válido",
+      "termsRequiredTitle": "Acepta los Términos para continuar",
+      "mpFailedTitle": "El pago con MercadoPago falló",
+      "paypalCancelTitle": "El pago con PayPal fue cancelado",
+      "paypalFailedTitle": "El pago con PayPal falló"
     },
     "plan": {
       "mostPopular": "Más popular",

@@ -101,6 +101,7 @@ const navigation = [
       { label: "Services", to: "/admin/services", icon: Briefcase, description: "Consulting & delivery" },
       { label: "Service Orders", to: "/admin/service-orders", icon: ClipboardCheck, description: "Paid service deliveries" },
       { label: "Client Projects", to: "/admin/client-projects", icon: Briefcase, description: "Milestones, files, timeline" },
+      { label: "Invoices", to: "/admin/invoices", icon: Receipt, description: "Manual invoices & dunning" },
       { label: "Availability", to: "/admin/availability", icon: Calendar, description: "Booking calendar rules" },
       { label: "Consultations", to: "/admin/consultations", icon: CalendarCheck, description: "Booked calls & status" },
     ],

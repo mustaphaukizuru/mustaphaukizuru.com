@@ -49,7 +49,14 @@
       "mpFailed": "Could not start MercadoPago checkout.",
       "mpNoUrl": "MercadoPago did not return a checkout URL.",
       "paypalCancel": "PayPal checkout cancelled.",
-      "paypalFailed": "PayPal checkout failed."
+      "paypalFailed": "PayPal checkout failed.",
+      "planInvalidTitle": "Plan not found",
+      "nameRequiredTitle": "Name is required",
+      "emailInvalidTitle": "Email format looks off",
+      "termsRequiredTitle": "Please accept the Terms",
+      "mpFailedTitle": "MercadoPago checkout failed",
+      "paypalCancelTitle": "PayPal payment was cancelled",
+      "paypalFailedTitle": "PayPal checkout failed"
     },
     "plan": {
       "mostPopular": "Most popular",
