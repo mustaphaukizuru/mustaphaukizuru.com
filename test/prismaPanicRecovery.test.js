@@ -180,3 +180,49 @@ describe("keepalive during a connectivity outage", () => {
     jest.dontMock("@prisma/client")
   })
 })
+
+describe("database probe timeout (a wedged engine must not hang the app)", () => {
+  test("probeWithTimeout resolves TIMED_OUT instead of waiting on a query that never settles", async () => {
+    jest.resetModules()
+    jest.dontMock("../src/lib/prisma")
+    process.env.DISABLE_DB_KEEPALIVE = "1"
+    const { probeWithTimeout, TIMED_OUT } = require("../src/lib/prisma")
+
+    // The production failure mode: the query never settles at all.
+    const started = Date.now()
+    await expect(probeWithTimeout(new Promise(() => {}), 40)).resolves.toBe(TIMED_OUT)
+    expect(Date.now() - started).toBeLessThan(2000)
+
+    // A healthy query still reports ok, and a failing one still rejects.
+    await expect(probeWithTimeout(Promise.resolve([{ 1: 1 }]), 1000)).resolves.toBe("ok")
+    await expect(probeWithTimeout(Promise.reject(new Error("P1001")), 1000)).rejects.toThrow("P1001")
+  })
+
+  test("a stuck engine can trigger the restart, still under the uptime guards", () => {
+    jest.resetModules()
+    jest.dontMock("../src/lib/prisma")
+    process.env.DISABLE_DB_KEEPALIVE = "1"
+    const exit = jest.spyOn(process, "exit").mockImplementation(() => {})
+    const uptime = jest.spyOn(process, "uptime").mockReturnValue(10)
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    const prev = process.env.NODE_ENV
+    process.env.NODE_ENV = "production"
+    jest.useFakeTimers()
+    const prisma = require("../src/lib/prisma")
+
+    // Too early: a just-booted process is never traded in.
+    prisma.exitIfUnrecoverable("probe did not answer", { stuck: true })
+    jest.advanceTimersByTime(5000)
+    expect(exit).not.toHaveBeenCalled()
+
+    // Past the cold threshold a fresh process is warranted.
+    uptime.mockReturnValue(400)
+    prisma.exitIfUnrecoverable("probe did not answer", { stuck: true })
+    jest.advanceTimersByTime(5000)
+    expect(exit).toHaveBeenCalledWith(1)
+
+    process.env.NODE_ENV = prev
+    jest.useRealTimers()
+    exit.mockRestore(); uptime.mockRestore()
+  })
+})

@@ -129,15 +129,52 @@ const prisma = new Proxy(helpers, {
 // engine can't talk to MySQL right now (closed socket, network blip,
 // MySQL paused for maintenance, etc.). NEVER throws — catches every
 // possible error class so the caller can branch on a clean boolean.
+//
+// The timeout is the load-bearing part. A dead socket does not always
+// produce an error: if the peer vanished without an RST, the query sits
+// there and the promise never settles. That happened in production on
+// 2026-08-28 — every DB-backed route hung (routes that touch no DB still
+// answered in 0.2s), and because this probe awaited the same never-settling
+// query, the keepalive, the recycle and the exit guard all waited with it.
+// A hang must therefore be reported as "not alive", not waited on.
+const TIMED_OUT = Symbol("db-probe-timeout")
+const PROBE_TIMEOUT_MS = Number(process.env.DB_PROBE_TIMEOUT_MS || 5000)
+
 let lastPanicMessage = ""   // last isAlive() failure text, read by exitIfUnrecoverable
 let everHealthy = false     // has ANY query succeeded in this process?
-async function isAlive() {
+let lastProbeTimedOut = false
+
+/**
+ * Resolve `"ok"`, reject with the query's error, or resolve TIMED_OUT —
+ * never hang. Exported for tests: the timeout is the safety property.
+ */
+function probeWithTimeout(promise, timeoutMs) {
+  let timer
+  // The losing promise is deliberately left dangling; it carries a .catch
+  // so a late rejection can never surface as an unhandled one.
+  Promise.resolve(promise).catch(() => {})
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(TIMED_OUT), timeoutMs)
+    if (typeof timer.unref === "function") timer.unref()
+  })
+  return Promise.race([Promise.resolve(promise).then(() => "ok"), timeout])
+    .finally(() => { if (timer) clearTimeout(timer) })
+}
+
+async function isAlive({ timeoutMs = PROBE_TIMEOUT_MS } = {}) {
   try {
-    await prisma.$queryRaw`SELECT 1`
+    const result = await probeWithTimeout(prisma.$queryRaw`SELECT 1`, timeoutMs)
+    if (result === TIMED_OUT) {
+      lastProbeTimedOut = true
+      lastPanicMessage = `database probe did not answer within ${timeoutMs}ms`
+      return false
+    }
     lastPanicMessage = ""
+    lastProbeTimedOut = false
     everHealthy = true
     return true
   } catch (err) {
+    lastProbeTimedOut = false
     lastPanicMessage = String(err?.message || "")
     // We deliberately don't log here — callers (mostly crons) decide
     // whether a failed ping is worth surfacing. A noisy ping log would
@@ -145,6 +182,7 @@ async function isAlive() {
     return false
   }
 }
+
 
 // Force a fresh engine + connection. Safe to call after a panic — even
 // if $disconnect() throws (because the engine is already dead), we still
@@ -237,10 +275,14 @@ function recoverIfPanicked(err) {
 const EXIT_MIN_UPTIME_WARM_S = 60    // engine worked here, then died
 const EXIT_MIN_UPTIME_COLD_S = 300   // engine never worked in this process
 let exiting = false
-function exitIfUnrecoverable(reason) {
+function exitIfUnrecoverable(reason, { stuck = false } = {}) {
   if (exiting) return
   if (process.env.NODE_ENV !== "production" || process.env.DB_PANIC_EXIT === "0") return
-  if (!/timer has gone away|Query Engine has a panic|PrismaClientRustPanicError/i.test(String(reason || ""))) return
+  const looksLikePanic = /timer has gone away|Query Engine has a panic|PrismaClientRustPanicError/i.test(String(reason || ""))
+  // `stuck` = the probe stopped answering entirely. A fresh process is the
+  // only thing that reliably clears a wedged socket, and it is exactly as
+  // unrecoverable in-process as a panic.
+  if (!looksLikePanic && !stuck) return
   if (process.uptime() < (everHealthy ? EXIT_MIN_UPTIME_WARM_S : EXIT_MIN_UPTIME_COLD_S)) return
   exiting = true
   console.error(`[prisma] query engine panicked and did not recover after recycle (everHealthy=${everHealthy}, uptime=${Math.round(process.uptime())}s) — exiting so Passenger starts a fresh process`)
@@ -251,6 +293,9 @@ let keepaliveTimer = null
 let consecutiveFailures = 0
 let panicRecycles = 0
 const MAX_PANIC_RECYCLES = 3
+// ~6 pings with backoff ≈ 3 minutes of a completely unresponsive database
+// before we trade the process in. Long enough to ride out a blip.
+const STUCK_PINGS_BEFORE_EXIT = 6
 const MAX_KEEPALIVE_MS = 60_000
 
 /**
@@ -284,6 +329,12 @@ async function keepaliveTick() {
         }
         console.error("[prisma] engine still unusable after recycle attempts")
         exitIfUnrecoverable(lastPanicMessage)
+      } else if (lastProbeTimedOut && consecutiveFailures >= STUCK_PINGS_BEFORE_EXIT) {
+        // The engine is wedged rather than erroring. Recycling cannot free a
+        // socket the engine is still blocked on, so ask for a fresh process
+        // (subject to the same uptime guards as a panic).
+        console.error(`[prisma] database probe has not answered for ${consecutiveFailures} pings — requesting a fresh process`)
+        exitIfUnrecoverable(lastPanicMessage, { stuck: true })
       } else if (consecutiveFailures === 1 || consecutiveFailures % 30 === 0) {
         // Connectivity, not a panic: log on the first failure and then only
         // every 30th ping so an hours-long outage stays readable.
@@ -322,7 +373,10 @@ module.exports.exitIfUnrecoverable = exitIfUnrecoverable
 // implementation detail, so they get pinned like one.
 module.exports.withPoolBounds = withPoolBounds
 // Diagnostics for /health — never throws, safe to read at any time.
+module.exports.probeWithTimeout = probeWithTimeout
+module.exports.TIMED_OUT = TIMED_OUT
 module.exports.engineInfo = () => ({
   everHealthy,
+  stuck: lastProbeTimedOut,
   lastError: lastPanicMessage ? String(lastPanicMessage).split("\n").find(Boolean)?.slice(0, 160) || null : null,
 })
