@@ -58,22 +58,35 @@ async function openMenu(page) {
   await hamburger.tap()
   const drawer = page.getByRole("dialog")
   await expect(drawer).toBeVisible()
+  // Let the 360ms slide finish so gestures act on a settled panel.
+  await page.waitForTimeout(500)
   return drawer
 }
 
-/** Swipe inside `box` by (dx, dy) using real touch events. */
-async function swipe(page, box, dx, dy, steps = 8) {
-  const startX = box.x + box.width / 2
-  const startY = box.y + box.height / 2
-  // Playwright's touchscreen has no drag primitive, and a tap here could
-  // activate whatever link sits under the finger — dispatch the raw touch
-  // sequence instead.
-  await page.evaluate(
-    ({ startX, startY, dx, dy, steps }) => {
-      const el = document.elementFromPoint(startX, startY) || document.body
+/**
+ * Swipe across `locator` by (dx, dy) with real touch events.
+ *
+ * The events are dispatched on the element itself rather than on whatever
+ * document.elementFromPoint() returns: during the drawer's 360ms entrance the
+ * panel has not reached its final position yet, so a point lookup could land
+ * on the backdrop and the gesture would never reach the panel's listeners.
+ * That made this suite flaky.
+ */
+async function swipe(locator, dx, dy, steps = 8) {
+  await locator.evaluate(
+    (el, { dx, dy, steps }) => {
+      const r = el.getBoundingClientRect()
+      const startX = r.left + r.width / 2
+      const startY = r.top + r.height / 2
       const mk = (type, x, y) => {
         const touch = new Touch({ identifier: 1, target: el, clientX: x, clientY: y })
-        return new TouchEvent(type, { touches: type === "touchend" ? [] : [touch], targetTouches: type === "touchend" ? [] : [touch], changedTouches: [touch], bubbles: true, cancelable: true })
+        return new TouchEvent(type, {
+          touches: type === "touchend" ? [] : [touch],
+          targetTouches: type === "touchend" ? [] : [touch],
+          changedTouches: [touch],
+          bubbles: true,
+          cancelable: true,
+        })
       }
       el.dispatchEvent(mk("touchstart", startX, startY))
       for (let i = 1; i <= steps; i++) {
@@ -81,7 +94,7 @@ async function swipe(page, box, dx, dy, steps = 8) {
       }
       el.dispatchEvent(mk("touchend", startX + dx, startY + dy))
     },
-    { startX, startY, dx, dy, steps }
+    { dx, dy, steps }
   )
 }
 
@@ -96,24 +109,20 @@ test.describe("mobile navigation drawer", () => {
 
   test("stays open when the user swipes vertically (the reported bug)", async ({ page }) => {
     const drawer = await openMenu(page)
-    const box = await drawer.boundingBox()
-    if (!box) throw new Error("drawer has no box")
 
-    await swipe(page, box, 0, -120)   // swipe up, i.e. scroll the list down
+    await swipe(drawer, 0, -120)   // swipe up, i.e. scroll the list down
     await page.waitForTimeout(400)
     await expect(drawer).toBeVisible()
 
-    await swipe(page, box, 0, 120)    // and back down
+    await swipe(drawer, 0, 120)    // and back down
     await page.waitForTimeout(400)
     await expect(drawer).toBeVisible()
   })
 
   test("closes on a decisive horizontal swipe", async ({ page }) => {
     const drawer = await openMenu(page)
-    const box = await drawer.boundingBox()
-    if (!box) throw new Error("drawer has no box")
 
-    await swipe(page, box, 160, 0)    // drag right — the panel entered from the right
+    await swipe(drawer, 160, 0)    // drag right — the panel entered from the right
     await expect(drawer).toBeHidden({ timeout: 5000 })
   })
 
