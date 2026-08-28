@@ -222,12 +222,12 @@ export default function BlogPostPage() {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await apiRequest(`/api/v1/blog/${encodeURIComponent(slug)}`)
+        const res = await apiRequest(`/api/v1/blog/${encodeURIComponent(slug)}?locale=${encodeURIComponent((i18n.language || "en").slice(0, 2))}`)
         if (!cancelled && res?.post) setApiPost(res.post)
       } catch { /* fall back to static */ }
     })()
     return () => { cancelled = true }
-  }, [slug])
+  }, [slug, i18n.language])
 
   const post = apiPost || staticPost
   const related = Array.isArray(apiPost?.related) && apiPost.related.length > 0 ? apiPost.related : staticRelated

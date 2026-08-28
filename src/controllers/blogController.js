@@ -7,6 +7,7 @@
 
 const blogService  = require("../services/blogService")
 const asyncHandler = require("../utils/asyncHandler")
+const { resolveUserLocale } = require("../utils/resolveUserLocale")
 
 const PUBLIC_CACHE = "public, max-age=60, stale-while-revalidate=300"
 
@@ -16,13 +17,14 @@ const listPosts = asyncHandler(async (req, res) => {
     category, tag, q,
     limit:  Number.parseInt(limit  || "50", 10),
     offset: Number.parseInt(offset || "0",  10),
+    locale: resolveUserLocale({ req }),
   })
   res.set("Cache-Control", PUBLIC_CACHE)
   res.json(data)
 })
 
 const getPostBySlug = asyncHandler(async (req, res) => {
-  const post = await blogService.getPublicPostBySlug(req.params.slug)
+  const post = await blogService.getPublicPostBySlug(req.params.slug, resolveUserLocale({ req }))
   if (!post) return res.status(404).json({ error: "Post not found" })
   res.set("Cache-Control", PUBLIC_CACHE)
   res.json({ post })

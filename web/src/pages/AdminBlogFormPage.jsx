@@ -93,6 +93,12 @@ const EMPTY_POST = {
   authorAvatar: "",
   body: [],
   tags: [],
+  // Spanish overlay (optional)
+  titleEs: "",
+  excerptEs: "",
+  metaTitleEs: "",
+  metaDescriptionEs: "",
+  bodyEs: [],
 }
 
 const BLOCK_TYPES = [
@@ -132,7 +138,7 @@ export default function AdminBlogFormPage() {
     schema: blogPostSchema,
     initialValues: { ...EMPTY_POST, body: migrateBlocks([]) },
     onSubmit: async (parsed) => {
-      const payload = { ...parsed, body: stripIds(parsed.body) }
+      const payload = { ...parsed, body: stripIds(parsed.body), bodyEs: stripIds(parsed.bodyEs || []) }
       const res = await (isEdit
         ? apiRequest(`/api/v1/admin/blog/posts/${id}`, { method: "PATCH", body: JSON.stringify(payload) })
         : apiRequest(`/api/v1/admin/blog/posts`, { method: "POST", body: JSON.stringify(payload) }))
@@ -176,6 +182,7 @@ export default function AdminBlogFormPage() {
           ...p,
           tags,
           body: migrateBlocks(p.body),
+          bodyEs: Array.isArray(p.bodyEs) && p.bodyEs.length ? migrateBlocks(p.bodyEs) : [],
         })
         setTagsText(tags.join(", "))
       } catch (err) {
@@ -222,7 +229,12 @@ export default function AdminBlogFormPage() {
   }
 
   /* ── Block list ops — all keyed by block.id ──────────────────────────── */
-  const setBody = (fn) => setValues((p) => ({ ...p, body: fn(p.body) }))
+  // Which language's block list the editor is operating on. "es" edits bodyEs
+  // (empty = Spanish readers get the English body).
+  const [bodyLang, setBodyLang] = useState("en")
+  const bodyKey = bodyLang === "es" ? "bodyEs" : "body"
+  const setBody = (fn) => setValues((p) => ({ ...p, [bodyKey]: fn(Array.isArray(p[bodyKey]) ? p[bodyKey] : []) }))
+  const activeBody = Array.isArray(post[bodyKey]) ? post[bodyKey] : []
   const updateBlock = (blockId, patch) =>
     setBody((body) => body.map((b) => (b.id === blockId ? { ...b, ...patch } : b)))
   const moveBlock = (blockId, dir) =>
@@ -283,8 +295,24 @@ export default function AdminBlogFormPage() {
           </Section>
 
           <Section title="Body">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              {[["en", "English"], ["es", "Español"]].map(([lng, label]) => (
+                <button
+                  key={lng}
+                  type="button"
+                  onClick={() => setBodyLang(lng)}
+                  aria-pressed={bodyLang === lng}
+                  className={`rounded-lg border px-3 py-1.5 text-[12px] font-semibold transition ${bodyLang === lng ? "border-violet bg-violet-pale text-violet" : "border-charcoal-80/15 bg-white text-charcoal-80 hover:border-violet/40"}`}
+                >
+                  {label}{lng === "es" && (post.bodyEs?.length ? ` · ${post.bodyEs.length}` : " · empty")}
+                </button>
+              ))}
+              {bodyLang === "es" ? (
+                <span className="text-[12px] text-charcoal-80">Leave empty to show the English body to Spanish readers.</span>
+              ) : null}
+            </div>
             <div className="flex flex-col gap-3">
-              {post.body.map((block, i) => (
+              {activeBody.map((block, i) => (
                 <BlockEditor
                   key={block.id}
                   block={block}
@@ -292,7 +320,7 @@ export default function AdminBlogFormPage() {
                   onMove={(dir) => moveBlock(block.id, dir)}
                   onRemove={() => removeBlock(block.id)}
                   isFirst={i === 0}
-                  isLast={i === post.body.length - 1}
+                  isLast={i === activeBody.length - 1}
                 />
               ))}
             </div>
@@ -425,6 +453,13 @@ export default function AdminBlogFormPage() {
             )}
             <TextField form={form} name="metaTitle" label="Meta title" />
             <TextAreaField form={form} name="metaDescription" label="Meta description" rows={3} />
+          </Section>
+
+          <Section title="Español (optional)">
+            <TextField form={form} name="titleEs" label="Título" placeholder="Leave empty to fall back to English" />
+            <TextAreaField form={form} name="excerptEs" label="Extracto" rows={3} />
+            <TextField form={form} name="metaTitleEs" label="Meta título" />
+            <TextAreaField form={form} name="metaDescriptionEs" label="Meta descripción" rows={3} />
           </Section>
         </aside>
       </div>
