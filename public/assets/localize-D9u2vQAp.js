@@ -1,0 +1,1 @@
+import{u as e}from"./i18n-vYeFfQ44.js";function u(n){return String(n||"").toLowerCase().startsWith("es")}function a(n,r,i){return n?u(i)?n[`${r}Es`]||n[r]||"":n[r]||"":""}function s(){const{i18n:n}=e();return n?.language||"en"}function o(n,r){return n(r==="Fixed"?"funnel.pricing.fixed":r==="Retainer"?"funnel.pricing.retainer":"funnel.pricing.quote")}export{o as a,a as p,s as u};

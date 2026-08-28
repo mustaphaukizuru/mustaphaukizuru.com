@@ -2253,6 +2253,40 @@ model ProjectAgreement {
 /// milestoneId are plain ids: their owning models are not touched by this
 /// tier, so there are no back-relations — resolve them via prisma.user /
 /// prisma.order / prisma.projectMilestone when needed.
+/// Client logo wall on /about (components/ui/LogoCloud).
+///
+/// Lives in the database rather than a data file so the owner can add,
+/// reorder and retire client marks from the admin without a deploy.
+model ClientLogo {
+  id      String @id @default(cuid())
+  name    String                        // trading name — becomes the alt text
+  slug    String @unique                // stable key, also the asset base name
+  logoUrl String @db.VarChar(512)       // /images/... served from public/
+
+  /// Short context line ("K-12 school · Mexico"), shown in the tooltip.
+  sector   String? @db.VarChar(160)
+  sectorEs String? @db.VarChar(160)
+  /// Optional outbound link. Rendered as a link only when set.
+  websiteUrl String? @db.VarChar(512)
+
+  /// Optical tuning. Logos differ wildly in aspect ratio, so a single CSS
+  /// height makes square badges look small next to wide wordmarks. This
+  /// multiplies the base height (1.00 = default) and is adjustable per logo
+  /// from the admin, which is the only practical way to get a row of mixed
+  /// marks to read as the same visual weight.
+  scale Decimal @default(1.00) @db.Decimal(4, 2)
+  /// The mark ships with its own background (e.g. a dark tile), so it is
+  /// rounded rather than blended into the cell.
+  boxed Boolean @default(false)
+
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
 model ChangeRequest {
   id            String    @id @default(cuid())
   projectId     String

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "postinstall": "prisma generate || echo \"[postinstall] prisma generate failed — run it manually (non-fatal so the host install still completes)\"",
+    "postinstall": "prisma generate || echo \"[postinstall] prisma generate failed \u2014 run it manually (non-fatal so the host install still completes)\"",
     "build": "cd web && npm run build:seo",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -16,6 +16,7 @@
     "smoke": "bash scripts/smoke-test.sh",
     "deploy": "bash scripts/deploy.sh",
     "seed:email": "node scripts/guard-prod-db.js \"seed:email\" && node prisma/seed-email-templates.js",
+    "seed:client-logos": "node scripts/guard-prod-db.js \"seed client logos\" && node prisma/seed-client-logos.js",
     "seed:plans": "node scripts/guard-prod-db.js \"seed:plans\" && node prisma/seed-service-plans.js",
     "seed:bio": "node scripts/guard-prod-db.js \"seed:bio\" && node prisma/seed-bio.js",
     "seed:audience-plans": "node scripts/guard-prod-db.js \"seed:audience-plans\" && node prisma/seed-audience-plans.js",
