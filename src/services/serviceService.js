@@ -29,6 +29,16 @@ function formatPrice(price, currency) {
  * Serialize a Service row — coerces Decimal → Number, adds `priceFormatted`,
  * normalizes empty relations to empty arrays.
  */
+/**
+ * I18N06 · pickLocale is shallow: it swaps the service's own *Es columns but
+ * not the nested packages (nameEs / descriptionEs). Localise both levels.
+ */
+function localizeService(row, locale = "en") {
+  const base = pickLocale(row, locale, [["fullDescription", "descriptionEs"]])
+  if (locale !== "es" || !Array.isArray(base.packages)) return base
+  return { ...base, packages: pickLocaleMany(base.packages, "es") }
+}
+
 function serializeService(service) {
   if (!service) return null
 
@@ -134,7 +144,7 @@ async function listServicesUncached({ isFeatured, page = 1, limit = 24, locale =
   // pickLocale to swap `fullDescription` ← `descriptionEs` when locale is
   // "es", so the public service detail page renders Spanish copy without
   // leaking English.
-  const localized = items.map((row) => pickLocale(row, locale, [["fullDescription", "descriptionEs"]]))
+  const localized = items.map((row) => localizeService(row, locale))
 
   return {
     items:      localized.map(serializeService),
@@ -157,7 +167,7 @@ async function getServiceBySlug(slug, locale = "en") {
   })
   if (!service) return null
   // Same asymmetric extraPair as listServices — fullDescription ← descriptionEs.
-  return serializeService(pickLocale(service, locale, [["fullDescription", "descriptionEs"]]))
+  return serializeService(localizeService(service, locale))
 }
 
 async function getFeaturedServicesUncached() {
