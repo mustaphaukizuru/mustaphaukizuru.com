@@ -16,7 +16,12 @@ const outDir      = publicDir
 // deploy late — production kept serving the previous run's 12 URLs. Mirror
 // the file into the build output whenever it exists.
 const buildOutDir = path.resolve(process.cwd(), "..", "public")
-const indexFile   = path.join(outDir, "sitemap.xml")
+// NOT "sitemap.xml": Hostinger's web server serves any existing file in the
+// document root itself, so a static public/sitemap.xml shadows the dynamic
+// Express route (src/app.js) that emits the DB-backed sitemap with hreflang
+// alternates. This build-time file is the offline fallback only.
+const STATIC_SITEMAP = "sitemap-static.xml"
+const indexFile   = path.join(outDir, STATIC_SITEMAP)
 const pagesFile   = path.join(outDir, "sitemap-pages.xml")
 const productsXml = path.join(outDir, "sitemap-products.xml")
 const servicesXml = path.join(outDir, "sitemap-services.xml")
@@ -285,7 +290,7 @@ async function main() {
   if (totalCount <= SPLIT_THRESHOLD) {
     const flat = [...allPages, ...productList, ...serviceList, ...portfolioList, ...blogList]
       .sort((a, b) => a.path.localeCompare(b.path))
-    await writeMirrored("sitemap.xml", urlSetXml(flat))
+    await writeMirrored(STATIC_SITEMAP, urlSetXml(flat))
     // Clean up split files if they exist from a previous large run.
     for (const f of [pagesFile, productsXml, servicesXml, portfolioXml, blogXml]) {
       try { await fs.unlink(f) } catch { /* not present â fine */ }

@@ -272,7 +272,7 @@ app.get("/sitemap.xml", async (_req, res) => {
     res.status(200).send(xml)
   } catch (err) {
     console.error("[sitemap.xml] dynamic build failed, falling back:", err.message)
-    res.status(200).sendFile(path.join(__dirname, "../public/sitemap.xml"))
+    res.status(200).sendFile(path.join(__dirname, "../public/sitemap-static.xml"))
   }
 })
 
