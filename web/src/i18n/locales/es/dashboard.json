@@ -1206,5 +1206,35 @@
     "subtotal": "Subtotal",
     "discount": "Descuento",
     "total": "Total"
+  },
+  "nda": {
+    "title": "Acuerdo de confidencialidad",
+    "version": "Versión {{version}}",
+    "intro": "Antes de abrir «{{project}}», revisa y acepta los términos de confidencialidad que cubren los archivos, vistas previas y mensajes compartidos en este espacio de trabajo.",
+    "parties": "Este acuerdo es entre tú (el cliente) y Mustapha Ukizuru (el proveedor). Cubre todo lo que se intercambie dentro de este espacio de trabajo.",
+    "clauses": [
+      {
+        "title": "Qué es confidencial",
+        "body": "Todos los entregables, archivos fuente, vistas previas, credenciales, mensajes y documentos compartidos en este espacio, estén marcados como confidenciales o no."
+      },
+      {
+        "title": "Cómo puede usarse",
+        "body": "Únicamente para revisar, aprobar y operar el trabajo entregado en este proyecto. No puede republicarse, revenderse ni compartirse fuera de tu organización sin consentimiento por escrito."
+      },
+      {
+        "title": "Qué no está cubierto",
+        "body": "Información que ya sea pública, que ya tuvieras antes de este proyecto o que recibas legítimamente de un tercero sin deber de confidencialidad."
+      },
+      {
+        "title": "Cuánto dura",
+        "body": "Las obligaciones continúan durante dos años después del cierre del proyecto. No afecta a los registros que deban conservarse por motivos fiscales o legales."
+      }
+    ],
+    "ack": "He leído y acepto la versión {{version}} del acuerdo de confidencialidad.",
+    "gateHint": "Debes aceptar para que los archivos del proyecto estén disponibles.",
+    "decline": "Ahora no",
+    "agree": "Aceptar y continuar",
+    "accepting": "Registrando…",
+    "failed": "No pudimos registrar tu aceptación. Inténtalo de nuevo."
   }
 }

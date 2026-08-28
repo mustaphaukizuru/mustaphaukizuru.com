@@ -191,7 +191,7 @@ export default function SpokenLanguages({ languages = null }) {
           >
             Four languages.{" "}
             <span className="bg-gradient-to-r from-violet via-[#6A4FD8] to-terracotta bg-clip-text text-transparent">
-              Three continents.
+              {t("languages.threeContinents")}
             </span>{" "}
             One conversation.
           </m.h2>
@@ -224,7 +224,7 @@ export default function SpokenLanguages({ languages = null }) {
         >
           <span className="flex items-center gap-1.5">
             <Languages className="h-3 w-3 text-violet/60" aria-hidden="true" />
-            CEFR scale
+            {t("languages.cefrScale")}
           </span>
           <span aria-hidden="true">·</span>
           <span><span className="font-mono text-violet">A1</span> Beginner → <span className="font-mono text-violet">C2</span> Proficient → <span className="font-mono text-violet">Native</span></span>

@@ -203,13 +203,13 @@ export default function SignupPage() {
                 state={{ prefillEmail: cleanEmail }}
                 className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
               >
-                Sign in instead →
+                {t("signup.signInInstead")}
               </Link>
               <Link
                 to="/forgot-password"
                 className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-charcoal-80/65 underline-offset-2 hover:text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
               >
-                Reset password
+                {t("signup.resetPassword")}
               </Link>
             </>
           ),

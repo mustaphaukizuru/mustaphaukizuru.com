@@ -88,7 +88,9 @@
       "secure": "Encrypted & secure checkout",
       "instant": "Instant confirmation by email",
       "dashboard": "Project workspace ready in your dashboard"
-    }
+    },
+    "tryPaypal": "Try PayPal instead →",
+    "tryMercadoPago": "Try MercadoPago instead →"
   },
   "reviews": {
     "writeTitle": "Share your experience",

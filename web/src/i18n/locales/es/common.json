@@ -431,5 +431,9 @@
     "back": "Volver al sitio",
     "support": "Contactar soporte",
     "trailer": "¿Dudas?"
+  },
+  "languages": {
+    "threeContinents": "Tres continentes.",
+    "cefrScale": "Escala MCER"
   }
 }

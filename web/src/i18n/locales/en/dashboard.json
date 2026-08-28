@@ -1206,5 +1206,35 @@
     "subtotal": "Subtotal",
     "discount": "Discount",
     "total": "Total"
+  },
+  "nda": {
+    "title": "Confidentiality agreement",
+    "version": "Version {{version}}",
+    "intro": "Before opening “{{project}}”, please review and accept the confidentiality terms that cover the files, previews and messages shared in this workspace.",
+    "parties": "This agreement is between you (the client) and Mustapha Ukizuru (the provider). It covers everything exchanged inside this project workspace.",
+    "clauses": [
+      {
+        "title": "What is confidential",
+        "body": "All deliverables, source files, previews, credentials, messages and documents shared in this workspace, whether or not they are marked confidential."
+      },
+      {
+        "title": "How it may be used",
+        "body": "Only to review, approve and operate the work delivered in this project. It may not be republished, resold or shared outside your organisation without written consent."
+      },
+      {
+        "title": "What is not covered",
+        "body": "Information that is already public, that you already held before this project, or that you receive lawfully from a third party with no duty of confidence."
+      },
+      {
+        "title": "How long it lasts",
+        "body": "The obligations continue for two years after the project closes. Statutory records kept for tax or legal reasons are unaffected."
+      }
+    ],
+    "ack": "I have read and accept version {{version}} of the confidentiality agreement.",
+    "gateHint": "You need to accept before the project files become available.",
+    "decline": "Not now",
+    "agree": "Accept and continue",
+    "accepting": "Recording…",
+    "failed": "We couldn't record your acceptance. Please try again."
   }
 }

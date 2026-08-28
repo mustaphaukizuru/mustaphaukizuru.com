@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { m, useReducedMotion } from "framer-motion"
 import {
@@ -48,6 +49,7 @@ const AUDIENCE_PREVIEWS = [
 ]
 
 export default function SelfAuditPage() {
+  const { t } = useTranslation("audit")
   const reduce = useReducedMotion()
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -129,14 +131,14 @@ export default function SelfAuditPage() {
                 whileTap={reduce ? {} : { scale: 0.98 }}
                 className="inline-flex items-center gap-2.5 rounded-xl bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_8px_24px_rgb(var(--color-violet-rgb)/0.35)] transition hover:shadow-[0_12px_32px_rgb(var(--color-violet-rgb)/0.45)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 focus-visible:ring-offset-2"
               >
-                Begin your free audit
+                {t("page.ctaPrimary")}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </m.button>
               <a
                 href="#what-youll-get"
                 className="text-[14px] font-medium text-charcoal/65 underline underline-offset-2 hover:text-violet transition"
               >
-                See what you'll get
+                {t("page.ctaSecondary")}
               </a>
             </div>
           </m.div>
@@ -180,9 +182,9 @@ export default function SelfAuditPage() {
       <section id="what-youll-get" className="py-16 sm:py-20 bg-mist">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <m.div {...fade} className="mb-12 text-center">
-            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-violet mb-3">WHAT YOU GET</p>
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-violet mb-3">{t("page.whatYouGetEyebrow")}</p>
             <h2 className="text-[clamp(24px,3.5vw,38px)] font-extrabold tracking-tight text-charcoal">
-              From self-assessment to action plan
+              {t("page.whatYouGetHeading")}
             </h2>
           </m.div>
 
@@ -211,7 +213,7 @@ export default function SelfAuditPage() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <m.div {...fade}>
-              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-violet mb-3">YOUR RESULTS LOOK LIKE THIS</p>
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-violet mb-3">{t("page.resultsEyebrow")}</p>
               <h2 className="text-[clamp(22px,3vw,34px)] font-extrabold tracking-tight text-charcoal mb-4">
                 A real picture of where you are. Not a sales deck.
               </h2>
@@ -239,7 +241,7 @@ export default function SelfAuditPage() {
               transition={{ ...(fade.transition || {}), delay: 0.12 }}
               className="rounded-2xl border border-charcoal/8 bg-mist p-6 shadow-[0_24px_64px_-24px_rgb(var(--color-charcoal-rgb)/0.12)]"
             >
-              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-4">SAMPLE RESULTS PREVIEW</p>
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-4">{t("page.sampleEyebrow")}</p>
               {/* Score ring mock */}
               <div className="flex items-center gap-5 mb-6 pb-6 border-b border-charcoal/8">
                 <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[conic-gradient(#0284C7_0%,#0284C7_58%,#EFF1F5_58%)] shadow-inner">
@@ -268,7 +270,7 @@ export default function SelfAuditPage() {
                   <span className="font-mono text-[11px] font-bold text-charcoal/65 w-8 text-right">{pct}%</span>
                 </div>
               ))}
-              <p className="mt-4 text-center text-[11px] text-charcoal/35 italic">Sample only — your results will reflect your actual scores</p>
+              <p className="mt-4 text-center text-[11px] text-charcoal/35 italic">{t("page.sampleNote")}</p>
             </m.div>
           </div>
         </div>
@@ -295,7 +297,7 @@ export default function SelfAuditPage() {
               whileTap={reduce ? {} : { scale: 0.97 }}
               className="inline-flex items-center gap-2.5 rounded-xl bg-white px-7 py-3.5 text-[15px] font-bold text-violet shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition hover:shadow-[0_12px_32px_rgba(0,0,0,0.3)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white/50"
             >
-              Begin your free audit
+              {t("page.ctaPrimary")}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </m.button>
           </m.div>
@@ -311,11 +313,11 @@ export default function SelfAuditPage() {
               onClick={() => trackEvent("self_audit_exit_clicked", { target: "services" })}
               className="group flex flex-col gap-2 rounded-2xl border border-charcoal/8 bg-white p-6 transition hover:-translate-y-0.5 hover:border-violet/30 hover:shadow-[0_16px_40px_-16px_rgb(var(--color-violet-rgb)/0.18)]"
             >
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet">Browse the catalogue</span>
-              <h3 className="text-[17px] font-bold text-charcoal">See the 82 services your shortlist comes from</h3>
-              <p className="text-[13px] leading-relaxed text-charcoal/65">Every audit item maps to an atomic service with a scope, timeline, and price band.</p>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet">{t("page.catalogueTitle")}</span>
+              <h3 className="text-[17px] font-bold text-charcoal">{t("page.catalogueLead")}</h3>
+              <p className="text-[13px] leading-relaxed text-charcoal/65">{t("page.catalogueBody")}</p>
               <span className="mt-auto pt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition group-hover:gap-2.5">
-                Open services <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                {t("page.catalogueCta")} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
             </Link>
             <Link
@@ -323,8 +325,8 @@ export default function SelfAuditPage() {
               onClick={() => trackEvent("self_audit_exit_clicked", { target: "contact" })}
               className="group flex flex-col gap-2 rounded-2xl border border-violet/20 bg-violet/[0.04] p-6 transition hover:-translate-y-0.5 hover:border-violet/35 hover:shadow-[0_16px_40px_-16px_rgb(var(--color-violet-rgb)/0.20)]"
             >
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet">Talk it through</span>
-              <h3 className="text-[17px] font-bold text-charcoal">Book a free 30-min discovery call</h3>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet">{t("page.talkTitle")}</span>
+              <h3 className="text-[17px] font-bold text-charcoal">{t("page.talkCta")}</h3>
               <p className="text-[13px] leading-relaxed text-charcoal/65">Walk through your results with me — no sales pitch, just an honest read on what to prioritise.</p>
               <span className="mt-auto pt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-violet transition group-hover:gap-2.5">
                 Book a call <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
