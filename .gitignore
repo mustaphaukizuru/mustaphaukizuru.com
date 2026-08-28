@@ -119,3 +119,4 @@ web/playwright-report/
 # the dynamic, DB-backed /sitemap.xml route.
 /public/sitemap.xml
 /public/sitemap-static.xml
+/web/public/sitemap-static.xml
