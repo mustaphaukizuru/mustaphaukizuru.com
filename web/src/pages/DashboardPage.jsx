@@ -145,7 +145,7 @@ export default function DashboardPage() {
   }, [consultations.data, now])
 
   const activeProjects = useMemo(
-    () => (projects.data || []).filter((p) => !CLOSED_PROJECT.includes(p.status)),
+    () => (projects.data || []).filter((p) => !CLOSED_PROJECT.includes(p.projectStatus ?? p.status)),
     [projects.data]
   )
   const latestMilestone = useMemo(() => {

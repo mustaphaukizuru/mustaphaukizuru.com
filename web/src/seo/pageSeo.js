@@ -226,6 +226,8 @@ export const pageSeo = {
    NOINDEX ROUTES
 ───────────────────────────────────────────── */
 export const noindexPrefixes = [
+  "/portal",
+  "/unsubscribed",
   "/login",
   "/signup",
   "/forgot-password",

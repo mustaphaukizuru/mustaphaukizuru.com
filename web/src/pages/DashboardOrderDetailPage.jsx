@@ -25,6 +25,7 @@ function statusPillClass(status) {
 function resolveImg(item) {
   const product = item.product
   if (!product) return null
+  if (product.imageUrl) return { src: product.imageUrl, alt: product.imageAlt || product.title || "" }
   if (Array.isArray(product.images) && product.images.length > 0) {
     const primary =
       product.images.find((i) => i?.isPrimary) ||
@@ -93,9 +94,9 @@ export default function DashboardOrderDetailPage() {
   }
 
   const items = Array.isArray(order.items) ? order.items : []
-  const subtotal = Number(order.subtotal ?? 0)
-  const discount = Number(order.discount ?? 0)
-  const total = Number(order.total ?? subtotal)
+  const subtotal = Number(order.subtotalAmount ?? order.subtotal ?? 0)
+  const discount = Number(order.discountAmount ?? order.discount ?? 0)
+  const total = Number(order.totalAmount ?? order.total ?? subtotal)
   const orderRef = order.orderNumber ? `#${order.orderNumber}` : `#${String(order.id).slice(0, 12).toUpperCase()}`
   const createdAt = order.createdAt ? new Date(order.createdAt).toLocaleString() : ""
 
@@ -151,7 +152,7 @@ export default function DashboardOrderDetailPage() {
           {items.map((item) => {
             const img = resolveImg(item)
             const qty = Number(item.quantity ?? 1)
-            const price = Number(item.priceSnapshot ?? item.price ?? 0)
+            const price = Number(item.unitPrice ?? item.priceSnapshot ?? item.price ?? 0)
             const title = item.titleSnapshot || item.product?.title || item.title || "—"
             return (
               <li key={item.id} className="flex items-center gap-3 rounded-xl border border-charcoal-80/8 bg-mist p-3">

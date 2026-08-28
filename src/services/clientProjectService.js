@@ -286,7 +286,7 @@ async function listMyProjects(userId) {
     include: {
       milestones: {
         orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
-        select: { id: true, status: true, completedAt: true },
+        select: { id: true, title: true, status: true, completedAt: true },
       },
       _count: { select: { files: true } },
     },
