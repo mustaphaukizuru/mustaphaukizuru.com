@@ -182,5 +182,11 @@
     "studentsHint": "K-12 · calificados por cohorte",
     "source": "Fuente: perfil público · certificaciones verificadas · listas de cohortes · cifras actualizadas",
     "verifyCta": "Verificar las credenciales"
+  },
+  "clients": {
+    "eyebrow": "Clientes seleccionados",
+    "heading": "Organizaciones para las que he",
+    "headingAccent": "trabajado",
+    "body": "Colegios, comercio y empresas de servicios en México, Ruanda y Turquía: desde estrategia e infraestructura de TI hasta los sitios y plataformas que sus equipos usan a diario."
   }
 }

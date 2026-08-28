@@ -1,0 +1,1 @@
+import{a}from"./index-DOHf6TMr.js";async function o(e){if(!e)throw new Error("Order ID is required");const r=await a("/api/v1/mercadopago/create-preference",{method:"POST",body:JSON.stringify({orderId:e})});return r?.data||r}export{o as c};
