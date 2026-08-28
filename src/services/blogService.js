@@ -85,7 +85,34 @@ async function getPublicPostBySlug(slug) {
     where: { slug, ...PUBLIC_WHERE },
     include: { category: true, tags: { include: { tag: true } } },
   })
-  return serializePost(row)
+  if (!row) return null
+  const post = serializePost(row)
+  // Up to 3 related posts: same category first, then the newest others.
+  try {
+    const related = await prisma.blogPost.findMany({
+      where: { ...PUBLIC_WHERE, slug: { not: row.slug }, ...(row.categoryId ? { categoryId: row.categoryId } : {}) },
+      orderBy: { publishedAt: "desc" },
+      take: 3,
+      include: { category: true },
+    })
+    let picks = related
+    if (picks.length < 3) {
+      const more = await prisma.blogPost.findMany({
+        where: { ...PUBLIC_WHERE, slug: { notIn: [row.slug, ...picks.map((p) => p.slug)] } },
+        orderBy: { publishedAt: "desc" },
+        take: 3 - picks.length,
+        include: { category: true },
+      })
+      picks = [...picks, ...more]
+    }
+    post.related = picks.map((p) => {
+      const { body, ...card } = serializePost(p)
+      return card
+    })
+  } catch {
+    post.related = []
+  }
+  return post
 }
 
 async function listCategoriesWithCountsUncached() {
