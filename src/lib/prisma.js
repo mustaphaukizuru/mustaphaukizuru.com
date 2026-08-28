@@ -243,23 +243,60 @@ function exitIfUnrecoverable(reason) {
 }
 
 let keepaliveTimer = null
-function startKeepalive() {
-  if (keepaliveTimer || process.env.NODE_ENV === "test" || process.env.DISABLE_DB_KEEPALIVE === "1") return
-  keepaliveTimer = setInterval(async () => {
-    try {
-      if (await isAlive()) return
-      console.warn("[prisma] keepalive ping failed — recycling engine")
-      await recycleOnce()
-      if (!(await isAlive())) {
-        console.error("[prisma] engine still unreachable after recycle")
-        exitIfUnrecoverable(lastPanicMessage)
+let consecutiveFailures = 0
+const MAX_KEEPALIVE_MS = 60_000
+
+/**
+ * Self-scheduling ping. Two rules learned from the 2026-08-28 outage, when
+ * MySQL was unreachable from the host for hours:
+ *
+ *   1. Only an engine PANIC is fixed by recycling. A fresh PrismaClient
+ *      cannot reach a server that is unreachable, so recycling on a
+ *      connectivity error (P1001) just built ~2000 clients over six hours —
+ *      churning sockets and memory while making no difference.
+ *   2. Back off while down (10s → 60s) so a long outage is quiet in the
+ *      logs and cheap on the host; reset to the fast interval on recovery,
+ *      which is what keeps sockets under MySQL's 20s wait_timeout.
+ */
+async function keepaliveTick() {
+  try {
+    if (await isAlive()) {
+      if (consecutiveFailures > 0) console.warn(`[prisma] database reachable again after ${consecutiveFailures} failed pings`)
+      consecutiveFailures = 0
+    } else {
+      consecutiveFailures += 1
+      if (isEnginePanic({ message: lastPanicMessage })) {
+        console.warn("[prisma] keepalive ping failed with an engine panic — recycling")
+        await recycleOnce()
+        if (!(await isAlive())) {
+          console.error("[prisma] engine still unreachable after recycle")
+          exitIfUnrecoverable(lastPanicMessage)
+        }
+      } else if (consecutiveFailures === 1 || consecutiveFailures % 30 === 0) {
+        // Connectivity, not a panic: log on the first failure and then only
+        // every 30th ping so an hours-long outage stays readable.
+        console.warn(`[prisma] database unreachable (ping ${consecutiveFailures}):`, String(lastPanicMessage || "").slice(0, 120))
       }
-    } catch (err) {
-      console.error("[prisma] keepalive error (ignored):", err?.message)
     }
-  }, KEEPALIVE_MS)
+  } catch (err) {
+    console.error("[prisma] keepalive error (ignored):", err?.message)
+  } finally {
+    const delay = consecutiveFailures === 0
+      ? KEEPALIVE_MS
+      : Math.min(KEEPALIVE_MS * Math.min(consecutiveFailures, 6), MAX_KEEPALIVE_MS)
+    scheduleKeepalive(delay)
+  }
+}
+
+function scheduleKeepalive(delay) {
+  keepaliveTimer = setTimeout(keepaliveTick, delay)
   // Never keep the process alive just for the ping (one-shot scripts, tests).
   if (typeof keepaliveTimer.unref === "function") keepaliveTimer.unref()
+}
+
+function startKeepalive() {
+  if (keepaliveTimer || process.env.NODE_ENV === "test" || process.env.DISABLE_DB_KEEPALIVE === "1") return
+  scheduleKeepalive(KEEPALIVE_MS)
 }
 startKeepalive()
 

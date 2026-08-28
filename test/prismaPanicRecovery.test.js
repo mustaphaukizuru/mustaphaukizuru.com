@@ -134,3 +134,43 @@ test("exitIfUnrecoverable refuses when the engine never worked in this process",
   jest.useRealTimers()
   exit.mockRestore(); uptime.mockRestore()
 })
+
+describe("keepalive during a connectivity outage", () => {
+  test("does NOT build a new client when the DB is merely unreachable", async () => {
+    jest.resetModules()
+    jest.useFakeTimers()
+    jest.spyOn(console, "warn").mockImplementation(() => {})
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    const prev = process.env.NODE_ENV
+    const prevDisable = process.env.DISABLE_DB_KEEPALIVE
+    process.env.NODE_ENV = "production"     // keepalive only runs outside tests
+    delete process.env.DISABLE_DB_KEEPALIVE
+
+    jest.doMock("@prisma/client", () => {
+      const client = {
+        $connect: jest.fn().mockResolvedValue(undefined),
+        $disconnect: jest.fn().mockResolvedValue(undefined),
+        // P1001 = can't reach database server (NOT an engine panic)
+        $queryRaw: jest.fn().mockRejectedValue(Object.assign(new Error("Can't reach database server at `db:3306`"), { code: "P1001" })),
+        $extends: undefined,
+      }
+      return { PrismaClient: jest.fn(() => client), __client: client }
+    })
+
+    require("../src/lib/prisma")
+    const { PrismaClient } = require("@prisma/client")
+    const clientsAtBoot = PrismaClient.mock.calls.length
+
+    // Run several ping cycles' worth of time.
+    for (let i = 0; i < 8; i++) {
+      await jest.advanceTimersByTimeAsync(60_000)
+    }
+    // No recycle => no additional PrismaClient instances.
+    expect(PrismaClient.mock.calls.length).toBe(clientsAtBoot)
+
+    process.env.NODE_ENV = prev
+    if (prevDisable !== undefined) process.env.DISABLE_DB_KEEPALIVE = prevDisable
+    jest.useRealTimers()
+    jest.dontMock("@prisma/client")
+  })
+})
