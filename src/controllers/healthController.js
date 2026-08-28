@@ -44,7 +44,13 @@ const getHealth = asyncHandler(async (req, res) => {
   let database = "ok"
   let dbError = null
   try {
-    await prisma.$queryRaw`SELECT 1`
+    // isAlive() is time-boxed. Awaiting the raw query here meant a wedged
+    // engine made /health itself hang, so uptime monitors saw a timeout
+    // instead of a 503 and none of the diagnostics below were ever rendered.
+    if (!(await prisma.isAlive())) {
+      database = "down"
+      dbError = prisma.engineInfo?.().stuck ? "PROBE_TIMEOUT" : (prisma.engineInfo?.().lastError ? "QUERY_FAILED" : "unknown")
+    }
   } catch (err) {
     database = "down"
     // Error CLASS only (never the message, which can carry the DSN): enough
