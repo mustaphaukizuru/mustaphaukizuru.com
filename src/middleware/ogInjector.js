@@ -28,10 +28,13 @@ const CACHE_TTL_MS = 5 * 60 * 1000
 const CACHE_MAX = 200
 const lookupCache = new Map() // "kind:slug:locale" → { at, value }
 
+const MISS_TTL_MS = 30 * 1000   // misses expire fast so a just-published slug is picked up
+
 function cacheGet(key) {
   const hit = lookupCache.get(key)
   if (!hit) return undefined
-  if (Date.now() - hit.at > CACHE_TTL_MS) { lookupCache.delete(key); return undefined }
+  const ttl = hit.value === null ? MISS_TTL_MS : CACHE_TTL_MS
+  if (Date.now() - hit.at > ttl) { lookupCache.delete(key); return undefined }
   // refresh recency
   lookupCache.delete(key)
   lookupCache.set(key, hit)

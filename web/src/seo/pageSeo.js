@@ -126,6 +126,16 @@ export const staticSeoByRoute = {
     ],
   },
 
+  "/self-audit": {
+    title: "Free Digital Self-Audit · Score Your School or Business Tech",
+    description:
+      "A 5-minute self-assessment of your website, security, cloud and digital workflows — get a score and the three fixes with the biggest payoff.",
+    type: "website",
+    image: DEFAULT_OG_IMAGE,
+    schemaType: "WebPage",
+    keywords: ["digital audit", "IT self-assessment", "school technology audit", "website audit Mexico"],
+  },
+
   "/contact": {
     title: "Contact Mustapha Ukizuru · Technology Consulting Inquiries",
     description:

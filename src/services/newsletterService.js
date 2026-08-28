@@ -34,7 +34,7 @@ function backendBaseUrl() {
  * redirects to a friendly frontend confirmation.
  */
 function buildUnsubscribeUrl(token) {
-  return `${backendBaseUrl()}/api/newsletter/unsubscribe/${encodeURIComponent(token)}`
+  return `${backendBaseUrl()}/api/v1/newsletter/unsubscribe/${encodeURIComponent(token)}`
 }
 
 /**

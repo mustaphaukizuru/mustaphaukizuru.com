@@ -130,7 +130,7 @@ function hreflangBlock(routePath) {
   if (!I18N_ENABLED) return ""
   const cleanPath = routePath === "/" ? "/" : routePath.replace(/\/$/, "")
   return [
-    `    <xhtml:link rel="alternate" hreflang="en" href="${SITE_URL}/en${cleanPath === "/" ? "" : cleanPath}" />`,
+    `    <xhtml:link rel="alternate" hreflang="en" href="${SITE_URL}${cleanPath}" />`,
     `    <xhtml:link rel="alternate" hreflang="es" href="${SITE_URL}/es${cleanPath === "/" ? "" : cleanPath}" />`,
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_URL}${cleanPath}" />`,
   ].join("\n")

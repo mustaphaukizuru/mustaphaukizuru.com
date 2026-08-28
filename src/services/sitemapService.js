@@ -58,13 +58,31 @@ function escapeXml(s) {
     .replace(/'/g, "&apos;")
 }
 
+/**
+ * One logical page = two <url> blocks (English at /path, Spanish at /es/path),
+ * each carrying the full hreflang set so crawlers pair them. The SPA serves
+ * every public route under /es as a mirror (App.jsx), so the alternates are
+ * always real URLs.
+ */
 function urlEntry({ loc, lastmod, changefreq, priority }) {
-  const parts = [`  <url>`, `    <loc>${escapeXml(loc)}</loc>`]
-  if (lastmod)    parts.push(`    <lastmod>${new Date(lastmod).toISOString().slice(0, 10)}</lastmod>`)
-  if (changefreq) parts.push(`    <changefreq>${changefreq}</changefreq>`)
-  if (priority != null) parts.push(`    <priority>${Number(priority).toFixed(2)}</priority>`)
-  parts.push(`  </url>`)
-  return parts.join("\n")
+  const base = SITE_URL
+  const path = loc.startsWith(base) ? loc.slice(base.length) || "/" : loc
+  const enLoc = `${base}${path === "/" ? "/" : path}`
+  const esLoc = `${base}/es${path === "/" ? "" : path}`
+  const alternates = [
+    `    <xhtml:link rel="alternate" hreflang="en" href="${escapeXml(enLoc)}" />`,
+    `    <xhtml:link rel="alternate" hreflang="es" href="${escapeXml(esLoc)}" />`,
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(enLoc)}" />`,
+  ]
+  const block = (url) => {
+    const parts = [`  <url>`, `    <loc>${escapeXml(url)}</loc>`]
+    if (lastmod)    parts.push(`    <lastmod>${new Date(lastmod).toISOString().slice(0, 10)}</lastmod>`)
+    if (changefreq) parts.push(`    <changefreq>${changefreq}</changefreq>`)
+    if (priority != null) parts.push(`    <priority>${Number(priority).toFixed(2)}</priority>`)
+    parts.push(...alternates, `  </url>`)
+    return parts.join("\n")
+  }
+  return [block(enLoc), block(esLoc)].join("\n")
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -169,7 +187,7 @@ async function buildSitemapXml() {
 
   return [
     `<?xml version="1.0" encoding="UTF-8"?>`,
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`,
     entries.join("\n"),
     `</urlset>`,
     ``,

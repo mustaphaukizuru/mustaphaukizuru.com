@@ -230,7 +230,7 @@ export default function BlogPostPage() {
   }, [slug])
 
   const post = apiPost || staticPost
-  const related = staticRelated
+  const related = Array.isArray(apiPost?.related) && apiPost.related.length > 0 ? apiPost.related : staticRelated
 
   const url = post ? `${SITE_URL}/blog/${post.slug}` : ""
   const toc = useMemo(() => (post ? extractTOC(post.body) : []), [post])
