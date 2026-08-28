@@ -69,7 +69,7 @@ describe("errorHandler on engine panic", () => {
 })
 
 describe("exitIfUnrecoverable", () => {
-  test("exits only in production, only for a panic signature, only after 60s uptime", () => {
+  test("exits only in production, only for a panic signature, only after 60s uptime", async () => {
     jest.resetModules()
     jest.useFakeTimers()
     const exit = jest.spyOn(process, "exit").mockImplementation(() => {})
@@ -78,7 +78,10 @@ describe("exitIfUnrecoverable", () => {
     const prev = process.env.NODE_ENV
     process.env.NODE_ENV = "test"
     jest.dontMock("../src/lib/prisma")
-    const { exitIfUnrecoverable } = require("../src/lib/prisma")
+    const lib = require("../src/lib/prisma")
+    const { exitIfUnrecoverable } = lib
+    // The guard only fires for an engine that worked at least once here.
+    await lib.isAlive()
     exitIfUnrecoverable("PANIC: timer has gone away"); jest.runAllTimers()
     expect(exit).not.toHaveBeenCalled()                       // not production
 
@@ -109,4 +112,25 @@ test("module helpers survive a recycle (they live on the proxy target, not the c
   expect(typeof prisma.isAlive).toBe("function")
   expect(typeof prisma.recoverIfPanicked).toBe("function")
   expect(typeof prisma.exitIfUnrecoverable).toBe("function")
+})
+
+test("exitIfUnrecoverable refuses when the engine never worked in this process", async () => {
+  jest.resetModules()
+  jest.dontMock("../src/lib/prisma")
+  const exit = jest.spyOn(process, "exit").mockImplementation(() => {})
+  const uptime = jest.spyOn(process, "uptime").mockReturnValue(600)
+  jest.spyOn(console, "error").mockImplementation(() => {})
+  const prev = process.env.NODE_ENV
+  process.env.NODE_ENV = "production"
+  process.env.DISABLE_DB_KEEPALIVE = "1"
+  jest.useFakeTimers()
+  const prisma = require("../src/lib/prisma")
+  // everHealthy is false until a query succeeds — a broken build must NOT loop.
+  expect(prisma.engineInfo().everHealthy).toBe(false)
+  prisma.exitIfUnrecoverable("PANIC: timer has gone away")
+  jest.advanceTimersByTime(5000)
+  expect(exit).not.toHaveBeenCalled()
+  process.env.NODE_ENV = prev
+  jest.useRealTimers()
+  exit.mockRestore(); uptime.mockRestore()
 })

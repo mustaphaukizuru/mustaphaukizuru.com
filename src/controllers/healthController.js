@@ -8,16 +8,48 @@ try {
 } catch { /* ignore */ }
 
 /**
+ * Short commit SHA of the running build, read once from .git without
+ * spawning git. Hostinger deploys by cloning the repo, so this answers
+ * "is the fix actually deployed?" from outside — the question that cost
+ * hours during the 2026-08-27/28 outage.
+ */
+const _commit = (() => {
+  try {
+    const fs = require("fs")
+    const path = require("path")
+    const gitDir = path.join(__dirname, "../../.git")
+    const head = fs.readFileSync(path.join(gitDir, "HEAD"), "utf8").trim()
+    if (head.startsWith("ref: ")) {
+      const ref = head.slice(5).trim()
+      try {
+        return fs.readFileSync(path.join(gitDir, ref), "utf8").trim().slice(0, 7)
+      } catch {
+        const packed = fs.readFileSync(path.join(gitDir, "packed-refs"), "utf8")
+        const line = packed.split("\n").find((l) => l.endsWith(` ${ref}`))
+        return line ? line.slice(0, 7) : null
+      }
+    }
+    return head.slice(0, 7)
+  } catch {
+    return null
+  }
+})()
+
+/**
  * GET /api/health
  * Lightweight liveness probe. Used by uptime monitors that want a fast OK.
  * Returns 200 when DB is reachable, 503 otherwise.
  */
 const getHealth = asyncHandler(async (req, res) => {
   let database = "ok"
+  let dbError = null
   try {
     await prisma.$queryRaw`SELECT 1`
-  } catch {
+  } catch (err) {
     database = "down"
+    // Error CLASS only (never the message, which can carry the DSN): enough
+    // to tell an engine panic from an init failure from an unreachable host.
+    dbError = err?.errorCode || err?.code || err?.name || "unknown"
   }
 
   const status = database === "ok" ? "ok" : "degraded"
@@ -27,8 +59,10 @@ const getHealth = asyncHandler(async (req, res) => {
     status,
     uptime:    Math.round(process.uptime()),
     version:   _packageVersion,
+    commit:    _commit,
     env:       process.env.NODE_ENV || "development",
     database,
+    ...(dbError ? { dbError, engine: prisma.engineInfo?.() || null } : {}),
     timestamp: new Date().toISOString(),
   })
 })
