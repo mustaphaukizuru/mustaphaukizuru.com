@@ -200,5 +200,11 @@
     "discussPlaceholder": "Share goals, links, or context so we can make the most of our time.",
     "signInHint": "You'll be asked to sign in to confirm. Your selection is preserved.",
     "confirmBooking": "Confirm booking"
+  },
+  "booking": {
+    "context": {
+      "label": "Booking about",
+      "change": "Change"
+    }
   }
 }

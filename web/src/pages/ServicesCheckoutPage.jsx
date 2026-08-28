@@ -231,7 +231,7 @@ export default function ServicesCheckoutPage() {
             onClick={() => { setMethod("paypal"); setError(null) }}
             className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
           >
-            Try PayPal instead →
+            {t("checkout.tryPaypal")}
           </button>
         ),
       })
@@ -283,7 +283,7 @@ export default function ServicesCheckoutPage() {
                   onClick={() => { setMethod("mercadopago"); setError(null) }}
                   className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
                 >
-                  Try MercadoPago instead →
+                  {t("checkout.tryMercadoPago")}
                 </button>
               ),
             })

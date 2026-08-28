@@ -435,7 +435,7 @@ export default function BlogPage() {
                     className="inline-flex items-center gap-2 rounded-full border-2 border-violet/30 bg-white px-7 py-3 text-[13px] font-bold text-violet transition hover:border-violet hover:bg-violet-pale/40 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/30"
                   >
                     <BookOpen className="h-4 w-4" aria-hidden="true" />
-                    Load more articles
+                    {t("index.loadMore")}
                   </button>
                 </div>
               ) : null}
@@ -1048,6 +1048,7 @@ function Dot() {
    ════════════════════════════════════════════════════════════════════════ */
 
 function BlogInlineNewsletter() {
+  const { t } = useTranslation("blog")
   const [email, setEmail] = useState("")
   const [status, setStatus] = useState({ kind: null, message: "" })
   const [loading, setLoading] = useState(false)
@@ -1083,13 +1084,13 @@ function BlogInlineNewsletter() {
       <div className="flex flex-col items-start gap-5 px-6 py-6 sm:flex-row sm:items-center sm:gap-8 sm:px-8">
         <div className="flex-1 min-w-0">
           <p className="text-[10.5px] font-bold uppercase tracking-[0.22em] text-white/60">
-            Stay in the loop
+            {t("index.newsletterTitle")}
           </p>
           <h3 className="mt-1 text-[17px] font-bold text-white">
-            New articles, every week.
+            {t("index.newsletterLead")}
           </h3>
           <p className="mt-0.5 text-[13px] text-white/70">
-            Tech strategy, dev tutorials, and STEM insights — no spam.
+            {t("index.newsletterBody")}
           </p>
         </div>
         {status.kind === "success" ? (

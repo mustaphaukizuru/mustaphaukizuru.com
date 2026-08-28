@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import { m, useReducedMotion } from "framer-motion"
 import { Modal } from "../ui/Modal"
 import {
@@ -101,6 +102,7 @@ function ScoreRing({ pct, tier, size = 200 }) {
 
 /* ─── Main component ─────────────────────────────────────────────────── */
 export default function AuditModal({ open, onClose }) {
+  const { t } = useTranslation("audit")
 
   /* State */
   const [step, setStep]           = useState("audience")   // audience | prequal | audit | results | email
@@ -324,14 +326,14 @@ export default function AuditModal({ open, onClose }) {
                     <div className="h-12 w-12 rounded-xl bg-violet-pale flex items-center justify-center mb-4">
                       <CheckCircle2 className="h-6 w-6 text-violet" />
                     </div>
-                    <h3 className="text-[18px] font-bold text-charcoal mb-2">Welcome back!</h3>
-                    <p className="text-[14px] text-charcoal/65 mb-6">You've started this audit before. Continue where you left off?</p>
+                    <h3 className="text-[18px] font-bold text-charcoal mb-2">{t("modal.resumeTitle")}</h3>
+                    <p className="text-[14px] text-charcoal/65 mb-6">{t("modal.resumeBody")}</p>
                     <div className="flex gap-3">
                       <button onClick={handleResume} className="cursor-pointer flex-1 rounded-xl bg-violet px-4 py-2.5 text-[14px] font-semibold text-white hover:bg-violet/90 transition">
                         Continue
                       </button>
                       <button onClick={handleStartFresh} className="cursor-pointer flex-1 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[14px] font-medium text-charcoal/70 hover:bg-charcoal/5 transition">
-                        Start fresh
+                        {t("modal.resumeFresh")}
                       </button>
                     </div>
                   </m.div>
@@ -411,6 +413,7 @@ export default function AuditModal({ open, onClose }) {
    AUDIENCE STEP
 ════════════════════════════════════════════════════════════════════════ */
 function AudienceStep({ onSelect }) {
+  const { t } = useTranslation("audit")
   const CARDS = [
     {
       aud: "EDU", icon: GraduationCap,
@@ -442,7 +445,7 @@ function AudienceStep({ onSelect }) {
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
       <div className="text-center mb-10">
         <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-violet mb-3">STEP 1 OF 3</p>
-        <h2 className="text-[clamp(22px,3.5vw,34px)] font-extrabold tracking-tight text-charcoal mb-3">Who is this audit for?</h2>
+        <h2 className="text-[clamp(22px,3.5vw,34px)] font-extrabold tracking-tight text-charcoal mb-3">{t("modal.audienceQuestion")}</h2>
         <p className="text-[15px] text-charcoal/65">Different audiences see different sections. We'll tailor your shortlist accordingly.</p>
       </div>
       <div className="space-y-4">
@@ -476,18 +479,19 @@ function AudienceStep({ onSelect }) {
    PREQUAL STEP
 ════════════════════════════════════════════════════════════════════════ */
 function PrequalStep({ prequal, onChange, onBack, onNext }) {
+  const { t } = useTranslation("audit")
   return (
     <div className="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="mb-8 sm:mb-10">
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-violet mb-3">STEP 2 OF 3 · QUICK CONTEXT</p>
-        <h2 className="text-[clamp(22px,3vw,30px)] font-extrabold tracking-tight text-charcoal mb-2">Two quick questions</h2>
-        <p className="text-[14px] text-charcoal/65">This helps us contextualise your results. Takes 20 seconds.</p>
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-violet mb-3">{t("modal.step2Eyebrow")}</p>
+        <h2 className="text-[clamp(22px,3vw,30px)] font-extrabold tracking-tight text-charcoal mb-2">{t("modal.step2Title")}</h2>
+        <p className="text-[14px] text-charcoal/65">{t("modal.step2Body")}</p>
       </div>
 
       <div className="space-y-7 sm:space-y-8">
         <div>
           <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/65 mb-3">
-            What's your biggest technology challenge right now?
+            {t("modal.challengeQuestion")}
           </label>
           {/* 1 col on xs, 2 cols from sm — prevents cramped cards on narrow phones */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -509,7 +513,7 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
 
         <div>
           <label className="block font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/65 mb-3">
-            What's your implementation timeline?
+            {t("modal.timelineQuestion")}
           </label>
           <div className="space-y-2">
             {PREQUAL_TIMELINES.map((t) => (
@@ -553,6 +557,7 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
    AUDIT SECTION STEP
 ════════════════════════════════════════════════════════════════════════ */
 function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, sectionScores, overall, tooltip, setTooltip, onScore, onPrev, onNext }) {
+  const { t } = useTranslation("audit")
   const isLast = sectionIdx === totalSections - 1
 
   return (
@@ -563,7 +568,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
         {/* ── Mobile live-scores strip (hidden on lg where sidebar shows) ── */}
         <div className="lg:hidden mb-5 rounded-xl border border-charcoal/8 bg-mist/60 px-3 py-2.5">
           <div className="flex items-center justify-between mb-2">
-            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-charcoal/40">Live scores</p>
+            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-charcoal/40">{t("modal.liveScores")}</p>
             <span className="font-mono text-[12px] font-bold text-violet">{overall.pct} / 100</span>
           </div>
           <div className="flex flex-wrap gap-x-3 gap-y-1.5">
@@ -682,11 +687,11 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                     >
                       <div className="rounded-xl bg-charcoal/[0.03] border border-charcoal/8 p-4 grid gap-4 sm:grid-cols-2">
                         <div>
-                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-rose mb-1.5">RISK IF IGNORED</p>
+                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-rose mb-1.5">{t("modal.riskIfIgnored")}</p>
                           <p className="text-[13px] text-charcoal/65 leading-relaxed">{risk}</p>
                         </div>
                         <div>
-                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-violet mb-1.5">TYPICAL INVESTMENT</p>
+                          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-violet mb-1.5">{t("modal.typicalInvestment")}</p>
                           <p className="font-mono text-[14px] font-bold text-charcoal">{investRange}</p>
                           <p className="text-[12px] text-charcoal/65 mt-0.5">{tier}</p>
                         </div>
@@ -718,7 +723,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
 
       {/* Sticky scoreboard sidebar (desktop only — mobile uses the strip above) */}
       <aside className="hidden lg:flex lg:w-[260px] shrink-0 flex-col border-l border-charcoal/8 bg-mist/50 px-5 py-8">
-        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-5">YOUR LIVE SCORES</p>
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-5">{t("modal.yourLiveScores")}</p>
         <div className="space-y-3.5">
           {Object.entries(sectionScores).map(([letter, d]) => {
             const sc = tierForScore(d.pct)
@@ -749,6 +754,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
    RESULTS STEP
 ════════════════════════════════════════════════════════════════════════ */
 function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, audience, whatsappUrl, onGetPdf, onRestart }) {
+  const { t } = useTranslation("audit")
   const audienceLabel = { EDU: "schools in Latin America", SMB: "businesses in your sector", IND: "individual professionals" }[audience] || "similar organisations"
   const avgBenchmarks = { EDU: 36, SMB: 41, IND: 32 }
   const avg = avgBenchmarks[audience] || 38
@@ -759,7 +765,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
       {/* Hero score — ring shrinks on mobile */}
       <div className="text-center mb-8 sm:mb-10">
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/40 mb-4 sm:mb-6">YOUR DIGITAL & TECHNOLOGY MATURITY</p>
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-charcoal/40 mb-4 sm:mb-6">{t("modal.maturityHeading")}</p>
         <div className="flex justify-center mb-4 sm:mb-5">
           <div className="hidden sm:block"><ScoreRing pct={overall.pct} tier={tier} size={200} /></div>
           <div className="sm:hidden"><ScoreRing pct={overall.pct} tier={tier} size={160} /></div>
@@ -782,7 +788,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
 
       {/* Category breakdown */}
       <div className="bg-white rounded-2xl border border-charcoal/8 p-6 mb-6">
-        <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-5">MATURITY BY CATEGORY</h3>
+        <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-5">{t("modal.maturityByCategory")}</h3>
         <div className="space-y-4">
           {Object.entries(sectionScores).map(([letter, d]) => {
             const sc  = tierForScore(d.pct)
@@ -839,7 +845,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
                         <div key={n} className={`h-1.5 w-5 rounded-full ${n <= p.score ? "bg-rose" : "bg-charcoal/10"}`} />
                       ))}
                     </div>
-                    <span className="text-[11px] text-charcoal/65">You scored <strong className="text-rose">{p.score}/4</strong> — target is 3+</span>
+                    <span className="text-[11px] text-charcoal/65">{t("modal.youScored")} <strong className="text-rose">{p.score}/4</strong> {t("modal.scoreTarget")}</span>
                   </div>
                   {/* Risk */}
                   <p className="text-[13px] text-charcoal/65 leading-relaxed mb-2">{p.risk}</p>
@@ -853,7 +859,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
             ))}
           </div>
           {topPriorities.length === 0 && (
-            <p className="text-[14px] text-charcoal/65">All items scored 3 or above — strong foundation across the board.</p>
+            <p className="text-[14px] text-charcoal/65">{t("modal.allStrong")}</p>
           )}
         </div>
       )}
@@ -863,7 +869,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
         <div className="relative overflow-hidden rounded-2xl p-6 mb-6 bg-[linear-gradient(135deg,var(--color-violet),#0284C7_50%,var(--color-cyan))]">
           <div className="absolute -top-1/2 -right-8 h-[200%] w-1/2 rounded-full bg-white/10 blur-3xl pointer-events-none" />
           <div className="relative">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 mb-2">RECOMMENDED SOLUTION BUNDLE</p>
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 mb-2">{t("modal.recommendedBundle")}</p>
             <h4 className="text-[20px] font-bold text-white mb-1">{bundle.name}</h4>
             <p className="text-[13.5px] text-white/80 mb-3">{bundle.tagline}</p>
             <div className="flex flex-wrap gap-3 text-[12px]">
@@ -881,16 +887,16 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
           className="cursor-pointer flex flex-col gap-2 rounded-xl border border-violet/25 bg-violet/[0.04] px-5 py-4 text-left hover:border-violet/45 hover:bg-violet/8 transition"
         >
           <Mail className="h-5 w-5 text-violet" />
-          <span className="text-[14px] font-bold text-charcoal">Get PDF report</span>
-          <span className="text-[12px] text-charcoal/65">Emailed to you · Optional</span>
+          <span className="text-[14px] font-bold text-charcoal">{t("modal.getPdf")}</span>
+          <span className="text-[12px] text-charcoal/65">{t("modal.getPdfHint")}</span>
         </button>
         <a
           href="https://mustaphaukizuru.com/contact"
           className="cursor-pointer flex flex-col gap-2 rounded-xl border border-charcoal/10 bg-white px-5 py-4 text-left hover:border-violet/30 transition"
         >
           <Clock className="h-5 w-5 text-charcoal/65" />
-          <span className="text-[14px] font-bold text-charcoal">Book a 30-min call</span>
-          <span className="text-[12px] text-charcoal/65">Free · No sales pitch</span>
+          <span className="text-[14px] font-bold text-charcoal">{t("modal.bookCall")}</span>
+          <span className="text-[12px] text-charcoal/65">{t("modal.bookCallHint")}</span>
         </a>
         <a
           href={whatsappUrl}
@@ -898,15 +904,15 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
           className="cursor-pointer flex flex-col gap-2 rounded-xl border border-charcoal/10 bg-white px-5 py-4 text-left hover:border-mint/40 transition"
         >
           <MessageCircle className="h-5 w-5 text-mint" />
-          <span className="text-[14px] font-bold text-charcoal">Message on WhatsApp</span>
-          <span className="text-[12px] text-charcoal/65">Quick reply · EN/ES</span>
+          <span className="text-[14px] font-bold text-charcoal">{t("modal.whatsapp")}</span>
+          <span className="text-[12px] text-charcoal/65">{t("modal.whatsappHint")}</span>
         </a>
       </div>
 
       {/* Restart */}
       <div className="text-center">
         <button onClick={onRestart} className="cursor-pointer inline-flex items-center gap-1.5 text-[13px] text-charcoal/40 hover:text-charcoal transition">
-          <RotateCcw className="h-3.5 w-3.5" /> Start a new audit
+          <RotateCcw className="h-3.5 w-3.5" /> {t("modal.startNew")}
         </button>
       </div>
     </div>
@@ -917,6 +923,7 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
    EMAIL STEP
 ════════════════════════════════════════════════════════════════════════ */
 function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, onSubmit, onSkip }) {
+  const { t } = useTranslation("audit")
   return (
     <div className="mx-auto max-w-lg px-4 py-10 sm:px-6 sm:py-14">
       {/* Header */}
@@ -926,7 +933,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
             <Mail className="h-7 w-7 text-violet" />
           </div>
         </div>
-        <h2 className="text-[22px] font-extrabold tracking-tight text-charcoal mb-2">Get your personalised PDF report</h2>
+        <h2 className="text-[22px] font-extrabold tracking-tight text-charcoal mb-2">{t("modal.pdfFormTitle")}</h2>
         <p className="text-[14px] text-charcoal/65">
           A branded PDF with your full scores, top priorities, investment ranges, and recommended next steps — yours to keep and share.
         </p>
@@ -947,13 +954,13 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
       {emailStatus === "sent" ? (
         <div className="text-center py-8">
           <CheckCircle2 className="h-14 w-14 text-mint mx-auto mb-4" />
-          <h3 className="text-[20px] font-bold text-charcoal mb-2">Report on its way!</h3>
+          <h3 className="text-[20px] font-bold text-charcoal mb-2">{t("modal.pdfSent")}</h3>
           <p className="text-[14px] text-charcoal/65">
             Check your inbox — your PDF report will arrive within a few minutes.
             {emailForm.newsletterOptIn && " We also sent a separate email to confirm your newsletter subscription."}
           </p>
           <button onClick={onSkip} className="cursor-pointer mt-6 text-[13px] text-violet underline underline-offset-2">
-            Back to results
+            {t("modal.backToResults")}
           </button>
         </div>
       ) : (
@@ -962,7 +969,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
               <label htmlFor="ae-email" className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-charcoal/65">
-                Email address
+                {t("modal.emailLabel")}
               </label>
               <span className="rounded-full bg-violet-pale px-2 py-0.5 font-mono text-[10px] font-bold text-violet">RECOMMENDED</span>
             </div>
@@ -996,7 +1003,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
           <div className="grid grid-cols-1 gap-3 mb-6 sm:grid-cols-2">
             <div>
               <label htmlFor="ae-name" className="block font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-charcoal/40 mb-2">
-                Full name <span className="text-charcoal/25">(optional)</span>
+                {t("modal.nameLabel")} <span className="text-charcoal/25">(optional)</span>
               </label>
               <input
                 id="ae-name"
@@ -1053,7 +1060,7 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
             {emailStatus === "sending" ? (
               <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Sending…</>
             ) : (
-              <><Send className="h-4 w-4" /> Send my PDF report</>
+              <><Send className="h-4 w-4" /> {t("modal.sendReport")}</>
             )}
           </button>
 
@@ -1061,14 +1068,14 @@ function EmailStep({ emailForm, setEmailForm, emailStatus, overall, tier, tc, on
             <p className="text-[11px] text-charcoal/35">
               <Shield className="h-3 w-3 inline mr-1" />
               {emailForm.newsletterOptIn ? "One report, plus a confirmation email." : "One report, no newsletter."}{" "}
-              <a href="/privacy" className="cursor-pointer underline hover:text-charcoal/65" target="_blank" rel="noopener noreferrer">Privacy policy</a>
+              <a href="/privacy" className="cursor-pointer underline hover:text-charcoal/65" target="_blank" rel="noopener noreferrer">{t("modal.privacyPolicy")}</a>
             </p>
             <button
               type="button"
               onClick={onSkip}
               className="cursor-pointer text-[12px] text-charcoal/40 hover:text-charcoal/70 transition underline underline-offset-2"
             >
-              Skip — back to results
+              {t("modal.skipToResults")}
             </button>
           </div>
         </form>

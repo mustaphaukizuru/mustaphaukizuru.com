@@ -176,6 +176,7 @@ function BackToTop() {
 
 /* ── Mid-article consultation CTA ───────────────────────────────────── */
 function MidArticleCTA() {
+  const { t } = useTranslation("blog")
   return (
     <aside
       aria-label="Book a consultation"
@@ -187,10 +188,10 @@ function MidArticleCTA() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[14px] font-bold text-violet">
-            Working on something similar?
+            {t("post.ctaTitle")}
           </p>
           <p className="mt-0.5 text-[13px] text-charcoal-80/65">
-            Book a free 30-minute strategy call — no pitch, just answers.
+            {t("post.ctaBody")}
           </p>
         </div>
         <Link
@@ -506,7 +507,7 @@ export default function BlogPostPage() {
                 to="/blog"
                 className="text-[13px] font-semibold text-violet/70 transition hover:text-violet"
               >
-                All articles →
+                {t("post.allArticles")}
               </Link>
             </div>
             <ul role="list" className="grid gap-5 sm:grid-cols-3">

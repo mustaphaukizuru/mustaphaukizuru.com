@@ -200,5 +200,11 @@
     "discussPlaceholder": "Comparte metas, enlaces o contexto para aprovechar el tiempo al máximo.",
     "signInHint": "Te pediremos iniciar sesión para confirmar. Tu selección se conserva.",
     "confirmBooking": "Confirmar reserva"
+  },
+  "booking": {
+    "context": {
+      "label": "Reserva sobre",
+      "change": "Cambiar"
+    }
   }
 }
