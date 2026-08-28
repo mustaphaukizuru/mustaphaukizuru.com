@@ -1,5 +1,5 @@
 // @ts-check
-import { test, expect, devices } from "@playwright/test"
+import { test, expect } from "@playwright/test"
 
 /**
  * Mobile navigation drawer, in a real touch-enabled browser.
@@ -25,7 +25,16 @@ const BASE = "http://localhost:4173"
 
 // iPhone-class viewport with touch enabled — the drawer is `lg:hidden`, so a
 // desktop viewport would not render it at all.
-test.use({ ...devices["iPhone 12"], baseURL: BASE })
+//
+// The properties are set explicitly rather than spreading devices["iPhone 12"]:
+// that preset carries `defaultBrowserType: "webkit"`, and CI installs chromium
+// only (see .github/workflows/ci.yml), so the spread would fail to launch.
+test.use({
+  viewport: { width: 390, height: 844 },
+  hasTouch: true,
+  isMobile: true,
+  baseURL: BASE,
+})
 
 /** Answer every /api/* call with an empty-but-valid shape. */
 async function stubApi(page) {
