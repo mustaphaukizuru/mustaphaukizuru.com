@@ -98,3 +98,15 @@ describe("exitIfUnrecoverable", () => {
     exit.mockRestore(); uptime.mockRestore()
   })
 })
+
+test("module helpers survive a recycle (they live on the proxy target, not the client)", async () => {
+  jest.resetModules()
+  jest.dontMock("../src/lib/prisma")
+  process.env.NODE_ENV = "test"
+  const prisma = require("../src/lib/prisma")
+  expect(typeof prisma.isAlive).toBe("function")
+  await prisma.recycle()
+  expect(typeof prisma.isAlive).toBe("function")
+  expect(typeof prisma.recoverIfPanicked).toBe("function")
+  expect(typeof prisma.exitIfUnrecoverable).toBe("function")
+})

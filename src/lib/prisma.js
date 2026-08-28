@@ -76,13 +76,21 @@ if (process.env.NODE_ENV === "production") {
   current = global.__prisma
 }
 
-const prisma = new Proxy({}, {
-  get(_t, prop) {
+// The proxy TARGET holds the module's own helpers (isAlive, recycle, …)
+// assigned via `module.exports.x = …` below. They must live on the target,
+// not on the client instance: a previous version wrote them onto `current`,
+// so the first recycle() (which swaps `current` for a fresh client) silently
+// dropped every helper — errorHandler/scheduler then saw `undefined` and the
+// panic handling stopped working exactly when it was needed.
+const helpers = {}
+const prisma = new Proxy(helpers, {
+  get(t, prop) {
+    if (prop in t) return t[prop]
     const v = current[prop]
     return typeof v === "function" ? v.bind(current) : v
   },
-  set(_t, prop, value) { current[prop] = value; return true },
-  has(_t, prop) { return prop in current },
+  set(t, prop, value) { t[prop] = value; return true },
+  has(t, prop) { return prop in t || prop in current },
 })
 
 /* ─────────────────────────── connection-health helpers ─────────────────
