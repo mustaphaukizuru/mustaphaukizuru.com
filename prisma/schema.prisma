@@ -4,6 +4,21 @@
 
 generator client {
   provider = "prisma-client-js"
+  // NOTE · engine type. The default "library" engine loads the Rust query
+  // engine INTO the node process; on this host it intermittently panics
+  // ("PANIC: timer has gone away") on the first query of a fresh process,
+  // and a library-engine panic cannot be recovered in-process.
+  //
+  // The "binary" engine runs the query engine as a separate process and is
+  // immune to that, but it is NOT set here on purpose: it spawns an engine
+  // process per client, which took the Jest suite from ~90s to over ten
+  // minutes — too high a price on every developer and every CI run for a
+  // production-only symptom.
+  //
+  // Switch it on where the symptom actually is, no code change required:
+  //   PRISMA_CLIENT_ENGINE_TYPE=binary   in the host env, then redeploy
+  // (postinstall runs `prisma generate`, and that variable overrides the
+  // generator at generate time). Unset it to go back.
   // Production is Hostinger (CloudLinux 8). The build that ran for hours
   // without incident used the debian-openssl-1.1.x engine; adding the
   // rhel-openssl-* targets made Prisma pick the RHEL engine at runtime, and
