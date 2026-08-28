@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Globe, ChevronDown, Check } from "lucide-react";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { useLanguage } from "../i18n/hooks/useLanguage";
 import { pathWithLanguage } from "../i18n/utils/pathWithLanguage";
 
@@ -70,6 +71,7 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
 
   // Dropdown open state + close-on-outside-click / Escape (used by the
   // "dropdown" variant only; harmless no-op for the others).
+  const reduce = useReducedMotion();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -96,9 +98,18 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
           {current.label}
           <ChevronDown className={"h-3.5 w-3.5 transition-transform " + (open ? "rotate-180" : "")} aria-hidden="true" />
         </button>
+        {/* Animated open/close. The panel used to appear and vanish with no
+            transition at all, which reads as a glitch next to the rest of
+            the site's motion. Slide-down + fade from the top-right origin,
+            collapsed to an instant swap under prefers-reduced-motion. */}
+        <AnimatePresence>
         {open && (
-          <div role="listbox" aria-label={t("language.ariaSelector")}
-            className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-1 shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.16)]">
+          <m.div role="listbox" aria-label={t("language.ariaSelector")}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.97 }}
+            animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -4, scale: 0.98 }}
+            transition={{ duration: reduce ? 0.08 : 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute right-0 top-full z-50 mt-2 w-40 origin-top-right overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-1 shadow-[0_12px_36px_rgb(var(--color-violet-rgb)/0.16)]">
             {LANGS.map(({ code, name, Flag }) => (
               <button key={code} type="button" role="option" aria-selected={lang === code}
                 onClick={() => { switchTo(code); setOpen(false); }}
@@ -108,8 +119,9 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
                 {lang === code ? <Check className="h-4 w-4 text-violet" aria-hidden="true" /> : null}
               </button>
             ))}
-          </div>
+          </m.div>
         )}
+        </AnimatePresence>
       </div>
     );
   }

@@ -111,7 +111,12 @@
     "legalCookiesShort": "Cookies",
     "legalRefundShort": "Refund",
     "legalNotice": "Privacy notice",
-    "legalNoticeShort": "Privacy notice"
+    "legalNoticeShort": "Privacy notice",
+    "subscribeCta": "Subscribe",
+    "subscribing": "Joining…",
+    "emailRequired": "Please enter your email address.",
+    "subscribeSuccess": "Almost there — check your inbox to confirm your subscription.",
+    "subscribeError": "We couldn't complete your subscription. Please try again."
   },
   "language": {
     "english": "English",
