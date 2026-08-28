@@ -29,7 +29,7 @@ const { SERVICE_CATEGORY_SLUGS } = require("../config/serviceCategorySlugs")
 const ONE_HOUR_MS = 60 * 60 * 1000
 let cache = { xml: null, builtAt: 0 }
 
-const SITE_URL = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "https://mustaphaukizuru.com")
+const SITE_URL = (process.env.PUBLIC_SITE_URL || process.env.FRONTEND_URL || process.env.CLIENT_URL || "https://mustaphaukizuru.com")
   .replace(/\/$/, "")
 
 /* Static pages — manually curated. Keep in sync with public router list. */

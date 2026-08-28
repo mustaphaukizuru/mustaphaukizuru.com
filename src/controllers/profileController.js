@@ -29,7 +29,9 @@ const uploadAvatar = asyncHandler(async (req, res) => {
   const file = req.file
   if (!file) return res.status(400).json({ success: false, message: "No image uploaded" })
 
-  const avatarUrl = `/images/avatars/${file.filename}`
+  // The filename is stable per user, and the service worker caches /images/*
+  // for 30 days — the version query makes a new upload show immediately.
+  const avatarUrl = `/images/avatars/${file.filename}?v=${Date.now()}`
   const user = await profileService.setAvatar(req.user?.id, avatarUrl)
   return res.status(200).json({ success: true, data: user })
 })

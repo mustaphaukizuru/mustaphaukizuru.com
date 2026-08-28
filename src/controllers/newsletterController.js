@@ -58,7 +58,8 @@ const subscribe = asyncHandler(async (req, res) => {
  */
 const confirm = asyncHandler(async (req, res) => {
   const { token } = req.params
-  await newsletterService.confirmByToken(token)
+  const row = await newsletterService.confirmByToken(token)
+  if (!row) return res.redirect(302, `${newsletterService.unsubscribeConfirmedUrl().split("?")[0]}?state=invalid`)
   return res.redirect(302, newsletterService.subscribeConfirmedUrl())
 })
 
@@ -68,7 +69,8 @@ const confirm = asyncHandler(async (req, res) => {
  */
 const unsubscribe = asyncHandler(async (req, res) => {
   const { token } = req.params
-  await newsletterService.unsubscribeByToken(token)
+  const row = await newsletterService.unsubscribeByToken(token)
+  if (!row) return res.redirect(302, `${newsletterService.unsubscribeConfirmedUrl().split("?")[0]}?state=invalid`)
   return res.redirect(302, newsletterService.unsubscribeConfirmedUrl())
 })
 

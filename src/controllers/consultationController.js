@@ -31,10 +31,21 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
  *   2. Guest, new email  → passwordless "checkout" account + claim email
  *   3. Guest, email of a claimed account → 401 ACCOUNT_EXISTS (must sign in)
  */
+
+/** True when Intl accepts the zone (IANA name); guards date-fns-tz from a RangeError → 500. */
+function isValidTimezone(tz) {
+  if (typeof tz !== "string" || !tz || tz.length > 64) return false
+  try { Intl.DateTimeFormat(undefined, { timeZone: tz }); return true } catch { return false }
+}
+
 const create = asyncHandler(async (req, res) => {
   let userId = req.user?.id || null
-  const { serviceId, startUtc, timezone, clientNotes, serviceOrderId, customerName, customerEmail } = req.body
+  const { serviceId, startUtc, timezone, serviceOrderId, customerName, customerEmail } = req.body
+  const clientNotes = req.body?.clientNotes == null ? undefined : String(req.body.clientNotes).slice(0, 2000)
 
+  if (timezone && !isValidTimezone(timezone)) {
+    return res.status(400).json({ success: false, code: "BAD_REQUEST", message: "timezone must be a valid IANA zone (e.g. America/Mexico_City)" })
+  }
   if (!startUtc || !timezone) {
     return res.status(400).json({
       success: false,
@@ -173,6 +184,9 @@ const reschedule = asyncHandler(async (req, res) => {
 
   if (!newStartUtc) {
     return res.status(400).json({ success: false, code: "BAD_REQUEST", message: "newStartUtc is required" })
+  }
+  if (newTimezone && !isValidTimezone(newTimezone)) {
+    return res.status(400).json({ success: false, code: "BAD_REQUEST", message: "newTimezone must be a valid IANA zone" })
   }
 
   const updated = await rescheduleConsultation({

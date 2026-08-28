@@ -286,6 +286,9 @@ const signup = asyncHandler(async (req, res) => {
   if (!fullName || !email || !password) {
     return res.status(400).json({ success: false, message: "fullName, email, and password are required" });
   }
+  if (typeof password !== "string") {
+    return res.status(400).json({ success: false, message: "Password must be a string" })
+  }
   const trimmedName = String(fullName).trim()
   const trimmedEmail = String(email).trim().toLowerCase()
   if (trimmedName.length < 2 || trimmedName.length > 100) {
@@ -301,7 +304,7 @@ const signup = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Password too long" })
   }
 
-  const user = await registerUser({ fullName, email, password });
+  const user = await registerUser({ fullName: trimmedName, email: trimmedEmail, password });
   const token = generateToken(user);
   setSessionCookie(res, token);   // Step 40 · httpOnly session + CSRF cookie
 
@@ -573,6 +576,9 @@ const resetPassword = asyncHandler(async (req, res) => {
 
   if (!token || !password) {
     return res.status(400).json({ success: false, message: "Token and new password are required" });
+  }
+  if (typeof password !== "string") {
+    return res.status(400).json({ success: false, message: "Password must be a string" })
   }
   if (password.length < 8) {
     return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });

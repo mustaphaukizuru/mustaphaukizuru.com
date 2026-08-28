@@ -63,17 +63,20 @@ const getMine = asyncHandler(async (req, res) => {
     const nda = await ndaStatus(project, userId)
     const gated = nda.required && !nda.accepted
     const body = gated ? applyNdaGate(project) : project
+    // Tier 4 · presentForMember adds access.state / suspended / handover and
+    // blanks previewUrl for suspended projects; the NDA gate then wins over
+    // preview framing. (This used to send two responses — the second threw
+    // ERR_HTTP_HEADERS_SENT on every project view and the SPA never saw
+    // access.state.)
+    const presented = presentForMember(body, lc)
     res.status(200).json({
       success: true,
       data: {
-        ...body,
-        access: { readOnly: lc.readOnly, isClosed: lc.isClosed, expiresAt: lc.expiresAt },
-        previewCanFrame: gated ? false : previewCanFrame(project.previewUrl),
+        ...presented,
+        previewCanFrame: gated ? false : presented.previewCanFrame,
         nda: { required: nda.required, accepted: nda.accepted, version: nda.version, acceptedAt: nda.acceptedAt },
       },
     })
-    // Tier 4 · suspended projects get no previewUrl; access.state drives the UI.
-    res.status(200).json({ success: true, data: presentForMember(project, lc) })
   } catch (e) {
     return portalError(res, e)
   }
@@ -283,8 +286,9 @@ const streamFile = asyncHandler(async (req, res) => {
   const file = await prisma.projectFile.findFirst({
     where: { id: String(fileId), projectId: String(projectId) },
     include: {
-      project: { select: { id: true, userId: true, projectName: true, requiresNda: true, ndaVersion: true } },
-      project: { select: { id: true, userId: true, projectName: true, accessState: true } },
+      // One select — a duplicate `project:` key here silently dropped
+      // requiresNda/ndaVersion and bypassed the NDA gate on downloads.
+      project: { select: { id: true, userId: true, projectName: true, requiresNda: true, ndaVersion: true, accessState: true } },
     },
   })
 

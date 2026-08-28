@@ -211,7 +211,9 @@ const forgotPasswordRateLimiter = makeLimiter({
   name:         "forgot-password",
   windowMs:     ONE_HOUR,
   max:          3,
-  keyGenerator: emailKey,
+  // ip+email: per-email alone let one IP fan out reset mails to thousands of
+  // distinct addresses (each a DB write + SMTP send).
+  keyGenerator: ipPlusEmailKey,
   message:      "Too many password reset requests. Please try again later.",
 })
 
@@ -395,9 +397,23 @@ const portalVerifyRateLimiter = makeLimiter({
  */
 const authRateLimiter = loginRateLimiter
 
+/**
+ * Public write endpoints that create rows or reveal state without a session
+ * (guest service checkout creates User rows; coupon validation can be used
+ * to enumerate codes). 30 per 15 min per IP.
+ */
+const publicWriteRateLimiter = makeLimiter({
+  name:         "public-write",
+  windowMs:     FIFTEEN_MIN,
+  max:          30,
+  keyGenerator: ipKey,
+  message:      "Too many requests. Please try again in a few minutes.",
+})
+
 module.exports = {
   // Global
   globalApiLimiter,
+  publicWriteRateLimiter,
   // Auth
   loginRateLimiter,
   signupRateLimiter,

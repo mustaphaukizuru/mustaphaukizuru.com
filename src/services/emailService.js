@@ -109,11 +109,15 @@ function esc(value = "") {
 }
 
 /** Substitute {{key}} tokens; missing keys render as empty strings. */
-function renderTemplate(template, variables = {}) {
+function renderTemplate(template, variables = {}, { escape = false } = {}) {
   if (!template) return ""
   return String(template).replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_, key) => {
     const v = variables[key]
-    return v == null ? "" : String(v)
+    if (v == null) return ""
+    // Variables are user-supplied text (contact message, review, notes…) and
+    // land inside HTML bodies: escape them. A caller that deliberately passes
+    // markup names the variable *Html (none of the seeded templates do today).
+    return escape && !key.endsWith("Html") ? esc(String(v)) : String(v)
   })
 }
 
@@ -293,7 +297,7 @@ async function sendTemplateEmail({ to, templateKey, variables = {}, locale, user
 
   const vars        = { year: new Date().getFullYear(), ...variables }
   const subject     = renderTemplate(template.subject, vars)
-  const rawHtmlBody = renderTemplate(template.htmlBody, vars)
+  const rawHtmlBody = renderTemplate(template.htmlBody, vars, { escape: true })   // HTML body only; subject/text stay raw
 
   // Content-only templates (no <!doctype>/<html>) get the brand chrome from
   // emailLayoutService; already-wrapped legacy rows are sent verbatim.

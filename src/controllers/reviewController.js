@@ -29,6 +29,7 @@ const { notifyReviewPosted } = require("../services/notificationService")
 function shape(r) {
   return {
     id:                 r.id,
+    status:             r.status || null,
     rating:             r.rating,
     reviewText:         r.reviewText,
     isVerifiedPurchase: r.isVerifiedPurchase,
