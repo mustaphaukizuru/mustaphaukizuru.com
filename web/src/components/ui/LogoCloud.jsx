@@ -1,43 +1,70 @@
 // ════════════════════════════════════════════════════════════════════════════
-// LogoCloud · client logo wall · v1.0
+// LogoCloud · client logo wall · v2.0
 // ────────────────────────────────────────────────────────────────────────────
 // A bordered grid of the organisations Mustapha has delivered work for.
-// 2 columns on phones, 4 from md up, with the seam lines bleeding to the
-// viewport edge and a plus glyph at each interior intersection.
+// 2 columns on phones, 4 from md up, seam lines bleeding to the viewport edge
+// and a plus glyph at every interior intersection.
 //
-// Adapted from a shadcn/Tailwind reference component. Four things had to
-// change for this codebase, all deliberate:
+// Data comes from GET /api/v1/client-logos (Admin → Clients edits it). The
+// bundled list in data/companiesData is the fallback, so the wall still
+// renders if the API is unavailable — it is a credibility section, and a row
+// of broken frames is worse than slightly stale content.
 //
-//   1. JSX, not TSX — this app is JavaScript; there is no tsconfig.
-//   2. `cn` from "@/lib/utils" does not exist here (no shadcn, no `@/`
-//      alias). Uses `clsx`, which the project already depends on.
-//   3. The reference paints alternating cells with shadcn's `bg-secondary`
-//      / `bg-background` semantic tokens. Those are not defined in this
-//      theme — the classes would render transparent — so the rhythm uses
-//      the brand's own Cloud Mist against white (Brand v3 tokens only, no
-//      hex literals).
-//   4. The reference points at remote svgl.app wordmarks. These are real
-//      client marks served from our own /images, so the wall keeps working
-//      offline and nothing leaks referrer data to a third party.
+// Adapted from a shadcn reference; four of its assumptions do not hold here:
+//   1. JSX, not TSX — this app is JavaScript.
+//   2. `cn` from "@/lib/utils" does not exist (no shadcn, no `@/` alias);
+//      uses clsx, already a dependency.
+//   3. Its alternating cells use shadcn's `bg-secondary` / `bg-background`
+//      tokens, which are NOT defined in this theme and would render
+//      transparent. The checkerboard uses Cloud Mist against white instead.
+//   4. Its logos are remote svgl.app wordmarks; these are real client marks
+//      served from our own /images.
 //
-// Logos are greyscale at rest and regain colour on hover/focus: seven marks
-// with unrelated palettes read as noise otherwise, and it keeps the section
-// subordinate to the page's own violet.
+// Optical sizing: a circular badge at the same CSS height as a wide wordmark
+// reads noticeably smaller, so each row carries a `scale` multiplier tuned
+// per logo in the admin. Every cell is the same height and every mark is
+// centred in an identical box, which is what makes the row scan as one line
+// rather than seven different sizes.
 // ════════════════════════════════════════════════════════════════════════════
 
+import { useEffect, useState } from "react"
 import clsx from "clsx"
 import { Plus } from "lucide-react"
 import { m, useReducedMotion } from "framer-motion"
 
 import { COMPANIES } from "../../data/companiesData"
+import { apiRequest } from "../../lib/api"
 
-/**
- * @param {object} props
- * @param {import("../../data/companiesData").Company[]} [props.companies]
- * @param {string} [props.className]
- */
-export function LogoCloud({ companies = COMPANIES, className, ...props }) {
+/** Base mark height in px; `scale` multiplies it. Matches the section rhythm. */
+const BASE_HEIGHT = { mobile: 34, desktop: 42 }
+
+const CELL_BASE =
+  "relative flex h-[104px] items-center justify-center border-b border-r border-charcoal-80/10 px-4 md:h-[132px] md:px-8"
+
+export function LogoCloud({ companies, className, ...props }) {
   const reduce = useReducedMotion()
+  const [rows, setRows] = useState(companies || null)
+
+  useEffect(() => {
+    if (companies) return undefined // caller supplied data (e.g. an admin preview)
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await apiRequest("/api/v1/client-logos")
+        const data = Array.isArray(res?.data) ? res.data : []
+        if (!cancelled && data.length) setRows(data)
+      } catch {
+        /* keep the bundled fallback */
+      }
+    })()
+    return () => { cancelled = true }
+  }, [companies])
+
+  const logos = rows && rows.length ? rows : COMPANIES
+  // Pad to whole columns so the wall stays a clean rectangle instead of
+  // ending in a ragged gap.
+  const desktopFillers = (4 - (logos.length % 4)) % 4
+  const mobileFillers = (2 - (logos.length % 2)) % 2
 
   return (
     <div
@@ -47,17 +74,28 @@ export function LogoCloud({ companies = COMPANIES, className, ...props }) {
       )}
       {...props}
     >
-      {/* Seam lines run past the grid to the viewport edge, so the wall reads
-          as a band across the page rather than a floating box. */}
+      {/* Seams run past the grid to the viewport edge, so the wall reads as a
+          band across the page rather than a floating box. */}
       <Seam className="-top-px" />
 
-      {companies.map((company, i) => (
+      {logos.map((company, i) => (
         <LogoCard
-          key={company.slug}
+          key={company.slug || company.id || i}
           company={company}
           index={i}
-          total={companies.length}
+          total={logos.length}
           reduce={reduce}
+        />
+      ))}
+
+      {/* Fillers continue the checkerboard and the borders; they hold no
+          content and are hidden from assistive tech. */}
+      {Array.from({ length: Math.max(desktopFillers, mobileFillers) }).map((_, i) => (
+        <Filler
+          key={`filler-${i}`}
+          index={logos.length + i}
+          hideOnMobile={i >= mobileFillers}
+          hideOnDesktop={i >= desktopFillers}
         />
       ))}
 
@@ -78,17 +116,48 @@ function Seam({ className }) {
   )
 }
 
-function LogoCard({ company, index, total, reduce }) {
-  // Checkerboard wash: alternate on phones (2 cols) and again on desktop
-  // (4 cols), which is why the two conditions differ per breakpoint.
-  const tintedOnMobile = index % 2 === 0
-  const tintedOnDesktop = (index + Math.floor(index / 4)) % 2 === 0
+/** Checkerboard: tint when row + column is even, per breakpoint column count. */
+function tintClasses(index) {
+  const mobileTinted = ((index % 2) + Math.floor(index / 2)) % 2 === 0
+  const desktopTinted = ((index % 4) + Math.floor(index / 4)) % 2 === 0
+  return clsx(
+    mobileTinted ? "bg-mist" : "bg-white",
+    desktopTinted ? "md:bg-mist" : "md:bg-white"
+  )
+}
 
-  // A plus sits at every interior intersection. On a 4-column grid that is
-  // every cell that has both a neighbour to the right and one below.
-  const lastRowStartsAt = total - (total % 4 || 4)
-  const showPlusDesktop = (index + 1) % 4 !== 0 && index < lastRowStartsAt
+function LogoCard({ company, index, total, reduce }) {
+  const scale = Number(company.scale) || 1
+  const src = company.logoUrl || `/images/brand/companies/${company.slug}.webp`
+  // Bundled assets ship a 2x sibling; uploaded ones may not, so only offer the
+  // descriptor when the file is known to exist.
+  const srcSet = company.logoUrl ? undefined : `${src} 1x, ${src.replace(/\.webp$/, "@2x.webp")} 2x`
+
+  // A plus marks every interior intersection: a cell with a neighbour to the
+  // right AND one below, per breakpoint.
+  const showPlusDesktop = (index + 1) % 4 !== 0 && index < total - (total % 4 || 4)
   const showPlusMobile = index % 2 === 0 && index < total - 2
+
+  const mark = (
+    <img
+      src={src}
+      srcSet={srcSet}
+      alt={company.name}
+      title={company.sector ? `${company.name} — ${company.sector}` : company.name}
+      loading="lazy"
+      decoding="async"
+      style={{
+        height: `${Math.round(BASE_HEIGHT.mobile * scale)}px`,
+        maxHeight: "100%",
+        // Caps a very wide wordmark so it cannot crowd the cell walls.
+        maxWidth: "clamp(96px, 76%, 190px)",
+      }}
+      className={clsx(
+        "select-none object-contain transition-transform duration-300 group-hover:scale-[1.04] md:h-[var(--logo-h)]",
+        company.boxed && "rounded-lg"
+      )}
+    />
+  )
 
   return (
     <m.div
@@ -96,31 +165,26 @@ function LogoCard({ company, index, total, reduce }) {
       whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3), ease: [0.16, 1, 0.3, 1] }}
+      style={{ "--logo-h": `${Math.round(BASE_HEIGHT.desktop * scale)}px` }}
       className={clsx(
-        "group relative flex items-center justify-center border-b border-r border-charcoal-80/10 px-4 py-8 transition-colors duration-300 md:p-8",
-        tintedOnMobile ? "bg-mist" : "bg-white",
-        tintedOnDesktop ? "md:bg-mist" : "md:bg-white",
-        "hover:bg-violet-pale/40 md:hover:bg-violet-pale/40"
+        CELL_BASE,
+        tintClasses(index),
+        "group transition-colors duration-300 hover:bg-violet-pale/40"
       )}
     >
-      <img
-        src={`/images/brand/companies/${company.slug}.webp`}
-        srcSet={`/images/brand/companies/${company.slug}.webp 1x, /images/brand/companies/${company.slug}@2x.webp 2x`}
-        alt={company.name}
-        title={`${company.name} — ${company.sector}`}
-        loading="lazy"
-        decoding="async"
-        className={clsx(
-          "pointer-events-none max-w-[132px] select-none object-contain transition duration-300",
-          // Greyscale at rest keeps seven unrelated palettes from fighting
-          // each other and the page's violet; colour returns on hover.
-          "opacity-70 grayscale group-hover:opacity-100 group-hover:grayscale-0",
-          "h-10 md:h-12",
-          // Marks that ship with their own background get rounded so the
-          // block reads as a deliberate tile, not a stray rectangle.
-          company.boxed && "rounded-lg"
-        )}
-      />
+      {company.websiteUrl ? (
+        <a
+          href={company.websiteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={company.name}
+          className="flex h-full w-full items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+        >
+          {mark}
+        </a>
+      ) : (
+        mark
+      )}
 
       {showPlusDesktop ? (
         <Plus
@@ -137,6 +201,20 @@ function LogoCard({ company, index, total, reduce }) {
         />
       ) : null}
     </m.div>
+  )
+}
+
+function Filler({ index, hideOnMobile, hideOnDesktop }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={clsx(
+        CELL_BASE,
+        tintClasses(index),
+        hideOnMobile && "hidden",
+        hideOnDesktop ? "md:hidden" : "md:flex"
+      )}
+    />
   )
 }
 

@@ -32,6 +32,7 @@ import {
   Activity,
   Newspaper,
   Megaphone,
+  Building2,
 } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 import { API_BASE_URL, authFetch } from "../../lib/api"
@@ -112,6 +113,7 @@ const navigation = [
     items: [
       { label: "Blog", to: "/admin/blog", icon: Newspaper, description: "Posts, categories, tags" },
       { label: "Portfolio", to: "/admin/portfolio", icon: FolderOpen, description: "Case studies & gallery" },
+      { label: "Clients", to: "/admin/clients", icon: Building2, description: "Logo wall on the About page" },
       { label: "Bio CMS", to: "/admin/bio", icon: BookUser, description: "Experience · certificates · skills" },
     ],
   },

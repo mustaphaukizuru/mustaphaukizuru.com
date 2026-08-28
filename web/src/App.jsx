@@ -92,6 +92,7 @@ const SelfAuditPage = lazy(() => import("./pages/SelfAuditPage"));
 
 const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
 const AdminPortfolioPage = lazy(() => import("./pages/AdminPortfolioPage"));
+const AdminClientsPage = lazy(() => import("./pages/AdminClientsPage"));
 const AdminPortfolioFormPage = lazy(() => import("./pages/AdminPortfolioFormPage"));
 const AdminBioPage = lazy(() => import("./pages/AdminBioPage")); // M12
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage")); // M14
@@ -338,6 +339,7 @@ export default function App() {
               <Route path="services" element={<AdminServicePlansPage />} />
               <Route path="services/legacy" element={<AdminServicesPage />} />
               <Route path="portfolio" element={<AdminPortfolioPage />} />
+              <Route path="clients" element={<AdminClientsPage />} />
               <Route path="portfolio/new" element={<AdminPortfolioFormPage />} />
               <Route path="portfolio/:id/edit" element={<AdminPortfolioFormPage />} />
               <Route path="bio" element={<AdminBioPage />} />

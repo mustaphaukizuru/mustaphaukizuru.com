@@ -1240,7 +1240,7 @@ export default function AboutPage() {
            answer "who has trusted this" right before the work itself.
           ══════════════════════════════════════════════════════════════════ */}
       <section className="overflow-hidden py-20 lg:py-24" aria-labelledby="clients-heading">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <Container>
           <Reveal>
             <p className="mb-3 text-center font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-violet">
               {t("clients.eyebrow")}
@@ -1256,11 +1256,13 @@ export default function AboutPage() {
               {t("clients.body")}
             </p>
           </Reveal>
-        </div>
+        </Container>
 
-        <div className="mx-auto mt-10 max-w-5xl px-4 sm:px-6 lg:px-8">
+        {/* Same Container as every other section on the page, so the wall's
+            edges line up with the headings above and the cards below. */}
+        <Container className="mt-10">
           <LogoCloud />
-        </div>
+        </Container>
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════
