@@ -36,6 +36,7 @@ import OrbitingCircles from "../components/motion/OrbitingCircles"
 import AboutHero from "../components/heroes/AboutHero" // V2, universal hero
 import CertificatePreview from "../components/CertificatePreview" // V2, inline PDF
 import SpokenLanguages from "../components/SpokenLanguages" // F06.v4, CEFR strip
+import LogoCloud from "../components/ui/LogoCloud" // client logo wall
 import Counter from "../components/motion/Counter" // Phase 10 · animated number counter
 import Reveal from "../components/motion/Reveal" // Phase 10 · scroll-reveal wrapper
 import AnimatedGradientText from "../components/motion/AnimatedGradientText"
@@ -1231,6 +1232,35 @@ export default function AboutPage() {
             }
           />
         </Container>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════
+           CLIENTS · logo wall
+           Sits between "how I work" and the project case studies: the marks
+           answer "who has trusted this" right before the work itself.
+          ══════════════════════════════════════════════════════════════════ */}
+      <section className="overflow-hidden py-20 lg:py-24" aria-labelledby="clients-heading">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <Reveal>
+            <p className="mb-3 text-center font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-violet">
+              {t("clients.eyebrow")}
+            </p>
+            <h2
+              id="clients-heading"
+              className="text-center text-[clamp(24px,3.5vw,38px)] font-extrabold tracking-tight text-charcoal"
+            >
+              {t("clients.heading")}{" "}
+              <span className="text-violet">{t("clients.headingAccent")}</span>
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-center text-[15px] leading-relaxed text-charcoal-80/70">
+              {t("clients.body")}
+            </p>
+          </Reveal>
+        </div>
+
+        <div className="mx-auto mt-10 max-w-5xl px-4 sm:px-6 lg:px-8">
+          <LogoCloud />
+        </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════
