@@ -2112,6 +2112,15 @@ model BlogPost {
   metaTitle       String?
   metaDescription String? @db.Text
 
+  // I18N06 · Spanish overlay (null = fall back to English). Same convention
+  // as Product / Service / Portfolio: `<field>Es` is swapped in by
+  // utils/pickLocale when the request locale is "es".
+  titleEs           String?
+  excerptEs         String? @db.Text
+  bodyEs            Json?
+  metaTitleEs       String?
+  metaDescriptionEs String? @db.Text
+
   // Author — denormalised so historical posts keep their byline if the
   // user is later anonymised. The optional userId fk preserves the link.
   authorUserId String?

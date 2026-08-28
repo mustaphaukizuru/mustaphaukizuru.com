@@ -94,7 +94,7 @@ function categoryByValue(slug) {
    ════════════════════════════════════════════════════════════════════════ */
 
 export default function BlogPage() {
-  const { t } = useTranslation("blog")
+  const { t, i18n } = useTranslation("blog")
   const reduce = useReducedMotion()
 
   /* URL-driven state — search/category/tag/page sync to the address bar
@@ -124,7 +124,7 @@ export default function BlogPage() {
     ;(async () => {
       try {
         const [list, meta] = await Promise.all([
-          apiRequest("/api/v1/blog?limit=200"),
+          apiRequest(`/api/v1/blog?limit=200&locale=${encodeURIComponent((i18n.language || "en").slice(0, 2))}`),
           apiRequest("/api/v1/blog/meta"),
         ])
         if (cancelled) return
@@ -139,7 +139,7 @@ export default function BlogPage() {
       } catch { /* fall back silently to static data */ }
     })()
     return () => { cancelled = true }
-  }, [])
+  }, [i18n.language])
 
   const allPosts = useMemo(() => apiData?.posts || getAllPosts(), [apiData])
   const featuredPost = useMemo(

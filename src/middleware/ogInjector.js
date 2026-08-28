@@ -185,7 +185,7 @@ async function lookup(kind, slug, locale) {
     }
     case "blog": {
       const { getPublicPostBySlug } = require("../services/blogService")
-      const b = await getPublicPostBySlug(slug)
+      const b = await getPublicPostBySlug(slug, locale)
       if (!b) return null
       return {
         title: firstOf(b.metaTitle, b.title),

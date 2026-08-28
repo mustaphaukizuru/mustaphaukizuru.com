@@ -1,1 +1,0 @@
-import{g as o,a as t,c as a,l as m,d as r}from"./layout-B3IQ3okI.js";import"./react-vendor-BhzkbE4T.js";import"./index-BWUs9FqG.js";import"./vendor-CwD1uBoI.js";import"./i18n-JEdqQ06F.js";import"./router-DRmf-LjD.js";import"./lucide-ZcYocIew.js";const i={renderer:a,...t,...o},u={...i,...r,...m};export{u as default};

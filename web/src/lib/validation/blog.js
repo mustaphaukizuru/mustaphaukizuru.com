@@ -25,4 +25,10 @@ export const blogPostSchema = z.object({
   authorAvatar: optionalUrlOrPath("Author avatar"),
   tags: tagList,
   body: z.array(blogBlockSchema).min(1, "Add at least one content block"),
+  // Spanish overlay — all optional; empty = fall back to English
+  titleEs: optionalStr(200),
+  excerptEs: optionalStr(500),
+  metaTitleEs: optionalStr(200),
+  metaDescriptionEs: optionalStr(320),
+  bodyEs: z.array(blogBlockSchema).optional().default([]),
 })
