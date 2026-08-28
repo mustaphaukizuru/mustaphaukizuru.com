@@ -58,7 +58,7 @@ describe("public reads filter deletedAt: null", () => {
     expect(whereOf(prisma.product.findMany, 1)).toMatchObject({ deletedAt: null })
 
     await productService.searchProducts("x")
-    expect(whereOf(prisma.product.findMany, 2).AND).toEqual(expect.arrayContaining([{ deletedAt: null }]))
+    expect(whereOf(prisma.product.findMany, 2).AND).toEqual(expect.arrayContaining([expect.objectContaining({ deletedAt: null })]))
 
     await productService.getProductBySlug("s")
     expect(whereOf(prisma.product.findFirst)).toMatchObject({ slug: "s", deletedAt: null })

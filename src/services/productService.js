@@ -169,6 +169,9 @@ function parseJsonField(value, fallback = null) {
   return fallback
 }
 
+/** Single source of truth for "visible to the public". */
+const PUBLIC_WHERE = { isActive: true, deletedAt: null, status: "published" }
+
 /* ────────────────────────────────────────────────────────────────────────────
  * getAllProducts — preserved contract.
  * Accepts either a category string OR a filters object:
@@ -176,7 +179,11 @@ function parseJsonField(value, fallback = null) {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function getAllProductsUncached(filters = {}) {
-  const where = { isActive: true, deletedAt: null }
+  // PUBLIC_WHERE: every public read agrees — drafts/archived are invisible in
+  // the listing, search, categories, related and featured rows, exactly as in
+  // getProductBySlug and the sitemap. (They disagreed once: the store listed a
+  // draft whose detail page then 404'd.)
+  const where = { ...PUBLIC_WHERE }
 
   const categoryFilter = typeof filters === "string" ? filters : (filters.category || "")
   if (categoryFilter) where.category = categoryFilter
@@ -234,7 +241,7 @@ async function getProductBySlug(slug, locale = "en") {
   const product = await prisma.product.findFirst({
     // Public lookup: drafts/archived are invisible here (the sitemap and the
     // listing already filter on published; the OG injector reuses this).
-    where: { slug, isActive: true, deletedAt: null, status: "published" },
+    where: { slug, ...PUBLIC_WHERE },
     include: {
       images:      { orderBy: { sortOrder: "asc" } },
       features:    { orderBy: { sortOrder: "asc" } },
@@ -313,7 +320,7 @@ async function getProductBySlug(slug, locale = "en") {
 
 async function getCategoriesUncached() {
   const rows = await prisma.product.findMany({
-    where:    { isActive: true, deletedAt: null, category: { not: null } },
+    where:    { ...PUBLIC_WHERE, category: { not: null } },
     select:   { category: true },
     distinct: ["category"],
     orderBy:  { category: "asc" },
@@ -338,9 +345,8 @@ async function getRelatedProducts(slug) {
 
   const items = await prisma.product.findMany({
     where: {
+      ...PUBLIC_WHERE,
       category: current.category,
-      isActive: true,
-      deletedAt: null,
       id:       { not: current.id },
     },
     include: {
@@ -364,7 +370,7 @@ async function getRelatedProducts(slug) {
 
 async function getFeaturedProductsUncached() {
   const items = await prisma.product.findMany({
-    where:   { isFeatured: true, isActive: true, deletedAt: null },
+    where:   { ...PUBLIC_WHERE, isFeatured: true },
     include: {
       images:      { orderBy: { sortOrder: "asc" }, take: 1 },
       features:    { orderBy: { sortOrder: "asc" }, take: 3 },
@@ -397,8 +403,7 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
   const candidates = await prisma.product.findMany({
     where: {
       AND: [
-        { isActive: true },
-        { deletedAt: null },
+        PUBLIC_WHERE,
         {
           OR: [
             { title:            { contains: trimmed } },
@@ -468,7 +473,7 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     select: { id: true, name: true, slug: true, description: true, isActive: true },
   })
 
-  let where = { isActive: true, deletedAt: null }
+  let where = { ...PUBLIC_WHERE }
 
   if (category && category.isActive) {
     where.categoryId = category.id
@@ -477,7 +482,7 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     //     e.g. "digital-toolkits" → "digital toolkits", "Digital Toolkits", "Digital & Toolkits"
     const candidates = buildCategoryCandidates(categorySlug)
     const match = await prisma.product.findFirst({
-      where:  { isActive: true, deletedAt: null, OR: candidates.map((name) => ({ category: { contains: name } })) },
+      where:  { ...PUBLIC_WHERE, OR: candidates.map((name) => ({ category: { contains: name } })) },
       select: { category: true },
     })
     if (!match || !match.category) return null
