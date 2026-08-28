@@ -130,10 +130,12 @@ const prisma = new Proxy(helpers, {
 // MySQL paused for maintenance, etc.). NEVER throws — catches every
 // possible error class so the caller can branch on a clean boolean.
 let lastPanicMessage = ""   // last isAlive() failure text, read by exitIfUnrecoverable
+let everHealthy = false     // has ANY query succeeded in this process?
 async function isAlive() {
   try {
     await prisma.$queryRaw`SELECT 1`
     lastPanicMessage = ""
+    everHealthy = true
     return true
   } catch (err) {
     lastPanicMessage = String(err?.message || "")
@@ -216,8 +218,17 @@ function recoverIfPanicked(err) {
  * NOT bring it back — every query keeps failing until the process itself
  * restarts. On Passenger a clean exit is exactly what triggers a fresh
  * process, so after a failed recycle we exit(1) (graceful: logs flush,
- * inflight requests get a moment). Guarded so a merely unreachable MySQL
- * (a connectivity error, not a panic) never causes a restart loop.
+ * inflight requests get a moment).
+ *
+ * THREE guards, all required, because a wrong exit here is worse than the
+ * bug it fixes — it turns a degraded API into a crash loop and Passenger
+ * eventually stops respawning, taking the whole API offline:
+ *   1. the failure must look like an engine panic (not "can't reach DB"),
+ *   2. the process must have been up > 60s,
+ *   3. the engine must have worked at least once in THIS process. A build
+ *      whose engine never initialises (wrong binaryTarget, failed
+ *      `prisma generate`) is not fixable by restarting — staying up and
+ *      serving 503s is strictly better than looping.
  */
 let exiting = false
 function exitIfUnrecoverable(reason) {
@@ -225,6 +236,7 @@ function exitIfUnrecoverable(reason) {
   if (process.env.NODE_ENV !== "production" || process.env.DB_PANIC_EXIT === "0") return
   if (!/timer has gone away|Query Engine has a panic|PrismaClientRustPanicError/i.test(String(reason || ""))) return
   if (process.uptime() < 60) return   // never tight-loop a process that just booted
+  if (!everHealthy) return            // never worked here — a restart cannot fix it
   exiting = true
   console.error("[prisma] query engine panicked and did not recover after recycle — exiting so Passenger starts a fresh process")
   setTimeout(() => process.exit(1), 1500).unref()
@@ -260,3 +272,8 @@ module.exports.exitIfUnrecoverable = exitIfUnrecoverable
 // Exported for tests: the pool bounds are a safety property, not an
 // implementation detail, so they get pinned like one.
 module.exports.withPoolBounds = withPoolBounds
+// Diagnostics for /health — never throws, safe to read at any time.
+module.exports.engineInfo = () => ({
+  everHealthy,
+  lastError: lastPanicMessage ? String(lastPanicMessage).split("\n").find(Boolean)?.slice(0, 160) || null : null,
+})
