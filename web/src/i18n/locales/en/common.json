@@ -419,5 +419,12 @@
   },
   "a11y": {
     "skipToContent": "Skip to main content"
+  },
+  "newsletterInvalid": {
+    "title": "This link is no longer valid",
+    "body": "The confirmation or unsubscribe link has expired or was already used. If you meant to subscribe, sign up again from the site footer and we'll send a fresh confirmation email.",
+    "back": "Back to website",
+    "support": "Contact support",
+    "trailer": "Questions?"
   }
 }

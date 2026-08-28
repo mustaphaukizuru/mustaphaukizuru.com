@@ -135,9 +135,9 @@ function ServiceOrderCard({ order }) {
           <h3 className="mt-2 text-card font-bold leading-snug text-charcoal">
             {order.service?.title || t("serviceOrders.card.fallbackTitle")}
           </h3>
-          {order.servicePackage?.title && (
+          {(order.package?.name || order.servicePackage?.name || order.servicePackage?.title) && (
             <p className="mt-0.5 font-mono text-micro text-charcoal-80/65">
-              {t("serviceOrders.card.package", { name: order.servicePackage.title })}
+              {t("serviceOrders.card.package", { name: order.package?.name || order.servicePackage?.name || order.servicePackage?.title })}
             </p>
           )}
 
@@ -187,7 +187,7 @@ function ServiceOrderCard({ order }) {
         {/* Actions column */}
         <div className="flex items-center sm:flex-col sm:items-stretch sm:gap-2">
           <Link
-            to={`/dashboard/service-orders/${order.id}`}
+            to={order.clientProject?.id ? `/dashboard/projects/${order.clientProject.id}` : "/dashboard/service-orders"}
             className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-violet px-4 py-2 text-micro font-semibold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
           >
             {t("serviceOrders.card.viewDetails")} <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />

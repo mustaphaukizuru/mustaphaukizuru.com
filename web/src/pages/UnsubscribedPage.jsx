@@ -19,8 +19,10 @@ const SUPPORT_EMAIL = "hello@mustaphaukizuru.com"
 export default function UnsubscribedPage() {
   const { t } = useTranslation("common")
   const [params] = useSearchParams()
-  const confirmed = params.get("state") === "confirmed"
-  const k = confirmed ? "newsletterConfirmed" : "unsub"
+  const state = params.get("state")
+  const confirmed = state === "confirmed"
+  const invalid = state === "invalid"
+  const k = invalid ? "newsletterInvalid" : confirmed ? "newsletterConfirmed" : "unsub"
   const Icon = confirmed ? MailCheck : CheckCircle2
   return (
     <section className="relative min-h-[calc(100vh-240px)] overflow-hidden bg-mist py-24">

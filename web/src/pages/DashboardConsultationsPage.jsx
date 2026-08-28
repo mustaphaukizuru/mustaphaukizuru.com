@@ -207,11 +207,11 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
         newStartUtc: slot.startUtc,
         newTimezone: tz,
       })
-      toast?.show?.({ type: "success", title: t("consultations.toast.rescheduledTitle"), message: formatDateTime(updated.scheduledAt, tz) })
+      toast?.showSuccess?.(t("consultations.toast.rescheduledTitle"), formatDateTime(updated.scheduledAt, tz))
       onRescheduled(updated)
     } catch (e) {
       setError(e?.message || t("consultations.errors.reschedule"))
-      toast?.show?.({ type: "error", title: t("consultations.toast.rescheduleErrTitle"), message: e?.message || "" })
+      toast?.showError?.(t("consultations.toast.rescheduleErrTitle"), e?.message || "")
     } finally { setSubmitting(false) }
   }
 

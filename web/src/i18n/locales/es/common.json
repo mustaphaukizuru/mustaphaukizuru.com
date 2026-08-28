@@ -419,5 +419,12 @@
   },
   "a11y": {
     "skipToContent": "Saltar al contenido principal"
+  },
+  "newsletterInvalid": {
+    "title": "Este enlace ya no es válido",
+    "body": "El enlace de confirmación o de baja caducó o ya fue utilizado. Si querías suscribirte, vuelve a registrarte desde el pie de página y te enviaremos un nuevo correo de confirmación.",
+    "back": "Volver al sitio",
+    "support": "Contactar soporte",
+    "trailer": "¿Dudas?"
   }
 }
