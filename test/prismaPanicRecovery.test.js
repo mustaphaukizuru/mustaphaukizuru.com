@@ -226,3 +226,20 @@ describe("database probe timeout (a wedged engine must not hang the app)", () =>
     exit.mockRestore(); uptime.mockRestore()
   })
 })
+
+test("summariseDbError reports the cause, not Prisma's boilerplate preamble", () => {
+  jest.resetModules()
+  jest.dontMock("../src/lib/prisma")
+  process.env.DISABLE_DB_KEEPALIVE = "1"
+  const { summariseDbError } = require("../src/lib/prisma")
+
+  // The first line of every Prisma error is the useless invocation preamble.
+  expect(summariseDbError("Invalid `prisma.$queryRaw()` invocation:\n\n\nPANIC: timer has gone away\n\nmore"))
+    .toBe("PANIC: timer has gone away")
+  expect(summariseDbError("Invalid `prisma.user.findMany()` invocation:\n\nCan't reach database server at `db:3306`"))
+    .toBe("Can't reach database server at `db:3306`")
+  expect(summariseDbError("Timed out fetching a new connection from the connection pool"))
+    .toBe("Timed out fetching a new connection from the connection pool")
+  expect(summariseDbError("")).toBeNull()
+  expect(summariseDbError(null)).toBeNull()
+})

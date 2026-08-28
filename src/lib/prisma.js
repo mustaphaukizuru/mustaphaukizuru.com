@@ -384,10 +384,32 @@ module.exports.exitIfUnrecoverable = exitIfUnrecoverable
 // implementation detail, so they get pinned like one.
 module.exports.withPoolBounds = withPoolBounds
 // Diagnostics for /health — never throws, safe to read at any time.
+const INVOCATION_RE = /invocation:?$/i
+const READ_MORE_RE = /^Read more/i
+const URL_RE = /^https?:/i
+
+/**
+ * The first line of a Prisma error is always the useless preamble
+ * "Invalid `prisma.x()` invocation:" — reporting that in /health said
+ * nothing about why the database was unreachable. Skip the preamble and the
+ * "Read more at" / issue-tracker tail so the field carries the actual cause
+ * ("PANIC: timer has gone away", "Can't reach database server at ...").
+ * Carries no credentials: Prisma never puts the password in these lines.
+ */
+function summariseDbError(message) {
+  if (!message) return null
+  const lines = String(message).split("\n").map((l) => l.trim()).filter(Boolean)
+  const meaningful = lines.find(
+    (l) => !INVOCATION_RE.test(l) && !READ_MORE_RE.test(l) && !URL_RE.test(l)
+  )
+  return (meaningful || lines[0] || "").slice(0, 160) || null
+}
+
 module.exports.probeWithTimeout = probeWithTimeout
+module.exports.summariseDbError = summariseDbError
 module.exports.TIMED_OUT = TIMED_OUT
 module.exports.engineInfo = () => ({
   everHealthy,
   stuck: lastProbeTimedOut,
-  lastError: lastPanicMessage ? String(lastPanicMessage).split("\n").find(Boolean)?.slice(0, 160) || null : null,
+  lastError: summariseDbError(lastPanicMessage),
 })
