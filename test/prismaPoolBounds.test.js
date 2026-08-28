@@ -26,7 +26,7 @@ const { withPoolBounds } = require("../src/lib/prisma")
 describe("withPoolBounds", () => {
   test("adds connection_limit and pool_timeout when absent", () => {
     const out = withPoolBounds("mysql://u:p@host:3306/db")
-    expect(out).toMatch(/connection_limit=10/)
+    expect(out).toMatch(/connection_limit=1/)
     expect(out).toMatch(/pool_timeout=10/)
   })
 
@@ -35,13 +35,14 @@ describe("withPoolBounds", () => {
     const out = withPoolBounds("mysql://u:p@host:3306/db?connection_limit=17&pool_timeout=3")
     expect(out).toMatch(/connection_limit=17/)
     expect(out).toMatch(/pool_timeout=3/)
-    expect(out).not.toMatch(/connection_limit=10/)
+    // Anchored: "connection_limit=17" must not be read as the default "=1".
+    expect(out).not.toMatch(/connection_limit=1(&|$)/)
   })
 
   test("preserves existing query parameters", () => {
     const out = withPoolBounds("mysql://u:p@host:3306/db?sslaccept=strict")
     expect(out).toMatch(/sslaccept=strict/)
-    expect(out).toMatch(/connection_limit=10/)
+    expect(out).toMatch(/connection_limit=1/)
   })
 
   test("keeps an operator limit and tops up the missing one", () => {
@@ -56,7 +57,7 @@ describe("withPoolBounds", () => {
     // A space in the HOST does throw (ERR_INVALID_URL). Returning the raw
     // string here would silently restore the unbounded pool.
     const out = withPoolBounds("mysql://u:p@ho st:3306/db")
-    expect(out).toMatch(/connection_limit=10/)
+    expect(out).toMatch(/connection_limit=1/)
     expect(out).toMatch(/pool_timeout=10/)
   })
 

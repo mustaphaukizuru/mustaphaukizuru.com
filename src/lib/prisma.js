@@ -22,9 +22,20 @@ const { PrismaClient } = require("@prisma/client")
  */
 function withPoolBounds(rawUrl) {
   if (!rawUrl) return rawUrl
-  // 10 (was 5): the admin console fans out 5-8 queries per page and the pool
-  // timed out (P2024 → "Database operation failed"). max_user_connections is 75.
-  const limit = process.env.DB_CONNECTION_LIMIT || "10"
+  // 1, deliberately. On 2026-08-28 the host stopped being able to OPEN new
+  // MySQL connections while an established one kept working: every endpoint
+  // whose service runs `Promise.all` (blog, portfolio, services — two queries
+  // at once, so a second connection) failed with P1001 after Prisma's 5s
+  // connect timeout, while single-query routes and cached ones were fine.
+  // The database itself was healthy throughout — five fresh connections from
+  // outside averaged 350ms — so this is the host's path to MySQL, not ours.
+  //
+  // A pool of 1 serialises queries onto the connection the keepalive already
+  // holds open, so the app stops depending on the host's ability to open more.
+  // At this traffic level the cost is negligible (queries are small and
+  // pool_timeout still bounds any queue at 10s). Raise DB_CONNECTION_LIMIT on
+  // the host once Hostinger's connection path is healthy again.
+  const limit = process.env.DB_CONNECTION_LIMIT || "1"
   const timeout = process.env.DB_POOL_TIMEOUT || "10"
   try {
     const url = new URL(rawUrl)
