@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 import { MessageCircle, X, Mail, Calendar, ArrowRight, ArrowUp } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -48,11 +48,19 @@ function FaWhatsapp({ className, ...props }) {
  *
  * Brand tokens: Royal Violet, Innovation Gradient, Cloud Mist.
  */
+// App shells that own the bottom of the mobile viewport with their own
+// fixed tab bar. The FAB is a marketing affordance for the public site; on
+// these routes it landed on top of the tab bar and covered a nav item.
+const SHELL_PREFIXES = ["/dashboard", "/admin", "/portal", "/_system"]
+
 export default function FloatingContactButton() {
   const { t } = useTranslation("common")
+  const { pathname } = useLocation()
   const [visible, setVisible]   = useState(false)
   const [open, setOpen]         = useState(false)
   const reduced = useReducedMotion()
+
+  const onAppShell = SHELL_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`) || pathname.startsWith(`/es${p}`))
 
   /* Show after 3 s + scrolled past 300px */
   useEffect(() => {
@@ -122,6 +130,10 @@ export default function FloatingContactButton() {
       transition: { delay: i * 0.06, duration: 0.28, ease: [0.22, 1, 0.36, 1] },
     }),
   }
+
+  // Hooks above run unconditionally (rules of hooks); the shell check gates
+  // rendering only.
+  if (onAppShell) return null
 
   return (
     <AnimatePresence>

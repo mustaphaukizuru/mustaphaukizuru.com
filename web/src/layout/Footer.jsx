@@ -72,23 +72,27 @@ export default function Footer() {
     e.preventDefault()
     setSuccess("")
     setError("")
-    if (!email) {
-      setError("Please enter your email.")
+    if (!email.trim()) {
+      setError(t("footer.emailRequired"))
       return
     }
     try {
       setLoading(true)
-      const res = await apiRequest("/api/newsletter", {
+      // Canonical versioned route + `source` so footer signups are
+      // attributable in the admin lead report, like every other form.
+      const res = await apiRequest("/api/v1/newsletter/subscribe", {
         method: "POST",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim(), source: "footer" }),
       })
-      setSuccess(res.message || "You're subscribed!")
+      // Double opt-in: nobody is subscribed until they click the emailed
+      // confirmation link, so never claim they are.
+      setSuccess(res.message || t("footer.subscribeSuccess"))
       setEmail("")
     } catch (err) {
       const friendly =
         (err && typeof err.toUserMessage === "function" && err.toUserMessage()) ||
         (err && err.message) ||
-        "Subscription failed."
+        t("footer.subscribeError")
       setError(friendly)
     } finally {
       setLoading(false)
@@ -169,7 +173,7 @@ export default function Footer() {
               disabled={loading}
               className="group inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-7 py-3.5 text-[14px] font-semibold text-white shadow-[0_10px_30px_rgb(var(--color-violet-rgb)/0.45)] transition hover:-translate-y-0.5 hover:bg-violet-deep hover:shadow-[0_14px_36px_rgb(var(--color-violet-rgb)/0.55)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal disabled:opacity-60 disabled:hover:translate-y-0"
             >
-              {loading ? "Joining…" : "Subscribe"}
+              {loading ? t("footer.subscribing") : t("footer.subscribeCta")}
               <ArrowRight
                 className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
                 aria-hidden="true"

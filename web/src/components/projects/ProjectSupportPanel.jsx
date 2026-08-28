@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, m } from "framer-motion"
 import {
   LifeBuoy, Plus, ArrowLeft, Paperclip, Send, X, FileText, UploadCloud, MessageSquare,
 } from "lucide-react"
@@ -436,7 +436,7 @@ export default function ProjectSupportPanel({ projectId, readOnly = false, miles
       {readOnly && view.mode === "list" ? <InlineBanner tone="info" className="mb-4">{t("projects.support.readOnly")}</InlineBanner> : null}
 
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div
+        <m.div
           key={view.mode === "thread" ? `thread-${view.ticketId}` : view.mode}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -502,7 +502,7 @@ export default function ProjectSupportPanel({ projectId, readOnly = false, miles
               </ul>
             )
           )}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
     </section>
   )
