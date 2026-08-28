@@ -57,9 +57,9 @@ function consultationVars(c = {}) {
     meetingLink:     c.meetingLink || `${base()}/dashboard/consultations`,
     clientNotes:     c.clientNotes || "",
     cancellationReason: c.cancellationReason || "",
-    consultationUrl: c.confirmationToken
-      ? `${base()}/booking/manage?token=${encodeURIComponent(c.confirmationToken)}`
-      : `${base()}/dashboard/consultations`,
+    // /booking/manage never existed in the SPA; the dashboard page handles
+    // reschedule/cancel (guests claim their account from the email first).
+    consultationUrl: `${base()}/dashboard/consultations`,
   }
 }
 

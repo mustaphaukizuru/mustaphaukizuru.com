@@ -39,7 +39,7 @@ const createTicket = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Message must be 10–5000 characters" })
   }
 
-  const ticket = await supportService.createTicket({ userId, subject, message, priority })
+  const ticket = await supportService.createTicket({ userId, subject: subjectTrimmed, message: messageTrimmed, priority })
   return res.status(201).json({ success: true, data: ticket })
 })
 
@@ -60,13 +60,17 @@ const replyToTicket = asyncHandler(async (req, res) => {
   const { id }  = req.params
   const { message } = req.body
   if (!userId)  return res.status(401).json({ success: false, message: "Unauthorized" })
-  if (!message) return res.status(400).json({ success: false, message: "Message is required" })
+  if (!message || typeof message !== "string") return res.status(400).json({ success: false, message: "Message is required" })
+  const messageTrimmed = message.trim()
+  if (messageTrimmed.length < 1 || messageTrimmed.length > 5000) {
+    return res.status(400).json({ success: false, message: "Message must be 1–5000 characters" })
+  }
 
   if (!(await supportService.userOwnsTicket(id, userId))) {
     return res.status(404).json({ success: false, message: "Ticket not found" })
   }
 
-  const msg = await supportService.createMemberMessage({ ticketId: id, userId, message })
+  const msg = await supportService.createMemberMessage({ ticketId: id, userId, message: messageTrimmed })
   return res.status(201).json({ success: true, data: msg })
 })
 

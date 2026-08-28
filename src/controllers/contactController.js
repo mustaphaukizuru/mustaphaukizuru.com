@@ -120,7 +120,7 @@ const sendContactMessage = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Name must be 2–100 characters." });
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+  if (trimmedEmail.length > 190 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
     return res.status(400).json({ success: false, message: "Please enter a valid email address." });
   }
 

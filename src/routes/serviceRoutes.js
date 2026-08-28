@@ -1,4 +1,5 @@
 const express = require("express")
+const { publicWriteRateLimiter } = require("../middleware/rateLimiter")
 const { protect, attachUserIfPresent } = require("../middleware/authMiddleware")
 const c  = require("../controllers/serviceController")
 const rc = require("../controllers/reviewController")
@@ -21,7 +22,7 @@ router.get("/featured",        c.getFeatured)
 router.get("/audience-plans",  c.getAudiencePlans)
 router.get("/plans",           c.getPlans)
 router.get("/",                c.listServices)
-router.post("/order-by-tier",  attachUserIfPresent, c.orderByTier)
+router.post("/order-by-tier",  publicWriteRateLimiter, attachUserIfPresent, c.orderByTier)
 
 // Reviews — specific paths declared BEFORE /:slug to avoid wildcard capture.
 router.get("/:slug/reviews",                       rc.listServiceReviews)

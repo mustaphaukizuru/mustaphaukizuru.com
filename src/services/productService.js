@@ -232,7 +232,9 @@ async function getAllProductsUncached(filters = {}) {
 
 async function getProductBySlug(slug, locale = "en") {
   const product = await prisma.product.findFirst({
-    where: { slug, isActive: true, deletedAt: null },
+    // Public lookup: drafts/archived are invisible here (the sitemap and the
+    // listing already filter on published; the OG injector reuses this).
+    where: { slug, isActive: true, deletedAt: null, status: "published" },
     include: {
       images:      { orderBy: { sortOrder: "asc" } },
       features:    { orderBy: { sortOrder: "asc" } },

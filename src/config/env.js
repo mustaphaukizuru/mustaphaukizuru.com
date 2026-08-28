@@ -162,6 +162,24 @@ if (isLive) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Cloudflare Turnstile — pre-flight
+//
+// The contact form verifies a token only when TURNSTILE_SECRET_KEY is set,
+// and the SPA renders the widget only when VITE_TURNSTILE_SITE_KEY is set.
+// Secret without site key = every submission rejected (CAPTCHA_FAILED) with
+// no widget to retry; no secret in production = bot check silently off.
+// ─────────────────────────────────────────────────────────────
+{
+  const secret  = Boolean(process.env.TURNSTILE_SECRET_KEY)
+  const siteKey = Boolean(process.env.VITE_TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY)
+  if (secret && !siteKey) {
+    console.warn("⚠️  Turnstile: TURNSTILE_SECRET_KEY is set but no VITE_TURNSTILE_SITE_KEY — the contact form will reject every submission. Set both (in web/.env for the SPA build) or neither.")
+  } else if (!secret && process.env.NODE_ENV === "production") {
+    console.warn("⚠️  Turnstile: TURNSTILE_SECRET_KEY not set — contact-form bot verification is OFF in production.")
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Google OAuth — pre-flight (runs in ALL environments)
 //
 // Misconfigured OAuth breaks sign-in in dev just as much as in prod, so

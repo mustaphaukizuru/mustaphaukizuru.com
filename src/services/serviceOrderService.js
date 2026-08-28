@@ -178,10 +178,14 @@ async function listUserServiceOrders(userId) {
     include: {
       service:        { select: { id: true, title: true, slug: true, deliveryType: true } },
       servicePackage: { select: { id: true, name: true, price: true, currency: true } },
-      order:          { select: { id: true, orderNumber: true, totalAmount: true, status: true, paidAt: true } },
+      order:          { select: { id: true, orderNumber: true, totalAmount: true, currency: true, status: true, paidAt: true } },
+      // The dashboard list shows consultation / milestone chips and the
+      // project link, so the list is serialised in detailed mode too.
+      consultations:  { orderBy: { scheduledAt: "asc" }, take: 10 },
+      clientProject:  { select: { id: true, projectName: true, projectStatus: true, milestones: { orderBy: { sortOrder: "asc" }, select: { id: true, title: true, status: true, sortOrder: true, completedAt: true } } } },
     },
   })
-  return items.map(serializeServiceOrder)
+  return items.map((row) => serializeServiceOrder(row, { detailed: true }))
 }
 
 async function getUserServiceOrderById(userId, serviceOrderId) {
@@ -337,6 +341,12 @@ async function orderByTier({
     throw new AppError("packageId or (audience, tier) is required", { statusCode: 400, code: "VALIDATION_ERROR" })
   }
   if (!customerEmail) throw new AppError("customerEmail is required", { statusCode: 400, code: "VALIDATION_ERROR" })
+  if (typeof customerEmail !== "string" || customerEmail.length > 190 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail.trim())) {
+    throw new AppError("customerEmail must be a valid email address", { statusCode: 400, code: "VALIDATION_ERROR" })
+  }
+  if (customerName != null && (typeof customerName !== "string" || customerName.trim().length > 100)) {
+    throw new AppError("customerName must be at most 100 characters", { statusCode: 400, code: "VALIDATION_ERROR" })
+  }
 
   // Resolve the plan BEFORE touching the user table so a stale/missing plan
   // never leaves a freshly auto-created guest account behind.

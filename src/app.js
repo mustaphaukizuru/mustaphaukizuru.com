@@ -351,7 +351,10 @@ app.use("/files/projects", (_req, res) => {
 app.use(express.static(frontendPath, {
   maxAge: "7d",
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith("index.html")) {
+    // index.html AND the service-worker scripts must always be revalidated —
+    // a cached sw.js pins the previous precache manifest (and its deleted
+    // hashed chunks) for up to 24h after a deploy.
+    if (filePath.endsWith("index.html") || /(?:^|[\\/])(?:sw|workbox-[\w-]+)\.js$/.test(filePath)) {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
     }
   },

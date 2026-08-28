@@ -13,6 +13,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 const prisma = require("../lib/prisma")
+const AppError = require("../utils/AppError")
 const { moderateReview } = require("./reviewModerationService")
 
 const PUBLIC_STATUS = "approved"
@@ -97,9 +98,9 @@ async function refreshProductAggregate(productId) {
  *   5. Recalculates the product aggregate when status === "approved".
  */
 async function createReview({ productId, serviceId, userId, rating, reviewText, projectId = null }) {
-  if (!productId && !serviceId) throw new Error("productId or serviceId is required")
-  if (productId && serviceId)   throw new Error("Cannot review a product and service in one row")
-  if (!rating || rating < 1 || rating > 5) throw new Error("Rating must be between 1 and 5")
+  if (!productId && !serviceId) throw new AppError("productId or serviceId is required", { statusCode: 400, code: "VALIDATION_ERROR" })
+  if (productId && serviceId)   throw new AppError("Cannot review a product and service in one row", { statusCode: 400, code: "VALIDATION_ERROR" })
+  if (!Number.isInteger(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) throw new AppError("Rating must be between 1 and 5", { statusCode: 400, code: "VALIDATION_ERROR" })
 
   const subjectType = productId ? "product" : "service"
 
@@ -108,7 +109,7 @@ async function createReview({ productId, serviceId, userId, rating, reviewText, 
     where: { userId, ...(productId ? { productId } : { serviceId }) },
     select: { id: true },
   })
-  if (existing) throw new Error("You have already reviewed this item")
+  if (existing) throw new AppError("You have already reviewed this item", { statusCode: 409, code: "CONFLICT" })
 
   // Verified-purchase + orderItemId lookup
   const orderItemWhere = productId
@@ -129,7 +130,7 @@ async function createReview({ productId, serviceId, userId, rating, reviewText, 
     },
   })
   if (recentCount >= 3) {
-    throw new Error("You've posted several reviews recently — please try again later.")
+    throw new AppError("You've posted several reviews recently — please try again later.", { statusCode: 429, code: "RATE_LIMITED" })
   }
 
   // Auto-moderation. Verified-purchase clean text → approved; else pending.
@@ -199,8 +200,8 @@ async function getFeaturedReviews({ limit = 6 } = {}) {
  * Returns the new helpful count and whether the user's vote is now on.
  */
 async function toggleHelpfulVote({ reviewId, userId }) {
-  if (!reviewId) throw new Error("reviewId is required")
-  if (!userId)   throw new Error("authentication required")
+  if (!reviewId) throw new AppError("reviewId is required", { statusCode: 400, code: "VALIDATION_ERROR" })
+  if (!userId)   throw new AppError("authentication required", { statusCode: 401, code: "AUTH_REQUIRED" })
 
   // Only let users vote on visible (approved) reviews — voting on hidden
   // content is meaningless and would inflate counts after restoration.
@@ -208,9 +209,9 @@ async function toggleHelpfulVote({ reviewId, userId }) {
     where:  { id: reviewId },
     select: { id: true, status: true, userId: true, helpfulCount: true },
   })
-  if (!review) throw new Error("Review not found")
-  if (review.status !== "approved") throw new Error("Review is not visible")
-  if (review.userId === userId) throw new Error("You can't mark your own review as helpful")
+  if (!review) throw new AppError("Review not found", { statusCode: 404, code: "NOT_FOUND" })
+  if (review.status !== "approved") throw new AppError("Review is not visible", { statusCode: 404, code: "NOT_FOUND" })
+  if (review.userId === userId) throw new AppError("You can't mark your own review as helpful", { statusCode: 403, code: "FORBIDDEN" })
 
   const existing = await prisma.reviewVote.findUnique({
     where: { reviewId_userId: { reviewId, userId } },
@@ -243,7 +244,7 @@ async function toggleHelpfulVote({ reviewId, userId }) {
 
 async function deleteReview(reviewId, userId, isAdmin = false) {
   const review = await prisma.review.findUnique({ where: { id: reviewId } })
-  if (!review) throw new Error("Review not found")
+  if (!review) throw new AppError("Review not found", { statusCode: 404, code: "NOT_FOUND" })
   if (!isAdmin && review.userId !== userId) throw new Error("Not authorized")
 
   await prisma.review.delete({ where: { id: reviewId } })

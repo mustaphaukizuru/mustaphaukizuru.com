@@ -99,7 +99,9 @@ function truncate(s, n) {
 function absoluteUrl(base, u) {
   if (!u) return null
   if (/^https?:\/\//i.test(u)) return u
-  return `${String(base).replace(/\/+$/, "")}/${String(u).replace(/^\/+/, "")}`
+  // Paths come from the DB / filenames and may contain spaces or parentheses.
+  const path = String(u).replace(/^\/+/, "")
+  return `${String(base).replace(/\/+$/, "")}/${/%[0-9A-F]{2}/i.test(path) ? path : encodeURI(path)}`
 }
 
 function escapeRe(s) {
@@ -136,6 +138,11 @@ function injectMeta(html, meta) {
   out = upsertMeta(out, "name", "twitter:title", title)
   out = upsertMeta(out, "name", "twitter:description", desc)
   if (meta.image) out = upsertMeta(out, "name", "twitter:image", meta.image)
+  if (meta.locale) out = upsertMeta(out, "property", "og:locale", meta.locale)
+  // Canonical for non-JS crawlers (the SPA's <Seo> only sets it client-side).
+  if (meta.url && !/<link[^>]+rel=["']canonical["']/i.test(out)) {
+    out = out.replace(/<\/head>/i, `  <link rel="canonical" href="${escapeAttr(meta.url)}" />\n</head>`)
+  }
   return out
 }
 
@@ -276,13 +283,14 @@ function createOgInjector(opts) {
     }
 
     if (entity) {
-      const siteUrl = String(opts.siteUrl || process.env.PUBLIC_SITE_URL || process.env.CLIENT_URL || "").replace(/\/+$/, "")
+      const siteUrl = String(opts.siteUrl || process.env.PUBLIC_SITE_URL || process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/+$/, "")
       html = injectMeta(html, {
         title: withBrand(entity.title),
         description: truncate(entity.description || "", 200) || SITE_NAME,
         image: absoluteUrl(siteUrl, entity.image || fallbackOgImage(kind, slug, opts.ogDir)),
-        url: `${siteUrl}${req.path}`,
+        url: `${siteUrl}${encodeURI(req.path)}`,
         type: entity.type,
+        locale: /^\/es(\/|$)/.test(req.path) ? "es_MX" : "en_US",
       })
     }
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
