@@ -206,6 +206,32 @@ describe("adminProductService licences", () => {
     ])
   })
 
+  test("create: persists the SEO + Spanish overlay, blanks become NULL", async () => {
+    prisma.product.create.mockResolvedValue({ id: "p1" })
+    await createAdminProduct({
+      ...base,
+      metaTitle: "  Kit for startups  ",
+      titleEs: "Kit para startups",
+      descriptionEs: "   ",            // whitespace only → NULL, so pickLocale falls back
+    })
+    const data = prisma.product.create.mock.calls[0][0].data
+    expect(data.metaTitle).toBe("Kit for startups")
+    expect(data.titleEs).toBe("Kit para startups")
+    expect(data.descriptionEs).toBeNull()
+    expect(data.metaDescriptionEs).toBeNull()
+  })
+
+  test("update: only overlay fields present in the payload are written", async () => {
+    prisma.product.update.mockResolvedValue({ id: "p1" })
+    await updateAdminProduct("p1", { ...base, titleEs: "Kit" })
+    const data = prisma.product.update.mock.calls.at(-1)[0].data
+    expect(data.titleEs).toBe("Kit")
+    // Untouched columns must not be sent, or an edit of one field would wipe
+    // every other translation on the row.
+    expect(data).not.toHaveProperty("metaTitle")
+    expect(data).not.toHaveProperty("descriptionEs")
+  })
+
   test("update: replaces the set; omitted field leaves rows alone", async () => {
     prisma.product.update.mockResolvedValue({ id: "p1" })
     await updateAdminProduct("p1", { ...base, licenses: [{ tier: "enterprise", price: 999, seats: 50 }] })

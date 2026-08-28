@@ -15,6 +15,32 @@ const { PRODUCT_IMAGE_DIR } = require("../middleware/uploadProductImage")
  *   - clean array when the payload contains at least 1 valid row
  *   - null when the array is empty/missing/malformed (so the column stays NULL)
  * ──────────────────────────────────────────────────────────────────────────── */
+/**
+ * SEO + Spanish overlay columns.
+ *
+ * These exist on the model (and the OG injector / pickLocale read them) but
+ * the admin create/update paths destructured neither, so a product's meta
+ * tags and its whole Spanish version could only ever be set by writing to
+ * the database by hand. Empty string means "no value" -> NULL, which is what
+ * pickLocale treats as "fall back to English".
+ */
+const OVERLAY_FIELDS = [
+  "metaTitle", "metaDescription",
+  "titleEs", "shortDescriptionEs", "descriptionEs", "fullDescriptionEs",
+  "metaTitleEs", "metaDescriptionEs",
+]
+
+function overlayData(payload, { partial = false } = {}) {
+  const out = {}
+  for (const key of OVERLAY_FIELDS) {
+    const v = payload[key]
+    // On update, an omitted field must keep its stored value.
+    if (partial && v === undefined) continue
+    out[key] = typeof v === "string" && v.trim() ? v.trim() : null
+  }
+  return out
+}
+
 function sanitizeSpecifications(value) {
   if (!Array.isArray(value)) return null
   const cleaned = value
@@ -138,6 +164,7 @@ async function createAdminProduct(payload) {
       isActive: Boolean(isActive),
       isFeatured: Boolean(isFeatured),
       isNew: Boolean(isNew),
+      ...overlayData(payload),
       // F04 · I + K — persist sanitized JSON, or NULL when empty
       specifications: sanitizeSpecifications(specifications),
       productFaqs: sanitizeProductFaqs(productFaqs),
@@ -207,6 +234,7 @@ async function updateAdminProduct(productId, payload) {
     isActive: Boolean(isActive),
     isFeatured: Boolean(isFeatured),
     isNew: Boolean(isNew),
+    ...overlayData(payload, { partial: true }),
   }
 
   // F04 · I + K — only touch JSON columns when payload actually included them.

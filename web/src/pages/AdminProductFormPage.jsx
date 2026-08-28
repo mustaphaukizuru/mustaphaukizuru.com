@@ -43,6 +43,18 @@ const EMPTY_FORM = {
   features: [],
   specifications: [], // F04 · I, array of { key, value }
   productFaqs: [], // F04 · K, array of { question, answer }
+  // SEO + Spanish overlay. These columns already existed on the model and are
+  // read by the OG injector and utils/pickLocale, but nothing in the admin
+  // could set them — the product's meta tags and its whole Spanish version
+  // were unreachable without writing to the database directly.
+  metaTitle: "",
+  metaDescription: "",
+  titleEs: "",
+  shortDescriptionEs: "",
+  descriptionEs: "",
+  fullDescriptionEs: "",
+  metaTitleEs: "",
+  metaDescriptionEs: "",
   licenses: [], // T3 · array of { tier, name, price, currency, seats, isActive }
 }
 
@@ -656,6 +668,133 @@ export default function AdminProductFormPage() {
                     placeholder="Extended description with implementation details, usage instructions, or additional context"
                     value={form.fullDescription}
                     onChange={(e) => updateField("fullDescription", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* ── SEO ── */}
+            <div>
+              <h2 className="text-lg font-bold text-violet">SEO</h2>
+              <p className="mt-1 text-sm text-charcoal-80/70">
+                Used for the page title and the link preview cards shared on
+                social media. Leave empty to fall back to the product title and
+                short description.
+              </p>
+              <div className="mt-4 space-y-5">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Meta title
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Around 60 characters</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Brand Identity Kit for Startups"
+                    value={form.metaTitle}
+                    onChange={(e) => updateField("metaTitle", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Meta description
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Around 155 characters</span>
+                  </label>
+                  <textarea
+                    rows="2"
+                    placeholder="One or two sentences shown under the title in search results"
+                    value={form.metaDescription}
+                    onChange={(e) => updateField("metaDescription", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* ── Español ── */}
+            <div>
+              <h2 className="text-lg font-bold text-violet">Español</h2>
+              <p className="mt-1 text-sm text-charcoal-80/70">
+                Optional Spanish version. Any field left empty falls back to the
+                English copy above, so you can translate incrementally.
+              </p>
+              <div className="mt-4 space-y-5">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Título
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Spanish product title</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder=""
+                    value={form.titleEs}
+                    onChange={(e) => updateField("titleEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Descripción corta
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Shown on cards and summaries</span>
+                  </label>
+                  <textarea
+                    rows="2"
+                    placeholder=""
+                    value={form.shortDescriptionEs}
+                    onChange={(e) => updateField("shortDescriptionEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Descripción
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Main product description</span>
+                  </label>
+                  <textarea
+                    rows="4"
+                    placeholder=""
+                    value={form.descriptionEs}
+                    onChange={(e) => updateField("descriptionEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Descripción completa
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Extended content (optional)</span>
+                  </label>
+                  <textarea
+                    rows="6"
+                    placeholder=""
+                    value={form.fullDescriptionEs}
+                    onChange={(e) => updateField("fullDescriptionEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Meta título
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Spanish meta title</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder=""
+                    value={form.metaTitleEs}
+                    onChange={(e) => updateField("metaTitleEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Meta descripción
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Spanish meta description</span>
+                  </label>
+                  <textarea
+                    rows="2"
+                    placeholder=""
+                    value={form.metaDescriptionEs}
+                    onChange={(e) => updateField("metaDescriptionEs", e.target.value)}
                     className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
                   />
                 </div>
