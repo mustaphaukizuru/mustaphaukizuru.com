@@ -225,25 +225,32 @@ function recoverIfPanicked(err) {
  * eventually stops respawning, taking the whole API offline:
  *   1. the failure must look like an engine panic (not "can't reach DB"),
  *   2. the process must have been up > 60s,
- *   3. the engine must have worked at least once in THIS process. A build
- *      whose engine never initialises (wrong binaryTarget, failed
- *      `prisma generate`) is not fixable by restarting — staying up and
- *      serving 503s is strictly better than looping.
+ *   3. a MUCH longer uptime when the engine never worked in this process.
+ *      Both causes look identical from inside: a transient boot-time engine
+ *      crash (a fresh process fixes it) and a genuinely broken build (a
+ *      restart cannot). Waiting 5 minutes before exiting serves both: the
+ *      transient case recovers on the next process, and a broken build
+ *      restarts at most every 5 min — slow enough that Passenger keeps
+ *      respawning and `/health` (commit + dbError) shows what is wrong,
+ *      instead of the restart storm that took the API offline on 2026-08-28.
  */
+const EXIT_MIN_UPTIME_WARM_S = 60    // engine worked here, then died
+const EXIT_MIN_UPTIME_COLD_S = 300   // engine never worked in this process
 let exiting = false
 function exitIfUnrecoverable(reason) {
   if (exiting) return
   if (process.env.NODE_ENV !== "production" || process.env.DB_PANIC_EXIT === "0") return
   if (!/timer has gone away|Query Engine has a panic|PrismaClientRustPanicError/i.test(String(reason || ""))) return
-  if (process.uptime() < 60) return   // never tight-loop a process that just booted
-  if (!everHealthy) return            // never worked here — a restart cannot fix it
+  if (process.uptime() < (everHealthy ? EXIT_MIN_UPTIME_WARM_S : EXIT_MIN_UPTIME_COLD_S)) return
   exiting = true
-  console.error("[prisma] query engine panicked and did not recover after recycle — exiting so Passenger starts a fresh process")
+  console.error(`[prisma] query engine panicked and did not recover after recycle (everHealthy=${everHealthy}, uptime=${Math.round(process.uptime())}s) — exiting so Passenger starts a fresh process`)
   setTimeout(() => process.exit(1), 1500).unref()
 }
 
 let keepaliveTimer = null
 let consecutiveFailures = 0
+let panicRecycles = 0
+const MAX_PANIC_RECYCLES = 3
 const MAX_KEEPALIVE_MS = 60_000
 
 /**
@@ -266,12 +273,17 @@ async function keepaliveTick() {
     } else {
       consecutiveFailures += 1
       if (isEnginePanic({ message: lastPanicMessage })) {
-        console.warn("[prisma] keepalive ping failed with an engine panic — recycling")
-        await recycleOnce()
-        if (!(await isAlive())) {
-          console.error("[prisma] engine still unreachable after recycle")
-          exitIfUnrecoverable(lastPanicMessage)
+        // The native engine library is loaded once per process, so a swap of
+        // the JS client rarely revives it. Try a few times, then stop
+        // churning clients and let the exit guard bring a fresh process.
+        if (panicRecycles < MAX_PANIC_RECYCLES) {
+          panicRecycles += 1
+          console.warn(`[prisma] keepalive ping failed with an engine panic — recycling (${panicRecycles}/${MAX_PANIC_RECYCLES})`)
+          await recycleOnce()
+          if (await isAlive()) return
         }
+        console.error("[prisma] engine still unusable after recycle attempts")
+        exitIfUnrecoverable(lastPanicMessage)
       } else if (consecutiveFailures === 1 || consecutiveFailures % 30 === 0) {
         // Connectivity, not a panic: log on the first failure and then only
         // every 30th ping so an hours-long outage stays readable.

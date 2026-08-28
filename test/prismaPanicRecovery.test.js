@@ -114,22 +114,28 @@ test("module helpers survive a recycle (they live on the proxy target, not the c
   expect(typeof prisma.exitIfUnrecoverable).toBe("function")
 })
 
-test("exitIfUnrecoverable refuses when the engine never worked in this process", async () => {
+test("a cold engine panic waits 5 minutes before restarting (no storm), then exits", async () => {
   jest.resetModules()
   jest.dontMock("../src/lib/prisma")
   const exit = jest.spyOn(process, "exit").mockImplementation(() => {})
-  const uptime = jest.spyOn(process, "uptime").mockReturnValue(600)
+  const uptime = jest.spyOn(process, "uptime").mockReturnValue(120)
   jest.spyOn(console, "error").mockImplementation(() => {})
   const prev = process.env.NODE_ENV
   process.env.NODE_ENV = "production"
   process.env.DISABLE_DB_KEEPALIVE = "1"
   jest.useFakeTimers()
   const prisma = require("../src/lib/prisma")
-  // everHealthy is false until a query succeeds — a broken build must NOT loop.
+  // everHealthy is false until a query succeeds.
   expect(prisma.engineInfo().everHealthy).toBe(false)
+  // 120s in: past the warm threshold (60s) but not the cold one (300s).
   prisma.exitIfUnrecoverable("PANIC: timer has gone away")
   jest.advanceTimersByTime(5000)
   expect(exit).not.toHaveBeenCalled()
+  // Past 5 minutes a fresh process is worth trying even for a cold engine.
+  uptime.mockReturnValue(301)
+  prisma.exitIfUnrecoverable("PANIC: timer has gone away")
+  jest.advanceTimersByTime(5000)
+  expect(exit).toHaveBeenCalledWith(1)
   process.env.NODE_ENV = prev
   jest.useRealTimers()
   exit.mockRestore(); uptime.mockRestore()
