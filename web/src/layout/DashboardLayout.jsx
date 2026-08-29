@@ -17,6 +17,7 @@ import {
   Briefcase, Calendar} from "lucide-react"
 import useBodyScrollLock from "../hooks/useBodyScrollLock"
 import useFocusTrap from "../hooks/useFocusTrap"
+import useSwipeToDismiss from "../hooks/useSwipeToDismiss"
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
 import NotificationDropdown from "../components/dashboard/NotificationDropdown"
@@ -117,10 +118,21 @@ const navigation = [
   },
 ]
 
+/* FOUR tabs, deliberately.
+ *
+ * Five did not fit: each tab carried a fixed `px-3` and could not shrink, so
+ * on a 390px phone the row overflowed its container and clipped the last
+ * label ("Profile") against the screen edge. Four tabs at `flex-1` leave
+ * ~97px each — room for the widest label ("Downloads"/"Descargas") with a
+ * 44px touch target, on the narrowest phone we support.
+ *
+ * Downloads is the one that moved to the drawer: it is the only tab of the
+ * five that is also reachable from an adjacent screen (every order links to
+ * its files), whereas Support has no other mobile affordance — the header's
+ * help button is `lg:` only. */
 const bottomTabs = [
   { labelKey: "nav.overview", to: "/dashboard", icon: LayoutDashboard, end: true },
   { labelKey: "nav.orders", to: "/dashboard/orders", icon: ShoppingBag },
-  { labelKey: "nav.downloads", to: "/dashboard/downloads", icon: Download },
   { labelKey: "nav.support", to: "/dashboard/support", icon: Headphones },
   { labelKey: "nav.profile", to: "/dashboard/profile", icon: User, match: PROFILE_ROUTES },
 ]
@@ -201,7 +213,11 @@ function SidebarItem({ item }) {
 
 // ── Mobile slide-out menu ──
 function MobileMenu({ open, onClose, user, initials, onLogout }) {
-  const { t } = useTranslation("common")
+  /* One namespace only. This component used to hold a second `t` bound to
+     "common" and reach for `layout.*` through it — but those keys live in
+     "dashboard", and common.json has no `layout` object, so the drawer
+     rendered the raw key "layout.backToWebsite" to users and handed
+     screen readers "layout.navAria" as the dialog name. */
   const { t: td } = useTranslation("dashboard")
   /* Scroll lock + focus management.
    * The hand-rolled `document.body.style.overflow` this replaced had two
@@ -215,6 +231,10 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
   const panelRef = useRef(null)
   useBodyScrollLock(open)
   useFocusTrap(panelRef, open)
+  /* The panel enters from the right, so a decisive rightward drag closes
+     it — the same gesture, and the same shared hook, as the public site's
+     drawer. Without this the only way out was the X or the backdrop. */
+  useSwipeToDismiss(panelRef, open, onClose)
 
   // ESC to close
   useEffect(() => {
@@ -248,7 +268,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
         }`}
         role="dialog"
         aria-modal={open ? "true" : "false"}
-        aria-label={t("layout.navAria")}
+        aria-label={td("layout.navAria")}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
@@ -263,21 +283,21 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
             <button
               type="button"
               onClick={onClose}
-              aria-label={t("layout.closeMenu")}
+              aria-label={td("layout.closeMenu")}
               className="flex h-9 w-9 items-center justify-center rounded-xl text-charcoal-80 transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
 
-          {/* {t("layout.backToWebsite")} */}
+          {/* {td("layout.backToWebsite")} */}
           <Link
             to="/"
             onClick={onClose}
             className="m-4 flex items-center gap-2.5 rounded-xl border border-violet/10 bg-violet-ghost px-3 py-2.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
           >
             <Globe className="h-4 w-4" aria-hidden="true" />
-            {t("layout.backToWebsite")}
+            {td("layout.backToWebsite")}
           </Link>
 
           {/* Nav */}
@@ -310,7 +330,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose/20 bg-white px-4 py-3 text-meta font-semibold text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />
-              Logout
+              {td("layout.logout")}
             </button>
           </div>
         </div>
@@ -367,7 +387,7 @@ export default function DashboardLayout() {
       </a>
 
       <div className="mx-auto max-w-[1700px] px-3 py-3 sm:px-5 lg:px-6 lg:py-4">
-        <div className="grid min-h-[calc(100dvh-2rem)] gap-4 lg:grid-cols-[300px_1fr]">
+        <div className="grid gap-4 lg:min-h-[calc(100dvh-2rem)] lg:grid-cols-[300px_1fr]">
 
           {/* ── Desktop Sidebar ── */}
           <div className="hidden lg:sticky lg:top-4 lg:block lg:h-[calc(100dvh-2rem)]">
@@ -551,7 +571,7 @@ export default function DashboardLayout() {
 
       {/* ── Mobile Bottom Tab Bar ── */}
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-charcoal-80/10 bg-white shadow-[0_-4px_16px_rgb(var(--color-violet-rgb)/0.06)] lg:hidden" aria-label={t("layout.quickNav")}>
-        <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1.5">
+        <div className="mx-auto flex max-w-lg items-stretch px-1 py-1.5">
           {bottomTabs.map((tab) => {
             const Icon = tab.icon
             const forced = tab.match ? tab.match.some((p) => location.pathname.startsWith(p)) : null
@@ -563,7 +583,10 @@ export default function DashboardLayout() {
                 aria-label={t(tab.labelKey)}
                 className={({ isActive: navActive }) =>
                   [
-                    "flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-center transition-all",
+                    // flex-1 + min-w-0 is what stops the row overflowing: every
+                    // tab shares the width equally and its label may ellipsise
+                    // rather than push its neighbour off-screen.
+                    "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-center transition-all",
                     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1",
                     (forced ?? navActive) ? "text-violet" : "text-charcoal-80/65 hover:text-violet",
                   ].join(" ")
@@ -579,7 +602,7 @@ export default function DashboardLayout() {
                     >
                       <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
                     </div>
-                    <span className={`text-micro font-semibold ${isActive ? "text-violet" : ""}`}>
+                    <span className={`max-w-full truncate text-micro font-semibold ${isActive ? "text-violet" : ""}`}>
                       {t(tab.labelKey)}
                     </span>
                   </>
