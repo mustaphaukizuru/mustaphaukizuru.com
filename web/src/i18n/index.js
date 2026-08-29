@@ -97,6 +97,28 @@ const initialLanguage = I18N_ENABLED
  * namespaces are registered. `main.jsx` awaits it before the first React
  * render.
  */
+/**
+ * Run `fn` well after first paint, never during it.
+ *
+ * requestIdleCallback ALONE is not enough, and the trace explains why: while
+ * the app is waiting on network the main thread is idle, so rIC fires almost
+ * immediately — measured at ~500ms, still 800ms before the nav rendered. An
+ * idle main thread is not the same as a finished page.
+ *
+ * So the load event gates it first, and idle only schedules within that. The
+ * setTimeout covers Safari <16.4, which has no requestIdleCallback.
+ */
+function warmAfterFirstPaint(fn) {
+  if (typeof window === "undefined") return
+  const schedule = () => {
+    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(fn, { timeout: 10000 })
+    else window.setTimeout(fn, 1000)
+  }
+  const afterLoad = () => window.setTimeout(schedule, 1500)
+  if (document.readyState === "complete") afterLoad()
+  else window.addEventListener("load", afterLoad, { once: true })
+}
+
 const i18nReady = loadLanguageBundle(initialLanguage)
   .then((bundle) =>
     i18n
@@ -128,10 +150,22 @@ const i18nReady = loadLanguageBundle(initialLanguage)
       await i18n.changeLanguage(normalizeLanguage(i18n.language))
     }
     // `fallbackLng` lookups need the fallback bundle present. When the active
-    // language is not the fallback, warm it in the background so a missing
-    // key can still fall back to real copy instead of the raw key.
+    // language is not the fallback, warm it so a missing key can still fall
+    // back to real copy instead of the raw key.
+    //
+    // PERF · This used to fire here, unawaited. "Unawaited" is not the same as
+    // "free": a browser trace of the built app showed BOTH locale chunks
+    // fetched during first paint — locale-es 137 KB alongside locale-en
+    // 124 KB — because the request went out while the critical path was still
+    // competing for bandwidth. The lazy-loading this module was written for
+    // (see resources.js, I18N01) was therefore only half-working.
+    //
+    // The safety net is worth keeping, so it is deferred rather than dropped:
+    // warmed after the load event, then at idle. A missing key in the first
+    // few seconds falls back to the key — as it would have anyway if the
+    // fetch had not yet landed.
     if (normalizeLanguage(i18n.language) !== FALLBACK_LANGUAGE) {
-      ensureBundle(FALLBACK_LANGUAGE).catch(() => { /* non-fatal */ })
+      warmAfterFirstPaint(() => ensureBundle(FALLBACK_LANGUAGE).catch(() => { /* non-fatal */ }))
     }
 
     if (import.meta.env.DEV) {
