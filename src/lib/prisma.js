@@ -149,7 +149,11 @@ const prisma = new Proxy(helpers, {
 // query, the keepalive, the recycle and the exit guard all waited with it.
 // A hang must therefore be reported as "not alive", not waited on.
 const TIMED_OUT = Symbol("db-probe-timeout")
-const PROBE_TIMEOUT_MS = Number(process.env.DB_PROBE_TIMEOUT_MS || 5000)
+// 10s, not 5s. With the binary engine a probe can be waiting on a query
+// engine CHILD PROCESS that is still starting; on a loaded shared host that
+// legitimately takes longer than five seconds, and calling it "stuck" too
+// early got a perfectly good process killed while it was still warming up.
+const PROBE_TIMEOUT_MS = Number(process.env.DB_PROBE_TIMEOUT_MS || 10000)
 
 let lastPanicMessage = ""   // last isAlive() failure text, read by exitIfUnrecoverable
 let everHealthy = false     // has ANY query succeeded in this process?
@@ -302,8 +306,8 @@ function exitIfUnrecoverable(reason, { stuck = false } = {}) {
 
 let keepaliveTimer = null
 let consecutiveFailures = 0
-let panicRecycles = 0
-const MAX_PANIC_RECYCLES = 3
+let engineRecycles = 0
+const MAX_ENGINE_RECYCLES = 3
 // ~6 pings with backoff ≈ 3 minutes of a completely unresponsive database
 // before we trade the process in. Long enough to ride out a blip.
 const STUCK_PINGS_BEFORE_EXIT = 6
@@ -326,26 +330,37 @@ async function keepaliveTick() {
     if (await isAlive()) {
       if (consecutiveFailures > 0) console.warn(`[prisma] database reachable again after ${consecutiveFailures} failed pings`)
       consecutiveFailures = 0
+      engineRecycles = 0
     } else {
       consecutiveFailures += 1
-      if (isEnginePanic({ message: lastPanicMessage })) {
-        // The native engine library is loaded once per process, so a swap of
-        // the JS client rarely revives it. Try a few times, then stop
-        // churning clients and let the exit guard bring a fresh process.
-        if (panicRecycles < MAX_PANIC_RECYCLES) {
-          panicRecycles += 1
-          console.warn(`[prisma] keepalive ping failed with an engine panic — recycling (${panicRecycles}/${MAX_PANIC_RECYCLES})`)
+      const panicked = isEnginePanic({ message: lastPanicMessage })
+      // A panic and a wedged engine are both "the engine is unusable". The
+      // difference used to matter because the library engine lives inside
+      // this process and a new client could not revive it. Under the binary
+      // engine the engine is a CHILD PROCESS, so recycling genuinely spawns a
+      // fresh one — that is a real repair, and far cheaper than trading the
+      // whole app in. Try it for either failure, bounded, before the exit
+      // guard is even consulted.
+      if (panicked || lastProbeTimedOut) {
+        if (engineRecycles < MAX_ENGINE_RECYCLES) {
+          engineRecycles += 1
+          console.warn(
+            `[prisma] engine ${panicked ? "panicked" : "stopped answering"} — recycling (${engineRecycles}/${MAX_ENGINE_RECYCLES})`
+          )
           await recycleOnce()
-          if (await isAlive()) return
+          if (await isAlive()) {
+            console.warn("[prisma] engine recovered after recycle")
+            return
+          }
+        } else if (!panicked && consecutiveFailures < STUCK_PINGS_BEFORE_EXIT) {
+          // Out of recycles but not yet out of patience: keep pinging. The
+          // database itself may simply be unreachable, and a restart cannot
+          // fix that.
+          return
+        } else {
+          console.error("[prisma] engine still unusable after recycle attempts")
+          exitIfUnrecoverable(lastPanicMessage, { stuck: !panicked })
         }
-        console.error("[prisma] engine still unusable after recycle attempts")
-        exitIfUnrecoverable(lastPanicMessage)
-      } else if (lastProbeTimedOut && consecutiveFailures >= STUCK_PINGS_BEFORE_EXIT) {
-        // The engine is wedged rather than erroring. Recycling cannot free a
-        // socket the engine is still blocked on, so ask for a fresh process
-        // (subject to the same uptime guards as a panic).
-        console.error(`[prisma] database probe has not answered for ${consecutiveFailures} pings — requesting a fresh process`)
-        exitIfUnrecoverable(lastPanicMessage, { stuck: true })
       } else if (consecutiveFailures === 1 || consecutiveFailures % 30 === 0) {
         // Connectivity, not a panic: log on the first failure and then only
         // every 30th ping so an hours-long outage stays readable.
