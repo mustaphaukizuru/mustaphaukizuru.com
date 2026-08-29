@@ -44,7 +44,7 @@ import { apiRequest } from "../../lib/api"
  * height leaves them floating in a large empty cell and the artwork stops
  * being readable. Height is the right driver here, and it has to be bigger.
  */
-const BASE_HEIGHT = { mobile: 42, desktop: 56 }
+const BASE_HEIGHT = { mobile: 48, desktop: 64 }
 
 const CELL_BASE =
   "relative flex h-[104px] items-center justify-center border-b border-r border-charcoal-80/10 px-4 md:h-[132px] md:px-8"
