@@ -110,21 +110,54 @@ export default function useScrollNarrative(setup, deps = [], { enabled = true } 
     let bridged = false
     const root = scope.current
 
-    loadGsap().then((loaded) => {
-      if (cancelled || !root.isConnected) return
-      libs = loaded
-      const { gsap, ScrollTrigger } = libs
-      attachBridge(libs, lenisApi)
-      bridged = true
-      ctx = gsap.context(() => {
-        mm = gsap.matchMedia(root)
-        setupRef.current?.({ gsap, ScrollTrigger, mm, scope: root })
-      }, root)
-      ScrollTrigger.refresh()
-    })
+    function start() {
+      loadGsap().then((loaded) => {
+        if (cancelled || !root.isConnected) return
+        libs = loaded
+        const { gsap, ScrollTrigger } = libs
+        attachBridge(libs, lenisApi)
+        bridged = true
+        ctx = gsap.context(() => {
+          mm = gsap.matchMedia(root)
+          setupRef.current?.({ gsap, ScrollTrigger, mm, scope: root })
+        }, root)
+        ScrollTrigger.refresh()
+      })
+    }
+
+    /* Load gsap when the scope APPROACHES the viewport, not on mount.
+     *
+     * gsap has always been `import()`ed rather than bundled, so the chunk is
+     * lazy — but "lazy" only helped routes that never use it. The homepage
+     * does: <Process> calls this hook, and a network trace showed the 112 KB
+     * gsap chunk fetched before first render for a section that is below the
+     * fold and cannot be animating yet.
+     *
+     * The margin is one full viewport, so setup still runs well before the
+     * user arrives and ScrollTrigger's "from" state is applied in time — the
+     * animation is unchanged, only its download moves. A scope already on
+     * screen (an above-the-fold narrative) intersects immediately and behaves
+     * exactly as before.
+     */
+    let observer = null
+    if (typeof IntersectionObserver === "function") {
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((e) => e.isIntersecting)) return
+          observer?.disconnect()
+          observer = null
+          start()
+        },
+        { rootMargin: "100% 0px" }
+      )
+      observer.observe(root)
+    } else {
+      start()
+    }
 
     return () => {
       cancelled = true
+      observer?.disconnect()
       mm?.revert()
       ctx?.revert()
       if (libs) {
