@@ -243,3 +243,55 @@ test("summariseDbError reports the cause, not Prisma's boilerplate preamble", ()
   expect(summariseDbError("")).toBeNull()
   expect(summariseDbError(null)).toBeNull()
 })
+
+describe("a wedged engine is repaired before the process is traded in", () => {
+  test("keepalive recycles on a stuck probe (binary engine = a fresh child process)", async () => {
+    jest.resetModules()
+    jest.useFakeTimers()
+    jest.spyOn(console, "warn").mockImplementation(() => {})
+    jest.spyOn(console, "error").mockImplementation(() => {})
+    const prev = process.env.NODE_ENV
+    const prevDisable = process.env.DISABLE_DB_KEEPALIVE
+    process.env.NODE_ENV = "production"
+    process.env.DB_PROBE_TIMEOUT_MS = "20"
+    delete process.env.DISABLE_DB_KEEPALIVE
+
+    // Every query hangs — the production signature: not an error, no answer.
+    jest.doMock("@prisma/client", () => {
+      const make = () => ({
+        $connect: jest.fn().mockResolvedValue(undefined),
+        $disconnect: jest.fn().mockResolvedValue(undefined),
+        $queryRaw: jest.fn(() => new Promise(() => {})),
+        $extends: undefined,
+      })
+      return { PrismaClient: jest.fn(make) }
+    })
+
+    require("../src/lib/prisma")
+    const { PrismaClient } = require("@prisma/client")
+    const atBoot = PrismaClient.mock.calls.length
+
+    // Several ping cycles: the engine must be swapped, not merely re-pinged.
+    for (let i = 0; i < 6; i++) await jest.advanceTimersByTimeAsync(60_000)
+
+    const spawned = PrismaClient.mock.calls.length - atBoot
+    expect(spawned).toBeGreaterThan(0)          // it tried to repair
+    expect(spawned).toBeLessThanOrEqual(3)      // but is bounded, not a loop
+
+    process.env.NODE_ENV = prev
+    if (prevDisable !== undefined) process.env.DISABLE_DB_KEEPALIVE = prevDisable
+    delete process.env.DB_PROBE_TIMEOUT_MS
+    jest.useRealTimers()
+    jest.dontMock("@prisma/client")
+  })
+
+  test("the probe timeout leaves room for a cold engine start", () => {
+    jest.resetModules()
+    jest.dontMock("../src/lib/prisma")
+    process.env.DISABLE_DB_KEEPALIVE = "1"
+    delete process.env.DB_PROBE_TIMEOUT_MS
+    // 5s was killing processes whose engine child was merely still starting.
+    const src = require("fs").readFileSync(require.resolve("../src/lib/prisma"), "utf8")
+    expect(src).toMatch(/DB_PROBE_TIMEOUT_MS \|\| 10000/)
+  })
+})
