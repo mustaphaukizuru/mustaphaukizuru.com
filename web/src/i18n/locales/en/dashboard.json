@@ -1151,7 +1151,8 @@
       "projects": "Milestones, files, timeline",
       "support": "Help and tickets",
       "profile": "Details, addresses, security"
-    }
+    },
+    "logout": "Sign out"
   },
   "portal": {
     "eyebrow": "Client portal",

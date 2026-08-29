@@ -1151,7 +1151,8 @@
       "projects": "Hitos, archivos, cronograma",
       "support": "Ayuda y tickets",
       "profile": "Datos, direcciones, seguridad"
-    }
+    },
+    "logout": "Cerrar sesión"
   },
   "portal": {
     "eyebrow": "Portal del cliente",

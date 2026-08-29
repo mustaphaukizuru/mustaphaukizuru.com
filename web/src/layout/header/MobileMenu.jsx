@@ -29,10 +29,7 @@ import { trackEvent } from "../../lib/analytics"
 import { NAV_LINKS } from "./navLinks"
 import { UserAvatar, performSignOut } from "./AccountMenu"
 import { openSearchPalette } from "./SearchTrigger"
-
-// Horizontal travel that commits to a dismiss. 64px is past accidental
-// thumb drift while still reachable in one flick on a small phone.
-const SWIPE_DISMISS_PX = 64
+import useSwipeToDismiss from "../../hooks/useSwipeToDismiss"
 
 export default function MobileMenu({ open, onClose }) {
   const { t } = useTranslation("common")
@@ -155,56 +152,12 @@ export default function MobileMenu({ open, onClose }) {
     }
   }, [open, onClose])
 
-  /* Swipe-to-dismiss · the gesture users actually expect from a drawer.
-   * The panel enters from the right, so a decisive rightward drag closes
-   * it. Horizontal intent is required (|dx| > |dy|) so it can never
-   * hijack a vertical scroll of the nav list. Listeners are attached to
-   * the panel itself, not the document, so nothing else on the page is
-   * affected. */
+  /* Swipe-to-dismiss · the gesture users expect from a drawer. The panel
+   * enters from the right, so a decisive rightward drag closes it. The
+   * mechanics (horizontal-intent gate, panel-scoped passive listeners) live
+   * in the shared hook, which the dashboard drawer uses too. */
   const panelRef = useRef(null)
-  useEffect(() => {
-    if (!open) return undefined
-    const el = panelRef.current
-    if (!el) return undefined
-
-    let startX = null
-    let startY = null
-    let decided = null   // null → undecided, "horizontal" | "vertical"
-
-    function onTouchStart(e) {
-      if (e.touches.length !== 1) return
-      startX = e.touches[0].clientX
-      startY = e.touches[0].clientY
-      decided = null
-    }
-    function onTouchMove(e) {
-      if (startX == null) return
-      const dx = e.touches[0].clientX - startX
-      const dy = e.touches[0].clientY - startY
-      if (decided === null) {
-        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return  // below intent threshold
-        decided = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical"
-      }
-      // A vertical gesture belongs to the scrollable list — never dismiss.
-      if (decided !== "horizontal") return
-      if (dx > SWIPE_DISMISS_PX) {
-        startX = null
-        onClose("swipe")
-      }
-    }
-    function onTouchEnd() { startX = null; startY = null; decided = null }
-
-    el.addEventListener("touchstart", onTouchStart, { passive: true })
-    el.addEventListener("touchmove", onTouchMove, { passive: true })
-    el.addEventListener("touchend", onTouchEnd, { passive: true })
-    el.addEventListener("touchcancel", onTouchEnd, { passive: true })
-    return () => {
-      el.removeEventListener("touchstart", onTouchStart)
-      el.removeEventListener("touchmove", onTouchMove)
-      el.removeEventListener("touchend", onTouchEnd)
-      el.removeEventListener("touchcancel", onTouchEnd)
-    }
-  }, [open, onClose])
+  useSwipeToDismiss(panelRef, open, onClose)
 
   // Sign-out · 2-tap confirmation pattern + loading state.
   //
