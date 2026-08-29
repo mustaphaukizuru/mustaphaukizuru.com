@@ -34,7 +34,7 @@ export const COMPANIES = [
   { slug: "peimy",               name: "e·PEIMY",                        sector: "Payroll & HR · Mexico", scale: 1.05 },
   { slug: "blueflame",           name: "BlueFlame Appliances",           sector: "Retail · Rwanda", scale: 1.0 },
   { slug: "umut",                name: "Umut Cafe & Restaurant",         sector: "Hospitality · Turkey", scale: 1.1 },
-  { slug: "asr",                 name: "ASR",                            sector: "Technology", scale: 0.95, boxed: true },
+  { slug: "asr",                 name: "ASR",                            sector: "Technology", scale: 0.9, boxed: true },
 ]
 
 export default COMPANIES

@@ -21,7 +21,7 @@ const LOGOS = [
   { slug: "peimy",               name: "e·PEIMY",                        sector: "Payroll & HR · Mexico", sectorEs: "Nóminas y RR. HH. · México", scale: 1.05 },
   { slug: "blueflame",           name: "BlueFlame Appliances",           sector: "Retail · Rwanda",       sectorEs: "Comercio · Ruanda",       scale: 1.0 },
   { slug: "umut",                name: "Umut Cafe & Restaurant",         sector: "Hospitality · Turkey",  sectorEs: "Hostelería · Turquía",    scale: 1.1 },
-  { slug: "asr",                 name: "ASR",                            sector: "Technology",            sectorEs: "Tecnología",              scale: 0.95, boxed: true },
+  { slug: "asr",                 name: "ASR",                            sector: "Technology",            sectorEs: "Tecnología",              scale: 0.9,  boxed: true },
 ]
 
 async function main() {

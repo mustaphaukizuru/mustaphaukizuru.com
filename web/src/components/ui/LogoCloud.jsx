@@ -35,8 +35,16 @@ import { m, useReducedMotion } from "framer-motion"
 import { COMPANIES } from "../../data/companiesData"
 import { apiRequest } from "../../lib/api"
 
-/** Base mark height in px; `scale` multiplies it. Matches the section rhythm. */
-const BASE_HEIGHT = { mobile: 34, desktop: 42 }
+/**
+ * Base mark height in px; `scale` multiplies it.
+ *
+ * The reference wall gets away with 20px-tall marks because every one of them
+ * is a WORDMARK — 6:1 or wider, so it still fills the cell horizontally.
+ * These clients are compact badges and lockups (1:1 to 1.6:1), so the same
+ * height leaves them floating in a large empty cell and the artwork stops
+ * being readable. Height is the right driver here, and it has to be bigger.
+ */
+const BASE_HEIGHT = { mobile: 42, desktop: 56 }
 
 const CELL_BASE =
   "relative flex h-[104px] items-center justify-center border-b border-r border-charcoal-80/10 px-4 md:h-[132px] md:px-8"
@@ -116,13 +124,21 @@ function Seam({ className }) {
   )
 }
 
-/** Checkerboard: tint when row + column is even, per breakpoint column count. */
+/**
+ * Checkerboard: tint when row + column is even, per breakpoint column count.
+ *
+ * The tint was Cloud Mist against white — about a 2% luminance difference,
+ * which meant the alternating pattern that gives this wall its character was
+ * invisible in practice. Violet Pale at half strength keeps it quiet but
+ * actually legible, and stays on-brand rather than borrowing the reference's
+ * rose. Hover then goes to full strength so it still reads as a state change.
+ */
 function tintClasses(index) {
   const mobileTinted = ((index % 2) + Math.floor(index / 2)) % 2 === 0
   const desktopTinted = ((index % 4) + Math.floor(index / 4)) % 2 === 0
   return clsx(
-    mobileTinted ? "bg-mist" : "bg-white",
-    desktopTinted ? "md:bg-mist" : "md:bg-white"
+    mobileTinted ? "bg-violet-pale/50" : "bg-white",
+    desktopTinted ? "md:bg-violet-pale/50" : "md:bg-white"
   )
 }
 
@@ -150,7 +166,7 @@ function LogoCard({ company, index, total, reduce }) {
         height: `${Math.round(BASE_HEIGHT.mobile * scale)}px`,
         maxHeight: "100%",
         // Caps a very wide wordmark so it cannot crowd the cell walls.
-        maxWidth: "clamp(96px, 76%, 190px)",
+        maxWidth: "clamp(120px, 82%, 220px)",
       }}
       className={clsx(
         "select-none object-contain transition-transform duration-300 group-hover:scale-[1.04] md:h-[var(--logo-h)]",
@@ -169,7 +185,7 @@ function LogoCard({ company, index, total, reduce }) {
       className={clsx(
         CELL_BASE,
         tintClasses(index),
-        "group transition-colors duration-300 hover:bg-violet-pale/40"
+        "group transition-colors duration-300 hover:bg-violet-pale"
       )}
     >
       {company.websiteUrl ? (
