@@ -279,6 +279,13 @@ function shouldAutoHandleUnauthorized(status, code) {
 // left to attach conditionally: the session travels as a cookie, the CSRF
 // header depends only on the HTTP method, and an Authorization header appears
 // only when the caller passes an explicit token.
+/** The language this page is rendering: `/es/...` → "es", else <html lang>. */
+function activeLanguage() {
+  if (typeof window === "undefined" || typeof document === "undefined") return null
+  if (/^\/es(\/|$)/.test(window.location?.pathname || "")) return "es"
+  return document.documentElement.lang || null
+}
+
 function createRequestHeaders(options = {}) {
   const headers = new Headers(options.headers || {})
   const body = options.body
@@ -300,6 +307,22 @@ function createRequestHeaders(options = {}) {
   if (CSRF_METHODS.has(method) && !headers.has("X-CSRF-Token")) {
     const csrfToken = getCsrfToken()
     if (csrfToken) headers.set("X-CSRF-Token", csrfToken)
+  }
+
+  // Tell the API which language the page is actually rendering. Server-side
+  // content (case-study copy, service names, email templates) is bilingual and
+  // resolved per request by src/utils/resolveUserLocale.js; given no signal it
+  // sniffs Accept-Language — the browser's preference, not the one the reader
+  // picked. So an English page could be served Spanish case-study prose, and a
+  // Spanish page English prose, purely from a header nobody chose.
+  //
+  // The URL is the single source of truth for language (I18N02, same rule the
+  // Seo component follows), with <html lang> as the fallback for the window
+  // before Helmet has applied it. Accept-Language is CORS-safelisted, so this
+  // adds no preflight.
+  if (!headers.has("Accept-Language")) {
+    const lang = activeLanguage()
+    if (lang) headers.set("Accept-Language", lang)
   }
 
   if (!isFormData(body) && !headers.has("Content-Type") && body != null) {

@@ -28,8 +28,11 @@ const MAX_STACK = 5
  *                proportions change; the anatomy is identical either way.
  */
 const DENSITY = {
-  comfortable: { height: "min-h-[30rem] md:min-h-[42rem]", frame: "max-w-5xl h-[20rem] md:h-[30rem]", title: "text-section sm:text-page" },
-  compact:     { height: "min-h-[26rem] md:min-h-[34rem]", frame: "max-w-4xl h-[17rem] md:h-[24rem]", title: "text-card sm:text-section" },
+  // `align` follows the host: /portfolio's own heading is screen-reader only,
+  // so the stage is the page's chrome and centres; a band sits under a
+  // left-aligned section heading and would otherwise read as two designs.
+  comfortable: { height: "min-h-[30rem] md:min-h-[42rem]", frame: "max-w-5xl h-[20rem] md:h-[30rem]", title: "text-section sm:text-page", align: "items-center text-center" },
+  compact:     { height: "min-h-[26rem] md:min-h-[34rem]", frame: "max-w-4xl h-[17rem] md:h-[24rem]", title: "text-card sm:text-section",  align: "items-start text-left" },
 }
 
 export default function ProjectShowcase({ project, priority = false, linkLabel, density = "comfortable" }) {
@@ -60,7 +63,7 @@ export default function ProjectShowcase({ project, priority = false, linkLabel, 
         heightClassName={size.height}
         frameClassName={size.frame}
         titleComponent={
-          <div className="flex flex-col items-center gap-3">
+          <div className={`flex flex-col gap-3 ${size.align}`}>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
               {project.isFeatured ? <Sparkles className="h-3 w-3" aria-hidden="true" /> : null}
               {service ? t(`services.${service}`) : (project.category || t("hero.eyebrow"))}
@@ -71,7 +74,7 @@ export default function ProjectShowcase({ project, priority = false, linkLabel, 
                 {project.title}
               </Link>
             </h3>
-            <p className="mx-auto max-w-2xl text-meta leading-6 text-charcoal-80/70">
+            <p className="max-w-2xl text-meta leading-6 text-charcoal-80/70">
               {cs?.problem || project.shortDescription}
             </p>
           </div>
@@ -113,11 +116,11 @@ export default function ProjectShowcase({ project, priority = false, linkLabel, 
       </ContainerScroll>
 
       {/* Below the frame: the numbers, the stack, the way in */}
-      <div className="mx-auto -mt-6 flex max-w-5xl flex-col gap-4 px-4 pb-10 md:-mt-16 md:pb-14 md:px-0">
+      <div className={`mx-auto -mt-6 flex max-w-5xl flex-col gap-4 px-4 pb-10 md:-mt-16 md:pb-14 md:px-0 ${size.align}`}>
         {outcomeLine ? (
           <p
             data-placeholder={placeholder ? "true" : undefined}
-            className="mx-auto inline-flex items-start gap-2 rounded-xl bg-violet-ghost px-4 py-2.5 text-meta font-semibold leading-5 text-violet"
+            className="inline-flex items-start gap-2 rounded-xl bg-violet-ghost px-4 py-2.5 text-meta font-semibold leading-5 text-violet"
           >
             <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-azure" aria-hidden="true" />
             <span>
@@ -129,7 +132,7 @@ export default function ProjectShowcase({ project, priority = false, linkLabel, 
         ) : null}
 
         {stack.length ? (
-          <ul className="flex flex-wrap justify-center gap-1.5" aria-label={t("card.stack")}>
+          <ul className="flex flex-wrap gap-1.5" aria-label={t("card.stack")}>
             {stack.map((tech) => (
               <li
                 key={tech}
@@ -141,7 +144,7 @@ export default function ProjectShowcase({ project, priority = false, linkLabel, 
           </ul>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <Link
             to={href}
             className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep"

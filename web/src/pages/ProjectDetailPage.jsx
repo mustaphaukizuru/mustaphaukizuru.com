@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
-import { m } from "framer-motion"
+import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 import {
   ArrowLeft, ArrowRight, ExternalLink, Github, Calendar, Briefcase,
   CheckCircle2, AlertCircle, Sparkles, ChevronRight, Tag,
@@ -65,6 +65,7 @@ function Container({ children, className = "" }) {
 }
 
 export default function ProjectDetailPage() {
+  const reduced = useReducedMotion()
   const { t } = useTranslation("portfolio")
   const { slug } = useParams()
   const [project, setProject] = useState(null)
@@ -258,7 +259,20 @@ export default function ProjectDetailPage() {
                 no scroll above the fold to drive one. */}
             <div className={`mx-auto w-full max-w-5xl ${STAGE_FRAME_CLASS}`}>
               {/* layoutId shared with ProjectShowcase's cover for the page transition */}
-              <m.div layoutId={`project-cover-${slug}`} className="aspect-[16/9] w-full overflow-hidden rounded-2xl bg-violet-pale">
+              <m.div layoutId={`project-cover-${slug}`} className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-violet-pale">
+                {/* Picking a thumbnail used to hard-cut the frame to a new
+                    photograph. Keyed on the index so each view fades in over
+                    the last; `mode="wait"` would blank the frame between two,
+                    which is worse than the cut it replaces. */}
+                <AnimatePresence initial={false}>
+                <m.div
+                  key={activeImage}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: reduced ? 0 : 0.35, ease: "easeOut" }}
+                  className="absolute inset-0 h-full w-full"
+                >
                 {heroSrcSet ? (
                   <picture className="block h-full w-full">
                     <source type="image/webp" srcSet={heroSrcSet} sizes="(max-width: 1152px) 100vw, 1152px" />
@@ -277,6 +291,8 @@ export default function ProjectDetailPage() {
                     className="h-full w-full"
                   />
                 )}
+                </m.div>
+                </AnimatePresence>
               </m.div>
             </div>
             {gallery.length > 1 ? (

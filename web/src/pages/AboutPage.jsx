@@ -31,7 +31,7 @@ import {
 import { aboutProjects } from "../data/aboutProjectsData"
 import { listPortfolio } from "../services/portfolioService"
 import { fetchExperience, fetchEducation, fetchCertificates, fetchSkills } from "../services/bioService" // M12 + M12.5 Education
-import PortfolioCard from "../components/PortfolioCard"
+import ProjectShowcase from "../components/portfolio/ProjectShowcase"
 import OrbitingCircles from "../components/motion/OrbitingCircles"
 import AboutHero from "../components/heroes/AboutHero" // V2, universal hero
 import CertificatePreview from "../components/CertificatePreview" // V2, inline PDF
@@ -1289,16 +1289,17 @@ export default function AboutPage() {
                 : t("portfolio.emptyState")}
             </div>
           ) : (
-            <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-col">
               {displayProjects.map((p, idx) => (
-                <PortfolioCard
+                <ProjectShowcase
                   key={p.id || p.slug || p.title}
                   project={p}
-                  cardIndex={idx}
+                  priority={idx === 0}
+                  density="compact"
                   linkLabel={p.tags ? t("portfolio.linkLearnMore") : t("portfolio.linkCaseStudy")}
                 />
               ))}
-            </m.div>
+            </div>
           )}
         </Container>
       </section>

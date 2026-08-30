@@ -130,6 +130,42 @@ test.describe("project stages", () => {
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(listTop + 120)
   })
 
+  test("a band inside another page uses the compact stage", async ({ page }) => {
+    await page.goto("/portfolio")
+    await page.locator(STAGE).first().scrollIntoViewIfNeeded()
+    const wide = await page.locator(`${STAGE} [style*='perspective'] > div:nth-child(2)`).first().boundingBox()
+
+    await page.goto("/")
+    const band = page.locator(STAGE)
+    await expect(band.first()).toBeVisible()
+    await band.first().scrollIntoViewIfNeeded()
+    const narrow = await page.locator(`${STAGE} [style*='perspective'] > div:nth-child(2)`).first().boundingBox()
+
+    // compact is a smaller stage, and its title block follows the section
+    // heading it sits under instead of centring against it.
+    expect(narrow.width).toBeLessThan(wide.width)
+    await expect(band.first().getByRole("heading").first()).toBeVisible()
+  })
+
+  test("the API is told which language the page renders", async ({ page }) => {
+    /** @type {string[]} */
+    const sent = []
+    page.on("request", (r) => {
+      // API calls only — the document navigation carries the browser's own header.
+      if (r.url().includes("/api/") && r.url().includes("/portfolio")) {
+        sent.push(r.headers()["accept-language"] || "")
+      }
+    })
+
+    await page.goto("/es/portfolio")
+    await expect(page.locator(STAGE).first()).toBeVisible()
+    // Case-study prose lives in the database in both languages and is resolved
+    // per request; without this header the API sniffs the browser's preference
+    // and can serve Spanish copy under an English page.
+    expect(sent.length).toBeGreaterThan(0)
+    expect(sent.every((v) => v.toLowerCase().startsWith("es"))).toBe(true)
+  })
+
   test("the detail hero wears the same frame as the stage it came from", async ({ page }) => {
     await page.goto("/projects/project-1")
     // Same bezel chrome (STAGE_FRAME_CLASS), held flat above the fold.
