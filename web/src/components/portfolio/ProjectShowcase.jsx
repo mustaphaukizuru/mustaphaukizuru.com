@@ -6,8 +6,6 @@ import { ArrowRight, Code2, ExternalLink, Grid3x3, Sparkles, TrendingUp } from "
 import ContainerScroll from "../ui/ContainerScroll"
 import { getCaseStudy, responsiveSrcSet, hasPlaceholder, projectImages } from "./caseStudy"
 
-const MAX_STACK = 5
-
 /**
  * ProjectShowcase · the one way a project is presented across the site
  *
@@ -31,8 +29,11 @@ const DENSITY = {
   // `align` follows the host: /portfolio's own heading is screen-reader only,
   // so the stage is the page's chrome and centres; a band sits under a
   // left-aligned section heading and would otherwise read as two designs.
-  comfortable: { height: "min-h-[30rem] md:min-h-[42rem]", frame: "max-w-5xl h-[20rem] md:h-[30rem]", title: "text-section sm:text-page", align: "items-center text-center" },
-  compact:     { height: "min-h-[26rem] md:min-h-[34rem]", frame: "max-w-4xl h-[17rem] md:h-[24rem]", title: "text-card sm:text-section",  align: "items-start text-left" },
+  // `blurb`/`stack` are the copy budget. A stage already says what the project
+  // is with a title, a screenshot and a number; a band inside another page
+  // does not get a paragraph on top of that.
+  comfortable: { height: "min-h-[30rem] md:min-h-[42rem]", frame: "max-w-5xl h-[20rem] md:h-[30rem]", title: "text-section sm:text-page", align: "items-center text-center", blurb: true,  stack: 4 },
+  compact:     { height: "min-h-[26rem] md:min-h-[34rem]", frame: "max-w-4xl h-[17rem] md:h-[24rem]", title: "text-card sm:text-section",  align: "items-start text-left",   blurb: false, stack: 3 },
 }
 
 export default function ProjectShowcase({ project, priority = false, linkLabel, density = "comfortable" }) {
@@ -40,21 +41,24 @@ export default function ProjectShowcase({ project, priority = false, linkLabel, 
   const [coverLoaded, setCoverLoaded] = useState(false)
   if (!project) return null
 
+  const size = DENSITY[density] || DENSITY.comfortable
   const cs = getCaseStudy(project)
   const outcomes = cs?.outcomes || []
-  const outcomeLine = project.outcomeLine
-    || (outcomes.length
-      ? outcomes.slice(0, 2).map((o) => [o.value, o.label].filter(Boolean).join(" ")).join(" · ")
-      : null)
-  const placeholder = hasPlaceholder(outcomes)
+  // One number, not a run of them. The API's outcomeLine joins the first two
+  // outcomes, which on a stage reads as a sentence rather than a headline —
+  // the rest are one click away on the case study.
+  const headline = outcomes[0]
+  const outcomeLine = headline
+    ? [headline.value, headline.label].filter(Boolean).join(" ")
+    : project.outcomeLine
+  const placeholder = headline ? Boolean(headline.placeholder) : hasPlaceholder(outcomes)
   const service = cs?.serviceSlug
   const cover = projectImages(project)[0] || null
   const href = `/projects/${project.slug || ""}`
   const stack = (cs?.stack || project.tools || project.tags || [])
     .filter((s) => typeof s === "string" && s.trim())
-    .slice(0, MAX_STACK)
+    .slice(0, size.stack)
 
-  const size = DENSITY[density] || DENSITY.comfortable
   const headingId = `showcase-${project.slug || project.id || project.title}`
 
   return (
@@ -74,9 +78,11 @@ export default function ProjectShowcase({ project, priority = false, linkLabel, 
                 {project.title}
               </Link>
             </h3>
-            <p className="max-w-2xl text-meta leading-6 text-charcoal-80/70">
-              {cs?.problem || project.shortDescription}
-            </p>
+            {size.blurb ? (
+              <p className="line-clamp-2 max-w-2xl text-meta leading-6 text-charcoal-80/70">
+                {cs?.problem || project.shortDescription}
+              </p>
+            ) : null}
           </div>
         }
       >

@@ -123,10 +123,10 @@
   "portfolio": {
     "eyebrow": "Portfolio",
     "title": "Selected Projects",
-    "subtitle": "Technology solutions and digital systems delivered across multiple industries and organizations.",
+    "subtitle": "Systems delivered across industries.",
     "linkLearnMore": "Learn More",
     "linkCaseStudy": "View case study",
-    "errorState": "Portfolio temporarily unavailable. Please try again later.",
+    "errorState": "Portfolio unavailable. Try again shortly.",
     "emptyState": "More projects coming soon."
   },
   "ctaBand": {

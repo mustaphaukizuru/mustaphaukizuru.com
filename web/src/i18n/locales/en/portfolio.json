@@ -2,7 +2,7 @@
   "hero": {
     "eyebrow": "Case studies",
     "title": "Selected Work",
-    "subtitle": "Each project is written up as a case study: the problem we started from, the approach we took, and the outcome in numbers. Filter by the service it maps to."
+    "subtitle": "Problem, approach, outcome — in numbers."
   },
   "featured": {
     "ariaLabel": "Featured projects"
@@ -28,7 +28,7 @@
     "live": "Live",
     "repo": "Code",
     "outcome": "Outcome",
-    "placeholderShort": "Illustrative figures",
+    "placeholderShort": "estimate",
     "stack": "Tech stack"
   },
   "empty": "No projects match your filters.",
@@ -40,14 +40,14 @@
   },
   "cta": {
     "title": "Have a project in mind?",
-    "subtitle": "Let's discuss how we can bring it to life.",
-    "button": "Start a conversation"
+    "subtitle": "Tell me what you're building.",
+    "button": "Let's talk"
   },
   "serviceCta": {
     "eyebrow": "Related service",
     "title": "Need something like this?",
-    "body": "This project maps to {{service}}. Book a free call and we'll scope a project like this for your team.",
-    "button": "Book a call about a project like this"
+    "body": "Book a free call and we'll scope yours in {{service}}.",
+    "button": "Book a call"
   },
   "seo": {
     "title": "Portfolio · Case studies · Mustapha Ukizuru",
