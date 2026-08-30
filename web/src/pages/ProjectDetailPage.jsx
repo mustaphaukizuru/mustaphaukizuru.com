@@ -17,6 +17,7 @@ import ApproachSteps from "../components/portfolio/ApproachSteps"
 import ServiceCta from "../components/portfolio/ServiceCta"
 import ProjectPager from "../components/portfolio/ProjectPager"
 import { getCaseStudy, responsiveSrcSet } from "../components/portfolio/caseStudy"
+import { STAGE_FRAME_CLASS } from "../components/ui/ContainerScroll"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  ProjectDetailPage · /projects/:slug  (roadmap step 27 — case study)
@@ -252,9 +253,12 @@ export default function ProjectDetailPage() {
       {displayImage ? (
         <section className="py-10 sm:py-14">
           <Container>
-            <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e6)]">
-              {/* layoutId shared with PortfolioCard/CaseStudyCard for the page transition */}
-              <m.div layoutId={`project-cover-${slug}`} className="aspect-[16/9] w-full bg-violet-pale">
+            {/* The same bezel the portfolio stages use (ui/ContainerScroll), held
+                flat: this hero is where a stage's tilt hands off, and there is
+                no scroll above the fold to drive one. */}
+            <div className={`mx-auto w-full max-w-5xl ${STAGE_FRAME_CLASS}`}>
+              {/* layoutId shared with ProjectShowcase's cover for the page transition */}
+              <m.div layoutId={`project-cover-${slug}`} className="aspect-[16/9] w-full overflow-hidden rounded-2xl bg-violet-pale">
                 {heroSrcSet ? (
                   <picture className="block h-full w-full">
                     <source type="image/webp" srcSet={heroSrcSet} sizes="(max-width: 1152px) 100vw, 1152px" />
@@ -274,8 +278,9 @@ export default function ProjectDetailPage() {
                   />
                 )}
               </m.div>
-              {gallery.length > 1 ? (
-                <div className="flex gap-3 overflow-x-auto p-4">
+            </div>
+            {gallery.length > 1 ? (
+              <div className="mx-auto mt-4 flex max-w-5xl gap-3 overflow-x-auto">
                   {gallery.map((src, idx) => (
                     <button
                       key={idx}
@@ -298,9 +303,8 @@ export default function ProjectDetailPage() {
                       />
                     </button>
                   ))}
-                </div>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </Container>
         </section>
       ) : null}

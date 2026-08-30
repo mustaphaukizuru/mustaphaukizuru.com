@@ -20,7 +20,7 @@ export function bookHref(serviceSlug) {
 }
 
 /**
- * Same rule as PortfolioCard.responsiveSrcSet: bundled /images/** assets have
+ * Bundled /images/** assets have
  * `<name>-{400,800,1200}.webp` siblings emitted by scripts/convert-images.mjs.
  * Runtime uploads have none, so return undefined and let the browser use src.
  */
@@ -57,7 +57,7 @@ export function hasPlaceholder(outcomes) {
  * coverImage (schema), cover / image (legacy aliases), and gallery / images
  * as either string[] or {url}[].
  *
- * PortfolioCard and ProjectAccordion share this — the extraction rules are
+ * ProjectShowcase and ProjectAccordion share this — the extraction rules are
  * the data contract, not a per-component detail.
  */
 export function projectImages(project) {
