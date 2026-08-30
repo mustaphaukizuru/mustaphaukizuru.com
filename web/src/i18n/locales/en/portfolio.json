@@ -4,6 +4,9 @@
     "title": "Selected Work",
     "subtitle": "Each project is written up as a case study: the problem we started from, the approach we took, and the outcome in numbers. Filter by the service it maps to."
   },
+  "featured": {
+    "ariaLabel": "Featured projects"
+  },
   "filters": {
     "all": "All",
     "search": "Search work",

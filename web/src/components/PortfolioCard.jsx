@@ -5,6 +5,7 @@ import { Sparkles, ChevronRight, ExternalLink } from "lucide-react"
 
 import { useTranslation } from "react-i18next"
 import SpotlightCard from "./motion/SpotlightCard"
+import { projectImages } from "./portfolio/caseStudy"
 /**
  * PortfolioCard · shared project card
  *
@@ -32,26 +33,6 @@ import SpotlightCard from "./motion/SpotlightCard"
  *   showYear      (default true) — overlay year on the image when available
  *   showExternal  (default true) — render the external-site link if present
  */
-
-function extractImages(project) {
-  if (!project) return []
-  const out = []
-  if (typeof project.coverImage === "string" && project.coverImage) out.push(project.coverImage)
-  if (typeof project.cover === "string" && project.cover) out.push(project.cover)
-  if (typeof project.image === "string" && project.image) out.push(project.image)
-
-  const pushArray = (arr) => {
-    if (!Array.isArray(arr)) return
-    arr.forEach((g) => {
-      if (typeof g === "string" && g) out.push(g)
-      else if (g && typeof g.url === "string") out.push(g.url)
-    })
-  }
-  pushArray(project.gallery)
-  pushArray(project.images)
-
-  return Array.from(new Set(out))
-}
 
 /**
  * Build a srcset from the `<name>-<w>.webp` siblings that
@@ -96,7 +77,7 @@ export default function PortfolioCard({
   const [currentIdx, setCurrentIdx] = useState(0)
   const [paused, setPaused] = useState(false)
 
-  const images = extractImages(project)
+  const images = projectImages(project)
   const tools = extractTools(project)
   const year = extractYear(project)
   const linkTo = project?.slug ? `/projects/${project.slug}` : (project?.link || null)

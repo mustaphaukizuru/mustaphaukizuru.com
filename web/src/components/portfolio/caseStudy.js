@@ -50,3 +50,29 @@ export function getCaseStudy(project) {
 export function hasPlaceholder(outcomes) {
   return Array.isArray(outcomes) && outcomes.some((o) => o && o.placeholder)
 }
+
+/**
+ * Every usable image on a project, most representative first, de-duplicated.
+ * Tolerates every realistic shape the API and the static fallbacks produce:
+ * coverImage (schema), cover / image (legacy aliases), and gallery / images
+ * as either string[] or {url}[].
+ *
+ * PortfolioCard and ProjectAccordion share this — the extraction rules are
+ * the data contract, not a per-component detail.
+ */
+export function projectImages(project) {
+  if (!project) return []
+  const out = []
+  for (const key of ["coverImage", "cover", "image"]) {
+    if (typeof project[key] === "string" && project[key]) out.push(project[key])
+  }
+  for (const key of ["gallery", "images"]) {
+    const arr = project[key]
+    if (!Array.isArray(arr)) continue
+    for (const g of arr) {
+      if (typeof g === "string" && g) out.push(g)
+      else if (g && typeof g.url === "string" && g.url) out.push(g.url)
+    }
+  }
+  return Array.from(new Set(out))
+}

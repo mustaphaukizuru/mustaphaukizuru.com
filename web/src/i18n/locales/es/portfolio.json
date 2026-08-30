@@ -4,6 +4,9 @@
     "title": "Trabajo seleccionado",
     "subtitle": "Cada proyecto está documentado como caso de estudio: el problema de partida, el enfoque que seguimos y el resultado en cifras. Filtra por el servicio al que corresponde."
   },
+  "featured": {
+    "ariaLabel": "Proyectos destacados"
+  },
   "filters": {
     "all": "Todo",
     "search": "Buscar proyectos",

@@ -11,6 +11,7 @@ import StaggerGrid from "../components/motion/StaggerGrid"
 import Meteors from "../components/motion/Meteors"
 import MagneticButton from "../components/motion/MagneticButton"
 import CaseStudyCard from "../components/portfolio/CaseStudyCard"
+import ProjectAccordion from "../components/portfolio/ProjectAccordion"
 import ServiceFilter from "../components/portfolio/ServiceFilter"
 import { SERVICE_SLUGS } from "../components/portfolio/caseStudy"
 
@@ -161,6 +162,17 @@ export default function PortfolioPage() {
           </m.div>
         </Container>
       </section>
+
+      {/* FEATURED BAND — a visual index of the work, above the filters. Only
+          on the unfiltered first page: once the reader has narrowed the list
+          it is the list they want, not a second view of it. */}
+      {!loading && !error && !activeService && !activeCategory && !query.trim() && page === 1 && (
+        <section className="border-b border-charcoal-80/10 bg-white">
+          <Container className="py-6">
+            <ProjectAccordion projects={items} />
+          </Container>
+        </section>
+      )}
 
       {/* FILTER + SEARCH TOOLBAR */}
       <section className="border-b border-charcoal-80/10 bg-white">
