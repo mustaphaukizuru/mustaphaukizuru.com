@@ -48,6 +48,13 @@
       "cta": "Browse the store"
     }
   },
+  "showcase": {
+    "eyebrow": "Built and running",
+    "title": "The platform you are standing in",
+    "subtitle": "Store, checkout in two currencies, member portal with protected downloads, booking with Google Calendar, invoices and a full admin back office — one codebase, in production. What you see here is what I ship for clients.",
+    "cta": "Read the case study",
+    "imageAlt": "The services page of the mustaphaukizuru.com platform, shown in a laptop frame"
+  },
   "services": {
     "eyebrow": "Services",
     "title": "Four ways I can help",
