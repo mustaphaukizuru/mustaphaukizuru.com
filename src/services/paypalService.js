@@ -7,7 +7,7 @@
 //   • Idempotent capture — capturePaypalOrder now refuses to capture an order
 //     that's already in COMPLETED state and instead returns the existing
 //     capture data, so a double-click on the front-end never charges twice.
-//   • Refund support — refundPaypalCapture(captureId, { amount, currency, note }).
+//   • Refund support — refundPaypalCapture(captureId, { amount, currency, note, refundId }).
 //   • Token cache — getAccessToken() caches the bearer token for ~9 minutes
 //     instead of re-fetching on every call.
 //   • Cleaner error messages — failures bubble up as Error("PayPal: <reason>")
@@ -140,16 +140,26 @@ async function capturePaypalOrder(paypalOrderId) {
 
 /* ─────────────────────── refund a capture ──────────────────────────────── */
 
-async function refundPaypalCapture(captureId, { amount, currency = "MXN", note } = {}) {
+async function refundPaypalCapture(captureId, { amount, currency = "MXN", note, refundId } = {}) {
   if (!captureId) throw new Error("PayPal: captureId required")
 
   const body = {}
   if (amount != null) body.amount = { value: Number(amount).toFixed(2), currency_code: currency }
   if (note)           body.note_to_payer = note.slice(0, 255)
 
+  // Idempotency · PayPal dedupes on PayPal-Request-Id. The key used to end
+  // in Date.now(), so a retry after a timeout, or a second click, was a
+  // second refund request with a fresh key. It is now the local Refund row
+  // id, which refundService creates BEFORE calling here — stable across
+  // retries, unique per refund attempt. The amount-tagged fallback keeps
+  // any legacy caller deterministic too.
+  const requestId = refundId
+    ? `refund-${refundId}`
+    : `refund-${captureId}-${amount != null ? Number(amount).toFixed(2) : "full"}`
+
   const res = await authedFetch(`/v2/payments/captures/${captureId}/refund`, {
     method:  "POST",
-    headers: { "PayPal-Request-Id": `refund-${captureId}-${Date.now()}` },
+    headers: { "PayPal-Request-Id": requestId },
     body:    JSON.stringify(body),
   })
   if (!res.ok) {
