@@ -219,6 +219,40 @@ async function getMercadoPagoPayment(paymentId) {
   }
 }
 
+/* ───────────────────── lookup chargeback by ID ─────────────────────────── */
+
+/**
+ * A `chargebacks` notification carries the chargeback id in `data.id`, not
+ * the payment id. The chargeback resource names the payment(s) it disputes
+ * (`payments: [id]`); the webhook then continues with the normal payment
+ * lookup so the authoritative status (`charged_back`) drives the transition.
+ */
+async function getMercadoPagoChargeback(chargebackId) {
+  const token = ACCESS_TOKEN()
+  if (!token || !chargebackId) return null
+  try {
+    const res = await fetch(`${MP_BASE_URL}/v1/chargebacks/${chargebackId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) {
+      logger.warn(`[MP] chargeback lookup failed ${res.status} for id ${chargebackId}`)
+      return null
+    }
+    return res.json()
+  } catch (err) {
+    logger.error(`[MP] chargeback lookup error: ${err.message}`)
+    return null
+  }
+}
+
+/** The payment id a chargeback resource disputes, or null. */
+function chargebackPaymentId(chargeback) {
+  if (!chargeback) return null
+  const id = chargeback.payment_id
+    ?? (Array.isArray(chargeback.payments) ? chargeback.payments[0] : null)
+  return id == null ? null : String(typeof id === "object" ? id.id : id)
+}
+
 /* ──────────────────── idempotent mark-order-paid ───────────────────────── */
 
 async function markOrderPaidByMP({ orderId, paymentId, status, payload, gatewayAmount, gatewayCurrency }) {
@@ -279,6 +313,8 @@ async function refundMercadoPagoPayment({ paymentId, amount, refundId }) {
 module.exports = {
   createMercadoPagoPreference,
   getMercadoPagoPayment,
+  getMercadoPagoChargeback,
+  chargebackPaymentId,
   markOrderPaidByMP,
   refundMercadoPagoPayment,
   verifyMercadoPagoSignature,

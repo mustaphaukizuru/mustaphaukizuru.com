@@ -5,6 +5,8 @@ const prisma       = require("../lib/prisma")
 const {
   createMercadoPagoPreference,
   getMercadoPagoPayment,
+  getMercadoPagoChargeback,
+  chargebackPaymentId,
   markOrderPaidByMP,
   verifyMercadoPagoSignature,
   // refundMercadoPagoPayment is no longer called from this controller —
@@ -17,8 +19,10 @@ const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const { notifyOrderPaid }   = require("../services/notificationService")
 const { fulfillOrder, recordOrderEvent } = require("../services/orderFulfillmentService")
 const { generateReceiptPdf } = require("../services/receiptPdfService")
-// M19 — refund orchestrator with Option A enforcement.
-const { processOrderRefund } = require("../services/refundService")
+// M19 — refund orchestrator with Option A enforcement. recordExternalRefund
+// is the webhook side: a refund or chargeback that happened at Mercado Pago
+// flips Payment + Order to refunded and revokes every download entitlement.
+const { processOrderRefund, recordExternalRefund } = require("../services/refundService")
 
 /**
  * Mercado Pago controller · V2
@@ -62,11 +66,15 @@ const webhook = async (req, res) => {
     const signatureHeader = req.headers["x-signature"]
     const requestId       = req.headers["x-request-id"]
     const notifData       = req.body?.data || {}
-    const paymentId =
+    // The id MP signed. For `payment` topics it is the payment id; for
+    // `chargebacks` topics it is the chargeback id and the payment id is
+    // resolved from the chargeback resource below.
+    const dataId =
       notifData?.id ||
       req.query?.["data.id"] ||
       req.query?.id ||
       null
+    let paymentId = dataId
 
     // 1. Signature verification FIRST (skipped in dev when MP_WEBHOOK_SECRET
     //    is unset). This used to run *after* the audit insert below, which
@@ -81,9 +89,9 @@ const webhook = async (req, res) => {
     //    the audit table. They are still logged (logger.warn below), which is
     //    the right place for them — an attacker-controlled row in a payments
     //    table is worse than a log line.
-    const verified = verifyMercadoPagoSignature({ signatureHeader, requestId, dataId: paymentId })
+    const verified = verifyMercadoPagoSignature({ signatureHeader, requestId, dataId })
     if (!verified) {
-      logger.warn("[MP webhook] signature verification failed", { paymentId, requestId })
+      logger.warn("[MP webhook] signature verification failed", { dataId, requestId })
       return res.status(401).json({ received: true, error: "signature" })
     }
 
@@ -111,13 +119,26 @@ const webhook = async (req, res) => {
       logger.warn("[MP webhook] audit insert failed:", e.message)
     }
 
-    if (!paymentId) return res.status(200).json({ received: true })
+    if (!dataId) return res.status(200).json({ received: true })
 
-    const isPaymentEvent =
-      (req.body?.type   || "").startsWith("payment") ||
-      (req.body?.action || "").startsWith("payment")
+    const topic = (req.body?.type || req.body?.action || req.query?.type || req.query?.topic || "")
+    const isPaymentEvent    = topic.startsWith("payment")
+    const isChargebackEvent = topic.startsWith("chargebacks")
 
-    if (!isPaymentEvent) return res.status(200).json({ received: true })
+    if (!isPaymentEvent && !isChargebackEvent) return res.status(200).json({ received: true })
+
+    // 2b. A chargeback notification names the dispute, not the payment.
+    //     Resolve the disputed payment id, then run the same flow: the
+    //     payment record's status (`charged_back`) is what drives the
+    //     transition and the entitlement revocation below.
+    if (isChargebackEvent) {
+      const chargeback = await getMercadoPagoChargeback(dataId)
+      paymentId = chargebackPaymentId(chargeback)
+      if (!paymentId) {
+        logger.warn("[MP webhook] chargeback without a payment id", { chargebackId: dataId })
+        return res.status(200).json({ received: true })
+      }
+    }
 
     // 3. Pull authoritative payment record from MP API.
     const mpPayment = await getMercadoPagoPayment(paymentId)
@@ -202,6 +223,45 @@ const webhook = async (req, res) => {
         action:      "order.paid",
         description: `Payment approved via Mercado Pago (tx ${paymentId})`,
       }).catch(() => null)
+    }
+
+    // 5b. Refund / chargeback → the money went back, so the entitlements go
+    //     too. markOrderPaidByMP only records the Payment row for these
+    //     statuses (the order is terminal); recordExternalRefund writes the
+    //     Refund row, flips Payment + Order to refunded and revokes every
+    //     active UserDownload — the same writes the admin refund path makes.
+    //     The key is deterministic per payment + status so MP's redeliveries
+    //     (and the webhook MP sends back after an admin-initiated refund,
+    //     which is matched by amount) are no-ops. An order that is already
+    //     refunded needs nothing.
+    const moneyWentBack = mpPayment.status === "refunded" || mpPayment.status === "charged_back"
+    if (moneyWentBack && order.status !== "refunded") {
+      const localPayment = await prisma.payment.findFirst({
+        where:  { paymentGateway: "mercadopago", gatewayTransactionId: String(paymentId) },
+        select: { id: true, orderId: true, amount: true },
+      })
+      if (localPayment) {
+        const outcome = await recordExternalRefund({
+          paymentId:       localPayment.id,
+          orderId:         localPayment.orderId,
+          // Full refunds only: the amount is the payment amount.
+          amount:          Number(localPayment.amount),
+          gatewayRefundId: `mp-${mpPayment.id}-${mpPayment.status}`,
+          reason:          mpPayment.status === "charged_back" ? "Mercado Pago chargeback" : "Mercado Pago webhook refund",
+        }).catch((e) => {
+          logger.error(`[MP webhook] refund record failed order=${orderId}: ${e.message}`)
+          return null
+        })
+        if (outcome?.created) {
+          logger.warn(`[MP webhook] ${mpPayment.status} for order ${orderId} — ${outcome.revokedDownloads} entitlement(s) revoked`)
+          recordOrderEvent({
+            orderId:     order.id,
+            userId:      order.userId,
+            action:      "order.refunded",
+            description: `Mercado Pago ${mpPayment.status.replace("_", " ")} (payment ${paymentId})`,
+          }).catch(() => null)
+        }
+      }
     }
 
     // 6. Cancellation / rejection bookkeeping.
