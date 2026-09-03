@@ -23,6 +23,7 @@ const { generateReceiptPdf } = require("../services/receiptPdfService")
 // is the webhook side: a refund or chargeback that happened at Mercado Pago
 // flips Payment + Order to refunded and revokes every download entitlement.
 const { processOrderRefund, recordExternalRefund } = require("../services/refundService")
+const { isTimeoutError } = require("../lib/providerHttp")
 
 /**
  * Mercado Pago controller · V2
@@ -60,8 +61,11 @@ const createPreference = asyncHandler(async (req, res) => {
 /* ─────────────────────────── POST /webhook ─────────────────────────────── */
 
 const webhook = async (req, res) => {
-  // Always reply 200 — MP retries non-200 for 24 hours.
-  // Side-effects inside the try are best-effort.
+  // Reply 200 for everything we have handled, including permanent
+  // rejections — MP retries non-200 for 24 hours. The one deliberate
+  // non-200 is a gateway timeout on the payment lookup: nothing was applied,
+  // so 500 asks MP to redeliver. Side-effects inside the try are best-effort.
+  let auditRow = null
   try {
     const signatureHeader = req.headers["x-signature"]
     const requestId       = req.headers["x-request-id"]
@@ -99,7 +103,6 @@ const webhook = async (req, res) => {
     //    The (paymentGateway, gatewayEventId) unique constraint causes a
     //    P2002 on duplicate deliveries — we treat that as a no-op so MP
     //    retries within the dedup window don't spam the audit log.
-    let auditRow = null
     try {
       auditRow = await prisma.paymentWebhook.create({
         data: {
@@ -284,6 +287,13 @@ const webhook = async (req, res) => {
 
     return res.status(200).json({ received: true })
   } catch (err) {
+    if (isTimeoutError(err)) {
+      // Release the audit row: the redelivery carries the same x-request-id
+      // and would otherwise be dropped as a duplicate before it is processed.
+      if (auditRow?.id) await prisma.paymentWebhook.delete({ where: { id: auditRow.id } }).catch(() => null)
+      logger.error(`[MP webhook] gateway timeout — answering 500 so MP redelivers: ${err.message}`)
+      return res.status(500).json({ received: false, error: "gateway_timeout" })
+    }
     logger.error("[MP webhook] unhandled:", err.message, err.stack?.split("\n")[1])
     return res.status(200).json({ received: true })
   }

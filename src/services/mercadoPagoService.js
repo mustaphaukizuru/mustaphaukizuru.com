@@ -22,6 +22,7 @@ const crypto = require("crypto")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { transitionOrderPayment } = require("./paymentTransitionService")
+const { providerFetch, providerError, isTimeoutError } = require("../lib/providerHttp")
 
 const MP_BASE_URL  = "https://api.mercadopago.com"
 const ACCESS_TOKEN = () => process.env.MP_ACCESS_TOKEN || ""
@@ -169,7 +170,7 @@ async function createMercadoPagoPreference({ orderId, userId = null, isAdmin = f
     metadata: { orderId: order.id },
   }
 
-  const res = await fetch(`${MP_BASE_URL}/checkout/preferences`, {
+  const res = await providerFetch("Mercado Pago", "create preference", `${MP_BASE_URL}/checkout/preferences`, {
     method: "POST",
     headers: {
       Authorization:       `Bearer ${token}`,
@@ -180,10 +181,7 @@ async function createMercadoPagoPreference({ orderId, userId = null, isAdmin = f
     body: JSON.stringify(preference),
   })
 
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`Mercado Pago preference creation failed: ${text}`)
-  }
+  if (!res.ok) throw providerError("Mercado Pago", "create preference", res.status, await res.text())
 
   const data = await res.json()
 
@@ -205,7 +203,7 @@ async function getMercadoPagoPayment(paymentId) {
   const token = ACCESS_TOKEN()
   if (!token || !paymentId) return null
   try {
-    const res = await fetch(`${MP_BASE_URL}/v1/payments/${paymentId}`, {
+    const res = await providerFetch("Mercado Pago", "payment lookup", `${MP_BASE_URL}/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) {
@@ -214,6 +212,9 @@ async function getMercadoPagoPayment(paymentId) {
     }
     return res.json()
   } catch (err) {
+    // A timeout is not "no such payment": let it propagate so the webhook
+    // can answer 500 and Mercado Pago redelivers instead of losing the event.
+    if (isTimeoutError(err)) throw err
     logger.error(`[MP] payment lookup error: ${err.message}`)
     return null
   }
@@ -231,7 +232,7 @@ async function getMercadoPagoChargeback(chargebackId) {
   const token = ACCESS_TOKEN()
   if (!token || !chargebackId) return null
   try {
-    const res = await fetch(`${MP_BASE_URL}/v1/chargebacks/${chargebackId}`, {
+    const res = await providerFetch("Mercado Pago", "chargeback lookup", `${MP_BASE_URL}/v1/chargebacks/${chargebackId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) {
@@ -240,6 +241,7 @@ async function getMercadoPagoChargeback(chargebackId) {
     }
     return res.json()
   } catch (err) {
+    if (isTimeoutError(err)) throw err
     logger.error(`[MP] chargeback lookup error: ${err.message}`)
     return null
   }
@@ -294,7 +296,7 @@ async function refundMercadoPagoPayment({ paymentId, amount, refundId }) {
     ? `refund-${refundId}`
     : `refund-${paymentId}-${amount != null ? Number(amount).toFixed(2) : "full"}`
 
-  const res = await fetch(`${MP_BASE_URL}/v1/payments/${paymentId}/refunds`, {
+  const res = await providerFetch("Mercado Pago", "refund", `${MP_BASE_URL}/v1/payments/${paymentId}/refunds`, {
     method: "POST",
     headers: {
       Authorization:       `Bearer ${token}`,
@@ -303,10 +305,7 @@ async function refundMercadoPagoPayment({ paymentId, amount, refundId }) {
     },
     body: JSON.stringify(body),
   })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`Mercado Pago refund failed: ${text}`)
-  }
+  if (!res.ok) throw providerError("Mercado Pago", "refund", res.status, await res.text())
   return res.json()
 }
 

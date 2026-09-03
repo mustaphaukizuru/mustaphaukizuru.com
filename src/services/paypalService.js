@@ -15,6 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 const logger = require("../utils/logger")
+const { providerFetch, providerError } = require("../lib/providerHttp")
 
 const PAYPAL_BASE_URL      = () => process.env.PAYPAL_BASE_URL || "https://api-m.sandbox.paypal.com"
 const PAYPAL_CLIENT_ID     = () => process.env.PAYPAL_CLIENT_ID
@@ -24,26 +25,36 @@ const PAYPAL_WEBHOOK_ID    = () => process.env.PAYPAL_WEBHOOK_ID
 /* ─────────────────── access token (with 9-minute cache) ────────────────── */
 
 let _tokenCache = { token: null, expiresAt: 0 }
+// The token request in flight, if any. A cold start under load used to
+// issue one /v1/oauth2/token request per concurrent caller — every one of
+// them a miss on the empty cache. They now share the first.
+let _tokenInflight = null
 
 async function getAccessToken({ force = false } = {}) {
   if (!force && _tokenCache.token && Date.now() < _tokenCache.expiresAt) {
     return _tokenCache.token
   }
+  if (!force && _tokenInflight) return _tokenInflight
 
+  const inflight = requestAccessToken().finally(() => {
+    if (_tokenInflight === inflight) _tokenInflight = null
+  })
+  _tokenInflight = inflight
+  return inflight
+}
+
+async function requestAccessToken() {
   const id = PAYPAL_CLIENT_ID()
   const secret = PAYPAL_CLIENT_SECRET()
   if (!id || !secret) throw new Error("PayPal: missing PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET")
 
   const auth = Buffer.from(`${id}:${secret}`).toString("base64")
-  const res = await fetch(`${PAYPAL_BASE_URL()}/v1/oauth2/token`, {
+  const res = await providerFetch("PayPal", "access token", `${PAYPAL_BASE_URL()}/v1/oauth2/token`, {
     method:  "POST",
     headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" },
     body:    "grant_type=client_credentials",
   })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`PayPal: access token failed (${res.status}): ${text}`)
-  }
+  if (!res.ok) throw providerError("PayPal", "access token", res.status, await res.text())
   const data = await res.json()
   _tokenCache = {
     token:     data.access_token,
@@ -55,7 +66,7 @@ async function getAccessToken({ force = false } = {}) {
 
 async function authedFetch(path, options = {}, { retried = false } = {}) {
   const token = await getAccessToken()
-  const res = await fetch(`${PAYPAL_BASE_URL()}${path}`, {
+  const res = await providerFetch("PayPal", `${options.method || "GET"} ${path}`, `${PAYPAL_BASE_URL()}${path}`, {
     ...options,
     headers: {
       Authorization:  `Bearer ${token}`,
@@ -99,10 +110,7 @@ async function createPaypalOrder({ orderId, orderNumber, totalAmount, currency =
     headers: { "PayPal-Request-Id": `order-${orderId}` },     // idempotency
     body:    JSON.stringify(body),
   })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`PayPal: create order failed (${res.status}): ${text}`)
-  }
+  if (!res.ok) throw providerError("PayPal", "create order", res.status, await res.text())
   return res.json()
 }
 
@@ -133,7 +141,7 @@ async function capturePaypalOrder(paypalOrderId) {
       const fallback = await authedFetch(`/v2/checkout/orders/${paypalOrderId}`, { method: "GET" })
       if (fallback.ok) return { ...(await fallback.json()), _idempotent: true }
     }
-    throw new Error(`PayPal: capture failed (${res.status}): ${text}`)
+    throw providerError("PayPal", "capture", res.status, text)
   }
   return res.json()
 }
@@ -162,10 +170,7 @@ async function refundPaypalCapture(captureId, { amount, currency = "MXN", note, 
     headers: { "PayPal-Request-Id": requestId },
     body:    JSON.stringify(body),
   })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`PayPal: refund failed (${res.status}): ${text}`)
-  }
+  if (!res.ok) throw providerError("PayPal", "refund", res.status, await res.text())
   return res.json()
 }
 
