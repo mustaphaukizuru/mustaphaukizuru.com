@@ -82,7 +82,14 @@ export function Image({
     /\.(jpe?g|png)$/i.test(src) &&
     !/^https?:\/\//i.test(src)
 
-  const base    = isLocalRaster ? src.replace(/\.(jpe?g|png)$/i, "") : null
+  // encodeURI, because a srcset is a comma-and-space separated list: a space
+  // inside a filename ("Raindrop (1)-400.webp 400w") makes the descriptor
+  // unparseable, the browser silently drops every candidate, and the page
+  // falls back to the original raster with no error anywhere. Encoding here
+  // means the image converter can never reintroduce that by writing a name
+  // with a space in it. Parentheses are legal in a URL and are left alone.
+  // ogInjector.absoluteUrl already does the same thing server-side.
+  const base    = isLocalRaster ? encodeURI(src.replace(/\.(jpe?g|png)$/i, "")) : null
   const webpSrc = base ? `${base}.webp` : null
   const webpSet =
     srcSetWebp ||

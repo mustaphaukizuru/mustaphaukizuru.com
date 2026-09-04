@@ -4,7 +4,7 @@ import { Link, NavLink, useLocation } from "react-router-dom"
 import { AnimatePresence, m } from "framer-motion"
 import { Menu, X, ShoppingCart } from "lucide-react"
 
-import PrimaryButton from "../ui/PrimaryButton"
+import Button from "../components/ui/Button"
 import { useCart } from "../store/CartContext"
 import { useAuth } from "../context/AuthContext"
 import { useMenu } from "../context/MenuContext"
@@ -229,15 +229,20 @@ function HeaderInner() {
             </Link>
           )}
 
-          {/* Primary CTA, {t("header.exploreStore")} (desktop only) */}
-          <Link
+          {/* Primary CTA (desktop only). One element rather than a Link
+              wrapping a button: the nested pair put two interactive nodes in
+              the tab order with two competing focus rings, and needed three
+              !important overrides to size correctly. The system Button
+              renders as the Link and brings its own ring and ARIA. */}
+          <Button
+            as={Link}
             to="/store"
-            className="hidden rounded-full focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2 lg:inline-flex"
+            variant="primary"
+            size="sm"
+            className="hidden lg:inline-flex"
           >
-            <PrimaryButton className="!h-10 !px-5 !text-[14px]">
-              {t("header.exploreStore")}
-            </PrimaryButton>
-          </Link>
+            {t("header.exploreStore")}
+          </Button>
 
           {/* Language switcher (desktop only) — compact globe dropdown at the
               far-right edge, after the primary CTA. */}

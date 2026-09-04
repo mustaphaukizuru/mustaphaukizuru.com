@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 
 import { Drawer } from "../../components/ui/Drawer"
-import PrimaryButton from "../../ui/PrimaryButton"
+import Button from "../../components/ui/Button"
 import { useAuth } from "../../context/AuthContext"
 import BrandLogo from "../../components/BrandLogo"
 import LanguageSwitcher from "../../components/LanguageSwitcher"
@@ -543,18 +543,25 @@ export default function MobileMenu({ open, onClose }) {
               </Link>
             </m.div>
 
-            {/* 2 · Explore Store · Innovation Gradient (sole conversion CTA) */}
+            {/* 2 · Explore Store · Innovation Gradient (sole conversion CTA)
+                One element, not a Link wrapping a button: the pair meant two
+                nested interactive nodes in the tab order and two competing
+                focus rings, and it needed three !important overrides to look
+                right. The system Button renders as the Link itself, and its
+                lg size is a 52px touch target — comfortably past the 44px
+                minimum the old !min-h-[48px] was reaching for. */}
             <m.div whileTap={reduce ? undefined : { scale: 0.985 }} transition={{ duration: 0.1 }}>
-              <Link
+              <Button
+                as={Link}
                 to="/store"
                 onClick={() => onNavClick("/store")}
-                className="inline-flex w-full rounded-full focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
+                variant="primary"
+                size="lg"
+                fullWidth
+                icon={ShoppingBag}
               >
-                <PrimaryButton className="w-full !min-h-[48px] !text-[14px]">
-                  <ShoppingBag className="mr-1 h-4 w-4" aria-hidden="true" />
-                  {t("header.exploreStore")}
-                </PrimaryButton>
-              </Link>
+                {t("header.exploreStore")}
+              </Button>
             </m.div>
 
             {/* 3 · Languages */}
