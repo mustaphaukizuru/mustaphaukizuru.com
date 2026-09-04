@@ -247,6 +247,18 @@ export default function AdminLayout() {
   // eslint-disable-next-line react-hooks/set-state-in-effect -- close menu on route change
   useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
 
+  // T1-11 · with REQUIRE_ADMIN_2FA on, every admin endpoint answers 403
+  // ADMIN_2FA_REQUIRED until this account enrols. lib/api.js turns that
+  // into one event; enrolment is then the only way forward, which is the
+  // point — the admin console is unusable without it.
+  useEffect(() => {
+    function onRequired() {
+      navigate("/dashboard/2fa?required=1", { replace: true })
+    }
+    window.addEventListener("auth:admin-2fa-required", onRequired)
+    return () => window.removeEventListener("auth:admin-2fa-required", onRequired)
+  }, [navigate])
+
   return (
     // `data-dashboard-shell` scopes dashboard-only dark mode to this
     // subtree (see styles/tokens.css). The admin surface uses the same

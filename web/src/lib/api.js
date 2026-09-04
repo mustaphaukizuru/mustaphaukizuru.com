@@ -217,6 +217,18 @@ function dispatchSessionExpired(detail = {}) {
   }
 }
 
+/**
+ * T1-11 · REQUIRE_ADMIN_2FA is on and this admin has not enrolled. Every
+ * admin endpoint answers 403 ADMIN_2FA_REQUIRED, so the redirect belongs
+ * here rather than in each page: AdminLayout listens and routes to the
+ * enrolment page. The session is still valid — nothing is cleared.
+ */
+function dispatchAdmin2faRequired(detail = {}) {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("auth:admin-2fa-required", { detail }))
+  }
+}
+
 async function parseResponseBody(response) {
   const contentType = response.headers.get("content-type") || ""
 
@@ -360,6 +372,10 @@ async function request(endpoint, options = {}, { requireAuth = false } = {}) {
     if (shouldAutoHandleUnauthorized(status, code)) {
       clearStoredAuth()
       dispatchSessionExpired({ code, status, message: rawMessage })
+    }
+
+    if (status === 403 && code === "ADMIN_2FA_REQUIRED") {
+      dispatchAdmin2faRequired({ code, status, message: rawMessage })
     }
 
     // V2 — every message that escapes to the UI is sanitised.
