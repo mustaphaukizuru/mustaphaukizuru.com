@@ -23,7 +23,15 @@ export default function FinalCta() {
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
                 style={{
-                  backgroundColor: "rgb(var(--color-terracotta-rgb)/0.16)",
+                  // A 16% terracotta tint LIGHTENED the violet band beneath
+                  // it, and the gold measured 3.32:1 on that at 11px
+                  // bold — under the 4.5:1 an 11px bold needs. Filling the
+                  // chip with violet-deep instead keeps the gold (the brand
+                  // signal) and takes it to 5.54:1. Terracotta has no lighter
+                  // sibling to reach for: the scale carries -deep and -800 for
+                  // light grounds only, and washing the gold pale enough to
+                  // clear a mid violet turns it off-white.
+                  backgroundColor: "var(--color-violet-deep)",
                   color: "var(--color-terracotta)",
                   border: "1px solid rgb(var(--color-terracotta-rgb)/0.32)",
                 }}
@@ -52,7 +60,7 @@ export default function FinalCta() {
                 />
                 <div>
                   <p className="text-[13px] font-bold leading-tight text-white">Mustapha Ukizuru</p>
-                  <p className="text-[12px] leading-tight text-white/70">{t("cta.signature")}</p>
+                  <p className="text-[12px] leading-tight text-white/85">{t("cta.signature")}</p>
                 </div>
               </div>
 

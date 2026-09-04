@@ -17,6 +17,13 @@ const PUBLIC_ROUTES = [
   "/about",
   "/services",
   "/services/:slug",
+  // Audience page, not a fifth service category. It was in App.jsx, in the
+  // navbar, in the footer and in sitemap.xml, and missing from this list —
+  // so the server answered 404 for a URL Google is told to index. Clicking
+  // through worked, because React Router never asks the server; typing the
+  // address, reloading the page, or following a shared link did not. Found
+  // by adding /schools to the Lighthouse URL list.
+  "/schools",
   "/self-audit",
   "/contact",
   "/portfolio",

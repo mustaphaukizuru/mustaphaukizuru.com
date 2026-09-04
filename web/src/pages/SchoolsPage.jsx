@@ -154,7 +154,7 @@ export default function SchoolsPage() {
                     </span>
                     <span className="font-mono text-micro uppercase tracking-[0.16em] text-charcoal-80/70">{category.code}</span>
                   </div>
-                  <p className="mt-5 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/60">{pick(category, "name", lang)}</p>
+                  <p className="mt-5 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/75">{pick(category, "name", lang)}</p>
                   <h3 className="mt-1.5 text-subhead font-bold text-violet">{pick(offering, "name", lang)}</h3>
                   <p className="mt-2 text-meta leading-6 text-charcoal-80/75">{t(`outcomes.items.${offering.slug}`)}</p>
                   <Link to={`/services/${category.slug}`} className="mt-auto inline-flex items-center gap-1.5 pt-5 text-sm font-semibold text-violet hover:underline">
@@ -276,7 +276,7 @@ export default function SchoolsPage() {
           <h2 className="mx-auto mt-3 max-w-2xl text-section font-bold">{t("final.title")}</h2>
           <p className="mx-auto mt-3 max-w-xl text-body text-white/80">{t("final.body")}</p>
           <div className="mt-8"><BookCallButton slug={BOOKING_SLUG} tone="white" size="lg" label={t("hero.primaryCta")} /></div>
-          <div className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[13px] text-white/70">
+          <div className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[13px] text-white/85">
             <span>{t("final.otherAudiences")}</span>
             <Link to="/services" className="underline-offset-4 hover:text-white hover:underline">{t("final.businesses")}</Link>
             <Link to="/store" className="underline-offset-4 hover:text-white hover:underline">{t("final.individuals")}</Link>
