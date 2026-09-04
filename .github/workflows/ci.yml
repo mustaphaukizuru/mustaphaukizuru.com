@@ -228,6 +228,15 @@ jobs:
         working-directory: web
         run: npm run test:i18n
 
+      # T3-4 · the frontend unit lane. The Playwright job below answers every
+      # request with page.route(), so it cannot see a bug in the code that
+      # BUILDS a request: the CSRF header, the 401 teardown, the consent
+      # record. Placed before the build so a broken context fails in seconds
+      # instead of after a full bundle.
+      - name: Unit tests (vitest)
+        working-directory: web
+        run: npm run test:unit
+
       # Raw fetch()/axios outside lib/api.js. Warns today (H-11); the step
       # exists so promoting it to an error is a one-line change.
       - name: API discipline
