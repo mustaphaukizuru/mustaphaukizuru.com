@@ -28,7 +28,7 @@ import { LocalizedLink as Link } from "../LocalizedLink"
 import { CATEGORIES, getOfferingBySlug, legacyIdMap, bookHref } from "../../data/servicesCatalogue"
 import { pick, useCatalogueLang } from "../services/localize"
 
-/* ─── Closed-set mapping (Instructions v4.0 § 06) ──────────────────────
+/* ─── Closed-set mapping (Blueprint v4.0 § 06) ──────────────────────
    The audit instrument still carries the retired SKU ids (UKZ-CS-001 …)
    in its item tuples. Nothing rendered to a visitor may show one of
    those ids or imply a service line outside the four categories, so every

@@ -67,7 +67,14 @@ Audiences          (1) Prospective clients evaluating consulting services
 THIS IS THE EXACT STACK — never assume Django, PostgreSQL, GCP, or Stripe.
 
 Backend:      Node.js 22.x + Express.js (src/app.js, src/server.js)
-Frontend:     React 18 + Vite + Tailwind CSS + Framer Motion + Lucide React
+⚠️  AMENDED 4 Sep 2026 (T2-7). The list below is read from package.json, not
+    from memory. What it used to say and no longer does: React 18 (it is 19),
+    "Vite" and "Tailwind CSS" without versions (7 and 4 — Tailwind 4 is a
+    different configuration model, @theme in CSS rather than a JS config), and
+    `axios`, which is not a dependency of web/ at all. Every API call goes
+    through web/src/lib/api.js on the platform fetch.
+
+Frontend:     React 19 + Vite 7 + Tailwind v4 + Framer Motion 12 + Lucide React
 ORM:          Prisma (schema.prisma — MySQL provider)
 Database:     MySQL — hosted on Hostinger
               ⚠️  Use `prisma db push` NOT `prisma migrate dev`
@@ -85,7 +92,7 @@ Compression:  compression middleware (gzip level 6)
 
 Frontend dependencies (confirmed in package.json):
   react-router-dom · framer-motion · lucide-react · tailwindcss ·
-  @tailwindcss/vite · axios · @vitejs/plugin-react
+  @tailwindcss/vite · @vitejs/plugin-react · react-i18next
 
 Brand fonts (load self-hosted .woff2 in production · Google Fonts CDN in dev):
   Sora           — display + body (300 · 400 · 500 · 600 · 700 · 800)
@@ -101,9 +108,9 @@ Brand fonts (load self-hosted .woff2 in production · Google Fonts CDN in dev):
 ═══════════════════════════════════════
 
   ┌─────────────────────────────────────────────────────────────────────┐
-  │                       BROWSER (React 18 SPA)                        │
+  │                       BROWSER (React 19 SPA)                        │
   │  Vite-built bundle · Tailwind tokens · Framer Motion · Lucide       │
-  │  Router: react-router-dom · HTTP: axios via web/src/lib/api.js      │
+  │  Router: react-router-dom 7 · HTTP: fetch via web/src/lib/api.js    │
   │  State: component + CartContext · SEO: Seo.jsx + pageSeo.js         │
   └────────────────────────────────┬────────────────────────────────────┘
                                    │ HTTPS

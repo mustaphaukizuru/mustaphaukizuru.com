@@ -4,7 +4,7 @@
    AUDIENCE page for school leaders — NOT a fifth service category. Every
    offering shown here is resolved from the closed catalogue of four
    (data/servicesCatalogue.js) and links back into /services/:slug.
-   Composition (Instructions v4.0 § 05 — one idea per viewport, every
+   Composition (Blueprint v4.0 § 05 — one idea per viewport, every
    section anchored by a visual, no bullet lists in public copy):
 
      § 01 · Hero — positioning + credential chips + system diagram
@@ -43,7 +43,7 @@ import SchoolSystemDiagram from "../components/schools/SchoolSystemDiagram"
 import SchoolYearTimeline from "../components/schools/SchoolYearTimeline"
 
 /** Booking always enters through S1 — strategy is the diagnostic step of the
- *  client journey (Description v4.0 § 03), and the school lens is applied
+ *  client journey (Blueprint v4.0 § 03), and the school lens is applied
  *  in the call, not in a separate offering. */
 const BOOKING_SLUG = "it-strategy-consulting"
 
