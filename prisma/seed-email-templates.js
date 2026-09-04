@@ -835,6 +835,40 @@ const TEMPLATES = [
       "cart. We send at most one reminder a week.",
     ].join("\n"),
   },
+  // 12b · Offline payment pending (Mercado Pago OXXO cash / SPEI transfer)
+  // Variables: customerName · orderNumber · orderTotal · methodLabel ·
+  //            voucherUrl · expiresAt · orderUrl
+  {
+    key: "order.payment-pending",
+    subject: "Finish your {{methodLabel}} payment for order {{orderNumber}}",
+    html: chrome({
+      preheader: "Your order is reserved — pay the voucher to unlock your downloads.",
+      eyebrow:   "Payment pending",
+      bodyHtml:
+        heading(`One more step, {{customerName}}.`) +
+        paragraph(`Order <strong>{{orderNumber}}</strong> for <strong>{{orderTotal}}</strong> is reserved and waiting for your <strong>{{methodLabel}}</strong> payment through Mercado Pago. Open the voucher below and pay it at any {{methodLabel}} point (or from your banking app for SPEI).`) +
+        button("{{voucherUrl}}", "Open payment voucher") +
+        calloutCard(`The voucher expires on <strong>{{expiresAt}}</strong>. After that the order is released and you would need to check out again.`) +
+        paragraph(`Your downloads unlock the moment Mercado Pago confirms the payment — usually within minutes for SPEI and up to one business day for OXXO. You can follow the order here:`) +
+        button("{{orderUrl}}", "View order status"),
+    }),
+    text: [
+      "One more step, {{customerName}}.",
+      "",
+      "Order {{orderNumber}} for {{orderTotal}} is reserved and waiting for your",
+      "{{methodLabel}} payment through Mercado Pago. Open the voucher and pay it:",
+      "  {{voucherUrl}}",
+      "",
+      "The voucher expires on {{expiresAt}}.",
+      "",
+      "Your downloads unlock the moment Mercado Pago confirms the payment.",
+      "Order status:",
+      "  {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // Variables: customerName · itemCount · firstItem · itemsSummary · cartTotal · cartUrl · couponCode · discountPct · offerExpires
   {
     key: "cart.abandoned-offer",
@@ -1716,6 +1750,37 @@ const TEMPLATES_ES = [
       "",
       "Recibes este correo porque tienes una cuenta y artículos en tu carrito.",
       "Enviamos como máximo un recordatorio por semana.",
+    ].join("\n"),
+  },
+  // order.payment-pending (OXXO / SPEI)
+  {
+    key: "order.payment-pending",
+    subject: "Completa tu pago {{methodLabel}} del pedido {{orderNumber}}",
+    html: chrome({
+      preheader: "Tu pedido está reservado — paga la ficha para desbloquear tus descargas.",
+      eyebrow:   "Pago pendiente",
+      bodyHtml:
+        heading(`Falta un paso, {{customerName}}.`) +
+        paragraph(`El pedido <strong>{{orderNumber}}</strong> por <strong>{{orderTotal}}</strong> está reservado y espera tu pago por <strong>{{methodLabel}}</strong> a través de Mercado Pago. Abre la ficha de pago y págala en cualquier punto {{methodLabel}} (o desde tu app bancaria si es SPEI).`) +
+        button("{{voucherUrl}}", "Ver ficha de pago") +
+        calloutCard(`La ficha vence el <strong>{{expiresAt}}</strong>. Después de esa fecha el pedido se libera y tendrías que volver a comprar.`) +
+        paragraph(`Tus descargas se desbloquean en cuanto Mercado Pago confirme el pago — normalmente en minutos para SPEI y hasta un día hábil para OXXO. Puedes seguir el pedido aquí:`) +
+        button("{{orderUrl}}", "Ver estado del pedido"),
+    }),
+    text: [
+      "Falta un paso, {{customerName}}.",
+      "",
+      "El pedido {{orderNumber}} por {{orderTotal}} está reservado y espera tu pago",
+      "por {{methodLabel}} a través de Mercado Pago. Abre la ficha y págala:",
+      "  {{voucherUrl}}",
+      "",
+      "La ficha vence el {{expiresAt}}.",
+      "",
+      "Tus descargas se desbloquean en cuanto Mercado Pago confirme el pago.",
+      "Estado del pedido:",
+      "  {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),
   },
   {

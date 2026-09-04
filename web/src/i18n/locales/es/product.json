@@ -141,6 +141,7 @@
     "securePayment": "Pago seguro vía Mercado Pago o PayPal. Los datos de tu tarjeta nunca pasan por nuestros servidores.",
     "decreaseQty": "Disminuir cantidad",
     "increaseQty": "Aumentar cantidad",
+    "msi": "Hasta {{months}} MSI con Mercado Pago",
     "licenseTier": "Licencia",
     "licenseTierAria": "Elige un nivel de licencia",
     "seats_one": "{{count}} puesto",

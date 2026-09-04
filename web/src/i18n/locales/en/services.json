@@ -69,7 +69,8 @@
     },
     "plan": {
       "mostPopular": "Most popular",
-      "includedTitle": "What's included"
+      "includedTitle": "What's included",
+      "msi": "Up to {{months}} interest-free months with Mercado Pago"
     },
     "form": {
       "title": "Your details",

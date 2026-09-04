@@ -1,0 +1,1 @@
+function i(e,r){const n=Number(e);return e!=null&&e!==""&&Number.isFinite(n)&&n>0?n:r}const t=i(void 0,1500),u=i(void 0,12);function s(e,r="MXN"){const n=Number(e);return!Number.isFinite(n)||String(r||"MXN").toUpperCase()!=="MXN"?!1:n>=t}export{u as M,s as q};

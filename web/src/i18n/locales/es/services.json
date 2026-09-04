@@ -69,7 +69,8 @@
     },
     "plan": {
       "mostPopular": "Más popular",
-      "includedTitle": "Qué incluye"
+      "includedTitle": "Qué incluye",
+      "msi": "Hasta {{months}} MSI con Mercado Pago"
     },
     "form": {
       "title": "Tus datos",

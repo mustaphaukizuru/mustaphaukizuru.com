@@ -17,6 +17,7 @@ const { findOrCreateUserForCheckout } = require("../services/authService")
 const { sendTemplateEmail } = require("../services/emailService")
 
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
+const { parsePendingPaymentDetails } = require("../services/mercadoPagoService")
 /**
  * POST /api/orders — soft-auth route. Works for:
  *   1. Signed-in users  → uses req.user.id (existing behaviour)
@@ -244,13 +245,24 @@ const getOrderStatus = asyncHandler(async (req, res) => {
   const { id } = req.params
   const order = await prisma.order.findUnique({
     where:  { id },
-    select: { id: true, orderNumber: true, status: true, paidAt: true, userId: true },
+    select: {
+      id: true, orderNumber: true, status: true, paidAt: true, userId: true,
+      payments: {
+        orderBy: { createdAt: "desc" },
+        take:    1,
+        select:  { paymentStatus: true, failureReason: true },
+      },
+    },
   })
   if (!order) {
     return res.status(404).json({ success: false, code: "NOT_FOUND", message: "Order not found" })
   }
   const isAdmin = req.user?.role === "admin"
   const isOwner = Boolean(order.userId && req.user?.id === order.userId)
+  // OXXO / SPEI: the buyer still has to pay a voucher. Surface it so the
+  // success page can link to it — the voucher URL is Mercado Pago's own
+  // public ficha (the same link MP shows the buyer and we email them).
+  const payment = order.status === "pending" ? parsePendingPaymentDetails(order.payments?.[0]) : null
   return res.status(200).json({
     success: true,
     data: {
@@ -258,6 +270,7 @@ const getOrderStatus = asyncHandler(async (req, res) => {
       orderNumber:  order.orderNumber,
       status:       order.status,
       paidAt:       order.paidAt,
+      payment,
       // Tells the client whether the enriched order (and downloads) can be
       // fetched with the current session, or whether it must show the
       // "claim your account" state instead.

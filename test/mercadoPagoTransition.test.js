@@ -300,6 +300,73 @@ describe("markOrderPaidByMP — idempotency + state-regression guard", () => {
     expect(prisma.__tx.order.update).not.toHaveBeenCalled()
   })
 
+  test("pending OXXO ticket: order stays pending, voucher persisted on the Payment row", async () => {
+    prisma.__tx.order.findUnique.mockResolvedValueOnce(buildCurrentOrder())
+    prisma.__tx.order.update.mockResolvedValueOnce(buildPaidOrderWithItems({ status: "pending" }))
+
+    const payload = {
+      status: "pending", payment_type_id: "ticket", payment_method_id: "oxxo",
+      date_of_expiration: "2026-08-29T10:00:00.000-06:00",
+      transaction_details: { external_resource_url: "https://www.mercadopago.com.mx/payments/9/ticket" },
+    }
+    const result = await markOrderPaidByMP({
+      orderId: "order_1", paymentId: "MP-PAY-OXXO", status: "pending", payload,
+      gatewayAmount: "129.00", gatewayCurrency: "MXN",
+    })
+
+    expect(result.isFirstTransition).toBe(true)
+    expect(result.isFirstPaid).toBe(false)
+    expect(result.pendingDetails).toEqual({
+      type: "ticket", methodId: "oxxo",
+      voucherUrl: "https://www.mercadopago.com.mx/payments/9/ticket",
+      expiresAt:  "2026-08-29T10:00:00.000-06:00",
+    })
+    expect(prisma.__tx.order.update.mock.calls[0][0].data).toMatchObject({ status: "pending", paidAt: null })
+    const row = prisma.__tx.payment.create.mock.calls[0][0].data
+    expect(row.paymentStatus).toBe("pending")
+    expect(JSON.parse(row.failureReason)).toMatchObject({ kind: "offline_pending", type: "ticket", methodId: "oxxo" })
+  })
+
+  test("pending card payment (no voucher) stores nothing extra", async () => {
+    prisma.__tx.order.findUnique.mockResolvedValueOnce(buildCurrentOrder())
+    prisma.__tx.order.update.mockResolvedValueOnce(buildPaidOrderWithItems({ status: "pending" }))
+
+    const result = await markOrderPaidByMP({
+      orderId: "order_1", paymentId: "MP-PAY-CARD", status: "in_process",
+      payload: { status: "in_process", payment_type_id: "credit_card" },
+      gatewayAmount: "129.00", gatewayCurrency: "MXN",
+    })
+
+    expect(result.pendingDetails).toBeNull()
+    expect(prisma.__tx.payment.create.mock.calls[0][0].data.failureReason).toBeNull()
+  })
+
+  test("later approved webhook for the same OXXO payment flips the order to paid (isFirstPaid) and clears the voucher", async () => {
+    prisma.__tx.payment.findFirst.mockResolvedValue({ id: "pay_1", paymentStatus: "pending", orderId: "order_1" })
+    prisma.$transaction.mockImplementationOnce(async (cb) => {
+      prisma.__tx.payment.findFirst.mockResolvedValueOnce({ id: "pay_1", paymentStatus: "pending", orderId: "order_1" })
+      prisma.__tx.payment.update.mockResolvedValueOnce({})
+      prisma.__tx.order.findUnique.mockResolvedValueOnce(buildCurrentOrder({ status: "pending" }))
+      prisma.__tx.order.update.mockResolvedValueOnce(buildPaidOrderWithItems())
+      return cb(prisma.__tx)
+    })
+
+    const result = await markOrderPaidByMP({
+      orderId: "order_1", paymentId: "MP-PAY-OXXO", status: "approved",
+      payload: { status: "approved", payment_type_id: "ticket" },
+      gatewayAmount: "129.00", gatewayCurrency: "MXN",
+    })
+
+    expect(result.isFirstTransition).toBe(false)   // Payment row pre-existed
+    expect(result.isFirstPaid).toBe(true)          // but the order flipped now
+    expect(result.pendingDetails).toBeNull()
+    expect(prisma.__tx.order.update.mock.calls[0][0].data.status).toBe("paid")
+    const update = prisma.__tx.payment.update.mock.calls[0][0]
+    expect(update.where).toEqual({ id: "pay_1" })
+    expect(update.data).toMatchObject({ paymentStatus: "paid", failureReason: null })
+    expect(prisma.__tx.payment.create).not.toHaveBeenCalled()
+  })
+
   test("throws ORDER_NOT_FOUND when the orderId doesn't exist", async () => {
     prisma.__tx.order.findUnique.mockResolvedValueOnce(null)
 

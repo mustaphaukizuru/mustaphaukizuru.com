@@ -5,10 +5,11 @@ import { m } from "framer-motion"
 import {
   Download, LayoutDashboard, ArrowRight, Mail, ShoppingBag, Package, Shield,
   Clock3, AlertCircle, Loader2, FileDown, FileText, Check, RefreshCw, KeyRound, LogIn,
+  ExternalLink, Receipt,
 } from "lucide-react"
 import { useCart } from "../store/CartContext"
 import { apiRequest, getStoredUser } from "../lib/api"
-import { formatPrice } from "../lib/format"
+import { formatPrice, formatDateTime } from "../lib/format"
 import { fetchMyOrderById } from "../services/orderService"
 import { trackPurchase } from "../lib/analytics"
 import Related from "../components/product/Related"
@@ -249,6 +250,11 @@ export default function CheckoutSuccessPage() {
   const isPending = phase === "pending"
   const isTimeout = phase === "timeout"
   const isPaid = phase === "paid"
+  // OXXO / SPEI: the probe exposes the voucher the buyer still has to pay.
+  // "Pending" then means "waiting on the buyer", not "waiting on the gateway".
+  const offlinePayment = (isPending || isTimeout) && probe?.payment?.type ? probe.payment : null
+  const offlineIsTransfer = offlinePayment?.type === "bank_transfer"
+  const offlineExpiry = offlinePayment?.expiresAt ? formatDateTime(offlinePayment.expiresAt) : ""
   const orderRef = formatOrderRef({ order, probe, fallbackId: orderId })
   const currency = order?.currency || "MXN"
   const items = Array.isArray(order?.items) ? order.items : []
@@ -282,7 +288,9 @@ export default function CheckoutSuccessPage() {
             </div>
           ) : isPending || isTimeout ? (
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-amber shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-              {isPending ? <Loader2 className="h-12 w-12 animate-spin text-white" aria-hidden="true" /> : <Clock3 className="h-12 w-12 text-white" aria-hidden="true" />}
+              {offlinePayment ? <Receipt className="h-12 w-12 text-white" aria-hidden="true" />
+                : isPending ? <Loader2 className="h-12 w-12 animate-spin text-white" aria-hidden="true" />
+                : <Clock3 className="h-12 w-12 text-white" aria-hidden="true" />}
             </div>
           ) : (
             <SuccessCheck size={96} label={t("success.successAria")} />
@@ -292,12 +300,14 @@ export default function CheckoutSuccessPage() {
         <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }}>
           <h1 className="mt-6 text-page font-bold text-white">
             {isFailed ? t("success.failedTitle", "Payment Failed")
+              : offlinePayment ? t("success.paymentPendingTitle")
               : isPending ? t("success.confirming", "Confirming Payment…")
               : isTimeout ? t("success.pendingTimeoutTitle")
               : t("success.title", "Thank you!")}
           </h1>
           <p className="mt-2 text-body text-white/70">
             {isFailed ? t("success.failedSubtitle", "Your payment could not be processed. Please try again.")
+              : offlinePayment ? (offlineIsTransfer ? t("success.paymentPendingSubtitleTransfer") : t("success.paymentPendingSubtitleCash"))
               : isPending ? t("success.confirmingSubtitle", "Waiting for payment confirmation. This takes a moment…")
               : isTimeout ? t("success.pendingTimeoutSubtitle")
               : orderRef ? (
@@ -328,6 +338,45 @@ export default function CheckoutSuccessPage() {
                 {t("success.backToStore")}
               </Link>
             </m.div>
+          </m.div>
+        ) : offlinePayment ? (
+          <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">
+            <m.div variants={fadeUp} className="w-full max-w-md rounded-xl border border-amber/20 bg-amber/8 p-6 text-meta text-charcoal-80/75">
+              <Receipt className="mx-auto mb-3 h-8 w-8 text-amber" aria-hidden="true" />
+              <p>{offlineIsTransfer ? t("success.paymentPendingBodyTransfer") : t("success.paymentPendingBodyCash")}</p>
+              {offlineExpiry && (
+                <p className="mt-3 font-mono text-micro tabular-nums text-charcoal-80/65">
+                  {t("success.voucherExpires", { date: offlineExpiry })}
+                </p>
+              )}
+              {orderRef && <div className="mt-2 font-mono text-micro tabular-nums text-charcoal-80/65">{orderRef}</div>}
+            </m.div>
+            <m.div variants={fadeUp} className="flex flex-col gap-3 sm:flex-row">
+              {offlinePayment.voucherUrl && (
+                <a
+                  href={offlinePayment.voucherUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-violet px-6 py-3.5 text-meta font-semibold text-white transition hover:bg-violet-deep focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+                >
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                  {offlineIsTransfer ? t("success.openTransferDetails") : t("success.openVoucher")}
+                </a>
+              )}
+              {isTimeout && (
+                <button
+                  type="button"
+                  onClick={() => { setPollCount(0); setPhase("pending") }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet/20 px-6 py-3.5 text-meta font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40 focus-visible:ring-offset-2"
+                >
+                  <RefreshCw className="h-4 w-4" aria-hidden="true" /> {t("success.checkAgain")}
+                </button>
+              )}
+            </m.div>
+            <m.p variants={fadeUp} className="flex items-center gap-2 text-micro text-charcoal-80/65">
+              {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
+              {t("success.paymentPendingAutoUpdate")}
+            </m.p>
           </m.div>
         ) : isPending ? (
           <m.div variants={stagger} initial="hidden" animate="show" className="flex flex-col items-center gap-5 text-center">

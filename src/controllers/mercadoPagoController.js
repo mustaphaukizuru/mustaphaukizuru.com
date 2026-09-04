@@ -155,7 +155,7 @@ const webhook = async (req, res) => {
     //    can validate against our local total and refuse to mark paid on
     //    a mismatch. The destructure also picks up any amountMismatch
     //    returned by the service.
-    const { order, isFirstPaid, amountMismatch } = await markOrderPaidByMP({
+    const { order, isFirstTransition, isFirstPaid, amountMismatch, pendingDetails } = await markOrderPaidByMP({
       orderId,
       paymentId,
       status:           mpPayment.status,
@@ -179,7 +179,40 @@ const webhook = async (req, res) => {
       return res.status(200).json({ received: true, error: "amount_mismatch" })
     }
 
-    // 5. Fire side-effects ONLY when the order flipped to paid in this call.
+    // 4b. Offline payment (OXXO ticket / SPEI transfer) still waiting for the
+    //     buyer. The order stays `pending`; hand the voucher to the customer
+    //     once per payment. Dedupe = "this gateway tx id was just created":
+    //     MP redelivers the pending event for 24 h and each redelivery finds
+    //     the existing Payment row, so isFirstTransition is false.
+    if (pendingDetails && isFirstTransition) {
+      const expiresAt = pendingDetails.expiresAt ? new Date(pendingDetails.expiresAt) : null
+      sendTemplateEmail({
+        locale:      resolveUserLocale({ req }),
+        to:          order.customerEmail || order.billingEmail,
+        templateKey: "order.payment-pending",
+        userId:      order.userId,
+        variables: {
+          customerName: order.customerName?.split(" ")[0] || "there",
+          orderNumber:  order.orderNumber,
+          orderTotal:   formatMoney(order.totalAmount, order.currency),
+          methodLabel:  pendingDetails.type === "bank_transfer" ? "SPEI" : "OXXO",
+          voucherUrl:   pendingDetails.voucherUrl || `${(process.env.FRONTEND_URL || "").replace(/\/$/, "")}/checkout/success/${order.id}?gateway=mercadopago&pending=true`,
+          expiresAt:    expiresAt && !Number.isNaN(expiresAt.getTime()) ? expiresAt.toUTCString() : "",
+          orderUrl:     `${(process.env.FRONTEND_URL || "").replace(/\/$/, "")}/dashboard/orders/${order.id}`,
+        },
+      }).catch((e) => logger.error("[MP webhook] order.payment-pending email:", e.message))
+
+      recordOrderEvent({
+        orderId:     order.id,
+        userId:      order.userId,
+        action:      "order.payment_pending",
+        description: `Awaiting ${pendingDetails.type === "bank_transfer" ? "SPEI transfer" : "OXXO cash"} via Mercado Pago (tx ${paymentId})`,
+      }).catch(() => null)
+    }
+
+    // 5. Fire side-effects ONLY when the order actually flips to paid. This
+    //    is isFirstPaid, not isFirstTransition — for an OXXO / SPEI payment
+    //    the Payment row already exists from the pending webhook.
     if (mpPayment.status === "approved" && isFirstPaid) {
       // PDF receipt — attached to the email. Generated in-memory; if it
       // fails we still send the email without an attachment rather than

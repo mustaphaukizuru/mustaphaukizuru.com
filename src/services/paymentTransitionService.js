@@ -13,8 +13,7 @@
  *      Order here either (refund bookkeeping is owned by refundService).
  *   3. Idempotent Payment upsert keyed on [paymentGateway, gatewayTransactionId].
  *   4. Optional `onFirstPaid(order)` hook fired AFTER the transaction commits,
- *      only when the ORDER flipped to paid in this call (`isFirstPaid`) —
- *      never again for a second capture id on an already-paid order.
+ *      only on the first transition to paid (entitlement fulfilment).
  */
 
 const prisma   = require("../lib/prisma")
@@ -72,6 +71,12 @@ function checkAmount(current, gatewayAmount, gatewayCurrency) {
  * @param {*}      [args.gatewayAmount]
  * @param {string} [args.gatewayCurrency]
  * @param {string} [args.failureReason]    stored on the Payment when failed
+ * @param {object} [args.pendingDetails]   offline-voucher descriptor
+ *        ({ type, methodId, voucherUrl, expiresAt }) stored on the Payment
+ *        when pending. Payment has no Json column and adding one means a
+ *        schema push on production, so it is JSON-encoded into the nullable
+ *        `failureReason` text column tagged `kind: "offline_pending"`; it is
+ *        cleared again on every non-pending transition.
  * @param {(order) => any} [args.onFirstPaid]
  */
 async function transitionOrderPayment({
@@ -83,6 +88,7 @@ async function transitionOrderPayment({
   gatewayAmount,
   gatewayCurrency,
   failureReason = null,
+  pendingDetails = null,
   onFirstPaid,
 }) {
   if (!PAYMENT_STATUS_FOR[targetStatus]) {
@@ -129,7 +135,10 @@ async function transitionOrderPayment({
       currency:             ccy(order.currency),
       paymentStatus:        PAYMENT_STATUS_FOR[targetStatus],
       paidAt:               targetStatus === "paid" ? new Date() : null,
-      failureReason:        targetStatus === "failed" ? (failureReason || null) : null,
+      failureReason:
+        targetStatus === "failed"                    ? (failureReason || null)
+        : targetStatus === "pending" && pendingDetails ? JSON.stringify({ kind: "offline_pending", ...pendingDetails })
+        : null,
     }
 
     if (existing) {
@@ -139,15 +148,11 @@ async function transitionOrderPayment({
     }
 
     // isFirstTransition: first time this gateway tx id was seen (Payment row
-    //   created) — the dedupe key for per-payment side effects.
-    // isFirstPaid: the Order actually flipped to paid in THIS call. This is
-    //   what order-level side effects (confirmation email, fulfilment) must
-    //   key on. A brand-new capture id on an already-paid order (PayPal
-    //   re-capture, duplicate MP charge, manual mark-paid then a late
-    //   webhook) is a first transition but NOT a first paid — it used to
-    //   re-send the email and re-run fulfilment. Conversely an OXXO/SPEI
-    //   payment creates its row while pending, so its later approval is a
-    //   first paid but not a first transition.
+    //   created) — the dedupe key for per-payment side effects such as the
+    //   pending-voucher email.
+    // isFirstPaid: the Order actually flipped to paid in THIS call. Differs
+    //   from isFirstTransition for OXXO / SPEI, where the pending webhook
+    //   creates the Payment row hours before the approved one arrives.
     return {
       order,
       isFirstTransition: !existing,
