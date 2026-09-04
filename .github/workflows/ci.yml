@@ -239,10 +239,17 @@ jobs:
       - name: Run Lighthouse CI (${{ matrix.name }})
         run: lhci autorun --config=${{ matrix.config }}
 
+      # include-hidden-files is REQUIRED here. upload-artifact@v4 skips hidden
+      # paths by default, and `.lighthouseci` is a dotfile directory — so this
+      # step has silently uploaded nothing since the v4 bump, logging only
+      # "No files were found with the provided path". Every Lighthouse failure
+      # since then has been undebuggable from CI: you get a score in the log
+      # and no report saying which audit lost the points.
       - name: Upload Lighthouse report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lhci-${{ matrix.name }}
           path: .lighthouseci
+          include-hidden-files: true
           retention-days: 7
