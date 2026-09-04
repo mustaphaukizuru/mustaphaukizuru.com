@@ -77,10 +77,19 @@ const STORAGE_PATHS = Object.freeze({
   cv:          path.join(STORAGE_BASE, "cv"),
 })
 
+/**
+ * Written by scripts/prisma-generate.js when `prisma generate` fails during
+ * install, deleted when it succeeds. /api/health reports `prismaGenerate:
+ * "stale"` while it exists, so a host that could not reach Prisma's binary
+ * CDN is visible to the uptime probe instead of running on a client that
+ * no longer matches the schema.
+ */
+const GENERATE_FAILED_MARKER = path.join(STORAGE_PATHS.logs, "prisma-generate.failed")
+
 /** Create a storage directory on demand. Idempotent; safe to call per write. */
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true })
   return dir
 }
 
-module.exports = { STORAGE_PATHS, ensureDir, resolveStorageBase, findHbuildsDir }
+module.exports = { STORAGE_PATHS, GENERATE_FAILED_MARKER, ensureDir, resolveStorageBase, findHbuildsDir }

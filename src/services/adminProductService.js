@@ -71,24 +71,25 @@ function sanitizeProductFaqs(value) {
   return cleaned.length > 0 ? cleaned : null
 }
 
-/** Step 42 · admin list shows soft-deleted rows too, flagged `isDeleted`. */
+/**
+ * Step 42 · admin list shows soft-deleted rows too, flagged `isDeleted`.
+ * T1-4 · the list carried every image, feature and file row per product;
+ * AdminProductsPage renders the scalar columns, the files list and counts.
+ * Images and features are fetched by the editor for one product.
+ */
 async function getAdminProducts() {
   const rows = await prisma.product.findMany({
     include: {
-      images: {
-        orderBy: { sortOrder: "asc" },
-      },
       files: {
         orderBy: { isPrimary: "desc" },
+        select: { id: true, fileName: true, fileSize: true, version: true, isPrimary: true, mimeType: true },
       },
-      features: {
-        orderBy: { sortOrder: "asc" },
-      },
+      _count: { select: { images: true, features: true, files: true } },
     },
     orderBy: { createdAt: "desc" },
     take: 200,
   })
-  return rows.map((p) => ({ ...p, isDeleted: p.deletedAt != null }))
+  return rows.map((p) => ({ ...p, isDeleted: p.deletedAt != null, imageCount: p._count?.images ?? 0, featureCount: p._count?.features ?? 0 }))
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -522,13 +523,14 @@ async function removeProductImage(productId, imageId) {
   const remaining = await prisma.productImage.findMany({
     where: { productId },
     orderBy: { sortOrder: "asc" },
+    select: { id: true },
   })
 
-  for (let i = 0; i < remaining.length; i += 1) {
-    await prisma.productImage.update({
-      where: { id: remaining[i].id },
-      data: { sortOrder: i },
-    })
+  // One transaction for the resequence instead of N awaited updates (T1-4).
+  if (remaining.length > 0) {
+    await prisma.$transaction(
+      remaining.map((img, i) => prisma.productImage.update({ where: { id: img.id }, data: { sortOrder: i } })),
+    )
   }
 
   return true

@@ -86,14 +86,24 @@
       "!src/lib/prisma.js"
     ],
     "coverageDirectory": "<rootDir>/coverage",
+    "coverageReporters": ["text-summary", "lcov", "json-summary"],
     "verbose": true,
     "coverageThreshold": {
       "global": {
-        "lines": 44,
-        "statements": 41,
-        "branches": 26,
-        "functions": 27
-      }
+        "lines": 57,
+        "statements": 55,
+        "branches": 40,
+        "functions": 46
+      },
+      "./src/services/adminOrderService.js": { "lines": 60 },
+      "./src/services/paypalService.js": { "lines": 60 },
+      "./src/services/refundService.js": { "lines": 60 },
+      "./src/services/mercadoPagoService.js": { "lines": 60 },
+      "./src/services/paymentTransitionService.js": { "lines": 60 },
+      "./src/lib/providerHttp.js": { "lines": 60 },
+      "./src/services/invoiceService.js": { "lines": 19 },
+      "./src/controllers/refundController.js": { "lines": 34 },
+      "./src/controllers/downloadController.js": { "lines": 15 }
     },
     "globalSetup": "<rootDir>/test/helpers/ensureIndexHtml.js",
     "globalTeardown": "<rootDir>/test/helpers/globalTeardown.js"

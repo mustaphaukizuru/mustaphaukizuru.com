@@ -84,28 +84,26 @@ async function fulfillOrder(orderId) {
       return { ok: true, entitlements: 0, invoice, error: "Guest order — no entitlements created" }
     }
 
-    // 1 · Create UserDownload rows — one per product-type OrderItem.
+    // 1 · Create UserDownload rows — one per product-type OrderItem, in ONE
+    //     write (T1-4). `skipDuplicates` keeps the idempotency the per-row
+    //     P2002 swallow used to provide: an item already fulfilled is skipped
+    //     and not counted. Leave downloadLimit null → unlimited per
+    //     entitlement; the per-user cap is ProductFile.maxDownloadsPerUser.
     let entitlementCount = 0
-    for (const item of order.items || []) {
-      if (item.itemType !== "product" || !item.productId) continue
-
+    const entitlementRows = (order.items || [])
+      .filter((item) => item.itemType === "product" && item.productId)
+      .map((item) => ({
+        userId:      order.userId,
+        productId:   item.productId,
+        orderId:     order.id,
+        orderItemId: item.id,
+      }))
+    if (entitlementRows.length > 0) {
       try {
-        await prisma.userDownload.create({
-          data: {
-            userId:      order.userId,
-            productId:   item.productId,
-            orderId:     order.id,
-            orderItemId: item.id,
-            // Leave downloadLimit null → unlimited per entitlement by default.
-            // Per-download-per-user cap is enforced via ProductFile.maxDownloadsPerUser.
-          },
-        })
-        entitlementCount++
+        const created = await prisma.userDownload.createMany({ data: entitlementRows, skipDuplicates: true })
+        entitlementCount = created?.count ?? 0
       } catch (err) {
-        // P2002 = unique-constraint violation — already fulfilled, skip silently.
-        if (err?.code !== "P2002") {
-          console.error(`[fulfillOrder] entitlement failed for item ${item.id}:`, err.message)
-        }
+        console.error(`[fulfillOrder] entitlements failed for order ${order.id}:`, err.message)
       }
     }
 

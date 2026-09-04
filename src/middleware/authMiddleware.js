@@ -122,12 +122,28 @@ async function protect(req, res, next) {
 // ─────────────────────────────────────────────────────────────────────────────
 // adminOnly — must come after protect
 // ─────────────────────────────────────────────────────────────────────────────
-function adminOnly(req, res, next) {
+async function adminOnly(req, res, next) {
   if (!req.user) {
     return res.status(401).json({ success: false, code: "AUTH_MISSING", message: "Not authenticated" })
   }
   if (req.user.role !== "admin") {
     return res.status(403).json({ success: false, code: "FORBIDDEN", message: "Admin access required" })
+  }
+  // T1-11 · REQUIRE_ADMIN_2FA=1: an admin session without an enabled TOTP
+  // is refused on every admin route with a code the SPA turns into the
+  // enrolment page. Ship with the flag off, enrol, then flip it on the host.
+  // No crypto here — twoFactorService owns TOTP, replay and backup codes;
+  // this is only the gate. Lazy require: the service is not needed on any
+  // other request and must never be a load-order concern for this file.
+  if (process.env.REQUIRE_ADMIN_2FA === "1") {
+    const { isEnabledForUser } = require("../services/twoFactorService")
+    if (!(await isEnabledForUser(req.user.id))) {
+      return res.status(403).json({
+        success: false,
+        code:    "ADMIN_2FA_REQUIRED",
+        message: "Two-factor authentication is required for admin access. Enrol at /dashboard/2fa.",
+      })
+    }
   }
   next()
 }

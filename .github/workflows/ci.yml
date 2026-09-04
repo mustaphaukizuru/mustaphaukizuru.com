@@ -3,8 +3,13 @@
 # v2.1 · 2026-08-24 · backend tests · frontend lint + build · Lighthouse CI
 #
 # Gates:
-#   - Backend: npm ci → prisma generate → audit gate (backend + web, moderate+) → npm test
-#   - Frontend: npm ci → npm run lint → npm run build (emits to repo-root public/)
+#   - Backend: npm ci → prisma generate → audit gate (backend + web, moderate+)
+#     → structure guard → jest WITH coverage (thresholds in package.json)
+#   - Schema (pull requests): the base branch's schema is pushed to a MySQL
+#     service container, then scripts/check-db-drift.js runs against the PR's
+#     schema — a column the PR drops or renames is "drift" and fails the job,
+#     which is the same check deploy.sh runs before `db push` on the host.
+#   - Frontend: npm ci → gates → lint → i18n parity → build (emits to public/)
 #   - E2E: Playwright drives the built SPA through store → cart → checkout →
 #     success with the API stubbed at the network layer (web/e2e).
 #   - Lighthouse: `lhci autorun` against the built public/ dir, desktop
@@ -71,17 +76,93 @@ jobs:
       - name: Audit dependencies (backend + web)
         run: node scripts/audit-gate.js
 
-      # `npm test` is bare jest, and jest only enforces coverageThreshold when
-      # it is run with --coverage. So the 44/41/26/27 gate in package.json has
-      # never once been evaluated in CI: the thresholds were decorative and
-      # coverage could rot to zero without turning the build red. Measured at
-      # the time of the switch: statements 56.9%, branches 41.9%, functions
-      # 48.2% — comfortably clear, so this goes green immediately and holds the
-      # line from here.
+      # Duplicate-directory guard. Existed with zero callers.
+      - name: Structure guard
+        run: npm run lint:structure
+
+      # Both sides of this merge reached the same conclusion independently:
+      # `npm test` is bare jest, and jest only enforces coverageThreshold under
+      # --coverage, so the 44/41/26/27 gate in package.json had never once been
+      # evaluated in CI. It was decorative, and coverage could rot to zero
+      # without turning the build red. Measured at the switch: statements
+      # 56.9%, branches 41.9%, functions 48.2% — comfortably clear. This branch
+      # additionally ratchets per-path thresholds over the money paths.
       - name: Run backend tests (with coverage gate)
         run: npm run test:coverage
         env:
           NODE_ENV: test
+
+      - name: Upload coverage summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-summary
+          path: coverage/coverage-summary.json
+          retention-days: 7
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Schema — drift gate on pull requests. Hostinger MySQL has no shadow DB and
+  # the project uses `db push`, which silently DROPS anything the schema no
+  # longer declares. This job pushes the BASE branch's schema to a throwaway
+  # MySQL, then runs the same drift check deploy.sh runs, against the PR's
+  # schema. Exit 2 = a table or column would be dropped = red.
+  # ────────────────────────────────────────────────────────────────────────────
+  schema:
+    name: Schema (drift gate vs ${{ github.base_ref }})
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      # 127.0.0.1 is on guard-prod-db.js's local allowlist, so every guarded
+      # script treats this database as what it is: disposable.
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/ci
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client (PR schema)
+        run: npx prisma generate
+
+      - name: Push the base branch's schema
+        run: |
+          git show "origin/${{ github.base_ref }}:prisma/schema.prisma" > /tmp/base.prisma
+          npx prisma db push --schema /tmp/base.prisma --skip-generate --accept-data-loss
+
+      # Exit 2 on drift, by design (scripts/check-db-drift.js).
+      - name: Drift check (base database vs PR schema)
+        run: node scripts/check-db-drift.js
+
+      - name: Push the PR schema
+        run: npx prisma db push --skip-generate
+
+      # Query plans on an empty database are not the production plans; this
+      # is advisory until the seeded `real` lane (T3-4) gives it rows.
+      - name: Explain hot queries (advisory)
+        continue-on-error: true
+        run: node scripts/explain-hot-queries.js
 
   # ────────────────────────────────────────────────────────────────────────────
   # Frontend — install + lint + production build (Vite)
@@ -91,6 +172,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # check-bundle-fresh.sh compares commit ancestry.
+          fetch-depth: 0
+
+      # The bundle under public/ is committed (ADR 0001). A web/src change
+      # whose last commit is newer than the bundle's last commit is a change
+      # that will not ship — fail here, not in production.
+      - name: Bundle freshness (public/ vs web/src)
+        run: bash scripts/check-bundle-fresh.sh
 
       - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -131,6 +221,17 @@ jobs:
       - name: Lint
         working-directory: web
         run: npm run lint
+
+      # Locale key parity (en ↔ es) and the shared I18N flag polarity. Had
+      # zero callers in CI.
+      - name: i18n parity
+        working-directory: web
+        run: npm run test:i18n
+
+      # Raw fetch()/axios outside lib/api.js. Warns today (H-11); the step
+      # exists so promoting it to an error is a one-line change.
+      - name: API discipline
+        run: bash scripts/check-api-discipline.sh
 
       - name: Build (production parity gate — MUST PASS)
         working-directory: web

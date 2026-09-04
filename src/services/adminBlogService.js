@@ -51,7 +51,18 @@ async function listAllPosts({ status, q, limit = 100, offset = 0 } = {}) {
     prisma.blogPost.findMany({
       where,
       orderBy: [{ updatedAt: "desc" }],
-      include: { category: true, tags: { include: { tag: true } } },
+      // T1-4 · the same card projection the public list uses: `body` (the
+      // heavy Json column) never leaves the database for a list. The
+      // editor fetches the single post.
+      select: {
+        id: true, slug: true, title: true, excerpt: true, cover: true,
+        titleEs: true, excerptEs: true,
+        status: true, deletedAt: true, updatedAt: true,
+        readMinutes: true, isFeatured: true, publishedAt: true, createdAt: true,
+        authorName: true, authorRole: true, authorAvatar: true,
+        category: { select: { id: true, label: true, slug: true } },
+        tags:     { select: { tag: { select: { id: true, label: true, slug: true } } } },
+      },
       take: Math.min(Math.max(1, limit), 100),
       skip: offset,
     }),

@@ -23,3 +23,32 @@ test("an explicit env var wins over both, so the host can force either", () => {
   expect(chooseEngineType({ PRISMA_CLIENT_ENGINE_TYPE: "binary" }).engineType).toBe("binary")
   expect(chooseEngineType({ PRISMA_CLIENT_ENGINE_TYPE: "binary" }).reason).toMatch(/explicit/)
 })
+
+describe("the generate-failed marker (T1-6)", () => {
+  const fs = require("fs")
+  const os = require("os")
+  const path = require("path")
+  const { markGenerateResult } = require("../scripts/prisma-generate")
+
+  test("a failed generate leaves a dated marker; a successful one removes it", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "mu-gen-"))
+    const marker = path.join(dir, "logs", "prisma-generate.failed")
+    try {
+      expect(markGenerateResult(false, { marker })).toBe(true)
+      expect(fs.existsSync(marker)).toBe(true)
+      expect(fs.readFileSync(marker, "utf8")).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+      expect(markGenerateResult(true, { marker })).toBe(true)
+      expect(fs.existsSync(marker)).toBe(false)
+      // removing an absent marker is fine
+      expect(markGenerateResult(true, { marker })).toBe(true)
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  test("the marker path lives under the persistent logs directory", () => {
+    const { GENERATE_FAILED_MARKER, STORAGE_PATHS } = require("../src/config/storagePaths")
+    expect(GENERATE_FAILED_MARKER.startsWith(STORAGE_PATHS.logs)).toBe(true)
+    expect(GENERATE_FAILED_MARKER.endsWith("prisma-generate.failed")).toBe(true)
+  })
+})
