@@ -71,8 +71,15 @@ jobs:
       - name: Audit dependencies (backend + web)
         run: node scripts/audit-gate.js
 
-      - name: Run backend tests
-        run: npm test
+      # `npm test` is bare jest, and jest only enforces coverageThreshold when
+      # it is run with --coverage. So the 44/41/26/27 gate in package.json has
+      # never once been evaluated in CI: the thresholds were decorative and
+      # coverage could rot to zero without turning the build red. Measured at
+      # the time of the switch: statements 56.9%, branches 41.9%, functions
+      # 48.2% — comfortably clear, so this goes green immediately and holds the
+      # line from here.
+      - name: Run backend tests (with coverage gate)
+        run: npm run test:coverage
         env:
           NODE_ENV: test
 

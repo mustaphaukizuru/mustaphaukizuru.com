@@ -10,6 +10,7 @@ const path   = require("path")
 const fs     = require("fs")
 const bcrypt = require("bcryptjs")
 const prisma = require("../lib/prisma")
+const { STORAGE_PATHS } = require("../config/storagePaths")
 const logger = require("../utils/logger")
 
 const PUBLIC_DIR   = path.join(__dirname, "../../public")
@@ -49,11 +50,45 @@ async function updateProfile(userId, { fullName, phone, company } = {}) {
 
 /* ────────────────────────────── avatar ────────────────────────────────── */
 
+/**
+ * Delete the file behind an avatarUrl.
+ *
+ * This used to be `path.join(PUBLIC_DIR, avatarUrl)`, which could not match on
+ * two counts. Uploads land in storage/uploads/avatars (uploadAvatar.js), not
+ * public/ — that move was deliberate, because a deploy wipes public/. And the
+ * stored value is `/images/avatars/<file>?v=<ts>` (profileController), so the
+ * join produced a path with a query string on the end.
+ *
+ * The delete therefore always silently no-opped: removeAvatar() cleared the
+ * database row while leaving the image on disk, still served at a filename
+ * that is stable per user — so a "removed" profile photo stayed fetchable.
+ */
 function removeAvatarFile(avatarUrl) {
   if (!avatarUrl) return
-  const oldPath = path.join(PUBLIC_DIR, avatarUrl)
-  if (fs.existsSync(oldPath)) {
-    try { fs.unlinkSync(oldPath) } catch { /* best-effort */ }
+
+  // Strip the ?v= cache-buster, then take the basename: the value comes from
+  // the database, and basename() means a doctored row cannot walk out of the
+  // avatars directory.
+  const withoutQuery = String(avatarUrl).split("?")[0]
+  const fileName     = path.basename(withoutQuery)
+  if (!fileName || fileName === "." || fileName === "..") return
+
+  // public/ is still checked second so avatars written before the storage/
+  // move are cleaned up too.
+  const candidates = [
+    path.join(STORAGE_PATHS.avatars, fileName),
+    path.join(PUBLIC_DIR, withoutQuery),
+  ]
+
+  for (const target of candidates) {
+    try {
+      if (fs.existsSync(target)) {
+        fs.unlinkSync(target)
+        return
+      }
+    } catch (err) {
+      logger.warn(`[profile] could not remove avatar file ${target}: ${err.message}`)
+    }
   }
 }
 
