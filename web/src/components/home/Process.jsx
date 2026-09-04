@@ -93,13 +93,20 @@ export default function Process() {
                 {/* Decorative step numeral. `aria-hidden` because the step's
                     position is already carried by DOM order and by the step
                     title — this is a visual echo, not information.
-                    It also has to be marked: at violet/15 on white it sits
-                    near 1.2:1, well under AA, and axe rightly fails it as
-                    text. That defect is not new. It was invisible to CI only
-                    because gsap set autoAlpha:0 on this subtree before the
-                    audit ran, so axe skipped it; deferring the gsap load
-                    stopped masking it. */}
-                <span aria-hidden="true" className="font-mono text-[28px] font-bold tabular-nums text-violet/15">
+                    aria-hidden alone does not settle it, though: axe judges
+                    contrast on what is VISIBLE, not on what is exposed to a
+                    screen reader, and it is right to — a smudge a sighted
+                    reader cannot resolve is a defect whether or not it is
+                    announced. At violet/15 this sat at 1.25:1 on all three
+                    step grounds. 28px bold is large text, so the bar is 3:1,
+                    and violet needs alpha 0.65 to reach it (3.02, no margin);
+                    /70 is the first step with room. The numeral is therefore
+                    legible now rather than a barely-there watermark — that is
+                    a deliberate visual change, not an accident of the fix.
+                    It was invisible to CI only because gsap set autoAlpha:0 on
+                    this subtree before the audit ran, so axe skipped it;
+                    deferring the gsap load stopped masking it. */}
+                <span aria-hidden="true" className="font-mono text-[28px] font-bold tabular-nums text-violet/70">
                   0{i + 1}
                 </span>
               </div>
