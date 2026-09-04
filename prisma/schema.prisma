@@ -388,6 +388,8 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  /// T1-3 · expired-session sweep (retentionJob)
+  @@index([expiresAt])
 }
 
 /// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
@@ -1666,8 +1668,10 @@ model Notification {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([isRead])
+  /// T1-3 · the bell reads (userId, newest first) and (userId, unread);
+  /// the two single-column indexes served neither shape well.
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
 }
 
 model EmailTemplate {
@@ -1716,6 +1720,10 @@ model EmailLog {
 
   @@index([userId])
   @@index([status, nextAttemptAt])
+  /// T1-3 · retention sweep by age, and the abandoned-cart / campaign
+  /// dedupe shape (userId + templateKey + recent) that was a full scan.
+  @@index([createdAt])
+  @@index([userId, templateKey, createdAt])
 }
 
 /// =============================================================

@@ -838,6 +838,7 @@
     }
   },
   "twoFactor": {
+    "adminRequired": "Two-step verification is required for the admin console. Set it up here to continue.",
     "errors": {
       "loadStatus": "Could not load 2FA status",
       "startSetup": "Could not start 2FA setup",

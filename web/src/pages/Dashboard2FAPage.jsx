@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
 import {
@@ -29,6 +30,10 @@ import ProfileTabs from "../components/dashboard/ProfileTabs"
 
 export default function Dashboard2FAPage() {
   const { t, i18n } = useTranslation("dashboard")
+  // ?required=1 — AdminLayout sent us here because the admin console needs
+  // an enabled second factor (T1-11).
+  const [searchParams] = useSearchParams()
+  const adminGateRequired = searchParams.get("required") === "1"
   const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
   const { data: status = null, loading, error, refetch: loadStatus, setData: setStatus } = useApiQuery(
     "twoFactor:status",
@@ -144,6 +149,16 @@ export default function Dashboard2FAPage() {
 
       <section className="space-y-5">
       <ProfileTabs />
+        {adminGateRequired && (
+          <div className="flex items-start gap-3 rounded-xl border border-amber-600/25 bg-amber-100/60 px-4 py-3 text-meta text-charcoal-80">
+            {/* amber-600 is 4.23:1 on white and 3.86:1 on this amber-100 band —
+                under AA either way. amber-700 is the step the codebase already
+                uses for amber marks on light grounds (AdminPlaceholderPage,
+                CertificatesSection): 7.09:1 and 6.47:1. */}
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
+            <span>{t("twoFactor.adminRequired")}</span>
+          </div>
+        )}
         {error && (
           <div className="flex items-start gap-3 rounded-xl border border-rose/20 bg-rose/10 px-4 py-3 text-meta text-rose-700">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}

@@ -51,15 +51,23 @@ Hostinger MySQL cannot create the shadow DB `migrate dev` needs. There is no mig
 - `npm run deploy` → `scripts/deploy.sh`: pull, `npm ci`, build SPA into `public/`, `prisma generate`, `db push`, restart, smoke test.
 - Restart = `mkdir -p tmp && touch tmp/restart.txt` (Passenger). PM2/nohup is only a fallback for non-Passenger hosts.
 - `scripts/hostinger-recover.sh {status|log|restart|recover|reinstall}` for broken `node_modules` / stale Prisma client.
-- **The SPA bundle is committed, not built on the server.** Hostinger Git deploy clones
-  `master` into a fresh `hbuilds/versions/<uuid>/` and starts the app — it never runs
-  `deploy.sh` and never builds the SPA. `public/assets/`, `public/index.html`, `sw.js`
-  and `workbox-*.js` are therefore **tracked**; ignoring them once caused a hard outage
-  (every request 500d on a missing `public/index.html`). See the rationale block in
-  `.gitignore`. So: build locally with `cd web && npm run build:seo`, then **commit the
-  regenerated `public/` output** in the same change as the `web/src/` edit that caused it.
-  Only `/public/__prerender/` is ignored. Other `public/` content (images, fonts, cv,
-  documents, flags, favicons, `.htaccess`, error pages) is source and tracked as before.
+- **The SPA bundle is committed, not built on the server** (ADR 0001). Hostinger Git
+  deploy clones `master` into a fresh `hbuilds/versions/<uuid>/` and starts the app — it
+  never runs `deploy.sh` and never builds the SPA. `public/assets/`, `public/index.html`,
+  `sw.js` and `workbox-*.js` are therefore **tracked**; ignoring them once caused a hard
+  outage (every request 500d on a missing `public/index.html`) — the rationale block in
+  `.gitignore` records it. So: build locally with
+  `cd web && npm run build:seo`, then **commit the regenerated `public/` output in the
+  same change** as the `web/src/` edit that caused it. CI runs
+  `scripts/check-bundle-fresh.sh` and fails a PR whose source is newer than its bundle.
+  Only `/public/__prerender/` and `public/maintenance.flag` are ignored. Other `public/`
+  content (images, fonts, cv, documents, flags, favicons, `.htaccess`, error pages) is
+  source and tracked as before.
+- `scripts/deploy.sh` is the SSH path and is transactional: drift check and JSON snapshot
+  before `db push`, maintenance page during the restart, health + smoke gate, code rollback
+  to the previous SHA on failure. The schema does not roll back; the snapshot is how.
+- `GET /api/v1/health/deep` needs `X-Health-Token` (`HEALTH_TOKEN`) or an admin session;
+  `GET /api/v1/health/jobs` is the cron dead-man switch (503 while a job is overdue).
 
 ## Session auth — httpOnly cookie + CSRF (step 40)
 - The session JWT lives in an **httpOnly cookie `mu_session`** (`sameSite=lax`, `path=/`, `secure` in production, 7 d / 30 d with rememberMe). It is **never** written to `localStorage` — that is the point of the migration. Set/cleared only via `src/utils/sessionCookie.js`.
@@ -83,6 +91,7 @@ Hostinger MySQL cannot create the shadow DB `migrate dev` needs. There is no mig
 - i18n: `web/src/i18n/locales/{en,es}/*.json`, namespaces in `web/src/i18n/resources.js`.
 - SEO: `web/src/seo/pageSeo*.js`, server-side OG injection in `src/middleware/ogInjector.js`.
 - Env templates: `.env.example` (API), `web/.env.example` (Vite, `VITE_*` only).
+- Decisions: `docs/decisions/` — one ADR per choice a contributor would otherwise reopen; write it in the PR that decides.
 
 ## Testing conventions
 - Jest, node env, files in `test/*.test.js`. Mock Prisma with `jest.mock("../src/lib/prisma", () => ({ model: { fn: jest.fn() } }))` and the logger with plain `jest.fn()`s; never hit a real DB.
@@ -92,4 +101,4 @@ Hostinger MySQL cannot create the shadow DB `migrate dev` needs. There is no mig
 ## Branch / commit conventions
 - Default branch `master`; work on `feat/...`, `fix/...`, `chore/...` branches and PR into master.
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `test:`, `perf:`, `style:`.
-- Never commit `.env*` (except `*.example`), `uploads/`, `.claude/`, or build output.
+- Never commit `.env*` (except `*.example`), `uploads/`, `.claude/`, or build output other than the committed `public/` bundle.

@@ -28,6 +28,10 @@ on:
     # Every 15 minutes. GitHub queues scheduled runs under load, so treat this
     # as "roughly every 15 minutes", not a guarantee.
     - cron: "*/15 * * * *"
+    # Hourly: the authenticated deep probe (SMTP + gateways) and the cron
+    # dead-man switch. Kept off the 15-minute cadence because deep opens
+    # real provider connections on every call.
+    - cron: "7 * * * *"
   workflow_dispatch: {}
 
 concurrency:
@@ -80,6 +84,16 @@ jobs:
               ;;
           esac
 
+          # scripts/prisma-generate.js leaves a marker when `prisma generate`
+          # failed at install: the app is up but running on a client older
+          # than its schema, and the next query touching a new column 500s.
+          case "$payload" in
+            *'"prismaGenerate":"stale"'*)
+              echo "::error::prisma generate failed on the last install (prismaGenerate: stale). Run scripts/hostinger-recover.sh recover."
+              exit 1
+              ;;
+          esac
+
       - name: Check the storefront still serves
         env:
           BASE_URL: https://mustaphaukizuru.com
@@ -89,5 +103,53 @@ jobs:
           echo "Storefront HTTP: $code"
           if [ "$code" != "200" ]; then
             echo "::error::Storefront returned $code — static serving is broken too, not just the app."
+            exit 1
+          fi
+
+  # Hourly only (the second cron above, or a manual run).
+  deep:
+    name: Deep probe + cron dead-man switch
+    if: github.event.schedule == '7 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # SMTP, Mercado Pago and PayPal, plus environment and version, behind
+      # the shared header. Without the secret the step is skipped loudly
+      # rather than reporting a false failure.
+      - name: Deep health (SMTP + gateways)
+        env:
+          BASE_URL: https://mustaphaukizuru.com
+          HEALTH_TOKEN: ${{ secrets.HEALTH_TOKEN }}
+        run: |
+          set -uo pipefail
+          if [ -z "${HEALTH_TOKEN:-}" ]; then
+            echo "::warning::HEALTH_TOKEN secret is not set — deep probe skipped. Add it to GitHub secrets and the host .env (T1-6)."
+            exit 0
+          fi
+          body="$(curl -sS --max-time 25 -H "X-Health-Token: $HEALTH_TOKEN" -w '\n%{http_code}' "$BASE_URL/api/v1/health/deep" || true)"
+          code="$(printf '%s' "$body" | tail -n1)"
+          payload="$(printf '%s' "$body" | sed '$d')"
+          echo "HTTP: ${code:-<none>}"
+          echo "Body: ${payload:-<empty>}"
+          if [ "${code:-000}" != "200" ]; then
+            echo "::error::Deep health returned HTTP ${code:-none}. A dependency (database, SMTP, Mercado Pago, PayPal) is down or the token is wrong."
+            exit 1
+          fi
+
+      # Every scheduled job writes a heartbeat after a successful pass.
+      # /health/jobs answers 503 while any job is older than twice its
+      # interval — a scheduler that silently stopped is now an alert.
+      - name: Cron dead-man switch
+        env:
+          BASE_URL: https://mustaphaukizuru.com
+        run: |
+          set -uo pipefail
+          body="$(curl -sS --max-time 25 -w '\n%{http_code}' "$BASE_URL/api/v1/health/jobs" || true)"
+          code="$(printf '%s' "$body" | tail -n1)"
+          payload="$(printf '%s' "$body" | sed '$d')"
+          echo "HTTP: ${code:-<none>}"
+          echo "Body: ${payload:-<empty>}"
+          if [ "${code:-000}" != "200" ]; then
+            echo "::error::One or more scheduled jobs have not completed within twice their interval. Payload above names them."
             exit 1
           fi

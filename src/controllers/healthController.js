@@ -1,6 +1,10 @@
 const asyncHandler = require("../utils/asyncHandler")
+const crypto       = require("crypto")
+const fs           = require("fs")
 const prisma       = require("../lib/prisma")
 const logger       = require("../utils/logger")
+const { GENERATE_FAILED_MARKER } = require("../config/storagePaths")
+const { jobsStatus } = require("../jobs/heartbeat")
 
 let _packageVersion = "unknown"
 try {
@@ -61,17 +65,56 @@ const getHealth = asyncHandler(async (req, res) => {
   const status = database === "ok" ? "ok" : "degraded"
   const code   = database === "ok" ? 200 : 503
 
+  // Unauthenticated, so it carries no more than a monitor needs. `version`
+  // and `env` used to be here; both are on /health/deep behind the token.
+  // `commit` stays: "is the fix deployed?" is the question this answers.
   res.status(code).json({
     status,
     uptime:    Math.round(process.uptime()),
-    version:   _packageVersion,
     commit:    _commit,
-    env:       process.env.NODE_ENV || "development",
     database,
+    // scripts/prisma-generate.js leaves this marker when generate failed at
+    // install; the app is then running on a client older than its schema.
+    prismaGenerate: fs.existsSync(GENERATE_FAILED_MARKER) ? "stale" : "ok",
     ...(dbError ? { dbError, engine: prisma.engineInfo?.() || null } : {}),
     timestamp: new Date().toISOString(),
   })
 })
+
+/**
+ * GET /api/health/jobs
+ * The cron dead-man switch: last successful pass per scheduled job against
+ * its expected interval. 503 while any job is stale so the uptime workflow
+ * fails on it with a plain curl -f; 200 with `disabled: true` when
+ * DISABLE_CRON=1, since nothing is expected to run.
+ */
+const getJobsHealth = asyncHandler(async (req, res) => {
+  const report = jobsStatus()
+  const code = report.stale > 0 ? 503 : 200
+  if (code === 503) {
+    logger.warn("[health/jobs] stale jobs", Object.entries(report.jobs).filter(([, j]) => j.stale).map(([n]) => n))
+  }
+  res.status(code).json({ status: code === 200 ? "ok" : "stale", ...report })
+})
+
+/**
+ * Deep health is authenticated: it names the environment, opens SMTP and
+ * gateway connections, and its failure detail is more than a stranger needs.
+ * Either the shared header (HEALTH_TOKEN, sent by the uptime workflow from
+ * a GitHub secret) or an admin session. Outside production, with no token
+ * configured, it stays open so local checks keep working.
+ */
+function requireHealthAccess(req, res, next) {
+  const expected = process.env.HEALTH_TOKEN || ""
+  const given    = String(req.get("x-health-token") || "")
+  if (expected && given) {
+    const a = Buffer.from(expected), b = Buffer.from(given)
+    if (a.length === b.length && crypto.timingSafeEqual(a, b)) return next()
+  }
+  if (req.user?.role === "admin") return next()
+  if (!expected && process.env.NODE_ENV !== "production") return next()
+  return res.status(401).json({ success: false, code: "HEALTH_TOKEN_REQUIRED", message: "Deep health requires X-Health-Token or an admin session" })
+}
 
 /**
  * GET /api/health/deep
@@ -97,18 +140,20 @@ const getHealth = asyncHandler(async (req, res) => {
 const getDeepHealth = asyncHandler(async (req, res) => {
   const TIMEOUT_MS = 5000
 
-  const [dbResult, smtpResult, mpResult, paypalResult] = await Promise.allSettled([
+  const [dbResult, concurrencyResult, smtpResult, mpResult, paypalResult] = await Promise.allSettled([
     timeboxed(checkDatabase(),    TIMEOUT_MS, "db"),
+    timeboxed(checkDbConcurrency(), TIMEOUT_MS, "dbConcurrency"),
     timeboxed(checkSmtp(),        TIMEOUT_MS, "smtp"),
     timeboxed(checkMercadoPago(), TIMEOUT_MS, "mercadopago"),
     timeboxed(checkPaypal(),      TIMEOUT_MS, "paypal"),
   ])
 
   const checks = {
-    database:    settledToStatus(dbResult),
-    smtp:        settledToStatus(smtpResult),
-    mercadopago: settledToStatus(mpResult),
-    paypal:      settledToStatus(paypalResult),
+    database:      settledToStatus(dbResult),
+    dbConcurrency: settledToStatus(concurrencyResult),
+    smtp:          settledToStatus(smtpResult),
+    mercadopago:   settledToStatus(mpResult),
+    paypal:        settledToStatus(paypalResult),
   }
 
   // Per spec: 200 only if ALL checks pass. Skipped does NOT count as fail.
@@ -140,6 +185,24 @@ const getDeepHealth = asyncHandler(async (req, res) => {
 async function checkDatabase() {
   await prisma.$queryRaw`SELECT 1`
   return { ok: true }
+}
+
+/**
+ * T1-5 · two queries at once, which is what every Promise.all in the API
+ * does. With connection_limit=1 they serialise (elapsed ≈ 2× a single
+ * query, still "ok" — the pool is doing its job). With 2 or more, a P1001
+ * here is the host fault from 2026-08-28 showing up on a probe instead of
+ * on a customer's checkout. The configured limit is reported alongside so
+ * the number can be read against it.
+ */
+async function checkDbConcurrency() {
+  const limit = (() => {
+    try { return new URL(prisma.poolBoundsUrl?.() || process.env.DATABASE_URL).searchParams.get("connection_limit") }
+    catch { return process.env.DB_CONNECTION_LIMIT || null }
+  })()
+  const started = Date.now()
+  await Promise.all([prisma.$queryRaw`SELECT 1`, prisma.$queryRaw`SELECT 1`])
+  return { ok: true, detail: { pairElapsedMs: Date.now() - started, connectionLimit: limit } }
 }
 
 async function checkSmtp() {
@@ -206,7 +269,7 @@ function settledToStatus(settled) {
     if (settled.value?.skipped) {
       return { status: "skipped", reason: settled.value.reason }
     }
-    return { status: "ok" }
+    return { status: "ok", ...(settled.value?.detail ? settled.value.detail : {}) }
   }
   return { status: "down", error: settled.reason?.message || "Unknown error" }
 }
@@ -214,4 +277,6 @@ function settledToStatus(settled) {
 module.exports = {
   getHealth,
   getDeepHealth,
+  getJobsHealth,
+  requireHealthAccess,
 }

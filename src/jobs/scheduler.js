@@ -40,11 +40,13 @@ const { runAbandonedCartPass } = require("./abandonedCartJob")
 const { runProjectPurgePass } = require("./projectPurgeJob")
 const { runInvoiceDunningPass } = require("./invoiceDunningJob")
 const { runFulfillmentReconcilePass } = require("./fulfillmentReconcileJob")
+const { runRetentionPass } = require("./retentionJob")
 
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
 const running = new Set()
 const { isAlive, recycle } = require("../lib/prisma")
+const { recordHeartbeat } = require("./heartbeat")
 
 // DB pre-flight shared by every job: a cron firing on a dead engine used to
 // be the classic trigger for the Prisma "timer has gone away" panic. Probe,
@@ -64,7 +66,16 @@ async function guarded(name, fn) {
     return
   }
   running.add(name)
-  try { if (await dbReady(name)) await fn() }
+  try {
+    if (await dbReady(name)) {
+      await fn()
+      // Dead-man switch: only a pass that ran to completion counts. A
+      // skipped tick (DB down) or a throw leaves the last heartbeat where
+      // it was, which is exactly what /health/jobs should then report.
+      try { recordHeartbeat(name) }
+      catch (e) { logger.warn(`[scheduler] ${name}: heartbeat not written — ${e.message}`) }
+    }
+  }
   catch (err) { logger.error(`[scheduler] ${name} failed`, err) }
   finally { running.delete(name) }
 }
@@ -172,6 +183,19 @@ function startScheduler() {
   } catch (err) {
     logger.error("[scheduler] failed to register projectPurgeJob", err)
   }
+  // ── T1-3 · Retention · 05:00 UTC ────────────────────────────────────
+  // Deletes PageView / AnalyticsEvent / EmailLog / ActivityLog /
+  // Notification rows older than their RETENTION_*_DAYS window and expired
+  // sessions, in chunks. After the 03:30 backup (the last snapshot still
+  // has the rows) and the 04:00 purge. RETENTION_DRY_RUN=1 counts only —
+  // the first deploy runs that way and the log is read before it is unset.
+  try {
+    cron.schedule("0 5 * * *", () => guarded("retention", () => runRetentionPass()), { timezone: "UTC" })
+    logger.info(`[scheduler] registered retention sweep · 05:00 UTC${process.env.RETENTION_DRY_RUN === "1" ? " · DRY RUN" : ""}`)
+  } catch (err) {
+    logger.error("[scheduler] failed to register retentionJob", err)
+  }
+
   // ── Tier 4 · Invoice dunning · 08:00 UTC ────────────────────────────
   // Manual invoices past their due date turn overdue (late fee recorded
   // once, one email), paid orders reconcile their invoice, and projects
@@ -197,4 +221,4 @@ function startScheduler() {
   }
 }
 
-module.exports = { startScheduler }
+module.exports = { startScheduler, guarded }

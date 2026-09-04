@@ -14,7 +14,7 @@
 
 jest.mock("../src/lib/prisma", () => ({
   order:            { findUnique: jest.fn() },
-  userDownload:     { create: jest.fn() },
+  userDownload:     { createMany: jest.fn() },
   activityLog:      { create: jest.fn() },
   serviceOrder:     { findMany: jest.fn() },
   clientProject:    { create: jest.fn() },
@@ -50,7 +50,7 @@ let errSpy
 beforeEach(() => {
   jest.clearAllMocks()
   errSpy = jest.spyOn(console, "error").mockImplementation(() => {})
-  prisma.userDownload.create.mockResolvedValue({})
+  prisma.userDownload.createMany.mockResolvedValue({ count: 2 })
   prisma.activityLog.create.mockResolvedValue({})
   prisma.serviceOrder.findMany.mockResolvedValue([])
   prisma.projectMilestone.createMany.mockResolvedValue({ count: 5 })
@@ -66,9 +66,12 @@ describe("fulfillOrder", () => {
     const r = await fulfillOrder("o1")
 
     expect(r).toMatchObject({ ok: true, entitlements: 2, invoice: { id: "inv1" }, projectsCreated: 0 })
-    expect(prisma.userDownload.create).toHaveBeenCalledTimes(2)
-    expect(prisma.userDownload.create.mock.calls.map((c) => c[0].data.productId).sort()).toEqual(["p1", "p2"])
-    expect(prisma.userDownload.create.mock.calls[0][0].data).toMatchObject({ userId: "u1", orderId: "o1", orderItemId: "i1" })
+    // T1-4 · one write for the whole order, duplicates skipped by the database
+    expect(prisma.userDownload.createMany).toHaveBeenCalledTimes(1)
+    const call = prisma.userDownload.createMany.mock.calls[0][0]
+    expect(call.skipDuplicates).toBe(true)
+    expect(call.data.map((d) => d.productId).sort()).toEqual(["p1", "p2"])
+    expect(call.data[0]).toEqual({ userId: "u1", productId: "p1", orderId: "o1", orderItemId: "i1" })
     expect(prisma.activityLog.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ action: "order.fulfilled", userId: "u1" }),
     }))
@@ -83,33 +86,29 @@ describe("fulfillOrder", () => {
     expect(r.entitlements).toBe(0)
     expect(r.invoice).toEqual({ id: "inv1" })
     expect(r.error).toMatch(/Guest order/)
-    expect(prisma.userDownload.create).not.toHaveBeenCalled()
+    expect(prisma.userDownload.createMany).not.toHaveBeenCalled()
   })
 
-  test("re-running is idempotent: P2002 on an entitlement is swallowed, not counted, not logged", async () => {
+  test("re-running is idempotent: an already-fulfilled item is skipped by the database and not counted", async () => {
     prisma.order.findUnique.mockResolvedValue(paidOrder())
-    prisma.userDownload.create
-      .mockRejectedValueOnce(p2002())   // p1 already fulfilled
-      .mockResolvedValueOnce({})        // p2 new
+    prisma.userDownload.createMany.mockResolvedValueOnce({ count: 1 }) // p1 skipped as a duplicate, p2 new
 
     const r = await fulfillOrder("o1")
 
     expect(r.ok).toBe(true)
     expect(r.entitlements).toBe(1)
-    expect(errSpy).not.toHaveBeenCalledWith(expect.stringContaining("entitlement failed"), expect.anything())
+    expect(errSpy).not.toHaveBeenCalledWith(expect.stringContaining("entitlements failed"), expect.anything())
   })
 
-  test("a non-P2002 entitlement failure is logged and the rest still fulfil", async () => {
+  test("an entitlement write failure is logged and fulfilment still completes with zero entitlements", async () => {
     prisma.order.findUnique.mockResolvedValue(paidOrder())
-    prisma.userDownload.create
-      .mockRejectedValueOnce(new Error("disk full"))
-      .mockResolvedValueOnce({})
+    prisma.userDownload.createMany.mockRejectedValueOnce(new Error("disk full"))
 
     const r = await fulfillOrder("o1")
 
     expect(r.ok).toBe(true)
-    expect(r.entitlements).toBe(1)
-    expect(errSpy).toHaveBeenCalledWith(expect.stringContaining("entitlement failed for item i1"), "disk full")
+    expect(r.entitlements).toBe(0)
+    expect(errSpy).toHaveBeenCalledWith(expect.stringContaining("entitlements failed for order o1"), "disk full")
   })
 
   test("invoice generation failing does not fail fulfilment (a webhook must never bounce on a PDF)", async () => {

@@ -64,9 +64,29 @@ function seoVerificationReplacePlugin() {
 // package.json here (not via import assertions, which older Node lacks).
 const APP_VERSION = JSON.parse(fs.readFileSync(new URL("./package.json", import.meta.url), "utf8")).version
 
+// T1-9 · the commit the bundle was built from, so a browser event names the
+// same release a server event does. Read from .git (the bundle is committed,
+// so the build machine always has it); CI can override with VITE_COMMIT.
+const APP_COMMIT = (() => {
+  if (process.env.VITE_COMMIT) return process.env.VITE_COMMIT.slice(0, 7)
+  try {
+    const gitDir = new URL("../.git/", import.meta.url)
+    const head = fs.readFileSync(new URL("HEAD", gitDir), "utf8").trim()
+    if (!head.startsWith("ref: ")) return head.slice(0, 7)
+    const ref = head.slice(5).trim()
+    try { return fs.readFileSync(new URL(ref, gitDir), "utf8").trim().slice(0, 7) }
+    catch {
+      const packed = fs.readFileSync(new URL("packed-refs", gitDir), "utf8")
+      const line = packed.split("\n").find((l) => l.endsWith(` ${ref}`))
+      return line ? line.slice(0, 7) : ""
+    }
+  } catch { return "" }
+})()
+
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(APP_VERSION),
+    __APP_COMMIT__:  JSON.stringify(APP_COMMIT),
   },
   plugins: [
     react(),
