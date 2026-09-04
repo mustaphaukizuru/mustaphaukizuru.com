@@ -34,7 +34,7 @@ import { fetchExperience, fetchEducation, fetchCertificates, fetchSkills } from 
 import ProjectShowcase from "../components/portfolio/ProjectShowcase"
 import OrbitingCircles from "../components/motion/OrbitingCircles"
 import AboutHero from "../components/heroes/AboutHero" // V2, universal hero
-import CertificatePreview from "../components/CertificatePreview" // V2, inline PDF
+import CertificateCoverflow from "../components/CertificateCoverflow" // V3, cover-flow rail
 import SpokenLanguages from "../components/SpokenLanguages" // F06.v4, CEFR strip
 import LogoCloud from "../components/ui/LogoCloud" // client logo wall
 import Counter from "../components/motion/Counter" // Phase 10 · animated number counter
@@ -1095,61 +1095,69 @@ export default function AboutPage() {
       {/* Dark Credentials section — inline bg guarantees dark surface even
           if `bg-charcoal` utility doesn't generate (Tailwind v4 JIT quirk). */}
       <section id="certifications" className="scroll-mt-24 py-20 lg:py-28" style={{ backgroundColor: "var(--color-charcoal)" }}>
+        {/* Header sits above the rail and centred, like every other section
+            on the page. The old sticky left column boxed the carousel into
+            ~60% of the width, which starved the cover-flow of the room its
+            perspective needs. */}
         <Container>
-          <div className="grid items-start gap-10 lg:grid-cols-[320px_1fr] xl:grid-cols-[380px_1fr] xl:gap-14">
-            <m.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col items-center gap-5 text-center lg:sticky lg:top-28 lg:items-start lg:text-left">
-              <span
-                className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em]"
-                style={{ backgroundColor: "rgb(var(--color-terracotta-rgb)/0.16)", color: "var(--color-terracotta)", border: "1px solid rgb(var(--color-terracotta-rgb)/0.32)" }}
-              >
-                {t("credentials.eyebrow")}
-              </span>
-              <div>
-                <p className="text-body italic" style={{ color: "rgb(var(--color-terracotta-rgb)/0.85)" }}>{t("credentials.italic")}</p>
-                <h2 className="mt-1 text-[28px] font-bold tracking-tight sm:text-[40px]" style={{ color: "#FFFFFF" }}>{t("credentials.title")}</h2>
-              </div>
-              <p className="max-w-xs text-meta leading-6" style={{ color: "rgba(255, 255, 255, 0.72)" }}>
-                {t("credentials.subtitle")}
-              </p>
-              <Link
-                to="/contact"
-                className="group mt-2 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-meta font-semibold transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2"
-                style={{ color: "#FFFFFF", backgroundColor: "transparent", border: "2px solid var(--color-terracotta)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgb(var(--color-terracotta-rgb)/0.12)" }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
-              >
-                {t("credentials.knowMore")}
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" style={{ color: "var(--color-violet-light)" }} aria-hidden="true" />
-              </Link>
-            </m.div>
-
-
-
-<m.div
-              variants={stagger}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          <m.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-80px" }}
+            className="mb-10 flex flex-col items-center gap-3 text-center"
+          >
+            <m.span
+              variants={fadeUp}
+              className="inline-flex items-center rounded-full px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em]"
+              style={{ backgroundColor: "rgb(var(--color-terracotta-rgb)/0.16)", color: "var(--color-terracotta)", border: "1px solid rgb(var(--color-terracotta-rgb)/0.32)" }}
             >
-              {displayedCerts.map((c) => (
-                <m.div key={c.title} variants={fadeUp}>
-                  <CertificatePreview
-                    src={c.pdfUrl}
-                    thumbnail={c.thumbnail}
-                    credentialUrl={c.credentialUrl}
-                    issuerLogo={c.issuerLogo}
-                    title={c.title}
-                    issuer={c.issuer}
-                    date={c.issueDate}
-                    verified
-                  />
-                </m.div>
-              ))}
-            </m.div>
+              {t("credentials.eyebrow")}
+            </m.span>
+            <m.p variants={fadeUp} className="text-body italic" style={{ color: "rgb(var(--color-terracotta-rgb)/0.85)" }}>
+              {t("credentials.italic")}
+            </m.p>
+            <m.h2
+              variants={fadeUp}
+              className="text-[28px] font-bold tracking-tight sm:text-section md:text-page"
+              style={{ color: "#FFFFFF" }}
+            >
+              {t("credentials.title")}
+            </m.h2>
+            <m.p variants={fadeUp} className="max-w-xl text-meta leading-7" style={{ color: "rgba(255, 255, 255, 0.72)" }}>
+              {t("credentials.subtitle")}
+            </m.p>
+          </m.div>
+        </Container>
 
+        {/* The rail sits inside <Container>, so its edges line up with every
+            other section on the page rather than bleeding to the viewport.
+            Cover-flow replaces the 3-column tile grid: the certificates read
+            as one browsable stack, and tapping the centre card opens the
+            same PDF modal the tiles used. */}
+        <Container>
+          <m.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="min-w-0"
+          >
+            <CertificateCoverflow certs={displayedCerts} />
+          </m.div>
+        </Container>
 
-          </div>
+        <Container className="mt-10 flex justify-center">
+          <Link
+            to="/contact"
+            className="group inline-flex items-center gap-2 rounded-xl px-6 py-3 text-meta font-semibold transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2"
+            style={{ color: "#FFFFFF", backgroundColor: "transparent", border: "2px solid var(--color-terracotta)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgb(var(--color-terracotta-rgb)/0.12)" }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent" }}
+          >
+            {t("credentials.knowMore")}
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" style={{ color: "var(--color-violet-light)" }} aria-hidden="true" />
+          </Link>
         </Container>
       </section>
 

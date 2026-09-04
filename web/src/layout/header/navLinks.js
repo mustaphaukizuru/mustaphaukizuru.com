@@ -10,6 +10,7 @@ import {
   Briefcase,
   FolderOpen,
   Mail,
+  GraduationCap,
 } from "lucide-react"
 
 /* Primary navbar links — kept short and audience-facing. Editorial
@@ -26,6 +27,11 @@ export const NAV_LINKS = [
     prefetch: () => import("../../pages/AboutPage") },
   { nameKey: "header.services",  to: "/services",  icon: Briefcase,
     prefetch: () => import("../../pages/ServicesPage") },
+  /* Audience page (school leaders) — composes from the four service
+   * categories, never a fifth one. Sits beside Services on purpose: the
+   * brand line promises "STEM & School Solutions". */
+  { nameKey: "header.schools",   to: "/schools",   icon: GraduationCap,
+    prefetch: () => import("../../pages/SchoolsPage") },
   { nameKey: "header.portfolio", to: "/portfolio", icon: FolderOpen,
     prefetch: () => import("../../pages/PortfolioPage") },
   { nameKey: "header.contact",   to: "/contact",   icon: Mail,

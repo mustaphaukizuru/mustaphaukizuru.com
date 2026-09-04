@@ -5,7 +5,7 @@ import { apiRequest } from "../../lib/api"
 import Confetti from "../motion/Confetti"
 import { Container } from "./Primitives"
 
-const CATALOGUE_URL = "/documents/Mustapha-Ukizuru-Service-Catalog-v1.0.pdf"
+const CATALOGUE_URL = "/documents/Mustapha-Ukizuru-Service-Catalog-v2.0.pdf"
 
 /**
  * ServicesLeadCapture · the second exit on the consulting funnel (G3).

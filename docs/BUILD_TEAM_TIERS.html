@@ -1,0 +1,222 @@
+<title>Build Team Tiers</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F8FAFC; --bg-elevated:#FFFFFF; --bg-sunken:#EEF1F6;
+  --border:#E1E4EC; --border-strong:#C7CCDA;
+  --fg:#1A1B23; --fg-muted:#54566B; --fg-subtle:#8A8CA3;
+  --accent:#5D3FD3; --accent-fg:#FFFFFF; --accent-soft:#EDE9FB;
+  --t1:#5D3FD3; --t1-soft:#EDE9FB;
+  --t2:#0284C7; --t2-soft:#E0F2FE;
+  --t3:#54566B; --t3-soft:#E7E8EE;
+  --sans:'Sora',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E0F14; --bg-elevated:#181A22; --bg-sunken:#111219;
+  --border:#2B2D3C; --border-strong:#40435A;
+  --fg:#F1F1F6; --fg-muted:#AFB0C3; --fg-subtle:#7B7D93;
+  --accent:#9B85F0; --accent-fg:#0E0F14; --accent-soft:#241E42;
+  --t1:#9B85F0; --t1-soft:#241E42;
+  --t2:#4FB3EC; --t2-soft:#0F2536;
+  --t3:#A6A8BC; --t3-soft:#1D1F2B;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E0F14; --bg-elevated:#181A22; --bg-sunken:#111219;
+  --border:#2B2D3C; --border-strong:#40435A;
+  --fg:#F1F1F6; --fg-muted:#AFB0C3; --fg-subtle:#7B7D93;
+  --accent:#9B85F0; --accent-fg:#0E0F14; --accent-soft:#241E42;
+  --t1:#9B85F0; --t1-soft:#241E42;
+  --t2:#4FB3EC; --t2-soft:#0F2536;
+  --t3:#A6A8BC; --t3-soft:#1D1F2B;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:52px 24px 96px}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+h1{font-size:32px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.lede{max-width:66ch;margin-top:14px;font-size:15.5px;line-height:1.65;color:var(--fg-muted)}
+.lede strong{color:var(--fg);font-weight:600}
+
+/* ── engagement key ─────────────────────────────────────────────── */
+.key{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:34px 0 8px}
+.key div{background:var(--bg-elevated);padding:14px 16px}
+.key .n{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em}
+.key .lbl{margin-top:5px;font-size:13.5px;font-weight:600}
+.key .d{margin-top:3px;font-size:12.5px;color:var(--fg-subtle);line-height:1.5}
+.key .t1 .n{color:var(--t1)} .key .t2 .n{color:var(--t2)} .key .t3 .n{color:var(--t3)}
+.key .t1{border-top:3px solid var(--t1)} .key .t2{border-top:3px solid var(--t2)} .key .t3{border-top:3px solid var(--t3)}
+
+/* ── tier sections ──────────────────────────────────────────────── */
+.tier{margin-top:52px}
+.tier-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding-bottom:14px;border-bottom:2px solid var(--tc)}
+.tier-num{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--tc);letter-spacing:.04em}
+.tier-title{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.tier-mode{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg-subtle);letter-spacing:.04em;white-space:nowrap}
+.tier1{--tc:var(--t1)} .tier2{--tc:var(--t2)} .tier3{--tc:var(--t3)}
+
+.roles{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px}
+@media(max-width:640px){.roles{grid-template-columns:1fr}}
+.role{background:var(--bg-elevated);border:1px solid var(--border);border-left:3px solid var(--tc);border-radius:8px;padding:16px 18px;display:flex;flex-direction:column;gap:9px}
+.role h3{font-size:14.5px;font-weight:700}
+.role p{font-size:13.5px;line-height:1.55;color:var(--fg-muted)}
+.owns{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:8px}
+.owns span{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.02em;color:var(--tc);background:var(--tc-soft);padding:2.5px 8px;border-radius:20px}
+.tier1 .owns span{background:var(--t1-soft)} .tier2 .owns span{background:var(--t2-soft)} .tier3 .owns span{background:var(--t3-soft)}
+.owns .k{color:var(--fg-subtle);font-weight:500;padding:2.5px 0}
+
+/* ── domain ownership table ─────────────────────────────────────── */
+h2.sec{margin-top:60px;font-size:19px;font-weight:700;letter-spacing:-.01em;padding-top:24px;border-top:1px solid var(--border)}
+.sec-note{margin-top:8px;font-size:13.5px;color:var(--fg-muted);max-width:64ch;line-height:1.6}
+.tblwrap{margin-top:18px;overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg-elevated)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:640px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);text-align:left;padding:11px 16px;background:var(--bg-sunken);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.dom{font-weight:600}
+td.dom small{display:block;font-weight:400;color:var(--fg-subtle);margin-top:2px;font-size:11.5px}
+.tag{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+.tag::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.tag.t1{color:var(--t1);background:var(--t1-soft)}
+.tag.t2{color:var(--t2);background:var(--t2-soft)}
+.tag.t3{color:var(--t3);background:var(--t3-soft)}
+td.gate{color:var(--fg-muted);font-size:12.5px}
+
+/* ── practical note ─────────────────────────────────────────────── */
+.practical{margin-top:56px;background:var(--bg-sunken);border:1px solid var(--border);border-radius:10px;padding:22px 24px}
+.practical h2{font-size:15.5px;font-weight:700;margin-bottom:10px}
+.practical p{font-size:13.5px;line-height:1.65;color:var(--fg-muted);max-width:70ch}
+.practical p + p{margin-top:10px}
+.practical strong{color:var(--fg);font-weight:600}
+.practical code{font-family:var(--mono);font-size:12px;background:var(--bg-elevated);padding:1px 5px;border-radius:4px;border:1px solid var(--border)}
+
+.foot{margin-top:44px;font-family:var(--mono);font-size:11px;color:var(--fg-subtle)}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">mustaphaukizuru.com · delivery structure</div>
+  <h1>Three tiers, one platform</h1>
+  <p class="lede">How the eleven roles from the expert audit map onto <strong>mustaphaukizuru.com</strong> — organized by how tightly each one is engaged, not by seniority. Engagement depth drops from Tier 1 to Tier 3; independence from the platform rises the same direction, which is deliberate for the two roles that have to be able to fail the platform's own audit.</p>
+
+  <div class="key">
+    <div class="t1"><div class="n">TIER 1</div><div class="lbl">Core Build Team</div><div class="d">Embedded. Continuous. Owns the critical path.</div></div>
+    <div class="t2"><div class="n">TIER 2</div><div class="lbl">Specialist Contractors</div><div class="d">Engaged per phase. Part-time, scoped deliverables.</div></div>
+    <div class="t3"><div class="n">TIER 3</div><div class="lbl">Independent Advisory</div><div class="d">External. Periodic audit only — never embedded.</div></div>
+  </div>
+
+  <!-- TIER 1 -->
+  <section class="tier tier1">
+    <div class="tier-head">
+      <span class="tier-num">TIER 1</span>
+      <span class="tier-title">Core Build Team</span>
+      <span class="tier-mode">4 roles · full commitment</span>
+    </div>
+    <div class="roles">
+      <div class="role">
+        <h3>Product Manager / Product Owner</h3>
+        <p>Sequences the roadmap phases, holds the line on the closed set of four service categories, decides what ships next.</p>
+        <div class="owns"><span class="k">Owns</span><span>Roadmap</span><span>Content</span></div>
+      </div>
+      <div class="role">
+        <h3>Backend Engineer</h3>
+        <p>Node · Express · Prisma. API and business logic, cart-to-download commerce flow, both payment rails.</p>
+        <div class="owns"><span class="k">Owns</span><span>Identity</span><span>Commerce</span><span>Delivery</span><span>Support</span></div>
+      </div>
+      <div class="role">
+        <h3>Frontend Engineer</h3>
+        <p>React · Vite · Tailwind · Framer Motion. Builds every public, member and admin surface, mobile-first from the first line of CSS.</p>
+        <div class="owns"><span class="k">Owns</span><span>All UI surfaces</span></div>
+      </div>
+      <div class="role">
+        <h3>Product / UI Designer</h3>
+        <p>Owns the design-token system, the category glyph and accent set, and turns "no orphan text block" into hand-crafted screens.</p>
+        <div class="owns"><span class="k">Owns</span><span>Design System</span><span>Catalog</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIER 2 -->
+  <section class="tier tier2">
+    <div class="tier-head">
+      <span class="tier-num">TIER 2</span>
+      <span class="tier-title">Specialist Contractors</span>
+      <span class="tier-mode">4 roles · per-phase</span>
+    </div>
+    <div class="roles">
+      <div class="role">
+        <h3>DevOps / Site Reliability</h3>
+        <p>Hostinger + Passenger deploys, backup and restore drills, keeps master deployable and the shared-hosting ceiling from becoming an outage.</p>
+        <div class="owns"><span class="k">Owns</span><span>Infrastructure</span><span>Comms uptime</span></div>
+      </div>
+      <div class="role">
+        <h3>QA / Test Engineer</h3>
+        <p>Jest and Playwright suites, cross-device regression, and the one gate that never ships untested: payment and entitlement paths.</p>
+        <div class="owns"><span class="k">Owns</span><span>Release gate</span></div>
+      </div>
+      <div class="role">
+        <h3>Database / Performance Engineer</h3>
+        <p>Prisma schema evolution, MySQL indexing, N+1 prevention — brought in once the data model outgrows one backend engineer.</p>
+        <div class="owns"><span class="k">Owns</span><span>Catalog perf</span><span>Commerce perf</span></div>
+      </div>
+      <div class="role">
+        <h3>SEO &amp; Bilingual Content Strategist</h3>
+        <p>Technical SEO, structured data, and Spanish as a commercial register in its own right — not a translation pass on the English.</p>
+        <div class="owns"><span class="k">Owns</span><span>Content quality</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIER 3 -->
+  <section class="tier tier3">
+    <div class="tier-head">
+      <span class="tier-num">TIER 3</span>
+      <span class="tier-title">Independent Advisory</span>
+      <span class="tier-mode">3 roles · arm's-length</span>
+    </div>
+    <div class="roles">
+      <div class="role">
+        <h3>Security Engineer</h3>
+        <p>Independent OWASP review, auth and session audit, payment-webhook signature and idempotency checks. Signs off before any compliance service is sold.</p>
+        <div class="owns"><span class="k">Owns</span><span>Security sign-off</span></div>
+      </div>
+      <div class="role">
+        <h3>Legal / Compliance Advisor</h3>
+        <p>Reviews the aviso de privacidad, lawful basis, retention policy and ARCO-rights handling against LFPDPPP before it's demonstrated to a client.</p>
+        <div class="owns"><span class="k">Owns</span><span>Compliance sign-off</span></div>
+      </div>
+      <div class="role">
+        <h3>UX Researcher</h3>
+        <p>Periodic sessions with real SMB, school and independent-professional buyers — validates decisions like the audience split before they're built.</p>
+        <div class="owns"><span class="k">Owns</span><span>Research validation</span></div>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="sec">Domain ownership</h2>
+  <p class="sec-note">The seven platform domains from the architecture doc, each with a primary owner and the tier that gates it before release.</p>
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>Domain</th><th>Primary owner</th><th>Release gate</th></tr></thead>
+      <tbody>
+        <tr><td class="dom">Identity<small>users · roles · sessions · OAuth</small></td><td><span class="tag t1">Backend Engineer</span></td><td class="gate">Security Engineer (Tier 3)</td></tr>
+        <tr><td class="dom">Catalog<small>4 service categories · products</small></td><td><span class="tag t1">Product Designer</span></td><td class="gate">Product Manager (Tier 1)</td></tr>
+        <tr><td class="dom">Commerce<small>cart · orders · entitlements · downloads</small></td><td><span class="tag t1">Backend Engineer</span></td><td class="gate">QA Engineer (Tier 2) + Security (Tier 3)</td></tr>
+        <tr><td class="dom">Delivery<small>client projects · milestones · files</small></td><td><span class="tag t1">Frontend + Backend</span></td><td class="gate">QA Engineer (Tier 2)</td></tr>
+        <tr><td class="dom">Support<small>tickets</small></td><td><span class="tag t1">Backend Engineer</span></td><td class="gate">QA Engineer (Tier 2)</td></tr>
+        <tr><td class="dom">Content<small>pages · SEO metadata · visual assets</small></td><td><span class="tag t2">SEO Strategist</span></td><td class="gate">Product Manager (Tier 1)</td></tr>
+        <tr><td class="dom">Comms<small>newsletter · notifications</small></td><td><span class="tag t1">Backend Engineer</span></td><td class="gate">DevOps (Tier 2) for deliverability</td></tr>
+        <tr><td class="dom">Compliance<small>LFPDPPP · privacy · ARCO</small></td><td><span class="tag t1">Backend Engineer</span></td><td class="gate">Legal Advisor (Tier 3)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="practical">
+    <h2>Where you sit today</h2>
+    <p>Right now you <strong>are</strong> Tier 1 — Product Manager, Backend, Frontend and Designer in one person, which is exactly the single-maintainer risk your own Description doc names as R3. That's a reasonable place to start; it stops being reasonable the moment Commerce or Compliance ships without a Tier 3 sign-off.</p>
+    <p><strong>Sequencing:</strong> contract Tier 2 roles per phase as the roadmap reaches them — <code>QA</code> before Phase C (commerce hardening), <code>SEO Strategist</code> before Phase E (growth). Retain Tier 3 as periodic engagements only, never headcount: a <code>Security Engineer</code> and <code>Legal Advisor</code> embedded in the team lose the independence that makes their sign-off worth anything, which is the entire reason R7 in your risk register exists.</p>
+  </div>
+
+  <div class="foot">mustaphaukizuru.com · Instructions v4.1 · 3 Sept 2026</div>
+</div>

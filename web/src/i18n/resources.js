@@ -17,7 +17,7 @@ export const NAMESPACES = [
   "common", "home", "about", "services",
   "store", "product", "cart", "checkout", "auth",
   "dashboard", "admin", "contact", "portfolio", "legal", "errors",
-  "blog", "audit",
+  "blog", "audit", "schools",
 ]
 
 export const SUPPORTED_LANGUAGES = ["en", "es"]

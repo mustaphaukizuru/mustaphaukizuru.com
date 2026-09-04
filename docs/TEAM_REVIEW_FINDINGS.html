@@ -1,0 +1,214 @@
+<title>Team Review Findings</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F8FAFC; --bg-elevated:#FFFFFF; --bg-sunken:#EEF1F6;
+  --border:#E1E4EC; --border-strong:#C7CCDA;
+  --fg:#1A1B23; --fg-muted:#54566B; --fg-subtle:#8A8CA3;
+  --accent:#5D3FD3; --accent-soft:#EDE9FB;
+  --t1:#5D3FD3; --t1-soft:#EDE9FB;
+  --t2:#0284C7; --t2-soft:#E0F2FE;
+  --t3:#54566B; --t3-soft:#E7E8EE;
+  --ok:#0F7B4D; --ok-soft:#E4F5EC;
+  --p1:#B42318; --p1-soft:#FBE7E5;
+  --p2:#9A5B00; --p2-soft:#FCEFD9;
+  --p3:#54566B; --p3-soft:#E7E8EE;
+  --sans:'Sora',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E0F14; --bg-elevated:#181A22; --bg-sunken:#111219;
+  --border:#2B2D3C; --border-strong:#40435A;
+  --fg:#F1F1F6; --fg-muted:#AFB0C3; --fg-subtle:#7B7D93;
+  --accent:#9B85F0; --accent-soft:#241E42;
+  --t1:#9B85F0; --t1-soft:#241E42;
+  --t2:#4FB3EC; --t2-soft:#0F2536;
+  --t3:#A6A8BC; --t3-soft:#1D1F2B;
+  --ok:#4ADE80; --ok-soft:#0F2A1C;
+  --p1:#F87171; --p1-soft:#3B1414;
+  --p2:#FBBF24; --p2-soft:#3A2A08;
+  --p3:#A6A8BC; --p3-soft:#1D1F2B;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E0F14; --bg-elevated:#181A22; --bg-sunken:#111219;
+  --border:#2B2D3C; --border-strong:#40435A;
+  --fg:#F1F1F6; --fg-muted:#AFB0C3; --fg-subtle:#7B7D93;
+  --accent:#9B85F0; --accent-soft:#241E42;
+  --t1:#9B85F0; --t1-soft:#241E42;
+  --t2:#4FB3EC; --t2-soft:#0F2536;
+  --t3:#A6A8BC; --t3-soft:#1D1F2B;
+  --ok:#4ADE80; --ok-soft:#0F2A1C;
+  --p1:#F87171; --p1-soft:#3B1414;
+  --p2:#FBBF24; --p2-soft:#3A2A08;
+  --p3:#A6A8BC; --p3-soft:#1D1F2B;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:940px;margin:0 auto;padding:52px 24px 96px}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+h1{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.18}
+.lede{max-width:68ch;margin-top:16px;font-size:15.5px;line-height:1.68;color:var(--fg-muted)}
+.lede strong{color:var(--fg);font-weight:600}
+
+.affirm{margin-top:28px;background:var(--ok-soft);border:1px solid var(--border);border-left:3px solid var(--ok);border-radius:8px;padding:16px 18px}
+.affirm h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ok)}
+.affirm p{margin-top:8px;font-size:13.5px;line-height:1.6;color:var(--fg-muted);max-width:68ch}
+.affirm code{font-family:var(--mono);font-size:12px;background:var(--bg-elevated);padding:1px 5px;border-radius:4px;border:1px solid var(--border)}
+
+.tier{margin-top:48px}
+.tier-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding-bottom:12px;border-bottom:2px solid var(--tc)}
+.tier-num{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--tc);letter-spacing:.04em}
+.tier-title{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.tier1{--tc:var(--t1)} .tier2{--tc:var(--t2)} .tier3{--tc:var(--t3)}
+
+.finding{margin-top:18px;background:var(--bg-elevated);border:1px solid var(--border);border-left:3px solid var(--tc);border-radius:8px;padding:16px 20px}
+.finding-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.role{font-size:14px;font-weight:700}
+.prio{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;padding:2.5px 9px;border-radius:20px;white-space:nowrap}
+.prio.p1{color:var(--p1);background:var(--p1-soft)}
+.prio.p2{color:var(--p2);background:var(--p2-soft)}
+.prio.p3{color:var(--p3);background:var(--p3-soft)}
+.finding dl{margin:12px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
+.finding dt{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);padding-top:2px}
+.finding dd{margin:0;font-size:13.5px;line-height:1.6;color:var(--fg-muted)}
+.finding dd strong{color:var(--fg);font-weight:600}
+.finding dd code{font-family:var(--mono);font-size:12px;background:var(--bg-sunken);padding:1px 5px;border-radius:4px}
+.finding.ok{border-left-color:var(--ok)}
+.finding.ok .role::after{content:" · no action";font-weight:400;color:var(--ok);font-family:var(--mono);font-size:10px;letter-spacing:.04em;margin-left:6px}
+
+h2.sec{margin-top:56px;font-size:18px;font-weight:700;letter-spacing:-.01em;padding-top:24px;border-top:1px solid var(--border)}
+.sec-note{margin-top:8px;font-size:13.5px;color:var(--fg-muted);max-width:64ch;line-height:1.6}
+ol.punch{margin:20px 0 0;padding:0;list-style:none;counter-reset:p}
+ol.punch li{counter-increment:p;display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--border)}
+ol.punch li:last-child{border-bottom:0}
+ol.punch li::before{content:counter(p, decimal-leading-zero);font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent)}
+ol.punch .t{font-size:13.5px;color:var(--fg)}
+ol.punch .tag{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+ol.punch .tag.p1{color:var(--p1);background:var(--p1-soft)}
+ol.punch .tag.p2{color:var(--p2);background:var(--p2-soft)}
+ol.punch .tag.p3{color:var(--p3);background:var(--p3-soft)}
+
+.foot{margin-top:44px;font-family:var(--mono);font-size:11px;color:var(--fg-subtle)}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">mustaphaukizuru.com · full-team review · 3 Sept 2026</div>
+  <h1>The site already reads human. It doesn't yet read finished.</h1>
+  <p class="lede">The eleven roles from <strong>Build Team Tiers</strong> reviewed the live architecture and the public surface together. The verdict up front: your copy, testimonials and brand discipline already avoid the tells of an AI-generated site — the gap between "professional demo" and "pro platform" is entirely in unfinished follow-through, not in taste. Ten findings below, each owned by the role that would actually fix it, ordered into one punch list at the end.</p>
+
+  <div class="affirm">
+    <h2>Confirmed sound — leave alone</h2>
+    <p>Testimonials render only from <code>GET /api/v1/reviews/featured</code> — nothing fabricated, section hides itself until a real review exists. Hero copy is a specific, human sentence ("built by one engineer you can call"), not marketing filler. The service layer stays out of route handlers (57 controllers / 65 services) and API errors never leak a stack trace. The type pairing (Sora + JetBrains Mono, not Inter) and the removed stock photography already sidestep the look every visitor has learned to distrust. None of this needs the team's attention — it would be wasted effort to "refine" something that already works.</p>
+  </div>
+
+  <section class="tier tier1">
+    <div class="tier-head"><span class="tier-num">TIER 1</span><span class="tier-title">Core Build Team</span></div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">Product / UI Designer</span><span class="prio p1">P1 · highest leverage</span></div>
+      <dl>
+        <dt>Finding</dt><dd>Public pages hard-code <code>bg-white</code> / <code>bg-mist</code>; only the member dashboard shell reads <code>[data-theme="dark"]</code>. Every SaaS competitor a visitor compares you against ships dark mode by default.</dd>
+        <dt>Recommendation</dt><dd>Extend the existing token system (§04) to the public routes — the architecture is already there, this is a token-mapping pass, not a rebuild. Single biggest "looks pro" fix available for the effort it costs.</dd>
+      </dl>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">Frontend Engineer</span><span class="prio p1">P1 · blocks clean lint</span></div>
+      <dl>
+        <dt>Finding</dt><dd><code>CoverflowCarousel.jsx</code> (new, uncommitted) ships a raw arbitrary shadow — <code>shadow-[0_18px_48px_rgba(0,0,0,0.35)]</code> — which fails your own <code>check-shadows.mjs</code> ratchet.</dd>
+        <dt>Recommendation</dt><dd>Swap it for a step on the elevation scale (<code>--shadow-lift-4</code> or similar) before this merges. One unreviewed value is how the "no hardcoded design values" rule starts eroding.</dd>
+      </dl>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">Product Manager</span><span class="prio p1">P1 · content debt</span></div>
+      <dl>
+        <dt>Finding</dt><dd>The self-audit <em>result screen</em> was patched to resolve retired SKUs to a category, but the 82-statement instrument underneath still speaks the six-domain taxonomy retired in v4.1 — roughly 40 statements map to nothing sellable.</dd>
+        <dt>Recommendation</dt><dd>Commission an actual rewrite of the instrument, not another patch. It's the platform's best lead magnet; it shouldn't be the one surface still contradicting the closed set of four.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="tier tier2">
+    <div class="tier-head"><span class="tier-num">TIER 2</span><span class="tier-title">Specialist Contractors</span></div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">QA / Test Engineer</span><span class="prio p2">P2</span></div>
+      <dl>
+        <dt>Finding</dt><dd>Jest's own coverage gate sits at 44% lines / 26% branches — low for a platform that moves money through two payment rails.</dd>
+        <dt>Recommendation</dt><dd>Raise the global gate in stages, but enforce ≥90% specifically on the payment and entitlement services now — that's the one path your own Instructions already call "never shipped untested."</dd>
+      </dl>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">Database / Performance Engineer</span><span class="prio p2">P2</span></div>
+      <dl>
+        <dt>Finding</dt><dd>Real engineering rigor exists — Lighthouse budgets, a coverage percentage, a Passenger-based zero-downtime deploy — but none of it is visible to a visitor. On a site whose own pitch is "this platform is the work sample," invisible discipline doesn't sell.</dd>
+        <dt>Recommendation</dt><dd>A small, <em>sourced</em> stat strip on <code>/about</code> in JetBrains Mono — real Lighthouse score, real test count, uptime since launch — pulled from CI, never typed by hand.</dd>
+      </dl>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">DevOps / Site Reliability</span><span class="prio p2">P2</span></div>
+      <dl>
+        <dt>Finding</dt><dd>Motion still runs on two systems in parallel — <code>gsap</code> drives the home scroll narrative while everywhere else is Framer Motion. Invisible today; every new page inherits the ambiguity of which one to reach for.</dd>
+        <dt>Recommendation</dt><dd>Treat the already-frozen gsap→Framer port as a scheduled Phase B ticket instead of indefinite debt, before a second contributor picks the wrong system by habit.</dd>
+      </dl>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">SEO &amp; Content Strategist</span><span class="prio p3">P3</span></div>
+      <dl>
+        <dt>Finding</dt><dd>One UI-layer file still contains an emoji glyph. Not yet confirmed whether it's inside blog body copy (fine) or a UI marker (banned under §5.2a).</dd>
+        <dt>Recommendation</dt><dd>Five-minute check, not a redesign — confirm and close.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="tier tier3">
+    <div class="tier-head"><span class="tier-num">TIER 3</span><span class="tier-title">Independent Advisory</span></div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">Security Engineer</span><span class="prio p1">P1 · widening surface</span></div>
+      <dl>
+        <dt>Finding</dt><dd>No independent security review is on record. §10 sets OWASP as the baseline; nothing in the repo shows an external audit ever ran.</dd>
+        <dt>Recommendation</dt><dd>Book one now, specifically because dark mode and <code>/schools</code> are both about to widen the first-impression surface a stranger judges you on — more surface, higher cost if something's wrong.</dd>
+      </dl>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">Legal / Compliance Advisor</span><span class="prio p1">P1 · before selling S1-5</span></div>
+      <dl>
+        <dt>Finding</dt><dd><em>[Guessing]</em> — <code>PrivacyPage</code> exists, but its LFPDPPP completeness (aviso de privacidad, ARCO handling, a real retention table) hasn't been independently verified this session.</dd>
+        <dt>Recommendation</dt><dd>Have counsel confirm it before Compliance & Risk Assessment (S1-5) is actively sold — Description §08 R7 names this exact gap as the platform's own reputational trap.</dd>
+      </dl>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="role">UX Researcher</span><span class="prio p2">P2</span></div>
+      <dl>
+        <dt>Finding</dt><dd><code>/schools</code> shipped this session from domain expertise, not from interviews with real school directors.</dd>
+        <dt>Recommendation</dt><dd>3–5 real conversations before the page's specific claims — the school-year timeline, the four mapped outcomes — get load-bearing in an actual sales call.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <h2 class="sec">Start here</h2>
+  <p class="sec-note">The same ten findings, ordered by what to actually do first — quick fixes ahead of the initiatives they don't block.</p>
+  <ol class="punch">
+    <li><span class="t">Swap the raw shadow in <code>CoverflowCarousel.jsx</code> for an elevation token</span><span class="tag p1">P1</span></li>
+    <li><span class="t">Confirm the stray UI emoji is inside blog copy, not a marker</span><span class="tag p3">P3</span></li>
+    <li><span class="t">Book the independent security review</span><span class="tag p1">P1</span></li>
+    <li><span class="t">Have counsel verify the LFPDPPP pages before S1-5 is sold</span><span class="tag p1">P1</span></li>
+    <li><span class="t">Open the public dark-mode epic on the existing token system</span><span class="tag p1">P1</span></li>
+    <li><span class="t">Rewrite the self-audit instrument's 82 statements against the closed four</span><span class="tag p1">P1</span></li>
+    <li><span class="t">Raise the coverage gate on payment and entitlement services</span><span class="tag p2">P2</span></li>
+    <li><span class="t">Add a sourced engineering-credibility strip to <code>/about</code></span><span class="tag p2">P2</span></li>
+    <li><span class="t">Schedule the gsap → Framer Motion port</span><span class="tag p2">P2</span></li>
+    <li><span class="t">Run 3–5 school-director interviews to validate <code>/schools</code></span><span class="tag p2">P2</span></li>
+  </ol>
+
+  <div class="foot">mustaphaukizuru.com · companion to Build Team Tiers · 3 Sept 2026</div>
+</div>
