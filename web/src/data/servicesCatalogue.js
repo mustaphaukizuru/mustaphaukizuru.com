@@ -189,9 +189,9 @@ export const CATEGORIES = [
     outcomeEs: "Responde a clientes más rápido, sincroniza prospectos automáticamente y convierte documentos en datos limpios sin contratar más personal.",
     Icon: Workflow,
     accent: "terracotta",
-    // bg-terracotta (#E9C46A) is a light hue: white text on it is 1.67:1.
-    // Every consumer of `tile` pairs it with text-white, so the tile has to be
-    // the dark end of the ramp. terracotta-800 is 5.60:1 with white.
+    // Plain bg-terracotta is a light hue — white text on it is 1.67:1. Every
+    // consumer of `tile` pairs it with text-white, so the tile has to sit at
+    // the dark end of the ramp: terracotta-800 is 5.60:1 with white.
     tile: "bg-terracotta-800",
     offerings: [
       {
@@ -271,8 +271,8 @@ export const CATEGORIES = [
     outcomeEs: "Retira el servidor de la oficina, paga solo la capacidad en la nube que usas y confirma que tus respaldos realmente restauran.",
     Icon: CloudCog,
     accent: "azure",
-    // bg-azure (#0284C7) is 4.10:1 with white — under AA for the 11-14px text
-    // these tiles carry. azure-deep is 5.93:1.
+    // Plain bg-azure is 4.10:1 with white — under AA for the 11-14px text these
+    // tiles carry. azure-deep is 5.93:1.
     tile: "bg-azure-deep",
     offerings: [
       {
