@@ -83,9 +83,11 @@ function Sparkline({ data, color = "var(--color-violet)", width = 88, height = 2
   const gradId = `spark-grad-${useId().replace(/:/g, "")}`
   if (!data || data.length < 2) {
     return (
-      <svg width={width} height={height} aria-hidden="true">
+      <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height}
+           preserveAspectRatio="none" className="block" aria-hidden="true">
         <line x1="0" y1={height / 2} x2={width} y2={height / 2}
-              stroke="currentColor" strokeWidth="1" strokeOpacity="0.15" strokeDasharray="2 3" />
+              stroke="currentColor" strokeWidth="1" strokeOpacity="0.15" strokeDasharray="2 3"
+              vectorEffect="non-scaling-stroke" />
       </svg>
     )
   }
@@ -102,7 +104,10 @@ function Sparkline({ data, color = "var(--color-violet)", width = 88, height = 2
   const fillD = `${pathD} L${width},${height} L0,${height} Z`
 
   return (
-    <svg width={width} height={height} aria-hidden="true">
+    // viewBox + preserveAspectRatio="none" lets the card stretch this to its own
+    // width; non-scaling-stroke keeps the 1.5px line from being stretched with it.
+    <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height}
+         preserveAspectRatio="none" className="block" aria-hidden="true">
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.18" />
@@ -110,7 +115,8 @@ function Sparkline({ data, color = "var(--color-violet)", width = 88, height = 2
         </linearGradient>
       </defs>
       <path d={fillD} fill={`url(#${gradId})`} />
-      <path d={pathD} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={pathD} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"
+            vectorEffect="non-scaling-stroke" />
     </svg>
   )
 }
@@ -130,34 +136,37 @@ function KpiCard({ label, value, subValue, delta, deltaLabel = "vs prev", spark,
       transition={{ duration: 0.3, ease: "easeOut", delay }}
       className="relative overflow-hidden rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[var(--shadow-e3)] transition hover:shadow-[var(--shadow-e6)]"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            {Icon && (
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-violet-pale text-violet">
-                <Icon className="h-3 w-3" aria-hidden="true" />
-              </div>
-            )}
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
-              {label}
-            </p>
-          </div>
-
-          <div className="mt-3 font-mono text-[26px] font-bold leading-none tracking-tight tabular-nums text-violet">
-            {value}
-          </div>
-
-          {subValue && (
-            <p className="mt-1.5 truncate font-mono text-micro tabular-nums text-charcoal-80/65">{subValue}</p>
+      {/* Label / value / sub-value own the full card width. The sparkline used
+          to sit beside them as a shrink-0 88px box: at xl:grid-cols-6 a card is
+          ~168px, so after p-5 and the gap the text column was ~28px and every
+          sub-value truncated to "88…". No breakpoint fixes that — even 1536px
+          leaves ~43px — so the sparkline moved below the number, full width. */}
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          {Icon && (
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-violet-pale text-violet">
+              <Icon className="h-3 w-3" aria-hidden="true" />
+            </div>
           )}
+          <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal-80/65">
+            {label}
+          </p>
         </div>
 
-        {spark && (
-          <div className="shrink-0" style={{ color: trend === "down" ? "var(--color-rose)" : "var(--color-violet)" }}>
-            <Sparkline data={spark} color="currentColor" />
-          </div>
+        <div className="mt-3 font-mono text-[26px] font-bold leading-none tracking-tight tabular-nums text-violet">
+          {value}
+        </div>
+
+        {subValue && (
+          <p className="mt-1.5 font-mono text-micro leading-snug tabular-nums text-charcoal-80/65">{subValue}</p>
         )}
       </div>
+
+      {spark && (
+        <div className="mt-3" style={{ color: trend === "down" ? "var(--color-rose)" : "var(--color-violet)" }}>
+          <Sparkline data={spark} color="currentColor" />
+        </div>
+      )}
 
       {delta != null && (
         <div className="mt-3 flex items-center gap-1.5">
@@ -552,13 +561,19 @@ export default function AdminDashboardPage() {
   // NEW v2: Average Order Value
   const avgOrderValue = paidOrders > 0 ? revenue / paidOrders : 0
 
-  // NEW v2: Active customers (distinct paying users in recent orders)
+  // Active customers — distinct paying customers, counted server-side across
+  // every paid order. This used to be derived here from recentOrders, which is
+  // capped at 8 rows and whose payload never included userId, so the card
+  // always showed 0. The local fold is kept only as a fallback for an older
+  // API that does not send the field yet.
   const activeCustomers = useMemo(() => {
+    const fromApi = safeNum(stats.activeCustomers)
+    if (fromApi > 0) return fromApi
     const set = new Set()
     for (const o of recentOrders) {
-      if (o.status === "paid" && o.userId) set.add(o.userId)
+      if (o.status === "paid" && (o.userId || o.customerEmail)) set.add(o.userId || o.customerEmail)
     }
-    return set.size || safeNum(stats.activeCustomers)
+    return set.size
   }, [recentOrders, stats.activeCustomers])
 
   // Daily revenue trend
@@ -775,9 +790,14 @@ export default function AdminDashboardPage() {
             ) : (
               <div className="space-y-1">
                 {topProducts.slice(0, 5).map((p, idx) => {
-                  const max = Math.max(...topProducts.map((x) => safeNum(x._sum?.lineTotal || x.revenue)))
-                  const rev = safeNum(p._sum?.lineTotal || p.revenue)
-                  const qty = safeNum(p._sum?.quantity || p.quantity)
+                  const max = Math.max(...topProducts.map((x) => safeNum(x._sum?.lineTotal ?? x.revenue)))
+                  const rev = safeNum(p._sum?.lineTotal ?? p.revenue)
+                  // The API returns { name, sales, revenue }. This used to read
+                  // p.quantity / p.title, which do not exist on that payload, so
+                  // every row rendered "Product" and "0 units" beside a revenue
+                  // figure that did resolve. Read the contract first, keep the
+                  // other shapes as fallbacks.
+                  const qty = safeNum(p.sales ?? p._sum?.quantity ?? p.quantity)
                   const ratio = max > 0 ? (rev / max) * 100 : 0
                   return (
                     <div key={p.productId || idx} className="rounded-lg p-3 transition hover:bg-mist">
@@ -787,7 +807,7 @@ export default function AdminDashboardPage() {
                             {idx + 1}
                           </div>
                           <div className="min-w-0">
-                            <div className="truncate text-meta font-semibold text-violet">{p.title || p.productTitle || "Product"}</div>
+                            <div className="truncate text-meta font-semibold text-violet">{p.name || p.title || p.productTitle || "Product"}</div>
                             <div className="font-mono text-[11px] tabular-nums text-charcoal-80/65">
                               {qty} unit{qty === 1 ? "" : "s"}
                             </div>
