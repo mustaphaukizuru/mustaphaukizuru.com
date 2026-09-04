@@ -61,35 +61,6 @@ app.use(cookieParser())
 // Compression
 app.use(compression({ level: 6, threshold: 1024 }))
 
-// Static uploads
-// __dirname = mustaphaukizuru.com/src  →  ../public = mustaphaukizuru.com/public ✓
-//
-// Product + portfolio images have TWO sources behind one URL prefix: runtime
-// admin uploads (storage/, persists across deploys) and seed images tracked
-// in git (public/). Storage is mounted first; a miss falls through to public.
-const immutableImageHeaders = (res) => {
-  res.setHeader("X-Content-Type-Options", "nosniff")
-  res.setHeader("Cache-Control", "public, max-age=604800, immutable")
-}
-app.use("/images/products",  express.static(STORAGE_PATHS.productImages,   { maxAge: "7d", setHeaders: immutableImageHeaders }))
-app.use("/images/portfolio", express.static(STORAGE_PATHS.portfolioImages, { maxAge: "7d", setHeaders: immutableImageHeaders }))
-app.use("/images/products", express.static(path.join(__dirname, "../public/images/products"), {
-  maxAge: "7d",
-  setHeaders: immutableImageHeaders,
-}))
-// Avatars & media are user uploads — served from storage/ (persists across
-// builds), NOT ../public (wiped by Vite emptyOutDir on every build). The URL
-// prefix stays /images/* so existing database URLs keep resolving.
-app.use("/images/avatars", express.static(STORAGE_PATHS.avatars, {
-  setHeaders: (res) => {
-    res.setHeader("X-Content-Type-Options", "nosniff")
-    res.setHeader("Content-Disposition", "inline")
-  },
-}))
-app.use("/images/media", express.static(STORAGE_PATHS.media, {
-  setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
-}))
-
 // CORS
 const allowedOrigins = [
   clientUrl,
@@ -165,6 +136,44 @@ app.use(helmet({
     preload:           true,
   },
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+}))
+
+// Static uploads — mounted AFTER helmet on purpose.
+//
+// These five mounts used to sit above the security headers, so every
+// response under /images/* went out with no Content-Security-Policy, no
+// HSTS and no frame headers. Combined with an avatar filename taken from
+// the upload's own name, a member could store a .html under /images/avatars
+// and have it rendered on the origin as a document with no CSP at all.
+// express.static still applies the per-mount setHeaders below; helmet now
+// stamps its headers first. Nothing between the old and new position
+// depends on the order — CORS does not apply to same-origin image loads.
+// __dirname = mustaphaukizuru.com/src  →  ../public = mustaphaukizuru.com/public ✓
+//
+// Product + portfolio images have TWO sources behind one URL prefix: runtime
+// admin uploads (storage/, persists across deploys) and seed images tracked
+// in git (public/). Storage is mounted first; a miss falls through to public.
+const immutableImageHeaders = (res) => {
+  res.setHeader("X-Content-Type-Options", "nosniff")
+  res.setHeader("Cache-Control", "public, max-age=604800, immutable")
+}
+app.use("/images/products",  express.static(STORAGE_PATHS.productImages,   { maxAge: "7d", setHeaders: immutableImageHeaders }))
+app.use("/images/portfolio", express.static(STORAGE_PATHS.portfolioImages, { maxAge: "7d", setHeaders: immutableImageHeaders }))
+app.use("/images/products", express.static(path.join(__dirname, "../public/images/products"), {
+  maxAge: "7d",
+  setHeaders: immutableImageHeaders,
+}))
+// Avatars & media are user uploads — served from storage/ (persists across
+// builds), NOT ../public (wiped by Vite emptyOutDir on every build). The URL
+// prefix stays /images/* so existing database URLs keep resolving.
+app.use("/images/avatars", express.static(STORAGE_PATHS.avatars, {
+  setHeaders: (res) => {
+    res.setHeader("X-Content-Type-Options", "nosniff")
+    res.setHeader("Content-Disposition", "inline")
+  },
+}))
+app.use("/images/media", express.static(STORAGE_PATHS.media, {
+  setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
 }))
 
 // Request id · FIRST, so every later middleware, controller, service and

@@ -17,7 +17,7 @@
 // call arguments and stub return values per-test.
 jest.mock("../src/lib/prisma", () => {
   const tx = {
-    refund:        { create: jest.fn() },
+    refund:        { create: jest.fn(), update: jest.fn() },
     payment:       { update: jest.fn() },
     order:         { update: jest.fn() },
     userDownload:  { updateMany: jest.fn() },
@@ -28,6 +28,7 @@ jest.mock("../src/lib/prisma", () => {
       findUnique: jest.fn(),
     },
     refund: {
+      create:    jest.fn(),
       findMany:  jest.fn(),
       findFirst: jest.fn(),
       update:    jest.fn(),
@@ -38,6 +39,7 @@ jest.mock("../src/lib/prisma", () => {
     $transaction: jest.fn(async (cb) => {
       // Reset per-call so assertions don't accumulate across tests.
       tx.refund.create.mockClear()
+      tx.refund.update.mockClear()
       tx.payment.update.mockClear()
       tx.order.update.mockClear()
       tx.userDownload.updateMany.mockClear()
@@ -45,6 +47,7 @@ jest.mock("../src/lib/prisma", () => {
 
       // Default stub returns — tests can override via mockResolvedValueOnce.
       tx.refund.create.mockResolvedValue({ id: "refund_x", processedAt: new Date() })
+      tx.refund.update.mockResolvedValue({ id: "refund_claim", processedAt: new Date() })
       tx.payment.update.mockResolvedValue({})
       tx.order.update.mockResolvedValue({})
       tx.userDownload.updateMany.mockResolvedValue({ count: 0 })
@@ -134,6 +137,9 @@ function buildOrder({
 
 beforeEach(() => {
   jest.clearAllMocks()
+  // The claim row processOrderRefund creates before calling the gateway.
+  prisma.refund.create.mockResolvedValue({ id: "refund_claim" })
+  prisma.refund.update.mockResolvedValue({})
   refundPaypalCapture.mockResolvedValue({ id: "PAYPAL-REFUND-1", status: "COMPLETED" })
   refundMercadoPagoPayment.mockResolvedValue({ id: "MP-REFUND-1", status: "approved" })
 })
@@ -222,24 +228,39 @@ describe("processOrderRefund — happy paths", () => {
       adminUserId: "admin_1",
     })
 
-    // Provider called with correct args
+    // Claim row first — BEFORE the gateway is called — keyed for refund_gateway_uq
+    expect(prisma.refund.create).toHaveBeenCalledTimes(1)
+    expect(prisma.refund.create.mock.calls[0][0].data).toEqual({
+      paymentId:       "pay_1",
+      orderId:         "order_1",
+      amount:          100,
+      reason:          "Customer service exception",
+      refundStatus:    "processing",
+      gatewayRefundId: "claim-pay_1",
+    })
+    expect(prisma.refund.create.mock.invocationCallOrder[0])
+      .toBeLessThan(refundPaypalCapture.mock.invocationCallOrder[0])
+
+    // Provider called with correct args; the claim id is the idempotency key
     expect(refundPaypalCapture).toHaveBeenCalledWith("CAP-XYZ", {
       amount:   100,
       currency: "MXN",
       note:     "Customer service exception",
+      refundId: "refund_claim",
     })
     expect(refundMercadoPagoPayment).not.toHaveBeenCalled()
 
-    // Transaction writes
-    expect(prisma.__tx.refund.create).toHaveBeenCalledTimes(1)
-    expect(prisma.__tx.refund.create.mock.calls[0][0].data).toMatchObject({
-      paymentId:    "pay_1",
-      orderId:      "order_1",
-      amount:       100,
-      reason:       "Customer service exception",
-      refundStatus: "succeeded",
-      // Tier 4 · provider refund id is the idempotency anchor for webhooks
-      gatewayRefundId: "PAYPAL-REFUND-1",
+    // Transaction writes — the claimed row is completed, never duplicated
+    expect(prisma.__tx.refund.create).not.toHaveBeenCalled()
+    expect(prisma.__tx.refund.update).toHaveBeenCalledTimes(1)
+    expect(prisma.__tx.refund.update.mock.calls[0][0]).toMatchObject({
+      where: { id: "refund_claim" },
+      data: {
+        refundStatus: "succeeded",
+        // Tier 4 · provider refund id is the idempotency anchor for webhooks
+        gatewayRefundId: "PAYPAL-REFUND-1",
+        processedAt:     expect.any(Date),
+      },
     })
 
     expect(prisma.__tx.payment.update).toHaveBeenCalledWith(
@@ -294,9 +315,10 @@ describe("processOrderRefund — happy paths", () => {
       adminUserId: "admin_1",
     })
 
-    expect(refundMercadoPagoPayment).toHaveBeenCalledWith({ paymentId: "MP-PAY-1", amount: 100 })
+    expect(refundMercadoPagoPayment).toHaveBeenCalledWith({ paymentId: "MP-PAY-1", amount: 100, refundId: "refund_claim" })
     expect(refundPaypalCapture).not.toHaveBeenCalled()
-    expect(prisma.__tx.refund.create.mock.calls[0][0].data.amount).toBe(100)
+    expect(prisma.refund.create.mock.calls[0][0].data.amount).toBe(100)
+    expect(prisma.__tx.refund.update.mock.calls[0][0].data.gatewayRefundId).toBe("MP-REFUND-1")
     expect(prisma.__tx.payment.update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: "pay_1" }, data: { paymentStatus: "refunded" } }),
     )
@@ -479,7 +501,7 @@ describe("processOrderRefund — validation errors", () => {
 })
 
 describe("processOrderRefund — gateway errors", () => {
-  test("provider failure throws GATEWAY_ERROR and writes nothing", async () => {
+  test("provider failure throws GATEWAY_ERROR, releases the claim, and flips nothing else", async () => {
     prisma.order.findUnique.mockResolvedValueOnce(buildOrder())
     refundPaypalCapture.mockRejectedValueOnce(new Error("PayPal: refund failed (422): INSUFFICIENT_FUNDS"))
 
@@ -488,7 +510,29 @@ describe("processOrderRefund — gateway errors", () => {
       adminUserId: "admin_1",
     })).rejects.toMatchObject({ code: "GATEWAY_ERROR" })
 
-    // No DB writes happened
+    // The claim row is marked failed and its key released so a retry can claim again
+    expect(prisma.refund.update).toHaveBeenCalledWith({
+      where: { id: "refund_claim" },
+      data:  { refundStatus: "failed", gatewayRefundId: null },
+    })
+    // No transactional writes happened — order, payment, entitlements untouched
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
+  test("a concurrent attempt loses the claim (P2002 on refund_gateway_uq) → 409 CONFLICT, gateway never called", async () => {
+    prisma.order.findUnique.mockResolvedValueOnce(buildOrder())
+    const dup = new Error("Unique constraint failed on refund_gateway_uq")
+    dup.code = "P2002"
+    prisma.refund.create.mockRejectedValueOnce(dup)
+
+    await expect(processOrderRefund({
+      orderId:     "order_1",
+      adminUserId: "admin_1",
+    })).rejects.toMatchObject({ code: "CONFLICT", status: 409 })
+
+    expect(refundPaypalCapture).not.toHaveBeenCalled()
+    expect(refundMercadoPagoPayment).not.toHaveBeenCalled()
+    expect(prisma.refund.update).not.toHaveBeenCalled()
     expect(prisma.$transaction).not.toHaveBeenCalled()
   })
 

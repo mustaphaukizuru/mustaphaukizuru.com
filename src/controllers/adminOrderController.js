@@ -10,14 +10,12 @@ const {
   sendOrderPendingEmail,
   sendOrderCancelledEmail,
   sendOrderFailedEmail,
-  sendOrderRefundedEmail,
   sendDownloadReadyEmail,
 } = require("../utils/mailer")
 const {
   notifyOrderPaid,
   notifyOrderFailed,
   notifyOrderCancelled,
-  notifyOrderRefunded,
   notifyDownloadReady,
 } = require("../services/notificationService")
 
@@ -47,10 +45,20 @@ const getSingleAdminOrder = asyncHandler(async (req, res) => {
   })
 })
 
+// PATCH /admin/orders/:id/status
+//
+// The service holds the transition table and writes the audit row; `paid`
+// also runs fulfilment before it returns, so the download-ready emails
+// below describe entitlements that already exist. `refunded` is refused
+// here on purpose — only the refund endpoint may say a customer was
+// refunded, because only it moves the money and revokes the downloads.
 const patchAdminOrderStatus = asyncHandler(async (req, res) => {
   const { status } = req.body
 
-  const order = await updateOrderStatus(req.params.id, status)
+  const order = await updateOrderStatus(req.params.id, status, {
+    adminUserId: req.user.id,
+    ipAddress:   req.ip,
+  })
 
   // Fetch full order with customer email for emails
   const fullOrder = await getAdminOrderById(req.params.id)
@@ -97,10 +105,6 @@ const patchAdminOrderStatus = asyncHandler(async (req, res) => {
         case "cancelled":
           sendOrderCancelledEmail(emailOrder).catch(() => {})
           notifyOrderCancelled(emailOrder).catch(() => {})
-          break
-        case "refunded":
-          sendOrderRefundedEmail(emailOrder).catch(() => {})
-          notifyOrderRefunded(emailOrder).catch(() => {})
           break
       }
     } catch (_) { /* email/notification failures must not break the response */ }

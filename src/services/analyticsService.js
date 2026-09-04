@@ -4,15 +4,35 @@
 // Session is identified by a SHA-256 hash of (IP + UA + day-bucket).
 // =============================================================
 
-const crypto = require("crypto")
-const prisma = require("../lib/prisma")
+const crypto   = require("crypto")
+const prisma   = require("../lib/prisma")
+const AppError = require("../utils/AppError")
 
-const HASH_SECRET = process.env.ANALYTICS_HASH_SALT || "muz-analytics-default-salt"
+// The salt is what makes the session hash irreversible: HMAC(ip|ua|day)
+// under a public or guessable key is a lookup table away from the IP. There
+// used to be a literal fallback here, so a deploy without the variable
+// hashed every visitor with a string that sits in this repository. Boot now
+// refuses without it (config/env.js REQUIRED_ENV); this read is the
+// fail-closed guard for anything that bypasses env.js — a script, a job —
+// so no row is ever written under a weak salt. It is read per call rather
+// than at module load so that importing the module never throws.
+const MIN_SALT_LENGTH = 32
+
+function hashSecret() {
+  const salt = process.env.ANALYTICS_HASH_SALT || ""
+  if (salt.length < MIN_SALT_LENGTH) {
+    throw new AppError(
+      `ANALYTICS_HASH_SALT must be set to at least ${MIN_SALT_LENGTH} characters before analytics can hash visitor data`,
+      { statusCode: 500, code: "ANALYTICS_SALT_MISSING" },
+    )
+  }
+  return salt
+}
 
 // ---- Hash helpers ----------------------------------------------
 
 function sha(input) {
-  return crypto.createHmac("sha256", HASH_SECRET).update(String(input)).digest("hex").slice(0, 32)
+  return crypto.createHmac("sha256", hashSecret()).update(String(input)).digest("hex").slice(0, 32)
 }
 
 function dayBucket() {
@@ -38,6 +58,10 @@ function buildSessionHash(req) {
 function buildUaHash(req) {
   return sha(req.headers["user-agent"] || "")
 }
+
+// Exported for the salt guard tests; not part of the controller surface.
+exports.buildSessionHash = buildSessionHash
+exports.MIN_SALT_LENGTH  = MIN_SALT_LENGTH
 
 // ---- Write paths ----------------------------------------------
 //

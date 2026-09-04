@@ -89,6 +89,8 @@ const UNIQUES = {
   couponUsage:    [["couponId", "orderId"]],
   clientProject:  [["serviceOrderId"], ["consultationId"]],
   invoice:        [["orderId"]],
+  // refund_gateway_uq — the claim key processOrderRefund relies on.
+  refund:         [["paymentId", "gatewayRefundId"]],
 }
 
 const DEFAULTS = {

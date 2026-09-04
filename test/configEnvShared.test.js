@@ -21,7 +21,7 @@ const REAL_ENV_JS = path.join(__dirname, "..", "src", "config", "env.js")
 const REPO_MODULES = path.join(__dirname, "..", "node_modules")
 
 /** Build hbuilds/versions/<uuid>/nodejs/src/config/env.js + optional shared config. */
-function buildTree({ withSharedEnv }) {
+function buildTree({ withSharedEnv, withSalt = true }) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "hbuild-test-"))
   const appDir = path.join(root, "hbuilds", "versions", "01a03a0d-uuid", "nodejs")
   fs.mkdirSync(path.join(appDir, "src", "config"), { recursive: true })
@@ -36,6 +36,7 @@ function buildTree({ withSharedEnv }) {
         "DATABASE_URL=mysql://sim:sim@localhost:3306/simdb",
         `JWT_SECRET=${"s".repeat(80)}`,
         "CLIENT_URL=https://example.test",
+        ...(withSalt ? [`ANALYTICS_HASH_SALT=${"h".repeat(64)}`] : []),
       ].join("\n")
     )
   }
@@ -49,6 +50,7 @@ function loadEnvIn(appDir) {
   delete childEnv.DATABASE_URL
   delete childEnv.JWT_SECRET
   delete childEnv.CLIENT_URL
+  delete childEnv.ANALYTICS_HASH_SALT
   childEnv.NODE_PATH = REPO_MODULES
 
   return spawnSync(
@@ -90,5 +92,15 @@ describe("config/env.js · Hostinger shared-config fallback", () => {
 
     expect(res.status).toBe(1)
     expect(`${res.stderr}${res.stdout}`).toMatch(/Missing required env var: DATABASE_URL/)
+  })
+
+  test("exits 1 when ANALYTICS_HASH_SALT is missing — analytics never hashes under a default", () => {
+    const { root, appDir } = buildTree({ withSharedEnv: true, withSalt: false })
+    made.push(root)
+
+    const res = loadEnvIn(appDir)
+
+    expect(res.status).toBe(1)
+    expect(`${res.stderr}${res.stdout}`).toMatch(/Missing required env var: ANALYTICS_HASH_SALT/)
   })
 })

@@ -55,7 +55,10 @@ if (!process.env.DATABASE_URL) {
 // B11 · Validate required variables + crypto soundness
 // ─────────────────────────────────────────────────────────────
 
-const REQUIRED_ENV = ["DATABASE_URL", "JWT_SECRET", "CLIENT_URL"]
+// ANALYTICS_HASH_SALT: analyticsService HMACs ip|ua|day with it. Without it
+// the server used to fall back to a literal in the repository. Required, and
+// checked for length below, since a short key is reversible by brute force.
+const REQUIRED_ENV = ["DATABASE_URL", "JWT_SECRET", "CLIENT_URL", "ANALYTICS_HASH_SALT"]
 
 REQUIRED_ENV.forEach((key) => {
   if (!process.env[key]) {
@@ -70,6 +73,16 @@ if (process.env.JWT_SECRET.length < MIN_JWT_SECRET_LENGTH) {
     `❌ JWT_SECRET is too short (${process.env.JWT_SECRET.length} chars). ` +
     `Minimum is ${MIN_JWT_SECRET_LENGTH} characters. ` +
     `Generate a strong one with: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
+  )
+  process.exit(1)
+}
+
+const MIN_ANALYTICS_SALT_LENGTH = 32
+if (process.env.ANALYTICS_HASH_SALT.length < MIN_ANALYTICS_SALT_LENGTH) {
+  console.error(
+    `❌ ANALYTICS_HASH_SALT is too short (${process.env.ANALYTICS_HASH_SALT.length} chars). ` +
+    `Minimum is ${MIN_ANALYTICS_SALT_LENGTH} characters. ` +
+    `Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
   )
   process.exit(1)
 }

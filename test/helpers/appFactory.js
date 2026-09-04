@@ -32,6 +32,7 @@ function stubEnv() {
   process.env.CLIENT_URL    = "http://localhost:5173"
   process.env.FRONTEND_URL  = "http://localhost:5173"
   process.env.DISABLE_CRON  = "1"
+  process.env.ANALYTICS_HASH_SALT = "analytics-salt-for-tests-".padEnd(48, "x")
   process.env.MP_ACCESS_TOKEN    = "TEST-mp-access-token"
   process.env.MP_WEBHOOK_SECRET  = TEST_MP_WEBHOOK_SECRET
   process.env.PAYPAL_CLIENT_ID     = "test-paypal-id"

@@ -258,10 +258,22 @@ function errorHandler(err, req, res, next) {
 
   // ── Application errors (legacy {statusCode, code} shape) ──────────────
   const status   = err.statusCode || err.status || 500
-  const message  = err.message || "Internal server error"
+
+  // An error that never chose a status is an unexpected throw, and its
+  // message is whatever the stack produced: a file path, an SQL fragment, a
+  // provider body. In production the client gets a generic line; the log
+  // line below and Sentry keep the real one. Errors that set a status
+  // (AppError above, refundService's withCode here) wrote their message for
+  // the client on purpose and keep it.
+  const explicitStatus = err.statusCode ?? err.status
+  const maskUnexpected = isProd && status >= 500 && explicitStatus == null
+  const message = maskUnexpected
+    ? "Something went wrong. Please try again."
+    : (err.message || "Internal server error")
 
   // Map status to canonical code if the error didn't supply one explicitly.
-  const code = err.code || mapStatusToCode(status)
+  // A masked error also hides its code — ENOENT and friends say too much.
+  const code = maskUnexpected ? "INTERNAL_ERROR" : (err.code || mapStatusToCode(status))
 
   if (status >= 500) {
     logger.error("[Error]", status, err.name, err.message, isProd ? "" : err.stack?.split("\n")[1])

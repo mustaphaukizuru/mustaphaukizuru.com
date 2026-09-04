@@ -31,6 +31,10 @@
 //     — captured in the audit row so abuse is traceable
 //
 // Concurrency model:
+//   - A `processing` Refund row is claimed before the provider call, keyed on
+//     refund_gateway_uq with a deterministic claim key, so two concurrent
+//     attempts on one payment cannot both reach the gateway (the loser gets
+//     409 CONFLICT). Its id is the provider idempotency key.
 //   - Provider call happens BEFORE the DB transaction (we can't roll back a
 //     gateway-side refund — pretending we can would be a worse failure mode)
 //   - DB writes (Refund row + Payment + Order + UserDownload + AdminAuditLog)
@@ -384,9 +388,47 @@ async function processOrderRefund({
     throw withCode("Payment has no gateway transaction id — cannot refund", "NO_PAYMENT", 409)
   }
 
-  // 6 · Provider call — done BEFORE the DB transaction so we never hold a
-  //     DB lock open across an external HTTP request. If the provider fails,
-  //     we throw and no DB writes happen.
+  // 6 · Claim the refund BEFORE calling the gateway.
+  //
+  //     Everything above is a read: two admins, or one double-click, can both
+  //     see `paid` and both reach the provider — and until now both did,
+  //     each with a fresh idempotency key. The claim is a Refund row in
+  //     `processing` whose gatewayRefundId is a deterministic per-payment
+  //     key; `refund_gateway_uq` (paymentId, gatewayRefundId) then makes the
+  //     second concurrent insert fail with P2002, which surfaces as 409.
+  //     No schema change is needed for this. The row id doubles as the
+  //     provider idempotency key, so a retry after a network failure
+  //     reaches the gateway with the same key instead of a new one.
+  //
+  //     Outcomes: success rewrites the row to `succeeded` with the provider
+  //     id (inside the transaction below); a provider failure marks it
+  //     `failed` and releases the claim so the admin can try again. A row
+  //     left in `processing` (process died mid-call) keeps the order locked
+  //     and visible in the refunds list until someone looks at it — the
+  //     safe direction for money.
+  const claimKey = `claim-${targetPayment.id}`
+  let refundRow
+  try {
+    refundRow = await prisma.refund.create({
+      data: {
+        paymentId:       targetPayment.id,
+        orderId:         order.id,
+        amount:          requestedAmount,
+        reason:          reason || null,
+        refundStatus:    "processing",
+        gatewayRefundId: claimKey,
+      },
+    })
+  } catch (e) {
+    if (e?.code === "P2002") {
+      throw withCode("A refund for this order is already in progress", "CONFLICT", 409)
+    }
+    throw e
+  }
+
+  // 7 · Provider call — outside the DB transaction so we never hold a DB
+  //     lock open across an external HTTP request. If the provider fails,
+  //     the claim is released and no other local state changes.
   let providerRaw
   try {
     if (targetPayment.paymentGateway === "paypal") {
@@ -394,25 +436,32 @@ async function processOrderRefund({
         amount:   requestedAmount,
         currency: targetPayment.currency || order.currency || "MXN",
         note:     reason || undefined,
+        refundId: refundRow.id,
       })
     } else if (targetPayment.paymentGateway === "mercadopago") {
       providerRaw = await refundMercadoPagoPayment({
         paymentId: targetPayment.gatewayTransactionId,
         amount:    requestedAmount,
+        refundId:  refundRow.id,
       })
     } else {
       throw withCode(`Unsupported payment gateway: ${targetPayment.paymentGateway}`, "GATEWAY_ERROR", 500)
     }
   } catch (providerErr) {
     logger.error(`[refund] provider call failed for order ${order.orderNumber} (${targetPayment.paymentGateway}): ${providerErr.message}`)
+    await prisma.refund.update({
+      where: { id: refundRow.id },
+      data:  { refundStatus: "failed", gatewayRefundId: null },
+    }).catch((e) => logger.error(`[refund] could not release claim ${refundRow.id}: ${e.message}`))
     const err = withCode(`Refund declined by ${targetPayment.paymentGateway}: ${providerErr.message}`, "GATEWAY_ERROR", 502)
     err.details = { provider: targetPayment.paymentGateway, raw: providerErr.message }
     throw err
   }
 
-  // 7 · Transactional DB writes.
+  // 8 · Transactional DB writes.
   const result = await prisma.$transaction(async (tx) => {
     const { refund, revoked } = await applyRefundWrites(tx, {
+      refundId:        refundRow.id,
       paymentId:       targetPayment.id,
       orderId:         order.id,
       amount:          requestedAmount,
@@ -453,7 +502,7 @@ async function processOrderRefund({
     return { refund, revokedCount: revoked.count }
   })
 
-  // 8 · Best-effort side effects. Failures here MUST NOT roll back the refund.
+  // 9 · Best-effort side effects. Failures here MUST NOT roll back the refund.
   const customerName = order.customerName || order.user?.fullName || "Customer"
   const customerEmail = order.customerEmail || order.user?.email
   const emailOrder = {
@@ -515,21 +564,32 @@ async function processOrderRefund({
  * applyRefundWrites — the ONE place local refund state is flipped:
  *   Refund row (succeeded) → Payment refunded → Order refunded → revoke
  *   every active UserDownload entitlement on the order.
- * Used inside a transaction by processOrderRefund (admin) and
- * recordExternalRefund (webhook). Never calls a gateway.
+ * Used inside a transaction by processOrderRefund (admin), which passes the
+ * `processing` row it claimed so it is completed rather than duplicated, and
+ * by recordExternalRefund (webhook), which has no prior row and creates one.
+ * Never calls a gateway.
  */
-async function applyRefundWrites(tx, { paymentId, orderId, amount, reason = null, gatewayRefundId = null }) {
-  const refund = await tx.refund.create({
-    data: {
-      paymentId,
-      orderId,
-      amount,
-      reason:          reason || null,
-      refundStatus:    "succeeded",
-      gatewayRefundId: gatewayRefundId || null,
-      processedAt:     new Date(),
-    },
-  })
+async function applyRefundWrites(tx, { refundId = null, paymentId, orderId, amount, reason = null, gatewayRefundId = null }) {
+  const refund = refundId
+    ? await tx.refund.update({
+        where: { id: refundId },
+        data: {
+          refundStatus:    "succeeded",
+          gatewayRefundId: gatewayRefundId || null,
+          processedAt:     new Date(),
+        },
+      })
+    : await tx.refund.create({
+        data: {
+          paymentId,
+          orderId,
+          amount,
+          reason:          reason || null,
+          refundStatus:    "succeeded",
+          gatewayRefundId: gatewayRefundId || null,
+          processedAt:     new Date(),
+        },
+      })
   await tx.payment.update({ where: { id: paymentId }, data: { paymentStatus: "refunded" } })
   await tx.order.update({ where: { id: orderId }, data: { status: "refunded" } })
   const revoked = await tx.userDownload.updateMany({
