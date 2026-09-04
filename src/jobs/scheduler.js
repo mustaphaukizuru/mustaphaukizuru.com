@@ -45,6 +45,7 @@ const { runFulfillmentReconcilePass } = require("./fulfillmentReconcileJob")
 // be joined by the next tick.
 const running = new Set()
 const { isAlive, recycle } = require("../lib/prisma")
+const { recordHeartbeat } = require("./heartbeat")
 
 // DB pre-flight shared by every job: a cron firing on a dead engine used to
 // be the classic trigger for the Prisma "timer has gone away" panic. Probe,
@@ -64,7 +65,16 @@ async function guarded(name, fn) {
     return
   }
   running.add(name)
-  try { if (await dbReady(name)) await fn() }
+  try {
+    if (await dbReady(name)) {
+      await fn()
+      // Dead-man switch: only a pass that ran to completion counts. A
+      // skipped tick (DB down) or a throw leaves the last heartbeat where
+      // it was, which is exactly what /health/jobs should then report.
+      try { recordHeartbeat(name) }
+      catch (e) { logger.warn(`[scheduler] ${name}: heartbeat not written — ${e.message}`) }
+    }
+  }
   catch (err) { logger.error(`[scheduler] ${name} failed`, err) }
   finally { running.delete(name) }
 }
@@ -197,4 +207,4 @@ function startScheduler() {
   }
 }
 
-module.exports = { startScheduler }
+module.exports = { startScheduler, guarded }

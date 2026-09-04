@@ -293,6 +293,17 @@ const uploadRateLimiter = makeLimiter({
 })
 
 /**
+ * Deep health — 10 per hour per IP. The probe opens SMTP, Mercado Pago and
+ * PayPal connections on every call; the hourly uptime workflow needs one.
+ */
+const healthDeepRateLimiter = makeLimiter({
+  name:     "healthDeep",
+  windowMs: ONE_HOUR,
+  max:      10,
+  message:  "Deep health probe limit reached.",
+})
+
+/**
  * Product search — 60 per minute per IP. Search is read-only and cheap, so
  * a high ceiling is fine; this just stops scraper bursts.
  */
@@ -428,6 +439,7 @@ module.exports = {
   // Resource-scoped
   paymentRateLimiter,
   uploadRateLimiter,
+  healthDeepRateLimiter,
   searchRateLimiter,
   downloadRateLimiter,
   ticketRateLimiter,
