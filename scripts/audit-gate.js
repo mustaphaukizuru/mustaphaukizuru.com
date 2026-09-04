@@ -29,22 +29,13 @@ const minIndex = LEVELS.indexOf(MIN_LEVEL)
  * in the same package still fails the gate.
  */
 const ALLOWED = {
-  "GHSA-ggr8-5vv4-36mx": {
-    package: "deepmerge-ts",
-    reason:
-      "Stack exhaustion when merging recursive object graphs. Reached only via " +
-      "@prisma/config while Prisma loads its own config file at build time — that " +
-      "input is ours, not attacker-supplied. The fix is a Prisma major on a working " +
-      "MySQL layer.",
-  },
-  "GHSA-w5hq-g745-h8pq": {
-    package: "uuid",
-    reason:
-      "Missing buffer bounds check in uuid v3/v5/v6 when `buf` is supplied. Nothing " +
-      "in src/ calls uuid directly; it is reached through gaxios and node-cron, " +
-      "neither of which passes caller-controlled buffers. The fix is a node-cron " +
-      "major that changes the schedule() signature used by four live jobs.",
-  },
+  // Empty on purpose. The two entries that lived here (deepmerge-ts
+  // GHSA-ggr8-5vv4-36mx, uuid GHSA-w5hq-g745-h8pq) stopped being reported once
+  // package.json pinned both through `overrides`, and the gate flags an
+  // allow-list entry that no longer matches anything as [stale]. Leaving them
+  // is how this list rots into a blanket exemption, so they are gone. Add an
+  // entry back only with the advisory id, the package, and a written reason
+  // the advisory is unreachable here.
 }
 
 /**
@@ -62,15 +53,38 @@ const TARGETS = [
 ]
 
 function audit(cwd = ".") {
+  let out
   try {
-    return execFileSync("npm", ["audit", "--omit=dev", "--json"], {
+    out = execFileSync("npm", ["audit", "--omit=dev", "--json"], {
       cwd, encoding: "utf8", maxBuffer: 32 * 1024 * 1024, shell: process.platform === "win32",
     })
   } catch (err) {
     // npm exits non-zero when vulnerabilities exist — the JSON is still on stdout.
-    if (err.stdout) return err.stdout
-    throw err
+    if (!err.stdout) throw err
+    out = err.stdout
   }
+
+  // npm ALSO exits non-zero, and still prints JSON, when the registry audit
+  // endpoint is unreachable — but that JSON is `{"error": {...}}` with no
+  // `vulnerabilities` key. Read naively that is indistinguishable from a clean
+  // tree, so a 503 or a network timeout used to print "Audit gate passed" and
+  // exit 0. A security gate that silently passes when it did not run is worse
+  // than no gate: this one reported clean locally on the exact commit CI was
+  // failing. Fail closed instead — a flaky registry is a re-run, not a pass.
+  let report
+  try {
+    report = JSON.parse(out)
+  } catch {
+    console.error(`✖ audit-gate: npm audit in ${cwd} produced output that is not JSON.`)
+    process.exit(1)
+  }
+  if (report.error || !report.vulnerabilities || !report.metadata) {
+    const detail = report.error ? (report.error.summary || report.error.code || "unknown error") : "no vulnerabilities/metadata in report"
+    console.error(`✖ audit-gate: npm audit in ${cwd} did not return a report — ${detail}`)
+    console.error("  The advisory data never arrived, so this run proves nothing. Re-run it.")
+    process.exit(1)
+  }
+  return report
 }
 
 // One advisory map across both trees, keyed by GHSA id. An advisory that
@@ -79,7 +93,7 @@ function audit(cwd = ".") {
 const found = new Map()
 
 for (const { dir, label } of TARGETS) {
-  const report = JSON.parse(audit(dir))
+  const report = audit(dir)
   for (const vuln of Object.values(report.vulnerabilities || {})) {
     for (const via of vuln.via || []) {
       if (typeof via !== "object" || !via.url) continue
