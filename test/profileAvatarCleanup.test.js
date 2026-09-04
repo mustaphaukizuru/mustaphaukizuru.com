@@ -20,6 +20,7 @@ const fs   = require("fs")
 const path = require("path")
 
 const TMP_STORAGE = fs.mkdtempSync(path.join(os.tmpdir(), "muk-avatar-test-"))
+const PREV_STORAGE_DIR = process.env.STORAGE_DIR
 process.env.STORAGE_DIR = TMP_STORAGE
 
 jest.mock("../src/lib/prisma", () => ({
@@ -48,6 +49,15 @@ beforeEach(() => {
 })
 
 afterAll(() => {
+  /* Put STORAGE_DIR back. A jest worker runs several test files in the same
+   * process, and storagePaths.js resolves its base at require time — so
+   * leaving this set pointed the NEXT file in the worker at a temp directory
+   * that the line below had already deleted. That is what broke
+   * test/integration/avatarUpload.int.test.js in CI while passing here: the
+   * two files only share a worker under some orderings. Same cleanup that
+   * file already does. */
+  if (PREV_STORAGE_DIR === undefined) delete process.env.STORAGE_DIR
+  else process.env.STORAGE_DIR = PREV_STORAGE_DIR
   fs.rmSync(TMP_STORAGE, { recursive: true, force: true })
 })
 
