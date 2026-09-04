@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . && npm run lint:tokens && npm run lint:contrast && npm run lint:shadows",
+    "lint": "eslint . && npm run lint:tokens && npm run lint:contrast && npm run lint:shadows && npm run lint:type",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "lint:tokens": "node ./scripts/check-raw-hex.mjs",
@@ -24,7 +24,8 @@
     "og:build": "node ./scripts/generate-og-images.mjs",
     "test:e2e": "playwright test",
     "dev:demo": "vite --mode demo --port 5174",
-    "covers:build": "node ./scripts/generate-product-covers.mjs"
+    "covers:build": "node ./scripts/generate-product-covers.mjs",
+    "lint:type": "node ./scripts/check-typography.mjs"
   },
   "dependencies": {
     "@sentry/react": "^10.20.0",
