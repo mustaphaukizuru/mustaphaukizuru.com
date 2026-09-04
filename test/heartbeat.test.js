@@ -45,7 +45,7 @@ afterEach(() => {
 test("every registered job has an expected interval", () => {
   expect(Object.keys(JOB_INTERVALS).sort()).toEqual([
     "abandonedCart", "aggregateDailyMetrics", "bookingReminders", "campaignSender", "cancelStaleOrders",
-    "databaseBackup", "emailRetry", "fulfillmentReconcile", "invoiceDunning", "projectPurge",
+    "databaseBackup", "emailRetry", "fulfillmentReconcile", "invoiceDunning", "projectPurge", "retention",
   ])
 })
 

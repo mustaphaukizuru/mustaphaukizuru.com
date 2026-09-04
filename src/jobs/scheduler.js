@@ -40,6 +40,7 @@ const { runAbandonedCartPass } = require("./abandonedCartJob")
 const { runProjectPurgePass } = require("./projectPurgeJob")
 const { runInvoiceDunningPass } = require("./invoiceDunningJob")
 const { runFulfillmentReconcilePass } = require("./fulfillmentReconcileJob")
+const { runRetentionPass } = require("./retentionJob")
 
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
@@ -182,6 +183,19 @@ function startScheduler() {
   } catch (err) {
     logger.error("[scheduler] failed to register projectPurgeJob", err)
   }
+  // ── T1-3 · Retention · 05:00 UTC ────────────────────────────────────
+  // Deletes PageView / AnalyticsEvent / EmailLog / ActivityLog /
+  // Notification rows older than their RETENTION_*_DAYS window and expired
+  // sessions, in chunks. After the 03:30 backup (the last snapshot still
+  // has the rows) and the 04:00 purge. RETENTION_DRY_RUN=1 counts only —
+  // the first deploy runs that way and the log is read before it is unset.
+  try {
+    cron.schedule("0 5 * * *", () => guarded("retention", () => runRetentionPass()), { timezone: "UTC" })
+    logger.info(`[scheduler] registered retention sweep · 05:00 UTC${process.env.RETENTION_DRY_RUN === "1" ? " · DRY RUN" : ""}`)
+  } catch (err) {
+    logger.error("[scheduler] failed to register retentionJob", err)
+  }
+
   // ── Tier 4 · Invoice dunning · 08:00 UTC ────────────────────────────
   // Manual invoices past their due date turn overdue (late fee recorded
   // once, one email), paid orders reconcile their invoice, and projects

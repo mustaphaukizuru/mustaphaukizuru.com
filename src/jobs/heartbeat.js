@@ -32,6 +32,7 @@ const JOB_INTERVALS = Object.freeze({
   projectPurge:          DAY,
   invoiceDunning:        DAY,
   fulfillmentReconcile:  15 * MIN,
+  retention:             DAY,
 })
 
 /** A job is stale after twice its interval, never sooner than ten minutes. */

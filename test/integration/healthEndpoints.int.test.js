@@ -53,7 +53,7 @@ describe("GET /api/v1/health/jobs", () => {
     fs.mkdirSync(logsDir(), { recursive: true })
     const file = path.join(logsDir(), "cron-heartbeat.json")
     const beats = {}
-    for (const name of ["aggregateDailyMetrics", "bookingReminders", "cancelStaleOrders", "campaignSender", "databaseBackup", "abandonedCart", "projectPurge", "invoiceDunning", "fulfillmentReconcile"]) {
+    for (const name of ["aggregateDailyMetrics", "bookingReminders", "cancelStaleOrders", "campaignSender", "databaseBackup", "abandonedCart", "projectPurge", "invoiceDunning", "fulfillmentReconcile", "retention"]) {
       beats[name] = new Date().toISOString()
     }
     beats.emailRetry = new Date(Date.now() - 60 * 60 * 1000).toISOString() // 5-min job, an hour ago
