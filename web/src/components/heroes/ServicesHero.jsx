@@ -89,11 +89,11 @@ function CategoryTile({ category, index, progress, reduce, lang, countLabel }) {
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25">
             {Icon && <Icon className="h-5 w-5" aria-hidden="true" />}
           </span>
-          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-white/80">{category.code}</span>
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90">{category.code}</span>
         </div>
         <div>
           <div className="text-[13px] font-bold leading-tight sm:text-[14px]">{pick(category, "name", lang)}</div>
-          <div className="mt-1 font-mono text-[11px] text-white/80 tabular-nums">{countLabel}</div>
+          <div className="mt-1 font-mono text-[11px] text-white/90 tabular-nums">{countLabel}</div>
         </div>
       </Link>
     </m.div>
