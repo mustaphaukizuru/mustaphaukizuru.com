@@ -362,3 +362,11 @@ volume and add indexes for whatever it flags.
 
 Verified in the same pass: the 72 Prisma models match the 72 production
 tables exactly (no schema drift).
+
+## Deploy paths (added 2026-09-04, T1-1 / T1-7)
+
+There are two ways code reaches production and they are not the same.
+
+**hPanel Git deploy (the usual one).** The button in Hostinger's panel clones `master` into a fresh `hbuilds/versions/<uuid>/nodejs/`, runs `npm install` (which runs `scripts/prisma-generate.js` through `postinstall`) and `npm start`. It never runs `scripts/deploy.sh`, never builds the SPA (the bundle is committed — ADR 0001) and never pushes the schema. So after any PR that changes `prisma/schema.prisma`, the owner runs from the dev machine, in this order: `node scripts/backup-db-json.js`, `node scripts/check-db-drift.js`, `ALLOW_PROD_DB=1 npm run db:push`. If `prisma generate` failed during the install, `/api/v1/health` reports `prismaGenerate: "stale"` and the uptime workflow fails; fix with `bash scripts/hostinger-recover.sh recover`.
+
+**SSH deploy (`npm run deploy`).** `scripts/deploy.sh` on the host: pull fast-forward, `npm ci`, Prisma client, drift check, JSON snapshot, `db push`, maintenance page, restart, health and smoke gate, and a code rollback to the previous SHA if the gate fails. Use it for a deliberate deploy you want to be able to undo; rehearse on staging first once T1-8 exists.

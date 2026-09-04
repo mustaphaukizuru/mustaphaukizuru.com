@@ -31,6 +31,17 @@ ErrorDocument 504 /503.html
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteRule ^(404|500|503)\.html$ - [L]
+
+  # Maintenance window (T1-1). scripts/deploy.sh touches public/maintenance.flag
+  # before restarting the app and removes it once the health gate passes, so
+  # visitors see the branded 503 page for the seconds Passenger needs instead
+  # of a hung request. R=503 with "-" returns the status and stops; the
+  # ErrorDocument above then serves 503.html. The error pages themselves are
+  # excluded so that internal subrequest is not answered 503 in a loop.
+  # This condition must stay FIRST among the rewrite rules that follow it.
+  RewriteCond %{DOCUMENT_ROOT}/maintenance.flag -f
+  RewriteCond %{REQUEST_URI} !^/(404|500|503)\.html$
+  RewriteRule ^ - [R=503,L]
 </IfModule>
 
 # Standard caching headers — the error pages rarely change, but we don't
