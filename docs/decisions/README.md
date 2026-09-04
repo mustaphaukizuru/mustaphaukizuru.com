@@ -2,8 +2,22 @@
 
 One short file per decision a future contributor would otherwise reopen: context, decision, consequences, date. Written in the same pull request as the code that decides it (the project's rule is that instructions change with the code). Numbered, never edited after acceptance; a reversal is a new record that supersedes the old one.
 
-| # | Decision | Item |
-|---|---|---|
-| [0001](0001-tracked-spa-bundle.md) | The SPA bundle is committed, not built on the server | T1-7 |
+## Status has two values here, and the difference matters
 
-Planned (see `docs/TEAM_REFINEMENT_TIERS.html`): 0002 public dark-mode scope (T3-2), 0003 product currency (T2-4), 0004 Spanish register `tú` (T2-5), 0005 gated plan tiers (T2-4), 0006 tracking-code public surface (T5-2), 0007 packages versus offerings (T2-11).
+**`accepted`** — decided, and the code implements it. Do not reopen without writing a superseding record.
+
+**`proposed`** — *not decided.* The record exists so the question is visible and does not get answered by accident, in a hurry, by whoever touches that code next. A proposed record states what is true today, the options, and what blocks the choice. Nothing in it is a decision, and no code depends on one. Whoever decides edits that file to `accepted` in the same change as the code.
+
+Three records below are `proposed` because deciding them would have meant inventing an answer: one waits on a design decision (T3-2), one on an endpoint that does not exist yet (T5-2), and one is a pricing call with revenue consequences that belongs to the owner (T2-11).
+
+| # | Decision | Status | Item |
+|---|---|---|---|
+| [0001](0001-tracked-spa-bundle.md) | The SPA bundle is committed, not built on the server | accepted | T1-7 |
+| [0002](0002-public-dark-mode-scope.md) | How far dark mode reaches | **proposed** | T3-2 |
+| [0003](0003-product-currency.md) | Store prices are MXN, and the figures were wrong | accepted | T2-4 |
+| [0004](0004-spanish-register-tu.md) | Spanish addresses the reader as `tú` | accepted | T2-5 / T2-8 |
+| [0005](0005-gated-plan-tiers.md) | The expensive plan tiers are scoped on a call | accepted | T2-4 |
+| [0006](0006-tracking-code-public-surface.md) | What an anonymous tracking code may reveal | **proposed** | T5-2 |
+| [0007](0007-packages-vs-offerings.md) | Whether a package and a standalone offering may price the same work differently | **proposed** | T2-11 |
+
+`test/decisionRecords.test.js` checks the shape of every record and that this index lists each one with the status the file itself declares — an index that drifts from the records is worse than none.
