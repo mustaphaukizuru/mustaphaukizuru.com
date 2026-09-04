@@ -70,7 +70,8 @@
     "plan": {
       "mostPopular": "Most popular",
       "includedTitle": "What's included",
-      "msi": "Up to {{months}} interest-free months with Mercado Pago"
+      "msi": "Up to {{months}} interest-free months with Mercado Pago",
+      "alsoStandalone": "(also sold on its own: {{name}})"
     },
     "form": {
       "title": "Your details",
@@ -213,6 +214,11 @@
       "invalid": "Please enter a valid email address.",
       "error": "Something went wrong. Please try again.",
       "privacy": "Double opt-in: you confirm by email before anything else is sent."
+    },
+    "includedIn": {
+      "prefix": "Also included in",
+      "plan": "{{plan}} {{tier}}",
+      "suffix": " and above."
     }
   },
   "booking": {

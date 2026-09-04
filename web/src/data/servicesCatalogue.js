@@ -673,6 +673,114 @@ export function isQuoteOnlyTier(audienceCode, tierKey, priceMxn) {
 export const planEnquiryHref = (audienceCode, tierKey) =>
   `/book?plan=${encodeURIComponent(`${audienceCode}.${tierKey}`)}`
 
+/* ── Where a package and a standalone offering are the same capability ────
+ * Five capabilities are sold twice, at different prices, depending on which
+ * page the visitor came in through. A monthly package bundles the capability;
+ * the catalogue sells the same work as a scoped project. A client comparing
+ * both pages reaches two different numbers for what looks like one thing, and
+ * nothing on either page acknowledges the other exists.
+ *
+ * WHETHER THAT IS RIGHT IS NOT DECIDED HERE. The owner's call is between
+ * (a) the package is the audience default and the standalone price is the
+ * single-piece price, deliberately higher per unit, and (b) the two are
+ * parallel and the five features get repriced. That decision becomes
+ * ADR 0007 (T2-11) and also waits on T4-2's school-director interviews for
+ * the Schools track.
+ *
+ * What is decided is that the relation must be VISIBLE from both ends
+ * whichever way the pricing lands — a reader has to be able to explain the
+ * difference from the page in front of them. So it is authored once here and
+ * rendered from both: the offering row says which packages include it, and
+ * the checkout's feature list links the feature to the offering.
+ *
+ * `feature` is the exact string from AUDIENCE_PRICING_PLANS[audience].features.
+ * It is matched by value rather than by index because that array's order is
+ * load-bearing elsewhere (each tier's `includes` is positional), so an index
+ * here would be a second positional dependency to keep in sync. A test asserts
+ * every string below still exists in its plan — copy-editing a feature without
+ * updating this list fails the suite rather than silently dropping the link.
+ *
+ * Which tiers include it is NOT declared: it is read from the tiers' own
+ * `includes` matrix, so there is nothing to keep in step.
+ */
+export const PACKAGE_OFFERING_OVERLAPS = [
+  {
+    offeringSlug: "cross-platform-api-pipelines",
+    audience: "business",
+    feature: "CRM integration and contact-pipeline automation",
+  },
+  {
+    offeringSlug: "mvp-web-app-development",
+    audience: "business",
+    feature: "E-commerce storefront, product catalog, and checkout funnel",
+  },
+  {
+    offeringSlug: "zero-trust-security-hardening",
+    audience: "business",
+    feature: "Identity and access management (SSO + MFA + RBAC)",
+  },
+  {
+    offeringSlug: "disaster-recovery-planning",
+    audience: "business",
+    feature: "Automated backups, restores, and disaster-recovery runbooks",
+  },
+  {
+    offeringSlug: "compliance-risk-assessment",
+    audience: "schools",
+    feature: "Data privacy audit and FERPA / GDPR compliance program",
+  },
+]
+
+const TIER_ORDER = ["basic", "medium", "advanced"]
+
+/** The lowest tier of `audience` that includes `feature`, or null. */
+function lowestTierIncluding(audienceCode, feature) {
+  const plan = AUDIENCE_PRICING_PLANS[audienceCode]
+  if (!plan) return null
+  const index = (plan.features || []).indexOf(feature)
+  if (index < 0) return null
+  for (const tierKey of TIER_ORDER) {
+    const tier = plan.tiers?.[tierKey]
+    if (tier?.includes?.[index]) return { tierKey, tier, plan, index }
+  }
+  return null
+}
+
+/**
+ * Which packages include this offering's capability, lowest tier first.
+ * Returns [] for the great majority of offerings, which are sold one way only.
+ *
+ * @returns {{ audience: string, planName: string, tierKey: string, tierName: string, feature: string }[]}
+ */
+export function packagesIncluding(offeringSlug) {
+  return PACKAGE_OFFERING_OVERLAPS
+    .filter((o) => o.offeringSlug === offeringSlug)
+    .map((o) => {
+      const hit = lowestTierIncluding(o.audience, o.feature)
+      if (!hit) return null
+      return {
+        audience: o.audience,
+        planName: hit.plan.name,
+        tierKey: hit.tierKey,
+        tierName: hit.tier.name,
+        feature: o.feature,
+      }
+    })
+    .filter(Boolean)
+}
+
+/**
+ * The standalone offering a package feature corresponds to, or null.
+ * The inverse of packagesIncluding, for rendering the other end.
+ */
+export function offeringForFeature(audienceCode, feature) {
+  const overlap = PACKAGE_OFFERING_OVERLAPS.find(
+    (o) => o.audience === audienceCode && o.feature === feature,
+  )
+  if (!overlap) return null
+  return getOfferingBySlug(overlap.offeringSlug) || null
+}
+
 export const HOW_IT_WORKS = [
   { id: "call", step: "01", Icon: Calendar, title: "30-minute call", titleEs: "Llamada de 30 min",
     body: "Free. We diagnose the situation and agree on whether there is a fit.",

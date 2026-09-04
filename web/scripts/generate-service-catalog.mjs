@@ -39,6 +39,7 @@ import {
   PRICING_BASIS, CATALOG_LAST_UPDATED,
   PRICING_FIXED, PRICING_RETAINER,
   QUOTE_ONLY_MXN_PER_MONTH, isQuoteOnlyTier,
+  PACKAGE_OFFERING_OVERLAPS, packagesIncluding, getOfferingBySlug,
 } from "../src/data/servicesCatalogue.js"
 
 const VERSION = "2.0"
@@ -718,6 +719,23 @@ function buildPackagesReference() {
     }
   }
 
+  h("---")
+  h()
+  h("## Sold both ways — open pricing decision")
+  h()
+  h("These capabilities are sold twice: bundled into a monthly package, and as a scoped project in `services-and-categories.md`. A client comparing the two pages reaches different numbers for what looks like the same thing, so both pages now name the relationship (T2-11) — but **whether the prices should differ is not decided**.")
+  h()
+  h("The choice is between (a) the package is the audience default and the standalone price is the single-piece price, deliberately higher per unit, and (b) the two are parallel and these features get repriced. It becomes ADR 0007, and the Schools row also waits on T4-2's school-director interviews.")
+  h()
+  h("| Capability | Bundled from | Sold standalone as | Standalone price |")
+  h("|---|---|---|---|")
+  for (const overlap of PACKAGE_OFFERING_OVERLAPS) {
+    const offering = getOfferingBySlug(overlap.offeringSlug)
+    const [inc] = packagesIncluding(overlap.offeringSlug)
+    if (!offering || !inc) continue
+    h(`| ${overlap.feature} | ${inc.planName} ${inc.tierName} | ${offering.name} | ${refPrice(offering, REF_STRINGS.en)} |`)
+  }
+  h()
   h("---")
   h()
   h("_Generated from web/src/data/servicesCatalogue.js by web/scripts/generate-service-catalog.mjs. Do not hand-edit — `npm run catalog:check` fails when this file differs from a fresh run._")

@@ -70,7 +70,8 @@
     "plan": {
       "mostPopular": "Más popular",
       "includedTitle": "Qué incluye",
-      "msi": "Hasta {{months}} MSI con Mercado Pago"
+      "msi": "Hasta {{months}} MSI con Mercado Pago",
+      "alsoStandalone": "(también se vende por separado: {{name}})"
     },
     "form": {
       "title": "Tus datos",
@@ -213,6 +214,11 @@
       "invalid": "Introduce una dirección de email válida.",
       "error": "Algo salió mal. Inténtalo de nuevo.",
       "privacy": "Doble confirmación: confirmas por email antes de recibir nada más."
+    },
+    "includedIn": {
+      "prefix": "También incluido en",
+      "plan": "{{plan}} {{tier}}",
+      "suffix": " y superiores."
     }
   },
   "booking": {

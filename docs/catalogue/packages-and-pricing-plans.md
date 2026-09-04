@@ -231,4 +231,20 @@ _Whole-institution · quote-only — book a call_
 
 ---
 
+## Sold both ways — open pricing decision
+
+These capabilities are sold twice: bundled into a monthly package, and as a scoped project in `services-and-categories.md`. A client comparing the two pages reaches different numbers for what looks like the same thing, so both pages now name the relationship (T2-11) — but **whether the prices should differ is not decided**.
+
+The choice is between (a) the package is the audience default and the standalone price is the single-piece price, deliberately higher per unit, and (b) the two are parallel and these features get repriced. It becomes ADR 0007, and the Schools row also waits on T4-2's school-director interviews.
+
+| Capability | Bundled from | Sold standalone as | Standalone price |
+|---|---|---|---|
+| CRM integration and contact-pipeline automation | Business Basic | Cross-Platform API Pipelines | From $300 USD · MX$6,000 |
+| E-commerce storefront, product catalog, and checkout funnel | Business Basic | MVP Web App Development | From $1,925 USD · MX$38,500 |
+| Identity and access management (SSO + MFA + RBAC) | Business Medium | Zero-Trust Security Hardening | From $1,075 USD · MX$21,500 |
+| Automated backups, restores, and disaster-recovery runbooks | Business Medium | Disaster Recovery Planning | From $725 USD · MX$14,500 |
+| Data privacy audit and FERPA / GDPR compliance program | Schools Medium | Compliance & Risk Assessment | $750 USD · MX$15,000 |
+
+---
+
 _Generated from web/src/data/servicesCatalogue.js by web/scripts/generate-service-catalog.mjs. Do not hand-edit — `npm run catalog:check` fails when this file differs from a fresh run._
