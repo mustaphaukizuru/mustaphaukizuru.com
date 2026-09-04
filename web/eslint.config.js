@@ -60,6 +60,14 @@ export default defineConfig([
     files: ['vite.config.js', 'playwright.config.js'],
     languageOptions: { globals: globals.node },
   },
+  // Vitest specs and the build scripts also run under Node, so `process`,
+  // `console` and friends are real there. Some specs read the source tree to
+  // assert a rule holds everywhere (src/i18n/i18nEnabled.test.js checks that
+  // nobody reads VITE_I18N_ENABLED directly again), which needs cwd.
+  {
+    files: ['src/**/*.test.{js,jsx}', 'scripts/**/*.{js,mjs}'],
+    languageOptions: { globals: { ...globals.node } },
+  },
   {
     files: ['src/lib/api.js'],
     rules: {

@@ -1,4 +1,4 @@
-import { DEFAULT_OG_IMAGE, absoluteUrl } from "./siteSeo"
+import { DEFAULT_OG_IMAGE, absoluteUrl } from "./siteSeo.js"
 
 /**
  * staticSeoEsByRoute · I18N07

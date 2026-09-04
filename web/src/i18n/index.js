@@ -1,6 +1,7 @@
 import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
 import LanguageDetector from "i18next-browser-languagedetector"
+import { isI18nEnabled } from "./i18nEnabled"
 
 import {
   loadLanguageBundle,
@@ -46,7 +47,7 @@ import {
  * so `t()` calls work, but the language detector defaults to the fallback).
  */
 
-const I18N_ENABLED = import.meta.env.VITE_I18N_ENABLED !== "false"
+const I18N_ENABLED = isI18nEnabled(import.meta.env.VITE_I18N_ENABLED)
 
 const LOCAL_STORAGE_KEY = "preferred-language"
 

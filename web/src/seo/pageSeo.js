@@ -1,4 +1,4 @@
-import { DEFAULT_OG_IMAGE, absoluteUrl, siteConfig, trimText } from "./siteSeo"
+import { DEFAULT_OG_IMAGE, absoluteUrl, siteConfig, trimText } from "./siteSeo.js"
 
 /* ─────────────────────────────────────────────────────────────────────────
    STATIC ROUTE SEO — used by SeoRouteManager + each page's <Seo /> render.

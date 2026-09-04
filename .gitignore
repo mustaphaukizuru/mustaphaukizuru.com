@@ -123,6 +123,16 @@ web/playwright-report/
 /public/sitemap-static.xml
 /web/public/sitemap-static.xml
 
+# NOT ignored, and it must stay that way: public/og-static.json.
+# It is generated the same way (web/scripts/generate-og-static.mjs, run by
+# build:seo) but unlike the sitemap it is READ AT RUNTIME — the static-page
+# branch of src/middleware/ogInjector.js loads it to answer crawlers. The
+# sitemap file is only an offline fallback because a dynamic DB-backed route
+# supersedes it; there is no such fallback here. Hostinger's Git deploy clones
+# master and never builds (ADR 0001), so ignoring og-static.json would leave
+# it absent in production and every static page would silently go back to the
+# one generic English share card. Commit it with the build, like public/assets.
+
 # Agent skill packs installed with `npx skills add` (.agents/skills/* plus the
 # lockfile). Machine-local tooling, same class as .claude/ above: vendored
 # third-party instruction files, megabytes of them, that no deploy needs and

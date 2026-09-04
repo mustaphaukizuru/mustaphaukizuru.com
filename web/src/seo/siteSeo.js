@@ -1,6 +1,12 @@
 import { TOKENS } from "../styles/tokens.js"
-const RAW_SITE_URL = import.meta.env.VITE_SITE_URL || "https://mustaphaukizuru.com";
 
+// SITE_URL is deliberately a constant, not env-derived: it is the
+// canonical origin that goes into canonical/hreflang/OG URLs, and those
+// must name production no matter which environment did the build.
+// (A dead `RAW_SITE_URL = import.meta.env.VITE_SITE_URL` sat here and was
+// referenced nowhere; it also made this module un-importable from Node,
+// where import.meta.env is undefined — which is what generate-og-static
+// needs in order to read the same page metadata the SPA renders.)
 export const SITE_URL = "https://mustaphaukizuru.com";
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og/og-default.png`;
 export const DEFAULT_TWITTER_HANDLE = "@ukizurumustapha";

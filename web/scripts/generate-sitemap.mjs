@@ -1,11 +1,16 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 import { CATEGORIES } from "../src/data/servicesCatalogue.js"
+import { isI18nEnabled } from "../src/i18n/i18nEnabled.js"
 
 /* ───────────────────────────── config ──────────────────────────────────── */
 const SITE_URL    = (process.env.VITE_SITE_URL    || "https://mustaphaukizuru.com").replace(/\/$/, "")
 const API_BASE    = (process.env.VITE_API_BASE_URL || process.env.SITEMAP_API_BASE || SITE_URL).replace(/\/$/, "")
-const I18N_ENABLED = process.env.VITE_I18N_ENABLED === "true"
+// Opt-out, matching web/src/i18n/index.js. This used to be === "true",
+// which disagreed with the SPA on every build where the variable is unset
+// (CI and the host both are): the app served /es while the sitemap told
+// Google nothing about it. See web/src/i18n/i18nEnabled.js.
+const I18N_ENABLED = isI18nEnabled(process.env.VITE_I18N_ENABLED)
 const SPLIT_THRESHOLD = 500          // single file under this; sitemap index above
 const FETCH_TIMEOUT_MS = 8000        // per-endpoint deadline
 
@@ -39,6 +44,12 @@ const staticRoutes = [
   { path: "/schools",    changefreq: "monthly", priority: "0.85" },
   { path: "/store",      changefreq: "daily",   priority: "0.9" },
   { path: "/portfolio",  changefreq: "weekly",  priority: "0.85" },
+  // Both are real, indexable pages with their own SEO entry in
+  // web/src/seo/pageSeo.js, and both are conversion surfaces — /book is
+  // the booking funnel and /self-audit is the lead magnet. Neither was
+  // listed here, so neither reached the sitemap or got hreflang.
+  { path: "/self-audit", changefreq: "monthly", priority: "0.8" },
+  { path: "/book",       changefreq: "monthly", priority: "0.85" },
   { path: "/blog",       changefreq: "weekly",  priority: "0.85" },
   { path: "/contact",    changefreq: "monthly", priority: "0.7" },
   { path: "/terms",      changefreq: "yearly",  priority: "0.3" },
