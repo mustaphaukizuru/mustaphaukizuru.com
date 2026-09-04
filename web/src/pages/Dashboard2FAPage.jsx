@@ -151,7 +151,11 @@ export default function Dashboard2FAPage() {
       <ProfileTabs />
         {adminGateRequired && (
           <div className="flex items-start gap-3 rounded-xl border border-amber-600/25 bg-amber-100/60 px-4 py-3 text-meta text-charcoal-80">
-            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
+            {/* amber-600 is 4.23:1 on white and 3.86:1 on this amber-100 band —
+                under AA either way. amber-700 is the step the codebase already
+                uses for amber marks on light grounds (AdminPlaceholderPage,
+                CertificatesSection): 7.09:1 and 6.47:1. */}
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
             <span>{t("twoFactor.adminRequired")}</span>
           </div>
         )}
