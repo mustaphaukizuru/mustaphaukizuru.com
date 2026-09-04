@@ -29,7 +29,8 @@
     "repo": "Código",
     "outcome": "Resultado",
     "placeholderShort": "estimado",
-    "stack": "Stack tecnológico"
+    "stack": "Stack tecnológico",
+    "ctaAria": "{{label}}: {{project}}"
   },
   "empty": "Ningún proyecto coincide con tus filtros.",
   "states": {

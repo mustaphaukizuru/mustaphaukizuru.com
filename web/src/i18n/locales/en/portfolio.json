@@ -29,7 +29,8 @@
     "repo": "Code",
     "outcome": "Outcome",
     "placeholderShort": "estimate",
-    "stack": "Tech stack"
+    "stack": "Tech stack",
+    "ctaAria": "{{label}}: {{project}}"
   },
   "empty": "No projects match your filters.",
   "states": {

@@ -151,8 +151,18 @@ export default function ProjectShowcase({ project, priority = false, linkLabel, 
         ) : null}
 
         <div className="flex flex-wrap items-center gap-4">
+          {/* The visible label is deliberately short and repeats down the page
+              ("Learn More" x3 on /about), which Lighthouse's link-text audit
+              scores 0 for — three identical links that say nothing about where
+              they go. The accessible name carries the project, so the audit and
+              a screen reader both get "Learn More: <project>" while the button
+              still reads as designed. */}
           <Link
             to={href}
+            aria-label={t("card.ctaAria", {
+              label: linkLabel || t("card.caseStudy"),
+              project: project.title,
+            })}
             className="inline-flex items-center gap-2 rounded-xl bg-violet px-5 py-2.5 text-meta font-semibold text-white transition hover:-translate-y-0.5 hover:bg-violet-deep"
           >
             {linkLabel || t("card.caseStudy")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
