@@ -292,11 +292,33 @@ h5, h6 { line-height: 1.40; }
    makes the *last few lines* sit better (avoids single-word last lines). */
 p { text-wrap: pretty; }
 
-a { text-decoration: none; color: inherit; }
-/* Defensive contrast guard — when an <a>/Link is explicitly given a Tailwind
-   text-color utility, do NOT let `color: inherit` above bleed through. This
-   prevents the historical "dark text on violet button" bug where Tailwind's
-   `text-white` was beaten by the unlayered `a { color: inherit; }` rule. */
+a { text-decoration: none; }
+
+/* `color: inherit` for anchors sits in @layer base, and the placement is the
+   whole point.
+   ─────────────────────────────────────────────────────────────────────────
+   Unlayered CSS beats every layered rule in Tailwind v4, whatever the
+   specificity. So while this declaration sat beside `text-decoration`
+   above, it silently defeated EVERY text-colour utility on an anchor: the
+   utility lives in @layer utilities and lost the cascade before specificity
+   was ever considered.
+   The patches below were added one at a time as that bug surfaced — first
+   `text-white`, then mist, violet, charcoal, then the opacity variants.
+   Each fixed one named utility and left the trap for the next. It caught
+   the design system's own Button: the primary variant sets
+   `text-[var(--color-text-on-violet)]`, which no patch matches, so as a
+   <button> it rendered white text and as a Link it rendered near-black ink
+   on violet — 2.54:1, invisible until an anchor-shaped primary button
+   appeared in the header of every page.
+   Inside the layer a utility wins, and an anchor with no colour utility
+   still inherits exactly as it did before. */
+@layer base {
+  a { color: inherit; }
+}
+
+/* Kept, but no longer load-bearing: with the reset layered above each of
+   these resolves to the same value its utility already sets. Retiring
+   !important across the app is T3-2's job, not this commit's. */
 a.text-white         { color: var(--color-text-on-dark) !important; }
 a.text-mist          { color: var(--color-mist)  !important; }
 a.text-violet        { color: var(--color-violet) !important; }
