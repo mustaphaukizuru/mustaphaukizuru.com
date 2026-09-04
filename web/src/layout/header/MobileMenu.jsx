@@ -7,7 +7,9 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { LocalizedLink as Link, LocalizedNavLink as NavLink } from "../../components/LocalizedLink"
+import useNavigate from "../../hooks/useLocalizedNavigate"
 import { m, useReducedMotion } from "framer-motion"
 import {
   X,

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { Compass, Bot, CloudCog, Code2, Briefcase } from "lucide-react"
 import { projectImages, responsiveSrcSet, getCaseStudy } from "./caseStudy"

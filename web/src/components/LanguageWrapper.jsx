@@ -1,7 +1,8 @@
 import { useEffect } from "react"
-import { Outlet, useLocation } from "react-router-dom"
+import { Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { detectLanguageFromPath } from "../i18n/utils/detectLanguageFromPath"
+import { hasLanguageChoice } from "../i18n/utils/languageChoice"
 
 /**
  * LanguageWrapper · I18N01
@@ -25,6 +26,7 @@ import { detectLanguageFromPath } from "../i18n/utils/detectLanguageFromPath"
 export default function LanguageWrapper({ children }) {
   const { i18n } = useTranslation()
   const location = useLocation()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const next = detectLanguageFromPath(location.pathname)
@@ -42,16 +44,27 @@ export default function LanguageWrapper({ children }) {
     if (typeof window === "undefined") return
     if (location.pathname !== "/") return
     try {
-      const stored = window.localStorage.getItem("preferred-language")
-      if (stored) return
+      // hasLanguageChoice(), not "preferred-language": i18next's detector
+      // caches into that key during init, so it is always set by the time
+      // this effect runs and this guard used to return every single time.
+      if (hasLanguageChoice()) return
       if (window.sessionStorage.getItem("ukz:lang-redirected") === "1") return
       const browser = (window.navigator?.language || "").toLowerCase()
       if (!browser.startsWith("en")) {
         window.sessionStorage.setItem("ukz:lang-redirected", "1")
-        window.location.replace("/es")
+        // navigate, not window.location.replace: a full document load threw
+        // away the query string and the hash, so a Spanish-browser visitor
+        // arriving on /?utm_source=newsletter landed on a bare /es and the
+        // campaign attribution was gone. It also reloaded the whole bundle
+        // to reach a route the router already had.
+        navigate(`/es${location.search}${location.hash}`, { replace: true })
       }
     } catch { /* storage unavailable */ }
-  }, [location.pathname])
+    // search/hash are read inside the guard, which only fires on "/" — they
+    // are not triggers, and listing them would re-run the redirect on every
+    // query change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, navigate])
 
   if (children) return children
   return <Outlet />

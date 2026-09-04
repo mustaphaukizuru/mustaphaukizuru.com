@@ -1,7 +1,8 @@
 import { useEffect } from "react"
 import { m } from "framer-motion"
 import { Trans, useTranslation } from "react-i18next"
-import { Link, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { Shield, Calendar, Mail, Link as LinkIcon, FileText } from "lucide-react"
 
 const CONTACT_EMAIL = "hello@mustaphaukizuru.com"

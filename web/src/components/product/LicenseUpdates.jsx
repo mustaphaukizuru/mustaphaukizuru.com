@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { ScrollText, UserRound, Briefcase, Building2, Ban, RefreshCw, ArrowRight } from "lucide-react"
 import { formatPrice } from "../../lib/format"
 

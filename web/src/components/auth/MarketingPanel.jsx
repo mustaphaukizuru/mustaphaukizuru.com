@@ -26,7 +26,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useRef, useState } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { AnimatePresence, m } from "framer-motion"
 import {
   ArrowUpRight,

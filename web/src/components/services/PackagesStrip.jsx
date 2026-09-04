@@ -4,7 +4,7 @@
  * T1 · prices and tier availability come from GET /services/plans (the DB,
  * edited in /admin/services). Names, descriptions and the feature matrix stay
  * in the static catalogue. */
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { ArrowRight } from "lucide-react"
 import { AUDIENCE_PRICING_PLANS, AUDIENCE_PRICING_ORDER } from "../../data/servicesCatalogue"

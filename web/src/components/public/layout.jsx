@@ -104,7 +104,7 @@ export function Btn({
 
   const base = `inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 ${sizes[size] || sizes.md} ${variants[variant] || variants.primary} ${className}`
 
-  // If a Link (react-router) is needed, the parent should use `import { Link } from "react-router-dom"` and pass `as={Link} to="..."`
+  // If a Link (react-router) is needed, the parent should use `import { LocalizedLink as Link } from "../LocalizedLink"` and pass `as={Link} to="..."`
   return (
     <Tag to={to} href={href} className={base} {...props}>
       {children}

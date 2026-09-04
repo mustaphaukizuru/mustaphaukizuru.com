@@ -9,7 +9,7 @@
    four auth pages stay easy to read.
    ──────────────────────────────────────────────────────────────────────── */
 
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import logoMark from "../../assets/logo-mark/m-mark-violet.svg"
 
 import { useTranslation } from "react-i18next"

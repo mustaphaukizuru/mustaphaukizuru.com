@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { m, useReducedMotion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 

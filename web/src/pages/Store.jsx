@@ -5,7 +5,7 @@ import {
   Check, Eye, Package, PackageOpen, ArrowRight, ChevronLeft, ChevronRight,
   Sparkles, Download, BookOpen, Cpu, Wrench, Briefcase, FlaskConical,
 } from "lucide-react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { m } from "framer-motion"
 import { useCart } from "../store/CartContext"
 import { fetchProducts, fetchFeaturedProducts, fetchCategories } from "../services/productService"

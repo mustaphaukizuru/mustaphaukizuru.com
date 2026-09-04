@@ -19,7 +19,9 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useState } from "react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useNavigate from "../hooks/useLocalizedNavigate"
 import { m, useReducedMotion } from "framer-motion"
 import {
   Eye,

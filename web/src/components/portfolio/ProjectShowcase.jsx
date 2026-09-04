@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import { ArrowRight, Code2, ExternalLink, Grid3x3, Sparkles, TrendingUp } from "lucide-react"

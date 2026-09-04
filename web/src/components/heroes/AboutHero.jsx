@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import Image from "../ui/Image"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import {
   ArrowRight,
   ChevronDown,

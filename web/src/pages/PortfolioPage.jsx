@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { m } from "framer-motion"
 import { ArrowRight, Sparkles, Search, Grid3x3, AlertCircle, Tag } from "lucide-react"
 import Seo from "../components/seo/Seo"

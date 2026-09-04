@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom"
+import { LocalizedNavLink as NavLink } from "../LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { User, MapPin, ShieldCheck, Bell } from "lucide-react"
 

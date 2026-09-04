@@ -1,6 +1,6 @@
 /* Overview card for one of the 4 categories: outcome, offerings list, one
  * primary CTA (book a call) and a secondary "view details" link. */
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { ArrowRight } from "lucide-react"
 import { pick, useCatalogueLang } from "./localize"

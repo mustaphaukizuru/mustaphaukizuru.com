@@ -1,4 +1,5 @@
-import { Link, useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { m } from "framer-motion"
 import { CheckCircle2, MailCheck, ArrowLeft, Mail } from "lucide-react"

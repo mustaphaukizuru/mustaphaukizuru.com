@@ -19,7 +19,7 @@
    Data: data/schoolsData.js (pointers only, no duplicated prices/copy).
    ════════════════════════════════════════════════════════════════════════ */
 
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { useTranslation } from "react-i18next"
 import {
   ArrowRight, ArrowUpRight, Award, Building2, ClipboardCheck, GraduationCap, LayoutGrid, Sparkles,

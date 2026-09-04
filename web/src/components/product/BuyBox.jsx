@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { m } from "framer-motion"
 import {
   Minus, Plus, ShoppingCart, Star, Zap, Lock, Check, Share2, User, BadgeCheck,

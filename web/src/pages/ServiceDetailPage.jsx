@@ -8,7 +8,9 @@
  * ──────────────────────────────────────────────────────────────────────────── */
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useParams, Link, useNavigate } from "react-router-dom"
+import { useParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useNavigate from "../hooks/useLocalizedNavigate"
 import { AlertCircle, ArrowLeft, ChevronRight, Clock, ShieldCheck, Sparkles } from "lucide-react"
 import Seo from "../components/seo/Seo"
 import { serviceSchema, breadcrumbSchema, faqSchema } from "../seo/schemas"

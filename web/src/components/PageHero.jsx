@@ -1,6 +1,6 @@
 import { m, useReducedMotion } from "framer-motion"
 import { ArrowRight, ChevronDown } from "lucide-react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "./LocalizedLink"
 
 /**
  * PageHero · the ONE hero component used by every public page.

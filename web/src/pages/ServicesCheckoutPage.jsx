@@ -1,6 +1,8 @@
 import { formatPriceWhole } from "../lib/format"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useSearchParams, useNavigate, Link } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useNavigate from "../hooks/useLocalizedNavigate"
 import { m } from "framer-motion"
 import {
   ArrowLeft, ShieldCheck, Zap, CheckCircle2, AlertCircle, Loader2,

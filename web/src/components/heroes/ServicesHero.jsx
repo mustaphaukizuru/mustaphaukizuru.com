@@ -20,7 +20,7 @@
 
 import { useRef } from "react"
 import { m, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { ArrowRight, Calendar, ClipboardCheck, UserCheck, Receipt, MessagesSquare } from "lucide-react"
 import KineticHeadline from "../motion/KineticHeadline"

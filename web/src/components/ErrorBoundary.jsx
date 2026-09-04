@@ -1,5 +1,5 @@
 import { Component } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "./LocalizedLink"
 import { AlertTriangle, Home, RefreshCw } from "lucide-react"
 
 import markViolet from "../assets/logo-mark/m-mark-violet.svg"

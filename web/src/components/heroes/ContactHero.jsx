@@ -36,7 +36,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { m, useReducedMotion } from "framer-motion"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import {
   Sparkles, Clock, MapPin, MessageCircle, ArrowRight, Calendar,
   Check, ChevronLeft, ChevronRight, Globe, Phone, Rocket,

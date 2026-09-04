@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, NavLink, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { LocalizedLink as Link, LocalizedNavLink as NavLink } from "../components/LocalizedLink"
 import { AnimatePresence, m } from "framer-motion"
 import { Menu, X, ShoppingCart } from "lucide-react"
 

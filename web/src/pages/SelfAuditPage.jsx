@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { m, useReducedMotion } from "framer-motion"
 import {
   ClipboardCheck, ArrowRight, ShieldCheck, Clock, Layers,

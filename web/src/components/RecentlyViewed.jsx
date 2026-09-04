@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- component file also exports shared helpers/constants (imported by pages) */
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "./LocalizedLink"
 import { Clock, ArrowRight } from "lucide-react"
 import { m } from "framer-motion"
 import { formatPriceWhole } from "../lib/format"

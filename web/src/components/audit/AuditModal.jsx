@@ -24,7 +24,7 @@ import {
 } from "../../data/auditData"
 import { trackEvent } from "../../lib/analytics"
 import { apiPost } from "../../lib/api"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { CATEGORIES, getOfferingBySlug, legacyIdMap, bookHref } from "../../data/servicesCatalogue"
 import { pick, useCatalogueLang } from "../services/localize"
 

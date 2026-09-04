@@ -66,4 +66,43 @@ export default defineConfig([
       'no-restricted-syntax': 'off',
     },
   },
+
+  // T2-1 · the public tree must not import the raw router primitives.
+  //
+  // The site routes language by URL prefix and LanguageWrapper sets i18n's
+  // language from that prefix on every navigation, so an unprefixed
+  // `to="/services"` clicked from /es does not merely navigate — it switches
+  // the whole interface back to English. About 150 links shipped that way,
+  // which is why the Spanish translation reached almost nobody. The codemod
+  // fixed the existing ones; this rule stops the next one.
+  {
+    files: ['src/pages/**/*.{js,jsx}', 'src/components/**/*.{js,jsx}', 'src/layout/**/*.{js,jsx}'],
+    ignores: [
+      // The operator trees are NOT mirrored under /es, so a prefixed
+      // operator link points at a route that does not exist.
+      'src/pages/Admin*.jsx',
+      'src/pages/Dashboard*.jsx',
+      'src/components/admin/**',
+      'src/layout/AdminLayout.jsx',
+      'src/layout/DashboardLayout.jsx',
+      // These own the primitives, or cross languages on purpose.
+      'src/components/LocalizedLink.jsx',
+      'src/components/LanguageWrapper.jsx',
+      'src/components/LanguageSwitcher.jsx',
+      '**/*.test.{js,jsx}',
+    ],
+    rules: {
+      'no-restricted-imports': ['error', {
+        paths: [{
+          name: 'react-router-dom',
+          importNames: ['Link', 'NavLink', 'useNavigate'],
+          message:
+            'Use LocalizedLink / LocalizedNavLink from src/components/LocalizedLink, or ' +
+            'useLocalizedNavigate from src/hooks/useLocalizedNavigate. A raw Link drops a ' +
+            'Spanish reader back into English, because the language is read off the URL prefix. ' +
+            'Everything else from react-router-dom (useLocation, Outlet, useParams…) is fine.',
+        }],
+      }],
+    },
+  },
 ])

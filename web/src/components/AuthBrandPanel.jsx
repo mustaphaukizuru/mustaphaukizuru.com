@@ -26,7 +26,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { m, useReducedMotion } from "framer-motion"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "./LocalizedLink"
 import { ArrowLeft } from "lucide-react"
 import profilePhoto from "../assets/avatar/avatar-master.png"
 

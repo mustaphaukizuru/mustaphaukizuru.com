@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 import {
   ArrowLeft, ArrowRight, ExternalLink, Github, Calendar, Briefcase,
