@@ -312,7 +312,7 @@ export function CoverflowCarousel({
                 aria-roledescription="slide"
                 aria-label={`${index + 1} of ${count}`}
                 aria-hidden={index !== selected}
-                className={`absolute left-1/2 top-0 overflow-hidden rounded-2xl bg-white shadow-[0_18px_48px_rgba(0,0,0,0.35)] ring-1 ring-white/10 will-change-transform ${cardClassName}`}
+                className={`absolute left-1/2 top-0 overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-e7)] ring-1 ring-white/10 will-change-transform ${cardClassName}`}
                 style={{ width: "var(--cf-card)", aspectRatio: String(aspect) }}
               >
                 <button
