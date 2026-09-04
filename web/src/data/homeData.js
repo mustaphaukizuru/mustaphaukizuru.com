@@ -16,7 +16,8 @@ import {
  *  Icons are Lucide components (never emoji).
  *  ──────────────────────────────────────────────────────────────────── */
 
-/* The 4 service categories from docs/SERVICE_CATALOGUE_2026-08.md.
+/* The 4 service categories from data/servicesCatalogue.js — the source of
+   truth. Readable reference: docs/catalogue/services-and-categories.md.
  * `to` points at a slug that exists in web/src/data/servicesCatalogue.js
  * today; AI & Automation has no dedicated catalogue slug yet, so it links
  * to the catalogue index until one is seeded. */

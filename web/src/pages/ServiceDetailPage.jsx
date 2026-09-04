@@ -2,7 +2,7 @@
  * ServiceDetailPage — route /services/:slug  (one of the 4 categories)
  *
  * Outcome-first intro → offerings → how it works → FAQ → single CTA.
- * Content comes from the static catalogue (docs/SERVICE_CATALOGUE_2026-08.md);
+ * Content comes from the static catalogue (data/servicesCatalogue.js);
  * the API `Service` row (same slug) is fetched only for SEO overrides.
  * Legacy slugs / SKU ids are redirected to their canonical category.
  * ──────────────────────────────────────────────────────────────────────────── */

@@ -55,7 +55,7 @@ assertLocalDatabase("services-seed.js")
  * ──────────────────────────────────────────────────────────────────────────── */
 
 /* ────────────────────────────────────────────────────────────────────────────
- * Funnel categories · roadmap step 25 (docs/SERVICE_CATALOGUE_2026-08.md)
+ * Funnel categories · roadmap step 25 (web/src/data/servicesCatalogue.js)
  *
  * One `Service` row per catalogue category. Slugs are stable and match
  * web/src/data/servicesCatalogue.js CATEGORIES[].slug — they back

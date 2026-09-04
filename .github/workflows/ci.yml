@@ -237,6 +237,18 @@ jobs:
         working-directory: web
         run: npm run test:unit
 
+      # T2-10 · the generated catalogue references must match their source.
+      # docs/catalogue/*.md and the downloadable catalogue are OUTPUTS of
+      # web/src/data/servicesCatalogue.js. They were hand-written snapshots
+      # whose own headers said "regenerate after any edit; do not hand-edit
+      # prices here" — and nothing regenerated them, so a price change left
+      # the documents that proposals are written from quoting the old figure.
+      # Same shape as the bundle-freshness gate above: re-run the generator,
+      # fail if the committed copy differs.
+      - name: Catalogue drift
+        working-directory: web
+        run: npm run catalog:check
+
       # Raw fetch()/axios outside lib/api.js. Warns today (H-11); the step
       # exists so promoting it to an error is a one-line change.
       - name: API discipline

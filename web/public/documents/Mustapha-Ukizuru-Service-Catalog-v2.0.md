@@ -4,7 +4,7 @@
 **Owner:** Mustapha Ukizuru
 **Domain:** mustaphaukizuru.com
 **Version:** 2.0
-**Effective Date:** September 03, 2026
+**Effective Date:** September 04, 2026
 **Review Cycle:** Quarterly
 **Status:** Production-ready
 
@@ -450,7 +450,7 @@ For schools, colleges, and training institutions modernizing teaching, learning,
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
 | 1.0 | 29 April 2026 | Mustapha Ukizuru | Initial publication of the six-category service catalog with 82 services and 8 flagship Solutions. |
-| 2.0 | September 03, 2026 | Mustapha Ukizuru | Rebuilt against the production 4-category / 20-offering taxonomy. Retired the six-category, 82-SKU structure and the invented Solution bundles in full. Removed every unsourced figure. Added starting prices to all offerings, shown in both US dollars and Mexican pesos, at a $30 USD/hour minimum rate. Folded WhatsApp Lead Qualifiers into Custom AI Assistants & WhatsApp Bots (21 -> 20 offerings). Added a Related-offerings cross-reference so buyers see what else a given offering commonly needs to complete. Generated directly from `src/data/servicesCatalogue.js` so this document cannot drift from the live site. |
+| 2.0 | September 04, 2026 | Mustapha Ukizuru | Rebuilt against the production 4-category / 20-offering taxonomy. Retired the six-category, 82-SKU structure and the invented Solution bundles in full. Removed every unsourced figure. Added starting prices to all offerings, shown in both US dollars and Mexican pesos, at a $30 USD/hour minimum rate. Folded WhatsApp Lead Qualifiers into Custom AI Assistants & WhatsApp Bots (21 -> 20 offerings). Added a Related-offerings cross-reference so buyers see what else a given offering commonly needs to complete. Generated directly from `src/data/servicesCatalogue.js` so this document cannot drift from the live site. |
 
 ### Appendix C — Contact
 

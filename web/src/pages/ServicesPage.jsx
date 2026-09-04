@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════════
    ServicesPage.jsx · Services funnel overview (roadmap step 25)
    ────────────────────────────────────────────────────────────────────────
-   Structure = the 4 catalogue categories (docs/SERVICE_CATALOGUE_2026-08.md),
+   Structure = the 4 catalogue categories (data/servicesCatalogue.js),
    each listing its offerings with ONE primary CTA: book a 30-min call.
 
      § 01 · Hero (ServicesHero, unchanged)
