@@ -25,7 +25,7 @@ const WHAT_YOU_GET = [
   {
     step: "01", eyebrow: "DIAGNOSE",
     title: "Score your current state",
-    body: "Rate 82 capability statements across strategy, brand, infrastructure, web & AI, EdTech, and managed services. Sections adapt to your audience type.",
+    body: "Rate 82 capability statements across six areas of your organisation — from leadership and digital presence to infrastructure, applications, training and support. Sections adapt to your audience type.",
     icon: ClipboardCheck,
   },
   {
@@ -37,7 +37,7 @@ const WHAT_YOU_GET = [
   {
     step: "03", eyebrow: "ACT",
     title: "Walk away with a roadmap",
-    body: "Your top 5 priorities mapped to specific services, with investment ranges, risk statements, and a recommended Solution bundle to start with.",
+    body: "Your top 5 priorities with risk statements, each mapped to one of the four service lines, and the line to start with.",
     icon: ArrowRight,
   },
 ]

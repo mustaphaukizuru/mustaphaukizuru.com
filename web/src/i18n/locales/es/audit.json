@@ -49,6 +49,8 @@
     "sendReport": "Enviar mi informe en PDF",
     "privacyPolicy": "Aviso de privacidad",
     "skipToResults": "Omitir y volver a los resultados",
-    "scoreTarget": "— la meta es 3 o más"
+    "scoreTarget": "— la meta es 3 o más",
+    "recommendedLine": "Línea de servicio recomendada",
+    "viewLine": "Ver la línea de servicio"
   }
 }

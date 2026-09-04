@@ -2,7 +2,7 @@
   "hero": {
     "eyebrow": "Servicios",
     "title": "Servicios de tecnología que mueven la aguja",
-    "subtitle": "Consultoría IT, desarrollo full-stack, transformación IT escolar y desarrollo de programas STEM.",
+    "subtitle": "Cuatro líneas de servicio — estrategia de TI, IA y automatización, nube e infraestructura, e ingeniería de producto digital — para empresas y escuelas.",
     "compositionAria": "Composición del hero: retrato de cliente satisfecho con tarjetas de estadísticas que muestran 96 servicios entregados y 82+ engagements completados",
     "happyClientAlt": "Cliente satisfecho de Mustapha Ukizuru",
     "servicePlan": "Plan de servicio",
@@ -23,7 +23,16 @@
     "onTimeDelivery": "Entrega a tiempo",
     "servicesEyebrow": "Servicios",
     "headlinePremium": "Tecnología premium.",
-    "headlineWebsitesApps": "Sitios web, apps, IA, estrategia TI —"
+    "headlineWebsitesApps": "Sitios web, apps, IA, estrategia TI —",
+    "objectAria": "Las cuatro líneas de servicio: consultoría estratégica de TI, integración con IA y automatización, arquitectura en la nube y migración de infraestructura, e ingeniería de producto digital de extremo a extremo",
+    "offeringCount_one": "{{count}} servicio",
+    "offeringCount_other": "{{count}} servicios",
+    "serviceLines": "Líneas de servicio",
+    "ticks": {
+      "senior": "Trabajo senior, sin juniors",
+      "fixed": "Precio fijo, sin sorpresas",
+      "direct": "Línea directa, sin intermediarios"
+    }
   },
   "detail": {
     "errors": {
@@ -121,7 +130,14 @@
     "pricing": {
       "fixed": "Precio fijo",
       "retainer": "Retainer mensual",
-      "quote": "Con cotización"
+      "quote": "Con cotización",
+      "from": "Desde",
+      "perMonth": "/mes"
+    },
+    "priceDetail": {
+      "toggle": "Qué incluye este precio",
+      "scalesWith": "El precio aumenta con:",
+      "related": "Se construye a menudo junto con:"
     },
     "how": {
       "eyebrow": "Cómo funciona",
@@ -147,7 +163,7 @@
         {
           "id": "pricing",
           "question": "¿Cómo se estructura el precio?",
-          "answer": "Las auditorías y el sprint de wireframing son de precio fijo. Los desarrollos y migraciones a medida se cotizan después de la llamada; los retainers son mensuales."
+          "answer": "Cada oferta muestra un precio indicativo en dólares estadounidenses y en pesos mexicanos, con base en una tarifa mínima de $30 USD/hora. Las auditorías y el sprint de wireframing son de precio fijo; los desarrollos, migraciones y retainers a medida muestran un precio de partida, confirmado en la propuesta escrita una vez definido el alcance."
         },
         {
           "id": "nda",

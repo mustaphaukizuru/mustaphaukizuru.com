@@ -49,6 +49,8 @@
     "sendReport": "Send my PDF report",
     "privacyPolicy": "Privacy policy",
     "skipToResults": "Skip — back to results",
-    "scoreTarget": "— target is 3+"
+    "scoreTarget": "— target is 3+",
+    "recommendedLine": "Recommended service line",
+    "viewLine": "See the service line"
   }
 }

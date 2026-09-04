@@ -1,7 +1,8 @@
 /* Offerings of one category, rendered as a list of compact rows. */
 import { useTranslation } from "react-i18next"
-import { Clock, Tag, CheckCircle2 } from "lucide-react"
-import { pick, pricingLabel, useCatalogueLang } from "./localize"
+import { Clock, Tag, CheckCircle2, ChevronDown } from "lucide-react"
+import { pick, offeringPriceLabel, useCatalogueLang } from "./localize"
+import { getServiceById } from "../../data/servicesCatalogue"
 
 export default function OfferingList({ offerings = [], compact = false }) {
   const { t } = useTranslation("services")
@@ -35,6 +36,53 @@ export default function OfferingList({ offerings = [], compact = false }) {
                 ))}
               </ul>
             )}
+            {(o.priceIncludes || o.priceFromMxn || (Array.isArray(o.relatedOfferings) && o.relatedOfferings.length > 0)) && (
+              <details className="group mt-3">
+                <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-micro font-semibold text-violet hover:text-violet-deep">
+                  <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" aria-hidden="true" />
+                  {t("funnel.priceDetail.toggle")}
+                </summary>
+                <div className="mt-2.5 rounded-xl bg-mist p-3.5">
+                  {pick(o, "priceIncludes", lang) && (
+                    <p className="text-micro leading-5 text-charcoal-80/75">{pick(o, "priceIncludes", lang)}</p>
+                  )}
+                  {Array.isArray(o.priceScalesWith) && o.priceScalesWith.length > 0 && (
+                    <>
+                      <p className="mt-2.5 text-micro font-semibold text-charcoal-80/85">{t("funnel.priceDetail.scalesWith")}</p>
+                      <ul className="mt-1 space-y-1">
+                        {pick(o, "priceScalesWith", lang).map((factor) => (
+                          <li key={factor} className="flex items-start gap-1.5 text-micro leading-5 text-charcoal-80/70">
+                            <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-violet/50" aria-hidden="true" />
+                            {factor}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {Array.isArray(o.relatedOfferings) && o.relatedOfferings.length > 0 && (
+                    <>
+                      <p className="mt-2.5 text-micro font-semibold text-charcoal-80/85">{t("funnel.priceDetail.related")}</p>
+                      <ul className="mt-1 flex flex-wrap gap-1.5">
+                        {o.relatedOfferings.map((relId) => {
+                          const rel = getServiceById(relId)
+                          if (!rel) return null
+                          return (
+                            <li key={relId}>
+                              <a
+                                href={`/services/${rel.categorySlug}#${rel.slug}`}
+                                className="inline-block rounded-full border border-violet/25 bg-white px-2.5 py-1 text-micro text-violet hover:bg-violet-pale"
+                              >
+                                {pick(rel, "name", lang)}
+                              </a>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              </details>
+            )}
           </div>
           <dl className="flex gap-4 text-micro text-charcoal-80/65 sm:flex-col sm:items-end sm:gap-1.5">
             <div className="inline-flex items-center gap-1.5">
@@ -45,7 +93,7 @@ export default function OfferingList({ offerings = [], compact = false }) {
             <div className="inline-flex items-center gap-1.5">
               <Tag className="h-3.5 w-3.5" aria-hidden="true" />
               <dt className="sr-only">{t("funnel.pricingLabel")}</dt>
-              <dd>{pricingLabel(t, o.pricingModel)}</dd>
+              <dd className="font-mono tabular-nums">{offeringPriceLabel(o, t)}</dd>
             </div>
           </dl>
         </li>

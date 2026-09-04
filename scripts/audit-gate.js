@@ -29,22 +29,13 @@ const minIndex = LEVELS.indexOf(MIN_LEVEL)
  * in the same package still fails the gate.
  */
 const ALLOWED = {
-  "GHSA-ggr8-5vv4-36mx": {
-    package: "deepmerge-ts",
-    reason:
-      "Stack exhaustion when merging recursive object graphs. Reached only via " +
-      "@prisma/config while Prisma loads its own config file at build time — that " +
-      "input is ours, not attacker-supplied. The fix is a Prisma major on a working " +
-      "MySQL layer.",
-  },
-  "GHSA-w5hq-g745-h8pq": {
-    package: "uuid",
-    reason:
-      "Missing buffer bounds check in uuid v3/v5/v6 when `buf` is supplied. Nothing " +
-      "in src/ calls uuid directly; it is reached through gaxios and node-cron, " +
-      "neither of which passes caller-controlled buffers. The fix is a node-cron " +
-      "major that changes the schedule() signature used by four live jobs.",
-  },
+  // Empty on purpose. The two entries that lived here (deepmerge-ts
+  // GHSA-ggr8-5vv4-36mx, uuid GHSA-w5hq-g745-h8pq) stopped being reported once
+  // package.json pinned both through `overrides`, and the gate flags an
+  // allow-list entry that no longer matches anything as [stale]. Leaving them
+  // is how this list rots into a blanket exemption, so they are gone. Add an
+  // entry back only with the advisory id, the package, and a written reason
+  // the advisory is unreachable here.
 }
 
 /**
@@ -61,16 +52,77 @@ const TARGETS = [
   { dir: "web", label: "frontend" },
 ]
 
-function audit(cwd = ".") {
+const ATTEMPTS = 3
+// npm keeps retrying the advisory endpoint internally and can sit there for
+// seven minutes before giving up — three of those in series is a 20-minute CI
+// job that still tells you nothing. Bound each attempt instead.
+const ATTEMPT_TIMEOUT_MS = 120000
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+}
+
+function runAudit(cwd) {
   try {
     return execFileSync("npm", ["audit", "--omit=dev", "--json"], {
-      cwd, encoding: "utf8", maxBuffer: 32 * 1024 * 1024, shell: process.platform === "win32",
+      cwd, encoding: "utf8", maxBuffer: 32 * 1024 * 1024, timeout: ATTEMPT_TIMEOUT_MS,
+      shell: process.platform === "win32",
     })
   } catch (err) {
     // npm exits non-zero when vulnerabilities exist — the JSON is still on stdout.
     if (err.stdout) return err.stdout
-    throw err
+    return null
   }
+}
+
+/**
+ * Returns a real audit report, or exits.
+ *
+ * npm exits non-zero and still prints JSON in TWO different situations: when
+ * advisories exist, and when the registry audit endpoint is unreachable. The
+ * second prints `{"error": {...}}` with no `vulnerabilities` key, and reading
+ * that naively is indistinguishable from a clean tree — so a 503 used to print
+ * "Audit gate passed" and exit 0. That is not hypothetical: on the very commit
+ * CI was failing, a local run timed out and reported clean.
+ *
+ * So this fails closed. But failing closed on the first hiccup makes every
+ * merge hostage to registry.npmjs.org, so a missing report is retried before
+ * it is believed. Only a report that actually arrived is trusted.
+ */
+function audit(cwd = ".") {
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+    const out = runAudit(cwd)
+    let report = null
+    if (out) { try { report = JSON.parse(out) } catch { report = null } }
+
+    if (report && !report.error && report.vulnerabilities && report.metadata) return report
+
+    const why = !out ? "npm produced no output"
+      : !report ? "output was not JSON"
+      : report.error ? (report.error.summary || report.error.code || "registry error")
+      : "report had no vulnerabilities/metadata"
+    console.error(`  audit-gate: attempt ${attempt}/${ATTEMPTS} in "${cwd}" got no report — ${why}`)
+    if (attempt < ATTEMPTS) sleepSync(5000 * attempt)
+  }
+
+  // Deliberate, loud escape hatch, in the same spirit as ALLOW_PROD_DB: the
+  // registry can be down for longer than a release can wait, and the answer to
+  // that is a human saying so out loud — not the gate quietly deciding for
+  // itself that no data means no advisories. Never set in CI by default.
+  if (process.env.AUDIT_GATE_ALLOW_OFFLINE === "1") {
+    console.error("")
+    console.error(`  !! AUDIT_GATE_ALLOW_OFFLINE=1 — skipping the "${cwd}" tree after ${ATTEMPTS} failed attempts.`)
+    console.error("     This run did NOT check dependencies. Re-run the gate once the registry is back.")
+    console.error("")
+    return null
+  }
+
+  console.error("")
+  console.error(`✖ audit-gate: npm audit in "${cwd}" never returned a report (${ATTEMPTS} attempts).`)
+  console.error("  The advisory data never arrived, so this run proves nothing about the tree.")
+  console.error("  Re-run the job. If the registry is down for longer than you can wait, re-run")
+  console.error("  with AUDIT_GATE_ALLOW_OFFLINE=1 and say so on the PR.")
+  process.exit(1)
 }
 
 // One advisory map across both trees, keyed by GHSA id. An advisory that
@@ -78,8 +130,11 @@ function audit(cwd = ".") {
 // and an ALLOWED entry applies wherever that id shows up.
 const found = new Map()
 
+const skipped = []
+
 for (const { dir, label } of TARGETS) {
-  const report = JSON.parse(audit(dir))
+  const report = audit(dir)
+  if (!report) { skipped.push(label); continue }
   for (const vuln of Object.values(report.vulnerabilities || {})) {
     for (const via of vuln.via || []) {
       if (typeof via !== "object" || !via.url) continue
@@ -115,4 +170,10 @@ if (blocking.length) {
   process.exit(1)
 }
 
+if (skipped.length) {
+  console.log(`
+Audit gate INCOMPLETE — ${skipped.join(" and ")} not checked (AUDIT_GATE_ALLOW_OFFLINE=1).`)
+  console.log(`No unexpected advisories at or above "${MIN_LEVEL}" in what WAS checked.`)
+} else {
 console.log(`\nAudit gate passed — no unexpected advisories at or above "${MIN_LEVEL}".`)
+}

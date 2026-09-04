@@ -32,6 +32,13 @@ require("dotenv").config({ path: path.join(__dirname, "..", ".env") })
 
 const prisma = require("../src/lib/prisma")
 
+const { assertLocalDatabase } = require("../scripts/guard-prod-db")
+
+// The npm wrapper runs this guard too, but `node prisma/seed-email-templates.js` skips
+// the wrapper entirely — and that is a normal thing to type. Guarding in here
+// as well means the check follows the script, not the way it was invoked.
+assertLocalDatabase("seed-email-templates.js")
+
 /* ─────────────────────────── shared chrome ─────────────────────────────── */
 
 const BRAND_VIOLET     = "#5D3FD3"

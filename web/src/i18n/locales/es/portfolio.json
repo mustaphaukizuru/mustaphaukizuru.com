@@ -2,7 +2,10 @@
   "hero": {
     "eyebrow": "Casos de estudio",
     "title": "Trabajo seleccionado",
-    "subtitle": "Cada proyecto está documentado como caso de estudio: el problema de partida, el enfoque que seguimos y el resultado en cifras. Filtra por el servicio al que corresponde."
+    "subtitle": "Problema, enfoque y resultado, en cifras."
+  },
+  "featured": {
+    "ariaLabel": "Proyectos destacados"
   },
   "filters": {
     "all": "Todo",
@@ -25,8 +28,9 @@
     "live": "En vivo",
     "repo": "Código",
     "outcome": "Resultado",
-    "placeholderShort": "Cifras ilustrativas",
-    "stack": "Stack tecnológico"
+    "placeholderShort": "estimado",
+    "stack": "Stack tecnológico",
+    "ctaAria": "{{label}}: {{project}}"
   },
   "empty": "Ningún proyecto coincide con tus filtros.",
   "states": {
@@ -37,14 +41,14 @@
   },
   "cta": {
     "title": "¿Tienes un proyecto en mente?",
-    "subtitle": "Hablemos de cómo darle vida.",
-    "button": "Iniciar una conversación"
+    "subtitle": "Cuéntame qué estás construyendo.",
+    "button": "Hablemos"
   },
   "serviceCta": {
     "eyebrow": "Servicio relacionado",
     "title": "¿Necesitas algo así?",
-    "body": "Este proyecto corresponde a {{service}}. Reserva una llamada gratuita y definimos un proyecto como este para tu equipo.",
-    "button": "Reservar una llamada sobre un proyecto como este"
+    "body": "Agenda una llamada gratuita y definimos el tuyo en {{service}}.",
+    "button": "Agendar llamada"
   },
   "seo": {
     "title": "Portafolio · Casos de estudio · Mustapha Ukizuru",

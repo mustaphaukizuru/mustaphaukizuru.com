@@ -18,12 +18,43 @@ import {
   Shield, Zap, Star,
 } from "lucide-react"
 import {
-  AUDIT_SECTIONS, SOLUTIONS, TIERS, PREQUAL_CHALLENGES, PREQUAL_TIMELINES,
+  AUDIT_SECTIONS, TIERS, PREQUAL_CHALLENGES, PREQUAL_TIMELINES,
   sectionsForAudience, itemsForAudience, tierForScore,
-  computeSectionScores, computeOverall, computeTopPriorities, matchBundle,
+  computeSectionScores, computeOverall, computeTopPriorities,
 } from "../../data/auditData"
 import { trackEvent } from "../../lib/analytics"
 import { apiPost } from "../../lib/api"
+import { Link } from "react-router-dom"
+import { CATEGORIES, getOfferingBySlug, legacyIdMap, bookHref } from "../../data/servicesCatalogue"
+import { pick, useCatalogueLang } from "../services/localize"
+
+/* ─── Closed-set mapping (Instructions v4.0 § 06) ──────────────────────
+   The audit instrument still carries the retired SKU ids (UKZ-CS-001 …)
+   in its item tuples. Nothing rendered to a visitor may show one of
+   those ids or imply a service line outside the four categories, so every
+   svc id is resolved through legacyIdMap → catalogue offering → category.
+   Unmapped ids (capabilities the closed set no longer sells) resolve to
+   null and render no service tag at all.                                */
+function resolveOffering(svcId) {
+  const id = legacyIdMap[svcId]
+  return id ? getOfferingBySlug(id) : null
+}
+
+/** The category that appears most often among the top priorities, ties
+ *  broken by canonical order (strategy → automation → infra → build). */
+function recommendCategory(topPriorities = []) {
+  const counts = new Map()
+  topPriorities.forEach((p) => {
+    const off = resolveOffering(p.svc)
+    if (off) counts.set(off.category.slug, (counts.get(off.category.slug) || 0) + 1)
+  })
+  let best = null
+  CATEGORIES.forEach((c) => {
+    const n = counts.get(c.slug) || 0
+    if (n > 0 && (!best || n > best.n)) best = { n, category: c }
+  })
+  return best ? best.category : null
+}
 
 /* ─── localStorage key ─────────────────────────────────────────────── */
 const LS_KEY = "mu_audit_v2"
@@ -145,7 +176,7 @@ export default function AuditModal({ open, onClose }) {
   const tier          = tierForScore(overall.pct)
   const tc            = TIER_COLOR[tier?.name] || TIER_COLOR.Foundation
   const topPriorities = audience ? computeTopPriorities(scores, audience) : []
-  const bundle        = audience ? matchBundle(topPriorities, audience) : null
+  const recommended   = audience ? recommendCategory(topPriorities) : null
 
   /* Progress */
   const totalItems    = sections.reduce((s, sec) => s + itemsForAudience(sec, audience || "SMB").length, 0)
@@ -223,7 +254,7 @@ export default function AuditModal({ open, onClose }) {
           sectionScores,
           overall,
           topPriorities,
-          matchedBundle: bundle,
+          matchedBundle: recommended ? { name: recommended.name, slug: recommended.slug } : null,
           prequal,
           website:       emailForm.website || "",   // honeypot — humans leave it empty
           newsletterOptIn: emailForm.newsletterOptIn === true,
@@ -382,7 +413,7 @@ export default function AuditModal({ open, onClose }) {
                   tc={tc}
                   sectionScores={sectionScores}
                   topPriorities={topPriorities}
-                  bundle={bundle}
+                  recommended={recommended}
                   audience={audience}
                   whatsappUrl={whatsappUrl}
                   onGetPdf={() => setStep("email")}
@@ -558,6 +589,7 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
 ════════════════════════════════════════════════════════════════════════ */
 function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, sectionScores, overall, tooltip, setTooltip, onScore, onPrev, onNext }) {
   const { t } = useTranslation("audit")
+  const lang = useCatalogueLang()
   const isLast = sectionIdx === totalSections - 1
 
   return (
@@ -669,10 +701,10 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                   </div>
 
                   {/* Service tag — shown when score is low */}
-                  {sel !== undefined && sel <= 2 && (
+                  {sel !== undefined && sel <= 2 && resolveOffering(svc) && (
                     <span className="inline-flex items-center gap-1 text-[12px] text-azure-deep font-medium">
                       <ArrowRight className="h-3 w-3 shrink-0" />
-                      If 0–2: <span className="font-mono font-bold text-violet">{svc}</span>
+                      <span className="font-bold text-violet">{pick(resolveOffering(svc), "name", lang)}</span>
                       <span className="text-charcoal/40 hidden sm:inline">· {tier}</span>
                     </span>
                   )}
@@ -753,8 +785,9 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
 /* ══════════════════════════════════════════════════════════════════════
    RESULTS STEP
 ════════════════════════════════════════════════════════════════════════ */
-function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, audience, whatsappUrl, onGetPdf, onRestart }) {
+function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, recommended, audience, whatsappUrl, onGetPdf, onRestart }) {
   const { t } = useTranslation("audit")
+  const lang = useCatalogueLang()
   const audienceLabel = { EDU: "schools in Latin America", SMB: "businesses in your sector", IND: "individual professionals" }[audience] || "similar organisations"
   const avgBenchmarks = { EDU: 36, SMB: 41, IND: 32 }
   const avg = avgBenchmarks[audience] || 38
@@ -835,7 +868,9 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
                 <div className="font-mono text-[22px] font-bold text-violet leading-none pt-0.5">{String(i + 1).padStart(2, "0")}</div>
                 <div>
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
-                    <span className="font-mono text-[11px] font-bold text-violet">{p.svc}</span>
+                    {resolveOffering(p.svc) && (
+                      <span className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-violet">{resolveOffering(p.svc).category.code}</span>
+                    )}
                     <span className="text-[15px] font-bold text-charcoal">{p.title}</span>
                   </div>
                   {/* Score vs ideal */}
@@ -864,17 +899,26 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, bundle, 
         </div>
       )}
 
-      {/* Recommended bundle */}
-      {bundle && (
-        <div className="relative overflow-hidden rounded-2xl p-6 mb-6 bg-[linear-gradient(135deg,var(--color-violet),#0284C7_50%,var(--color-cyan))]">
+      {/* Recommended service line · one of the closed set of four */}
+      {recommended && (
+        <div className={`relative overflow-hidden rounded-2xl p-6 mb-6 text-white ${recommended.tile}`}>
           <div className="absolute -top-1/2 -right-8 h-[200%] w-1/2 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-          <div className="relative">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 mb-2">{t("modal.recommendedBundle")}</p>
-            <h4 className="text-[20px] font-bold text-white mb-1">{bundle.name}</h4>
-            <p className="text-[13.5px] text-white/80 mb-3">{bundle.tagline}</p>
-            <div className="flex flex-wrap gap-3 text-[12px]">
-              <span className="rounded-full bg-white/15 px-3 py-1 text-white font-mono font-bold">{bundle.investRange}</span>
-              <span className="rounded-full bg-white/15 px-3 py-1 text-white">{bundle.timeline}</span>
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25">
+              {recommended.Icon && <recommended.Icon className="h-6 w-6" aria-hidden="true" />}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 mb-2">{t("modal.recommendedLine")}</p>
+              <h4 className="text-[20px] font-bold text-white mb-1">{pick(recommended, "name", lang)}</h4>
+              <p className="text-[13.5px] text-white/80 mb-4">{pick(recommended, "outcome", lang)}</p>
+              <div className="flex flex-wrap gap-3">
+                <Link to={`/services/${recommended.slug}`} className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-[13px] font-bold text-violet hover:-translate-y-0.5 transition">
+                  {t("modal.viewLine")} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+                <Link to={bookHref(recommended.slug)} className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-[13px] font-bold text-white ring-1 ring-white/30 hover:bg-white/25 transition">
+                  {t("modal.bookCall")}
+                </Link>
+              </div>
             </div>
           </div>
         </div>
