@@ -838,6 +838,7 @@
     }
   },
   "twoFactor": {
+    "adminRequired": "La verificación en dos pasos es obligatoria para el panel de administración. Configúrala aquí para continuar.",
     "errors": {
       "loadStatus": "No pudimos cargar el estado de 2FA",
       "startSetup": "No pudimos iniciar la configuración de 2FA",

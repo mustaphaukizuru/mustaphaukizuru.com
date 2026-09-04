@@ -27,7 +27,11 @@ const list = asyncHandler(async (req, res) => {
       orderBy: { createdAt: "desc" },
       skip:    (safePage - 1) * safeLimit,
       take:    safeLimit,
-      include: {
+      // T1-4 · exactly the columns the row below maps. `payload` (the full
+      // rendered email) stays in the database; nothing lists it.
+      select: {
+        id: true, emailTo: true, templateKey: true, subject: true, status: true,
+        providerMessageId: true, sentAt: true, errorMessage: true, createdAt: true,
         user: { select: { id: true, fullName: true, email: true } },
       },
     }),

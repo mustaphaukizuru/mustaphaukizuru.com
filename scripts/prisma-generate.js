@@ -42,7 +42,31 @@ function chooseEngineType(env = process.env) {
   return { engineType: "library", reason: "development/CI — keeps the test suite fast" }
 }
 
-module.exports = { chooseEngineType }
+/**
+ * Leave a marker when generate fails, clear it when it succeeds. The exit
+ * stays non-fatal (below), but the failure is no longer silent: /api/health
+ * reports `prismaGenerate: "stale"` while the marker exists and the uptime
+ * probe treats that as a failure.
+ */
+function markGenerateResult(ok, { marker } = {}) {
+  const fs = require("fs")
+  const path = require("path")
+  const file = marker || require("../src/config/storagePaths").GENERATE_FAILED_MARKER
+  try {
+    if (ok) {
+      fs.rmSync(file, { force: true })
+    } else {
+      fs.mkdirSync(path.dirname(file), { recursive: true })
+      fs.writeFileSync(file, `${new Date().toISOString()}\n`)
+    }
+    return true
+  } catch (err) {
+    console.error(`[prisma-generate] could not update marker ${file}: ${err.message}`)
+    return false
+  }
+}
+
+module.exports = { chooseEngineType, markGenerateResult }
 
 // Only run the generate when invoked as a script; requiring this file (the
 // test does) must have no side effects.
@@ -58,13 +82,17 @@ if (require.main === module) {
     env: { ...process.env, PRISMA_CLIENT_ENGINE_TYPE: engineType },
   })
 
+  markGenerateResult(result.status === 0)
+
   if (result.status !== 0) {
     // Deliberately non-fatal: a host that cannot reach Prisma's binary CDN must
     // still finish `npm install` and start with the client it already has,
-    // rather than failing the deploy outright.
+    // rather than failing the deploy outright. The marker above is what makes
+    // this state visible from outside.
     console.error(
       "[prisma-generate] generate failed — the previously generated client is still in place. " +
-        "Run it manually once the host can reach binaries.prisma.sh."
+        "Run it manually once the host can reach binaries.prisma.sh. " +
+        "/api/health reports prismaGenerate: stale until then."
     )
   }
 }

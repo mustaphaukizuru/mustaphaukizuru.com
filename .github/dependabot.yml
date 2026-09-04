@@ -1,0 +1,88 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Dependency updates · T1-10
+#
+# There was no update automation, and `scripts/audit-gate.js` carries an
+# allowlist of advisories judged unreachable — a list that only shrinks when
+# something bumps the packages. Dependabot does the bumping; CI (including
+# the audit gate and, with branch protection, every other job) decides
+# whether it lands.
+#
+# Grouped so a quiet week is one or two PRs rather than fifteen. Security
+# updates stay ungrouped: they should be reviewable and mergeable alone.
+#
+# Prisma and React majors are ignored on purpose. Prisma majors change the
+# client's engine behaviour on a host that has already broken twice over it,
+# and React majors move the whole SPA; both are deliberate projects, not a
+# Monday PR.
+# ─────────────────────────────────────────────────────────────────────────────
+version: 2
+
+updates:
+  # ── API (repo root) ────────────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Mexico_City
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "api"]
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      api-production:
+        applies-to: version-updates
+        dependency-type: production
+        patterns: ["*"]
+      api-development:
+        applies-to: version-updates
+        dependency-type: development
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+
+  # ── SPA (web/) ─────────────────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: "/web"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Mexico_City
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "web"]
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      web-production:
+        applies-to: version-updates
+        dependency-type: production
+        patterns: ["*"]
+      web-development:
+        applies-to: version-updates
+        dependency-type: development
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+
+  # ── GitHub Actions ─────────────────────────────────────────────────────────
+  # A pinned action that never updates is its own supply-chain risk.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels: ["dependencies", "ci"]
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions:
+        patterns: ["*"]

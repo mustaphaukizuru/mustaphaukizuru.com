@@ -6,8 +6,9 @@
  *
  *  · No-op unless VITE_SENTRY_DSN is set at build time (dev / preview stay
  *    silent). The server CSP allows the DSN origin via src/lib/sentryCsp.js.
- *  · release  = VITE_APP_VERSION || __APP_VERSION__ (web/package.json
- *    version, injected by vite.config.js) so events map to a deploy.
+ *  · release  = version + the build's commit (__APP_COMMIT__, injected by
+ *    vite.config.js) so a browser event names the same release a server
+ *    event does — T1-9. VITE_APP_VERSION still wins if set.
  *  · Session replay is OFF (0 sample rate, and the integration is not even
  *    loaded — it is the heaviest part of the SDK).
  *  · beforeSend / beforeBreadcrumb scrub emails and tokens: this site
@@ -94,6 +95,9 @@ export function initSentry() {
   let release
   try {
     release = import.meta.env.VITE_APP_VERSION || __APP_VERSION__
+    if (release && typeof __APP_COMMIT__ === "string" && __APP_COMMIT__) {
+      release = `${release}+${__APP_COMMIT__}`
+    }
   } catch {
     release = undefined
   }

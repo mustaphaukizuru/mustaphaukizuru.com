@@ -17,8 +17,35 @@
  *   SENTRY_DSN                 — required to activate; absence = no-op
  *   SENTRY_ENVIRONMENT         — defaults to NODE_ENV
  *   SENTRY_TRACES_SAMPLE_RATE  — defaults to 0.1 in prod, 1.0 elsewhere
- *   SENTRY_RELEASE             — optional, falls back to package.json version
+ *   SENTRY_RELEASE             — optional; falls back to the deployed COMMIT
+ *                                (T1-9), then the package.json version
  */
+
+/**
+ * Short commit SHA of the running build, read from .git without spawning
+ * git — the same reader healthController uses. Grouping Sentry events by
+ * the commit is what makes the T1-1 rollback decision a glance: if the new
+ * release's error rate jumps, roll back.
+ */
+function readCommit() {
+  try {
+    const fs = require("fs")
+    const path = require("path")
+    const gitDir = path.join(__dirname, "../../.git")
+    const head = fs.readFileSync(path.join(gitDir, "HEAD"), "utf8").trim()
+    if (!head.startsWith("ref: ")) return head.slice(0, 7)
+    const ref = head.slice(5).trim()
+    try {
+      return fs.readFileSync(path.join(gitDir, ref), "utf8").trim().slice(0, 7)
+    } catch {
+      const packed = fs.readFileSync(path.join(gitDir, "packed-refs"), "utf8")
+      const line = packed.split("\n").find((l) => l.endsWith(` ${ref}`))
+      return line ? line.slice(0, 7) : null
+    }
+  } catch {
+    return null
+  }
+}
 
 let Sentry = null
 
@@ -32,8 +59,11 @@ if (process.env.SENTRY_DSN) {
     )
     let release = process.env.SENTRY_RELEASE
     if (!release) {
-      try { release = `mustaphaukizuru@${require("../../package.json").version}` }
-      catch { release = undefined }
+      const commit = readCommit()
+      try {
+        const version = require("../../package.json").version
+        release = commit ? `mustaphaukizuru@${version}+${commit}` : `mustaphaukizuru@${version}`
+      } catch { release = commit ? `mustaphaukizuru+${commit}` : undefined }
     }
 
     Sentry.init({

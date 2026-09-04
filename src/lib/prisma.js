@@ -52,8 +52,30 @@ function withPoolBounds(rawUrl) {
   }
 }
 
+/**
+ * T1-5 · `connection_limit=1` is a workaround for a host fault (2026-08-28),
+ * not a design choice, and it is the ceiling on every Promise.all in the
+ * API. A source comment cannot be seen from production, so say it in the
+ * boot log of every start until the default changes, with the date it was
+ * installed and the variable that lifts it.
+ */
+const POOL_WORKAROUND_INSTALLED = "2026-08-28"
+function warnIfSerialised(url) {
+  try {
+    const limit = new URL(url).searchParams.get("connection_limit")
+    if (limit !== "1") return null
+    const line =
+      `[prisma] connection_limit=1 — every query serialises onto one connection. ` +
+      `Workaround installed ${POOL_WORKAROUND_INSTALLED} for the host's inability to OPEN connections. ` +
+      `Raise DB_CONNECTION_LIMIT (3 is the next step) and watch /health/deep dbConcurrency.`
+    console.warn(line)
+    return line
+  } catch { return null }
+}
+
 function createClient() {
   const url = withPoolBounds(process.env.DATABASE_URL)
+  warnIfSerialised(url)
   const client = new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
     errorFormat: "pretty",
@@ -423,6 +445,10 @@ function summariseDbError(message) {
 module.exports.probeWithTimeout = probeWithTimeout
 module.exports.summariseDbError = summariseDbError
 module.exports.TIMED_OUT = TIMED_OUT
+module.exports.poolBoundsUrl = () => withPoolBounds(process.env.DATABASE_URL)
+module.exports.warnIfSerialised = warnIfSerialised
+module.exports.POOL_WORKAROUND_INSTALLED = POOL_WORKAROUND_INSTALLED
+
 module.exports.engineInfo = () => ({
   everHealthy,
   stuck: lastProbeTimedOut,
