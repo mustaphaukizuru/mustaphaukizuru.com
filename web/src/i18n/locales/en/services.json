@@ -148,8 +148,9 @@
     "packages": {
       "eyebrow": "Fixed-price packages",
       "title": "Prefer a package with a price on it?",
-      "subtitle": "Audience-tailored plans with a fixed monthly price. Checkout directly, or book a call first if you would rather talk.",
-      "popular": "Popular"
+      "subtitle": "Audience-tailored plans with a fixed monthly price. Check out directly, or book a call first — the top tiers are always scoped on a call.",
+      "popular": "Popular",
+      "quoteOnly": "Book a call"
     },
     "faq": {
       "eyebrow": "FAQ",
@@ -220,6 +221,10 @@
     "context": {
       "label": "You're booking about",
       "change": "Change"
+    },
+    "plan": {
+      "label": "You're asking about",
+      "note": "This tier is scoped on a call first — we agree what it covers before anything is charged."
     }
   },
   "demo": {

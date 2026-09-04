@@ -1,7 +1,12 @@
 /**
- * Services seed — one-time import of the hardcoded consulting catalog from
- * web/src/data/sitePagesData.js into the Service/ServicePackage/ServiceFeature
- * tables.
+ * Services seed — the four catalogue categories that back /services/:slug,
+ * their feature lists, and the two engagements that used to be sold as store
+ * products (T2-4).
+ *
+ * The closed set of four lives in web/src/data/servicesCatalogue.js; the slugs
+ * here match it, and the booking flow resolves /book?service=<slug> against
+ * these rows. The pre-catalogue taxonomy it originally imported from
+ * sitePagesData.js is gone — see the note where that array used to be.
  *
  * Idempotent: re-running updates existing rows by slug, doesn't duplicate.
  * Safe to run against production after B05 ships.
@@ -33,109 +38,21 @@ assertLocalDatabase("services-seed.js")
  *   - packages[]        (3 price tiers: Starter / Professional / Advanced)
  * ──────────────────────────────────────────────────────────────────────────── */
 
-const SERVICES = [
-  {
-    slug:  "branding-digital-presence",
-    title: "Branding & Digital Presence",
-    shortDescription:
-      "Build a professional digital identity with modern websites, brand systems, and online platforms that strengthen your organization's visibility.",
-    fullDescription:
-      "We design and ship cohesive brand identities — logo systems, typography, color, and voice — alongside the websites and digital platforms that carry them. The outcome is a clear, confident presence across every surface where your customers find you.",
-    deliveryType: "Scheduled consulting",
-    isFeatured:   true,
-    metaTitle:    "Branding & Digital Presence · Mustapha Ukizuru",
-    metaDescription:
-      "Modern brand systems, websites, and digital platforms for professionals, SMEs, and schools.",
-    features: [
-      "Brand identity audit and strategy",
-      "Logo, typography, and color system design",
-      "Website and landing-page planning",
-      "Social and content-template design",
-      "Brand guidelines and hand-off documentation",
-    ],
-    packages: [
-      { name: "Starter",      price: 79,  description: "Perfect for individuals beginning their digital journey.",           sortOrder: 0 },
-      { name: "Professional", price: 249, description: "Ideal for professionals building stronger digital systems.",         sortOrder: 1 },
-      { name: "Advanced",     price: 499, description: "For professionals scaling their digital presence.",                  sortOrder: 2 },
-    ],
-  },
-  {
-    slug:  "digital-transformation-consulting",
-    title: "Digital Transformation Consulting",
-    shortDescription:
-      "Expert guidance to modernize workflows, adopt new technologies, and create a clear roadmap for digital innovation.",
-    fullDescription:
-      "A structured engagement that audits your current operations, identifies digital-transformation opportunities, and delivers a sequenced roadmap — from quick wins to platform-level change. Engagements typically run 4–12 weeks depending on scope.",
-    deliveryType: "Fixed-scope project",
-    isFeatured:   true,
-    metaTitle:    "Digital Transformation Consulting · Mustapha Ukizuru",
-    metaDescription:
-      "Strategy, roadmaps, and implementation for organizations modernizing their operations.",
-    features: [
-      "Discovery workshop and stakeholder interviews",
-      "Process and systems audit",
-      "Opportunity prioritization matrix",
-      "12-month transformation roadmap",
-      "Change-management guidance",
-      "Follow-up check-ins for 90 days",
-    ],
-    packages: [
-      { name: "Business Starter",      price: 390,  description: "For small teams improving their digital systems.",                  sortOrder: 0 },
-      { name: "Business Professional", price: 890,  description: "For growing businesses adopting digital infrastructure.",           sortOrder: 1 },
-      { name: "Enterprise",            price: 1890, description: "For organizations undertaking full digital transformation.",       sortOrder: 2 },
-    ],
-  },
-  {
-    slug:  "it-infrastructure",
-    title: "IT Infrastructure Setup & Management",
-    shortDescription:
-      "Design and manage secure networks, devices, and systems that keep your organization running efficiently.",
-    fullDescription:
-      "We design, deploy, and support the infrastructure that sits under your business — local networks, endpoint management, backups, and security baselines. Available as a one-time setup or an ongoing managed engagement.",
-    deliveryType: "Managed service",
-    isFeatured:   false,
-    metaTitle:    "IT Infrastructure Setup & Management · Mustapha Ukizuru",
-    metaDescription:
-      "Secure networks, endpoint management, and backup strategy for SMEs and schools.",
-    features: [
-      "Network architecture and wireless design",
-      "Endpoint management and security baselines",
-      "Backup and disaster-recovery planning",
-      "Vendor and procurement guidance",
-      "Documentation and run-books",
-    ],
-    packages: [
-      { name: "Essentials",  price: 490,  description: "Setup and baseline for small teams up to 10 users.",          sortOrder: 0 },
-      { name: "Standard",    price: 1290, description: "For growing teams and single-site operations up to 50 users.", sortOrder: 1 },
-      { name: "Managed",     price: 2490, description: "Ongoing managed service with monthly reviews.",               sortOrder: 2 },
-    ],
-  },
-  {
-    slug:  "cloud-migration-automation",
-    title: "Cloud Migration & Automation",
-    shortDescription:
-      "Move systems to the cloud and automate processes to improve scalability, collaboration, and operational efficiency.",
-    fullDescription:
-      "We plan and execute cloud migrations — workspace and productivity platforms, data pipelines, and automation — with attention to cost, security, and the way your team actually works. Outcome: fewer manual handoffs, faster delivery, lower overhead.",
-    deliveryType: "Fixed-scope project",
-    isFeatured:   true,
-    metaTitle:    "Cloud Migration & Automation · Mustapha Ukizuru",
-    metaDescription:
-      "Cloud adoption strategy, migration, and workflow automation for SMEs and schools.",
-    features: [
-      "Cloud-readiness and cost assessment",
-      "Workspace and identity migration",
-      "Data and storage migration plan",
-      "Workflow automation design and build",
-      "Post-migration support and training",
-    ],
-    packages: [
-      { name: "Assessment",    price: 290,  description: "Cloud-readiness and opportunity review.",                    sortOrder: 0 },
-      { name: "Migration",     price: 1490, description: "Executed migration for up to 30 users.",                     sortOrder: 1 },
-      { name: "Automation",    price: 890,  description: "Workflow automation add-on (Zapier, Make, Power Automate).", sortOrder: 2 },
-    ],
-  },
-]
+/* ────────────────────────────────────────────────────────────────────────────
+ * The legacy SERVICES array lived here (T2-4).
+ *
+ * Four rows from the taxonomy that preceded the closed set of four catalogue
+ * categories: branding-digital-presence, digital-transformation-consulting,
+ * it-infrastructure and cloud-migration-automation, each with three USD price
+ * tiers. They were published, so the public listing served eight services
+ * against a catalogue of four, at prices nothing else in the site agreed with
+ * — and they were the only rows in the table denominated in USD.
+ *
+ * Removed so re-seeding cannot resurrect them. The rows already in a database
+ * are retired separately, by scripts/retire-legacy-services.js, which soft
+ * deletes rather than deleting: ServiceOrder rows reference all four, and
+ * removing the service would take the order history with it.
+ * ──────────────────────────────────────────────────────────────────────────── */
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Funnel categories · roadmap step 25 (docs/SERVICE_CATALOGUE_2026-08.md)
@@ -146,6 +63,46 @@ const SERVICES = [
  * Upserted by slug; older rows above are left untouched. No packages: the
  * bespoke work is call → proposal → invoice.
  * ──────────────────────────────────────────────────────────────────────────── */
+
+/* ── The two engagements that used to be sold as store products (T2-4) ─────
+ * `website-system-setup` (300) and `infrastructure-audit` (120) sat in
+ * products-seed.js as digital products, so they went through the store
+ * checkout like a downloadable PDF: no call, no proposal, no scope. They are
+ * services, and at those figures they undercut the catalogue offerings that
+ * describe the same work by more than an order of magnitude.
+ *
+ * They become ServicePackage rows under the category that owns the work,
+ * priced at the floor of the cheapest FIXED offering in that category so they
+ * no longer undercut it — MXN 15,000 (Software Stack Audit, 2-3 weeks) and
+ * MXN 18,000 (Interactive UI/UX Wireframing, 1-2 weeks) in
+ * web/src/data/servicesCatalogue.js. Both figures follow the file's own
+ * pricing basis: USD 30/hour at a flat 20 MXN/USD.
+ *
+ * OWNER: these are price changes, from 120 to 15,000 and 300 to 18,000 MXN.
+ * They only reach a database when a seed is run, and the guard blocks any
+ * non-local host. Confirm the figures before seeding production.
+ *
+ * The third store product, `consulting-session-package` (150), has no
+ * replacement on purpose: the discovery call is free and lives at /book.
+ * ───────────────────────────────────────────────────────────────────────── */
+const MIGRATED_PACKAGES = {
+  "it-strategy-consulting": [
+    {
+      name: "IT Infrastructure Audit",
+      description: "A structured review of infrastructure condition, system organisation, access, operational gaps and modernisation opportunities. Delivered as a written report with a prioritised remediation list.",
+      price: 15000,
+      sortOrder: 0,
+    },
+  ],
+  "digital-product-engineering": [
+    {
+      name: "Website & Digital System Setup",
+      description: "Define or rebuild website structure, connected digital systems and the integrated user journey. Includes information architecture, the build, and handover with credentials transferred.",
+      price: 18000,
+      sortOrder: 0,
+    },
+  ],
+}
 
 const FUNNEL_CATEGORIES = [
   {
@@ -170,8 +127,8 @@ const FUNNEL_CATEGORIES = [
     slug: "cloud-architecture-migration",
     title: "Cloud Architecture & Infrastructure Migration",
     titleEs: "Arquitectura en la Nube y Migración de Infraestructura",
-    shortDescription: "Retire the office server, cut cloud bills by up to 40 %, and know your backups actually restore.",
-    shortDescriptionEs: "Retira el servidor de la oficina, reduce la factura en la nube hasta 40 % y confirma que tus respaldos realmente restauran.",
+    shortDescription: "Retire the office server, cut your cloud bill, and know your backups actually restore.",
+    shortDescriptionEs: "Retira el servidor de la oficina, reduce la factura en la nube y confirma que tus respaldos realmente restauran.",
     fullDescription: "On-premise to cloud migration (AWS, Azure, GCP), cloud bill optimisation, disaster recovery planning, Docker and containerisation, zero-trust security hardening.",
     features: ["On-Premise to Cloud Migration", "Cloud Bill Optimisation", "Disaster Recovery Planning", "Docker & Containerisation", "Zero-Trust Security Hardening"],
   },
@@ -215,6 +172,28 @@ async function seedFunnelCategories() {
     await prisma.serviceFeature.createMany({
       data: c.features.map((text, idx) => ({ serviceId: service.id, featureText: text, sortOrder: idx })),
     })
+
+    // Upsert by (serviceId, name) rather than wiping: a ServicePackage id may
+    // already be referenced by a ServiceOrder, and those ids have to stay
+    // stable. Same rule the retired legacy loop followed.
+    for (const pkg of MIGRATED_PACKAGES[c.slug] || []) {
+      const data = {
+        description: pkg.description,
+        price:       pkg.price,
+        currency:    "MXN",
+        isActive:    true,
+        sortOrder:   pkg.sortOrder,
+      }
+      const existing = await prisma.servicePackage.findFirst({
+        where: { serviceId: service.id, name: pkg.name },
+      })
+      if (existing) {
+        await prisma.servicePackage.update({ where: { id: existing.id }, data })
+      } else {
+        await prisma.servicePackage.create({ data: { ...data, serviceId: service.id, name: pkg.name } })
+      }
+      console.log(`      + package ${pkg.name} (MXN ${pkg.price})`)
+    }
   }
 }
 
@@ -227,76 +206,15 @@ async function seed() {
 
   await seedFunnelCategories()
 
-  for (const s of SERVICES) {
-    console.log(`  → ${s.slug}`)
-
-    const existing = await prisma.service.findUnique({ where: { slug: s.slug } })
-
-    const baseData = {
-      title:            s.title,
-      slug:             s.slug,
-      shortDescription: s.shortDescription,
-      fullDescription:  s.fullDescription,
-      basePrice:        s.packages[0]?.price ?? 0,
-      currency:         "USD",
-      deliveryType:     s.deliveryType,
-      status:           "published",
-      isFeatured:       Boolean(s.isFeatured),
-      metaTitle:        s.metaTitle || null,
-      metaDescription:  s.metaDescription || null,
-    }
-
-    const service = existing
-      ? await prisma.service.update({ where: { id: existing.id }, data: baseData })
-      : await prisma.service.create({ data: baseData })
-
-    // Features — wipe & recreate so edits to the seed propagate cleanly.
-    await prisma.serviceFeature.deleteMany({ where: { serviceId: service.id } })
-    if (s.features?.length) {
-      await prisma.serviceFeature.createMany({
-        data: s.features.map((text, idx) => ({
-          serviceId:   service.id,
-          featureText: text,
-          sortOrder:   idx,
-        })),
-      })
-    }
-
-    // Packages — upsert by (serviceId + name). Don't touch packages that have
-    // linked ServiceOrders (their IDs must stay stable).
-    for (const pkg of s.packages) {
-      const existingPkg = await prisma.servicePackage.findFirst({
-        where: { serviceId: service.id, name: pkg.name },
-      })
-      if (existingPkg) {
-        await prisma.servicePackage.update({
-          where: { id: existingPkg.id },
-          data: {
-            description: pkg.description,
-            price:       pkg.price,
-            currency:    "USD",
-            isActive:    true,
-            sortOrder:   pkg.sortOrder,
-          },
-        })
-      } else {
-        await prisma.servicePackage.create({
-          data: {
-            serviceId:   service.id,
-            name:        pkg.name,
-            description: pkg.description,
-            price:       pkg.price,
-            currency:    "USD",
-            isActive:    true,
-            sortOrder:   pkg.sortOrder,
-          },
-        })
-      }
-    }
-  }
-
-  const count = await prisma.service.count({ where: { status: "published" } })
-  console.log(`[services-seed] Done. ${count} published service(s) in DB.`)
+  // Report the three kinds separately. "published" alone counted the retired
+  // rows and the audience-plan carriers too, so it said 11 while the site
+  // showed 4 — the exact confusion T2-4 exists to remove.
+  const [publicCount, carriers, retired] = await Promise.all([
+    prisma.service.count({ where: { status: "published", deletedAt: null, audienceCode: null } }),
+    prisma.service.count({ where: { deletedAt: null, audienceCode: { not: null } } }),
+    prisma.service.count({ where: { deletedAt: { not: null } } }),
+  ])
+  console.log(`[services-seed] Done. ${publicCount} public service(s), ${carriers} audience-plan carrier(s), ${retired} retired.`)
 }
 
 seed()

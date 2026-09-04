@@ -1,11 +1,21 @@
 /**
- * Products seed — idempotent.
+ * Products seed — idempotent. The store sells downloadable products only.
  *
- * Source of truth: web/src/data/storeData.js. Every slug referenced by the
- * storefront/home/featured CTAs must exist as a `Product` row, otherwise
- * direct visits to `/store/<slug>` return "Product not found" even though
- * the marketing surfaces still link there (the visible bug in PDF #6 / page 1
- * screenshot).
+ * Source of truth: this file. It used to cite web/src/data/storeData.js,
+ * which was imported by nothing, carried its own contradicting price list and
+ * has been deleted (T2-4). Every slug the storefront, home or featured CTAs
+ * link to must exist as a `Product` row, otherwise a direct visit to
+ * `/store/<slug>` returns "Product not found" while the marketing surfaces
+ * keep linking there.
+ *
+ * PRICES ARE MXN, DERIVED (T2-4). Each product carries `priceUsd` and the row
+ * price is priceUsd * MXN_PER_USD. The figures were authored as USD but the
+ * seed wrote them into a column the whole platform reads as MXN, so a toolkit
+ * authored at 10 was on sale for 10 pesos — about USD 0.50, less than the
+ * payment-processing fee on the transaction. MXN is kept rather than switching
+ * the column to USD: it is the schema default, IVA and CFDI are computed in
+ * it, and a mixed-currency cart would reach the order and refund paths.
+ * assertPlausiblePrices() below refuses to seed an implausible figure.
  *
  * Re-running upserts by slug — admin price/title edits are preserved across
  * re-runs because we only set columns we own here.
@@ -23,6 +33,20 @@ const { assertLocalDatabase } = require("../../scripts/guard-prod-db")
 // as well means the check follows the script, not the way it was invoked.
 assertLocalDatabase("products-seed.js")
 
+/* The store's unit is a downloadable file. Three rows here were services in
+ * a product's clothing — "Digital Transformation Consulting Session" (150),
+ * "Website & Digital System Setup" (300) and "IT Infrastructure Audit" (120)
+ * — sold through the store checkout like a PDF: no call, no proposal, no
+ * scope, and priced more than an order of magnitude under the catalogue
+ * offerings describing the same work. Removed (T2-4). The consulting session
+ * is now the free discovery call at /book; the other two are ServicePackage
+ * rows under their category, in prisma/seed/services-seed.js.
+ */
+
+// The catalogue's own basis: USD 30/hour at a flat 20 MXN/USD, not live FX.
+// Same constant as web/src/data/servicesCatalogue.js.
+const MXN_PER_USD = 20
+
 const PRODUCTS = [
   {
     slug: "digital-transformation-starter-toolkit",
@@ -31,7 +55,7 @@ const PRODUCTS = [
     shortDescription: "Practical templates to guide digital planning and implementation.",
     description:
       "A structured toolkit designed to help organizations assess digital maturity, define priorities, and organize implementation steps with practical templates and planning resources.",
-    price: 10,
+    priceUsd: 10,
     isFeatured: true,
   },
   {
@@ -41,7 +65,7 @@ const PRODUCTS = [
     shortDescription: "A structured planning resource for consistent digital publishing.",
     description:
       "A practical planning template for organizing weekly content production, publishing priorities, and campaign coordination across digital platforms.",
-    price: 12,
+    priceUsd: 12,
     isFeatured: true,
   },
   {
@@ -51,7 +75,7 @@ const PRODUCTS = [
     shortDescription: "Organized teaching resources for coding and robotics initiatives.",
     description:
       "A practical education-focused resource that helps schools and trainers design structured STEM, coding, and robotics activities with implementation guidance.",
-    price: 18,
+    priceUsd: 18,
     isFeatured: true,
   },
   {
@@ -61,7 +85,7 @@ const PRODUCTS = [
     shortDescription: "A ready-to-use checklist for reviewing infrastructure and systems.",
     description:
       "A structured checklist for schools and educational institutions to review infrastructure, devices, connectivity, access, security, and operational technology readiness.",
-    price: 15,
+    priceUsd: 15,
     isFeatured: false,
   },
   {
@@ -71,7 +95,7 @@ const PRODUCTS = [
     shortDescription: "A clean framework for planning and structuring web projects.",
     description:
       "A planning kit for individuals and organizations launching modern websites, including structure mapping, content planning, delivery checkpoints, and quality review templates.",
-    price: 14,
+    priceUsd: 14,
     isFeatured: true,
   },
   {
@@ -81,42 +105,33 @@ const PRODUCTS = [
     shortDescription: "Templates and guidance for improving digital efficiency.",
     description:
       "A consulting-style digital resource for identifying friction points, mapping workflows, and improving efficiency through better structure and modern digital practices.",
-    price: 16,
-    isFeatured: false,
-  },
-  {
-    slug: "consulting-session-package",
-    title: "Digital Transformation Consulting Session",
-    category: "Consulting",
-    shortDescription: "A focused strategy session for digital growth and system improvement.",
-    description:
-      "A professional consulting session designed for businesses, professionals, and schools seeking guidance on digital systems, infrastructure, workflows, and modernization priorities.",
-    price: 150,
-    isFeatured: true,
-  },
-  {
-    slug: "website-system-setup",
-    title: "Website & Digital System Setup",
-    category: "Business Systems",
-    shortDescription: "Planning support for modern websites and connected digital workflows.",
-    description:
-      "A service-oriented package for organizations and professionals who want to define or improve website structure, digital systems, and integrated user experiences.",
-    price: 300,
-    isFeatured: true,
-  },
-  {
-    slug: "infrastructure-audit",
-    title: "IT Infrastructure Audit",
-    category: "Operations",
-    shortDescription: "A practical review of systems, devices, access, and operational readiness.",
-    description:
-      "A structured service package for reviewing infrastructure condition, system organization, operational gaps, and modernization opportunities.",
-    price: 120,
+    priceUsd: 16,
     isFeatured: false,
   },
 ]
 
+/**
+ * A downloadable product under MXN 50 is not a price, it is a unit mix-up —
+ * the exact one this seed shipped with. Refuse to write it rather than
+ * discovering it on a live storefront.
+ */
+function assertPlausiblePrices() {
+  const MIN_MXN = 50
+  const bad = PRODUCTS
+    .map((p) => ({ slug: p.slug, mxn: p.priceUsd * MXN_PER_USD }))
+    .filter((p) => !Number.isFinite(p.mxn) || p.mxn < MIN_MXN)
+  if (!bad.length) return
+  const detail = bad.map((p) => `${p.slug}: MXN ${p.mxn}`).join("; ")
+  throw new Error(
+    `products-seed: ${bad.length} product(s) priced below MXN ${MIN_MXN}. ` +
+    `Prices are authored in USD and multiplied by ${MXN_PER_USD}; a figure this ` +
+    `low means a USD amount was written straight into the MXN column. ${detail}`,
+  )
+}
+
 async function seedProducts() {
+  assertPlausiblePrices()
+
   let created = 0
   let updated = 0
 
@@ -126,7 +141,7 @@ async function seedProducts() {
       category: p.category,
       shortDescription: p.shortDescription,
       description: p.description,
-      price: p.price,
+      price: p.priceUsd * MXN_PER_USD,
       currency: "MXN",
       productType: "downloadable",
       status: "published",

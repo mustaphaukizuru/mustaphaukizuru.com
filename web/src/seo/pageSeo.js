@@ -1,4 +1,7 @@
 import { DEFAULT_OG_IMAGE, absoluteUrl, siteConfig, trimText } from "./siteSeo.js"
+// Explicit extension: web/scripts/generate-og-static.mjs imports this module
+// from Node, which does not resolve extensionless paths the way Vite does.
+import { CATEGORIES } from "../data/servicesCatalogue.js"
 
 /* ─────────────────────────────────────────────────────────────────────────
    STATIC ROUTE SEO — used by SeoRouteManager + each page's <Seo /> render.
@@ -25,7 +28,7 @@ export const staticSeoByRoute = {
   "/about": {
     title: "About Mustapha Ukizuru · Full-Stack Developer & IT Manager",
     description:
-      "Meet Mustapha Ukizuru — Full-Stack Developer, IT Manager, CS Educator. 6+ years across Rwanda, Turkey, Ethiopia, and Mexico. Available for new projects.",
+      "Meet Mustapha Ukizuru — Full-Stack Developer, IT Manager, CS Educator. 8+ years across Rwanda, Turkey, Ethiopia, and Mexico. Available for new projects.",
     type: "profile",
     image: absoluteUrl("/og/og-profile.png"),
     schemaType: "ProfilePage",
@@ -93,7 +96,7 @@ export const staticSeoByRoute = {
   "/services/cloud-architecture-migration": {
     title: "Cloud Architecture & Migration · AWS · Azure · GCP · Docker · Zero Trust",
     description:
-      "On-premise to cloud migration, cloud-bill optimisation up to 40%, disaster-recovery planning, Docker containerisation, and zero-trust security hardening.",
+      "On-premise to cloud migration, cloud-bill optimisation, disaster-recovery planning, Docker containerisation, and zero-trust security hardening.",
     type: "website",
     image: absoluteUrl("/og/og-services.png"),
     schemaType: "Service",
@@ -338,14 +341,11 @@ export function buildServiceCollectionSeo(pathname = "/services") {
       name: siteConfig.siteName,
       url: absoluteUrl(pathname),
       areaServed: ["MX", "US", "RW", "TR", "Worldwide"],
-      serviceType: [
-        "Technology Consulting",
-        "School IT Infrastructure & Digital Transformation",
-        "Educational Technology Consulting",
-        "Website & Digital Systems",
-        "STEM/Coding/Robotics Programs",
-        "Professional Training & Workshops",
-      ],
+      // Derived from the closed set, not hand-listed. The six strings that
+      // used to sit here were the retired pre-catalogue taxonomy — structured
+      // data telling Google about service lines the site no longer sells,
+      // while the four it does sell went unnamed.
+      serviceType: CATEGORIES.map((c) => c.name),
       provider: {
         "@type": "Person",
         name: siteConfig.person.name,

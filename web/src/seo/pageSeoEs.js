@@ -47,7 +47,7 @@ export const staticSeoEsByRoute = {
   "/about": {
     title: "Acerca de Mustapha Ukizuru · Desarrollador Full-Stack",
     description:
-      "Conoce a Mustapha Ukizuru — desarrollador full-stack, IT manager y docente de CS. Seis años de experiencia entre Ruanda, Turquía, Etiopía y México.",
+      "Conoce a Mustapha Ukizuru — desarrollador full-stack, IT manager y docente de CS. Más de ocho años de experiencia entre Ruanda, Turquía, Etiopía y México.",
     keywords: [
       "Mustapha Ukizuru",
       "desarrollador full-stack México",
@@ -87,7 +87,7 @@ export const staticSeoEsByRoute = {
   "/services/cloud-architecture-migration": {
     title: "Arquitectura en la Nube y Migración · AWS · Azure · GCP · Docker · Zero Trust",
     description:
-      "Migración on-premise a la nube, optimización de facturas hasta 40 %, recuperación ante desastres, contenedorización con Docker y seguridad zero-trust.",
+      "Migración on-premise a la nube, optimización de facturas en la nube, recuperación ante desastres, contenedorización con Docker y seguridad zero-trust.",
     keywords: ["migración a la nube", "AWS Azure GCP", "optimización de costos en la nube", "contenedorización Docker"],
   },
 

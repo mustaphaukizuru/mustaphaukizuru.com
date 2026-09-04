@@ -7,7 +7,7 @@
   },
   "/about": {
     "title": "About Mustapha Ukizuru · Full-Stack Developer & IT Manager",
-    "description": "Meet Mustapha Ukizuru — Full-Stack Developer, IT Manager, CS Educator. 6+ years across Rwanda, Turkey, Ethiopia, and Mexico. Available for new projects.",
+    "description": "Meet Mustapha Ukizuru — Full-Stack Developer, IT Manager, CS Educator. 8+ years across Rwanda, Turkey, Ethiopia, and Mexico. Available for new projects.",
     "image": "https://mustaphaukizuru.com/og/og-profile.png",
     "type": "profile"
   },
@@ -37,7 +37,7 @@
   },
   "/services/cloud-architecture-migration": {
     "title": "Cloud Architecture & Migration · AWS · Azure · GCP · Docker · Zero Trust",
-    "description": "On-premise to cloud migration, cloud-bill optimisation up to 40%, disaster-recovery planning, Docker containerisation, and zero-trust security hardening.",
+    "description": "On-premise to cloud migration, cloud-bill optimisation, disaster-recovery planning, Docker containerisation, and zero-trust security hardening.",
     "image": "https://mustaphaukizuru.com/og/og-services.png",
     "type": "website"
   },
@@ -115,7 +115,7 @@
   },
   "/es/about": {
     "title": "Acerca de Mustapha Ukizuru · Desarrollador Full-Stack",
-    "description": "Conoce a Mustapha Ukizuru — desarrollador full-stack, IT manager y docente de CS. Seis años de experiencia entre Ruanda, Turquía, Etiopía y México.",
+    "description": "Conoce a Mustapha Ukizuru — desarrollador full-stack, IT manager y docente de CS. Más de ocho años de experiencia entre Ruanda, Turquía, Etiopía y México.",
     "image": "https://mustaphaukizuru.com/og/og-profile.png",
     "type": "profile"
   },
@@ -145,7 +145,7 @@
   },
   "/es/services/cloud-architecture-migration": {
     "title": "Arquitectura en la Nube y Migración · AWS · Azure · GCP · Docker · Zero Trust",
-    "description": "Migración on-premise a la nube, optimización de facturas hasta 40 %, recuperación ante desastres, contenedorización con Docker y seguridad zero-trust.",
+    "description": "Migración on-premise a la nube, optimización de facturas en la nube, recuperación ante desastres, contenedorización con Docker y seguridad zero-trust.",
     "image": "https://mustaphaukizuru.com/og/og-services.png",
     "type": "website"
   },

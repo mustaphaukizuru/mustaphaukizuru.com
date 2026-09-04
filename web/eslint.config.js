@@ -84,7 +84,16 @@ export default defineConfig([
   // which is why the Spanish translation reached almost nobody. The codemod
   // fixed the existing ones; this rule stops the next one.
   {
-    files: ['src/pages/**/*.{js,jsx}', 'src/components/**/*.{js,jsx}', 'src/layout/**/*.{js,jsx}'],
+    // src/hooks and src/context are in the list too: a hook that calls the
+    // raw useNavigate re-opens the hole from anywhere that calls the hook,
+    // which is harder to spot than a Link in a page.
+    files: [
+      'src/pages/**/*.{js,jsx}',
+      'src/components/**/*.{js,jsx}',
+      'src/layout/**/*.{js,jsx}',
+      'src/hooks/**/*.{js,jsx}',
+      'src/context/**/*.{js,jsx}',
+    ],
     ignores: [
       // The operator trees are NOT mirrored under /es, so a prefixed
       // operator link points at a route that does not exist.

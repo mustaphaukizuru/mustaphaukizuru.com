@@ -148,8 +148,9 @@
     "packages": {
       "eyebrow": "Paquetes de precio fijo",
       "title": "¿Prefieres un paquete con precio?",
-      "subtitle": "Planes por audiencia con precio mensual fijo. Compra directo o agenda una llamada si prefieres hablar primero.",
-      "popular": "Popular"
+      "subtitle": "Planes por audiencia con precio mensual fijo. Paga directamente o agenda una llamada primero: los niveles superiores siempre se definen en una llamada.",
+      "popular": "Popular",
+      "quoteOnly": "Agenda una llamada"
     },
     "faq": {
       "eyebrow": "Preguntas frecuentes",
@@ -220,6 +221,10 @@
     "context": {
       "label": "Vas a hablar sobre",
       "change": "Cambiar"
+    },
+    "plan": {
+      "label": "Preguntas por",
+      "note": "Este nivel se define primero en una llamada: acordamos qué incluye antes de cobrar nada."
     }
   },
   "demo": {

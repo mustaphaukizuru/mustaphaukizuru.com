@@ -595,6 +595,48 @@ export function getCategoryBySlug(slug) {
 /* ── Funnel: single CTA everywhere ──────────────────────────────────────── */
 export const bookHref = (slug) => (slug ? `/book?service=${encodeURIComponent(slug)}` : "/book")
 
+/* ── Which plan tiers may NOT be self-served (T2-4) ───────────────────────
+ * The audience tiers run from MXN 5,800 to MXN 90,000 per month and every
+ * one of them linked straight into /checkout/service — so a school could put
+ * a 90,000/month retainer on a card with no call, no scope and nothing
+ * written down. Refunds on this platform are full-only by policy, so the
+ * first thing that goes wrong is a full reversal of a five-figure charge,
+ * and the work already started.
+ *
+ * Two rules, and a tier is quote-only if EITHER matches:
+ *
+ *   - it is named below (the Business and Schools top tiers), or
+ *   - its price is at or above QUOTE_ONLY_MXN_PER_MONTH.
+ *
+ * The price rule is the one that keeps holding: prices come from the DB and
+ * are edited in /admin/services, so a name-only list would silently un-gate
+ * a tier the moment someone raised its price past the point where a call is
+ * the responsible entry.
+ */
+export const QUOTE_ONLY_MXN_PER_MONTH = 50000
+export const QUOTE_ONLY_TIERS = { business: ["advanced"], schools: ["advanced"] }
+
+/**
+ * @param {string} audienceCode "professional" | "business" | "schools"
+ * @param {string} tierKey      "basic" | "medium" | "advanced"
+ * @param {number} priceMxn     the live monthly price
+ */
+export function isQuoteOnlyTier(audienceCode, tierKey, priceMxn) {
+  if ((QUOTE_ONLY_TIERS[audienceCode] || []).includes(tierKey)) return true
+  const n = Number(priceMxn)
+  return Number.isFinite(n) && n >= QUOTE_ONLY_MXN_PER_MONTH
+}
+
+/**
+ * Where a quote-only tier sends the visitor: the booking page, carrying which
+ * plan they were looking at. There is no service slug to pass — an audience
+ * plan is not one of the four categories — so this is `?plan=` rather than
+ * bookHref's `?service=`, and BookConsultationPage renders it as a line of
+ * context above the calendar.
+ */
+export const planEnquiryHref = (audienceCode, tierKey) =>
+  `/book?plan=${encodeURIComponent(`${audienceCode}.${tierKey}`)}`
+
 export const HOW_IT_WORKS = [
   { id: "call", step: "01", Icon: Calendar, title: "30-minute call", titleEs: "Llamada de 30 min",
     body: "Free. We diagnose the situation and agree on whether there is a fit.",
@@ -744,7 +786,7 @@ export const AUDIENCE_PRICING_PLANS = {
       "Conversion-optimized landing pages and A/B testing",
       "Quarterly brand-strategy and positioning review",
       "Monthly performance, growth, and traffic report",
-      "Priority email support with 24-hour response SLA",
+      "Priority email support, next-business-day response",
       "Dedicated 1:1 monthly strategy session",
     ],
     tiers: {
@@ -805,7 +847,7 @@ export const AUDIENCE_PRICING_PLANS = {
       "Real-time analytics and business-intelligence dashboards",
       "Quarterly business review and strategic roadmap session",
       "Dedicated account manager and customer-success contact",
-      "24/7 incident response with 4-hour critical SLA",
+      "4-hour target on production-down incidents, business hours",
       "On-demand strategic advisory and architecture hours",
     ],
     tiers: {
@@ -866,7 +908,7 @@ export const AUDIENCE_PRICING_PLANS = {
       "Bilingual leadership development and admin training",
       "Quarterly board-level strategic review",
       "Six-month post-deployment administrative support",
-      "Emergency response with same-day on-site SLA",
+      "Remote-first incident response; on-site by arrangement",
       "Innovation lab and maker-space program design",
     ],
     tiers: {
