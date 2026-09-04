@@ -122,3 +122,11 @@ web/playwright-report/
 /public/sitemap.xml
 /public/sitemap-static.xml
 /web/public/sitemap-static.xml
+
+# Agent skill packs installed with `npx skills add` (.agents/skills/* plus the
+# lockfile). Machine-local tooling, same class as .claude/ above: vendored
+# third-party instruction files, megabytes of them, that no deploy needs and
+# that would land inside the served tree. Reinstall with the commands in
+# docs/AGENT_SKILLS.md rather than committing the contents.
+/.agents/
+/skills-lock.json
