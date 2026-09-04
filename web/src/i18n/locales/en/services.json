@@ -2,7 +2,7 @@
   "hero": {
     "eyebrow": "Services",
     "title": "Technology services that move the needle",
-    "subtitle": "IT consulting, full-stack development, school IT transformation, and STEM program development.",
+    "subtitle": "Four service lines — IT strategy, AI and workflow automation, cloud and infrastructure, and digital product engineering — for businesses and schools.",
     "compositionAria": "Hero composition: a happy client portrait flanked by stat cards showing 96 services delivered and 82+ engagements completed",
     "happyClientAlt": "Happy client of Mustapha Ukizuru",
     "servicePlan": "Service plan",
@@ -23,7 +23,16 @@
     "onTimeDelivery": "On-time delivery",
     "servicesEyebrow": "Services",
     "headlinePremium": "Premium tech.",
-    "headlineWebsitesApps": "Websites, apps, AI, IT strategy —"
+    "headlineWebsitesApps": "Websites, apps, AI, IT strategy —",
+    "objectAria": "The four service lines: strategic IT consulting, AI and workflow automation, cloud architecture and infrastructure migration, and end-to-end digital product engineering",
+    "offeringCount_one": "{{count}} service",
+    "offeringCount_other": "{{count}} services",
+    "serviceLines": "Service lines",
+    "ticks": {
+      "senior": "Senior work, no juniors",
+      "fixed": "Fixed price, no surprises",
+      "direct": "Direct line, no middlemen"
+    }
   },
   "detail": {
     "errors": {
@@ -121,7 +130,14 @@
     "pricing": {
       "fixed": "Fixed price",
       "retainer": "Monthly retainer",
-      "quote": "From quote"
+      "quote": "From quote",
+      "from": "From",
+      "perMonth": "/month"
+    },
+    "priceDetail": {
+      "toggle": "What's included at this price",
+      "scalesWith": "Price increases with:",
+      "related": "Often built together with:"
     },
     "how": {
       "eyebrow": "How it works",
@@ -147,7 +163,7 @@
         {
           "id": "pricing",
           "question": "How is pricing structured?",
-          "answer": "Audits and the wireframing sprint are fixed price. Bespoke builds and migrations are quoted after the call; retainers are monthly."
+          "answer": "Every offering shows an indicative price in both US dollars and Mexican pesos, based on a $30 USD/hour minimum rate. Audits and the wireframing sprint are fixed price; bespoke builds, migrations, and retainers show a starting price, confirmed in the written proposal once scope is set."
         },
         {
           "id": "nda",

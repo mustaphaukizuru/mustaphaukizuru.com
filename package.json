@@ -31,7 +31,11 @@
     "test:unit": "jest --testPathIgnorePatterns=test/integration",
     "db:guard": "node scripts/guard-prod-db.js",
     "db:push": "node scripts/guard-prod-db.js \"prisma db push\" && node scripts/db-push.js",
-    "restore": "node scripts/guard-prod-db.js \"restore into this database\" && node scripts/restore-db-json.js"
+    "restore": "node scripts/guard-prod-db.js \"restore into this database\" && node scripts/restore-db-json.js",
+    "seed:demo": "node scripts/guard-prod-db.js \"seed:demo\" && node prisma/seed/demo-seed.js",
+    "seed:content": "node scripts/guard-prod-db.js \"seed:content\" && node prisma/seed/products-seed.js && node prisma/seed/services-seed.js && node prisma/seed/portfolio-seed.js && node prisma/seed-bio.js && node prisma/seed-client-logos.js && node prisma/seed-blog.js && node prisma/seed-service-plans.js && node prisma/seed-audience-plans.js && node prisma/seed-email-templates.js && node prisma/seed/product-images-seed.js",
+    "dev:demo": "node scripts/dev-demo.js",
+    "seed:product-images": "node scripts/guard-prod-db.js \"seed:product-images\" && node prisma/seed/product-images-seed.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -99,6 +103,7 @@
   },
   "overrides": {
     "uuid": "^11.1.1",
-    "deepmerge-ts": ">=8.0.0"
+    "deepmerge-ts": ">=8.0.0",
+    "qs": "^6.16.0"
   }
 }

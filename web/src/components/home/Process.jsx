@@ -90,7 +90,16 @@ export default function Process() {
                 <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-violet shadow-sm">
                   <Icon className="h-5.5 w-5.5" aria-hidden="true" />
                 </span>
-                <span className="font-mono text-[28px] font-bold tabular-nums text-violet/15">
+                {/* Decorative step numeral. `aria-hidden` because the step's
+                    position is already carried by DOM order and by the step
+                    title — this is a visual echo, not information.
+                    It also has to be marked: at violet/15 on white it sits
+                    near 1.2:1, well under AA, and axe rightly fails it as
+                    text. That defect is not new. It was invisible to CI only
+                    because gsap set autoAlpha:0 on this subtree before the
+                    audit ran, so axe skipped it; deferring the gsap load
+                    stopped masking it. */}
+                <span aria-hidden="true" className="font-mono text-[28px] font-bold tabular-nums text-violet/15">
                   0{i + 1}
                 </span>
               </div>

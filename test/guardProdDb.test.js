@@ -9,6 +9,7 @@
  * direction so a future "helpful" tweak cannot quietly invert it.
  */
 
+const os = require("os")
 const path = require("path")
 const { spawnSync } = require("child_process")
 
@@ -22,7 +23,15 @@ function runGuard({ url, allow }) {
   else env.DATABASE_URL = url
   if (allow) env.ALLOW_PROD_DB = allow
 
-  return spawnSync(process.execPath, [GUARD, "prisma db push"], { encoding: "utf8", env })
+  // Run from a directory with no .env. The guard calls dotenv.config(), which
+  // resolves .env relative to process.cwd() — so from the repo root a deleted
+  // DATABASE_URL is simply read back out of the file, and the "unset" case below
+  // would silently assert whatever .env happens to hold instead.
+  return spawnSync(process.execPath, [GUARD, "prisma db push"], {
+    encoding: "utf8",
+    env,
+    cwd: os.tmpdir(),
+  })
 }
 
 describe("guard-prod-db", () => {

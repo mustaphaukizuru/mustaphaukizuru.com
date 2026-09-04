@@ -1,0 +1,41 @@
+# Local development database.
+#
+# WHY: `.env` on this project points at the PRODUCTION Hostinger MySQL — there
+# is no dev database, which is why scripts/guard-prod-db.js exists at all. This
+# compose file gives you the local one the guard is waiting for, so `db:push`,
+# the content seeds and `seed:demo` can run without touching live data.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   # then in .env:  DATABASE_URL="mysql://muk:muk@127.0.0.1:3307/muk_dev"
+#   npm run db:push && npm run seed:content && npm run seed:demo
+#
+# Port 3307, not 3306: a machine that already runs MySQL for something else
+# should not have to stop it to work on this project.
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: muk-dev-mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: muk_dev
+      MYSQL_USER: muk
+      MYSQL_PASSWORD: muk
+    command:
+      # Match the collation Hostinger uses so a local reproduction of a
+      # sorting or comparison bug behaves the same as production does.
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - muk-dev-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  muk-dev-mysql:

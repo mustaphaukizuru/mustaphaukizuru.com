@@ -48,6 +48,13 @@
       "cta": "Ir a la tienda"
     }
   },
+  "showcase": {
+    "eyebrow": "Construido y en producción",
+    "title": "La plataforma en la que estás ahora",
+    "subtitle": "Tienda, pago en dos monedas, portal de miembros con descargas protegidas, reservas con Google Calendar, facturas y un back office de administración completo: un solo código, en producción. Lo que ves aquí es lo que entrego a mis clientes.",
+    "cta": "Leer el caso de estudio",
+    "imageAlt": "La página de servicios de la plataforma mustaphaukizuru.com, en un marco de portátil"
+  },
   "services": {
     "eyebrow": "Servicios",
     "title": "Cuatro formas en que puedo ayudarte",
@@ -84,8 +91,8 @@
   },
   "portfolio": {
     "eyebrow": "Trabajo seleccionado",
-    "title": "Tres proyectos, tres problemas distintos",
-    "subtitle": "Proyectos recientes con escuelas, PyMEs y plataformas educativas.",
+    "title": "Tres problemas, resueltos",
+    "subtitle": "Escuelas, PyMEs y plataformas educativas.",
     "cta": "Todos los proyectos"
   },
   "testimonials": {

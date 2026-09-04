@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mustapha Ukizuru — Service Catalog v2.0</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F8FAFC; --bg-elevated:#FFFFFF; --border:#E1E4EC;
+  --fg:#1A1B23; --fg-muted:#54566B; --fg-subtle:#8A8CA3;
+  --violet:#5D3FD3; --violet-pale:#EDE9FB;
+  --color-svc-strategy:#5D3FD3; --color-svc-automation:#856212; --color-svc-cloud:#0284C7; --color-svc-product:#065F46;
+  --sans:'Sora',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:13.5px;line-height:1.55}
+.wrap{max-width:880px;margin:0 auto;padding:0 28px 60px}
+h1,h2,h3{text-wrap:balance;margin:0;font-weight:800}
+p{margin:0}
+.cover{padding:64px 0 40px;border-bottom:3px solid var(--violet)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:14px}
+.cover h1{font-size:32px;color:var(--violet);letter-spacing:-0.01em}
+.cover-meta{margin-top:22px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px 32px;font-size:12.5px;color:var(--fg-muted)}
+.cover-meta b{color:var(--fg);font-weight:600}
+.stats{margin-top:26px;display:flex;gap:28px}
+.stat{font-family:var(--mono)}
+.stat b{display:block;font-size:24px;color:var(--violet);font-weight:700}
+.stat span{font-size:10.5px;color:var(--fg-subtle);text-transform:uppercase;letter-spacing:.08em}
+.part{margin-top:44px;padding-top:20px;border-top:1px solid var(--border)}
+.part-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);margin-bottom:6px}
+.part h2.section{font-size:20px;margin-bottom:14px}
+.cat{margin-top:32px}
+.cat-head{display:flex;gap:14px;align-items:flex-start;border-left:4px solid var(--cat-accent);padding-left:14px}
+.cat-code{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--cat-accent);background:color-mix(in srgb, var(--cat-accent) 12%, white);border-radius:6px;padding:3px 8px;white-space:nowrap;margin-top:3px}
+.cat-head h2{font-size:17px;color:var(--fg)}
+.cat-outcome{margin-top:4px;font-size:12.5px;color:var(--fg-muted)}
+.offerings{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.offering{border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:var(--bg-elevated);page-break-inside:avoid}
+.offering-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.offering-id{font-family:var(--mono);font-size:10.5px;color:var(--fg-subtle)}
+.offering-head h3{font-size:13.5px;color:var(--fg)}
+.flagship{margin-left:auto;font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;background:var(--violet-pale);color:var(--violet);padding:2px 7px;border-radius:99px;font-weight:700}
+.offering-desc{margin-top:4px;font-size:12px;color:var(--fg-muted)}
+.offering-meta{margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.offering-meta dt{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg-subtle)}
+.offering-meta dd{margin:1px 0 0;font-size:11.5px;font-weight:600}
+.deliverables{margin:9px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:5px}
+.deliverables li{font-size:10.5px;background:var(--bg);border:1px solid var(--border);border-radius:99px;padding:3px 8px;color:var(--fg-muted)}
+.price-detail{margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)}
+.price-detail p{font-size:11px;color:var(--fg-muted);line-height:1.5}
+.price-detail-label{margin-top:7px;font-weight:700;color:var(--fg)}
+.price-detail ul{margin:4px 0 0;padding-left:16px}
+.price-detail li{font-size:10.5px;color:var(--fg-muted);line-height:1.5}
+.packages{display:flex;flex-direction:column;gap:16px}
+.package{border:1px solid var(--border);border-radius:12px;padding:16px 18px;background:var(--bg-elevated)}
+.package h3{font-size:14.5px}
+.package h3 span{font-weight:400;color:var(--fg-muted);font-size:12.5px}
+.package p{margin-top:5px;font-size:12px;color:var(--fg-muted)}
+.price-tiers{margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.price-tier{border:1px solid var(--border);border-radius:9px;padding:10px 12px}
+.price-tier.popular{border-color:var(--violet);background:var(--violet-pale)}
+.price-tier-name{font-size:10.5px;font-weight:700;color:var(--fg-muted)}
+.price-tier-amount{margin-top:4px;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--violet)}
+.price-tier-amount span{font-size:9.5px;font-weight:500;color:var(--fg-subtle)}
+.price-tier-mxn{font-size:10px;color:var(--fg-subtle);margin-top:2px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.steps li{display:flex;gap:12px;align-items:flex-start}
+.step-num{font-family:var(--mono);font-weight:700;color:var(--violet);font-size:13px}
+.steps p{font-size:12px;color:var(--fg-muted);margin-top:2px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+ul.plain{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--fg-muted)}
+.pricing-note{margin-top:12px;font-size:12px;color:var(--fg-muted);background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:11.5px}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--border)}
+th{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg-subtle)}
+.footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:11px;color:var(--fg-subtle);display:flex;justify-content:space-between}
+@media print{ body{font-size:12.5px} .part{page-break-before:auto} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="cover">
+    <div class="eyebrow">Service Catalog · Version 2.0</div>
+    <h1>Mustapha Ukizuru</h1>
+    <p style="margin-top:6px;font-size:14px;color:var(--fg-muted)">Technology Consulting · Digital Products · STEM &amp; School Solutions</p>
+    <div class="cover-meta">
+      <div><b>Domain</b> mustaphaukizuru.com</div>
+      <div><b>Effective date</b> September 03, 2026</div>
+      <div><b>Review cycle</b> Quarterly</div>
+      <div><b>Status</b> Production-ready</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>4</b><span>Categories</span></div>
+      <div class="stat"><b>20</b><span>Offerings</span></div>
+      <div class="stat"><b>6</b><span>Flagship</span></div>
+      <div class="stat"><b>3</b><span>Audiences</span></div>
+    </div>
+  </div>
+
+  <div class="part">
+    <div class="part-title">Part I — The Offerings</div>
+    <h2 class="section">Four categories, 20 independently sellable offerings</h2>
+    
+    <section class="cat" style="--cat-accent: var(--color-svc-strategy)">
+      <div class="cat-head">
+        <span class="cat-code">ITS</span>
+        <div>
+          <h2>IT Strategy Consulting</h2>
+          <p class="cat-outcome">Cut wasted software spend and get a clear, sequenced technology roadmap your team can execute.</p>
+        </div>
+      </div>
+      <div class="offerings">
+        
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-ITS-001</span>
+              <h3>Software Stack Audit</h3>
+              
+            </div>
+            <p class="offering-desc">Review of existing licences to eliminate duplicate subscriptions and cut waste.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Audit</dd></div>
+              <div><dt>Duration</dt><dd>2–3 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>$750 USD · MX$15,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB, EDU</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Licence and subscription inventory</li><li>Duplicate / unused tooling report</li><li>Savings estimate</li><li>Consolidation plan</li>
+            </ul>
+            <div class="price-detail"><p class="price-detail-label">Often built together with:</p><p>Digital Transformation Roadmap, Cloud Bill Optimisation</p></div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-ITS-002</span>
+              <h3>Fractional CTO Engagement</h3>
+              <span class="flagship">Flagship</span>
+            </div>
+            <p class="offering-desc">Part-time technical leadership: roadmaps and hiring guidance.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Retainer</dd></div>
+              <div><dt>Duration</dt><dd>Ongoing · 3-month minimum</dd></div>
+              <div><dt>Starting price</dt><dd>From $775 USD · MX$15,500/month</dd></div>
+              <div><dt>Audience</dt><dd>SMB</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Weekly leadership cadence</li><li>Technology roadmap ownership</li><li>Hiring rubrics and interviews</li><li>Vendor and architecture decisions</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers a light-advisory cadence: weekly leadership sync, roadmap ownership, and vendor/architecture decisions for one product line, up to about 6 hours a week. Billed monthly in advance, 3-month minimum, then cancel with 30 days' notice.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>More hours per week (10–20h, standard leadership cadence)</li><li>More than one product line or team</li><li>Hands-on hiring panels beyond rubric design</li><li>On-site days in CDMX or Estado de México</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>Digital Transformation Roadmap, Vendor Evaluation &amp; RFP</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-ITS-003</span>
+              <h3>Vendor Evaluation &amp; RFP</h3>
+              
+            </div>
+            <p class="offering-desc">Independent expert review of third-party software offers for fairness.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Engagement</dd></div>
+              <div><dt>Duration</dt><dd>3–6 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $900 USD · MX$18,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB, EDU</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Requirements definition</li><li>RFP drafting and management</li><li>Comparison matrix</li><li>Contract review and recommendation</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers one RFP cycle for a single software category: requirements definition, a shortlist of up to five vendors, one comparison matrix, and a recommendation.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>More than five vendors shortlisted</li><li>Multiple software categories evaluated in parallel</li><li>Live demo coordination and reference calls</li><li>Contract negotiation support beyond the written review</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>Software Stack Audit, Digital Transformation Roadmap</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-ITS-004</span>
+              <h3>Digital Transformation Roadmap</h3>
+              <span class="flagship">Flagship</span>
+            </div>
+            <p class="offering-desc">Step-by-step migrations from paper and spreadsheets to automated platforms.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Roadmap</dd></div>
+              <div><dt>Duration</dt><dd>4–6 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $950 USD · MX$19,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB, EDU</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Process and systems audit</li><li>Prioritised opportunity matrix</li><li>12-month sequenced roadmap</li><li>Budget and change-management plan</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers the audit and twelve-month roadmap for one department or campus, one stakeholder workshop, and the written plan.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Multi-department or multi-campus scope</li><li>Additional stakeholder workshops</li><li>A detailed change-management or training-rollout plan</li><li>Budget modelling across multiple vendor scenarios</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>Software Stack Audit, Fractional CTO Engagement, MVP Web App Development, On-Premise to Cloud Migration</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-ITS-005</span>
+              <h3>Compliance &amp; Risk Assessment</h3>
+              
+            </div>
+            <p class="offering-desc">Architecture audit to comply with Mexican privacy law (LFPDPPP).</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Audit</dd></div>
+              <div><dt>Duration</dt><dd>2–3 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>$750 USD · MX$15,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB, EDU</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Data inventory and flow map</li><li>LFPDPPP gap analysis</li><li>Risk register</li><li>Remediation roadmap</li>
+            </ul>
+            <div class="price-detail"><p class="price-detail-label">Often built together with:</p><p>Zero-Trust Security Hardening, Internal RAG Knowledge Base</p></div>
+          </article>
+      </div>
+    </section>
+    <section class="cat" style="--cat-accent: var(--color-svc-automation)">
+      <div class="cat-head">
+        <span class="cat-code">AIA</span>
+        <div>
+          <h2>AI Integration &amp; Workflow Automation</h2>
+          <p class="cat-outcome">Answer customers faster, sync leads automatically, and turn documents into clean data without adding headcount.</p>
+        </div>
+      </div>
+      <div class="offerings">
+        
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-AIA-001</span>
+              <h3>Custom AI Assistants &amp; WhatsApp Bots</h3>
+              <span class="flagship">Flagship</span>
+            </div>
+            <p class="offering-desc">LLM assistants trained on your brand voice and documents, deployed on WhatsApp Business, your website, or both — from answering FAQs to qualifying and routing every new lead.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Build</dd></div>
+              <div><dt>Duration</dt><dd>2–4 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $950 USD · MX$19,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB, IND</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>WhatsApp Business API setup</li><li>Voice and tone guide ingestion</li><li>Assistant with guardrails</li><li>Qualification flow and CRM sync (HubSpot, Zoho or sheet)</li><li>Web, WhatsApp, or in-app chat deployment</li><li>Evaluation set, monitoring, and handover to a human</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>One assistant on one primary channel (WhatsApp Business or web chat), trained on the documents you provide, with guardrails and CRM sync to one system (HubSpot, Zoho, or a sheet).</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Deploying on more than one channel at once (web + WhatsApp + app)</li><li>Syncing to more than one CRM or data source</li><li>Custom escalation and handoff workflows</li><li>Multilingual response sets</li><li>High message-volume infrastructure</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>Cross-Platform API Pipelines, Managed Maintenance</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-AIA-003</span>
+              <h3>Cross-Platform API Pipelines</h3>
+              
+            </div>
+            <p class="offering-desc">Connect disconnected tools (e.g. payments, Slack, email) with Make or Zapier.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Integration</dd></div>
+              <div><dt>Duration</dt><dd>1–3 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $300 USD · MX$6,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB, IND</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Integration map</li><li>Make / Zapier scenarios</li><li>Error handling and alerts</li><li>Runbook</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers one integration path between two tools (for example, payments to Slack), built in Make or Zapier, with basic error alerts.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Each additional tool or integration path</li><li>Custom code instead of Make/Zapier scenarios</li><li>High-volume or real-time processing needs</li><li>Separate staging and production environments</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>MVP Web App Development, Custom AI Assistants &amp; WhatsApp Bots, Data Extraction Workflows</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-AIA-004</span>
+              <h3>Internal RAG Knowledge Base</h3>
+              <span class="flagship">Flagship</span>
+            </div>
+            <p class="offering-desc">Private corporate search engines built on vector databases (Pinecone).</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Build</dd></div>
+              <div><dt>Duration</dt><dd>4–8 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $1,925 USD · MX$38,500</dd></div>
+              <div><dt>Audience</dt><dd>SMB, EDU</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Document ingestion pipeline</li><li>Vector index (Pinecone)</li><li>Search / chat interface with citations</li><li>Access control</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers ingestion of one document set, a Pinecone vector index, and a search/chat interface with citations for one team.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Multiple document sets or data sources</li><li>Role-based access control across teams</li><li>A custom interface beyond the standard chat UI</li><li>An ongoing re-indexing pipeline for frequently changing documents</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>Zero-Trust Security Hardening, Compliance &amp; Risk Assessment</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-AIA-005</span>
+              <h3>Data Extraction Workflows</h3>
+              
+            </div>
+            <p class="offering-desc">Tools that parse PDFs, invoices or forms into clean spreadsheets.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Build</dd></div>
+              <div><dt>Duration</dt><dd>2–4 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $950 USD · MX$19,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Document classifier</li><li>Field extraction with validation</li><li>Spreadsheet / database output</li><li>Exception review queue</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers one document type (for example, invoices), with field extraction, validation, and a single spreadsheet or database output.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Additional document types or formats</li><li>Higher accuracy or validation requirements needing human-in-the-loop review</li><li>Direct write-back to an ERP or accounting system instead of a spreadsheet</li><li>High monthly document volume</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>Cross-Platform API Pipelines, Managed Maintenance</p>
+            </div>
+          </article>
+      </div>
+    </section>
+    <section class="cat" style="--cat-accent: var(--color-svc-cloud)">
+      <div class="cat-head">
+        <span class="cat-code">CAM</span>
+        <div>
+          <h2>Cloud Architecture &amp; Infrastructure Migration</h2>
+          <p class="cat-outcome">Retire the office server, pay only for the cloud capacity you use, and know your backups actually restore.</p>
+        </div>
+      </div>
+      <div class="offerings">
+        
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-CAM-001</span>
+              <h3>On-Premise to Cloud Migration</h3>
+              <span class="flagship">Flagship</span>
+            </div>
+            <p class="offering-desc">Safely move physical office servers to AWS, Azure or GCP.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Migration</dd></div>
+              <div><dt>Duration</dt><dd>6–12 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $2,875 USD · MX$57,500</dd></div>
+              <div><dt>Audience</dt><dd>SMB, EDU</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Migration assessment</li><li>Landing zone (VPC, IAM)</li><li>Workload migration and cutover</li><li>Post-migration support</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers migration of one office server or workload to a single cloud provider, with a landing zone and one rehearsed cutover.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Multiple servers or workloads migrated together</li><li>Multi-region or multi-cloud architecture</li><li>Legacy application refactoring beyond a lift-and-shift</li><li>An extended post-migration support window</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>Disaster Recovery Planning, Zero-Trust Security Hardening, Cloud Bill Optimisation</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-CAM-002</span>
+              <h3>Cloud Bill Optimisation</h3>
+              
+            </div>
+            <p class="offering-desc">Audit configurations to right-size servers and remove capacity you pay for but never use.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Audit</dd></div>
+              <div><dt>Duration</dt><dd>1–2 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>$450 USD · MX$9,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Billing analysis</li><li>Right-sizing recommendations</li><li>Reserved / committed-use plan</li><li>Savings tracker</li>
+            </ul>
+            <div class="price-detail"><p class="price-detail-label">Often built together with:</p><p>On-Premise to Cloud Migration</p></div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-CAM-003</span>
+              <h3>Disaster Recovery Planning</h3>
+              
+            </div>
+            <p class="offering-desc">Automated, encrypted backups with failover.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Implementation</dd></div>
+              <div><dt>Duration</dt><dd>2–4 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $725 USD · MX$14,500</dd></div>
+              <div><dt>Audience</dt><dd>SMB, EDU</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>RPO / RTO definition</li><li>Encrypted backup automation</li><li>Failover configuration</li><li>Restore drill and runbook</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers RPO/RTO definition, encrypted backup automation, and one live restore drill for a single environment.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Multiple environments or regions</li><li>Sub-hour RTO requirements (hot standby / active-active)</li><li>Compliance-driven audit documentation (LFPDPPP or industry-specific)</li><li>A recurring quarterly drill program</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>On-Premise to Cloud Migration, Compliance &amp; Risk Assessment</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-CAM-004</span>
+              <h3>Docker &amp; Containerisation</h3>
+              
+            </div>
+            <p class="offering-desc">Package legacy applications into containers for fast deployments.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Implementation</dd></div>
+              <div><dt>Duration</dt><dd>2–4 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $725 USD · MX$14,500</dd></div>
+              <div><dt>Audience</dt><dd>SMB</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Dockerfiles and compose / orchestration</li><li>Environment parity</li><li>Registry and deployment flow</li><li>Documentation</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers containerizing one application and its environments, with a basic registry and deployment flow.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Multiple applications or microservices</li><li>Full orchestration (Kubernetes) instead of single-host Docker Compose</li><li>Multi-environment parity (dev/staging/prod) with automated promotion</li><li>Legacy application refactoring to containerize cleanly</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>CI/CD Pipeline Automation, On-Premise to Cloud Migration</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-CAM-005</span>
+              <h3>Zero-Trust Security Hardening</h3>
+              
+            </div>
+            <p class="offering-desc">Enterprise-grade access controls for remote work.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Implementation</dd></div>
+              <div><dt>Duration</dt><dd>3–5 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $1,075 USD · MX$21,500</dd></div>
+              <div><dt>Audience</dt><dd>SMB, EDU</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Identity and MFA rollout</li><li>Device and network policies</li><li>Least-privilege access review</li><li>Security baseline report</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers identity and MFA rollout and a device/network policy baseline for one office or up to about 50 users.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>More than about 50 users or devices</li><li>Multiple office locations</li><li>Custom compliance reporting beyond the baseline report</li><li>An ongoing quarterly policy review</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>On-Premise to Cloud Migration, Compliance &amp; Risk Assessment</p>
+            </div>
+          </article>
+      </div>
+    </section>
+    <section class="cat" style="--cat-accent: var(--color-svc-product)">
+      <div class="cat-head">
+        <span class="cat-code">DPE</span>
+        <div>
+          <h2>End-to-End Digital Product Engineering</h2>
+          <p class="cat-outcome">Validate before you build, ship an MVP in weeks, and keep it patched and improving every month.</p>
+        </div>
+      </div>
+      <div class="offerings">
+        
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-DPE-001</span>
+              <h3>Interactive UI/UX Wireframing</h3>
+              
+            </div>
+            <p class="offering-desc">High-fidelity clickable prototypes before writing any backend.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Sprint</dd></div>
+              <div><dt>Duration</dt><dd>1–2 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>$900 USD · MX$18,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB, IND</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>User flows</li><li>Clickable Figma prototype</li><li>Design tokens</li><li>Handoff notes</li>
+            </ul>
+            <div class="price-detail"><p class="price-detail-label">Often built together with:</p><p>MVP Web App Development</p></div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-DPE-002</span>
+              <h3>MVP Web App Development</h3>
+              <span class="flagship">Flagship</span>
+            </div>
+            <p class="offering-desc">Fast, working minimum viable products built on modern ecosystems.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Build</dd></div>
+              <div><dt>Duration</dt><dd>4–10 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $1,925 USD · MX$38,500</dd></div>
+              <div><dt>Audience</dt><dd>SMB, IND</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Scoped MVP backlog</li><li>Web application (React + API)</li><li>Auth and payments if needed</li><li>Deployment and 30-day support</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers a scoped MVP backlog and a working web app (React + API) with core auth, deployed with thirty days of support.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Payment processing integration</li><li>Third-party integrations beyond authentication</li><li>A native mobile companion app</li><li>Multi-tenant or multi-role permission systems</li><li>An extended support window beyond thirty days</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>Interactive UI/UX Wireframing, Cross-Platform API Pipelines, CI/CD Pipeline Automation, Managed Maintenance</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-DPE-003</span>
+              <h3>Cross-Platform Mobile Apps</h3>
+              
+            </div>
+            <p class="offering-desc">A single codebase for iOS and Android.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Build</dd></div>
+              <div><dt>Duration</dt><dd>6–12 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $2,875 USD · MX$57,500</dd></div>
+              <div><dt>Audience</dt><dd>SMB</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>React Native / Expo app</li><li>Store-ready builds</li><li>Push notifications and analytics</li><li>Release pipeline</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers one React Native / Expo app with store-ready builds for iOS and Android, push notifications, and a release pipeline.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Offline-first or complex local-data sync</li><li>Native module work outside Expo's managed workflow</li><li>Multiple user roles or white-label variants</li><li>App Store / Play Store review handling beyond submission</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>Cross-Platform API Pipelines, Secure API Design, Managed Maintenance</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-DPE-004</span>
+              <h3>Secure API Design</h3>
+              
+            </div>
+            <p class="offering-desc">Fast, well-documented backend APIs that link business applications.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Build</dd></div>
+              <div><dt>Duration</dt><dd>2–6 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $950 USD · MX$19,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>API contract (OpenAPI)</li><li>Auth, rate limiting, audit logs</li><li>Implementation and tests</li><li>Developer documentation</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers one API contract (OpenAPI), authentication and rate limiting, implementation, and developer documentation.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Multiple services or microservices</li><li>Complex authorization models (multi-tenant, role hierarchies)</li><li>Third-party API consumers requiring versioning or SLAs</li><li>Load-testing and performance tuning beyond the baseline</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>MVP Web App Development, CI/CD Pipeline Automation</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-DPE-005</span>
+              <h3>CI/CD Pipeline Automation</h3>
+              
+            </div>
+            <p class="offering-desc">Automated, zero-downtime deployment scripts.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Implementation</dd></div>
+              <div><dt>Duration</dt><dd>1–3 weeks</dd></div>
+              <div><dt>Starting price</dt><dd>From $350 USD · MX$7,000</dd></div>
+              <div><dt>Audience</dt><dd>SMB</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Pipeline (GitHub Actions or similar)</li><li>Automated tests and checks</li><li>Zero-downtime deploy strategy</li><li>Rollback procedure</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers one deployment pipeline (GitHub Actions or similar), automated tests, and a documented rollback procedure.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Multiple environments or services in the same pipeline</li><li>Blue-green or canary deployment strategies</li><li>Infrastructure-as-code setup alongside the pipeline</li><li>Multi-repo or monorepo orchestration</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>MVP Web App Development, Docker &amp; Containerisation</p>
+            </div>
+          </article>
+          <article class="offering">
+            <div class="offering-head">
+              <span class="offering-id">UKZ-DPE-006</span>
+              <h3>Managed Maintenance</h3>
+              
+            </div>
+            <p class="offering-desc">Recurring monthly support: fixes, patches and feature rollouts.</p>
+            <dl class="offering-meta">
+              <div><dt>Engagement</dt><dd>Retainer</dd></div>
+              <div><dt>Duration</dt><dd>Monthly · no minimum term</dd></div>
+              <div><dt>Starting price</dt><dd>From $250 USD · MX$5,000/month</dd></div>
+              <div><dt>Audience</dt><dd>SMB, IND</dd></div>
+            </dl>
+            <ul class="deliverables">
+              <li>Bug fixes and security patches</li><li>Dependency updates</li><li>Feature deployment slots</li><li>Monthly report</li>
+            </ul>
+            
+            <div class="price-detail">
+              <p>Covers bug fixes, security patches, and dependency updates for one application, with one feature-deployment slot a month. Billed monthly in advance; cancel with 30 days' notice, no minimum term.</p>
+              
+              <p class="price-detail-label">Price increases with:</p>
+              <ul><li>Additional feature-deployment slots per month</li><li>Multiple applications under the same retainer</li><li>A faster response SLA than standard business hours</li><li>After-hours, on-call incident coverage</li></ul>
+              <p class="price-detail-label">Often built together with:</p><p>MVP Web App Development, Custom AI Assistants &amp; WhatsApp Bots</p>
+            </div>
+          </article>
+      </div>
+    </section>
+  </div>
+
+  <div class="part">
+    <div class="part-title">Part II — Packages &amp; Pricing</div>
+    <h2 class="section">Audience packages — the only offerings with a published price</h2>
+    <div class="pricing-note">Every offering shows an indicative starting price in both US dollars and Mexican pesos, based on a $30 USD/hour minimum rate. Audits and the wireframing sprint are fixed price; bespoke builds, migrations, and retainers show a starting price, confirmed in the written proposal once scope is set.</div>
+    <div class="packages" style="margin-top:16px">
+      <div class="package">
+        <h3>Professional <span>— For independent experts</span></h3>
+        <p>For consultants, freelancers, and solo professionals building a credible digital presence.</p>
+        <div class="price-tiers">
+      <div class="price-tier ">
+        <div class="price-tier-name">Basic</div>
+        <div class="price-tier-amount">$290 USD<span>/mo USD</span></div>
+        <div class="price-tier-mxn">$5,800 USD/mo MXN</div>
+      </div>
+      <div class="price-tier popular">
+        <div class="price-tier-name">Medium · Most popular</div>
+        <div class="price-tier-amount">$590 USD<span>/mo USD</span></div>
+        <div class="price-tier-mxn">$11,800 USD/mo MXN</div>
+      </div>
+      <div class="price-tier ">
+        <div class="price-tier-name">Advanced</div>
+        <div class="price-tier-amount">$990 USD<span>/mo USD</span></div>
+        <div class="price-tier-mxn">$19,800 USD/mo MXN</div>
+      </div></div>
+      </div>
+      <div class="package">
+        <h3>Business <span>— For SMBs and growth-stage teams</span></h3>
+        <p>For growing companies that need a complete digital operating system: brand, web, infrastructure, and operations.</p>
+        <div class="price-tiers">
+      <div class="price-tier ">
+        <div class="price-tier-name">Basic</div>
+        <div class="price-tier-amount">$890 USD<span>/mo USD</span></div>
+        <div class="price-tier-mxn">$17,800 USD/mo MXN</div>
+      </div>
+      <div class="price-tier popular">
+        <div class="price-tier-name">Medium · Most popular</div>
+        <div class="price-tier-amount">$1,890 USD<span>/mo USD</span></div>
+        <div class="price-tier-mxn">$37,800 USD/mo MXN</div>
+      </div>
+      <div class="price-tier ">
+        <div class="price-tier-name">Advanced</div>
+        <div class="price-tier-amount">$3,500 USD<span>/mo USD</span></div>
+        <div class="price-tier-mxn">$70,000 USD/mo MXN</div>
+      </div></div>
+      </div>
+      <div class="package">
+        <h3>Schools <span>— For K-12, higher ed, and training institutions</span></h3>
+        <p>For schools, colleges, and training institutions modernizing teaching, learning, and operations end to end.</p>
+        <div class="price-tiers">
+      <div class="price-tier ">
+        <div class="price-tier-name">Basic</div>
+        <div class="price-tier-amount">$1,200 USD<span>/mo USD</span></div>
+        <div class="price-tier-mxn">$24,000 USD/mo MXN</div>
+      </div>
+      <div class="price-tier popular">
+        <div class="price-tier-name">Medium · Most popular</div>
+        <div class="price-tier-amount">$2,400 USD<span>/mo USD</span></div>
+        <div class="price-tier-mxn">$48,000 USD/mo MXN</div>
+      </div>
+      <div class="price-tier ">
+        <div class="price-tier-name">Advanced</div>
+        <div class="price-tier-amount">$4,500 USD<span>/mo USD</span></div>
+        <div class="price-tier-mxn">$90,000 USD/mo MXN</div>
+      </div></div>
+      </div></div>
+  </div>
+
+  <div class="part">
+    <div class="part-title">Part III — How We Work</div>
+    <div class="two-col">
+      <div>
+        <h2 class="section">Engagement process</h2>
+        <ol class="steps"><li><span class="step-num">01</span><div><strong>30-minute call</strong><p>Free. We diagnose the situation and agree on whether there is a fit.</p></div></li><li><span class="step-num">02</span><div><strong>Written proposal</strong><p>Scope, timeline and price in one document, usually within 3 business days.</p></div></li><li><span class="step-num">03</span><div><strong>Delivery</strong><p>Weekly sync, written status every Friday, runbooks at handover.</p></div></li></ol>
+      </div>
+      <div>
+        <h2 class="section">Credentials</h2>
+        <ul class="plain"><li><strong>Google Certified Educator L2</strong> — Google</li><li><strong>Google IT Support Professional</strong> — Google</li><li><strong>Meta Front-End Developer</strong> — Meta</li><li><strong>MSc · Software Engineering (in progress)</strong> — UNEATLANTICO</li><li><strong>BEd · IT, Distinction</strong> — AUCA, Rwanda</li><li><strong>Colegio de Excelencia Raindrop</strong> — IT Manager · CS Teacher</li><li><strong>Intellectual Schools, Ethiopia</strong> — ICT Director (2021)</li><li><strong>Design Office of Africa</strong> — Project Manager (2022)</li></ul>
+      </div>
+    </div>
+    <h2 class="section" style="margin-top:26px">Why this practice</h2>
+    <ul class="plain"><li><strong>Four countries, three continents, one delivery standard</strong> — Production track record across Rwanda, Turkey, Ethiopia, and Mexico, with over eight years of shipping reliable systems.</li><li><strong>Bilingual delivery as a default, not an upcharge</strong> — Technical artifacts in English, Spanish, or Turkish. You choose the language, with no translation overhead.</li><li><strong>You brief me; I write the code and the runbooks.</strong> — No junior handoffs, no agency overhead, no telephone game between specs and shipping.</li><li><strong>Every engagement ends with runbooks, not just code</strong> — Architecture diagrams, deployment runbooks, and clean knowledge transfer included by default.</li></ul>
+  </div>
+
+  <div class="footer">
+    <span>Generated from the production catalogue — cannot drift from mustaphaukizuru.com</span>
+    <span>hello@mustaphaukizuru.com</span>
+  </div>
+</div>
+</body>
+</html>

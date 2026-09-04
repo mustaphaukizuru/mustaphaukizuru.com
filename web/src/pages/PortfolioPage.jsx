@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useSearchParams } from "react-router-dom"
 import { m } from "framer-motion"
@@ -7,17 +7,18 @@ import Seo from "../components/seo/Seo"
 import Breadcrumbs from "../components/Breadcrumbs"
 import { itemListSchema } from "../seo/schemas"
 import { apiGet } from "../lib/api"
-import StaggerGrid from "../components/motion/StaggerGrid"
 import Meteors from "../components/motion/Meteors"
 import MagneticButton from "../components/motion/MagneticButton"
-import CaseStudyCard from "../components/portfolio/CaseStudyCard"
+import ProjectShowcase from "../components/portfolio/ProjectShowcase"
+import ProjectAccordion from "../components/portfolio/ProjectAccordion"
 import ServiceFilter from "../components/portfolio/ServiceFilter"
 import { SERVICE_SLUGS } from "../components/portfolio/caseStudy"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  PortfolioPage · /portfolio  (roadmap step 27 — case studies)
  *
- *  Grid of CaseStudyCards that lead with the outcome line. Two filter rows:
+ *  A stacked run of ProjectShowcases — each project gets a full-width stage
+ *  whose screen tilts flat as you scroll into it. Two filter rows:
  *    • service category (it-strategy-consulting | ai-automation |
  *      cloud-architecture-migration | digital-product-engineering) — server
  *      side via ?service= (JSON path into the case-study block), kept in the
@@ -39,7 +40,10 @@ function Container({ children, className = "" }) {
   return <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>
 }
 
-const PAGE_SIZE = 12
+/* 12 was a grid number — three rows of tiles. A stage is most of a screen
+ * tall, so twelve of them is a dozen screens of scrolling before the pager
+ * comes into view. Six is one comfortable sitting. */
+const PAGE_SIZE = 6
 
 async function fetchPortfolio({ category, service, page, limit }) {
   const qs = new URLSearchParams()
@@ -69,6 +73,10 @@ export default function PortfolioPage() {
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState(null)
   const [query, setQuery] = useState("")
+  const listRef = useRef(null)
+  // First render must not move the page: a reader arriving on
+  // /portfolio?service=ai-automation should land at the top, not at the list.
+  const settled = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -111,6 +119,17 @@ export default function PortfolioPage() {
     })
   }, [items, query])
 
+  /* A stage is most of a screen tall, so paging or filtering without this
+   * leaves the reader stranded at the pagination buttons, several screens
+   * below the first result they asked for. Instant, not smooth: a smooth
+   * scroll across a page this long takes seconds, and the reader has already
+   * decided where they want to be. */
+  useEffect(() => {
+    if (!settled.current) { settled.current = true; return }
+    if (loading) return
+    listRef.current?.scrollIntoView({ block: "start", behavior: "instant" })
+  }, [activeCategory, activeService, page, loading])
+
   const onCategoryClick = (cat) => {
     setActiveCategory(cat)
     setPage(1)
@@ -148,7 +167,9 @@ export default function PortfolioPage() {
       {/* HERO */}
       <section className="border-b border-charcoal-80/10 bg-white">
         <Container className="py-12 sm:py-16 lg:py-20">
-          <m.div initial="hidden" animate="show" variants={stagger} className="flex flex-col gap-5">
+          {/* Centred, like the stages below it — a left-aligned hero over a
+              column of centred stages reads as two different pages. */}
+          <m.div initial="hidden" animate="show" variants={stagger} className="flex flex-col items-center gap-5 text-center">
             <m.span variants={fadeUp} className="inline-flex w-fit items-center gap-1.5 rounded-full bg-violet-pale px-3 py-1 text-micro font-semibold uppercase tracking-[0.2em] text-violet">
               <Sparkles className="h-3 w-3" aria-hidden="true" /> {t("hero.eyebrow")}
             </m.span>
@@ -161,6 +182,20 @@ export default function PortfolioPage() {
           </m.div>
         </Container>
       </section>
+
+      {/* FEATURED BAND — a visual index of the work, above the filters. Only
+          on the unfiltered first page: once the reader has narrowed the list
+          it is the list they want, not a second view of it. */}
+      {/* …and only when there is more than a page-worth of work to index. With
+          three projects the panels and the first stages are the same three
+          within one screen, which reads as a bug rather than a summary. */}
+      {!loading && !error && !activeService && !activeCategory && !query.trim() && page === 1 && items.length > 3 && (
+        <section className="border-b border-charcoal-80/10 bg-white">
+          <Container className="py-6">
+            <ProjectAccordion projects={items} />
+          </Container>
+        </section>
+      )}
 
       {/* FILTER + SEARCH TOOLBAR */}
       <section className="border-b border-charcoal-80/10 bg-white">
@@ -221,12 +256,13 @@ export default function PortfolioPage() {
       </section>
 
       {/* GRID */}
-      <section className="py-10 sm:py-14">
+      <section ref={listRef} className="scroll-mt-20 py-10 sm:py-14" aria-labelledby="portfolio-work-heading">
         <Container>
+          <h2 id="portfolio-work-heading" className="sr-only">{t("hero.title")}</h2>
           {loading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-busy="true">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-96 animate-pulse rounded-2xl bg-white shadow-[var(--shadow-e4)]" />
+            <div className="flex flex-col gap-16" role="status" aria-busy="true">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="mx-auto h-[22rem] w-full max-w-5xl animate-pulse rounded-[30px] bg-white shadow-[var(--shadow-e4)] md:h-[32rem]" />
               ))}
             </div>
           ) : error ? (
@@ -243,15 +279,14 @@ export default function PortfolioPage() {
             </div>
           ) : (
             <>
-              <StaggerGrid
+              <div
                 key={`${activeService || "any"}-${activeCategory || "all"}-${page}`}
-                className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-                stagger={0.06}
+                className="flex flex-col divide-y divide-charcoal-80/5"
               >
-                {visibleItems.map((item) => (
-                  <CaseStudyCard key={item.id} item={item} />
+                {visibleItems.map((item, idx) => (
+                  <ProjectShowcase key={item.id} project={item} priority={idx === 0} />
                 ))}
-              </StaggerGrid>
+              </div>
 
               {/* Pagination */}
               {pagination && pagination.totalPages > 1 && (

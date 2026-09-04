@@ -31,6 +31,19 @@ export const staticSeoEsByRoute = {
     ],
   },
 
+  "/schools": {
+    title: "Tecnología para Escuelas · TI Escolar y Soluciones STEM",
+    description:
+      "Estrategia de TI, admisiones automatizadas, respaldos y plataformas escolares para colegios K-12 en México, de un IT manager que opera la tecnología de un colegio a diario.",
+    keywords: [
+      "consultor TI escolar México",
+      "tecnología para escuelas",
+      "planeación programa STEM",
+      "sitio web escolar admisiones",
+      "consultor EdTech México",
+    ],
+  },
+
   "/about": {
     title: "Acerca de Mustapha Ukizuru · Desarrollador Full-Stack",
     description:
@@ -47,7 +60,7 @@ export const staticSeoEsByRoute = {
   "/services": {
     title: "Servicios Tecnológicos · Consultoría de TI · IA y Automatización · Nube · Producto Digital",
     description:
-      "Cuatro líneas de servicio, 21 servicios: consultoría estratégica de TI, integración con IA y automatización, arquitectura en la nube y migración, e ingeniería de producto digital para PyMEs.",
+      "Cuatro líneas de servicio, 20 servicios: consultoría estratégica de TI, integración con IA y automatización, arquitectura en la nube y migración, e ingeniería de producto digital para PyMEs.",
     keywords: [
       "consultoría de TI México",
       "CTO fraccional",
