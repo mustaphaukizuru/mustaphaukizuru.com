@@ -98,6 +98,7 @@
     "navHome": "Inicio",
     "navAbout": "Acerca",
     "navServices": "Servicios",
+    "navSchools": "Escuelas",
     "navSolutions": "Soluciones",
     "navStore": "Tienda",
     "navBlog": "Blog",
@@ -109,7 +110,14 @@
     "legalTermsShort": "Términos",
     "legalPrivacyShort": "Privacidad",
     "legalCookiesShort": "Cookies",
-    "legalRefundShort": "Reembolsos"
+    "legalRefundShort": "Reembolsos",
+    "legalNotice": "Aviso de Privacidad",
+    "legalNoticeShort": "Aviso",
+    "subscribeCta": "Suscribirme",
+    "subscribing": "Enviando…",
+    "emailRequired": "Ingresa tu correo electrónico.",
+    "subscribeSuccess": "Casi listo: revisa tu correo para confirmar la suscripción.",
+    "subscribeError": "No pudimos completar tu suscripción. Inténtalo de nuevo."
   },
   "language": {
     "english": "Inglés",
@@ -150,6 +158,8 @@
     "about": "Acerca",
     "solutions": "Soluciones",
     "services": "Servicios",
+    "schools": "Escuelas",
+    "portfolio": "Proyectos",
     "contact": "Contacto",
     "dashboard": "Panel",
     "myOrders": "Mis pedidos",
@@ -362,7 +372,48 @@
     "minutesLong": "minutos.",
     "minutes": "minutos",
     "optionalTag": "(opcional)",
-    "confirmBooking": "Confirmar reserva"
+    "confirmBooking": "Confirmar reserva",
+    "guestDetails": "Tus datos",
+    "guestIntro": "No necesitas cuenta: crearemos una para ti para que puedas gestionar esta reserva. ¿Ya tienes una?",
+    "guestSignIn": "Iniciar sesión",
+    "guestName": "Nombre completo",
+    "guestEmail": "Correo electrónico",
+    "guestNameRequired": "Por favor escribe tu nombre.",
+    "guestEmailInvalid": "Por favor escribe un correo válido.",
+    "accountExists": "Ya tienes una cuenta: inicia sesión para reservar.",
+    "accountExistsCta": "Iniciar sesión",
+    "accountCreated": "Creamos una cuenta para ti: revisa tu correo para definir una contraseña y gestionar tus reservas.",
+    "yourInbox": "tu bandeja de entrada",
+    "bookedToast": "Reservado",
+    "bookedToastBody": "Te enviaremos un correo de confirmación en breve.",
+    "bookingFailed": "No se pudo reservar",
+    "bookingFailedBody": "No se pudo completar la reserva",
+    "tryAgain": "Inténtalo de nuevo",
+    "monthYearAria": "Elegir mes y año",
+    "prevYearAria": "Año anterior",
+    "nextYearAria": "Año siguiente",
+    "bookableHighlight": "Los meses con disponibilidad están resaltados",
+    "bookingNeeds": "Las reservas requieren al menos",
+    "daysAhead": "días de antelación. Puedes reagendar o cancelar hasta 12h antes de la llamada.",
+    "consultationBooked": "Tu consulta está reservada",
+    "confirmationOnWay": "Te llega un correo de confirmación a",
+    "viewDashboard": "Ver en el panel",
+    "bookAnother": "Reservar otro horario",
+    "scheduleCall": "Agenda tu llamada",
+    "timesShown": "Horarios en",
+    "timezoneAria": "Tu zona horaria",
+    "prevMonthAria": "Mes anterior",
+    "nextMonthAria": "Mes siguiente",
+    "tapHighlighted": "Toca un día resaltado para ver horarios",
+    "backToDate": "Volver a la fecha",
+    "noTimes": "Sin horarios disponibles",
+    "tryDifferentDay": "Prueba otro día.",
+    "eachSlotIs": "Cada horario es de",
+    "chooseAnother": "Elegir otro horario",
+    "yourBooking": "Tu reserva",
+    "discussLabel": "¿De qué te gustaría hablar?",
+    "discussPlaceholder": "Comparte metas, enlaces o contexto para aprovechar el tiempo al máximo.",
+    "signInHint": "Te pediremos iniciar sesión para confirmar. Tu selección se conserva."
   },
   "fab": {
     "openLabel": "Contacto rápido",
@@ -372,5 +423,19 @@
     "emailLabel": "Enviar un correo",
     "bookLabel": "Reservar consultoría",
     "contactLabel": "Página de contacto"
+  },
+  "a11y": {
+    "skipToContent": "Saltar al contenido principal"
+  },
+  "newsletterInvalid": {
+    "title": "Este enlace ya no es válido",
+    "body": "El enlace de confirmación o de baja caducó o ya fue utilizado. Si querías suscribirte, vuelve a registrarte desde el pie de página y te enviaremos un nuevo correo de confirmación.",
+    "back": "Volver al sitio",
+    "support": "Contactar soporte",
+    "trailer": "¿Dudas?"
+  },
+  "languages": {
+    "threeContinents": "Tres continentes.",
+    "cefrScale": "Escala MCER"
   }
 }

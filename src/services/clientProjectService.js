@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const { validatePreviewUrl, assertAccessStateChange } = require("./projectPortalService")
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  clientProjectService
@@ -17,19 +18,44 @@ const prisma = require("../lib/prisma")
  *  ──────────────────────────────────────────────────────────────────── */
 
 const VALID_PROJECT_STATUSES   = ["planning", "in_progress", "review", "completed", "cancelled"]
-const VALID_MILESTONE_STATUSES = ["pending", "in_progress", "completed"]
+const VALID_MILESTONE_STATUSES = ["pending", "in_progress", "awaiting_client", "approved", "completed"]
+const CLOSED_PROJECT_STATUSES  = new Set(["completed", "cancelled"])
 
 const PROJECT_INCLUDE = {
   milestones: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] },
-  files:      { orderBy: { createdAt: "desc" } },
+  files:      {
+    orderBy: { createdAt: "desc" },
+    include: { uploadedBy: { select: { id: true, fullName: true, role: true } } },
+  },
+  comments:   {
+    orderBy: { createdAt: "asc" },
+    take:    500,
+    include: { author: { select: { id: true, fullName: true, role: true } } },
+  },
+  tickets:    {
+    orderBy: { createdAt: "desc" },
+    take:    50,
+    select:  { id: true, ticketNumber: true, subject: true, status: true, priority: true, updatedAt: true, createdAt: true },
+  },
+  // Tier 4 · extra-work requests (quotes are Decimal — serialised by the
+  // JSON layer; the change-request endpoints return numbers).
+  changeRequests: { orderBy: { createdAt: "desc" }, take: 100 },
   user:       { select: { id: true, fullName: true, email: true } },
   assignedAdmin: { select: { id: true, fullName: true, email: true } },
   serviceOrder: {
     select: {
       id: true,
       status: true,
-      order: { select: { id: true, orderNumber: true } },
+      order:   { select: { id: true, orderNumber: true } },
+      // Tier 4 · the member review form posts to /services/:slug/reviews
+      service: { select: { id: true, slug: true, title: true } },
     },
+  },
+  // Tier 4 · reviews collected for this project (client-side "already reviewed")
+  reviews: {
+    orderBy: { createdAt: "desc" },
+    take:    5,
+    select:  { id: true, userId: true, rating: true, status: true, createdAt: true },
   },
 }
 
@@ -86,11 +112,31 @@ async function updateAdminProject(id, data) {
   if ("startDate"       in data) patch.startDate       = data.startDate ? new Date(data.startDate) : null
   if ("dueDate"         in data) patch.dueDate         = data.dueDate   ? new Date(data.dueDate)   : null
   if ("assignedAdminId" in data) patch.assignedAdminId = data.assignedAdminId ? String(data.assignedAdminId) : null
+  if ("previewUrl"      in data) patch.previewUrl      = validatePreviewUrl(data.previewUrl)
+  // Tier 4 · NDA click-wrap toggles. Version is free text (<=16) so "2026-08"
+  // or "v2" both work; bumping it re-gates the client.
+  if ("requiresNda"     in data) patch.requiresNda     = data.requiresNda === true || data.requiresNda === "true"
+  if ("ndaVersion"      in data) {
+    const v = data.ndaVersion == null ? "" : String(data.ndaVersion).trim()
+    if (v.length > 16) throw new Error("ndaVersion must be 16 characters or fewer")
+    patch.ndaVersion = v || null
+  }
+  // Tier 4 · kill switch / handover gate. Throws 409 UNPAID_INVOICES when
+  // moving to handover with an outstanding balance.
+  if ("accessState"     in data) patch.accessState     = await assertAccessStateChange(String(id), String(data.accessState || ""))
   if ("projectStatus"   in data) {
     if (!VALID_PROJECT_STATUSES.includes(data.projectStatus)) {
       throw new Error(`Invalid project status. Expected one of: ${VALID_PROJECT_STATUSES.join(", ")}`)
     }
     patch.projectStatus = data.projectStatus
+    // Lifecycle: stamp closedAt on the first move into a closed state, clear
+    // it if the project is reopened. Member writes key off this column.
+    if (CLOSED_PROJECT_STATUSES.has(data.projectStatus)) {
+      const existing = await prisma.clientProject.findUnique({ where: { id: String(id) }, select: { closedAt: true } })
+      if (!existing?.closedAt) patch.closedAt = new Date()
+    } else {
+      patch.closedAt = null
+    }
   }
 
   return prisma.clientProject.update({
@@ -102,8 +148,13 @@ async function updateAdminProject(id, data) {
 
 async function deleteAdminProject(id) {
   if (!id) throw new Error("Project id is required")
+  // Collect file keys BEFORE the cascade deletes the rows, so the controller
+  // can unlink the bytes on disk afterwards.
+  const files = await prisma.projectFile.findMany({
+    where: { projectId: String(id) }, select: { filePath: true },
+  })
   await prisma.clientProject.delete({ where: { id: String(id) } })
-  return { id: String(id), deleted: true }
+  return { id: String(id), deleted: true, filePaths: files.map((f) => f.filePath) }
 }
 
 /* ── Admin · milestone CRUD ──────────────────────────────────────────── */
@@ -155,6 +206,7 @@ async function updateMilestone(milestoneId, data) {
   if ("sortOrder"   in data) patch.sortOrder   = Number(data.sortOrder)
 
   let isNewlyComplete = false
+  let isNewlyAwaitingClient = false
   if ("status" in data) {
     if (!VALID_MILESTONE_STATUSES.includes(data.status)) {
       throw new Error(`Invalid milestone status. Expected one of: ${VALID_MILESTONE_STATUSES.join(", ")}`)
@@ -166,6 +218,16 @@ async function updateMilestone(milestoneId, data) {
     } else if (data.status !== "completed") {
       patch.completedAt = null
     }
+    // Delivered for review → the client gets a notification + email once.
+    if (data.status === "awaiting_client" && existing.status !== "awaiting_client") {
+      isNewlyAwaitingClient = true
+      patch.changesRequestedAt = null
+    }
+    // Admin reset to an earlier stage clears a stale approval.
+    if (["pending", "in_progress", "awaiting_client"].includes(data.status)) {
+      patch.approvedAt = null
+      patch.approvedById = null
+    }
   }
 
   const updated = await prisma.projectMilestone.update({
@@ -173,7 +235,7 @@ async function updateMilestone(milestoneId, data) {
     data:  patch,
   })
 
-  return { milestone: updated, project: existing.project, isNewlyComplete }
+  return { milestone: updated, project: existing.project, isNewlyComplete, isNewlyAwaitingClient }
 }
 
 async function deleteMilestone(milestoneId) {
@@ -184,16 +246,20 @@ async function deleteMilestone(milestoneId) {
 
 /* ── Admin · file management ─────────────────────────────────────────── */
 
-async function attachFile(projectId, { fileName, filePath, fileType, uploadedById }) {
+async function attachFile(projectId, { fileName, filePath, fileType, fileSize, uploadedById, milestoneId, isDeliverable }) {
   if (!projectId) throw new Error("Project id is required")
   if (!fileName || !filePath) throw new Error("fileName and filePath are required")
   return prisma.projectFile.create({
     data: {
-      projectId:    String(projectId),
-      uploadedById: uploadedById ? String(uploadedById) : null,
-      fileName:     String(fileName).trim(),
-      filePath:     String(filePath),
-      fileType:     fileType || null,
+      projectId:      String(projectId),
+      uploadedById:   uploadedById ? String(uploadedById) : null,
+      uploadedByRole: "admin",
+      milestoneId:    milestoneId ? String(milestoneId) : null,
+      fileName:       String(fileName).trim(),
+      filePath:       String(filePath),
+      fileType:       fileType || null,
+      fileSize:       Number.isFinite(Number(fileSize)) ? Number(fileSize) : null,
+      isDeliverable:  Boolean(isDeliverable),
     },
   })
 }
@@ -220,7 +286,7 @@ async function listMyProjects(userId) {
     include: {
       milestones: {
         orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
-        select: { id: true, status: true, completedAt: true },
+        select: { id: true, title: true, status: true, completedAt: true },
       },
       _count: { select: { files: true } },
     },

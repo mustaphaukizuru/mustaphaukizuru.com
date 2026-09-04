@@ -89,9 +89,11 @@ const AboutPage = lazy(() => import("./pages/AboutPage"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
 const SelfAuditPage = lazy(() => import("./pages/SelfAuditPage"));
+const SchoolsPage = lazy(() => import("./pages/SchoolsPage")); // audience page, not a service category
 
 const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
 const AdminPortfolioPage = lazy(() => import("./pages/AdminPortfolioPage"));
+const AdminClientsPage = lazy(() => import("./pages/AdminClientsPage"));
 const AdminPortfolioFormPage = lazy(() => import("./pages/AdminPortfolioFormPage"));
 const AdminBioPage = lazy(() => import("./pages/AdminBioPage")); // M12
 const AdminAnalyticsPage = lazy(() => import("./pages/AdminAnalyticsPage")); // M14
@@ -113,6 +115,8 @@ const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const UnsubscribedPage = lazy(() => import("./pages/UnsubscribedPage"));
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 const BookConsultationPage = lazy(() => import("./pages/BookConsultationPage"));
+// Tier 4 · no-login client portal (magic link + emailed PIN)
+const PortalPage = lazy(() => import("./pages/PortalPage"));
 
 // Internal · design-system preview catalogue (always registered, gated
 // inside the page itself — see SystemPreviewPage.jsx).
@@ -156,6 +160,7 @@ const AdminPaymentsPage = lazy(() => import("./pages/AdminPaymentsPage"));
 const AdminCategoriesPage = lazy(() => import("./pages/AdminCategoriesPage"));
 const AdminCouponsPage = lazy(() => import("./pages/AdminCouponsPage"));
 const AdminContactsPage = lazy(() => import("./pages/AdminContactsPage"));
+const AdminLeadsPage = lazy(() => import("./pages/AdminLeadsPage"));
 const AdminNewsletterPage = lazy(() => import("./pages/AdminNewsletterPage"));
 const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage"));
 const AdminServicesPage = lazy(() => import("./pages/AdminServicesPage"));
@@ -177,6 +182,7 @@ const AdminClientProjectDetailPage = lazy(() => import("./pages/AdminClientProje
 // Phase B · Placeholders (backend pending — see each page for the API plan)
 const AdminReviewsPage = lazy(() => import("./pages/AdminReviewsPage"));
 const AdminRefundsPage = lazy(() => import("./pages/AdminRefundsPage"));
+const AdminInvoicesPage = lazy(() => import("./pages/AdminInvoicesPage"));
 const AdminSessionsPage = lazy(() => import("./pages/AdminSessionsPage"));
 
 // M16 · Blog admin
@@ -215,7 +221,9 @@ export default function App() {
             <Route path="/about" element={<PublicShell><AboutPage /></PublicShell>} />
             <Route path="/services" element={<PublicShell><ServicesPage /></PublicShell>} />
             <Route path="/services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
-            <Route path="/self-audit" element={<AdminRoute><PublicShell><SelfAuditPage /></PublicShell></AdminRoute>} />
+            <Route path="/schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
+            {/* Public lead magnet — the Services hero links here for visitors. */}
+            <Route path="/self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
             <Route path="/contact" element={<PublicShell><ContactPage /></PublicShell>} />
             <Route path="/portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />
             <Route path="/projects/:slug" element={<PublicShell><ProjectDetailPage /></PublicShell>} />
@@ -263,6 +271,9 @@ export default function App() {
             {/* Booking */}
             <Route path="/book" element={<PublicShell><BookConsultationPage /></PublicShell>} />
             <Route path="/book/:serviceSlug" element={<PublicShell><BookConsultationPage /></PublicShell>} />
+
+            {/* Client portal · magic link + PIN, no account needed */}
+            <Route path="/portal/:token" element={<PublicShell><PortalPage /></PublicShell>} />
 
             {/* Internal · design-system preview catalogue — admin only */}
             <Route path="/_system" element={<AdminRoute><SystemPreviewPage /></AdminRoute>} />
@@ -323,12 +334,14 @@ export default function App() {
               <Route path="categories" element={<AdminCategoriesPage />} />
               <Route path="coupons" element={<AdminCouponsPage />} />
               <Route path="contact-messages" element={<AdminContactsPage />} />
+              <Route path="leads" element={<AdminLeadsPage />} />
               <Route path="newsletter" element={<AdminNewsletterPage />} />
               {/* /admin/services manages the catalogue (Service + Pricing Plan + Feature CRUD).
                   /admin/service-orders (mounted below) handles paid service orders. */}
               <Route path="services" element={<AdminServicePlansPage />} />
               <Route path="services/legacy" element={<AdminServicesPage />} />
               <Route path="portfolio" element={<AdminPortfolioPage />} />
+              <Route path="clients" element={<AdminClientsPage />} />
               <Route path="portfolio/new" element={<AdminPortfolioFormPage />} />
               <Route path="portfolio/:id/edit" element={<AdminPortfolioFormPage />} />
               <Route path="bio" element={<AdminBioPage />} />
@@ -352,6 +365,7 @@ export default function App() {
               {/* Phase B, placeholders (backend pending) */}
               <Route path="reviews" element={<AdminReviewsPage />} />
               <Route path="refunds" element={<AdminRefundsPage />} />
+              <Route path="invoices" element={<AdminInvoicesPage />} />
               <Route path="sessions" element={<AdminSessionsPage />} />
 
               {/* M16 · Blog admin */}
@@ -380,7 +394,9 @@ export default function App() {
               <Route path="about" element={<PublicShell><AboutPage /></PublicShell>} />
               <Route path="services" element={<PublicShell><ServicesPage /></PublicShell>} />
               <Route path="services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
+              <Route path="schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
               <Route path="contact" element={<PublicShell><ContactPage /></PublicShell>} />
+              <Route path="self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
               <Route path="portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />
               <Route path="projects/:slug" element={<PublicShell><ProjectDetailPage /></PublicShell>} />
               <Route path="store" element={<PublicShell><Store /></PublicShell>} />
@@ -420,6 +436,7 @@ export default function App() {
 
               <Route path="book" element={<PublicShell><BookConsultationPage /></PublicShell>} />
               <Route path="book/:serviceSlug" element={<PublicShell><BookConsultationPage /></PublicShell>} />
+              <Route path="portal/:token" element={<PublicShell><PortalPage /></PublicShell>} />
 
               {/* Auth — mirrored under /es/ */}
               <Route path="login" element={<AuthLayout><LoginPage /></AuthLayout>} />

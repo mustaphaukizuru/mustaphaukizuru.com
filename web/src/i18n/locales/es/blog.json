@@ -22,7 +22,10 @@
       "title": "Más de {{label}}",
       "fallbackLabel": "el blog",
       "readArticle": "Leer artículo"
-    }
+    },
+    "ctaTitle": "¿Estás trabajando en algo parecido?",
+    "ctaBody": "Agenda una llamada de estrategia gratuita de 30 minutos: sin discurso de venta, solo respuestas.",
+    "allArticles": "Todos los artículos →"
   },
   "list": {
     "page": "Blog",
@@ -71,5 +74,11 @@
     "success": "¡Listo! Revisa tu correo para confirmar.",
     "invalid": "Ingresa un correo electrónico válido.",
     "error": "Algo salió mal. Inténtalo de nuevo."
+  },
+  "index": {
+    "loadMore": "Cargar más artículos",
+    "newsletterTitle": "Mantente al día",
+    "newsletterLead": "Artículos nuevos cada semana.",
+    "newsletterBody": "Estrategia tecnológica, tutoriales de desarrollo e ideas STEM. Sin spam."
   }
 }

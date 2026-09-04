@@ -104,6 +104,19 @@
   --color-mint-600:        #2FA36B;
   --color-mint-700:        #065F46;
   --color-mint-800:        #3B8F47;
+
+  /* ── Service-category accents · Instructions v4.0 § 04.1 / § 06 ──────
+     One token per category, canonical order. Each aliases an existing
+     brand value (never a new hue) and reads as text at ≥ 4.5:1 on white:
+       strategy   = violet          6.4:1
+       automation = terracotta-800  5.6:1
+       cloud      = azure           4.6:1
+       product    = mint-700        8.6:1
+     Utilities: bg-svc-*, text-svc-*, border-svc-*, ring-svc-*.            */
+  --color-svc-strategy:    #5D3FD3;
+  --color-svc-automation:  #856212;
+  --color-svc-cloud:       #0284C7;
+  --color-svc-product:     #065F46;
   --color-amber-50:        #FEF3C7;
   --color-amber-100:       #FFF3E2;
   --color-amber-600:       #B46909;

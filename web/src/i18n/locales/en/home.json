@@ -16,6 +16,8 @@
     "eyebrow": "Track record",
     "yearsLabel": "years shipping production software",
     "projectsLabel": "projects delivered",
+    "clientsLabel": "clients served",
+    "reviewsLabel": "client reviews",
     "countriesLabel": "countries worked in",
     "studentsLabel": "people trained",
     "stackLabel": "Built with"
@@ -45,6 +47,13 @@
       ],
       "cta": "Browse the store"
     }
+  },
+  "showcase": {
+    "eyebrow": "Built and running",
+    "title": "The platform you are standing in",
+    "subtitle": "Store, checkout in two currencies, member portal with protected downloads, booking with Google Calendar, invoices and a full admin back office — one codebase, in production. What you see here is what I ship for clients.",
+    "cta": "Read the case study",
+    "imageAlt": "The services page of the mustaphaukizuru.com platform, shown in a laptop frame"
   },
   "services": {
     "eyebrow": "Services",
@@ -82,35 +91,17 @@
   },
   "portfolio": {
     "eyebrow": "Selected work",
-    "title": "Three projects, three different problems",
-    "subtitle": "Recent engagements across schools, SMBs, and education platforms.",
+    "title": "Three problems, solved",
+    "subtitle": "Schools, SMBs, education platforms.",
     "cta": "All projects"
   },
   "testimonials": {
     "eyebrow": "What clients say",
     "title": "In their own words",
     "subtitle": "From people who hired me and shipped with me.",
-    "placeholderNote": "Placeholder testimonial — replace before launch",
-    "items": {
-      "a": {
-        "quote": "[Placeholder] Replace with a verbatim client quote about a concrete result, e.g. cloud costs cut by a percentage or a launch date met.",
-        "name": "Client name",
-        "role": "Role",
-        "company": "Company"
-      },
-      "b": {
-        "quote": "[Placeholder] Replace with a verbatim quote about how the engagement was run: communication, scope, no surprises.",
-        "name": "Client name",
-        "role": "Role",
-        "company": "Company"
-      },
-      "c": {
-        "quote": "[Placeholder] Replace with a verbatim quote about a digital product or training that the client used and recommends.",
-        "name": "Client name",
-        "role": "Role",
-        "company": "Company"
-      }
-    }
+    "anonymous": "Anonymous client",
+    "client": "Client",
+    "verified": "Verified purchase"
   },
   "process": {
     "eyebrow": "How I work",

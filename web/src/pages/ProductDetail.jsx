@@ -63,6 +63,8 @@ export default function ProductDetail() {
   const [activeImg, setActiveImg] = useState(0)
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
+  // T3 · licence tier — defaults to the first active licence (if any)
+  const [selectedTier, setSelectedTier] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [relatedProducts, setRelatedProducts] = useState([])
@@ -114,8 +116,11 @@ export default function ProductDetail() {
 
   const images = useMemo(() => normalizeImages(product), [product])
   const highlights = useMemo(() => normalizeHighlights(product), [product])
-  const price = Number(product?.price || 0)
-  const currency = product?.currency || "MXN"
+  const licenses = Array.isArray(product?.licenses) ? product.licenses : []
+  const activeLicense = licenses.find((l) => l.tier === selectedTier) || licenses[0] || null
+  const price = Number(activeLicense ? activeLicense.price : product?.price || 0)
+  const currency = activeLicense?.currency || product?.currency || "MXN"
+  const licenseTier = activeLicense?.tier || null
 
   useEffect(() => {
     if (!images.length) { setActiveImg(0); return }
@@ -123,16 +128,20 @@ export default function ProductDetail() {
     setActiveImg(primaryIndex >= 0 ? primaryIndex : 0)
   }, [images])
 
+  function cartPayload() {
+    return { ...product, price, currency, licenseTier, quantity: qty }
+  }
+
   function handleAdd() {
     if (!product) return
-    addToCart({ ...product, quantity: qty }, qty)
+    addToCart(cartPayload(), qty)
     setAdded(true)
     window.setTimeout(() => setAdded(false), 2000)
   }
 
   function handleBuyNow() {
     if (!product) return
-    addToCart({ ...product, quantity: qty }, qty)
+    addToCart(cartPayload(), qty)
   }
 
   function handleShare() {
@@ -298,6 +307,9 @@ export default function ProductDetail() {
                   added={added}
                   onAddToCart={handleAdd}
                   onBuyNow={handleBuyNow}
+                  licenses={licenses}
+                  selectedTier={licenseTier}
+                  onTierChange={setSelectedTier}
                   onShare={handleShare}
                   onReviewClick={() => setActiveTab("reviews")}
                 />

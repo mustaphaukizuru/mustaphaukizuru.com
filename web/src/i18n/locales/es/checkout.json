@@ -24,7 +24,16 @@
     "companyPlaceholder": "Acme Inc.",
     "country": "País",
     "taxId": "RFC / ID fiscal (opcional)",
-    "taxIdPlaceholder": "RFC, EIN, VAT, etc."
+    "taxIdPlaceholder": "RFC, EIN, VAT, etc.",
+    "fiscalTitle": "Datos para factura (CFDI)",
+    "fiscalHint": "Solo si necesitas factura. Copia los datos de tu Constancia de Situación Fiscal.",
+    "legalName": "Razón social / nombre",
+    "legalNamePlaceholder": "Tal como aparece en tu Constancia, sin S.A. de C.V.",
+    "regimenFiscal": "Régimen fiscal",
+    "usoCfdi": "Uso de CFDI",
+    "fiscalPostalCode": "Código postal fiscal",
+    "fiscalPostalCodePlaceholder": "5 dígitos",
+    "selectOption": "Selecciona…"
   },
   "validation": {
     "nameRequired": "Ingresa tu nombre.",

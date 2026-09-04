@@ -10,6 +10,7 @@ import { useToast } from "../context/ToastContext"
 import { MetricCard } from "../components/ui/index"
 import DataTable from "../components/admin/DataTable"
 import StatusPill from "../components/admin/StatusPill"
+import { ConfirmModal } from "../components/admin/forms"
 
 /**
  * AdminContactsPage
@@ -32,6 +33,33 @@ const STATUS_PILL_MAP = {
   new: { status: "open", label: "New" },
   read: { status: "pending", label: "Read" },
   replied: { status: "completed", label: "Replied" },
+}
+
+/**
+ * T3 · funnel attribution chips (intent / audience / tier / source / locale).
+ * Rows from before the migration have none of these — render nothing.
+ */
+function FunnelChips({ row, className = "" }) {
+  const chips = [
+    row.intent   && { key: "intent",   label: `intent: ${row.intent}`,   tone: "bg-violet/10 text-violet" },
+    row.audience && { key: "audience", label: row.audience,               tone: "bg-azure-pale text-azure-800" },
+    row.tier     && { key: "tier",     label: `tier: ${row.tier}`,        tone: "bg-amber-50 text-amber-600" },
+    row.source   && { key: "source",   label: `via ${row.source}`,        tone: "bg-mist text-charcoal-80/80" },
+    row.locale   && { key: "locale",   label: row.locale.toUpperCase(),   tone: "bg-mist text-charcoal-80/80" },
+  ].filter(Boolean)
+  if (chips.length === 0) return null
+  return (
+    <div className={`flex flex-wrap items-center gap-1 ${className}`}>
+      {chips.map((c) => (
+        <span
+          key={c.key}
+          className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide ${c.tone}`}
+        >
+          {c.label}
+        </span>
+      ))}
+    </div>
+  )
 }
 
 function fmtDate(iso) {
@@ -167,6 +195,7 @@ export default function AdminContactsPage() {
             {row.subject || <span className="italic text-charcoal-80/40">(no subject)</span>}
           </div>
           <div className="line-clamp-1 text-micro text-charcoal-80/65">{row.message}</div>
+          <FunnelChips row={row} className="mt-1" />
         </div>
       ),
     },
@@ -326,6 +355,7 @@ export default function AdminContactsPage() {
                     Received {fmtDate(selected.createdAt)}
                     {selected.repliedAt && ` · replied ${fmtDate(selected.repliedAt)}`}
                   </p>
+                  <FunnelChips row={selected} className="mt-2" />
                 </div>
                 <button
                   type="button"

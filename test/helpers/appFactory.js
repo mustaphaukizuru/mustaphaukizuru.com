@@ -32,6 +32,7 @@ function stubEnv() {
   process.env.CLIENT_URL    = "http://localhost:5173"
   process.env.FRONTEND_URL  = "http://localhost:5173"
   process.env.DISABLE_CRON  = "1"
+  process.env.ANALYTICS_HASH_SALT = "analytics-salt-for-tests-".padEnd(48, "x")
   process.env.MP_ACCESS_TOKEN    = "TEST-mp-access-token"
   process.env.MP_WEBHOOK_SECRET  = TEST_MP_WEBHOOK_SECRET
   process.env.PAYPAL_CLIENT_ID     = "test-paypal-id"
@@ -123,9 +124,6 @@ function buildApp({ prisma = createFakePrisma() } = {}) {
     const real = jest.requireActual(SRC("services/productService.js"))
     return { ...real, getProductBySlug: mocks.productService.getProductBySlug }
   })
-  // The download rate limiter schedules an un-unref'd setInterval at require
-  // time which would keep the jest worker alive; swap in a pass-through.
-  jest.doMock(SRC("middleware/downloadRateLimiter.js"), () => ({ downloadRateLimiter: (_req, _res, next) => next() }))
   // nodemailer must never be touched even if a real mailer path leaks in.
   jest.doMock("nodemailer", () => ({ createTransport: () => ({ sendMail: jest.fn(async () => ({ messageId: "x" })) }) }))
 

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { fetchFeaturedPortfolio } from "../../services/portfolioService"
-import PortfolioCard from "../PortfolioCard"
+import ProjectShowcase from "../portfolio/ProjectShowcase"
 import { Container, SectionHeading, SectionLink } from "./primitives"
 
-/** FeaturedPortfolio · three selected projects. Renders nothing when empty. */
+/** FeaturedPortfolio · three selected projects, each on a scroll-tilt stage
+ *  (components/portfolio/ProjectShowcase). Renders nothing when empty. */
 export default function FeaturedPortfolio() {
   const { t } = useTranslation("home")
   const [items, setItems] = useState([])
@@ -35,11 +36,11 @@ export default function FeaturedPortfolio() {
           eyebrow={t("portfolio.eyebrow")}
           title={t("portfolio.title")}
           subtitle={t("portfolio.subtitle")}
-          action={<SectionLink to="/about" onWhite>{t("portfolio.cta")}</SectionLink>}
+          action={<SectionLink to="/portfolio" onWhite>{t("portfolio.cta")}</SectionLink>}
         />
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col">
           {items.map((p, idx) => (
-            <PortfolioCard key={p.id || p.slug} project={p} cardIndex={idx} />
+            <ProjectShowcase key={p.id || p.slug} project={p} priority={idx === 0} density="compact" />
           ))}
         </div>
       </Container>

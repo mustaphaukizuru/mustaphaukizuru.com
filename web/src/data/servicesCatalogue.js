@@ -16,6 +16,34 @@
      filterServices, FLAGSHIP_SERVICE_IDS
      AUDIENCE_PRICING_PLANS / AUDIENCE_PRICING_ORDER (checkout, unchanged)
 
+   Pricing (Sept 2026, owner-set rate — dual currency, matches lib/format.js
+   formatPriceWhole for the MXN half):
+     Every project offering carries priceMxn + priceUsd (Fixed — a settled
+     figure) or priceFromMxn + priceFromUsd (From quote / Retainer — a
+     starting figure, confirmed in the written proposal). Rate basis:
+     USD $30/hour, the owner's stated minimum, converted at a flat 20
+     MXN/USD (matches AUDIENCE_PRICING_PLANS below — a stable round
+     conversion, not tracked to live FX). NOTE: this floor sits BELOW the
+     USD $50-80/hr Mexico-market senior-developer band this file's pricing
+     was originally benchmarked against in August 2026 — flagged, not
+     silently corrected, since it is the owner's explicit instruction.
+     Duration -> hours uses a conservative hours/week assumption per
+     engagement type, so the published figure is a genuine floor, not a
+     padded anchor. To reprice everything, change RATE_USD_PER_HOUR below
+     and recompute — never hand-edit individual price fields out of sync
+     with each other.
+   RATE_USD_PER_HOUR = 30 · MXN_PER_USD = 20 (see offeringPriceLabel in
+   components/services/localize.js for the display format, and
+   scripts/generate-service-catalog.mjs to regenerate the PDF/MD catalog.)
+
+   Related offerings (added Sept 2026):
+     relatedOfferings on an offering is an array of other offering ids that
+     are commonly needed to complete it — a real technical/business
+     dependency or common pairing (e.g. DPE-002 MVP Web App Development
+     often needs AIA-003 Cross-Platform API Pipelines to connect payments/
+     CRM/email). Not every offering has one; only add a relationship you
+     can justify in one sentence if asked.
+
    Funnel helpers (new):
      getCategoryBySlug(slug)         category + offerings, legacy-aware
      getOfferingBySlug(slug)         offering + its category
@@ -27,7 +55,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import {
-  Brain, Bot, CloudCog, Code2,
+  Compass, Workflow, CloudCog, Blocks,
   Award, ShieldCheck, BookMarked, Globe2, Languages, UserCheck,
   Calendar, Mail, Phone, FileText,
   User, Briefcase, GraduationCap,
@@ -72,7 +100,7 @@ export const CATEGORIES = [
     taglineEs: "Asesoría senior independiente sobre qué conservar, qué eliminar y qué construir después.",
     outcome: "Cut wasted software spend and get a clear, sequenced technology roadmap your team can execute.",
     outcomeEs: "Reduce el gasto desperdiciado en software y obtén una hoja de ruta tecnológica clara y secuenciada que tu equipo pueda ejecutar.",
-    Icon: Brain,
+    Icon: Compass,
     accent: "violet",
     tile: "bg-violet",
     offerings: [
@@ -83,8 +111,10 @@ export const CATEGORIES = [
         descriptionEs: "Revisión de licencias existentes para eliminar suscripciones duplicadas y reducir el desperdicio.",
         engagement: "Audit", duration: "2–3 weeks", durationEs: "2–3 semanas",
         pricingModel: PRICING_FIXED, tier: 2, audience: ["SMB", "EDU"],
+        priceMxn: 15000, priceUsd: 750,
         deliverables: ["Licence and subscription inventory", "Duplicate / unused tooling report", "Savings estimate", "Consolidation plan"],
         deliverablesEs: ["Inventario de licencias y suscripciones", "Informe de herramientas duplicadas o sin uso", "Estimación de ahorro", "Plan de consolidación"],
+        relatedOfferings: ["UKZ-ITS-004", "UKZ-CAM-002"],
       },
       {
         id: "UKZ-ITS-002", slug: "fractional-cto",
@@ -93,8 +123,14 @@ export const CATEGORIES = [
         descriptionEs: "Liderazgo técnico a tiempo parcial: hojas de ruta y orientación en contratación.",
         engagement: "Retainer", duration: "Ongoing · 3-month minimum", durationEs: "Continuo · mínimo 3 meses",
         pricingModel: PRICING_RETAINER, tier: 1, audience: ["SMB"],
+        priceFromMxn: 15500, priceFromUsd: 775,
+        priceIncludes: "Covers a light-advisory cadence: weekly leadership sync, roadmap ownership, and vendor/architecture decisions for one product line, up to about 6 hours a week. Billed monthly in advance, 3-month minimum, then cancel with 30 days' notice.",
+        priceIncludesEs: "Cubre una cadencia de asesoría ligera: sincronización semanal de liderazgo, responsabilidad de la hoja de ruta y decisiones de proveedores/arquitectura para una línea de producto, hasta unas 6 horas por semana. Se factura mensualmente por adelantado, mínimo 3 meses, después cancela con 30 días de aviso.",
+        priceScalesWith: ["More hours per week (10–20h, standard leadership cadence)", "More than one product line or team", "Hands-on hiring panels beyond rubric design", "On-site days in CDMX or Estado de México"],
+        priceScalesWithEs: ["Más horas por semana (10–20h, cadencia de liderazgo estándar)", "Más de una línea de producto o equipo", "Paneles de contratación presenciales más allá del diseño de rúbricas", "Días presenciales en CDMX o Estado de México"],
         deliverables: ["Weekly leadership cadence", "Technology roadmap ownership", "Hiring rubrics and interviews", "Vendor and architecture decisions"],
         deliverablesEs: ["Cadencia semanal de liderazgo", "Responsabilidad de la hoja de ruta tecnológica", "Rúbricas de contratación y entrevistas", "Decisiones de proveedores y arquitectura"],
+        relatedOfferings: ["UKZ-ITS-004", "UKZ-ITS-003"],
       },
       {
         id: "UKZ-ITS-003", slug: "vendor-evaluation-rfp",
@@ -103,8 +139,14 @@ export const CATEGORIES = [
         descriptionEs: "Experto independiente que revisa ofertas de software de terceros en cuanto a equidad.",
         engagement: "Engagement", duration: "3–6 weeks", durationEs: "3–6 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB", "EDU"],
+        priceFromMxn: 18000, priceFromUsd: 900,
+        priceIncludes: "Covers one RFP cycle for a single software category: requirements definition, a shortlist of up to five vendors, one comparison matrix, and a recommendation.",
+        priceIncludesEs: "Cubre un ciclo de RFP para una sola categoría de software: definición de requisitos, una lista corta de hasta cinco proveedores, una matriz comparativa y una recomendación.",
+        priceScalesWith: ["More than five vendors shortlisted", "Multiple software categories evaluated in parallel", "Live demo coordination and reference calls", "Contract negotiation support beyond the written review"],
+        priceScalesWithEs: ["Más de cinco proveedores en la lista corta", "Varias categorías de software evaluadas en paralelo", "Coordinación de demos en vivo y llamadas de referencia", "Apoyo en negociación de contrato más allá de la revisión escrita"],
         deliverables: ["Requirements definition", "RFP drafting and management", "Comparison matrix", "Contract review and recommendation"],
         deliverablesEs: ["Definición de requisitos", "Redacción y gestión de la RFP", "Matriz comparativa", "Revisión de contrato y recomendación"],
+        relatedOfferings: ["UKZ-ITS-001", "UKZ-ITS-004"],
       },
       {
         id: "UKZ-ITS-004", slug: "digital-transformation-roadmap",
@@ -113,8 +155,14 @@ export const CATEGORIES = [
         descriptionEs: "Migraciones paso a paso de papel/hojas de cálculo a plataformas automatizadas.",
         engagement: "Roadmap", duration: "4–6 weeks", durationEs: "4–6 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "EDU"],
+        priceFromMxn: 19000, priceFromUsd: 950,
+        priceIncludes: "Covers the audit and twelve-month roadmap for one department or campus, one stakeholder workshop, and the written plan.",
+        priceIncludesEs: "Cubre la auditoría y la hoja de ruta a doce meses para un departamento o plantel, un taller con interesados y el plan escrito.",
+        priceScalesWith: ["Multi-department or multi-campus scope", "Additional stakeholder workshops", "A detailed change-management or training-rollout plan", "Budget modelling across multiple vendor scenarios"],
+        priceScalesWithEs: ["Alcance multi-departamento o multi-plantel", "Talleres adicionales con interesados", "Un plan detallado de gestión del cambio o despliegue de capacitación", "Modelado de presupuesto en varios escenarios de proveedores"],
         deliverables: ["Process and systems audit", "Prioritised opportunity matrix", "12-month sequenced roadmap", "Budget and change-management plan"],
         deliverablesEs: ["Auditoría de procesos y sistemas", "Matriz de oportunidades priorizada", "Hoja de ruta secuenciada a 12 meses", "Plan de presupuesto y gestión del cambio"],
+        relatedOfferings: ["UKZ-ITS-001", "UKZ-ITS-002", "UKZ-DPE-002", "UKZ-CAM-001"],
       },
       {
         id: "UKZ-ITS-005", slug: "compliance-risk-assessment",
@@ -123,8 +171,10 @@ export const CATEGORIES = [
         descriptionEs: "Auditoría de arquitectura para cumplir leyes mexicanas de privacidad (LFPDPPP).",
         engagement: "Audit", duration: "2–3 weeks", durationEs: "2–3 semanas",
         pricingModel: PRICING_FIXED, tier: 2, audience: ["SMB", "EDU"],
+        priceMxn: 15000, priceUsd: 750,
         deliverables: ["Data inventory and flow map", "LFPDPPP gap analysis", "Risk register", "Remediation roadmap"],
         deliverablesEs: ["Inventario y mapa de flujo de datos", "Análisis de brechas LFPDPPP", "Registro de riesgos", "Hoja de ruta de remediación"],
+        relatedOfferings: ["UKZ-CAM-005", "UKZ-AIA-004"],
       },
     ],
   },
@@ -137,29 +187,28 @@ export const CATEGORIES = [
     taglineEs: "Asistentes, agentes y pipelines que quitan el trabajo repetitivo de la semana de tu equipo.",
     outcome: "Answer customers faster, sync leads automatically, and turn documents into clean data without adding headcount.",
     outcomeEs: "Responde a clientes más rápido, sincroniza prospectos automáticamente y convierte documentos en datos limpios sin contratar más personal.",
-    Icon: Bot,
+    Icon: Workflow,
     accent: "terracotta",
-    tile: "bg-terracotta",
+    // Plain bg-terracotta is a light hue — white text on it is 1.67:1. Every
+    // consumer of `tile` pairs it with text-white, so the tile has to sit at
+    // the dark end of the ramp: terracotta-800 is 5.60:1 with white.
+    tile: "bg-terracotta-800",
     offerings: [
       {
         id: "UKZ-AIA-001", slug: "custom-persona-bots",
-        name: "Custom Persona Bots", nameEs: "Bots de persona personalizados",
-        description: "LLM assistants trained exclusively on the client's brand voice and documents.",
-        descriptionEs: "Asistentes LLM entrenados exclusivamente en la voz y documentos de marca del cliente.",
+        name: "Custom AI Assistants & WhatsApp Bots", nameEs: "Asistentes de IA y bots de WhatsApp personalizados",
+        description: "LLM assistants trained on your brand voice and documents, deployed on WhatsApp Business, your website, or both — from answering FAQs to qualifying and routing every new lead.",
+        descriptionEs: "Asistentes LLM entrenados con la voz y documentos de tu marca, desplegados en WhatsApp Business, tu sitio web o ambos — desde responder preguntas frecuentes hasta calificar y enrutar cada prospecto nuevo.",
         engagement: "Build", duration: "2–4 weeks", durationEs: "2–4 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "IND"],
-        deliverables: ["Voice and tone guide ingestion", "Assistant with guardrails", "Web or chat deployment", "Evaluation set and monitoring"],
-        deliverablesEs: ["Ingesta de guía de voz y tono", "Asistente con salvaguardas", "Despliegue web o de chat", "Conjunto de evaluación y monitoreo"],
-      },
-      {
-        id: "UKZ-AIA-002", slug: "whatsapp-lead-qualifiers",
-        name: "WhatsApp Lead Qualifiers", nameEs: "Calificadores de líderes de WhatsApp",
-        description: "Automated chat agents that answer FAQs and sync prospects to the CRM.",
-        descriptionEs: "Agentes de chat automatizados que responden FAQs y sincronizan prospectos al CRM.",
-        engagement: "Build", duration: "2–3 weeks", durationEs: "2–3 semanas",
-        pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB"],
-        deliverables: ["WhatsApp Business API setup", "Qualification flow", "CRM sync (HubSpot, Zoho or sheet)", "Handover to a human"],
-        deliverablesEs: ["Configuración de WhatsApp Business API", "Flujo de calificación", "Sincronización con CRM (HubSpot, Zoho u hoja)", "Traspaso a un humano"],
+        priceFromMxn: 19000, priceFromUsd: 950,
+        priceIncludes: "One assistant on one primary channel (WhatsApp Business or web chat), trained on the documents you provide, with guardrails and CRM sync to one system (HubSpot, Zoho, or a sheet).",
+        priceIncludesEs: "Un asistente en un canal principal (WhatsApp Business o chat web), entrenado con los documentos que proporciones, con salvaguardas y sincronización a un CRM (HubSpot, Zoho o una hoja).",
+        priceScalesWith: ["Deploying on more than one channel at once (web + WhatsApp + app)", "Syncing to more than one CRM or data source", "Custom escalation and handoff workflows", "Multilingual response sets", "High message-volume infrastructure"],
+        priceScalesWithEs: ["Desplegar en más de un canal a la vez (web + WhatsApp + app)", "Sincronizar con más de un CRM o fuente de datos", "Flujos de escalamiento y traspaso personalizados", "Conjuntos de respuesta multilingües", "Infraestructura para alto volumen de mensajes"],
+        deliverables: ["WhatsApp Business API setup", "Voice and tone guide ingestion", "Assistant with guardrails", "Qualification flow and CRM sync (HubSpot, Zoho or sheet)", "Web, WhatsApp, or in-app chat deployment", "Evaluation set, monitoring, and handover to a human"],
+        deliverablesEs: ["Configuración de WhatsApp Business API", "Ingesta de guía de voz y tono", "Asistente con salvaguardas", "Flujo de calificación y sincronización con CRM (HubSpot, Zoho u hoja)", "Despliegue web, WhatsApp o chat en app", "Conjunto de evaluación, monitoreo y traspaso a un humano"],
+        relatedOfferings: ["UKZ-AIA-003", "UKZ-DPE-006"],
       },
       {
         id: "UKZ-AIA-003", slug: "cross-platform-api-pipelines",
@@ -168,8 +217,14 @@ export const CATEGORIES = [
         descriptionEs: "Conectar herramientas desconectadas (p. ej. pagos, Slack, email) con Make o Zapier.",
         engagement: "Integration", duration: "1–3 weeks", durationEs: "1–3 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB", "IND"],
+        priceFromMxn: 6000, priceFromUsd: 300,
+        priceIncludes: "Covers one integration path between two tools (for example, payments to Slack), built in Make or Zapier, with basic error alerts.",
+        priceIncludesEs: "Cubre una ruta de integración entre dos herramientas (por ejemplo, pagos a Slack), construida en Make o Zapier, con alertas básicas de error.",
+        priceScalesWith: ["Each additional tool or integration path", "Custom code instead of Make/Zapier scenarios", "High-volume or real-time processing needs", "Separate staging and production environments"],
+        priceScalesWithEs: ["Cada herramienta o ruta de integración adicional", "Código a medida en lugar de escenarios de Make/Zapier", "Necesidades de procesamiento de alto volumen o en tiempo real", "Entornos separados de staging y producción"],
         deliverables: ["Integration map", "Make / Zapier scenarios", "Error handling and alerts", "Runbook"],
         deliverablesEs: ["Mapa de integraciones", "Escenarios en Make / Zapier", "Manejo de errores y alertas", "Manual operativo"],
+        relatedOfferings: ["UKZ-DPE-002", "UKZ-AIA-001", "UKZ-AIA-005"],
       },
       {
         id: "UKZ-AIA-004", slug: "rag-knowledge-base",
@@ -178,8 +233,14 @@ export const CATEGORIES = [
         descriptionEs: "Motores de búsqueda corporativos privados con bases vectoriales (Pinecone).",
         engagement: "Build", duration: "4–8 weeks", durationEs: "4–8 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "EDU"],
+        priceFromMxn: 38500, priceFromUsd: 1925,
+        priceIncludes: "Covers ingestion of one document set, a Pinecone vector index, and a search/chat interface with citations for one team.",
+        priceIncludesEs: "Cubre la ingesta de un conjunto de documentos, un índice vectorial en Pinecone y una interfaz de búsqueda/chat con citas para un equipo.",
+        priceScalesWith: ["Multiple document sets or data sources", "Role-based access control across teams", "A custom interface beyond the standard chat UI", "An ongoing re-indexing pipeline for frequently changing documents"],
+        priceScalesWithEs: ["Varios conjuntos de documentos o fuentes de datos", "Control de acceso basado en roles entre equipos", "Una interfaz personalizada más allá del chat estándar", "Un pipeline de reindexado continuo para documentos que cambian con frecuencia"],
         deliverables: ["Document ingestion pipeline", "Vector index (Pinecone)", "Search / chat interface with citations", "Access control"],
         deliverablesEs: ["Pipeline de ingesta de documentos", "Índice vectorial (Pinecone)", "Interfaz de búsqueda / chat con citas", "Control de acceso"],
+        relatedOfferings: ["UKZ-CAM-005", "UKZ-ITS-005"],
       },
       {
         id: "UKZ-AIA-005", slug: "data-extraction-workflows",
@@ -188,8 +249,14 @@ export const CATEGORIES = [
         descriptionEs: "Herramientas que analizan PDFs, facturas o formularios en hojas de cálculo limpias.",
         engagement: "Build", duration: "2–4 weeks", durationEs: "2–4 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        priceFromMxn: 19000, priceFromUsd: 950,
+        priceIncludes: "Covers one document type (for example, invoices), with field extraction, validation, and a single spreadsheet or database output.",
+        priceIncludesEs: "Cubre un tipo de documento (por ejemplo, facturas), con extracción de campos, validación y una sola salida a hoja de cálculo o base de datos.",
+        priceScalesWith: ["Additional document types or formats", "Higher accuracy or validation requirements needing human-in-the-loop review", "Direct write-back to an ERP or accounting system instead of a spreadsheet", "High monthly document volume"],
+        priceScalesWithEs: ["Tipos o formatos de documento adicionales", "Requisitos de precisión o validación más altos que requieren revisión humana", "Escritura directa a un ERP o sistema contable en lugar de una hoja de cálculo", "Alto volumen mensual de documentos"],
         deliverables: ["Document classifier", "Field extraction with validation", "Spreadsheet / database output", "Exception review queue"],
         deliverablesEs: ["Clasificador de documentos", "Extracción de campos con validación", "Salida a hoja de cálculo / base de datos", "Cola de revisión de excepciones"],
+        relatedOfferings: ["UKZ-AIA-003", "UKZ-DPE-006"],
       },
     ],
   },
@@ -200,11 +267,13 @@ export const CATEGORIES = [
     nameEs: "Arquitectura en la Nube y Migración de Infraestructura",
     tagline: "Move to the cloud safely, pay less for it, and survive the bad day.",
     taglineEs: "Migra a la nube con seguridad, paga menos por ella y sobrevive al mal día.",
-    outcome: "Retire the office server, cut cloud bills by up to 40 %, and know your backups actually restore.",
-    outcomeEs: "Retira el servidor de la oficina, reduce la factura en la nube hasta 40 % y confirma que tus respaldos realmente restauran.",
+    outcome: "Retire the office server, pay only for the cloud capacity you use, and know your backups actually restore.",
+    outcomeEs: "Retira el servidor de la oficina, paga solo la capacidad en la nube que usas y confirma que tus respaldos realmente restauran.",
     Icon: CloudCog,
     accent: "azure",
-    tile: "bg-azure",
+    // Plain bg-azure is 4.10:1 with white — under AA for the 11-14px text these
+    // tiles carry. azure-deep is 5.93:1.
+    tile: "bg-azure-deep",
     offerings: [
       {
         id: "UKZ-CAM-001", slug: "on-premise-to-cloud-migration",
@@ -213,18 +282,26 @@ export const CATEGORIES = [
         descriptionEs: "Mover servidores físicos de oficina de forma segura a AWS, Azure o GCP.",
         engagement: "Migration", duration: "6–12 weeks", durationEs: "6–12 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "EDU"],
+        priceFromMxn: 57500, priceFromUsd: 2875,
+        priceIncludes: "Covers migration of one office server or workload to a single cloud provider, with a landing zone and one rehearsed cutover.",
+        priceIncludesEs: "Cubre la migración de un servidor u carga de trabajo de oficina a un solo proveedor en la nube, con una landing zone y un corte ensayado.",
+        priceScalesWith: ["Multiple servers or workloads migrated together", "Multi-region or multi-cloud architecture", "Legacy application refactoring beyond a lift-and-shift", "An extended post-migration support window"],
+        priceScalesWithEs: ["Varios servidores o cargas de trabajo migrados juntos", "Arquitectura multi-región o multi-nube", "Refactorización de aplicaciones heredadas más allá de un lift-and-shift", "Una ventana extendida de soporte posterior a la migración"],
         deliverables: ["Migration assessment", "Landing zone (VPC, IAM)", "Workload migration and cutover", "Post-migration support"],
         deliverablesEs: ["Evaluación de migración", "Landing zone (VPC, IAM)", "Migración de cargas y corte", "Soporte posterior a la migración"],
+        relatedOfferings: ["UKZ-CAM-003", "UKZ-CAM-005", "UKZ-CAM-002"],
       },
       {
         id: "UKZ-CAM-002", slug: "cloud-bill-optimization",
         name: "Cloud Bill Optimisation", nameEs: "Optimización de facturas en la nube",
-        description: "Audit configurations to right-size servers and cut costs by up to 40 %.",
-        descriptionEs: "Auditar configuraciones para dimensionar servidores y reducir costos hasta 40 %.",
+        description: "Audit configurations to right-size servers and remove capacity you pay for but never use.",
+        descriptionEs: "Auditar configuraciones para dimensionar servidores y eliminar la capacidad que pagas sin usar.",
         engagement: "Audit", duration: "1–2 weeks", durationEs: "1–2 semanas",
         pricingModel: PRICING_FIXED, tier: 2, audience: ["SMB"],
+        priceMxn: 9000, priceUsd: 450,
         deliverables: ["Billing analysis", "Right-sizing recommendations", "Reserved / committed-use plan", "Savings tracker"],
         deliverablesEs: ["Análisis de facturación", "Recomendaciones de dimensionamiento", "Plan de instancias reservadas / uso comprometido", "Seguimiento de ahorros"],
+        relatedOfferings: ["UKZ-CAM-001"],
       },
       {
         id: "UKZ-CAM-003", slug: "disaster-recovery-planning",
@@ -233,8 +310,14 @@ export const CATEGORIES = [
         descriptionEs: "Respaldos automatizados y cifrados con conmutación por error.",
         engagement: "Implementation", duration: "2–4 weeks", durationEs: "2–4 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB", "EDU"],
+        priceFromMxn: 14500, priceFromUsd: 725,
+        priceIncludes: "Covers RPO/RTO definition, encrypted backup automation, and one live restore drill for a single environment.",
+        priceIncludesEs: "Cubre la definición de RPO/RTO, automatización de respaldos cifrados y un simulacro de restauración en vivo para un solo entorno.",
+        priceScalesWith: ["Multiple environments or regions", "Sub-hour RTO requirements (hot standby / active-active)", "Compliance-driven audit documentation (LFPDPPP or industry-specific)", "A recurring quarterly drill program"],
+        priceScalesWithEs: ["Varios entornos o regiones", "Requisitos de RTO menores a una hora (respaldo activo / activo-activo)", "Documentación de auditoría por cumplimiento (LFPDPPP o específica de la industria)", "Un programa recurrente de simulacros trimestrales"],
         deliverables: ["RPO / RTO definition", "Encrypted backup automation", "Failover configuration", "Restore drill and runbook"],
         deliverablesEs: ["Definición de RPO / RTO", "Automatización de respaldos cifrados", "Configuración de conmutación por error", "Simulacro de restauración y manual"],
+        relatedOfferings: ["UKZ-CAM-001", "UKZ-ITS-005"],
       },
       {
         id: "UKZ-CAM-004", slug: "docker-containerization",
@@ -243,8 +326,14 @@ export const CATEGORIES = [
         descriptionEs: "Empaquetar aplicaciones antiguas en contenedores para despliegues rápidos.",
         engagement: "Implementation", duration: "2–4 weeks", durationEs: "2–4 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        priceFromMxn: 14500, priceFromUsd: 725,
+        priceIncludes: "Covers containerizing one application and its environments, with a basic registry and deployment flow.",
+        priceIncludesEs: "Cubre la contenedorización de una aplicación y sus entornos, con un registro básico y flujo de despliegue.",
+        priceScalesWith: ["Multiple applications or microservices", "Full orchestration (Kubernetes) instead of single-host Docker Compose", "Multi-environment parity (dev/staging/prod) with automated promotion", "Legacy application refactoring to containerize cleanly"],
+        priceScalesWithEs: ["Varias aplicaciones o microservicios", "Orquestación completa (Kubernetes) en lugar de Docker Compose de un solo host", "Paridad multi-entorno (dev/staging/prod) con promoción automatizada", "Refactorización de aplicaciones heredadas para contenedorizar limpiamente"],
         deliverables: ["Dockerfiles and compose / orchestration", "Environment parity", "Registry and deployment flow", "Documentation"],
         deliverablesEs: ["Dockerfiles y compose / orquestación", "Paridad de entornos", "Registro y flujo de despliegue", "Documentación"],
+        relatedOfferings: ["UKZ-DPE-005", "UKZ-CAM-001"],
       },
       {
         id: "UKZ-CAM-005", slug: "zero-trust-security-hardening",
@@ -253,8 +342,14 @@ export const CATEGORIES = [
         descriptionEs: "Controles de acceso para trabajo remoto de nivel empresarial.",
         engagement: "Implementation", duration: "3–5 weeks", durationEs: "3–5 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB", "EDU"],
+        priceFromMxn: 21500, priceFromUsd: 1075,
+        priceIncludes: "Covers identity and MFA rollout and a device/network policy baseline for one office or up to about 50 users.",
+        priceIncludesEs: "Cubre el despliegue de identidad y MFA y una línea base de políticas de dispositivos/red para una oficina o hasta unos 50 usuarios.",
+        priceScalesWith: ["More than about 50 users or devices", "Multiple office locations", "Custom compliance reporting beyond the baseline report", "An ongoing quarterly policy review"],
+        priceScalesWithEs: ["Más de unos 50 usuarios o dispositivos", "Varias sedes de oficina", "Reportes de cumplimiento personalizados más allá del reporte base", "Una revisión trimestral continua de políticas"],
         deliverables: ["Identity and MFA rollout", "Device and network policies", "Least-privilege access review", "Security baseline report"],
         deliverablesEs: ["Despliegue de identidad y MFA", "Políticas de dispositivos y red", "Revisión de acceso de mínimo privilegio", "Informe de línea base de seguridad"],
+        relatedOfferings: ["UKZ-CAM-001", "UKZ-ITS-005"],
       },
     ],
   },
@@ -267,9 +362,9 @@ export const CATEGORIES = [
     taglineEs: "Del prototipo clicable al producto publicado, con el pipeline y el mantenimiento para mantenerlo funcionando.",
     outcome: "Validate before you build, ship an MVP in weeks, and keep it patched and improving every month.",
     outcomeEs: "Valida antes de construir, publica un MVP en semanas y mantenlo parchado y mejorando cada mes.",
-    Icon: Code2,
-    accent: "violet",
-    tile: "bg-charcoal-80",
+    Icon: Blocks,
+    accent: "mint",
+    tile: "bg-mint-700",
     offerings: [
       {
         id: "UKZ-DPE-001", slug: "ui-ux-wireframing",
@@ -278,8 +373,10 @@ export const CATEGORIES = [
         descriptionEs: "Prototipos clicables de alta fidelidad antes de escribir backend.",
         engagement: "Sprint", duration: "1–2 weeks", durationEs: "1–2 semanas",
         pricingModel: PRICING_FIXED, tier: 2, audience: ["SMB", "IND"],
+        priceMxn: 18000, priceUsd: 900,
         deliverables: ["User flows", "Clickable Figma prototype", "Design tokens", "Handoff notes"],
         deliverablesEs: ["Flujos de usuario", "Prototipo clicable en Figma", "Tokens de diseño", "Notas de entrega"],
+        relatedOfferings: ["UKZ-DPE-002"],
       },
       {
         id: "UKZ-DPE-002", slug: "mvp-web-app-development",
@@ -288,8 +385,14 @@ export const CATEGORIES = [
         descriptionEs: "Productos mínimos viables rápidos y funcionales con ecosistemas modernos.",
         engagement: "Build", duration: "4–10 weeks", durationEs: "4–10 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 1, audience: ["SMB", "IND"],
+        priceFromMxn: 38500, priceFromUsd: 1925,
+        priceIncludes: "Covers a scoped MVP backlog and a working web app (React + API) with core auth, deployed with thirty days of support.",
+        priceIncludesEs: "Cubre un backlog de MVP delimitado y una aplicación web funcional (React + API) con autenticación básica, desplegada con treinta días de soporte.",
+        priceScalesWith: ["Payment processing integration", "Third-party integrations beyond authentication", "A native mobile companion app", "Multi-tenant or multi-role permission systems", "An extended support window beyond thirty days"],
+        priceScalesWithEs: ["Integración de procesamiento de pagos", "Integraciones de terceros más allá de la autenticación", "Una app móvil nativa complementaria", "Sistemas de permisos multi-tenant o multi-rol", "Una ventana de soporte extendida más allá de treinta días"],
         deliverables: ["Scoped MVP backlog", "Web application (React + API)", "Auth and payments if needed", "Deployment and 30-day support"],
         deliverablesEs: ["Backlog del MVP delimitado", "Aplicación web (React + API)", "Autenticación y pagos si se requieren", "Despliegue y 30 días de soporte"],
+        relatedOfferings: ["UKZ-DPE-001", "UKZ-AIA-003", "UKZ-DPE-005", "UKZ-DPE-006"],
       },
       {
         id: "UKZ-DPE-003", slug: "cross-platform-mobile-apps",
@@ -298,8 +401,14 @@ export const CATEGORIES = [
         descriptionEs: "Base de código única para iOS y Android.",
         engagement: "Build", duration: "6–12 weeks", durationEs: "6–12 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        priceFromMxn: 57500, priceFromUsd: 2875,
+        priceIncludes: "Covers one React Native / Expo app with store-ready builds for iOS and Android, push notifications, and a release pipeline.",
+        priceIncludesEs: "Cubre una app en React Native / Expo con compilaciones listas para tienda en iOS y Android, notificaciones push y un pipeline de publicación.",
+        priceScalesWith: ["Offline-first or complex local-data sync", "Native module work outside Expo's managed workflow", "Multiple user roles or white-label variants", "App Store / Play Store review handling beyond submission"],
+        priceScalesWithEs: ["Sincronización de datos local offline-first o compleja", "Trabajo con módulos nativos fuera del flujo administrado de Expo", "Varios roles de usuario o variantes de marca blanca", "Gestión de la revisión de App Store / Play Store más allá del envío"],
         deliverables: ["React Native / Expo app", "Store-ready builds", "Push notifications and analytics", "Release pipeline"],
         deliverablesEs: ["App en React Native / Expo", "Compilaciones listas para tiendas", "Notificaciones push y analítica", "Pipeline de publicación"],
+        relatedOfferings: ["UKZ-AIA-003", "UKZ-DPE-004", "UKZ-DPE-006"],
       },
       {
         id: "UKZ-DPE-004", slug: "secure-api-design",
@@ -308,8 +417,14 @@ export const CATEGORIES = [
         descriptionEs: "APIs backend rápidas y bien documentadas para enlazar aplicaciones de negocio.",
         engagement: "Build", duration: "2–6 weeks", durationEs: "2–6 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        priceFromMxn: 19000, priceFromUsd: 950,
+        priceIncludes: "Covers one API contract (OpenAPI), authentication and rate limiting, implementation, and developer documentation.",
+        priceIncludesEs: "Cubre un contrato de API (OpenAPI), autenticación y límites de tasa, implementación y documentación para desarrolladores.",
+        priceScalesWith: ["Multiple services or microservices", "Complex authorization models (multi-tenant, role hierarchies)", "Third-party API consumers requiring versioning or SLAs", "Load-testing and performance tuning beyond the baseline"],
+        priceScalesWithEs: ["Varios servicios o microservicios", "Modelos de autorización complejos (multi-tenant, jerarquías de roles)", "Consumidores de API externos que requieren versionado o SLAs", "Pruebas de carga y ajuste de rendimiento más allá de la línea base"],
         deliverables: ["API contract (OpenAPI)", "Auth, rate limiting, audit logs", "Implementation and tests", "Developer documentation"],
         deliverablesEs: ["Contrato de API (OpenAPI)", "Autenticación, límites de tasa y registros de auditoría", "Implementación y pruebas", "Documentación para desarrolladores"],
+        relatedOfferings: ["UKZ-DPE-002", "UKZ-DPE-005"],
       },
       {
         id: "UKZ-DPE-005", slug: "ci-cd-pipeline-automation",
@@ -318,18 +433,30 @@ export const CATEGORIES = [
         descriptionEs: "Scripts de despliegue automatizados sin tiempo de inactividad.",
         engagement: "Implementation", duration: "1–3 weeks", durationEs: "1–3 semanas",
         pricingModel: PRICING_FROM_QUOTE, tier: 2, audience: ["SMB"],
+        priceFromMxn: 7000, priceFromUsd: 350,
+        priceIncludes: "Covers one deployment pipeline (GitHub Actions or similar), automated tests, and a documented rollback procedure.",
+        priceIncludesEs: "Cubre un pipeline de despliegue (GitHub Actions o similar), pruebas automatizadas y un procedimiento de reversión documentado.",
+        priceScalesWith: ["Multiple environments or services in the same pipeline", "Blue-green or canary deployment strategies", "Infrastructure-as-code setup alongside the pipeline", "Multi-repo or monorepo orchestration"],
+        priceScalesWithEs: ["Varios entornos o servicios en el mismo pipeline", "Estrategias de despliegue blue-green o canary", "Configuración de infraestructura como código junto con el pipeline", "Orquestación multi-repo o monorepo"],
         deliverables: ["Pipeline (GitHub Actions or similar)", "Automated tests and checks", "Zero-downtime deploy strategy", "Rollback procedure"],
         deliverablesEs: ["Pipeline (GitHub Actions o similar)", "Pruebas y verificaciones automatizadas", "Estrategia de despliegue sin tiempo de inactividad", "Procedimiento de reversión"],
+        relatedOfferings: ["UKZ-DPE-002", "UKZ-CAM-004"],
       },
       {
         id: "UKZ-DPE-006", slug: "managed-maintenance",
         name: "Managed Maintenance", nameEs: "Mantenimiento gestionado",
         description: "Recurring monthly support: fixes, patches and feature rollouts.",
         descriptionEs: "Soporte mensual recurrente: correcciones, parches y despliegue de funciones.",
-        engagement: "Retainer", duration: "Monthly · ongoing", durationEs: "Mensual · continuo",
+        engagement: "Retainer", duration: "Monthly · no minimum term", durationEs: "Mensual · sin plazo mínimo",
         pricingModel: PRICING_RETAINER, tier: 2, audience: ["SMB", "IND"],
+        priceFromMxn: 5000, priceFromUsd: 250,
+        priceIncludes: "Covers bug fixes, security patches, and dependency updates for one application, with one feature-deployment slot a month. Billed monthly in advance; cancel with 30 days' notice, no minimum term.",
+        priceIncludesEs: "Cubre corrección de errores, parches de seguridad y actualización de dependencias para una aplicación, con un espacio de despliegue de funciones al mes. Se factura mensualmente por adelantado; cancela con 30 días de aviso, sin plazo mínimo.",
+        priceScalesWith: ["Additional feature-deployment slots per month", "Multiple applications under the same retainer", "A faster response SLA than standard business hours", "After-hours, on-call incident coverage"],
+        priceScalesWithEs: ["Espacios adicionales de despliegue de funciones al mes", "Varias aplicaciones bajo el mismo retainer", "Un SLA de respuesta más rápido que el horario laboral estándar", "Cobertura de incidentes en guardia fuera de horario"],
         deliverables: ["Bug fixes and security patches", "Dependency updates", "Feature deployment slots", "Monthly report"],
         deliverablesEs: ["Corrección de errores y parches de seguridad", "Actualización de dependencias", "Espacios para despliegue de funciones", "Informe mensual"],
+        relatedOfferings: ["UKZ-DPE-002", "UKZ-AIA-001"],
       },
     ],
   },
@@ -391,6 +518,7 @@ export const LEGACY_CATEGORY_SLUG_MAP = {
 
 /** Old SKU id → new offering id (null = retired; falls back to the category). */
 export const legacyIdMap = {
+  "UKZ-AIA-002": "UKZ-AIA-001", // retired Sept 2026 — merged into AIA-001 (WhatsApp folded into the assistant offering)
   "UKZ-CS-001": "UKZ-ITS-001", "UKZ-CS-002": "UKZ-ITS-004", "UKZ-CS-003": "UKZ-DPE-004",
   "UKZ-CS-004": "UKZ-ITS-003", "UKZ-CS-005": null, "UKZ-CS-006": "UKZ-ITS-005",
   "UKZ-CS-007": "UKZ-ITS-004", "UKZ-CS-008": "UKZ-ITS-002", "UKZ-CS-009": null,
@@ -407,7 +535,7 @@ export const legacyIdMap = {
   "UKZ-WD-001": "UKZ-DPE-002", "UKZ-WD-002": "UKZ-DPE-002", "UKZ-WD-003": "UKZ-DPE-002",
   "UKZ-WD-004": null, "UKZ-WD-005": "UKZ-DPE-002", "UKZ-WD-006": "UKZ-DPE-004",
   "UKZ-WD-007": "UKZ-AIA-003", "UKZ-WD-008": "UKZ-AIA-003", "UKZ-WD-009": "UKZ-AIA-001",
-  "UKZ-WD-010": "UKZ-AIA-002", "UKZ-WD-011": "UKZ-AIA-004", "UKZ-WD-012": "UKZ-AIA-005",
+  "UKZ-WD-010": "UKZ-AIA-001", "UKZ-WD-011": "UKZ-AIA-004", "UKZ-WD-012": "UKZ-AIA-005",
   "UKZ-WD-013": "UKZ-AIA-003", "UKZ-WD-014": null, "UKZ-WD-015": null, "UKZ-WD-016": null,
   "UKZ-WD-017": null, "UKZ-WD-018": "UKZ-CAM-004",
   "UKZ-ET-001": "UKZ-ITS-003", "UKZ-ET-002": null, "UKZ-ET-003": null, "UKZ-ET-004": null,
@@ -516,9 +644,9 @@ export const CATEGORY_FAQS = {
     { id: "downtime", q: "Will the migration take us offline?", qEs: "¿La migración nos dejará fuera de línea?",
       a: "Cutover is planned outside business hours with a rehearsed rollback. Typical downtime is minutes, not days.",
       aEs: "El corte se planifica fuera del horario laboral con una reversión ensayada. El tiempo de inactividad típico es de minutos, no días." },
-    { id: "savings", q: "Is the 40 % cloud saving guaranteed?", qEs: "¿El ahorro del 40 % en la nube está garantizado?",
-      a: "No. It is the upper end of what right-sizing typically finds. The audit quantifies your figure before you commit to changes.",
-      aEs: "No. Es el extremo superior de lo que suele encontrar el redimensionamiento. La auditoría cuantifica tu cifra antes de que te comprometas a cambios." },
+    { id: "savings", q: "How much will right-sizing save us?", qEs: "¿Cuánto nos ahorrará el redimensionamiento?",
+      a: "It depends on how over-provisioned the current deployment is. The audit measures your real usage and quantifies the figure before you commit to any change — no number is promised up front.",
+      aEs: "Depende de cuánto sobredimensionamiento tenga el despliegue actual. La auditoría mide tu uso real y cuantifica la cifra antes de que te comprometas a cualquier cambio; no se promete ninguna cifra por adelantado." },
     { id: "drtest", q: "How do we know the backups work?", qEs: "¿Cómo sabemos que los respaldos funcionan?",
       a: "Every DR engagement ends with a live restore drill you watch, plus a runbook your team can repeat.",
       aEs: "Cada proyecto de DR termina con un simulacro de restauración en vivo que observas, más un manual que tu equipo puede repetir." },
@@ -568,7 +696,7 @@ export const SERVICES_FAQ_ITEMS = [
   { id: "start", category: "Engagement", question: "Where do I start if I'm not sure which service I need?",
     answer: "Book the 30-minute call. The first job is a clear diagnosis, even if we do not end up working together." },
   { id: "pricing", category: "Pricing", question: "How is pricing structured?",
-    answer: "Audits and wireframing sprints are fixed price. Bespoke builds and migrations are quoted after the call; retainers are monthly." },
+    answer: "Every offering shows an indicative starting price in both US dollars and Mexican pesos, based on a $30 USD/hour minimum rate. Audits and the wireframing sprint are fixed price; bespoke builds, migrations, and retainers show a starting price, confirmed in the written proposal once scope is set." },
   { id: "nda", category: "Engagement", question: "Do you sign NDAs?", answer: "Yes, before scoping. Bring your template or use mine." },
   { id: "geo", category: "Reach", question: "Do you work outside Mexico?",
     answer: "Yes. Operation is 100 % remote, with on-site sessions in CDMX or Estado de México when they add value." },

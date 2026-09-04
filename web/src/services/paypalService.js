@@ -32,7 +32,7 @@ export async function createPaypalSession(orderId) {
     { method: "POST" },
   )
 
-  return response?.id || response?.data?.id || null
+  return response?.data?.paypalOrderId || response?.paypalOrderId || response?.data?.id || response?.id || null
 }
 
 export async function capturePaypalSession(paypalOrderId, orderId) {

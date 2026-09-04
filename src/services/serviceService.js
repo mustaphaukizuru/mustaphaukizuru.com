@@ -29,6 +29,16 @@ function formatPrice(price, currency) {
  * Serialize a Service row — coerces Decimal → Number, adds `priceFormatted`,
  * normalizes empty relations to empty arrays.
  */
+/**
+ * I18N06 · pickLocale is shallow: it swaps the service's own *Es columns but
+ * not the nested packages (nameEs / descriptionEs). Localise both levels.
+ */
+function localizeService(row, locale = "en") {
+  const base = pickLocale(row, locale, [["fullDescription", "descriptionEs"]])
+  if (locale !== "es" || !Array.isArray(base.packages)) return base
+  return { ...base, packages: pickLocaleMany(base.packages, "es") }
+}
+
 function serializeService(service) {
   if (!service) return null
 
@@ -134,7 +144,7 @@ async function listServicesUncached({ isFeatured, page = 1, limit = 24, locale =
   // pickLocale to swap `fullDescription` ← `descriptionEs` when locale is
   // "es", so the public service detail page renders Spanish copy without
   // leaking English.
-  const localized = items.map((row) => pickLocale(row, locale, [["fullDescription", "descriptionEs"]]))
+  const localized = items.map((row) => localizeService(row, locale))
 
   return {
     items:      localized.map(serializeService),
@@ -157,7 +167,7 @@ async function getServiceBySlug(slug, locale = "en") {
   })
   if (!service) return null
   // Same asymmetric extraPair as listServices — fullDescription ← descriptionEs.
-  return serializeService(pickLocale(service, locale, [["fullDescription", "descriptionEs"]]))
+  return serializeService(localizeService(service, locale))
 }
 
 async function getFeaturedServicesUncached() {
@@ -191,6 +201,59 @@ async function getRelatedServices(currentServiceId, limit = 3) {
   return items.map(serializeService)
 }
 
+/* ── Public pricing matrix — DB is the source of truth for prices ─────────
+ * One Service per audience (slug "<audience>-plan", audienceCode set) with one
+ * active ServicePackage per tier (tierKey). Seeded by prisma/seed-service-plans.js
+ * (`npm run seed:plans`); edited in /admin/services. Marketing copy for the
+ * same tiers lives in web/src/data/servicesCatalogue.js — the SPA overlays
+ * these prices onto that static matrix by (audience, tierKey).
+ * ─────────────────────────────────────────────────────────────────────────── */
+const AUDIENCE_PLAN_ORDER = ["professional", "business", "schools"]
+
+function serializePlanTier(p, fallbackCurrency) {
+  return {
+    packageId: p.id,
+    tierKey:   p.tierKey,
+    name:      p.name,
+    price:     safeNum(p.price),
+    currency:  p.currency || fallbackCurrency || "MXN",
+    period:    p.period || null,
+    popular:   Boolean(p.popular),
+    saveLabel: p.saveLabel || null,
+  }
+}
+
+async function listAudiencePlansUncached() {
+  const services = await prisma.service.findMany({
+    where: { audienceCode: { not: null }, status: "published", deletedAt: null },
+    take:  50,
+    select: {
+      slug: true, audienceCode: true, currency: true,
+      packages: {
+        where:   { isActive: true, tierKey: { not: null } },
+        orderBy: { sortOrder: "asc" },
+        select:  {
+          id: true, tierKey: true, name: true, price: true, currency: true,
+          period: true, popular: true, saveLabel: true,
+        },
+      },
+    },
+  })
+
+  const rank = (code) => {
+    const i = AUDIENCE_PLAN_ORDER.indexOf(code)
+    return i === -1 ? AUDIENCE_PLAN_ORDER.length : i
+  }
+  const audiences = services
+    .sort((a, b) => rank(a.audienceCode) - rank(b.audienceCode) || a.slug.localeCompare(b.slug))
+    .map((svc) => ({
+      code:        svc.audienceCode,
+      serviceSlug: svc.slug,
+      tiers:       svc.packages.map((p) => serializePlanTier(p, svc.currency)),
+    }))
+
+  return { audiences }
+}
 
 /* ── A5 · in-process read cache ────────────────────────────────────────────
  * The public list reads are served from lib/ttlCache for PUBLIC_READ_TTL_MS per
@@ -209,6 +272,7 @@ const { cache } = require("../lib/ttlCache")
 const PUBLIC_READ_TTL_MS = process.env.NODE_ENV === "test" ? 0 : (Number(process.env.PUBLIC_READ_TTL_MS) || 60_000)
 const listServices = (...args) => cache.wrap("services", args, PUBLIC_READ_TTL_MS, () => listServicesUncached(...args))
 const getFeaturedServices = (...args) => cache.wrap("services", args, PUBLIC_READ_TTL_MS, () => getFeaturedServicesUncached(...args))
+const listAudiencePlans = () => cache.wrap("services", ["audience-plans"], PUBLIC_READ_TTL_MS, () => listAudiencePlansUncached())
 
 module.exports = {
   listServices,
@@ -218,4 +282,6 @@ module.exports = {
   serializeService,
   listServicesUncached,
   getFeaturedServicesUncached,
+  listAudiencePlans,
+  listAudiencePlansUncached,
 }

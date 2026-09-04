@@ -1,0 +1,61 @@
+# Local development services: the database, and a mail catcher.
+#
+# WHY: `.env` points at this local MySQL (it used to point at the production
+# Hostinger one, which is why scripts/guard-prod-db.js exists at all). This
+# compose file provides the host the guard is waiting for, so `db:push`, the
+# content seeds and `seed:demo` run without touching live data.
+#
+# Mailpit is here for the same reason the local database is: `.env` still
+# carries real SMTP credentials, and emailService.js falls back to
+# smtp.hostinger.com when SMTP_HOST is empty — so "turning email off" by
+# clearing the host silently keeps sending live mail. Pointing SMTP at
+# 127.0.0.1:1025 makes that impossible and makes every message readable.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   # then in .env:  DATABASE_URL="mysql://muk:muk@127.0.0.1:3307/muk_dev"
+#   npm run db:push && npm run seed:content && npm run seed:demo
+#
+# Port 3307, not 3306: a machine that already runs MySQL for something else
+# should not have to stop it to work on this project.
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: muk-dev-mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: muk_dev
+      MYSQL_USER: muk
+      MYSQL_PASSWORD: muk
+    command:
+      # Match the collation Hostinger uses so a local reproduction of a
+      # sorting or comparison bug behaves the same as production does.
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - muk-dev-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Catches every message the app sends. SMTP on 1025, web UI on 8025.
+  # No volume: a dev inbox that survives a restart is a dev inbox nobody
+  # ever empties.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: muk-dev-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP  — SMTP_HOST/SMTP_PORT in .env point here
+      - "8025:8025"   # web UI — http://localhost:8025
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+volumes:
+  muk-dev-mysql:

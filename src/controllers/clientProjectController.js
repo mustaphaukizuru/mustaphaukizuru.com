@@ -3,22 +3,32 @@ const fs   = require("fs")
 const asyncHandler = require("../utils/asyncHandler")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
+const fsp = require("fs/promises")
 const { listMyProjects, getMyProject } = require("../services/clientProjectService")
+const {
+  assertReadable, previewCanFrame, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
+  ndaStatus, applyNdaGate, acceptAgreement,
+  presentForMember, assertDeliverableAccess,
+} = require("../services/projectPortalService")
+const { STORAGE_PATHS } = require("../config/storagePaths")
+const supportService = require("../services/supportService")
+const changeRequestService = require("../services/changeRequestService")
 
 /* ────────────────────────────────────────────────────────────────────────
  * SECURITY · resolveProjectFilePath
  *
- * Project files live at `public/files/projects/<projectId>/<filename>`. The
- * static catch-all in app.js used to serve them WITHOUT authentication —
- * anyone who guessed or leaked a URL could download another customer's
- * deliverables. The streaming endpoint below replaces that; the deny
- * middleware mounted in app.js blocks the static path.
+ * Project files live at `<storage>/projects/<projectId>/<filename>` —
+ * outside the versioned deploy directory (see storagePaths.js) and outside
+ * public/, so express.static can never serve them. The DB keeps the
+ * legacy-shaped relative path `/files/projects/<id>/<name>`; rows written
+ * before the storage move resolve against the same root, so moving the
+ * old directory into storage/projects/ is the only migration step.
  *
  * This helper resolves the on-disk absolute path with a startsWith()
  * guard so a malicious filePath like `/files/projects/../etc/passwd`
  * cannot escape the safe root. Same pattern used in downloadController.
  * ──────────────────────────────────────────────────────────────────── */
-const PROJECT_FILES_ROOT = path.resolve(__dirname, "../../public/files/projects")
+const PROJECT_FILES_ROOT = path.resolve(STORAGE_PATHS.projectFiles)
 
 function resolveSafePath(filePath) {
   if (!filePath) return null
@@ -46,7 +56,208 @@ const getMine = asyncHandler(async (req, res) => {
   if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
   const project = await getMyProject({ userId, projectId: req.params.id })
   if (!project) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Project not found" } })
-  res.status(200).json({ success: true, data: project })
+  try {
+    const lc = assertReadable(project)
+    // Tier 4 · NDA gate: header stays, everything under NDA is withheld until
+    // the client has accepted the current version.
+    const nda = await ndaStatus(project, userId)
+    const gated = nda.required && !nda.accepted
+    const body = gated ? applyNdaGate(project) : project
+    // Tier 4 · presentForMember adds access.state / suspended / handover and
+    // blanks previewUrl for suspended projects; the NDA gate then wins over
+    // preview framing. (This used to send two responses — the second threw
+    // ERR_HTTP_HEADERS_SENT on every project view and the SPA never saw
+    // access.state.)
+    const presented = presentForMember(body, lc)
+    res.status(200).json({
+      success: true,
+      data: {
+        ...presented,
+        previewCanFrame: gated ? false : presented.previewCanFrame,
+        nda: { required: nda.required, accepted: nda.accepted, version: nda.version, acceptedAt: nda.acceptedAt },
+      },
+    })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/** POST /member/projects/:id/agreements { type: "nda", version } */
+const acceptProjectAgreement = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await acceptAgreement({
+      userId, projectId: req.params.id,
+      type: req.body?.type, version: req.body?.version,
+      ipAddress: req.ip || null, userAgent: req.get?.("user-agent") || null,
+    })
+    res.status(201).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/* ── Tier 2 · client writes ───────────────────────────────────────────── */
+
+function portalError(res, e) {
+  if (e?.statusCode && e?.code) {
+    return res.status(e.statusCode).json({ success: false, error: { code: e.code, message: e.message, ...(e.details ? { details: e.details } : {}) } })
+  }
+  throw e
+}
+
+/** POST /member/projects/:id/files — multipart `files[]` (dropzone). */
+const uploadFiles = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  const files = req.files || (req.file ? [req.file] : [])
+  try {
+    const rows = await attachClientFiles({ userId, projectId: req.params.id, files, milestoneId: req.body?.milestoneId || null })
+    res.status(201).json({ success: true, data: rows })
+  } catch (e) {
+    // Never leave orphaned bytes when the DB refused the rows.
+    await Promise.all(files.map((f) => fsp.unlink(f.path).catch(() => null)))
+    return portalError(res, e)
+  }
+})
+
+/** POST /member/projects/:id/comments */
+const addComment = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const comment = await createComment({
+      projectId: req.params.id, authorId: userId, authorRole: "client",
+      body: req.body?.body, milestoneId: req.body?.milestoneId || null, fileId: req.body?.fileId || null,
+    })
+    res.status(201).json({ success: true, data: comment })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/milestones/:milestoneId/approve */
+const approve = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const ms = await approveMilestone({ userId, projectId: req.params.id, milestoneId: req.params.milestoneId, note: req.body?.note })
+    res.status(200).json({ success: true, data: ms })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/milestones/:milestoneId/request-changes */
+const requestChanges = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const ms = await requestMilestoneChanges({ userId, projectId: req.params.id, milestoneId: req.params.milestoneId, note: req.body?.note })
+    res.status(200).json({ success: true, data: ms })
+  } catch (e) { return portalError(res, e) }
+})
+
+/* ── Tier 2 · project-scoped support tickets ─────────────────────────── */
+
+function uploadedFiles(req) {
+  return req.files || (req.file ? [req.file] : [])
+}
+async function discardUploads(files) {
+  await Promise.all(files.map((f) => fsp.unlink(f.path).catch(() => null)))
+}
+
+/** GET /member/projects/:id/tickets */
+const listTickets = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await supportService.listProjectTicketsForUser({ userId, projectId: req.params.id })
+    res.status(200).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** GET /member/projects/:id/tickets/:ticketId — thread with attachments. */
+const getTicket = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await supportService.getProjectTicketForUser({ userId, projectId: req.params.id, ticketId: req.params.ticketId })
+    res.status(200).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/tickets — multipart (`files[]`) or JSON. */
+const createTicket = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  const files = uploadedFiles(req)
+  try {
+    const ticket = await supportService.createProjectTicket({
+      userId, projectId: req.params.id, files,
+      subject:     req.body?.subject,
+      message:     req.body?.message,
+      priority:    req.body?.priority,
+      milestoneId: req.body?.milestoneId || null,
+    })
+    res.status(201).json({ success: true, data: ticket })
+  } catch (e) {
+    await discardUploads(files)
+    return portalError(res, e)
+  }
+})
+
+/** POST /member/projects/:id/tickets/:ticketId/messages — multipart or JSON. */
+const replyTicket = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  const files = uploadedFiles(req)
+  try {
+    const msg = await supportService.createProjectTicketMessage({
+      userId, projectId: req.params.id, ticketId: req.params.ticketId, message: req.body?.message, files,
+    })
+    res.status(201).json({ success: true, data: msg })
+  } catch (e) {
+    await discardUploads(files)
+    return portalError(res, e)
+  }
+})
+
+/* ── Tier 4 · change requests (extra work) ───────────────────────────── */
+
+/** GET /member/projects/:id/change-requests */
+const listChangeRequests = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await changeRequestService.listMine({ userId, projectId: req.params.id })
+    res.status(200).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/change-requests { title, description } */
+const createChangeRequest = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await changeRequestService.createRequest({ userId, projectId: req.params.id, title: req.body?.title, description: req.body?.description })
+    res.status(201).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/change-requests/:crId/accept → { orderId, redirectUrl } */
+const acceptChangeRequest = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await changeRequestService.acceptRequest({ userId, projectId: req.params.id, crId: req.params.crId })
+    res.status(201).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /member/projects/:id/change-requests/:crId/decline */
+const declineChangeRequest = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    const data = await changeRequestService.declineRequest({ userId, projectId: req.params.id, crId: req.params.crId, note: req.body?.note || null })
+    res.status(200).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
 })
 
 /**
@@ -75,7 +286,9 @@ const streamFile = asyncHandler(async (req, res) => {
   const file = await prisma.projectFile.findFirst({
     where: { id: String(fileId), projectId: String(projectId) },
     include: {
-      project: { select: { id: true, userId: true, projectName: true } },
+      // One select — a duplicate `project:` key here silently dropped
+      // requiresNda/ndaVersion and bypassed the NDA gate on downloads.
+      project: { select: { id: true, userId: true, projectName: true, requiresNda: true, ndaVersion: true, accessState: true } },
     },
   })
 
@@ -86,7 +299,23 @@ const streamFile = asyncHandler(async (req, res) => {
     // 404 (not 403) so we don't confirm existence to a non-owner.
     return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "File not found" } })
   }
+  // Tier 4 · deliverables are under NDA until the client has accepted it.
+  const nda = await ndaStatus(file.project, userId)
+  if (nda.required && !nda.accepted) {
+    return res.status(403).json({ success: false, error: { code: "NDA_REQUIRED", message: "Please accept the project NDA before downloading files." } })
+  }
+  // Tier 4 · kill switch: deliverables are withheld (402) while suspended.
+  try { assertDeliverableAccess(file.project, file) } catch (e) { return portalError(res, e) }
 
+  return sendProjectFile({ file, req, res, userId, action: "project.file.downloaded" })
+})
+
+/**
+ * Shared streaming tail used by the member endpoint above and the admin
+ * download endpoint. Authorisation is the CALLER's job — this only resolves
+ * the safe path, logs, and streams.
+ */
+function sendProjectFile({ file, req, res, userId, action }) {
   const abs = resolveSafePath(file.filePath)
   if (!abs) {
     logger.warn("[project file] suspicious path rejected", { fileId: file.id, filePath: file.filePath })
@@ -102,10 +331,10 @@ const streamFile = asyncHandler(async (req, res) => {
     .create({
       data: {
         userId,
-        action:      "project.file.downloaded",
+        action,
         entityType:  "ProjectFile",
         entityId:    file.id,
-        description: `Downloaded ${file.fileName} from project ${file.project.projectName}`,
+        description: `Downloaded ${file.fileName} from project ${file.project?.projectName || file.projectId}`,
         ipAddress:   req.ip || null,
       },
     })
@@ -125,6 +354,11 @@ const streamFile = asyncHandler(async (req, res) => {
     }
   })
   stream.pipe(res)
-})
+}
 
-module.exports = { listMine, getMine, streamFile }
+module.exports = {
+  listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
+  uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
+  listTickets, getTicket, createTicket, replyTicket,
+  listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
+}

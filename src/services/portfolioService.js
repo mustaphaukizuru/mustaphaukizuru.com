@@ -245,13 +245,15 @@ async function getPortfolioBySlug(slug, locale = "en") {
   return serializePortfolio(pickLocale(row, locale), locale)
 }
 
-async function getFeaturedPortfolioUncached(limit = 6) {
+async function getFeaturedPortfolioUncached(limit = 6, locale = "en") {
   const items = await prisma.portfolio.findMany({
     where:   { status: "published", isFeatured: true },
     orderBy: [{ displayOrder: "asc" }, { updatedAt: "desc" }],
     take:    Math.min(24, Math.max(1, Number(limit) || 6)),
   })
-  return items.map(serializePortfolio)
+  // Pass locale explicitly — `items.map(serializePortfolio)` handed the array
+  // index in as the locale and the home page showed English on /es.
+  return items.map((row) => serializePortfolio(row, locale))
 }
 
 async function getRelatedPortfolio(currentId, category, limit = 3, locale = "en") {

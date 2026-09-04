@@ -24,6 +24,11 @@ const fs     = require("fs")
 const path   = require("path")
 const logger = require("../utils/logger")
 const AppError = require("../utils/AppError")
+// Tests mock ../lib/prisma with a bare model stub, so read the helpers lazily
+// and tolerate their absence.
+const prismaLib = require("../lib/prisma")
+const isEnginePanic     = (err) => typeof prismaLib.isEnginePanic === "function" && prismaLib.isEnginePanic(err)
+const recoverIfPanicked = (err) => typeof prismaLib.recoverIfPanicked === "function" && prismaLib.recoverIfPanicked(err)
 
 BigInt.prototype.toJSON = function () { return this.toString() }
 
@@ -71,11 +76,15 @@ function readErrorHtml(filePath) {
   }
 }
 
-const PRISMA_CONNECTION_MSGS = ["Can't reach database", "Connection refused", "ECONNREFUSED", "P1001", "P1002", "P1003"]
+// P1008 operation timed out · P1017 server closed the connection ·
+// P2024 timed out fetching a connection from the pool — all transient and
+// retryable, so they are answered 503 rather than a misleading 400.
+const PRISMA_CONNECTION_MSGS = ["Can't reach database", "Connection refused", "ECONNREFUSED", "P1001", "P1002", "P1003", "P1008", "P1017", "P2024", "Timed out fetching a new connection", "Server has closed the connection"]
 const PRISMA_CLIENT_NAMES    = ["PrismaClientKnownRequestError","PrismaClientUnknownRequestError","PrismaClientRustPanicError","PrismaClientInitializationError","PrismaClientValidationError"]
 
 function isDbConnectionError(err) {
   const msg = err?.message || ""
+  if (["P1001", "P1002", "P1003", "P1008", "P1017", "P2024"].includes(err?.code)) return true
   return PRISMA_CONNECTION_MSGS.some((m) => msg.includes(m))
 }
 
@@ -141,6 +150,33 @@ function errorHandler(err, req, res, next) {
     return res.status(503).json(buildErrorBody(
       "DB_UNAVAILABLE",
       "Service temporarily unavailable. Please try again shortly.",
+    ))
+  }
+
+  // ── Prisma engine panic ("timer has gone away") ────────────────────────
+  // The Rust engine is dead for every subsequent query until it is
+  // recycled. Trigger the recycle here so the next request succeeds, and
+  // answer 503 (retryable) rather than a 400/500 with the raw panic text.
+  if (isEnginePanic(err)) {
+    logger.error("[Prisma] engine panic — recycling:", String(err.message || "").split("\n").find(Boolean))
+    recoverIfPanicked(err)
+    if (sendHtmlError(req, res, 503)) return
+    return res.status(503).json(buildErrorBody(
+      "DB_UNAVAILABLE",
+      "Service temporarily unavailable. Please try again shortly.",
+    ))
+  }
+
+  // ── Prisma engine could not start (missing/incompatible engine binary,
+  //    bad DATABASE_URL) — retryable from the client's point of view, and a
+  //    503 is what uptime monitors + the SPA expect, not a 400.
+  if (err?.name === "PrismaClientInitializationError") {
+    logger.error("[Prisma] engine initialisation failed:", String(err.message || "").split("\n").find(Boolean))
+    if (sendHtmlError(req, res, 503)) return
+    return res.status(503).json(buildErrorBody(
+      "DB_UNAVAILABLE",
+      "Service temporarily unavailable. Please try again shortly.",
+      { prismaCode: err.errorCode || null },
     ))
   }
 
@@ -222,10 +258,22 @@ function errorHandler(err, req, res, next) {
 
   // ── Application errors (legacy {statusCode, code} shape) ──────────────
   const status   = err.statusCode || err.status || 500
-  const message  = err.message || "Internal server error"
+
+  // An error that never chose a status is an unexpected throw, and its
+  // message is whatever the stack produced: a file path, an SQL fragment, a
+  // provider body. In production the client gets a generic line; the log
+  // line below and Sentry keep the real one. Errors that set a status
+  // (AppError above, refundService's withCode here) wrote their message for
+  // the client on purpose and keep it.
+  const explicitStatus = err.statusCode ?? err.status
+  const maskUnexpected = isProd && status >= 500 && explicitStatus == null
+  const message = maskUnexpected
+    ? "Something went wrong. Please try again."
+    : (err.message || "Internal server error")
 
   // Map status to canonical code if the error didn't supply one explicitly.
-  const code = err.code || mapStatusToCode(status)
+  // A masked error also hides its code — ENOENT and friends say too much.
+  const code = maskUnexpected ? "INTERNAL_ERROR" : (err.code || mapStatusToCode(status))
 
   if (status >= 500) {
     logger.error("[Error]", status, err.name, err.message, isProd ? "" : err.stack?.split("\n")[1])

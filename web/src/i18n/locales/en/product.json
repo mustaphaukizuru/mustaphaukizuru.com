@@ -141,7 +141,11 @@
     "securePayment": "Secure payment via Mercado Pago or PayPal. Your card details never touch our servers.",
     "decreaseQty": "Decrease quantity",
     "increaseQty": "Increase quantity",
-    "msi": "Up to {{months}} interest-free months with Mercado Pago"
+    "msi": "Up to {{months}} interest-free months with Mercado Pago",
+    "licenseTier": "License",
+    "licenseTierAria": "Choose a license tier",
+    "seats_one": "{{count}} seat",
+    "seats_other": "{{count}} seats"
   },
   "license": {
     "title": "License & updates",
@@ -163,6 +167,14 @@
       "body": "You get free lifetime updates for the major version you purchased. Every new release appears in your dashboard, ready to re-download.",
       "versionNote": "A future major version may be offered as a paid upgrade at a discount for existing customers."
     },
-    "fullTerms": "Read the full terms"
+    "fullTerms": "Read the full terms",
+    "tiersTitle": "Available licenses",
+    "tiersSubtitle": "Pick the tier that matches how you will use the files. The price updates in the buy box.",
+    "seatsUnlimited": "Unlimited seats",
+    "tierNames": {
+      "personal": "Personal",
+      "commercial": "Commercial",
+      "enterprise": "Enterprise"
+    }
   }
 }

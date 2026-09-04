@@ -1,0 +1,330 @@
+<title>Public Surface Blueprint v4.0</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F7F6FB;--bg-el:#FFFFFF;--bg-sunk:#EEEBF7;--border:#DDD9EC;--border-strong:#B9B2D8;
+  --fg:#1B1930;--fg-muted:#55516E;--fg-subtle:#8A86A3;
+  --accent:#5D3FD3;--accent-fg:#fff;--accent-soft:#E9E4FA;
+  --s1:#5D3FD3;--s2:#C2410C;--s3:#0284C7;--s4:#0F766E;
+  --ok:#15803D;--warn:#B45309;--bad:#B91C1C;--ok-soft:#DCFCE7;--warn-soft:#FEF3C7;--bad-soft:#FEE2E2;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Sora',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F0E17;--bg-el:#17162A;--bg-sunk:#0B0A12;--border:#2A2842;--border-strong:#433F66;
+  --fg:#ECEAF6;--fg-muted:#B4B0CB;--fg-subtle:#7D789A;
+  --accent:#9B85F0;--accent-fg:#0F0E17;--accent-soft:#251F4A;
+  --s1:#9B85F0;--s2:#F0865A;--s3:#4FB3F0;--s4:#3FC4B6;
+  --ok:#4ADE80;--warn:#FBBF24;--bad:#F87171;--ok-soft:#0F2E1C;--warn-soft:#3A2A08;--bad-soft:#3B1212;
+}}
+:root[data-theme="dark"]{
+  --bg:#0F0E17;--bg-el:#17162A;--bg-sunk:#0B0A12;--border:#2A2842;--border-strong:#433F66;
+  --fg:#ECEAF6;--fg-muted:#B4B0CB;--fg-subtle:#7D789A;
+  --accent:#9B85F0;--accent-fg:#0F0E17;--accent-soft:#251F4A;
+  --s1:#9B85F0;--s2:#F0865A;--s3:#4FB3F0;--s4:#3FC4B6;
+  --ok:#4ADE80;--warn:#FBBF24;--bad:#F87171;--ok-soft:#0F2E1C;--warn-soft:#3A2A08;--bad-soft:#3B1212;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.6;margin:0}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:40px 24px 96px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:48px}
+@media(max-width:900px){.wrap{grid-template-columns:1fr;gap:24px}.toc{position:static!important}}
+.toc{position:sticky;top:24px;align-self:start;font-size:13px}
+.toc .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-subtle);margin-bottom:10px}
+.toc a{display:block;color:var(--fg-muted);text-decoration:none;padding:5px 0;border-left:2px solid var(--border);padding-left:12px}
+.toc a:hover,.toc a:focus-visible{color:var(--fg);border-color:var(--accent);outline:none}
+main{min-width:0}
+h1{font-size:34px;line-height:1.15;letter-spacing:-.02em;font-weight:800;margin:0 0 8px;text-wrap:balance}
+h2{font-size:22px;letter-spacing:-.01em;font-weight:700;margin:56px 0 14px;padding-top:24px;border-top:1px solid var(--border);text-wrap:balance}
+h3{font-size:16px;font-weight:700;margin:28px 0 8px}
+p{max-width:70ch;margin:0 0 12px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.meta{font-family:var(--mono);font-size:12px;color:var(--fg-subtle);margin-bottom:28px}
+.verdict{background:var(--bg-el);border:1px solid var(--border);border-left:4px solid var(--accent);padding:18px 22px;border-radius:6px;margin:0 0 28px}
+.verdict p{max-width:none}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;padding:2px 7px;border-radius:3px;background:var(--bg-sunk);color:var(--fg-muted);border:1px solid var(--border);vertical-align:middle}
+.tag.c{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.tag.l{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.tag.g{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.tag.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.tag.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.tag.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.tblwrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px;background:var(--bg-el);margin:14px 0 20px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-subtle);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--bg-sunk);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td code,p code,li code{font-family:var(--mono);font-size:12.5px;background:var(--bg-sunk);padding:1px 5px;border-radius:3px}
+.mono{font-family:var(--mono);font-size:12.5px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+/* nav diagram */
+.navbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--bg-el);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:14px 0 6px;font-size:13px}
+.navbar .logo{font-weight:800;letter-spacing:-.02em;margin-right:8px}
+.navbar .logo small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--fg-subtle);font-weight:500}
+.navbar .item{padding:5px 9px;border-radius:5px;color:var(--fg-muted)}
+.navbar .item.dd::after{content:" ▾";color:var(--fg-subtle)}
+.navbar .sp{flex:1}
+.navbar .util{font-family:var(--mono);font-size:11px;color:var(--fg-subtle);padding:4px 6px;border:1px dashed var(--border-strong);border-radius:4px}
+.navbar .cta{background:var(--accent);color:var(--accent-fg);padding:6px 12px;border-radius:6px;font-weight:600}
+.dd-panel{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;background:var(--bg-el);border:1px solid var(--border);border-radius:8px;padding:12px;margin:0 0 18px}
+@media(max-width:760px){.dd-panel{grid-template-columns:1fr 1fr}}
+.dd-panel .cat{border-left:3px solid;padding:6px 10px;font-size:12.5px}
+.dd-panel .cat b{display:block}
+.dd-panel .cat span{color:var(--fg-muted);display:block}
+.dd-panel .cat i{font-family:var(--mono);font-style:normal;font-size:10.5px;color:var(--fg-subtle)}
+.dd-foot{grid-column:1/-1;border-top:1px solid var(--border);padding-top:8px;font-size:12px;color:var(--fg-muted)}
+/* page blueprint strips */
+.page{border:1px solid var(--border);border-radius:8px;background:var(--bg-el);margin:16px 0 26px;overflow:hidden}
+.page header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;padding:12px 16px;background:var(--bg-sunk);border-bottom:1px solid var(--border)}
+.page header .route{font-family:var(--mono);font-weight:600;font-size:13px}
+.page header .job{color:var(--fg-muted);font-size:13px;flex:1;min-width:220px}
+.sec{display:grid;grid-template-columns:34px 1fr 150px;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13.5px;align-items:start}
+.sec:last-child{border-bottom:0}
+@media(max-width:700px){.sec{grid-template-columns:34px 1fr}.sec .slot{grid-column:2}}
+.sec .n{font-family:var(--mono);font-size:11px;color:var(--fg-subtle);padding-top:3px}
+.sec b{display:block}
+.sec .v{color:var(--fg-muted);font-size:12.5px}
+.sec .v em{font-style:normal;color:var(--fg);font-weight:500}
+.slot{font-family:var(--mono);font-size:11px;line-height:1.5;padding:6px 8px;border:1px dashed var(--border-strong);border-radius:4px;color:var(--fg-muted);background:var(--bg)}
+.slot.svg{border-style:solid;border-color:var(--border)}
+.slot.new{border-color:var(--s2);color:var(--s2)}
+.slot.have{border-color:var(--ok);color:var(--ok)}
+.sec.state{background:var(--bg-sunk)}
+.sec .st{font-family:var(--mono);font-size:11px;padding:1px 6px;border-radius:3px;background:var(--bg-sunk);border:1px solid var(--border);color:var(--fg-subtle);margin-left:6px;vertical-align:middle}
+.sec .st.new{color:var(--s2);border-color:var(--s2)}
+.sec .st.up{color:var(--warn);border-color:var(--warn)}
+.sec .st.keep{color:var(--ok);border-color:var(--ok)}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;font-size:12px;color:var(--fg-muted);margin:8px 0 16px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;border:1px dashed var(--border-strong)}
+.legend .a::before{border:1px solid var(--ok)}.legend .b::before{border:1px dashed var(--s2)}.legend .c::before{border:1px solid var(--border);background:var(--bg-sunk)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg-el);border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-size:13.5px}
+.card h4{margin:0 0 6px;font-size:14px}
+.card p{margin:0 0 6px;max-width:none}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px}
+.phase{display:grid;grid-template-columns:110px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+.phase:last-child{border-bottom:0}
+.phase .k{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600}
+.phase .k small{display:block;color:var(--fg-subtle);font-weight:400}
+.foot{margin-top:56px;padding-top:16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;color:var(--fg-subtle)}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">Contents</div>
+  <a href="#verdict">Verdict</a>
+  <a href="#conflicts">Settle before building</a>
+  <a href="#menu">Menu</a>
+  <a href="#inventory">Page inventory</a>
+  <a href="#pages">Page blueprints</a>
+  <a href="#media">Media register</a>
+  <a href="#shoot">Shot list</a>
+  <a href="#build">Build order</a>
+</nav>
+
+<main>
+<div class="eyebrow">mustaphaukizuru.com · public surface</div>
+<h1>Public Surface Blueprint v4.0</h1>
+<div class="meta">Audit of D:\Github\mustaphaukizuru-repo (branch feat/home-platform-showcase, HEAD 620f2d4) against PROJECT INSTRUCTIONS v4.0 §05–§07 · 3 Sep 2026</div>
+
+<section id="verdict" class="verdict">
+<p><b>The site does not need new pages; it needs the four service pages finished to the §07 blueprint, one audience page for schools, and a media system that currently does not exist.</b> The build is already ahead of the v4.0 documents in engineering (cookie sessions, CSRF, Spanish-first catalogue, booking, lead capture, Lighthouse gates) and behind them in exactly the two places the documents say outrank everything: the visual-first mandate and the service-page blueprint. <code>/services/:slug</code> today implements roughly 3 of the 8 mandated sections; the offerings render as a <code>&lt;ul&gt;</code>; the category "object" is an icon in a tinted box; there is no problem-framing diagram, no outcome tiles, no case evidence, no adjacent-category cards. The brand line says <em>STEM &amp; School Solutions</em> and the description names school administrators as an entry audience — there is no page for them. Photography is one headshot set; there is zero video; there is no visual-asset registry.</p>
+<p>Five contradictions between the code and v4.0 must be decided before any of this is built, or the work will be done twice. They are listed first.</p>
+</section>
+
+<h2 id="conflicts">Settle before building</h2>
+<p>Each row is a place where the codebase and PROJECT INSTRUCTIONS v4.0 disagree. §13.9 requires these surfaced, not resolved silently. The <em>Decision</em> column is my recommendation; the Instructions document is amended accordingly in the same commit as the code change.</p>
+<div class="tblwrap"><table>
+<thead><tr><th>#</th><th>Subject</th><th>Codebase</th><th>Instructions v4.0</th><th>Decision</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td>Category slugs</td><td class="mono">it-strategy-consulting<br>ai-automation<br>cloud-architecture-migration<br>digital-product-engineering</td><td class="mono">strategic-it-consulting<br>ai-workflow-automation<br>cloud-infrastructure<br>digital-product-engineering</td><td><b>Keep the code slugs.</b> §6.1 itself says the slug is a live URL and immutable; the code slugs are what is indexed and in the sitemap. Amend §06. Do not add redirects for slugs that never shipped. <span class="tag c">Certain</span></td></tr>
+<tr><td class="num">2</td><td>Category glyphs</td><td class="mono">Brain · Bot · CloudCog · Code2</td><td class="mono">Compass · Workflow · CloudCog · Blocks</td><td><b>Adopt the v4.0 set.</b> Icons carry no SEO weight, the switch is one data-file edit, and Compass/Workflow/CloudCog/Blocks read as strategy→automation→infra→build far better than Brain/Bot. Change <code>CATEGORIES[n].Icon</code> only. <span class="tag l">Likely</span></td></tr>
+<tr><td class="num">3</td><td>Category accents</td><td>S1 <span class="swatch" style="background:var(--s1)"></span>violet · S2 <span class="swatch" style="background:var(--s2)"></span>terracotta · S3 <span class="swatch" style="background:var(--s3)"></span>azure · <b>S4 violet again</b>. No <code>--svc-*</code> tokens.</td><td>Four distinct tokens <code>--svc-strategy/-automation/-cloud/-product</code>, 4.5:1 on both grounds</td><td><b>Define the four tokens in <code>tokens.css</code>; assign S4 = mint</b> (already in the palette as the EDU tone). Run <code>lint:contrast</code> on all four against light and dashboard-dark. Until this lands, the 2×2 grid cannot be told apart at a glance and §5.2b fails. <span class="tag c">Certain</span></td></tr>
+<tr><td class="num">4</td><td>Animation &amp; icon libraries</td><td><code>gsap</code>, <code>lenis</code>, <code>lottie-react</code>, <code>react-icons</code> are installed and gsap drives the home narrative (commit b6fa0a0).</td><td>Framer Motion only; lucide-react only. GSAP and Lottie named as banned.</td><td><b>Freeze, then retire.</b> No new gsap/lottie/react-icons usage from today. Schedule a <code>refactor(motion)</code> epic to port the home scroll narrative to Framer Motion <code>useScroll</code>; delete the four packages at the end. The alternative — amending the rule to permit gsap — is defensible but it means two motion mental models forever on a one-maintainer codebase. <span class="tag l">Likely</span></td></tr>
+<tr><td class="num">5</td><td>Stack versions</td><td>React 19 · Vite 7 · Tailwind v4 · Router 7</td><td>React 18 + Vite + Tailwind</td><td><b>Amend §03 to the real versions.</b> The code is right; the document is stale. <span class="tag c">Certain</span></td></tr>
+<tr><td class="num">6</td><td>Dark mode scope</td><td><code>[data-theme="dark"]</code> only inside <code>[data-dashboard-shell]</code>; public pages hard-code <code>bg-white</code>/<code>bg-mist</code>.</td><td>§4.2: dark and light first-class on every surface</td><td><b>Defer to Phase B, but stop making it worse:</b> every new public section built from this blueprint uses semantic tokens (<code>--bg</code>, <code>--bg-elevated</code>) not <code>bg-white</code>, so the retrofit is a token flip, not a rewrite. <span class="tag l">Likely</span></td></tr>
+<tr><td class="num">7</td><td>Self-audit taxonomy</td><td><code>/self-audit</code> scores "82 statements across strategy, brand, infrastructure, web &amp; AI, EdTech, managed services" — six sections from the retired 82-service catalogue.</td><td>Closed set of four; nothing may imply another top-level service.</td><td><b>Re-map the six audit sections onto S1–S4</b> (EdTech becomes the school lens inside S1/S4; brand and managed services fold into S4). Keep the tool — it is the best lead magnet on the site — but its result screen must recommend a category, not a retired service. <span class="tag c">Certain</span></td></tr>
+</tbody></table></div>
+
+<h2 id="menu">Menu</h2>
+<p><b>Change the header's primary button from Store to Book a call.</b> A consulting engagement is worth two orders of magnitude more than a digital product, and every service page already funnels to <code>/book</code>; the header should agree with the pages. Store stays as a plain nav link. Contact leaves the header (it remains in the footer, on About, and as the "prefer email?" line on Book) — the risk is a recruiter looking for Contact, which the footer and About block cover.</p>
+
+<h3>Desktop header</h3>
+<div class="navbar" aria-label="Proposed desktop header">
+  <div class="logo">MU<small>Build it. Simplify it. Scale it.</small></div>
+  <span class="item dd">Services</span><span class="item">For Schools</span><span class="item">Work</span><span class="item">Store</span><span class="item">About</span>
+  <span class="sp"></span>
+  <span class="util">⌘K</span><span class="util">EN·ES</span><span class="util">cart</span><span class="util">account</span>
+  <span class="cta">Book a call</span>
+</div>
+<div class="dd-panel" aria-label="Services dropdown">
+  <div class="cat" style="border-color:var(--s1)"><i>S1 · Compass</i><b>Strategic IT Consulting</b><span>Decide correctly before you spend.</span></div>
+  <div class="cat" style="border-color:var(--s2)"><i>S2 · Workflow</i><b>AI &amp; Workflow Automation</b><span>Remove the manual step, permanently.</span></div>
+  <div class="cat" style="border-color:var(--s3)"><i>S3 · CloudCog</i><b>Cloud &amp; Infrastructure</b><span>Cheaper, safer, survives the outage.</span></div>
+  <div class="cat" style="border-color:var(--s4)"><i>S4 · Blocks</i><b>Digital Product Engineering</b><span>Prototype to maintained production.</span></div>
+  <div class="dd-foot">Footer row of the panel: <b>All services</b> · <b>How an engagement works</b> · <b>Free self-audit</b>. The panel is the four glyph+accent pairs in canonical order — the first place a visitor learns the visual system.</div>
+</div>
+<p><b>"For Schools" is an audience page, not a fifth category.</b> It gets no <code>ServiceCategory</code> row, no entry in the Services panel, and its content is composed from S1/S2/S4 offerings plus the two school products already in the store. It earns a header slot because the brand line promises it and because the school administrator is the one buyer who arrives with a vocabulary (SEP, ciclo escolar, plataforma de padres) that the generic service pages do not speak. If you judge the label too close to a service, the fallback is a "By audience" row inside the Services panel — but a header slot converts better. <span class="tag l">Likely</span></p>
+
+<h3>Mobile menu</h3>
+<p>Keep the existing glyph cascade. Order: Services (expands inline to the four categories with glyph + accent), For Schools, Work, Store, About, then a full-width <b>Book a call</b>, then a quiet row: Blog · Contact · Self-audit. Language and theme toggles at the bottom, cart and account at the top bar.</p>
+
+<h3>Footer (four columns)</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>Services</th><th>Explore</th><th>Company</th><th>Legal</th></tr></thead>
+<tbody><tr>
+<td>The four categories, canonical order, each with its glyph. Then: How it works · Free self-audit · Book a call</td>
+<td>For Schools · Work · Store · Blog · Contact</td>
+<td>About · CV (PDF) · GitHub · LinkedIn · Instagram · Newsletter form (double opt-in, already built)</td>
+<td>Terms · Privacy · Aviso de privacidad · Cookies · Refunds · ARCO rights (link to the form inside Privacy)</td>
+</tr></tbody></table></div>
+<p>The footer is where the "closed set of four" is visible in one glance next to the legal block — a school director and a hiring manager both end their scroll here.</p>
+
+<h2 id="inventory">Page inventory</h2>
+<div class="tblwrap"><table>
+<thead><tr><th>Route</th><th>Status</th><th>Action</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td class="mono">/</td><td><span class="tag warn">Upgrade</span></td><td>Re-sequence sections, add school path to TwoPaths, replace prose stats with tiles, add one workflow loop</td><td>Currently 11 sections; rhythm repeats (three card grids in a row). The gsap narrative is the one piece to preserve visually while porting.</td></tr>
+<tr><td class="mono">/services</td><td><span class="tag warn">Upgrade</span></td><td>Isometric hero object, engagement stepper with drawn SVG path, proof band, distinct accents</td><td>Grid and FAQ exist; hero object, stepper path and proof band do not.</td></tr>
+<tr><td class="mono">/services/:slug</td><td><span class="tag bad">Rebuild sections</span></td><td>Implement §07 detail blueprint (8 sections); replace <code>OfferingList</code> <code>&lt;ul&gt;</code> with alternating rows</td><td>Highest commercial value on the site and furthest from spec.</td></tr>
+<tr><td class="mono">/schools</td><td><span class="tag" style="background:var(--accent-soft);color:var(--accent);border-color:transparent">New</span></td><td>Audience landing page (EN/ES)</td><td>Brand promise with no surface. You are an IT manager at a school with Google Certified Educator L2 — the credential with no page.</td></tr>
+<tr><td class="mono">/portfolio · /projects/:slug</td><td><span class="tag ok">Keep</span></td><td>Add per-project media slots (cover 16:10, 2–4 screens, optional loop); tag every project with its S-category</td><td>The scroll-tilt stage is good. Projects need to prove categories, not just exist.</td></tr>
+<tr><td class="mono">/about</td><td><span class="tag warn">Trim</span></td><td>1,616-line page → 8 sections; fix IPN positioning sentence; add location photo strip</td><td>Already visual-rich; problem is length and R6 (one idea per viewport).</td></tr>
+<tr><td class="mono">/store · /store/:slug</td><td><span class="tag ok">Keep</span></td><td>Add "inside the product" preview slot (page thumbnails / 10-s loop) per product</td><td>Nine covers exist; buyers still cannot see inside.</td></tr>
+<tr><td class="mono">/book · /book/:serviceSlug</td><td><span class="tag ok">Keep</span></td><td>Carry the category glyph into HostCard; show the 3-step "what happens after you book"</td><td>Already the conversion endpoint; needs the category identity threaded through.</td></tr>
+<tr><td class="mono">/contact</td><td><span class="tag ok">Keep</span></td><td>Move out of header; replace the SVG stock-style illustration with the response-time stat tile + channel icon row</td><td>882 lines for a form; the confetti and illustration are decoration without information (R8).</td></tr>
+<tr><td class="mono">/blog · /blog/:slug</td><td><span class="tag ok">Keep</span></td><td>Author strip with photo; category filter mapped to S1–S4</td><td>Footer-only surface; fine as is.</td></tr>
+<tr><td class="mono">/self-audit</td><td><span class="tag warn">Re-map</span></td><td>Six sections → four categories (conflict #7)</td><td>Best lead magnet on the site, currently speaking the retired taxonomy.</td></tr>
+<tr><td class="mono">/terms /privacy /refund /cookies</td><td><span class="tag ok">Keep</span></td><td>Privacy gets an ARCO request form and a retention table (data → period → basis)</td><td>Required before S1-5 is sold (§10, R7).</td></tr>
+<tr><td class="mono">404 / error / empty</td><td><span class="tag warn">Upgrade</span></td><td>One isometric "disconnected node" object per state, tinted by context</td><td>R2 names them explicitly.</td></tr>
+</tbody></table></div>
+
+<h2 id="pages">Page blueprints</h2>
+<p>Each strip is one page. Left column is scroll order; the right column is the reserved media slot with its register ID (see <a href="#media">Media register</a>). Every section names its visual anchor because §5.4 makes text-only sections an incomplete deliverable.</p>
+<div class="legend"><span class="a">Asset exists in repo</span><span class="b">New asset to produce</span><span class="c">SVG-as-code, no file</span></div>
+
+<div class="page">
+<header><span class="route">/</span><span class="job">Job: a stranger picks a path (business · school · founder · hire me · buy) in one screen</span><span class="tag">11 → 9 sections</span></header>
+<div class="sec"><span class="n">01</span><div><b>Hero — positioning + owner<span class="st keep">keep</span></b><div class="v">One line, mantra as sub, two CTAs (Book a call · See the work). Portrait small, not dominant. <em>Motion:</em> word-by-word reveal, 300 ms.</div></div><div class="slot have">M-01 portrait (have)<br>448px webp/avif</div></div>
+<div class="sec"><span class="n">02</span><div><b>Three paths<span class="st up">upgrade</span></b><div class="v">TwoPaths becomes three: <em>Business</em> → /services, <em>School</em> → /schools, <em>Founder</em> → /services/digital-product-engineering. Each tile: glyph, one-line promise, accent bleed on hover.</div></div><div class="slot svg">SVG glyph tiles</div></div>
+<div class="sec"><span class="n">03</span><div><b>Platform showcase<span class="st keep">keep · port motion</span></b><div class="v">The screen that straightens on scroll. Port from gsap to Framer <code>useScroll</code>; same choreography.</div></div><div class="slot have">M-02 showcase screenshot (have)<br>1440·1200·800·400</div></div>
+<div class="sec"><span class="n">04</span><div><b>Four services<span class="st up">upgrade</span></b><div class="v">2×2, canonical order, distinct accents (conflict #3), offering-count badge in mono. Staggered entrance.</div></div><div class="slot svg">Category glyphs + pattern textures</div></div>
+<div class="sec"><span class="n">05</span><div><b>One workflow, running<span class="st new">new</span></b><div class="v">Full-bleed muted loop of a real automation (a document arriving → parsed → row appears in a sheet). 8–12 s, poster frame, pauses off-screen. Caption: what it replaced. Never required to understand the page.</div></div><div class="slot new">M-03 loop · 16:9 · 1280×720<br>mp4 h264 ≤1.5 MB + webm + poster avif</div></div>
+<div class="sec"><span class="n">06</span><div><b>Proof band<span class="st up">upgrade</span></b><div class="v">Stat tiles in JetBrains Mono: years shipping (8+), countries (4), languages (EN·ES·TR), projects delivered (real count from portfolio). No invented numbers; the "40%" claim stays off the home page until sourced (R6).</div></div><div class="slot svg">Animated counters</div></div>
+<div class="sec"><span class="n">07</span><div><b>Selected work<span class="st keep">keep</span></b><div class="v">Three projects, each tagged with its S-category glyph. Uses project covers.</div></div><div class="slot have">M-05 project covers (3 have)</div></div>
+<div class="sec"><span class="n">08</span><div><b>Clients &amp; institutions<span class="st keep">keep</span></b><div class="v">Logo wall (exists). Pair with one sentence, not a paragraph.</div></div><div class="slot have">M-04 company logos (have)</div></div>
+<div class="sec"><span class="n">09</span><div><b>Final CTA<span class="st keep">keep</span></b><div class="v">Book a call. Merge FeaturedProducts and LatestPosts out of the home page — they are the third and fourth card grid in a row (R7) and neither converts.</div></div><div class="slot svg">Isometric node object</div></div>
+</div>
+
+<div class="page">
+<header><span class="route">/services</span><span class="job">Job: understand four categories and their order in under 30 seconds; book</span><span class="tag">§07 index</span></header>
+<div class="sec"><span class="n">01</span><div><b>Hero<span class="st up">upgrade</span></b><div class="v">One-line positioning. Isometric object that separates into the four glyphs on scroll (Framer <code>useScroll</code> + <code>useTransform</code> on four SVG groups).</div></div><div class="slot svg">M-06 isometric object<br>SVG, one light source</div></div>
+<div class="sec"><span class="n">02</span><div><b>Four-card grid<span class="st up">upgrade</span></b><div class="v">Exists. Add accent-tinted pattern per card (grid · circuit · contour · isometric field), hover elevation with accent bleed, offering count in mono.</div></div><div class="slot svg">Pattern library (inline SVG)</div></div>
+<div class="sec"><span class="n">03</span><div><b>Engagement stepper<span class="st up">upgrade</span></b><div class="v">HowItWorks (call → proposal → delivery) becomes 4 steps with a connector path drawn on scroll (<code>pathLength</code> animation). Add step 4: <em>Handover &amp; runbook</em> — it is already a proof point in the catalogue.</div></div><div class="slot svg">SVG path stepper</div></div>
+<div class="sec"><span class="n">04</span><div><b>Proof band<span class="st new">new</span></b><div class="v">Same tiles as home; add "Runbooks included" and "No handoffs" as glyph tiles, not sentences.</div></div><div class="slot svg">Stat tiles</div></div>
+<div class="sec"><span class="n">05</span><div><b>Packages strip<span class="st keep">keep</span></b><div class="v">Fixed-price packages with checkout. Prices in mono, currency explicit.</div></div><div class="slot svg">—</div></div>
+<div class="sec"><span class="n">06</span><div><b>FAQ + lead capture + CTA<span class="st keep">keep</span></b><div class="v">Existing. FAQ accordion is glyph-led (R3 satisfied).</div></div><div class="slot svg">—</div></div>
+</div>
+
+<div class="page">
+<header><span class="route">/services/:slug</span><span class="job">Job: this category is the remedy for my problem; here is proof; book</span><span class="tag">§07 detail · ×4</span></header>
+<div class="sec"><span class="n">01</span><div><b>Category hero<span class="st up">rebuild</span></b><div class="v">Full-bleed accent gradient + category pattern; glyph mark; promise as <code>h1</code>; primary CTA; isometric object at right. Breadcrumb stays.</div></div><div class="slot svg">M-08…M-11 objects<br>S1 compass/roadmap · S2 node graph · S3 server rack → cloud · S4 device stack</div></div>
+<div class="sec"><span class="n">02</span><div><b>Problem framing<span class="st new">new</span></b><div class="v">≤2 short paragraphs paired with a <em>before/after</em> diagram: S1 tangled licences → consolidated stack · S2 manual hand-offs → pipeline · S3 single server → redundant cloud · S4 sketch → shipped product.</div></div><div class="slot svg">Before/after SVG diagram</div></div>
+<div class="sec"><span class="n">03</span><div><b>Offerings (5 or 6)<span class="st up">rebuild</span></b><div class="v">Replace <code>OfferingList</code> <code>&lt;ul&gt;</code> with alternating rows: own Lucide icon, micro-diagram or mockup, one outcome claim, duration and pricing model in mono. Row archetype alternates (R7).</div></div><div class="slot svg">Per-offering micro-diagram<br>(21 small SVGs, data-keyed)</div></div>
+<div class="sec"><span class="n">04</span><div><b>Outcome metrics<span class="st new">new</span></b><div class="v">Stat tiles or before/after bars. <em>Only sourced numbers.</em> Where none exists, qualitative tile (e.g. "Zero-downtime releases") with glyph.</div></div><div class="slot svg">Stat tiles / bar chart</div></div>
+<div class="sec"><span class="n">05</span><div><b>Deliverables<span class="st new">new</span></b><div class="v">Icon grid built from the existing <code>deliverables[]</code> arrays — the data already exists, it renders as bullets today.</div></div><div class="slot svg">Icon grid</div></div>
+<div class="sec"><span class="n">06</span><div><b>Case evidence<span class="st new">new</span></b><div class="v">Device-framed screenshots or a muted loop. S2 already has the interactive WhatsApp qualifier demo — keep it here. S1: roadmap document mockup. S3: deploy pipeline terminal loop. S4: school platform walkthrough.</div></div><div class="slot new">M-12 S1 roadmap mockup<br>M-13 S2 demo (have)<br>M-14 S3 pipeline loop<br>M-15 S4 platform loop</div></div>
+<div class="sec"><span class="n">07</span><div><b>Adjacent services<span class="st up">rebuild</span></b><div class="v">Three cards, canonical order, never the current one. Today this is a row of underlined text links inside the CTA.</div></div><div class="slot svg">Glyph cards</div></div>
+<div class="sec"><span class="n">08</span><div><b>FAQ · lead capture · CTA<span class="st keep">keep</span></b><div class="v">CTA carries the category glyph and accent; Book button pre-selects the category (already wired).</div></div><div class="slot svg">—</div></div>
+</div>
+
+<div class="page">
+<header><span class="route">/schools</span><span class="job">Job: a school director sees someone who runs school IT every day and can build the platform</span><span class="tag" style="background:var(--accent-soft);color:var(--accent);border-color:transparent">new · EN/ES · ES is source register</span></header>
+<div class="sec"><span class="n">01</span><div><b>Hero — from inside a school</b><div class="v">"Tecnología escolar, sin fricción." Real school-context photograph (with institutional consent, no student faces). Credentials as chips: IT Manager at a K-12 · Google Certified Educator L2 · CS teacher.</div></div><div class="slot new">M-16 school-context photo<br>3:2 · 2400×1600 · avif/webp</div></div>
+<div class="sec"><span class="n">02</span><div><b>The school year as a timeline</b><div class="v">Horizontal SVG timeline of a ciclo escolar (inscripciones → SEP reporting → evaluaciones → cierre) with the system touched at each point. The one visual only this subject would have.</div></div><div class="slot svg">School-year SVG timeline</div></div>
+<div class="sec"><span class="n">03</span><div><b>Four school outcomes, mapped to categories</b><div class="v">Tiles: <em>Cut licence waste</em> (S1-1) · <em>Parent comms automated</em> (S2-2) · <em>Backups that survive</em> (S3-3) · <em>A school platform you own</em> (S4-2). Each tile carries its category glyph and links to that category page — the page composes from the four, it never adds to them.</div></div><div class="slot svg">Glyph tiles</div></div>
+<div class="sec"><span class="n">04</span><div><b>Evidence — school platforms shipped</b><div class="v">intellectual-school and raindrop-college projects in device frames; one 15-s walkthrough loop.</div></div><div class="slot have">M-17 project screens (have)<br>M-18 walkthrough loop (new)</div></div>
+<div class="sec"><span class="n">05</span><div><b>Start with the products</b><div class="v">School IT Audit Checklist and STEM Program Planning Pack from the store — low-commitment first purchase.</div></div><div class="slot have">Product covers (have)</div></div>
+<div class="sec"><span class="n">06</span><div><b>Free self-audit for schools → CTA</b><div class="v">Links to /self-audit (school lens). Book a call with the S1 glyph.</div></div><div class="slot svg">—</div></div>
+</div>
+
+<div class="page">
+<header><span class="route">/about</span><span class="job">Job: a hiring manager or client verifies seniority and range in two minutes</span><span class="tag">1,616 lines → 8 sections</span></header>
+<div class="sec"><span class="n">01</span><div><b>Hero portrait<span class="st keep">keep</span></b><div class="v">Existing orbit ring. Keep.</div></div><div class="slot have">M-19 portrait (have)</div></div>
+<div class="sec"><span class="n">02</span><div><b>Four countries, one strip<span class="st new">new</span></b><div class="v">Rwanda · Turkey · Ethiopia · Mexico as a photo strip from your own archive, colour-graded to brand. This is the single most differentiating fact on the profile and it is currently a sentence.</div></div><div class="slot new">M-21 four location photos<br>4:5 each · 1200×1500</div></div>
+<div class="sec"><span class="n">03</span><div><b>Stats strip<span class="st keep">keep</span></b><div class="v">Tiles in mono. Keep.</div></div><div class="slot svg">—</div></div>
+<div class="sec"><span class="n">04</span><div><b>Timeline<span class="st up">trim</span></b><div class="v">Education renders UEA M.Sc. as <em>completed June 2026</em>, IPN as <em>in progress</em> with no end date, and the positioning sentence (systems-level depth beneath the full-stack layer — Instructions §16). Verify the current copy against this before merge.</div></div><div class="slot svg">SVG timeline</div></div>
+<div class="sec"><span class="n">05</span><div><b>Certificates<span class="st keep">keep</span></b><div class="v">Coverflow exists.</div></div><div class="slot have">M-20 certificates (have)</div></div>
+<div class="sec"><span class="n">06</span><div><b>Stack &amp; competencies<span class="st up">merge</span></b><div class="v">TechRow + CoreCompetencies + OrbitingCircles are three visuals for one idea (R6, R8). Keep one: the competency radial mapped to S1–S4.</div></div><div class="slot svg">Competency radial</div></div>
+<div class="sec"><span class="n">07</span><div><b>Workspace<span class="st new">new</span></b><div class="v">One environmental photo — desk, screens, a real diagram on the wall. Replaces the phone-mockup CTA, which is a generic device shot.</div></div><div class="slot new">M-22 workspace photo · 16:9</div></div>
+<div class="sec"><span class="n">08</span><div><b>CV + contact<span class="st keep">keep</span></b><div class="v">Download CV (PDF, EN/ES), email, LinkedIn. Recruiter exit.</div></div><div class="slot svg">—</div></div>
+</div>
+
+<div class="grid2">
+<div class="card"><h4><span class="mono">/portfolio · /projects/:slug</span></h4><p>Keep the scroll-tilt stage. Per project reserve: cover 16:10 (M-23…), 2–4 inner screens 16:9 in device frames, optional 10-s loop, category glyph, stack chips, one outcome tile. Filter by S1–S4 replaces the current ServiceFilter taxonomy.</p></div>
+<div class="card"><h4><span class="mono">/store · /store/:slug</span></h4><p>Covers exist (9). Reserve on each product: 3 page thumbnails "inside the product" (M-30, 3:4) or a 10-s flip-through loop; format/pages/size tile in mono; the buyer's-lens chip (school · business · individual).</p></div>
+<div class="card"><h4><span class="mono">/book</span></h4><p>HostCard gets the category glyph and accent when <code>?service=</code> is present. Add a 3-step "after you book" stepper (Meet link → 30-min call → written proposal within N days — N only if you commit to it). Host photo exists.</p></div>
+<div class="card"><h4><span class="mono">/contact</span></h4><p>Drop the illustration and confetti. Anchor: channel icon row (email · LinkedIn · WhatsApp business · GitHub) plus one stat tile — measured median response time, once you have the number. Turnstile and honeypot stay.</p></div>
+<div class="card"><h4><span class="mono">/blog</span></h4><p>Cover art exists. Add author strip (portrait, role, category tags). Post categories map to S1–S4 + Schools so every article becomes a path back to a service.</p></div>
+<div class="card"><h4>404 · error · empty · loading</h4><p>One isometric object family: a node graph with one node detached (404), dimmed (offline), empty (no results). Tinted by the section's accent. Framer draw-on; reduced-motion shows the final frame.</p></div>
+</div>
+
+<h2 id="media">Media register</h2>
+<p>This is the "reserve a place" list. Every slot has an ID so it can become a <code>VisualAsset</code> row (Description v4.0 §5.4) and be audited. Formats follow §5.3: AVIF + WebP with fallback, explicit width/height, lazy below the fold. Video: H.264 MP4 + WebM, ≤1.5 MB, poster AVIF, <code>muted playsinline loop</code>, paused off-screen, static poster under <code>prefers-reduced-motion</code>.</p>
+<div class="tblwrap"><table>
+<thead><tr><th>ID</th><th>Page · section</th><th>Type</th><th>Ratio · size</th><th>Content</th><th>Status</th><th>Priority</th></tr></thead>
+<tbody>
+<tr><td class="mono">M-01</td><td>Home · hero</td><td>Photo</td><td class="mono">1:1 · 448</td><td>Headshot</td><td><span class="tag ok">Have</span></td><td>—</td></tr>
+<tr><td class="mono">M-02</td><td>Home · showcase</td><td>Screenshot</td><td class="mono">16:10 · 1440</td><td>Platform dashboard</td><td><span class="tag ok">Have</span></td><td>—</td></tr>
+<tr><td class="mono">M-03</td><td>Home · workflow</td><td>Video loop</td><td class="mono">16:9 · 1280×720 · 8–12 s</td><td>Real document-extraction run (S2-5)</td><td><span class="tag warn">Produce</span></td><td>P1</td></tr>
+<tr><td class="mono">M-04</td><td>Home · clients</td><td>Logos</td><td class="mono">SVG / webp</td><td>Company marks</td><td><span class="tag ok">Have</span></td><td>—</td></tr>
+<tr><td class="mono">M-05</td><td>Home · work</td><td>Covers</td><td class="mono">16:10 · 1600</td><td>3 project covers</td><td><span class="tag ok">Have</span></td><td>—</td></tr>
+<tr><td class="mono">M-06</td><td>Services · hero</td><td>SVG object</td><td class="mono">code</td><td>Isometric object splitting into 4 glyphs</td><td><span class="tag warn">Build</span></td><td>P1</td></tr>
+<tr><td class="mono">M-07</td><td>Services · patterns</td><td>SVG library</td><td class="mono">code</td><td>grid · dots · isometric · contour · circuit</td><td><span class="tag warn">Build</span></td><td>P1</td></tr>
+<tr><td class="mono">M-08…11</td><td>Category heroes ×4</td><td>SVG objects</td><td class="mono">code</td><td>Compass/roadmap · node graph · rack→cloud · device stack; one light source, one perspective</td><td><span class="tag warn">Build</span></td><td>P1</td></tr>
+<tr><td class="mono">M-12</td><td>S1 · evidence</td><td>Mockup</td><td class="mono">4:3 · 1600</td><td>Anonymised roadmap deliverable in a document frame</td><td><span class="tag warn">Produce</span></td><td>P2</td></tr>
+<tr><td class="mono">M-13</td><td>S2 · evidence</td><td>Interactive</td><td class="mono">component</td><td>WhatsApp qualifier demo</td><td><span class="tag ok">Have</span></td><td>—</td></tr>
+<tr><td class="mono">M-14</td><td>S3 · evidence</td><td>Video loop</td><td class="mono">16:9 · 12 s</td><td>Deploy pipeline terminal → green checks</td><td><span class="tag warn">Produce</span></td><td>P2</td></tr>
+<tr><td class="mono">M-15</td><td>S4 · evidence</td><td>Video loop</td><td class="mono">16:9 · 15 s</td><td>School platform walkthrough (shared with M-18)</td><td><span class="tag warn">Produce</span></td><td>P1</td></tr>
+<tr><td class="mono">M-16</td><td>Schools · hero</td><td>Photo</td><td class="mono">3:2 · 2400×1600</td><td>Real school context, institutional consent, no student faces</td><td><span class="tag warn">Shoot</span></td><td>P1</td></tr>
+<tr><td class="mono">M-17</td><td>Schools · evidence</td><td>Screens</td><td class="mono">16:9 ×4</td><td>intellectual-school · raindrop-college in device frames</td><td><span class="tag ok">Have</span></td><td>—</td></tr>
+<tr><td class="mono">M-18</td><td>Schools · walkthrough</td><td>Video loop</td><td class="mono">16:9 · 15 s</td><td>= M-15</td><td><span class="tag warn">Produce</span></td><td>P1</td></tr>
+<tr><td class="mono">M-19/20</td><td>About</td><td>Photo · certs</td><td class="mono">—</td><td>Portrait, certificate coverflow</td><td><span class="tag ok">Have</span></td><td>—</td></tr>
+<tr><td class="mono">M-21</td><td>About · countries</td><td>Photos ×4</td><td class="mono">4:5 · 1200×1500</td><td>Rwanda · Turkey · Ethiopia · Mexico, own archive, brand-graded</td><td><span class="tag warn">Select</span></td><td>P2</td></tr>
+<tr><td class="mono">M-22</td><td>About · workspace</td><td>Photo</td><td class="mono">16:9 · 2400</td><td>Environmental portrait at desk</td><td><span class="tag warn">Shoot</span></td><td>P2</td></tr>
+<tr><td class="mono">M-23…</td><td>Projects</td><td>Screens</td><td class="mono">16:9 ×2–4 each</td><td>Inner screens per project</td><td><span class="tag warn">Capture</span></td><td>P2</td></tr>
+<tr><td class="mono">M-30…</td><td>Store products ×9</td><td>Thumbnails</td><td class="mono">3:4 ×3 each</td><td>Inside-the-product pages</td><td><span class="tag warn">Render</span></td><td>P3</td></tr>
+<tr><td class="mono">M-40</td><td>404 · empty · error</td><td>SVG family</td><td class="mono">code</td><td>Node-graph object in three states</td><td><span class="tag warn">Build</span></td><td>P2</td></tr>
+<tr><td class="mono">M-50</td><td>OG images</td><td>Generated</td><td class="mono">1200×630</td><td>Per page/category, glyph + accent — <code>og:build</code> script exists</td><td><span class="tag ok">Pipeline</span></td><td>P1</td></tr>
+</tbody></table></div>
+<p>Banned for every slot (§5.2i): stock handshakes, team-at-whiteboard, abstract blue tech, AI faces, template heroes. The MercadoPago "handshake" file in <code>public/images/brand</code> is a payment-rail logo, not photography — it is fine where it is.</p>
+
+<h2 id="shoot">Shot list</h2>
+<p>One half-day session covers every photographic slot above. Shoot RAW, deliver 3:2 masters; crops derive from them. Brand grade: cool neutrals, violet lifted in shadows, no orange-teal.</p>
+<div class="tblwrap"><table>
+<thead><tr><th>#</th><th>Shot</th><th>Feeds</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td>Environmental portrait at desk, two screens, real code or diagram visible</td><td class="mono">M-22, blog author strip</td><td>Landscape and portrait framings</td></tr>
+<tr><td class="num">2</td><td>Hands sketching an architecture diagram on paper or whiteboard</td><td class="mono">S1 / S4 problem framing, About</td><td>Your own diagram, legible — this is the anti-stock version of the whiteboard cliché</td></tr>
+<tr><td class="num">3</td><td>School context: server closet, classroom tech, front desk system</td><td class="mono">M-16</td><td>Written institutional consent; no students; no identifiable school branding unless approved</td></tr>
+<tr><td class="num">4</td><td>Teaching moment from behind (screen with your CS material)</td><td class="mono">Schools page, About</td><td>Faces of minors never; back-of-room framing</td></tr>
+<tr><td class="num">5</td><td>Vertical 9:16 portrait, plain ground</td><td class="mono">Social, OG fallback</td><td>Same wardrobe as #1 for consistency</td></tr>
+<tr><td class="num">6</td><td>Screen recordings (no camera): extraction run, deploy pipeline, school platform walkthrough</td><td class="mono">M-03, M-14, M-15/18</td><td>1920×1080 source, 60 fps, cursor hidden, demo data only; edit to ≤15 s</td></tr>
+</tbody></table></div>
+
+<h2 id="build">Build order</h2>
+<p>Sequenced by revenue proximity, matching Description v4.0 §06. Each row is one epic; branch names follow the repo convention.</p>
+<div class="phase"><div class="k">A-0<small>1 day</small></div><div><b>Decisions in code</b> — <code>chore/v4-alignment</code>: define <code>--svc-*</code> tokens (S4 = mint, contrast-linted), swap the four glyphs, amend Instructions §03/§06 to the live stack and slugs, re-export to <code>_claude-project-backup/v4.1</code>.</div></div>
+<div class="phase"><div class="k">A-1<small>3–4 days</small></div><div><b>Visual vocabulary</b> — <code>feat/visual-vocabulary</code>: pattern library (M-07), isometric object set (M-06, M-08…11, M-40) as data-keyed SVG components, <code>VisualAsset</code> registry table + seed, stat tile / stepper / before-after primitives with all states.</div></div>
+<div class="phase"><div class="k">A-2<small>4–5 days</small></div><div><b>Category detail pages</b> — <code>feat/services-detail-blueprint</code>: the 8-section page, <code>OfferingList</code> → alternating rows, deliverables icon grid, adjacent cards, per-category evidence slots wired to the registry (empty-state designed, not blank).</div></div>
+<div class="phase"><div class="k">A-3<small>2 days</small></div><div><b>Services index + header</b> — <code>feat/services-index-and-nav</code>: hero object, drawn stepper, proof band, Services dropdown panel, Book-a-call primary CTA, footer four-column.</div></div>
+<div class="phase"><div class="k">A-4<small>3 days</small></div><div><b>/schools</b> — <code>feat/schools-audience-page</code>: Spanish authored first, English translated; school-year timeline; composes from catalogue data only. Self-audit re-mapped to S1–S4 in the same epic (conflict #7).</div></div>
+<div class="phase"><div class="k">B-1<small>3–4 days</small></div><div><b>Home &amp; About retrofit</b> — <code>refactor/home-about-visual-first</code>: three paths, workflow loop slot, home stripped to 9 sections, About to 8, gsap narrative ported to Framer, four packages removed.</div></div>
+<div class="phase"><div class="k">B-2<small>parallel</small></div><div><b>Media production</b> — shot list + three screen recordings + country photo selection; encoded via the existing <code>optimize:images</code> / <code>images:webp</code> pipeline plus an <code>ffmpeg</code> script added for loops.</div></div>
+<div class="phase"><div class="k">B-3<small>2 days</small></div><div><b>Public dark mode</b> — extend <code>[data-theme]</code> beyond the dashboard shell; only viable because A-1…A-4 were built on semantic tokens.</div></div>
+<p>Ship gate per epic is unchanged: build passes, <code>lint:tokens</code> / <code>lint:contrast</code> / <code>test:i18n</code> clean, Lighthouse budgets met with the visuals in place, master deployable.</p>
+
+<div class="foot">Source of truth order for anything not decided here: PROJECT INSTRUCTIONS v4.0 → PROJECT DESCRIPTION v4.0 → IDENTITY.md v1.0 → codebase. This blueprint changes none of the closed set of four, the tagline, or the stack.</div>
+</main>
+</div>

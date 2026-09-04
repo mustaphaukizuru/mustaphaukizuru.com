@@ -295,7 +295,16 @@ if (diluted.length) {
 function scanUndeclaredTextOnLight() {
   const LIGHT = /^(white|black|mist|slate-100|[a-z]+-(pale|ghost|50|100|light|mid)|[a-z]+-rgb)$/
   const DARK_FILL = /\bbg-(charcoal|charcoal-deep|charcoal-light|charcoal-80|violet|violet-deep|violet-mid|azure-deep|black|slate-[6-9]00)\b/
-  const LARGE = /\b(text-display|text-page|text-(3|4|5|6)xl|text-\[clamp\((2|3|4)|text-\[(2|3|4)\d?px\]|text-hero)\b/
+  /* The trailing \b used to sit after the whole alternation, which quietly
+   * killed all three arbitrary-value branches: they end in `]` or `(`, and a
+   * word boundary cannot match between a non-word character and the space
+   * that follows. `text-[28px]`, `text-[32px]` and `text-[clamp(...)]` all
+   * tested false, so every large arbitrary-size heading was measured against
+   * the 4.5:1 body bar instead of the 3:1 large-text one this file documents.
+   * The boundary now applies only to the branches that end in a word
+   * character; the bracket forms are self-delimiting. \d is required rather
+   * than optional too, so `text-[2px]` no longer counts as large text. */
+  const LARGE = /\b(?:text-(?:display|page|hero)\b|text-(?:3|4|5|6)xl\b|text-\[clamp\((?:2|3|4)|text-\[(?:2|3|4)\dpx\])/
   const CLASS_RE = /className\s*=\s*(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})/g
   const TEXT_RE = /\btext-([a-z]+(?:-[a-z0-9]+)*)(?:\/(\d{1,3}))?\b/g
 

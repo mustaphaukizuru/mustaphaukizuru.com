@@ -102,7 +102,7 @@ afterEach(() => { jest.useRealTimers() })
 describe("computeTotals", () => {
   it("sums priceSnapshot × quantity across items", () => {
     expect(computeTotals([item({ priceSnapshot: dec(50), quantity: 2 }), item({ priceSnapshot: dec(19.99), quantity: 1 })], null))
-      .toEqual({ subtotal: 119.99, discount: 0, tax: 0, total: 119.99 })
+      .toMatchObject({ subtotal: 119.99, discount: 0, total: 119.99, taxIncluded: true })
   })
 
   it("treats a missing quantity as 1", () => {
@@ -122,7 +122,7 @@ describe("computeTotals", () => {
       [item({ priceSnapshot: dec(100), quantity: 2 })],
       { isActive: true, discountType: "percentage", discountValue: 25 },
     )
-    expect(totals).toEqual({ subtotal: 200, discount: 50, tax: 0, total: 150 })
+    expect(totals).toMatchObject({ subtotal: 200, discount: 50, total: 150 })
   })
 
   it("applies a fixed coupon and never lets the total go negative", () => {
@@ -130,7 +130,7 @@ describe("computeTotals", () => {
       [item({ priceSnapshot: dec(20) })],
       { isActive: true, discountType: "fixed", discountValue: 500 },
     )
-    expect(totals).toEqual({ subtotal: 20, discount: 20, tax: 0, total: 0 })
+    expect(totals).toMatchObject({ subtotal: 20, discount: 20, tax: 0, total: 0 })
   })
 
   it("ignores an inactive coupon", () => {
@@ -142,8 +142,19 @@ describe("computeTotals", () => {
     expect(totals.total).toBe(100)
   })
 
-  it("charges zero tax (digital-goods policy)", () => {
-    expect(computeTotals([item()], null).tax).toBe(0)
+  it("reports the IVA CONTAINED in the total without changing the total", () => {
+    // 50.00 at 16% inclusive → 43.10 net + 6.90 IVA
+    const totals = computeTotals([item()], null)
+    expect(totals.total).toBe(50)
+    expect(totals.tax).toBe(6.9)
+    expect(totals.taxRate).toBe(0.16)
+    expect(totals.taxIncluded).toBe(true)
+  })
+
+  it("exempt products contribute no tax", () => {
+    const totals = computeTotals([item({ product: { taxExempt: true } })], null)
+    expect(totals.tax).toBe(0)
+    expect(totals.total).toBe(50)
   })
 
   it("rounds to 2 decimals", () => {
@@ -299,7 +310,7 @@ describe("addItem", () => {
     expect(prisma.cartItem.create).toHaveBeenCalledWith({
       data: {
         cartId: "cart_1", itemType: "product", productId: "p_1", serviceId: null,
-        titleSnapshot: "Starter Kit", priceSnapshot: PRODUCT.price, quantity: 2,
+        titleSnapshot: "Starter Kit", priceSnapshot: PRODUCT.price, licenseTier: null, quantity: 2,
       },
     })
   })

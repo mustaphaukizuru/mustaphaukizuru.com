@@ -28,9 +28,39 @@ beforeAll(() => {
 })
 
 describe("POST /api/v1/consultations", () => {
-  test("unauthenticated → 401", async () => {
+  test("unauthenticated without customerEmail → 400 VALIDATION_ERROR (guest booking needs name + email)", async () => {
     const res = await request(ctx.app).post("/api/v1/consultations").send({ startUtc: SLOT.toISOString(), timezone: TZ })
+    expect(res.status).toBe(400)
+    expect(res.body.code).toBe("VALIDATION_ERROR")
+    expect(ctx.prisma.rows("consultation")).toHaveLength(0)
+  })
+
+  test("guest with a new email → 201, passwordless account + claim email", async () => {
+    // Distinct slot so the host+slot unique index is untouched for the race test below
+    const guestSlot = new Date(SLOT.getTime() + 2 * 60 * 60_000)
+    ctx.mocks.availabilityService.getAvailableSlots.mockResolvedValueOnce([{ startUtc: guestSlot.toISOString() }])
+    const res = await request(ctx.app)
+      .post("/api/v1/consultations")
+      .send({ serviceId: ctx.service.id, startUtc: guestSlot.toISOString(), timezone: TZ, customerName: "Guest Gal", customerEmail: "guest@example.com" })
+    expect(res.status).toBe(201)
+    expect(res.body.data.isNewUser).toBe(true)
+    const guest = ctx.prisma.rows("user").find((u) => u.email === "guest@example.com")
+    expect(guest).toMatchObject({ authProvider: "checkout", passwordHash: null })
+    expect(res.body.data.userId).toBe(guest.id)
+    await new Promise((r) => setImmediate(r))
+    expect(ctx.mocks.emailService.sendTemplateEmail).toHaveBeenCalledWith(expect.objectContaining({ templateKey: "auth.account-claim", to: "guest@example.com" }))
+    expect(ctx.mocks.mailer.sendConsultationConfirmationEmail).toHaveBeenCalledTimes(1)
+    ctx.mocks.mailer.sendConsultationConfirmationEmail.mockClear()
+  })
+
+  test("guest using the email of a password account → 401 ACCOUNT_EXISTS, no booking", async () => {
+    const owner = ctx.seedUser({ fullName: "Owner", email: "owner@example.com" })
+    const res = await request(ctx.app)
+      .post("/api/v1/consultations")
+      .send({ serviceId: ctx.service.id, startUtc: SLOT.toISOString(), timezone: TZ, customerName: "Owner", customerEmail: owner.email })
     expect(res.status).toBe(401)
+    expect(res.body.code).toBe("ACCOUNT_EXISTS")
+    expect(ctx.prisma.rows("consultation").some((c) => c.userId === owner.id)).toBe(false)
   })
 
   test("missing startUtc/timezone → 400", async () => {
@@ -49,7 +79,7 @@ describe("POST /api/v1/consultations", () => {
       .send({ serviceId: ctx.service.id, startUtc: SLOT.toISOString(), timezone: TZ })
     expect(res.status).toBe(409)
     expect(res.body.code).toBe("SLOT_UNAVAILABLE")
-    expect(ctx.prisma.rows("consultation")).toHaveLength(0)
+    expect(ctx.prisma.rows("consultation").some((c) => c.userId === m.id)).toBe(false)
   })
 
   test("two members racing for the same host+slot → one 201, one 409 SLOT_UNAVAILABLE", async () => {
@@ -77,11 +107,11 @@ describe("POST /api/v1/consultations", () => {
     expect(new Date(winner.body.data.scheduledAt).getTime()).toBe(SLOT.getTime())
     expect(winner.body.data.assignedAdmin).toMatchObject({ id: ctx.host.id, email: "host@example.com" })
 
-    const rows = ctx.prisma.rows("consultation")
+    const rows = ctx.prisma.rows("consultation").filter((c) => c.scheduledAt.getTime() === SLOT.getTime())
     expect(rows).toHaveLength(1)
     expect(rows[0].confirmationToken).toBeTruthy()
     // project shell opened for the winner
-    expect(ctx.prisma.rows("clientProject")).toEqual([expect.objectContaining({ consultationId: rows[0].id, userId: winner.body.data.userId, projectName: "Discovery Call" })])
+    expect(ctx.prisma.rows("clientProject")).toContainEqual(expect.objectContaining({ consultationId: rows[0].id, userId: winner.body.data.userId, projectName: "Discovery Call" }))
     await new Promise((r) => setImmediate(r))
     expect(ctx.mocks.mailer.sendConsultationConfirmationEmail).toHaveBeenCalledTimes(1)
   })

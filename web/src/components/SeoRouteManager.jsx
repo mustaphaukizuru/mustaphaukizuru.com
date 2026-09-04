@@ -44,8 +44,9 @@ export default function SeoRouteManager() {
   const [productSeo, setProductSeo] = useState(null);
 
   const pathname = location.pathname;
-  const productMatch = matchPath("/store/:slug", pathname);
-  const projectMatch = matchPath("/projects/:slug", pathname);
+  // Match on the language-stripped path so /es/store/x resolves product SEO too.
+  const productMatch = matchPath("/store/:slug", stripLanguagePrefix(pathname));
+  const projectMatch = matchPath("/projects/:slug", stripLanguagePrefix(pathname));
 
   useEffect(() => {
     let active = true;

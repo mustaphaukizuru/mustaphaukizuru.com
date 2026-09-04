@@ -175,7 +175,7 @@ export default function ProductCard({ product }) {
               />
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-steel">
-                {t("system.preview")}
+                {t("common:system.preview")}
               </div>
             )}
           </div>

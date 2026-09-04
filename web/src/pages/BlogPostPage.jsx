@@ -176,6 +176,7 @@ function BackToTop() {
 
 /* ── Mid-article consultation CTA ───────────────────────────────────── */
 function MidArticleCTA() {
+  const { t } = useTranslation("blog")
   return (
     <aside
       aria-label="Book a consultation"
@@ -187,10 +188,10 @@ function MidArticleCTA() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[14px] font-bold text-violet">
-            Working on something similar?
+            {t("post.ctaTitle")}
           </p>
           <p className="mt-0.5 text-[13px] text-charcoal-80/65">
-            Book a free 30-minute strategy call — no pitch, just answers.
+            {t("post.ctaBody")}
           </p>
         </div>
         <Link
@@ -222,15 +223,15 @@ export default function BlogPostPage() {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await apiRequest(`/api/v1/blog/${encodeURIComponent(slug)}`)
+        const res = await apiRequest(`/api/v1/blog/${encodeURIComponent(slug)}?locale=${encodeURIComponent((i18n.language || "en").slice(0, 2))}`)
         if (!cancelled && res?.post) setApiPost(res.post)
       } catch { /* fall back to static */ }
     })()
     return () => { cancelled = true }
-  }, [slug])
+  }, [slug, i18n.language])
 
   const post = apiPost || staticPost
-  const related = staticRelated
+  const related = Array.isArray(apiPost?.related) && apiPost.related.length > 0 ? apiPost.related : staticRelated
 
   const url = post ? `${SITE_URL}/blog/${post.slug}` : ""
   const toc = useMemo(() => (post ? extractTOC(post.body) : []), [post])
@@ -506,7 +507,7 @@ export default function BlogPostPage() {
                 to="/blog"
                 className="text-[13px] font-semibold text-violet/70 transition hover:text-violet"
               >
-                All articles →
+                {t("post.allArticles")}
               </Link>
             </div>
             <ul role="list" className="grid gap-5 sm:grid-cols-3">

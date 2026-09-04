@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import {
   Download, Package, Clock3, FileArchive, RefreshCw, AlertCircle, CheckCircle2,
-  Search, X, Calendar, FileText, Loader2, ShoppingBag, Sparkles, ExternalLink,
+  Search, X, Calendar, FileText, Loader2, ShoppingBag, Sparkles, ExternalLink, KeyRound, Copy, Check,
 } from "lucide-react"
 import { MetricCard, SectionCard } from "../components/ui/index"
 import Skeleton from "../components/ui/SkeletonPrimitives"
@@ -23,6 +23,47 @@ import SuccessCheck from "../components/motion/SuccessCheck"
  *  Downloads stream through GET /api/downloads/:productFileId which enforces
  *  the entitlement + per-file cap (DownloadLog.productFileId).
  *  ────────────────────────────────────────────────────────────────────────── */
+
+/* T3 · licence tier + key for a purchased product. The key is shown in
+ * full (it is the buyer's own) with a one-click copy. */
+function LicenseBadge({ tier, licenseKey }) {
+  const { t } = useTranslation("dashboard")
+  const [copied, setCopied] = useState(false)
+  const tierLabel = tier ? `${tier.charAt(0).toUpperCase()}${tier.slice(1)}` : null
+
+  async function copy() {
+    if (!licenseKey) return
+    try {
+      await navigator.clipboard.writeText(licenseKey)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    } catch { /* clipboard blocked — the key is still visible */ }
+  }
+
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+      {tierLabel && (
+        <span className="inline-flex items-center gap-1 rounded-md bg-violet-pale px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide text-violet">
+          <KeyRound className="h-3 w-3" aria-hidden="true" />
+          {t("downloads.file.licenseTier", { tier: tierLabel })}
+        </span>
+      )}
+      {licenseKey && (
+        <button
+          type="button"
+          onClick={copy}
+          aria-label={`${t("downloads.file.licenseKey")}: ${licenseKey}. ${t("downloads.file.copyKey")}`}
+          title={t("downloads.file.copyKey")}
+          className="inline-flex items-center gap-1 rounded-md border border-charcoal-80/12 bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-charcoal transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+        >
+          {licenseKey}
+          {copied ? <Check className="h-3 w-3 text-mint-600" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
+          <span className="sr-only">{copied ? t("downloads.file.keyCopied") : t("downloads.file.copyKey")}</span>
+        </button>
+      )}
+    </div>
+  )
+}
 
 function resolveImageUrl(url = "") {
   if (!url) return null
@@ -170,6 +211,9 @@ function OrderCard({ order, fileState, onDownload, onReceipt, receiptBusy }) {
                       </span>
                     )}
                   </div>
+                  {(product.licenseTier || product.licenseKey) && (
+                    <LicenseBadge tier={product.licenseTier} licenseKey={product.licenseKey} />
+                  )}
                   <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
                     {updated && !Number.isNaN(updated.getTime()) && <span>{t("downloads.file.updatedOn", { date: updated.toLocaleDateString(localeTag) })}</span>}
                     {product.slug && (

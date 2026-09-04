@@ -55,7 +55,10 @@ if (!process.env.DATABASE_URL) {
 // B11 · Validate required variables + crypto soundness
 // ─────────────────────────────────────────────────────────────
 
-const REQUIRED_ENV = ["DATABASE_URL", "JWT_SECRET", "CLIENT_URL"]
+// ANALYTICS_HASH_SALT: analyticsService HMACs ip|ua|day with it. Without it
+// the server used to fall back to a literal in the repository. Required, and
+// checked for length below, since a short key is reversible by brute force.
+const REQUIRED_ENV = ["DATABASE_URL", "JWT_SECRET", "CLIENT_URL", "ANALYTICS_HASH_SALT"]
 
 REQUIRED_ENV.forEach((key) => {
   if (!process.env[key]) {
@@ -70,6 +73,16 @@ if (process.env.JWT_SECRET.length < MIN_JWT_SECRET_LENGTH) {
     `❌ JWT_SECRET is too short (${process.env.JWT_SECRET.length} chars). ` +
     `Minimum is ${MIN_JWT_SECRET_LENGTH} characters. ` +
     `Generate a strong one with: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
+  )
+  process.exit(1)
+}
+
+const MIN_ANALYTICS_SALT_LENGTH = 32
+if (process.env.ANALYTICS_HASH_SALT.length < MIN_ANALYTICS_SALT_LENGTH) {
+  console.error(
+    `❌ ANALYTICS_HASH_SALT is too short (${process.env.ANALYTICS_HASH_SALT.length} chars). ` +
+    `Minimum is ${MIN_ANALYTICS_SALT_LENGTH} characters. ` +
+    `Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
   )
   process.exit(1)
 }
@@ -158,6 +171,24 @@ if (isLive) {
     } else {
       console.error("    (allowed to continue in non-production · DO NOT EXPOSE PUBLICLY)\n")
     }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Cloudflare Turnstile — pre-flight
+//
+// The contact form verifies a token only when TURNSTILE_SECRET_KEY is set,
+// and the SPA renders the widget only when VITE_TURNSTILE_SITE_KEY is set.
+// Secret without site key = every submission rejected (CAPTCHA_FAILED) with
+// no widget to retry; no secret in production = bot check silently off.
+// ─────────────────────────────────────────────────────────────
+{
+  const secret  = Boolean(process.env.TURNSTILE_SECRET_KEY)
+  const siteKey = Boolean(process.env.VITE_TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY)
+  if (secret && !siteKey) {
+    console.warn("⚠️  Turnstile: TURNSTILE_SECRET_KEY is set but no VITE_TURNSTILE_SITE_KEY — the contact form will reject every submission. Set both (in web/.env for the SPA build) or neither.")
+  } else if (!secret && process.env.NODE_ENV === "production") {
+    console.warn("⚠️  Turnstile: TURNSTILE_SECRET_KEY not set — contact-form bot verification is OFF in production.")
   }
 }
 

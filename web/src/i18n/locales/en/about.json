@@ -123,10 +123,10 @@
   "portfolio": {
     "eyebrow": "Portfolio",
     "title": "Selected Projects",
-    "subtitle": "Technology solutions and digital systems delivered across multiple industries and organizations.",
-    "linkLearnMore": "Learn More",
+    "subtitle": "Systems delivered across industries.",
+    "linkLearnMore": "Explore this project",
     "linkCaseStudy": "View case study",
-    "errorState": "Portfolio temporarily unavailable. Please try again later.",
+    "errorState": "Portfolio unavailable. Try again shortly.",
     "emptyState": "More projects coming soon."
   },
   "ctaBand": {
@@ -182,5 +182,11 @@
     "studentsHint": "K-12 · cohort-graded",
     "source": "Source: public bio · verified certificates on file · cohort rosters · rolling figures",
     "verifyCta": "Verify the credentials"
+  },
+  "clients": {
+    "eyebrow": "Selected clients",
+    "heading": "Organisations I have",
+    "headingAccent": "delivered for",
+    "body": "Schools, retail and service businesses across Mexico, Rwanda and Turkey — from IT strategy and infrastructure to the websites and platforms their teams use every day."
   }
 }

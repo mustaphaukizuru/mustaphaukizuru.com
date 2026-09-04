@@ -29,6 +29,7 @@ import { trackEvent } from "../../lib/analytics"
 import { NAV_LINKS } from "./navLinks"
 import { UserAvatar, performSignOut } from "./AccountMenu"
 import { openSearchPalette } from "./SearchTrigger"
+import useSwipeToDismiss from "../../hooks/useSwipeToDismiss"
 
 export default function MobileMenu({ open, onClose }) {
   const { t } = useTranslation("common")
@@ -73,34 +74,26 @@ export default function MobileMenu({ open, onClose }) {
   }, [open])
 
   /* ──────────────────────────────────────────────────────────────────────
-   * Gesture-driven dismiss · "scroll-to-close" pattern
+   * Gesture-driven dismiss
    * ────────────────────────────────────────────────────────────────────
-   * When the menu is open and the user tries to scroll, we have three
-   * cases to handle:
+   * WHEEL (pointer devices only, and this menu only renders < lg):
+   *   The page behind is scroll-locked, so a wheel over the backdrop or
+   *   over a non-scrollable part of the panel would do nothing and feel
+   *   stuck. In that case we close and hand the delta to the page.
+   *   A wheel inside the scrollable middle scrolls it normally.
    *
-   *   A. Wheel/touch happens INSIDE the scrollable middle, and the
-   *      middle has internal overflow → let it scroll normally.
-   *
-   *   B. Wheel/touch happens INSIDE the scrollable middle, but the
-   *      middle has no overflow (content fits) OR the user is at the
-   *      top/bottom boundary and wheel direction wants to continue
-   *      past → close the menu and apply the wheel delta to the page
-   *      so the gesture flows through smoothly.
-   *
-   *   C. Wheel/touch happens OUTSIDE the scrollable middle (backdrop,
-   *      pinned header, pinned footer) → close the menu and apply the
-   *      wheel delta to the page.
-   *
-   * Touch handling tracks touchstart's Y, then on touchmove computes
-   * the delta. A > 6px vertical drag is treated as a scroll intent.
-   * (6px chosen empirically — accidental finger jitter sits under 4px;
-   * intentional scroll starts at ~10px.)
-   *
-   * Why this matters: the alternative (keep body locked) makes the
-   * menu feel "stuck" — users wheel/swipe and nothing happens, then
-   * have to find and tap the X or backdrop. Scroll-to-close turns the
-   * natural scroll gesture into a dismissal action, mirroring how
-   * top-tier iOS/Android navigation drawers behave.
+   * TOUCH: closing on a vertical swipe was removed deliberately.
+   *   It made the menu unusable on phones in two ways:
+   *     · when the nav list fits without overflow (the common case on
+   *       taller phones) `regionCanScroll()` is false, so ANY 6px swipe
+   *       closed the menu the moment the user tried to scan it;
+   *     · the same touch that tapped the hamburger kept its identity —
+   *       a few px of thumb travel after the tap fired touchmove and
+   *       dismissed the freshly-opened menu, which reads as "the menu
+   *       doesn't open".
+   *   No mainstream navigation drawer closes on a vertical scroll.
+   *   Vertical swipes now do what users expect (scroll the list), and
+   *   dismissal is a horizontal swipe (below), the backdrop, X, or Esc.
    * ──────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (!open) return undefined
@@ -136,64 +129,35 @@ export default function MobileMenu({ open, onClose }) {
       const target = e.target
       const inScroll = scrollRegionRef.current && scrollRegionRef.current.contains(target)
       if (inScroll && regionCanScroll() && !atBoundaryAgainstWheel(e.deltaY)) {
-        // Case A — let it scroll inside. No action.
+        // Let it scroll inside. No action.
         return
       }
-      // Cases B + C — close + propagate.
       onClose("scroll")
       flowScrollToPage(e.deltaY)
     }
 
-    // Touch tracking · reset on every touchstart so each gesture is
-    // measured independently. We only care about the cumulative deltaY
-    // from touchstart to the first significant touchmove.
-    let touchStartY = null
-    let touchStartTarget = null
-    function handleTouchStart(e) {
-      if (e.touches.length !== 1) return
-      touchStartY = e.touches[0].clientY
-      touchStartTarget = e.target
-    }
-    function handleTouchMove(e) {
-      if (touchStartY == null) return
-      const deltaY = touchStartY - e.touches[0].clientY  // positive = swipe up = scroll down
-      if (Math.abs(deltaY) < 6) return                   // ignore jitter
-      const inScroll = scrollRegionRef.current && scrollRegionRef.current.contains(touchStartTarget)
-      if (inScroll && regionCanScroll() && !atBoundaryAgainstWheel(deltaY)) {
-        return  // let the inner region's native touch-scroll do its job
-      }
-      // Close + flow. Reset so we don't double-fire.
-      touchStartY = null
-      onClose("scroll")
-      flowScrollToPage(deltaY)
-    }
-
-    // Critical timing fix: defer listener installation by 350ms.
-    // Without this, the very touch/tap that OPENED the menu (the tap on
-    // the hamburger button) registers as touchstart, then if the user's
-    // finger moves even 6px (common on phones), touchmove fires and the
-    // brand-new menu auto-closes. The 350ms window covers the touch's
-    // natural finger-lift + the menu's slide-in animation (280-360ms),
-    // ensuring scroll-to-close only catches DELIBERATE post-open gestures.
+    // Still deferred: a trackpad's momentum from the scroll that preceded
+    // the tap can otherwise land on the freshly-opened menu.
     let installTimer = null
     let installed = false
     function install() {
       document.addEventListener("wheel", handleWheel, { passive: true })
-      document.addEventListener("touchstart", handleTouchStart, { passive: true })
-      document.addEventListener("touchmove", handleTouchMove, { passive: true })
       installed = true
     }
     installTimer = window.setTimeout(install, 350)
 
     return () => {
       if (installTimer) window.clearTimeout(installTimer)
-      if (installed) {
-        document.removeEventListener("wheel", handleWheel)
-        document.removeEventListener("touchstart", handleTouchStart)
-        document.removeEventListener("touchmove", handleTouchMove)
-      }
+      if (installed) document.removeEventListener("wheel", handleWheel)
     }
   }, [open, onClose])
+
+  /* Swipe-to-dismiss · the gesture users expect from a drawer. The panel
+   * enters from the right, so a decisive rightward drag closes it. The
+   * mechanics (horizontal-intent gate, panel-scoped passive listeners) live
+   * in the shared hook, which the dashboard drawer uses too. */
+  const panelRef = useRef(null)
+  useSwipeToDismiss(panelRef, open, onClose)
 
   // Sign-out · 2-tap confirmation pattern + loading state.
   //
@@ -289,6 +253,7 @@ export default function MobileMenu({ open, onClose }) {
       zIndex={90}
       ariaLabel={t("header.siteNav")}
       initialFocusRef={closeButtonRef}
+      panelRef={panelRef}
       wrapperClassName="lg:hidden"
       backdropClassName="bg-charcoal/55 backdrop-blur-md"
       className="sm:w-[88vw] sm:max-w-md bg-white shadow-[0_30px_80px_-20px_rgb(var(--color-charcoal-rgb)/0.45)]"

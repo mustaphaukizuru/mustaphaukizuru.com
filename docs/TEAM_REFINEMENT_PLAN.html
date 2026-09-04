@@ -1,0 +1,373 @@
+<title>Ten-Role Refinement Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F8FAFC; --bg-elevated:#FFFFFF; --bg-sunken:#EEF1F6;
+  --border:#E1E4EC; --border-strong:#C7CCDA;
+  --fg:#1A1B23; --fg-muted:#54566B; --fg-subtle:#8A8CA3;
+  --accent:#5D3FD3; --accent-soft:#EDE9FB;
+  --g1:#5D3FD3; --g1-soft:#EDE9FB;
+  --g2:#0284C7; --g2-soft:#E0F2FE;
+  --g3:#54566B; --g3-soft:#E7E8EE;
+  --ok:#0F7B4D; --ok-soft:#E4F5EC;
+  --p1:#B42318; --p1-soft:#FBE7E5;
+  --p2:#9A5B00; --p2-soft:#FCEFD9;
+  --p3:#54566B; --p3-soft:#E7E8EE;
+  --sans:'Sora',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E0F14; --bg-elevated:#181A22; --bg-sunken:#111219;
+  --border:#2B2D3C; --border-strong:#40435A;
+  --fg:#F1F1F6; --fg-muted:#AFB0C3; --fg-subtle:#7B7D93;
+  --accent:#9B85F0; --accent-soft:#241E42;
+  --g1:#9B85F0; --g1-soft:#241E42;
+  --g2:#4FB3EC; --g2-soft:#0F2536;
+  --g3:#A6A8BC; --g3-soft:#1D1F2B;
+  --ok:#4ADE80; --ok-soft:#0F2A1C;
+  --p1:#F87171; --p1-soft:#3B1414;
+  --p2:#FBBF24; --p2-soft:#3A2A08;
+  --p3:#A6A8BC; --p3-soft:#1D1F2B;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E0F14; --bg-elevated:#181A22; --bg-sunken:#111219;
+  --border:#2B2D3C; --border-strong:#40435A;
+  --fg:#F1F1F6; --fg-muted:#AFB0C3; --fg-subtle:#7B7D93;
+  --accent:#9B85F0; --accent-soft:#241E42;
+  --g1:#9B85F0; --g1-soft:#241E42;
+  --g2:#4FB3EC; --g2-soft:#0F2536;
+  --g3:#A6A8BC; --g3-soft:#1D1F2B;
+  --ok:#4ADE80; --ok-soft:#0F2A1C;
+  --p1:#F87171; --p1-soft:#3B1414;
+  --p2:#FBBF24; --p2-soft:#3A2A08;
+  --p3:#A6A8BC; --p3-soft:#1D1F2B;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:52px 24px 96px}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+code{font-family:var(--mono);font-size:12px;background:var(--bg-sunken);padding:1px 5px;border-radius:4px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+h1{font-size:31px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.lede{max-width:68ch;margin-top:16px;font-size:15.5px;line-height:1.68;color:var(--fg-muted)}
+.lede strong{color:var(--fg);font-weight:600}
+
+/* verdict strip */
+.verdict{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:30px 0 0}
+@media(max-width:700px){.verdict{grid-template-columns:repeat(2,1fr)}}
+.verdict div{background:var(--bg-elevated);padding:14px 16px}
+.verdict .n{font-family:var(--mono);font-size:24px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.verdict .l{margin-top:2px;font-size:12.5px;color:var(--fg-subtle);line-height:1.45}
+.verdict .p1 .n{color:var(--p1)} .verdict .p2 .n{color:var(--p2)} .verdict .ok .n{color:var(--ok)}
+
+/* role board */
+h2.sec{margin-top:56px;font-size:19px;font-weight:700;letter-spacing:-.01em;padding-top:24px;border-top:1px solid var(--border)}
+.sec-note{margin-top:8px;font-size:13.5px;color:var(--fg-muted);max-width:66ch;line-height:1.6}
+.board{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+@media(max-width:640px){.board{grid-template-columns:1fr}}
+.rolecard{background:var(--bg-elevated);border:1px solid var(--border);border-left:3px solid var(--gc);border-radius:8px;padding:14px 16px}
+.g1{--gc:var(--g1);--gc-soft:var(--g1-soft)} .g2{--gc:var(--g2);--gc-soft:var(--g2-soft)} .g3{--gc:var(--g3);--gc-soft:var(--g3-soft)}
+.rolecard .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.rolecard h3{font-size:14px;font-weight:700}
+.rolecard p{margin-top:6px;font-size:13px;line-height:1.55;color:var(--fg-muted)}
+.state{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.state.sound{color:var(--ok);background:var(--ok-soft)}
+.state.fix{color:var(--p2);background:var(--p2-soft)}
+.state.rebuild{color:var(--p1);background:var(--p1-soft)}
+
+/* findings tables */
+.tblwrap{margin-top:16px;overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg-elevated)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:680px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle);text-align:left;padding:10px 14px;background:var(--bg-sunken);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:0}
+td.f{color:var(--fg)} td.f small{display:block;color:var(--fg-subtle);font-family:var(--mono);font-size:11px;margin-top:3px;word-break:break-all}
+td.x{color:var(--fg-muted)}
+.sev{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.sev.p1{color:var(--p1);background:var(--p1-soft)} .sev.p2{color:var(--p2);background:var(--p2-soft)} .sev.p3{color:var(--p3);background:var(--p3-soft)}
+.owner{font-family:var(--mono);font-size:10.5px;color:var(--fg-subtle);white-space:nowrap}
+
+/* role group headers */
+.grp{margin-top:34px;display:flex;align-items:baseline;gap:12px;padding-bottom:10px;border-bottom:2px solid var(--gc)}
+.grp .num{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--gc);letter-spacing:.04em}
+.grp h3{font-size:16px;font-weight:700}
+.grp .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg-subtle)}
+h4.role{margin:22px 0 0;font-size:14px;font-weight:700}
+h4.role span{font-weight:400;color:var(--fg-subtle);font-family:var(--mono);font-size:11px;margin-left:8px}
+
+/* program */
+ol.prog{margin:18px 0 0;padding:0;list-style:none;counter-reset:s}
+ol.prog li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:14px;padding:16px 0;border-bottom:1px solid var(--border)}
+ol.prog li:last-child{border-bottom:0}
+ol.prog li::before{content:"S" counter(s);font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);padding-top:2px}
+ol.prog .h{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+ol.prog .h b{font-size:14.5px;font-weight:700}
+ol.prog .h span{font-family:var(--mono);font-size:11px;color:var(--fg-subtle)}
+ol.prog ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;color:var(--fg-muted);line-height:1.6}
+ol.prog ul li{display:list-item;padding:2px 0;border:0;grid-template-columns:none;counter-increment:none}
+ol.prog ul li::before{content:none}
+ol.prog .gate{margin-top:8px;font-size:12.5px;color:var(--fg-subtle);font-family:var(--mono)}
+
+/* callouts */
+.affirm{margin-top:18px;background:var(--ok-soft);border:1px solid var(--border);border-left:3px solid var(--ok);border-radius:8px;padding:16px 18px}
+.affirm h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ok)}
+.affirm ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;line-height:1.6;color:var(--fg-muted)}
+.correct{margin-top:18px;background:var(--bg-sunken);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
+.correct h3{font-size:15px;font-weight:700}
+.correct dl{margin:10px 0 0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13.5px}
+.correct dt{font-family:var(--mono);font-size:11px;color:var(--fg-subtle);padding-top:3px;white-space:nowrap}
+.correct dd{margin:0;color:var(--fg-muted);line-height:1.55}
+.correct dd strong{color:var(--fg);font-weight:600}
+.owner-steps{margin-top:18px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
+.owner-steps h3{font-size:15px;font-weight:700}
+.owner-steps p{margin-top:8px;font-size:13.5px;color:var(--fg-muted);line-height:1.6;max-width:70ch}
+pre{margin:10px 0 0;background:var(--bg-sunken);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.55;overflow-x:auto;color:var(--fg)}
+.foot{margin-top:44px;font-family:var(--mono);font-size:11px;color:var(--fg-subtle)}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">mustaphaukizuru.com · ten-role deep review · 3 Sept 2026</div>
+  <h1>The money path has two holes and the Spanish site ends after one click.</h1>
+  <p class="lede">Ten roles read the codebase at <code>620f2d4</code> on <code>feat/home-platform-showcase</code>, each in their own lane, with every claim traced to a file and line. This plan supersedes <strong>Team Review Findings</strong> where the two disagree. The short version: architecture, security fundamentals, legal posture and the Spanish copy are stronger than the earlier review assumed. What is broken is concentrated in four places that no visitor can see: refund handling on one payment rail, an admin setter that bypasses every payment invariant, a deploy with no rollback, and 150 links that drop Spanish readers into English at the moment of conversion.</p>
+
+  <div class="verdict">
+    <div class="p1"><div class="n">34</div><div class="l">P1 items · fix before the next feature ships</div></div>
+    <div class="p2"><div class="n">~60</div><div class="l">P2 items · schedule into the next four sprints</div></div>
+    <div class="ok"><div class="n">7 / 10</div><div class="l">roles report the fundamentals sound</div></div>
+    <div><div class="n">4</div><div class="l">sprints to clear every P1, in the order below</div></div>
+  </div>
+
+  <h2 class="sec">Where each role landed</h2>
+  <p class="sec-note">One verdict per role. "Sound" means the fundamentals hold and the work is hardening. "Fix" means bounded defects in an otherwise correct system. "Rebuild" means an artefact must be replaced, not patched.</p>
+  <div class="board">
+    <div class="rolecard g1"><div class="top"><h3>Product Manager</h3><span class="state rebuild">Rebuild</span></div><p>The closed set of four is contradicted at the point of sale: 11 Service rows in the DB, three services sold as downloads, SLA promises a one-person shop cannot keep, and a self-serve checkout for MX$90,000 a month.</p></div>
+    <div class="rolecard g1"><div class="top"><h3>UX Researcher / IA</h3><span class="state rebuild">Rebuild</span></div><p>The Spanish tree has 25 routes and roughly zero internal inbound links. The self-audit promises 15 minutes and 5 minutes on two different pages for the same 82 statements, priced in USD.</p></div>
+    <div class="rolecard g1"><div class="top"><h3>Product / UI Designer</h3><span class="state fix">Fix</span></div><p>Colour is locked down hard. Typography is not: arbitrary pixel sizes outvote the type scale 1639 to 1294. Dark mode is a dashboard-only shim built from 26 <code>!important</code> rules.</p></div>
+    <div class="rolecard g2"><div class="top"><h3>Frontend Engineer</h3><span class="state fix">Fix</span></div><p>Lint is red on this branch. A fourth Button component with no focus ring carries the primary CTA. Filenames with spaces silently disable AVIF and WebP on the schools page covers.</p></div>
+    <div class="rolecard g2"><div class="top"><h3>Backend Engineer</h3><span class="state rebuild">Rebuild</span></div><p>The transition primitive is correct. Around it: MercadoPago chargebacks keep the customer's downloads, PayPal refunds can pay twice, and the admin status setter can mark anything anything.</p></div>
+    <div class="rolecard g2"><div class="top"><h3>Database / Performance</h3><span class="state fix">Fix</span></div><p>171 indexes and a serious query harness. But the pool is capped at one connection, four event tables never purge, and admin lists fetch full article bodies to render a title column.</p></div>
+    <div class="rolecard g2"><div class="top"><h3>DevOps / SRE</h3><span class="state rebuild">Rebuild</span></div><p>Deploy has no rollback, no drift gate and no pre-deploy backup. Smoke tests run after traffic is live. Every backup lives on the same disk as the database, and <code>storage/</code> is not backed up at all.</p></div>
+    <div class="rolecard g3"><div class="top"><h3>QA / Test Engineer</h3><span class="state fix">Fix</span></div><p>911 backend tests and a good route-guard test. The coverage gate never runs because CI calls jest without coverage. Zero frontend unit tests. Every Playwright spec stubs the API.</p></div>
+    <div class="rolecard g3"><div class="top"><h3>Security Engineer</h3><span class="state sound">Sound</span></div><p>Webhook signatures, CSRF, OAuth state, token revocation and 2FA replay defence all verified. One P1 chain: avatar uploads plus static mounts in front of Helmet let a member host script on the origin.</p></div>
+    <div class="rolecard g3"><div class="top"><h3>SEO / Bilingual Content</h3><span class="state fix">Fix</span></div><p>2,767 of 2,767 keys match and the Spanish is written, not translated. But products, blog posts and the audit are 0% Spanish, the sitemap emits no hreflang, and shared links preview in English.</p></div>
+  </div>
+
+  <h2 class="sec">Corrections to the earlier review</h2>
+  <div class="correct">
+    <h3>What Team Review Findings got right, wrong, or incomplete</h3>
+    <dl>
+      <dt>Shadow</dt><dd><strong>Confirmed and worse.</strong> <code>components/ui/CoverflowCarousel.jsx:315</code> fails the ratchet, so <code>npm run lint</code> is red on this branch. Also 220 raw one-off shadows sit in the baseline unreclaimed.</dd>
+      <dt>Emoji</dt><dd><strong>Resolved.</strong> The three glyphs are UI markers in <code>NewsletterSection.jsx:231-233</code>, not blog copy. Replace with Globe, GraduationCap and Zap from Lucide.</dd>
+      <dt>Dark mode</dt><dd><strong>Confirmed, scale measured.</strong> 866 <code>bg-white</code> and 227 <code>bg-mist</code> on the public surface; two stray <code>dark:</code> classes. Every dark rule is scoped to the dashboard shell. This is a decision to write down, then Phase B work.</dd>
+      <dt>Self-audit</dt><dd><strong>Confirmed exactly: 38 of 82 map to nothing.</strong> Two of eight bundles recommend programmes composed entirely of retired offerings. The page also misstates its own counts (says 82/70/12, real is 51/66/12).</dd>
+      <dt>Coverage</dt><dd><strong>Confirmed and moot.</strong> The 44/26 gate is never evaluated: CI runs <code>npm test</code>, not <code>jest --coverage</code>. Real lines sit at 44.58%, so enabling it fails on the first new module.</dd>
+      <dt>Legal</dt><dd><strong>Verified strong, marked "guessing" before.</strong> The Aviso de Privacidad Integral cites arts. 15 to 17, names the responsable and domicilio, spells out ARCO, cites art. 32 for the 20-day window, names INAI. Export and delete endpoints exist and are tested. Remaining: a numeric retention period for non-fiscal data, and a link from the notice to the buttons.</dd>
+      <dt>gsap</dt><dd><strong>Lower priority than implied.</strong> Five files, all dynamic imports behind a reduced-motion guard, own chunk, never shipped to admin. Keep the port scheduled; it is not blocking anything.</dd>
+      <dt>Missing before</dt><dd>The earlier review did not look at the money path, the deploy script, the data tier or Spanish link routing. Those are where the P1s are.</dd>
+    </dl>
+  </div>
+
+  <h2 class="sec">Findings by role</h2>
+  <p class="sec-note">Every row cites the file the owner opens first. P1 rows are complete; P2 and P3 rows are the ones that change what a sprint contains. The full per-role transcripts are longer and were used to build the program below.</p>
+
+  <div class="grp g2"><span class="num">ENGINEERING</span><h3>Backend · Database · DevOps · Frontend</h3><span class="cnt">4 roles</span></div>
+
+  <h4 class="role">Backend Engineer <span>Node · Express · Prisma · both payment rails</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">MercadoPago <code>refunded</code> and <code>charged_back</code> map to a Payment-only write. Order stays <code>paid</code>, no Refund row, downloads never revoked. PayPal does this correctly.<small>src/services/mercadoPagoService.js:231 · paymentTransitionService.js:112</small></td><td class="x">In the MP webhook, on those two statuses call the existing <code>recordExternalRefund()</code>. Accept MP's <code>chargebacks</code> topic, which line 120 currently drops.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">PayPal refund key is <code>refund-{capture}-{Date.now()}</code>, so two concurrent admin clicks refund twice. MP already fixed this exact bug; the fix was not propagated.<small>src/services/paypalService.js:152 · refundService.js:292-405</small></td><td class="x">Deterministic key from the Refund id. Claim the order with <code>updateMany where status=paid</code> before calling the gateway.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f"><code>updateOrderStatus</code> is a free-form setter: any status to any status, <code>refunded</code> without a refund, <code>paid</code> without fulfilment, <code>paidAt</code> re-stamped, no audit row, 500 on bad input.<small>src/services/adminOrderService.js:70-81</small></td><td class="x">Transition table. Reject <code>refunded</code> with a pointer to the refund endpoint. Call <code>fulfillOrder()</code> on manual paid. Write an AdminAuditLog row.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">Avatar filter tests only client MIME with an unanchored regex and keeps the client extension. All <code>/images/*</code> static mounts run before Helmet, so uploaded HTML serves with no CSP and reads <code>mu_csrf</code>.<small>src/middleware/uploadAvatar.js:43-46 · src/app.js:74-89 vs 117</small></td><td class="x">Move the static mounts below Helmet. Derive the extension from validated MIME. Add the upload rate limiter to the profile route.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">No timeout on any of the five provider <code>fetch</code> calls, including the payment lookup inside the webhook handler.<small>mercadoPagoService.js:172,208,263 · paypalService.js:38,58</small></td><td class="x"><code>AbortSignal.timeout(10_000)</code> on all five. One bounded retry on idempotent GETs only.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">Cron overlap guard and rate-limit store are both in-process. Passenger runs several processes, so <code>emailRetryJob</code> can send duplicates and login allows 5 × N attempts.<small>src/jobs/scheduler.js:61-70 · rateLimiter.js:141-158</small></td><td class="x">MySQL <code>GET_LOCK</code> inside <code>guarded()</code> fixes all ten jobs. MySQL-backed rate-limit store plus <code>lockedUntil</code> on User.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">Unexpected 500s return <code>err.message</code> in production, including raw PayPal OAuth failure bodies. <code>validate.js</code> is imported by zero routes.<small>src/middleware/errorHandler.js:260-283 · validate.js</small></td><td class="x">Mask non-AppError 500s in prod. Adopt the existing inline <code>validateFields</code> on money and auth routes first. No Zod, per CLAUDE.md.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">Legacy <code>/api/*</code> sunset date was 2026-07-01 and ~40 mounts are still live. Legacy download route never updates UserDownload, so a download through it leaves the order fully refundable.<small>src/routes/index.js:104,235-294 · downloadController.js:70-127</small></td><td class="x">Check access logs, migrate gateway dashboards to v1, delete the mounts. Route the legacy download handler through <code>recordDownload</code>.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4 class="role">Database / Performance Engineer <span>Prisma 6 · MySQL · shared hosting ceiling</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f"><code>connection_limit</code> defaults to 1. Every <code>Promise.all</code> serialises, every N+1 multiplies, and <code>pool_timeout=10</code> turns a burst into hard errors. Installed as a workaround with no review date.<small>src/lib/prisma.js:38</small></td><td class="x">Add a second-connection canary to <code>/health/deep</code>. Set 3 on the host, watch a week, change the default to 5.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">PageView, AnalyticsEvent, EmailLog (with full payload JSON) and Session grow forever. One <code>deleteMany</code> exists in the whole codebase and it is a manual admin action. DailyMetric already holds the rollup.<small>prisma/schema.prisma:378,1696,2016,2030</small></td><td class="x">One <code>retentionJob.js</code> at 05:00 UTC, chunked at 5k, env-tunable windows, first run dry. Needs the EmailLog <code>createdAt</code> index.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">Admin blog list uses <code>include</code> and fetches <code>body</code> and <code>bodyEs</code> for 100 posts to render a title column. Admin email-log list fetches every rendered mail body. Audit-log <code>take</code> is unclamped user input.<small>adminBlogService.js:50 · adminEmailLogController.js:25 · adminAuditRoutes.js:14</small></td><td class="x">Explicit <code>select</code> mirroring the public projection. Clamp limit to 200. Fulfilment loop becomes one <code>createMany skipDuplicates</code>.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f"><code>explain-hot-queries.js</code> covers 19 shapes but not Product by slug, BlogPost by slug or either admin list above, and nothing runs it.<small>scripts/explain-hot-queries.js:41-80</small></td><td class="x">Add the missing shapes. Run it in the schema CI job.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4 class="role">DevOps / SRE <span>Hostinger · Passenger · db push only</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f"><code>deploy.sh</code> has no rollback, no pre-deploy backup and no drift gate, though <code>check-db-drift.js</code> exits 2 for exactly that purpose. Smoke test runs after Passenger is already serving. <code>public/503.html</code> is wired to nothing.<small>scripts/deploy.sh:45-115</small></td><td class="x">Capture PREV_SHA, gate on drift, snapshot, and on a failed health or smoke check reset, reinstall, restart, re-verify. One 25-line change collapses five P1s.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">Both backup writers target the Hostinger disk. The mysqldump with schema and triggers is manual; only the weaker JSON dump is scheduled. <code>storage/</code> (invoices, receipts, deliverables) has no backup at all. Two paid product ZIPs are committed to git.<small>scripts/backup-db.sh:9-11 · git ls-files storage/</small></td><td class="x">Crontab the SQL dump, <code>rclone copy</code> both to an encrypted remote, weekly tar of <code>STORAGE_PATHS.base</code>. <code>git rm --cached</code> the ZIPs, ignore the directory, upload them to the host path.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">A failed <code>prisma generate</code> is swallowed on purpose and silently. A CDN blip ships a client built for the wrong engine and the first signal is a production panic. No dead-man switch on cron: a job that never runs is silent.<small>scripts/prisma-generate.js:61-69 · scheduler.js:51-59</small></td><td class="x">Write a marker file and surface it in <code>/api/health</code>. Record last success per job and fail <code>uptime.yml</code> when any is older than twice its interval.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">CI has token, contrast, shadow, Playwright and Lighthouse gates and zero review of <code>schema.prisma</code>. <code>ANALYTICS_HASH_SALT</code> falls back to a literal in source, so IP pseudonymisation is reversible.<small>.github/workflows/ci.yml · analyticsService.js:10</small></td><td class="x">Schema job with a MySQL service container running <code>check-db-drift.js</code>. Fail closed on the salt like <code>JWT_SECRET</code> already does.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">CLAUDE.md says <code>public/</code> build output is gitignored and rebuilt on the server. It is tracked, and Hostinger serves the committed bundle. This branch deletes roughly 100 tracked asset files.<small>CLAUDE.md · git status</small></td><td class="x">Pick one truth and write it in CLAUDE.md. If the bundle stays tracked, the frontend CI job must fail when the committed bundle is stale.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">Uptime probes liveness only. <code>/health/deep</code>, the only check that sees SMTP or a gateway down, is never called by a monitor, and it is unauthenticated with four outbound calls per hit.<small>.github/workflows/uptime.yml:52 · healthController.js:97-135</small></td><td class="x">Hourly deep probe with a shared header secret. Own 10/hour limiter. Drop env and version from the public health body.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4 class="role">Frontend Engineer <span>React 19 · Vite 7 · Tailwind v4 · Framer Motion</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f"><code>npm run lint</code> is red: a raw shadow in the new carousel fails the ratchet.<small>web/src/components/ui/CoverflowCarousel.jsx:315</small></td><td class="x"><code>shadow-[var(--shadow-e6)]</code>. Then run <code>--update-baseline</code> so the ratchet reclaims the 9 retired values.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">Two school project covers have spaces in their filenames. srcset splits on whitespace, so every AVIF and WebP candidate is malformed and the browser falls back to the raw PNG on the new page's largest images.<small>web/src/data/schoolsData.js:44,56 · components/ui/Image.jsx:90,106</small></td><td class="x">Rename the files and their generated siblings, or <code>encodeURI</code> inside <code>Image.jsx</code> so the converter cannot reintroduce it.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f"><code>web/src/ui/PrimaryButton.jsx</code> is an undocumented fourth Button with no focus ring, wrapped in a <code>Link</code> so the primary CTA is a button inside an anchor: two tab stops, invalid HTML. The pricing card instance has no ring at all. Pricing card also renders mojibake <code>âœ“</code>.<small>layout/Header.jsx:233-239 · MobileMenu.jsx:548-556 · PricingCard.jsx:37,43</small></td><td class="x">Delete the file. Route three call sites to <code>components/ui/Button variant="primary"</code>. Lucide Check icon for the tick.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">The carousel ships five hardcoded English aria labels; so do AuditModal and ProductReviews. <code>check-i18n.mjs</code> checks key parity only, never literals.<small>CoverflowCarousel.jsx:53,313,346,354,393</small></td><td class="x">Accept a labels prop. Add literal-string detection to the i18n check and wire it into CI.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">The 1480 KB first-paint budget lives only in a Playwright spec. Desktop Lighthouse budgets are self-declared unverified; the mobile performance floor is 0.35. <code>/schools</code> is not in either URL list.<small>web/e2e/first-paint-payload.spec.js:91 · lighthouserc*.json</small></td><td class="x">Mirror the budget as <code>resource-summary</code> in both configs, add <code>/schools</code>, run desktop once and flip perf to error.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="grp g1"><span class="num">DISCOVERY &amp; DESIGN</span><h3>Product Manager · UX Researcher / IA · Product Designer</h3><span class="cnt">3 roles</span></div>
+
+  <h4 class="role">Product Manager <span>roadmap · closed set of four · what ships next</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">The database holds 11 Service rows for a closed set of four: four legacy rows with live packages ($79 to $2,490) plus three audience plans. Three store products are delivered services sold as downloads; <code>infrastructure-audit</code> at 120 undercuts the fixed-price ITS audit by an order of magnitude.<small>prisma/seed/services-seed.js:36-138 · products-seed.js:88-114</small></td><td class="x">Retire or delete the legacy rows and packages. Move the three services to ServicePackage rows under their category or re-scope them as templates.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">Plan feature lists promise "24/7 incident response with 4-hour SLA", "dedicated account manager", "same-day on-site SLA", sold through self-serve checkout up to MX$90,000 a month with no call, on a site whose thesis is "you brief me; I write the code".<small>web/src/data/servicesCatalogue.js:680,681,741 · PackagesStrip.jsx:72</small></td><td class="x">Rewrite to next-business-day response and a 4-hour target on production-down. Gate Business and Schools tiers behind a call.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">Products are seeded with prices 10 to 300 and currency MXN; the Product JSON-LD inherits MXN. Either the store is priced at MX$10 for a toolkit or Google is told the wrong currency.<small>prisma/seed/products-seed.js:34-130 · pageSeo.js:317</small></td><td class="x">Decide the currency, set prices accordingly, and add a seed assertion that price and currency agree.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">The self-audit is linked from exactly two places and is absent from header, footer, sitemap and home. Project detail pages have no forward CTA at all.<small>ServicesHero.jsx:195 · SchoolsPage.jsx:265 · ProjectDetailPage.jsx</small></td><td class="x">Footer Explore column and sitemap entry. "Discuss a similar project" CTA carrying the project's category on every case study.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">The code cites Instructions v4.0 and Description v4.0. The repo holds v3.0 of both, with Phase 1 to 4 and no service categories. The source of truth the codebase points at does not exist in the repo.<small>docs/PROJECT_DESCRIPTION.md · SchoolsPage.jsx:5-7</small></td><td class="x">Commit v4.x of both documents to <code>docs/</code>, or repoint the comments at <code>SERVICE_CATALOGUE_2026-08.md</code>.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">Three different experience figures are live: 6+ in the English meta description, 6 in Spanish, 8+ on home and in the catalogue. The cloud page's SERP snippet promises "up to 40%" while its own FAQ says no number is promised. "2 school platforms delivered" counts a brand system as a platform.<small>pageSeo.js:28 · pageSeoEs.js:50,90 · services-seed.js:173</small></td><td class="x">One number, one owner file. Strike the 40%. Say one platform and one identity system.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4 class="role">UX Researcher / Information Architect <span>real SMB, EDU and IND buyers</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f"><code>pathWithLanguage</code> is imported by two files. All 150 navigational links, including every booking CTA via <code>bookHref()</code>, are unprefixed English paths. Because language is bound to the URL, a Spanish reader who clicks "Agendar llamada" is switched to English on the conversion step. The 25-route <code>/es</code> tree has near-zero internal inbound links.<small>web/src/data/servicesCatalogue.js:468 · Header.jsx:161 · Footer.jsx:222,298</small></td><td class="x">A <code>LocalizedLink</code> wrapper, a codemod over the 150 sites, and an ESLint rule banning bare <code>&lt;Link to="/"&gt;</code>. Roughly two hours; highest return in this plan.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">38 of 82 audit statements resolve to nothing sellable. Section E is 10 of 12 dead. Two bundles recommend $6k to $18k programmes built from retired SKUs. The page says 82/70/12 items; the real counts are 51/66/12. Investment ranges are in USD for a MXN audience.<small>web/src/data/auditData.js:18-558 · SelfAuditPage.jsx:45-49</small></td><td class="x">Rebuild on 4 categories × 21 offerings, 30 to 36 statements, every one mapping to a live slug. Interim: filter results through <code>legacyIdMap</code> and fix the counts.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">The schools page describes a 5-minute, top-3 audit. The instrument is 51 statements, about 15 minutes, top 5. The blog newsletter form posts to the legacy endpoint with no source and says "You're subscribed" on a double-opt-in system.<small>es/schools.json:82-83 · BlogPage.jsx:483-496</small></td><td class="x">One description of the tool. Replace the blog form with <code>NewsletterInline</code>.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f"><code>/schools</code> shipped from domain expertise without interviews. The Schools Plan exists on <code>/services</code> at MX$24,000 to 90,000 a month and is never mentioned on the page built for schools.<small>SchoolsPage.jsx · seed-audience-plans.js:101-126</small></td><td class="x">Three to five director conversations before the school-year timeline is load-bearing. Either surface the plan on <code>/schools</code> or remove it from the strip.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4 class="role">Product / UI Designer <span>tokens · mobile-first · visual-first</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">Arbitrary <code>text-[Npx]</code> appears 1,639 times against 1,294 semantic type classes. AuditModal alone has 114, including 13.5px. There is no typography ratchet.<small>components/audit/AuditModal.jsx · pages/BlogPage.jsx · BookingCalendar.jsx</small></td><td class="x">Clone <code>check-shadows.mjs</code> as <code>check-typography.mjs</code>: baseline, fail on new values. Migrate the three worst files first; they hold a quarter of the debt.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">Dark mode is dashboard-only, implemented as 26 <code>!important</code> overrides per opacity step. No boot script, so dark dashboards flash light on reload. Public surface: 866 <code>bg-white</code>.<small>web/src/styles/tokens.css:632-657 · index.html</small></td><td class="x">Decide in <code>docs/DESIGN_SYSTEM.md</code>: public-light-only, or committed Phase B. Either way, migrate the shim to the <code>--color-text-*</code> tokens that already flip and add the 6-line boot script.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f"><code>check-legacy-palette.sh</code> is referenced by nothing. Five "PENDING" allowlist entries in the hex gate were never cleaned up. Eight bespoke card components copy the same recipe outside <code>components/ui/Card</code>.<small>scripts/check-legacy-palette.sh · web/scripts/check-raw-hex.mjs:88-93</small></td><td class="x">Chain the palette check into <code>lint</code>. Clear the five files in one PR. Fold the cards onto the system Card.</td></tr>
+      <tr><td><span class="sev p3">P3</span></td><td class="f">Three emoji glyphs serve as UI markers in the newsletter trust row. Carousel pagination dots are 8px targets against a 24px minimum.<small>NewsletterSection.jsx:231-233 · CoverflowCarousel.jsx:396</small></td><td class="x">Lucide icons with <code>aria-hidden</code>. Wrap dots in 24px hit areas.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="grp g3"><span class="num">QUALITY · SECURITY · GROWTH</span><h3>QA · Security · SEO / Bilingual Content</h3><span class="cnt">3 roles</span></div>
+
+  <h4 class="role">QA / Test Engineer <span>Jest · Playwright · the release gate</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">The coverage threshold is decorative: CI runs <code>npm test</code>, which is plain jest. Committed <code>coverage/</code> is ten days stale and references a deleted file. <code>invoiceService.js</code> sits at 6%, <code>paypalService.js</code> at 10%, <code>cfdiProvider.js</code> has no test.<small>package.json:23,113-120 · ci.yml:75</small></td><td class="x"><code>jest --coverage</code> in CI, json-summary reporter, per-path thresholds on the money files, and <code>coverage/</code> in <code>.gitignore</code>.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">Zero frontend unit tests. All six Playwright specs stub every API call, so nothing in CI ever runs the SPA against the real Express app. A contract break between <code>api.js</code> and a controller ships undetected.<small>web/package.json · web/e2e/</small></td><td class="x">Vitest on <code>AuthContext</code>, <code>lib/api.js</code> and cookie consent. One Playwright project booting the server against a Docker MySQL, walking signup to download.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">The admin route-guard test asserts <code>protect</code> but never <code>adminOnly</code>, and its filename filter misses admin routes declared in <code>diagnosticRoutes.js</code>. About 26 suites read the wall clock.<small>test/adminRoutesGuard.test.js:21,35 · diagnosticRoutes.js:15,18</small></td><td class="x">Walk every router's registered paths for <code>/admin</code> and require both guards. A shared frozen clock helper.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4 class="role">Security Engineer <span>OWASP · auth and session · LFPDPPP posture</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">The avatar upload chain above is the one exploitable finding. Everything else in this lane is hardening.<small>see Backend, row 4</small></td><td class="x">Same fix; ship it in Sprint 0.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">JWT algorithm is not pinned at five <code>jwt.verify</code> sites. Signup returns "A user with this email already exists". <code>qs</code> below 6.16 is reachable through <code>express.urlencoded</code> on every request.<small>authMiddleware.js:58,160 · authService.js:47 · package.json</small></td><td class="x">One <code>verifyJwt.js</code> with <code>algorithms: ["HS256"]</code> and an ESLint ban on direct verify. Generic signup response. <code>npm audit fix</code> or a <code>qs</code> override.</td></tr>
+      <tr><td><span class="sev p3">P3</span></td><td class="f">Localhost origins remain in the production CORS allowlist with credentials. COOP disabled alongside COEP though only COEP is needed for PayPal. No limiter on <code>/reset-password/:token</code>. Claim token reuses the reset column at 14 days.<small>app.js:98-99,123 · authRoutes.js:52 · authService.js:315-322</small></td><td class="x">Env-gate the localhost origins. <code>same-origin-allow-popups</code>. Dedicated limiter. Separate claim columns.</td></tr>
+      <tr><td><span class="sev p3">P3</span></td><td class="f">No independent external review is on record. This pass was internal and found one P1; that is the argument for booking one, not against it.<small>—</small></td><td class="x">Book after Sprint 0 lands so the reviewer grades the fixed surface.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4 class="role">SEO / Bilingual Content Specialist <span>technical SEO · structured data · EN/ES as a discipline</span></h4>
+  <div class="tblwrap"><table>
+    <thead><tr><th>Sev</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev p1">P1</span></td><td class="f"><code>VITE_I18N_ENABLED</code> has opposite polarity in the sitemap script and the SPA, and is set in no env file. Unset, the site serves Spanish while the sitemap emits zero hreflang alternates. Copied from the example, Spanish is disabled site-wide.<small>web/scripts/generate-sitemap.mjs:8 · web/src/i18n/index.js:49 · web/.env.example:31</small></td><td class="x">Unify on <code>=== "true"</code> so an unset flag fails loudly, set <code>VITE_I18N_ENABLED=true</code> once in <code>.env.production</code> (build and sitemap share the shell, so one line fixes both), and chain the orphaned <code>test:i18n</code> into <code>lint</code>. Add <code>/self-audit</code> and <code>/book</code> to the static routes.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">Server-side OG covers four detail-route families only. Home, services index, schools, about, book and every <code>/es/</code> equivalent fall back to the English shell. Every WhatsApp share in the target market previews in English. The <code>/</code> to <code>/es</code> redirect uses <code>location.replace</code> and drops UTM and gclid parameters.<small>src/middleware/ogInjector.js:67 · LanguageWrapper.jsx:52</small></td><td class="x">Static-page OG map, 12 routes × 2 locales, no DB lookup. <code>navigate("/es" + location.search, { replace: true })</code>.</td></tr>
+      <tr><td><span class="sev p1">P1</span></td><td class="f">UI chrome is 2,767 of 2,767 keys bilingual and reads as native Mexican Spanish. Sellable content is 0%: 9 of 9 products, 10 of 10 blog posts and all 82 audit statements are English-only, though the schema has the <code>*Es</code> columns for all of them.<small>prisma/seed/products-seed.js · blog-seed-data.json · auditData.js</small></td><td class="x">Products and the three highest-intent posts first. The audit gets Spanish as part of its rebuild.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f">"Retainer mensual" where Mexican commercial Spanish says "iguala mensual". One <code>usted</code> in a <code>tú</code> file. Services JSON-LD publishes the retired six-domain serviceType list. No FAQPage on the four category pages though the FAQ data exists. No BlogPosting schema. <code>/self-audit</code> has no Spanish SEO entry.<small>es/services.json:132,159 · es/schools.json:77 · pageSeo.js:341-348</small></td><td class="x">Fix the two words. Rewrite serviceType to the four names. Wire <code>faqSchema</code> on category pages. Add BlogPosting and the missing Spanish entry.</td></tr>
+      <tr><td><span class="sev p2">P2</span></td><td class="f"><code>.htaccess</code> has no www, https or trailing-slash redirects. Blog cadence stopped in June 2026.<small>public/.htaccess</small></td><td class="x">Verify both variants live; add 301s if either returns 200. Resume a fortnightly post, Spanish-first.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 class="sec">The program</h2>
+  <p class="sec-note">Four sprints, sequenced by what loses money or data first. Each sprint has a gate that must be green before the next opens. The order is the information; a later sprint depends on the one before it.</p>
+  <ol class="prog">
+    <li>
+      <div class="h"><b>Stop the bleeding</b><span>this week · Backend + Frontend · ~3 days</span></div>
+      <ul>
+        <li>MercadoPago refund and chargeback revocation; PayPal deterministic refund key plus order claim; transition table on the admin status setter.</li>
+        <li>Static mounts below Helmet; avatar extension from validated MIME; upload limiter on the profile route.</li>
+        <li>Fail closed on <code>ANALYTICS_HASH_SALT</code>; timeouts on all five provider calls; mask unexpected 500s in production.</li>
+        <li>Unblock the branch: carousel shadow token, rename the two cover files, delete <code>web/src/ui/PrimaryButton.jsx</code>, fix the pricing-card glyph.</li>
+        <li>Tests for each: MP chargeback revokes downloads, concurrent refunds pay once, <code>refunded</code> to <code>paid</code> is rejected, HTML avatar is refused.</li>
+      </ul>
+      <div class="gate">gate · npm run lint green · new money tests green · one external security review booked</div>
+    </li>
+    <li>
+      <div class="h"><b>Make the platform recoverable</b><span>week 2 · DevOps + Database · ~4 days · owner steps required</span></div>
+      <ul>
+        <li>Transactional <code>deploy.sh</code>: drift gate, pre-deploy snapshot, rollback to PREV_SHA on a failed health or smoke check, 503 page during the window.</li>
+        <li>Offsite backups: SQL dump on the crontab, <code>rclone</code> to an encrypted remote, weekly <code>storage/</code> archive. Product ZIPs out of git.</li>
+        <li>Retention job plus the EmailLog and Session indexes. Admin list projections. Fulfilment <code>createMany</code>. Clamp the audit-log limit.</li>
+        <li>Schema drift job in CI. Cron dead-man in <code>uptime.yml</code>. Marker file for a failed Prisma generate, surfaced in health.</li>
+        <li>Connection-pool canary on <code>/health/deep</code>; set the limit to 3 on the host and watch for a week.</li>
+        <li>Coverage on in CI with per-path thresholds on the money files. Settle the <code>public/</code> tracked-or-not contradiction in CLAUDE.md.</li>
+      </ul>
+      <div class="gate">gate · one rehearsed restore from the offsite copy · schema job red on a deliberate drift, then green</div>
+    </li>
+    <li>
+      <div class="h"><b>Sell the closed set of four, in both languages</b><span>weeks 3 to 4 · Product + UX + SEO + Content · ~8 days</span></div>
+      <ul>
+        <li><code>LocalizedLink</code> and the 150-site codemod, with the ESLint rule. Fix <code>VITE_I18N_ENABLED</code>, the static OG map, and the UTM-dropping redirect.</li>
+        <li>Rebuild the self-audit on 4 × 21 with Spanish authored alongside; put it in the footer, the sitemap and one home section. Fix the counts and the schools description of it.</li>
+        <li>Retire the seven legacy and audience Service rows or mark them retired; move the three services out of the store; decide product currency; rewrite the SLA lines; gate top tiers behind a call.</li>
+        <li>Translate the nine products and the three highest-intent posts. "Iguala mensual". One experience figure. Strike the 40%.</li>
+        <li>Case-study CTA carrying the project's category. Blog form onto <code>NewsletterInline</code>. FAQPage on the four category pages; BlogPosting on posts; serviceType to the four names.</li>
+        <li>Commit Instructions and Description v4.x to <code>docs/</code>. Run the three to five school-director conversations in parallel.</li>
+      </ul>
+      <div class="gate">gate · a Spanish visitor can go home → services → category → book without leaving /es · zero audit results that recommend a retired SKU</div>
+    </li>
+    <li>
+      <div class="h"><b>Pay down the visual debt with ratchets, not sweeps</b><span>weeks 5 to 6 · Designer + Frontend + QA · ongoing</span></div>
+      <ul>
+        <li>Typography ratchet cloned from the shadow ratchet; migrate AuditModal, BlogPage and BookingCalendar first.</li>
+        <li>Write the dark-mode decision into <code>docs/DESIGN_SYSTEM.md</code>; migrate the dashboard shim to flipping tokens; add the boot script.</li>
+        <li>Wire <code>check-legacy-palette.sh</code>, literal-string i18n detection and the 1480 KB budget into the gates that already run. Add <code>/schools</code> to Lighthouse; take the mobile floor off 0.35 starting with <code>/about</code>.</li>
+        <li>Vitest on the three state-bearing frontend modules; one real end-to-end Playwright lane against a disposable database.</li>
+        <li>Schedule the gsap port as a normal ticket. Add the sourced engineering stat strip to <code>/about</code> once CI publishes the numbers.</li>
+      </ul>
+      <div class="gate">gate · every ratchet baseline smaller than when the sprint opened · mobile Lighthouse performance floor raised and enforced</div>
+    </li>
+  </ol>
+
+  <h2 class="sec">Confirmed sound. Leave alone.</h2>
+  <div class="affirm">
+    <h3>Every role was asked what not to touch</h3>
+    <ul>
+      <li><code>paymentTransitionService.js</code>: amount and currency validation, terminal-state guards, DB-level idempotency, and the pending-to-approved versus re-capture distinction. Both webhook signature paths verify before any write and fail closed in production.</li>
+      <li><code>src/lib/prisma.js</code>: single client, replaceable proxy, time-boxed liveness, keepalive under the MariaDB timeout. <code>check-db-drift.js</code> and <code>explain-hot-queries.js</code> are rare tools at this scale; the problem is only that nothing runs them.</li>
+      <li>Session cookies, CSRF double-submit keyed on cookie presence, <code>tokensValidFrom</code> revocation, OAuth state on all three providers, open-redirect filtering, TOTP step consumption, bcrypt 12, reset tokens at 256 bits and single use.</li>
+      <li>The Aviso de Privacidad Integral, the ARCO export and anonymising delete, the opt-in cookie consent, the double-opt-in newsletter, and the refusal to seed testimonials or invented data into production.</li>
+      <li><code>SchoolsPage.jsx</code> and the <code>components/services</code> family. <code>vite.config.js</code> chunking and route lazy-loading. <code>MobileMenu.jsx</code>. The Spanish copy in home, services, schools and legal.</li>
+      <li>The <code>uptime.yml</code> probe that checks the health payload says the database is ok rather than trusting a 200. The route-guard test's dynamic enumeration.</li>
+    </ul>
+  </div>
+
+  <h2 class="sec">Owner-only steps</h2>
+  <div class="owner-steps">
+    <h3>Things only the account holder can do, in the order the sprints need them</h3>
+    <p>Sprint 2 adds indexes and a status value, so a schema push follows those PRs. The guard refuses production unless told otherwise, and the JSON backup must run first.</p>
+<pre>node scripts/backup-db-json.js
+ALLOW_PROD_DB=1 npm run db:push</pre>
+    <p>On the Hostinger host: paste the crontab line from the header of <code>scripts/backup-db.sh</code>, configure an <code>rclone</code> remote with encryption, set <code>DB_CONNECTION_LIMIT=3</code> and <code>ANALYTICS_HASH_SALT</code> in the host <code>.env</code>, and set <code>VITE_I18N_ENABLED</code> explicitly once the polarity is unified. Enable branch protection on <code>master</code> requiring backend, frontend, e2e and the new schema job. Book the external security review for after Sprint 0. Migrate the MercadoPago and PayPal dashboard webhook URLs to <code>/api/v1</code> before the legacy mounts are deleted.</p>
+  </div>
+
+  <div class="foot">mustaphaukizuru.com · companion to Build Team Tiers and Team Review Findings · reviewed at 620f2d4 · 3 Sept 2026</div>
+</div>

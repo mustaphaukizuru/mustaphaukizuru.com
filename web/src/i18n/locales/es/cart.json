@@ -24,6 +24,7 @@
     "discount": "Descuento",
     "tax": "Impuestos",
     "taxLabel": "Impuestos (productos digitales)",
+    "taxIncluded": "IVA {{rate}}% incluido",
     "total": "Total",
     "couponCode": "Código de descuento",
     "applyCoupon": "Aplicar",

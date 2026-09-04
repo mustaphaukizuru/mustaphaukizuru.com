@@ -92,6 +92,51 @@ function classifyBookingWriteError(err) {
 }
 
 /**
+ * Overlap guard (Tier 3). The [assignedAdminId, scheduledAt] unique index only
+ * rejects two bookings that start at the SAME instant; a 60-min call at 10:00
+ * and a 30-min call at 10:30 both pass it. MySQL has no EXCLUDE constraint,
+ * so the interval check lives here, inside the booking transaction: any
+ * active consultation for the same host whose [scheduledAt, end) intersects
+ * [start, end) rejects the write with the same 409 SLOT_OVERLAP that
+ * classifyBookingWriteError maps a DB-level exclusion to.
+ *
+ * `end` for an existing row is its endsAt, falling back to
+ * scheduledAt + durationMin for rows written before endsAt existed. The
+ * candidate window is bounded by MAX_BOOKING_SPAN_MS on the left so the
+ * query stays on the (assignedAdminId, scheduledAt) index.
+ */
+const MAX_BOOKING_SPAN_MS = 24 * 60 * 60_000
+
+function consultationEnd(row) {
+  if (row.endsAt) return new Date(row.endsAt)
+  return addMinutes(new Date(row.scheduledAt), row.durationMin || 30)
+}
+
+async function assertNoOverlappingBooking(db, { hostId, start, end, excludeId = null }) {
+  if (!hostId || !start || !end) return
+  const candidates = await db.consultation.findMany({
+    where: {
+      assignedAdminId: hostId,
+      status:          { in: ACTIVE_BOOKING_STATUSES },
+      scheduledAt:     { lt: end, gt: new Date(start.getTime() - MAX_BOOKING_SPAN_MS) },
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
+    select: { id: true, scheduledAt: true, endsAt: true, durationMin: true },
+  })
+  const clash = candidates.find((row) => {
+    const rowStart = new Date(row.scheduledAt)
+    const rowEnd   = consultationEnd(row)
+    return rowStart < end && rowEnd > start
+  })
+  if (clash) {
+    throw Object.assign(
+      new Error("This time overlaps an existing booking — please choose another"),
+      { statusCode: 409, code: "SLOT_OVERLAP", conflictId: clash.id },
+    )
+  }
+}
+
+/**
  * Verify the requested startUtc is currently bookable (still in the available
  * slot list). Defends against stale clients holding old slot data.
  */
@@ -209,29 +254,34 @@ async function bookConsultation({
   }
 
   try {
-    let consultation = await prisma.consultation.create({
-      data: {
-        userId,
-        assignedAdminId:   hostId,
-        serviceOrderId:    serviceOrderId || null,
-        serviceId:         serviceId || null,
-        scheduledAt:       startDate,
-        endsAt,
-        durationMin:       policy.bookingDurationMin,
-        timezone,
-        clientNotes,
-        status:            autoConfirm ? "confirmed" : "pending",
-        confirmedAt:       autoConfirm ? new Date()  : null,
-        confirmationToken: generateConfirmationToken(),
-      },
-      include: PUBLIC_INCLUDE,
+    // Overlap guard + insert in ONE transaction so two concurrent bookers
+    // cannot both pass the interval check and then both insert.
+    let consultation = await prisma.$transaction(async (tx) => {
+      await assertNoOverlappingBooking(tx, { hostId, start: startDate, end: endsAt })
+      return tx.consultation.create({
+        data: {
+          userId,
+          assignedAdminId:   hostId,
+          serviceOrderId:    serviceOrderId || null,
+          serviceId:         serviceId || null,
+          scheduledAt:       startDate,
+          endsAt,
+          durationMin:       policy.bookingDurationMin,
+          timezone,
+          clientNotes,
+          status:            autoConfirm ? "confirmed" : "pending",
+          confirmedAt:       autoConfirm ? new Date()  : null,
+          confirmationToken: generateConfirmationToken(),
+        },
+        include: PUBLIC_INCLUDE,
+      })
     })
 
     // When the booking is auto-confirmed (client picked from published
     // availability → no admin review needed), wire the same side-effects
     // the manual admin-confirm path runs:
-    //   1. Create a Google Calendar event with a Meet link (or fall back
-    //      to a Jitsi room if Google isn't configured).
+    //   1. Create a Google Calendar event with a Meet link (no fallback
+    //      provider — if Google isn't configured the link stays empty).
     //   2. Persist the meeting link + provider + event id back onto the row.
     //   3. Fire the confirmation email so the client gets the join link
     //      immediately, plus the Calendar invite Google itself sends.
@@ -250,6 +300,8 @@ async function bookConsultation({
   } catch (err) {
     // Race: another booker won this slot in the same instant (P2002) or
     // overlapping interval rejected by the EXCLUDE constraint (23P01).
+    // assertNoOverlappingBooking already throws a shaped 409 — the
+    // classifier returns null for it and it is rethrown untouched.
     const mapped = classifyBookingWriteError(err)
     if (mapped) throw mapped
     throw err
@@ -363,7 +415,8 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
   const newEnd = addMinutes(newStart, existing.durationMin || policy.bookingDurationMin)
 
   // Atomic: cancel old, create new in one transaction. The new row inherits the
-  // host, service, user — only the time changes. Uniqueness ensures no overlap.
+  // host, service, user — only the time changes. The interval guard below
+  // (plus the unique index) ensures no overlap.
   // The Google Calendar event (if any) is updated in-place AFTER the
   // transaction commits — we don't want a Calendar API timeout to roll
   // back the DB write. The new row inherits the SAME googleEventId so the
@@ -375,6 +428,16 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
         status: "rescheduled",
         cancelledAt: new Date(),
       },
+    })
+
+    // Interval overlap guard — the old row is excluded (it is being
+    // retired above); any other active booking for the host that
+    // intersects [newStart, newEnd) aborts the transaction with 409.
+    await assertNoOverlappingBooking(tx, {
+      hostId:    existing.assignedAdminId,
+      start:     newStart,
+      end:       newEnd,
+      excludeId: existing.id,
     })
 
     try {
@@ -562,8 +625,8 @@ async function adminListConsultations({ status, from, to, hostUserId, page = 1, 
  *   1. If Google Calendar is configured, try to create an event + Meet
  *      link via the Calendar API. On success, persist meetingProvider =
  *      google_meet, meetingLink = <Meet URL>, googleEventId = <event id>.
- *   2. If Google fails (or isn't configured), fall back to a Jitsi room
- *      with meetingProvider = manual.
+ *   2. If Google fails (or isn't configured), the booking is kept with
+ *      meetingLink = null — there is deliberately no fallback provider.
  *   3. Regardless of which provider was used, fire the existing
  *      consultation.confirmed email — the template substitutes the link
  *      so the client always gets something they can click on.
@@ -885,6 +948,7 @@ async function adminRegenerateMeetingLink({ id, adminUserId = null, ipAddress = 
 
 module.exports = {
   bookConsultation,
+  assertNoOverlappingBooking,
   ensureProjectShellForConsultation,
   rescheduleConsultation,
   cancelConsultation,

@@ -21,6 +21,48 @@ export async function fetchMyProject(id) {
   return stripData(r)
 }
 
+/* ── member · project support tickets (Tier 2) ──────────────────────── */
+const memberProject = (id) => `/api/v1/member/projects/${encodeURIComponent(id)}`
+
+/** Multipart when files are present, JSON otherwise — the API accepts both. */
+function ticketBody(fields, files) {
+  const list = Array.from(files || []).filter(Boolean)
+  if (!list.length) return { body: JSON.stringify(fields) }
+  const fd = new FormData()
+  Object.entries(fields).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== "") fd.append(k, v) })
+  list.forEach((f) => fd.append("files", f))
+  return { body: fd }
+}
+
+export async function fetchMyProjectTickets(projectId) {
+  if (!projectId) throw new Error("Project id is required")
+  const r = await authFetch(`${memberProject(projectId)}/tickets`)
+  return asArray(r)
+}
+export async function fetchMyProjectTicket(projectId, ticketId) {
+  const r = await authFetch(`${memberProject(projectId)}/tickets/${encodeURIComponent(ticketId)}`)
+  return stripData(r)
+}
+export async function createMyProjectTicket(projectId, { subject, message, priority, milestoneId, files } = {}) {
+  if (!projectId) throw new Error("Project id is required")
+  const r = await authFetch(`${memberProject(projectId)}/tickets`, {
+    method: "POST",
+    ...ticketBody({ subject, message, priority, milestoneId }, files),
+  })
+  return stripData(r)
+}
+export async function replyMyProjectTicket(projectId, ticketId, { message, files } = {}) {
+  const r = await authFetch(`${memberProject(projectId)}/tickets/${encodeURIComponent(ticketId)}/messages`, {
+    method: "POST",
+    ...ticketBody({ message }, files),
+  })
+  return stripData(r)
+}
+/** Download URL for a ticket attachment (ownership-scoped by the project). */
+export function projectFileDownloadUrl(projectId, fileId) {
+  return `${memberProject(projectId)}/files/${encodeURIComponent(fileId)}/download`
+}
+
 /* ── admin · projects ───────────────────────────────────────────────── */
 export async function fetchAdminProjects() {
   const r = await authFetch("/api/v1/admin/client-projects")
@@ -43,6 +85,16 @@ export async function updateAdminProject(id, payload) {
     method: "PATCH",
     body: JSON.stringify(payload || {}),
   })
+  return stripData(r)
+}
+/** Tier 4 · mint / rotate the no-login portal link. Returns { url, expiresAt }. */
+export async function createAdminPortalLink(id) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/portal-link`, { method: "POST", body: JSON.stringify({}) })
+  return stripData(r)
+}
+/** Tier 4 · create a draft Portfolio case study from the project. Returns { id, slug, editUrl }. */
+export async function createAdminCaseStudyDraft(id) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/case-study-draft`, { method: "POST", body: JSON.stringify({}) })
   return stripData(r)
 }
 export async function deleteAdminProject(id) {
@@ -71,10 +123,12 @@ export async function deleteMilestone(projectId, milestoneId) {
 }
 
 /* ── admin · files ──────────────────────────────────────────────────── */
-export async function uploadProjectFile(projectId, file) {
+export async function uploadProjectFile(projectId, file, { milestoneId, isDeliverable } = {}) {
   if (!file) throw new Error("file is required")
   const fd = new FormData()
   fd.append("file", file)
+  if (milestoneId) fd.append("milestoneId", milestoneId)
+  if (isDeliverable) fd.append("isDeliverable", "true")
   // authFetch detects FormData via isFormData() and leaves the
   // Content-Type unset so the browser injects the multipart boundary.
   // Auth header is added automatically — no manual localStorage read.
@@ -86,5 +140,107 @@ export async function uploadProjectFile(projectId, file) {
 }
 export async function deleteProjectFile(projectId, fileId) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}`, { method: "DELETE" })
+  return stripData(r)
+}
+
+/* ── admin · comments ───────────────────────────────────────────────────── */
+export async function postAdminProjectComment(projectId, { body, milestoneId, fileId } = {}) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ body, milestoneId: milestoneId || undefined, fileId: fileId || undefined }),
+  })
+  return stripData(r)
+}
+export async function toggleAdminCommentResolved(projectId, commentId) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/comments/${encodeURIComponent(commentId)}/resolve`, {
+    method: "PATCH",
+  })
+  return stripData(r)
+}
+
+/* ── member · portal writes (Tier 2) ───────────────────────────────────── */
+const memberBase = (projectId) => `/api/v1/member/projects/${encodeURIComponent(projectId)}`
+
+/** Multipart `files[]` upload (≤10 files, 50 MB each). Optional milestone anchor. */
+export async function uploadMyProjectFiles(projectId, files, { milestoneId } = {}) {
+  const list = Array.from(files || [])
+  if (!list.length) throw new Error("At least one file is required")
+  const fd = new FormData()
+  for (const f of list) fd.append("files", f)
+  if (milestoneId) fd.append("milestoneId", milestoneId)
+  const r = await authFetch(`${memberBase(projectId)}/files`, { method: "POST", body: fd })
+  return asArray(r)
+}
+export async function postMyProjectComment(projectId, { body, milestoneId, fileId } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/comments`, {
+    method: "POST",
+    body: JSON.stringify({ body, milestoneId: milestoneId || undefined, fileId: fileId || undefined }),
+  })
+  return stripData(r)
+}
+export async function approveMyMilestone(projectId, milestoneId, { note } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/milestones/${encodeURIComponent(milestoneId)}/approve`, {
+    method: "POST",
+    body: JSON.stringify(note ? { note } : {}),
+  })
+  return stripData(r)
+}
+/** Tier 4 · review a completed project (existing service review endpoint + projectId). */
+export async function postProjectReview(serviceSlug, { projectId, rating, reviewText } = {}) {
+  const r = await authFetch(`/api/v1/services/${encodeURIComponent(serviceSlug)}/reviews`, {
+    method: "POST",
+    body: JSON.stringify({ projectId, rating, reviewText }),
+  })
+  return stripData(r)
+}
+/** Tier 4 · NDA click-wrap acceptance. */
+export async function acceptMyProjectAgreement(projectId, { type = "nda", version } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/agreements`, {
+    method: "POST",
+    body: JSON.stringify({ type, version: version || undefined }),
+  })
+  return stripData(r)
+}
+export async function requestMyMilestoneChanges(projectId, milestoneId, { note } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/milestones/${encodeURIComponent(milestoneId)}/request-changes`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  })
+  return stripData(r)
+}
+
+/* ── Tier 4 · change requests (extra work) ─────────────────────────────── */
+export async function fetchMyChangeRequests(projectId) {
+  const r = await authFetch(`${memberBase(projectId)}/change-requests`)
+  return asArray(r)
+}
+export async function createMyChangeRequest(projectId, { title, description } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/change-requests`, {
+    method: "POST",
+    body: JSON.stringify({ title, description }),
+  })
+  return stripData(r)
+}
+/** Resolves to { orderId, redirectUrl, ... } — the caller sends the client to pay. */
+export async function acceptMyChangeRequest(projectId, crId) {
+  const r = await authFetch(`${memberBase(projectId)}/change-requests/${encodeURIComponent(crId)}/accept`, { method: "POST", body: "{}" })
+  return stripData(r)
+}
+export async function declineMyChangeRequest(projectId, crId, { note } = {}) {
+  const r = await authFetch(`${memberBase(projectId)}/change-requests/${encodeURIComponent(crId)}/decline`, {
+    method: "POST",
+    body: JSON.stringify(note ? { note } : {}),
+  })
+  return stripData(r)
+}
+export async function quoteChangeRequest(projectId, crId, { amount, note, currency } = {}) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/change-requests/${encodeURIComponent(crId)}/quote`, {
+    method: "POST",
+    body: JSON.stringify({ amount, note, currency: currency || undefined }),
+  })
+  return stripData(r)
+}
+export async function completeChangeRequest(projectId, crId) {
+  const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/change-requests/${encodeURIComponent(crId)}/done`, { method: "POST", body: "{}" })
   return stripData(r)
 }

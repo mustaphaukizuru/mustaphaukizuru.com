@@ -1,0 +1,94 @@
+{
+  "seo": {
+    "breadcrumbHome": "Inicio",
+    "breadcrumbSchools": "Escuelas"
+  },
+  "hero": {
+    "eyebrow": "Para escuelas e instituciones educativas",
+    "title": "Tecnología escolar que funciona todo el ciclo",
+    "subtitle": "Dirijo el área de TI de un colegio K-12 todos los días y doy clases de informática. Conozco el calendario SEP, la reinscripción, las boletas y los respaldos que fallan en julio.",
+    "primaryCta": "Agendar llamada de 30 min",
+    "secondaryCta": "Ver plataformas escolares",
+    "diagramTitle": "Un colegio, un sistema",
+    "diagramCaption": "Dirección, docentes y familias sobre una misma plataforma con respaldos automáticos.",
+    "nodes": {
+      "direction": "Dirección",
+      "teachers": "Docentes",
+      "families": "Familias",
+      "admin": "Control escolar",
+      "platform": "Plataforma",
+      "backup": "Respaldo"
+    },
+    "credentials": {
+      "itManager": "IT Manager en un colegio K-12",
+      "google": "Google Certified Educator Nivel 2",
+      "teacher": "Docente de informática",
+      "platforms": "2 plataformas escolares entregadas"
+    }
+  },
+  "cycle": {
+    "eyebrow": "El ciclo escolar",
+    "title": "Cada etapa del ciclo toca un sistema",
+    "subtitle": "Así se ve un año escolar en México desde TI. Cada punto es un momento donde la tecnología ayuda o estorba.",
+    "steps": [
+      { "when": "Agosto", "title": "Reinscripción e inscripción", "system": "Expedientes, pagos y formularios", "offering": "Flujos de extracción de datos" },
+      { "when": "Septiembre", "title": "Arranque y plataformas", "system": "Cuentas, aulas virtuales, comunicación a familias", "offering": "Auditoría de la pila de software" },
+      { "when": "Diciembre · Marzo", "title": "Evaluaciones y boletas", "system": "Calificaciones, reportes, entrega a familias", "offering": "Aplicación web a medida" },
+      { "when": "Abril · Mayo", "title": "Admisiones del siguiente ciclo", "system": "Prospectos, WhatsApp, seguimiento", "offering": "Calificadores de leads por WhatsApp" },
+      { "when": "Julio", "title": "Cierre y respaldo", "system": "Archivo del ciclo, respaldos, accesos", "offering": "Plan de recuperación ante desastres" }
+    ]
+  },
+  "outcomes": {
+    "eyebrow": "Cuatro resultados",
+    "title": "Lo que un colegio suele necesitar primero",
+    "subtitle": "Cada resultado vive dentro de una de mis cuatro líneas de servicio. Nada aquí es un servicio aparte.",
+    "viewCategory": "Ver la línea de servicio",
+    "items": {
+      "software-stack-audit": "Menos licencias duplicadas: un inventario claro de todo lo que paga el colegio y qué eliminar.",
+      "whatsapp-lead-qualifiers": "Admisiones que responden solas: un asistente de WhatsApp que atiende dudas y registra prospectos.",
+      "disaster-recovery-planning": "Respaldos que sobreviven: copias cifradas y automáticas de expedientes y calificaciones.",
+      "mvp-web-app-development": "Una plataforma propia: sitio, admisiones y control escolar que el colegio controla."
+    }
+  },
+  "evidence": {
+    "eyebrow": "Evidencia",
+    "title": "Plataformas escolares ya entregadas",
+    "subtitle": "Dos instituciones, dos alcances distintos. Ambos proyectos están publicados con su nombre.",
+    "viewProject": "Ver el caso",
+    "allProjects": "Todos los proyectos"
+  },
+  "products": {
+    "eyebrow": "Para empezar hoy",
+    "title": "Recursos listos para descargar",
+    "subtitle": "Dos herramientas de la tienda pensadas para directivos y coordinadores. Compra inmediata, sin llamada previa.",
+    "viewProduct": "Ver en la tienda",
+    "items": {
+      "school-it-audit-checklist": { "title": "Lista de verificación de TI escolar", "blurb": "Revisa infraestructura, dispositivos, conectividad, accesos y seguridad en una sola lista." },
+      "stem-program-planning-pack": { "title": "Paquete de planeación de programa STEM", "blurb": "Recursos ordenados para diseñar actividades de programación y robótica con guía de implementación." }
+    }
+  },
+  "faq": {
+    "eyebrow": "Preguntas frecuentes",
+    "title": "Lo que preguntan los directivos",
+    "items": [
+      { "id": "when", "question": "¿En qué momento del ciclo conviene empezar?", "answer": "Las auditorías y planes de respaldo funcionan mejor entre mayo y julio, antes del cierre. Las plataformas nuevas se implementan idealmente para arrancar en agosto. Una llamada de 30 minutos define el calendario sin compromiso." },
+      { "id": "data", "question": "¿Cómo manejan los datos de alumnos y familias?", "answer": "Con la LFPDPPP como base: inventario de datos, aviso de privacidad, accesos mínimos y respaldos cifrados. Los expedientes nunca salen de sistemas controlados por el colegio." },
+      { "id": "staff", "question": "¿El personal del colegio podrá administrarlo solo?", "answer": "Sí. Cada entrega incluye capacitación al personal y documentación; la meta es que el colegio publique y opere sin depender de un desarrollador externo." },
+      { "id": "size", "question": "¿Trabaja con colegios pequeños?", "answer": "Sí. Muchos resultados empiezan con una auditoría de software o una lista de verificación de la tienda, sin proyectos grandes de por medio." }
+    ]
+  },
+  "audit": {
+    "eyebrow": "Autodiagnóstico gratuito",
+    "title": "Califica la tecnología de tu colegio en 5 minutos",
+    "body": "Un cuestionario con lente escolar: sitio, seguridad, nube y flujos digitales. Recibes un puntaje y las tres mejoras con mayor impacto.",
+    "cta": "Iniciar el autodiagnóstico"
+  },
+  "final": {
+    "eyebrow": "Siguiente paso",
+    "title": "Hablemos del ciclo que viene",
+    "body": "Una llamada de 30 minutos sin costo. Salimos con un calendario claro y una recomendación honesta, aunque sea empezar con una lista de verificación.",
+    "otherAudiences": "También trabajo con",
+    "businesses": "Empresas",
+    "individuals": "Profesionales independientes"
+  }
+}

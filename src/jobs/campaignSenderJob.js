@@ -8,8 +8,15 @@
  * when nothing went out) once no queued rows remain.
  *
  * EmailCampaignRecipient has no attempts column, so a delivery error is
- * final for that recipient (single attempt). The scheduler's overlap guard
- * prevents two passes from racing on the same rows.
+ * final for that recipient (single attempt).
+ *
+ * Claiming: the scheduler's overlap guard is per process, so a second app
+ * instance (Passenger can briefly run two during a deploy) could send the
+ * same batch twice. Each pass therefore CLAIMS its rows first with an
+ * atomic updateMany that stamps `sentAt` while status is still "queued";
+ * only rows the stamp actually landed on are sent. A claim older than
+ * CLAIM_TTL_MS whose row is still "queued" belongs to a crashed pass and is
+ * reclaimable.
  */
 
 const prisma = require("../lib/prisma")
@@ -18,15 +25,38 @@ const emailService = require("../services/emailService")
 const campaignService = require("../services/adminCampaignService")
 
 const BATCH_SIZE = 50
+const CLAIM_TTL_MS = 15 * 60 * 1000
 
-async function processCampaign(campaign) {
-  const queued = await prisma.emailCampaignRecipient.findMany({
-    where:   { campaignId: campaign.id, status: "queued" },
+async function claimBatch(campaignId, now) {
+  const stale = new Date(now.getTime() - CLAIM_TTL_MS)
+  const candidates = await prisma.emailCampaignRecipient.findMany({
+    where:   { campaignId, status: "queued", OR: [{ sentAt: null }, { sentAt: { lt: stale } }] },
     orderBy: { createdAt: "asc" },
     take:    BATCH_SIZE,
+    select:  { id: true },
   })
+  if (candidates.length === 0) return []
+  const ids = candidates.map((c) => c.id)
+  await prisma.emailCampaignRecipient.updateMany({
+    where: { id: { in: ids }, status: "queued", OR: [{ sentAt: null }, { sentAt: { lt: stale } }] },
+    data:  { sentAt: now },
+  })
+  // Only the rows our stamp landed on are ours.
+  return prisma.emailCampaignRecipient.findMany({
+    where:   { id: { in: ids }, status: "queued", sentAt: now },
+    orderBy: { createdAt: "asc" },
+  })
+}
+
+async function processCampaign(campaign, now = new Date()) {
+  const queued = await claimBatch(campaign.id, now)
 
   if (queued.length === 0) {
+    const inFlight = await prisma.emailCampaignRecipient.count({
+      where: { campaignId: campaign.id, status: "queued" },
+    })
+    // Another pass still holds a fresh claim — let it finish before closing.
+    if (inFlight > 0) return { sent: 0, failed: 0, completed: false }
     const [sentCount, failedCount] = await Promise.all([
       prisma.emailCampaignRecipient.count({ where: { campaignId: campaign.id, status: "sent" } }),
       prisma.emailCampaignRecipient.count({ where: { campaignId: campaign.id, status: "failed" } }),

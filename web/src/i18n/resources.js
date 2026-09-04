@@ -17,11 +17,13 @@ export const NAMESPACES = [
   "common", "home", "about", "services",
   "store", "product", "cart", "checkout", "auth",
   "dashboard", "admin", "contact", "portfolio", "legal", "errors",
-  "blog",
+  "blog", "audit", "schools",
 ]
 
 export const SUPPORTED_LANGUAGES = ["en", "es"]
-export const FALLBACK_LANGUAGE = "en"
+// Spanish-first (Mexico is the home market): a visitor with no usable
+// signal — no /es prefix, nothing stored, a non-en/es browser — gets Spanish.
+export const FALLBACK_LANGUAGE = "es"
 
 // Static map (not a template literal `import()`) so Rollup can statically
 // analyse both targets and emit exactly two locale chunks.

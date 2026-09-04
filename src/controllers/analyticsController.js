@@ -44,3 +44,12 @@ exports.adminEvents = asyncHandler(async (req, res) => {
   const events   = await analyticsService.getRecentEvents({ daysBack, limit })
   res.json({ success: true, data: events })
 })
+
+// Tier 4 · revenue reporting — see services/adminRevenueService.js
+const adminRevenueService = require("../services/adminRevenueService")
+
+exports.adminRevenue = asyncHandler(async (req, res) => {
+  const months = Math.min(36, Math.max(1, Number(req.query.months) || 12))
+  const data = await adminRevenueService.getRevenueReport({ months })
+  res.json({ success: true, data })
+})

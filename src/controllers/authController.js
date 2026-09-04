@@ -27,6 +27,7 @@ async function redirectIfTwoFactorRequired(res, { user, frontend, returnTo }) {
   res.redirect(302, `${frontend}/login#twoFactorToken=${encodeURIComponent(twoFactorToken)}&return_to=${encodeURIComponent(returnTo || "/dashboard")}`);
   return true;
 }
+const prismaLib = require("../lib/prisma");
 const { resolveUserLocale } = require("../utils/resolveUserLocale");
 const { notifyWelcome, notifyPasswordChanged } = require("../services/notificationService");
 
@@ -252,6 +253,12 @@ const googleOAuthCallback = asyncHandler(async (req, res) => {
     return res.redirect(302, `${frontend}/auth/google/return#token=${encodeURIComponent(token)}&user=${safeUser}&return_to=${safeReturn}`)
   } catch (err) {
     clearOAuthCookies(res)
+    // A dead Prisma engine surfaces here too (findOrCreateGoogleUser is
+    // inside the try). Recycle it so the retry succeeds, and tell the SPA
+    // it was the server, not the Google exchange.
+    if (prismaLib.recoverIfPanicked?.(err)) {
+      return res.redirect(302, `${frontend}/login?google=unavailable`)
+    }
     // Log the real error so operators can diagnose. Google's failures
     // come back with a `response.data.error` like "invalid_grant",
     // "redirect_uri_mismatch", or "invalid_client" — each points at a
@@ -279,6 +286,9 @@ const signup = asyncHandler(async (req, res) => {
   if (!fullName || !email || !password) {
     return res.status(400).json({ success: false, message: "fullName, email, and password are required" });
   }
+  if (typeof password !== "string") {
+    return res.status(400).json({ success: false, message: "Password must be a string" })
+  }
   const trimmedName = String(fullName).trim()
   const trimmedEmail = String(email).trim().toLowerCase()
   if (trimmedName.length < 2 || trimmedName.length > 100) {
@@ -294,7 +304,7 @@ const signup = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Password too long" })
   }
 
-  const user = await registerUser({ fullName, email, password });
+  const user = await registerUser({ fullName: trimmedName, email: trimmedEmail, password });
   const token = generateToken(user);
   setSessionCookie(res, token);   // Step 40 · httpOnly session + CSRF cookie
 
@@ -382,7 +392,8 @@ const login = asyncHandler(async (req, res) => {
   } catch (error) {
     // If DB is unreachable, return a clear 503 message
     const msg = error?.message || ""
-    if (msg.includes("Can't reach database") || msg.includes("ECONNREFUSED") || msg.includes("P1001")) {
+    if (prismaLib.recoverIfPanicked?.(error)
+        || msg.includes("Can't reach database") || msg.includes("ECONNREFUSED") || msg.includes("P1001")) {
       return res.status(503).json({
         success: false,
         message: "The server is temporarily unavailable. Please try again in a moment.",
@@ -565,6 +576,9 @@ const resetPassword = asyncHandler(async (req, res) => {
 
   if (!token || !password) {
     return res.status(400).json({ success: false, message: "Token and new password are required" });
+  }
+  if (typeof password !== "string") {
+    return res.status(400).json({ success: false, message: "Password must be a string" })
   }
   if (password.length < 8) {
     return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 import {
   Bell,
   ShoppingCart,
@@ -117,6 +118,7 @@ function NotificationItem({ notification, onRead }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function NotificationDropdown() {
   const { t } = useTranslation("dashboard")
+  const reduce = useReducedMotion()
   const { notifications, loading, unreadCount, fetchNotifications, markAsRead, markAllAsRead } =
     useNotifications()
   const [open, setOpen] = useState(false)
@@ -164,8 +166,17 @@ export default function NotificationDropdown() {
       </button>
 
       {/* Dropdown panel */}
+      {/* max-w keeps the panel inside the viewport: a hard 360px anchored to
+          the right edge overflowed horizontally on 320-360px phones.
+          Animated like the other header popovers, reduced-motion aware. */}
+      <AnimatePresence>
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[360px] rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgb(var(--color-violet-rgb)/0.14)]">
+        <m.div
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.97 }}
+          animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.98 }}
+          transition={{ duration: reduce ? 0.08 : 0.18, ease: [0.16, 1, 0.3, 1] }}
+          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[360px] max-w-[calc(100vw-2rem)] origin-top-right rounded-xl border border-charcoal-80/10 bg-white shadow-[0_20px_60px_rgb(var(--color-violet-rgb)/0.14)]">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-charcoal-80/10 px-4 py-3">
             <div>
@@ -228,8 +239,9 @@ export default function NotificationDropdown() {
               </div>
             )}
           </div>
-        </div>
+        </m.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }

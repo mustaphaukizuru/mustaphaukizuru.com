@@ -166,10 +166,14 @@ function makeLimiter({ windowMs, max, keyGenerator, message, name }) {
  * Webhooks (PayPal, MercadoPago) bypass this — they have their own routes
  * outside the limiter chain or are exempt via skip rules at the route level.
  */
+// 100/15min was hit by a single admin session in normal use (each console
+// page fans out several requests and polls), locking the operator out of
+// the whole API with RATE_LIMITED. Abuse-sensitive endpoints keep their own
+// tight limiters below; the global one is only a backstop.
 const globalApiLimiter = makeLimiter({
   name:         "global",
   windowMs:     FIFTEEN_MIN,
-  max:          100,
+  max:          Number(process.env.RATE_LIMIT_GLOBAL_MAX || 1500),
   keyGenerator: ipKey,
   message:      "Too many requests from this IP. Please slow down.",
 })
@@ -207,7 +211,9 @@ const forgotPasswordRateLimiter = makeLimiter({
   name:         "forgot-password",
   windowMs:     ONE_HOUR,
   max:          3,
-  keyGenerator: emailKey,
+  // ip+email: per-email alone let one IP fan out reset mails to thousands of
+  // distinct addresses (each a DB write + SMTP send).
+  keyGenerator: ipPlusEmailKey,
   message:      "Too many password reset requests. Please try again later.",
 })
 
@@ -245,6 +251,19 @@ const newsletterRateLimiter = makeLimiter({
   max:          5,
   keyGenerator: ipKey,
   message:      "Too many subscribe requests. Please wait before trying again.",
+})
+
+/**
+ * Self-audit (diagnostic) submission — 5 per hour per IP. Each submission
+ * renders a multi-page PDF and sends two emails, so an unthrottled endpoint
+ * is a CPU + mail amplifier. Same shape as the newsletter limiter.
+ */
+const diagnosticRateLimiter = makeLimiter({
+  name:         "diagnostic",
+  windowMs:     ONE_HOUR,
+  max:          5,
+  keyGenerator: ipKey,
+  message:      "Too many audit submissions. Please wait before trying again.",
 })
 
 /**
@@ -298,6 +317,19 @@ const downloadRateLimiter = makeLimiter({
 })
 
 /**
+ * ARCO self-service (data export + account deletion) — 3 per hour per user.
+ * Both endpoints are expensive (export fans out to ~12 tables) and neither
+ * needs to be called more than once in practice.
+ */
+const profileDataRateLimiter = makeLimiter({
+  name:         "profile-data",
+  windowMs:     ONE_HOUR,
+  max:          3,
+  keyGenerator: userKey,
+  message:      "Too many data requests. Please try again in an hour.",
+})
+
+/**
  * 2FA login-verify — 5 attempts per 5 minutes per (IP + twoFactorToken).
  *
  * The 5-minute window mirrors the twoFactorToken's own lifetime, so the
@@ -322,6 +354,39 @@ const twoFactorVerifyRateLimiter = makeLimiter({
   message:      "Too many 2FA attempts. Sign in again to get a fresh code prompt.",
 })
 
+/**
+ * Project support tickets — 10 per hour per user. A ticket fans out to every
+ * admin (notification + email) and may carry up to 10 files, so it needs a
+ * tighter budget than plain comments.
+ */
+const ticketRateLimiter = makeLimiter({
+  name:         "ticket",
+  windowMs:     ONE_HOUR,
+  max:          10,
+  keyGenerator: userKey,
+  message:      "Too many tickets opened. Please wait before opening another one.",
+})
+
+/**
+ * Tier 4 · magic-link portal PIN. Each request emails the project owner, so
+ * the budget is tight per IP; the verify step gets a slightly larger one so
+ * a mistyped PIN does not lock the visitor out before the email arrives.
+ */
+const portalPinRateLimiter = makeLimiter({
+  name:         "portal-pin",
+  windowMs:     FIFTEEN_MIN,
+  max:          5,
+  keyGenerator: ipKey,
+  message:      "Too many PIN requests. Please wait 15 minutes and try again.",
+})
+const portalVerifyRateLimiter = makeLimiter({
+  name:         "portal-verify",
+  windowMs:     FIFTEEN_MIN,
+  max:          10,
+  keyGenerator: ipKey,
+  message:      "Too many PIN attempts. Please wait 15 minutes and request a new PIN.",
+})
+
 /* ── Backward-compat alias ────────────────────────────────────────────── */
 
 /**
@@ -332,9 +397,23 @@ const twoFactorVerifyRateLimiter = makeLimiter({
  */
 const authRateLimiter = loginRateLimiter
 
+/**
+ * Public write endpoints that create rows or reveal state without a session
+ * (guest service checkout creates User rows; coupon validation can be used
+ * to enumerate codes). 30 per 15 min per IP.
+ */
+const publicWriteRateLimiter = makeLimiter({
+  name:         "public-write",
+  windowMs:     FIFTEEN_MIN,
+  max:          30,
+  keyGenerator: ipKey,
+  message:      "Too many requests. Please try again in a few minutes.",
+})
+
 module.exports = {
   // Global
   globalApiLimiter,
+  publicWriteRateLimiter,
   // Auth
   loginRateLimiter,
   signupRateLimiter,
@@ -345,9 +424,14 @@ module.exports = {
   // Contact / newsletter
   contactRateLimiter,
   newsletterRateLimiter,
+  diagnosticRateLimiter,
   // Resource-scoped
   paymentRateLimiter,
   uploadRateLimiter,
   searchRateLimiter,
   downloadRateLimiter,
+  ticketRateLimiter,
+  portalPinRateLimiter,
+  portalVerifyRateLimiter,
+  profileDataRateLimiter,
 }

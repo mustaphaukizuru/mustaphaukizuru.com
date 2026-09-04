@@ -15,6 +15,8 @@ import { createMercadoPagoPreference } from "../services/mercadoPagoService"
 import { createPaypalSession, capturePaypalSession } from "../services/paypalService"
 import { API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"
+import { includedTax, TAX_RATE_PCT } from "../lib/tax"
+import FiscalFields from "../components/checkout/FiscalFields"
 import { trackBeginCheckout } from "../lib/analytics"
 import { fetchAddresses, formatAddressLine, COUNTRY_OPTIONS } from "../services/addressService"
 
@@ -236,7 +238,13 @@ export default function CheckoutPage() {
     country: "",
     company: "",
     taxId: "",
+    // CFDI 4.0 receiver data — shown only when country is MX and an RFC is typed.
+    legalName: "",
+    regimenFiscal: "",
+    usoCfdi: "",
+    fiscalPostalCode: "",
   })
+  const wantsFactura = form.country === "MX" && form.taxId.trim().length > 0
   const [paymentMethod, setMethod] = useState("mercadopago")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -405,7 +413,17 @@ export default function CheckoutPage() {
       country: form.country || undefined,
       company: form.company || undefined,
       taxId: form.taxId || undefined,
-      items: cartItems.map((i) => ({ productId: i.id, quantity: i.quantity })),
+      ...(wantsFactura ? {
+        legalName:        form.legalName || undefined,
+        regimenFiscal:    form.regimenFiscal || undefined,
+        usoCfdi:          form.usoCfdi || undefined,
+        fiscalPostalCode: form.fiscalPostalCode || undefined,
+      } : {}),
+      items: cartItems.map((i) => ({
+        productId: i.id,
+        quantity: i.quantity,
+        ...(i.licenseTier ? { licenseTier: i.licenseTier } : {}),
+      })),
       couponCode,
     })
     setOrderCreated(order)
@@ -587,6 +605,15 @@ export default function CheckoutPage() {
                     />
                   </div>
                 </div>
+
+                {/* CFDI 4.0 receiver data — only when a Mexican RFC is given. */}
+                {wantsFactura && (
+                  <FiscalFields
+                    form={form}
+                    onChange={(field, value) => setForm((f) => ({ ...f, [field]: value }))}
+                    t={t}
+                  />
+                )}
               </div>
             </div>
 
@@ -910,8 +937,8 @@ export default function CheckoutPage() {
                   </div>
                 )}
                 <div className="flex justify-between text-meta text-charcoal-80/70">
-                  <span>{tCart("summary.taxLabel")}</span>
-                  <span className="font-semibold text-mint-700">$0.00</span>
+                  <span>{tCart("summary.taxIncluded", { rate: TAX_RATE_PCT })}</span>
+                  <span className="font-mono tabular-nums">{formatPrice(includedTax(orderTotal))}</span>
                 </div>
                 <div className="flex items-baseline justify-between border-t border-charcoal-80/10 pt-3">
                   <span className="text-body font-bold text-violet">{tCart("summary.total")}</span>

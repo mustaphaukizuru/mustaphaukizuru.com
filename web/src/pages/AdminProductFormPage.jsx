@@ -43,6 +43,37 @@ const EMPTY_FORM = {
   features: [],
   specifications: [], // F04 · I, array of { key, value }
   productFaqs: [], // F04 · K, array of { question, answer }
+  // SEO + Spanish overlay. These columns already existed on the model and are
+  // read by the OG injector and utils/pickLocale, but nothing in the admin
+  // could set them — the product's meta tags and its whole Spanish version
+  // were unreachable without writing to the database directly.
+  metaTitle: "",
+  metaDescription: "",
+  titleEs: "",
+  shortDescriptionEs: "",
+  descriptionEs: "",
+  fullDescriptionEs: "",
+  metaTitleEs: "",
+  metaDescriptionEs: "",
+  licenses: [], // T3 · array of { tier, name, price, currency, seats, isActive }
+}
+
+/* T3 · licence tiers the backend accepts (ProductLicense.tier). */
+const LICENSE_TIERS = ["personal", "commercial", "enterprise"]
+
+function normalizeLicenses(licenses) {
+  if (!Array.isArray(licenses)) return []
+  return licenses
+    .filter((l) => l && LICENSE_TIERS.includes(String(l.tier || "").toLowerCase()))
+    .map((l, index) => ({
+      tier: String(l.tier).toLowerCase(),
+      name: l.name || "",
+      price: l.price ?? "",
+      currency: l.currency || "MXN",
+      seats: l.seats ?? "",
+      isActive: l.isActive === undefined ? true : Boolean(l.isActive),
+      sortOrder: Number.isFinite(Number(l.sortOrder)) ? Number(l.sortOrder) : index,
+    }))
 }
 
 function normalizeProductToForm(product = {}) {
@@ -82,6 +113,7 @@ function normalizeProductToForm(product = {}) {
     features,
     specifications,
     productFaqs,
+    licenses: normalizeLicenses(product.licenses),
   }
 }
 
@@ -132,6 +164,18 @@ export default function AdminProductFormPage() {
         // F04 · I / K — drop empty rows; backend stores as JSON
         specifications: parsed.specifications.filter((s) => String(s.key || "").trim() && String(s.value || "").trim()),
         productFaqs: parsed.productFaqs.filter((f) => String(f.question || "").trim() && String(f.answer || "").trim()),
+        // T3 · licences: drop rows without a price; backend validates tiers
+        licenses: (parsed.licenses || [])
+          .filter((l) => l && l.tier && String(l.price).trim() !== "")
+          .map((l, index) => ({
+            tier: l.tier,
+            name: String(l.name || "").trim(),
+            price: Number(l.price),
+            currency: l.currency || "MXN",
+            seats: String(l.seats ?? "").trim() === "" ? null : Number(l.seats),
+            isActive: l.isActive !== false,
+            sortOrder: index,
+          })),
       }
       if (isEdit) {
         await updateAdminProduct(id, payload)
@@ -225,6 +269,37 @@ export default function AdminProductFormPage() {
       ;[arr[index], arr[target]] = [arr[target], arr[index]]
       return { ...current, features: arr }
     })
+  }
+
+  /* T3 · Licence tier handlers */
+  function addLicense() {
+    setForm((current) => {
+      const used = new Set((current.licenses || []).map((l) => l.tier))
+      const tier = LICENSE_TIERS.find((t) => !used.has(t))
+      if (!tier) return current
+      return {
+        ...current,
+        licenses: [
+          ...(current.licenses || []),
+          { tier, name: "", price: current.price ?? "", currency: "MXN", seats: "", isActive: true },
+        ],
+      }
+    })
+  }
+
+  function updateLicense(index, field, value) {
+    setForm((current) => {
+      const licenses = [...(current.licenses || [])]
+      licenses[index] = { ...licenses[index], [field]: value }
+      return { ...current, licenses }
+    })
+  }
+
+  function removeLicense(index) {
+    setForm((current) => ({
+      ...current,
+      licenses: (current.licenses || []).filter((_, i) => i !== index),
+    }))
   }
 
   /* F04 · I — Specifications (key/value highlights) handlers */
@@ -599,6 +674,133 @@ export default function AdminProductFormPage() {
               </div>
             </div>
 
+            {/* ── SEO ── */}
+            <div>
+              <h2 className="text-lg font-bold text-violet">SEO</h2>
+              <p className="mt-1 text-sm text-charcoal-80/70">
+                Used for the page title and the link preview cards shared on
+                social media. Leave empty to fall back to the product title and
+                short description.
+              </p>
+              <div className="mt-4 space-y-5">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Meta title
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Around 60 characters</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Brand Identity Kit for Startups"
+                    value={form.metaTitle}
+                    onChange={(e) => updateField("metaTitle", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Meta description
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Around 155 characters</span>
+                  </label>
+                  <textarea
+                    rows="2"
+                    placeholder="One or two sentences shown under the title in search results"
+                    value={form.metaDescription}
+                    onChange={(e) => updateField("metaDescription", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* ── Español ── */}
+            <div>
+              <h2 className="text-lg font-bold text-violet">Español</h2>
+              <p className="mt-1 text-sm text-charcoal-80/70">
+                Optional Spanish version. Any field left empty falls back to the
+                English copy above, so you can translate incrementally.
+              </p>
+              <div className="mt-4 space-y-5">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Título
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Spanish product title</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder=""
+                    value={form.titleEs}
+                    onChange={(e) => updateField("titleEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Descripción corta
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Shown on cards and summaries</span>
+                  </label>
+                  <textarea
+                    rows="2"
+                    placeholder=""
+                    value={form.shortDescriptionEs}
+                    onChange={(e) => updateField("shortDescriptionEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Descripción
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Main product description</span>
+                  </label>
+                  <textarea
+                    rows="4"
+                    placeholder=""
+                    value={form.descriptionEs}
+                    onChange={(e) => updateField("descriptionEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Descripción completa
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Extended content (optional)</span>
+                  </label>
+                  <textarea
+                    rows="6"
+                    placeholder=""
+                    value={form.fullDescriptionEs}
+                    onChange={(e) => updateField("fullDescriptionEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Meta título
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Spanish meta title</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder=""
+                    value={form.metaTitleEs}
+                    onChange={(e) => updateField("metaTitleEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal-80">
+                    Meta descripción
+                    <span className="ml-2 text-xs font-normal text-charcoal-80/65">Spanish meta description</span>
+                  </label>
+                  <textarea
+                    rows="2"
+                    placeholder=""
+                    value={form.metaDescriptionEs}
+                    onChange={(e) => updateField("metaDescriptionEs", e.target.value)}
+                    className="w-full rounded-xl border border-charcoal-80/12 bg-mist px-4 py-3 outline-none focus:border-violet/30"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* ── Product Features / What's Included ── */}
             <div>
               <h2 className="text-lg font-bold text-violet">
@@ -678,6 +880,106 @@ export default function AdminProductFormPage() {
                     Add
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* ── T3 · Licence tiers ── */}
+            <div>
+              <h2 className="text-lg font-bold text-violet">License tiers</h2>
+              <p className="mt-1 text-sm text-charcoal-80/70">
+                Optional. Add up to three tiers (personal / commercial / enterprise) with their own
+                price. Buyers pick a tier in the buy box and the order snapshots it with a licence key.
+                Leave empty to sell at the base price without a tier.
+              </p>
+
+              <div className="mt-4 space-y-3">
+                {(form.licenses || []).map((lic, index) => {
+                  const used = new Set((form.licenses || []).map((l, i) => (i === index ? null : l.tier)))
+                  return (
+                    <div
+                      key={lic.tier || index}
+                      className="grid gap-3 rounded-xl border border-charcoal-80/10 bg-mist p-4 md:grid-cols-[140px_1fr_120px_90px_110px_auto] md:items-end"
+                    >
+                      <label className="block text-xs font-semibold text-charcoal-80/70">
+                        Tier
+                        <select
+                          value={lic.tier}
+                          onChange={(e) => updateLicense(index, "tier", e.target.value)}
+                          className="mt-1 w-full rounded-lg border border-charcoal-80/12 bg-white px-3 py-2 text-sm outline-none focus:border-violet/30"
+                        >
+                          {LICENSE_TIERS.map((t) => (
+                            <option key={t} value={t} disabled={used.has(t)}>{t}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="block text-xs font-semibold text-charcoal-80/70">
+                        Display name
+                        <input
+                          type="text"
+                          value={lic.name}
+                          placeholder={`${lic.tier.charAt(0).toUpperCase()}${lic.tier.slice(1)} license`}
+                          onChange={(e) => updateLicense(index, "name", e.target.value)}
+                          className="mt-1 w-full rounded-lg border border-charcoal-80/12 bg-white px-3 py-2 text-sm outline-none focus:border-violet/30"
+                        />
+                      </label>
+                      <label className="block text-xs font-semibold text-charcoal-80/70">
+                        Price
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={lic.price}
+                          onChange={(e) => updateLicense(index, "price", e.target.value)}
+                          className="mt-1 w-full rounded-lg border border-charcoal-80/12 bg-white px-3 py-2 text-sm outline-none focus:border-violet/30"
+                        />
+                      </label>
+                      <label className="block text-xs font-semibold text-charcoal-80/70">
+                        Seats
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={lic.seats}
+                          placeholder="∞"
+                          onChange={(e) => updateLicense(index, "seats", e.target.value)}
+                          className="mt-1 w-full rounded-lg border border-charcoal-80/12 bg-white px-3 py-2 text-sm outline-none focus:border-violet/30"
+                        />
+                      </label>
+                      <label className="flex items-center gap-2 text-xs font-semibold text-charcoal-80/70 md:pb-2.5">
+                        <input
+                          type="checkbox"
+                          checked={lic.isActive !== false}
+                          onChange={(e) => updateLicense(index, "isActive", e.target.checked)}
+                          className="h-4 w-4 accent-violet"
+                        />
+                        Active
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => removeLicense(index)}
+                        className="rounded-lg px-2 py-2 text-xs text-red-500 hover:bg-rose/10 md:mb-0.5"
+                        title="Remove tier"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )
+                })}
+
+                {(form.licenses || []).length === 0 && (
+                  <div className="rounded-xl border border-dashed border-violet/20 bg-mist px-4 py-3 text-sm text-charcoal-80/65">
+                    No license tiers. The product sells at its base price.
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={addLicense}
+                  disabled={(form.licenses || []).length >= LICENSE_TIERS.length}
+                  className="rounded-xl bg-violet px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-deep disabled:opacity-50"
+                >
+                  Add tier
+                </button>
               </div>
             </div>
 

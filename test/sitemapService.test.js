@@ -3,7 +3,7 @@
  *
  * What the sitemap must and must not say:
  *   - every routable static page, including /portfolio, /blog and /cookies
- *   - NOT /self-audit (admin-gated) and nothing under /admin or /dashboard
+ *   - /self-audit (public lead magnet) but nothing under /admin or /dashboard
  *   - products only when published AND active AND not deleted
  *   - services = the four catalogue categories, never Service table slugs
  *     (they render the noindex "not found" page)
@@ -16,7 +16,7 @@
 jest.mock("../src/lib/prisma", () => ({
   product:          { findMany: jest.fn() },
   service:          { findMany: jest.fn() },
-  portfolioProject: { findMany: jest.fn() },
+  portfolio: { findMany: jest.fn() },
   blogPost:         { findMany: jest.fn() },
 }))
 
@@ -34,7 +34,7 @@ beforeEach(() => {
   jest.spyOn(console, "warn").mockImplementation(() => {})
   prisma.product.findMany.mockResolvedValue([{ slug: "brand-kit", updatedAt: new Date("2026-08-01") }])
   prisma.service.findMany.mockResolvedValue([{ slug: "cloud-migration-automation", updatedAt: new Date() }])
-  prisma.portfolioProject.findMany.mockResolvedValue([{ slug: "raindrop", updatedAt: new Date("2026-07-01") }])
+  prisma.portfolio.findMany.mockResolvedValue([{ slug: "raindrop", updatedAt: new Date("2026-07-01") }])
   prisma.blogPost.findMany.mockResolvedValue([
     { slug: "hello-world", updatedAt: new Date("2026-06-17"), publishedAt: new Date("2026-06-17") },
   ])
@@ -45,10 +45,9 @@ afterEach(() => console.warn.mockRestore())
 test("lists every routable static page and no admin-gated one", async () => {
   const { xml } = await getSitemapXml({ force: true })
   const paths = locs(xml)
-  for (const p of ["/", "/about", "/services", "/store", "/portfolio", "/blog", "/contact", "/book", "/privacy", "/terms", "/refund", "/cookies"]) {
+  for (const p of ["/", "/about", "/services", "/store", "/portfolio", "/blog", "/contact", "/book", "/self-audit", "/privacy", "/terms", "/refund", "/cookies"]) {
     expect(paths).toContain(p)
   }
-  expect(paths).not.toContain("/self-audit")
   expect(paths.some((p) => p.startsWith("/admin") || p.startsWith("/dashboard"))).toBe(false)
 })
 

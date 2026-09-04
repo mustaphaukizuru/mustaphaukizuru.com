@@ -37,18 +37,34 @@ const { runCampaignSenderPass } = require("./campaignSenderJob")
 const { runEmailRetryPass } = require("./emailRetryJob")
 const { runBackupPass } = require("./backupDatabaseJob")
 const { runAbandonedCartPass } = require("./abandonedCartJob")
+const { runProjectPurgePass } = require("./projectPurgeJob")
+const { runInvoiceDunningPass } = require("./invoiceDunningJob")
 const { runFulfillmentReconcilePass } = require("./fulfillmentReconcileJob")
 
 // In-process overlap guards — a slow pass (SMTP stalls, DB hiccup) must not
 // be joined by the next tick.
 const running = new Set()
+const { isAlive, recycle } = require("../lib/prisma")
+
+// DB pre-flight shared by every job: a cron firing on a dead engine used to
+// be the classic trigger for the Prisma "timer has gone away" panic. Probe,
+// recycle once, and skip the tick if the database is still unreachable —
+// the same pattern the individual jobs used to duplicate by hand.
+async function dbReady(name) {
+  if (await isAlive()) return true
+  await recycle()
+  if (await isAlive()) return true
+  logger.warn(`[scheduler] ${name}: database unreachable — skipping this tick`)
+  return false
+}
+
 async function guarded(name, fn) {
   if (running.has(name)) {
     logger.warn(`[scheduler] ${name} still running — skipping this tick`)
     return
   }
   running.add(name)
-  try { await fn() }
+  try { if (await dbReady(name)) await fn() }
   catch (err) { logger.error(`[scheduler] ${name} failed`, err) }
   finally { running.delete(name) }
 }
@@ -143,6 +159,29 @@ function startScheduler() {
     logger.info("[scheduler] registered abandoned-cart reminder · every 30 min")
   } catch (err) {
     logger.error("[scheduler] failed to register abandonedCartJob", err)
+  }
+
+  // ── Tier 4 · Project file purge · 04:00 UTC ─────────────────────────
+  // Unlinks deliverables of projects closed for PROJECT_PURGE_DAYS (60) and
+  // stamps purgedAt on the rows; metadata stays. After the 03:30 backup so
+  // the last snapshot still lists the files. UTC for the same reason as
+  // the other nightly jobs — a TZ change must not move it.
+  try {
+    cron.schedule("0 4 * * *", () => guarded("projectPurge", () => runProjectPurgePass()), { timezone: "UTC" })
+    logger.info("[scheduler] registered project file purge · 04:00 UTC")
+  } catch (err) {
+    logger.error("[scheduler] failed to register projectPurgeJob", err)
+  }
+  // ── Tier 4 · Invoice dunning · 08:00 UTC ────────────────────────────
+  // Manual invoices past their due date turn overdue (late fee recorded
+  // once, one email), paid orders reconcile their invoice, and projects
+  // with long-overdue balances are suspended / reinstated. Daily in the
+  // morning (Mexico) so the client reads the reminder during the day.
+  try {
+    cron.schedule("0 8 * * *", () => guarded("invoiceDunning", () => runInvoiceDunningPass()), { timezone: "UTC" })
+    logger.info("[scheduler] registered invoice dunning · 08:00 UTC")
+  } catch (err) {
+    logger.error("[scheduler] failed to register invoiceDunningJob", err)
   }
 
   // ── Fulfilment reconciliation · every 15 minutes ────────────────────

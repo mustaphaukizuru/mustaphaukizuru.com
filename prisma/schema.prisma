@@ -4,6 +4,28 @@
 
 generator client {
   provider = "prisma-client-js"
+  // NOTE · engine type. The default "library" engine loads the Rust query
+  // engine INTO the node process; on this host it intermittently panics
+  // ("PANIC: timer has gone away") on the first query of a fresh process,
+  // and a library-engine panic cannot be recovered in-process.
+  //
+  // The "binary" engine runs the query engine as a separate process and is
+  // immune to that, but it is NOT set here on purpose: it spawns an engine
+  // process per client, which took the Jest suite from ~90s to over ten
+  // minutes — too high a price on every developer and every CI run for a
+  // production-only symptom.
+  //
+  // Switch it on where the symptom actually is, no code change required:
+  //   PRISMA_CLIENT_ENGINE_TYPE=binary   in the host env, then redeploy
+  // (postinstall runs `prisma generate`, and that variable overrides the
+  // generator at generate time). Unset it to go back.
+  // Production is Hostinger (CloudLinux 8). The build that ran for hours
+  // without incident used the debian-openssl-1.1.x engine; adding the
+  // rhel-openssl-* targets made Prisma pick the RHEL engine at runtime, and
+  // that one panics on this host from the very first query ("timer has gone
+  // away" from boot, restart loop). Keep the Debian engines only — do NOT
+  // add rhel targets back without verifying on the host first.
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -123,6 +145,10 @@ enum ProjectStatus {
 enum MilestoneStatus {
   pending
   in_progress
+  /// Work delivered; waiting for the client's one-click approval.
+  awaiting_client
+  /// Client approved (approvedAt / approvedById on the row).
+  approved
   completed
 }
 
@@ -279,6 +305,8 @@ model User {
   clientProjects         ClientProject[]  @relation("UserClientProjects")
   assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
   projectFiles           ProjectFile[]
+  projectComments        ProjectComment[] @relation("UserProjectComments")
+  projectAgreements      ProjectAgreement[]
   supportTickets         SupportTicket[]  @relation("UserSupportTickets")
   assignedTickets        SupportTicket[]  @relation("AssignedSupportTickets")
   supportMessages        SupportMessage[]
@@ -289,7 +317,6 @@ model User {
   updatedPages           Page[]           @relation("UpdatedPages")
   activityLogs           ActivityLog[]
   adminAuditLogs         AdminAuditLog[]
-  wishlist               Wishlist?
   addresses              Address[]
   twoFactorAuth          TwoFactorAuth?
 
@@ -449,6 +476,10 @@ model Product {
   fullDescription    String?       @db.Text
   price              Decimal       @db.Decimal(12, 2)
   currency           String        @default("MXN")
+  /// IVA / SAT classification (src/lib/fiscal.js SAT_DEFAULTS when null).
+  taxExempt          Boolean       @default(false)
+  satProductCode     String?       @db.VarChar(8)  // c_ClaveProdServ
+  satUnitCode        String?       @db.VarChar(3)  // c_ClaveUnidad, e.g. E48
   productType        String        @default("downloadable")
   status             ProductStatus @default(draft)
   sku                String?       @unique
@@ -487,15 +518,14 @@ model Product {
   createdBy       User?            @relation("CreatedProducts", fields: [createdById], references: [id], onDelete: SetNull)
   images          ProductImage[]
   files           ProductFile[]
+  licenses        ProductLicense[]
   features        ProductFeature[]
   orderItems      OrderItem[]
   downloadLogs    DownloadLog[]
   userDownloads   UserDownload[]
-  tags            ProductTagMap[]
   reviews         Review[]
   recommendations Recommendation[]
   cartItems       CartItem[]
-  wishlistItems   WishlistItem[]
 
   @@index([categoryId])
   @@index([createdById])
@@ -503,6 +533,27 @@ model Product {
   @@index([isActive])
   @@index([isFeatured])
   @@index([deletedAt])
+}
+
+/// T3 · Tiered licensing. One row per (product, tier); the buyer picks a
+/// tier in the BuyBox and the cart/order snapshot the tier's price.
+model ProductLicense {
+  id        String   @id @default(cuid())
+  productId String
+  tier      String   @db.VarChar(16) // personal | commercial | enterprise
+  name      String
+  price     Decimal  @db.Decimal(12, 2)
+  currency  String   @default("MXN")
+  seats     Int?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, tier])
+  @@index([productId])
 }
 
 model ProductFeature {
@@ -550,33 +601,6 @@ model ProductImage {
   @@index([productId])
 }
 
-/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
-/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
-/// backed-up migration once you have confirmed nothing else depends on it.
-model ProductTag {
-  id   String @id @default(cuid())
-  name String @unique
-  slug String @unique
-
-  products ProductTagMap[]
-}
-
-/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
-/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
-/// backed-up migration once you have confirmed nothing else depends on it.
-model ProductTagMap {
-  id        String @id @default(cuid())
-  productId String
-  tagId     String
-
-  product Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
-  tag     ProductTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, tagId])
-  @@index([productId])
-  @@index([tagId])
-}
-
 /// =============================================================
 /// REVIEW — unified model for product AND service reviews.
 /// Backed by the legacy `product_reviews` table via @@map; existing rows
@@ -601,6 +625,8 @@ model Review {
   /// The OrderItem that produced this review (anti-fake-review pin).
   /// Required for verified-purchase reviews; null for legacy / unverified.
   orderItemId        String?
+  /// Tier 4 · review collected from a completed ClientProject (portal form).
+  projectId          String?
   userId             String
   rating             Int
   reviewText         String?      @db.Text
@@ -631,10 +657,12 @@ model Review {
   user         User         @relation("AuthoredReviews", fields: [userId], references: [id], onDelete: Cascade)
   adminReplyBy User?        @relation("AdminReviewReplies", fields: [adminReplyById], references: [id], onDelete: SetNull)
   orderItem    OrderItem?   @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+  project      ClientProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   votes        ReviewVote[]
 
   @@index([productId])
   @@index([serviceId])
+  @@index([projectId])
   @@index([userId])
   @@index([status])
   @@index([featured])
@@ -729,6 +757,10 @@ model Service {
   fullDescription  String?       @db.Text
   basePrice        Decimal       @default(0.00) @db.Decimal(12, 2)
   currency         String        @default("MXN")
+  /// IVA / SAT classification (src/lib/fiscal.js SAT_DEFAULTS when null).
+  taxExempt        Boolean       @default(false)
+  satProductCode   String?       @db.VarChar(8)
+  satUnitCode      String?       @db.VarChar(3)
   deliveryType     String
   status           ServiceStatus @default(draft)
   isFeatured       Boolean       @default(false)
@@ -876,6 +908,7 @@ model CartItem {
   serviceId     String?
   titleSnapshot String
   priceSnapshot Decimal  @db.Decimal(12, 2)
+  licenseTier   String?  @db.VarChar(16) // T3 · chosen ProductLicense.tier
   quantity      Int      @default(1)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -954,10 +987,25 @@ model Order {
   billingCity             String?
   billingStateRegion      String?
   billingPostalCode       String?
+  /// Fiscal snapshot at purchase time — CFDI 4.0 "Receptor" data. Copied
+  /// from the checkout form / saved Address so a later edit to the address
+  /// never rewrites what an issued invoice must say. See src/lib/fiscal.js.
+  billingCompany          String?
+  billingTaxId            String?     @db.VarChar(40)   // RFC (MX) or foreign tax id
+  billingLegalName        String?     // razón social, uppercase per Constancia
+  billingRegimenFiscal    String?     @db.VarChar(3)    // SAT c_RegimenFiscal, e.g. 612
+  billingUsoCfdi          String?     @db.VarChar(4)    // SAT c_UsoCFDI, e.g. G03
+  billingFiscalPostalCode String?     @db.VarChar(12)   // DomicilioFiscalReceptor
   status                  OrderStatus @default(pending)
   subtotalAmount          Decimal     @default(0.00) @db.Decimal(12, 2)
   discountAmount          Decimal     @default(0.00) @db.Decimal(12, 2)
   serviceFeeAmount        Decimal     @default(0.00) @db.Decimal(12, 2)
+  /// IVA snapshot (src/lib/tax.js). Prices are tax-INCLUSIVE: taxAmount is
+  /// the IVA contained in totalAmount, not added on top. taxIncluded records
+  /// that policy per order so history survives a future pricing change.
+  taxRate                 Decimal     @default(0.0000) @db.Decimal(5, 4)
+  taxAmount               Decimal     @default(0.00) @db.Decimal(12, 2)
+  taxIncluded             Boolean     @default(true)
   totalAmount             Decimal     @db.Decimal(12, 2)
   currency                String      @default("MXN")
   couponId                String?
@@ -1009,6 +1057,9 @@ model OrderItem {
   unitPrice           Decimal? @db.Decimal(12, 2)
   quantity            Int
   lineTotal           Decimal? @db.Decimal(12, 2)
+  /// T3 · licensing snapshot: tier bought + key minted at order creation
+  licenseTier         String?  @db.VarChar(16)
+  licenseKey          String?  @db.VarChar(64)
   createdAt           DateTime @default(now())
 
   order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -1029,12 +1080,45 @@ model Invoice {
   orderId       String
   invoiceNumber String   @unique
   invoicePdfUrl String?
-  issuedAt      DateTime @default(now())
+  /// Tier 4 billing. Storefront invoices are born `paid` (they are only
+  /// generated after payment). Admin-issued manual invoices start `issued`,
+  /// move to `overdue` by src/jobs/invoiceDunningJob.js once past dueDate,
+  /// and to `paid` when the pending Order is paid. `void` is admin-only.
+  /// Values: issued | paid | overdue | void.
+  status            String   @default("issued") @db.VarChar(16)
+  /// Manual invoices are raised against a ServiceOrder (plain id, no
+  /// relation — read through Order.serviceOrders / ClientProject when needed).
+  serviceOrderId    String?
+  issuedAt          DateTime @default(now())
+  dueDate           DateTime?
+  paidAt            DateTime?
+  /// Fraction applied ONCE when the invoice turns overdue (0.02 = 2 %).
+  lateFeeRate       Decimal  @default(0) @db.Decimal(5, 4)
+  lateFeeAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  overdueNotifiedAt DateTime?
+
+  /// Money snapshot at issue time — an invoice must not change when the
+  /// order row later does (refund, edit). Mirrors Order at ensureInvoice().
+  serie          String   @default("A") @db.VarChar(8)
+  currency       String   @default("MXN")
+  subtotalAmount Decimal  @default(0.00) @db.Decimal(12, 2)  // net, before IVA
+  taxRate        Decimal  @default(0.0000) @db.Decimal(5, 4)
+  taxAmount      Decimal  @default(0.00) @db.Decimal(12, 2)
+  totalAmount    Decimal  @default(0.00) @db.Decimal(12, 2)
+  cancelledAt    DateTime?
+
+  /// CFDI 4.0 stamping (filled by a PAC adapter — not wired yet; see
+  /// src/services/cfdiProvider.js). Null = comprobante simple, not a CFDI.
+  cfdiUuid       String?  @unique @db.VarChar(36)
+  cfdiXmlUrl     String?
+  cfdiStampedAt  DateTime?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@unique([orderId])
   @@index([orderId])
+  @@index([status, dueDate])
+  @@index([serviceOrderId])
 }
 
 model Payment {
@@ -1089,12 +1173,17 @@ model Refund {
   amount       Decimal      @db.Decimal(12, 2)
   reason       String?      @db.Text
   refundStatus RefundStatus
+  /// Tier 4 idempotency anchor: the provider's refund id (PayPal refund id,
+  /// Mercado Pago refund id). Webhooks match on it before falling back to
+  /// an amount match; the unique below makes a replayed webhook a no-op.
+  gatewayRefundId String?   @db.VarChar(128)
   processedAt  DateTime?
   createdAt    DateTime     @default(now())
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
+  @@unique([paymentId, gatewayRefundId], name: "refund_gateway_uq")
   @@index([paymentId])
   @@index([orderId])
 }
@@ -1316,6 +1405,26 @@ model ClientProject {
   startDate       DateTime?
   dueDate         DateTime?
   description     String?       @db.Text
+  /// Client portal (Tier 2). previewUrl is shown as a card/link; it is
+  /// framed only when its host is in PREVIEW_FRAME_HOSTS (CSP frame-src).
+  previewUrl      String?
+  /// Set when projectStatus becomes completed/cancelled. Member writes are
+  /// refused after this; reads expire PROJECT_ACCESS_GRACE_DAYS later.
+  closedAt        DateTime?
+  /// Tier 4 · NDA click-wrap. When true, the member portal hides milestones,
+  /// files, comments and tickets until a ProjectAgreement row exists for
+  /// (userId, "nda", ndaVersion). Bump ndaVersion to force re-acceptance.
+  requiresNda     Boolean       @default(false)
+  ndaVersion      String?       @db.VarChar(16)
+  /// Tier 4 · magic-link portal. 32 random bytes hex; FRONTEND_URL/portal/<token>.
+  /// Re-minting rotates it. Expires with the grace window (closed) or +90 d.
+  portalToken          String?   @unique @db.VarChar(64)
+  portalTokenExpiresAt DateTime?
+  /// Tier 4 · retention. Set by projectPurgeJob once every file's bytes are
+  /// gone (closedAt + PROJECT_PURGE_DAYS). Metadata rows are kept.
+  purgedAt        DateTime?
+  /// Tier 4 kill switch / handover gate: active | suspended | handover (invoiceDunningJob + admin PATCH).
+  accessState     String        @default("active") @db.VarChar(16)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1325,6 +1434,11 @@ model ClientProject {
   assignedAdmin User?              @relation("AssignedClientProjects", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   milestones    ProjectMilestone[]
   files         ProjectFile[]
+  comments      ProjectComment[]
+  tickets       SupportTicket[]
+  agreements    ProjectAgreement[]
+  reviews       Review[]
+  changeRequests ChangeRequest[]
 
   @@index([userId])
   @@index([assignedAdminId])
@@ -1338,9 +1452,17 @@ model ProjectMilestone {
   status      MilestoneStatus @default(pending)
   dueDate     DateTime?
   completedAt DateTime?
+  /// One-click client approval (Tier 2). approvedById is the client user.
+  approvedAt         DateTime?
+  approvedById       String?
+  /// Client pressed "request changes": when + what they said.
+  changesRequestedAt DateTime?
+  clientNote         String?   @db.Text
   sortOrder   Int             @default(0)
 
-  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project  ClientProject    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments ProjectComment[]
+  files    ProjectFile[]
 
   @@index([projectId])
 }
@@ -1349,16 +1471,57 @@ model ProjectFile {
   id           String   @id @default(cuid())
   projectId    String
   uploadedById String?
+  /// "admin" | "client" — who put the file there (gallery grouping, purge).
+  uploadedByRole   String?  @db.VarChar(16)
+  /// Optional anchors: a milestone the file belongs to, or the support
+  /// message it was attached to (tickets reuse this table for attachments).
+  milestoneId      String?
+  supportMessageId String?
   fileName     String
   filePath     String
   fileType     String?
+  fileSize     Int?
+  /// Tier 4 handover gate: deliverables are served only when the project
+  /// has no outstanding balance. Default false = plain shared file.
+  isDeliverable    Boolean  @default(false)
+  /// Tier 4 · retention. Bytes unlinked by projectPurgeJob; row kept as audit.
+  purgedAt     DateTime?
   createdAt    DateTime @default(now())
 
-  project    ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploadedBy User?         @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  project        ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy     User?             @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  milestone      ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  supportMessage SupportMessage?   @relation(fields: [supportMessageId], references: [id], onDelete: SetNull)
+  comments       ProjectComment[]
 
   @@index([projectId])
   @@index([uploadedById])
+  @@index([milestoneId])
+  @@index([supportMessageId])
+}
+
+/// Tier 2 · threaded feedback on a project, optionally anchored to a
+/// milestone or a file ("visual commenting" = comment on the thing, not
+/// pixel pins). Both sides write; admins can resolve.
+model ProjectComment {
+  id          String    @id @default(cuid())
+  projectId   String
+  milestoneId String?
+  fileId      String?
+  authorId    String
+  authorRole  String    @db.VarChar(16) // "admin" | "client"
+  body        String    @db.Text
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  project   ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  file      ProjectFile?      @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  author    User              @relation("UserProjectComments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([milestoneId])
+  @@index([authorId])
 }
 
 /// =============================================================
@@ -1381,6 +1544,9 @@ model SupportTicket {
   /// via the "Request refund" flow on DashboardOrders so admins can jump
   /// straight to AdminOrderDetail without copy-pasting the order number.
   orderId         String?
+  /// Tier 2 — ticket opened from inside a client project (status shown next
+  /// to the project's; attachments land in ProjectFile via supportMessageId).
+  projectId       String?
   assignedAdminId String?
   resolvedAt      DateTime?
   closedAt        DateTime?
@@ -1390,6 +1556,7 @@ model SupportTicket {
   user          User             @relation("UserSupportTickets", fields: [userId], references: [id], onDelete: Cascade)
   assignedAdmin User?            @relation("AssignedSupportTickets", fields: [assignedAdminId], references: [id], onDelete: SetNull)
   order         Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  project       ClientProject?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
   messages      SupportMessage[]
 
   @@index([userId])
@@ -1397,6 +1564,7 @@ model SupportTicket {
   @@index([status])
   @@index([category])
   @@index([orderId])
+  @@index([projectId])
 }
 
 model SupportMessage {
@@ -1412,6 +1580,9 @@ model SupportMessage {
 
   ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   sender User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  /// Multi-file attachments (Tier 2) — stored as ProjectFile rows so they
+  /// share the private storage path, scan and stream endpoint.
+  attachments ProjectFile[]
 
   @@index([ticketId])
   @@index([senderId])
@@ -1451,6 +1622,18 @@ model ContactMessage {
   status    ContactMessageStatus @default(new)
   repliedAt DateTime?
   createdAt DateTime  @default(now())
+
+  // T3 · funnel attribution + abuse forensics (all optional, set by the API)
+  intent    String? @db.VarChar(64)   // plan | proposal | service | …  (from ?intent=)
+  audience  String? @db.VarChar(32)   // education | business | professional
+  tier      String? @db.VarChar(32)   // pricing tier the lead was looking at
+  source    String? @db.VarChar(64)   // contact-form | footer | referrer path
+  locale    String? @db.VarChar(8)    // en | es
+  ipAddress String? @db.VarChar(64)
+  userAgent String? @db.VarChar(255)
+
+  @@index([status, createdAt])
+  @@index([createdAt])
 }
 
 model NewsletterSubscriber {
@@ -1669,35 +1852,8 @@ model Portfolio {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// B08 · Wishlist + Saved Addresses
+// B08 · Saved Addresses (Wishlist models dropped in T3 — feature was removed)
 // ═══════════════════════════════════════════════════════════════════════════════
-
-/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
-/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
-/// backed-up migration once you have confirmed nothing else depends on it.
-model Wishlist {
-  id        String         @id @default(cuid())
-  userId    String         @unique
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     WishlistItem[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-}
-
-/// DEPRECATED (2026-08) · feature removed from the app; no code reads or writes this table.
-/// Kept so `prisma db push` does not drop production data. Drop in a dedicated,
-/// backed-up migration once you have confirmed nothing else depends on it.
-model WishlistItem {
-  id         String   @id @default(cuid())
-  wishlistId String
-  productId  String
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  addedAt    DateTime @default(now())
-
-  @@unique([wishlistId, productId])
-  @@index([productId])
-}
 
 model Address {
   id     String @id @default(cuid())
@@ -1713,7 +1869,12 @@ model Address {
   state      String?
   postalCode String
   country    String // ISO 3166-1 alpha-2, e.g. "MX"
-  taxId      String? // Mexican RFC or country-specific tax ID
+  taxId      String? // Mexican RFC (validated when country = MX) or country-specific tax ID
+  /// CFDI 4.0 receiver data (MX only; see src/lib/fiscal.js for catalogs).
+  legalName        String?  // razón social exactly as on the Constancia (uppercase)
+  regimenFiscal    String?  @db.VarChar(3)
+  usoCfdi          String?  @db.VarChar(4)
+  fiscalPostalCode String?  @db.VarChar(12) // domicilio fiscal CP when it differs from postalCode
   phone      String?
   isDefault  Boolean @default(false)
 
@@ -1967,6 +2128,15 @@ model BlogPost {
   metaTitle       String?
   metaDescription String? @db.Text
 
+  // I18N06 · Spanish overlay (null = fall back to English). Same convention
+  // as Product / Service / Portfolio: `<field>Es` is swapped in by
+  // utils/pickLocale when the request locale is "es".
+  titleEs           String?
+  excerptEs         String? @db.Text
+  bodyEs            Json?
+  metaTitleEs       String?
+  metaDescriptionEs String? @db.Text
+
   // Author — denormalised so historical posts keep their byline if the
   // user is later anonymised. The optional userId fk preserves the link.
   authorUserId String?
@@ -2066,4 +2236,95 @@ model EmailCampaignRecipient {
   @@unique([campaignId, email])
   @@index([campaignId, status])
   @@index([email])
+}
+
+/// Tier 4 · click-wrap acceptance record (NDA today; `type` leaves room for
+/// SOW / DPA later). One row per (project, user, type, version) so a version
+/// bump on the project asks the client again while keeping the old record.
+model ProjectAgreement {
+  id         String   @id @default(cuid())
+  projectId  String
+  userId     String
+  type       String   @db.VarChar(16)
+  version    String   @db.VarChar(16)
+  acceptedAt DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?  @db.VarChar(512)
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, type, version])
+  @@index([userId])
+}
+
+/// =============================================================
+/// TIER 4 · BILLING SAFEGUARDS
+/// =============================================================
+
+/// Client-initiated extra work on a project (src/services/changeRequestService.js).
+/// requested → quoted (admin) → accepted (client; creates the payable Order +
+/// ServiceOrder + a milestone) → done, or declined. requestedById / orderId /
+/// milestoneId are plain ids: their owning models are not touched by this
+/// tier, so there are no back-relations — resolve them via prisma.user /
+/// prisma.order / prisma.projectMilestone when needed.
+/// Client logo wall on /about (components/ui/LogoCloud).
+///
+/// Lives in the database rather than a data file so the owner can add,
+/// reorder and retire client marks from the admin without a deploy.
+model ClientLogo {
+  id      String @id @default(cuid())
+  name    String                        // trading name — becomes the alt text
+  slug    String @unique                // stable key, also the asset base name
+  logoUrl String @db.VarChar(512)       // /images/... served from public/
+
+  /// Short context line ("K-12 school · Mexico"), shown in the tooltip.
+  sector   String? @db.VarChar(160)
+  sectorEs String? @db.VarChar(160)
+  /// Optional outbound link. Rendered as a link only when set.
+  websiteUrl String? @db.VarChar(512)
+
+  /// Optical tuning. Logos differ wildly in aspect ratio, so a single CSS
+  /// height makes square badges look small next to wide wordmarks. This
+  /// multiplies the base height (1.00 = default) and is adjustable per logo
+  /// from the admin, which is the only practical way to get a row of mixed
+  /// marks to read as the same visual weight.
+  scale Decimal @default(1.00) @db.Decimal(4, 2)
+  /// The mark ships with its own background (e.g. a dark tile), so it is
+  /// rounded rather than blended into the cell.
+  boxed Boolean @default(false)
+
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model ChangeRequest {
+  id            String    @id @default(cuid())
+  projectId     String
+  requestedById String
+  title         String
+  description   String    @db.Text
+  /// requested | quoted | accepted | declined | done
+  status        String    @default("requested") @db.VarChar(16)
+  quoteAmount   Decimal?  @db.Decimal(12, 2)
+  quoteCurrency String    @default("MXN")
+  quoteNote     String?   @db.Text
+  quotedAt      DateTime?
+  acceptedAt    DateTime?
+  declinedAt    DateTime?
+  orderId       String?
+  milestoneId   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([requestedById])
+  @@index([orderId])
+  @@index([status])
 }

@@ -18,7 +18,8 @@ const { SERVICE_CATEGORY_SLUGS } = require("../config/serviceCategorySlugs")
  *    Portfolio    — every published PortfolioProject, by /projects/:slug
  *    Blog         — every published BlogPost, by /blog/:slug
  *
- *  /self-audit is deliberately absent: the route is admin-gated.
+ *  /self-audit is listed: it is the public lead magnet (Tier 0 removed the
+ *  accidental admin gate). /admin and /dashboard stay out.
  *
  *  Frequency / priority hints follow Google's modern guidance — most signals
  *  are now ignored except <lastmod>, but we set the others for older crawlers
@@ -28,7 +29,7 @@ const { SERVICE_CATEGORY_SLUGS } = require("../config/serviceCategorySlugs")
 const ONE_HOUR_MS = 60 * 60 * 1000
 let cache = { xml: null, builtAt: 0 }
 
-const SITE_URL = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "https://mustaphaukizuru.com")
+const SITE_URL = (process.env.PUBLIC_SITE_URL || process.env.FRONTEND_URL || process.env.CLIENT_URL || "https://mustaphaukizuru.com")
   .replace(/\/$/, "")
 
 /* Static pages — manually curated. Keep in sync with public router list. */
@@ -40,6 +41,7 @@ const STATIC_PAGES = [
   { path: "/portfolio", changefreq: "weekly",  priority: 0.85 },
   { path: "/blog",      changefreq: "weekly",  priority: 0.85 },
   { path: "/contact",   changefreq: "monthly", priority: 0.7 },
+  { path: "/self-audit", changefreq: "monthly", priority: 0.7 },
   { path: "/book",      changefreq: "weekly",  priority: 0.8 },
   { path: "/privacy",   changefreq: "yearly",  priority: 0.3 },
   { path: "/terms",     changefreq: "yearly",  priority: 0.3 },
@@ -56,13 +58,31 @@ function escapeXml(s) {
     .replace(/'/g, "&apos;")
 }
 
+/**
+ * One logical page = two <url> blocks (English at /path, Spanish at /es/path),
+ * each carrying the full hreflang set so crawlers pair them. The SPA serves
+ * every public route under /es as a mirror (App.jsx), so the alternates are
+ * always real URLs.
+ */
 function urlEntry({ loc, lastmod, changefreq, priority }) {
-  const parts = [`  <url>`, `    <loc>${escapeXml(loc)}</loc>`]
-  if (lastmod)    parts.push(`    <lastmod>${new Date(lastmod).toISOString().slice(0, 10)}</lastmod>`)
-  if (changefreq) parts.push(`    <changefreq>${changefreq}</changefreq>`)
-  if (priority != null) parts.push(`    <priority>${Number(priority).toFixed(2)}</priority>`)
-  parts.push(`  </url>`)
-  return parts.join("\n")
+  const base = SITE_URL
+  const path = loc.startsWith(base) ? loc.slice(base.length) || "/" : loc
+  const enLoc = `${base}${path === "/" ? "/" : path}`
+  const esLoc = `${base}/es${path === "/" ? "" : path}`
+  const alternates = [
+    `    <xhtml:link rel="alternate" hreflang="en" href="${escapeXml(enLoc)}" />`,
+    `    <xhtml:link rel="alternate" hreflang="es" href="${escapeXml(esLoc)}" />`,
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(enLoc)}" />`,
+  ]
+  const block = (url) => {
+    const parts = [`  <url>`, `    <loc>${escapeXml(url)}</loc>`]
+    if (lastmod)    parts.push(`    <lastmod>${new Date(lastmod).toISOString().slice(0, 10)}</lastmod>`)
+    if (changefreq) parts.push(`    <changefreq>${changefreq}</changefreq>`)
+    if (priority != null) parts.push(`    <priority>${Number(priority).toFixed(2)}</priority>`)
+    parts.push(...alternates, `  </url>`)
+    return parts.join("\n")
+  }
+  return [block(enLoc), block(esLoc)].join("\n")
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -124,8 +144,8 @@ async function buildSitemapXml() {
   })
   // Portfolio projects — published only
   try {
-    if (typeof prisma.portfolioProject?.findMany === "function") {
-      const projects = await prisma.portfolioProject.findMany({
+    if (typeof prisma.portfolio?.findMany === "function") {
+      const projects = await prisma.portfolio.findMany({
         where:   { status: "published" },
         select:  { slug: true, updatedAt: true },
         orderBy: { updatedAt: "desc" },
@@ -167,7 +187,7 @@ async function buildSitemapXml() {
 
   return [
     `<?xml version="1.0" encoding="UTF-8"?>`,
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`,
     entries.join("\n"),
     `</urlset>`,
     ``,

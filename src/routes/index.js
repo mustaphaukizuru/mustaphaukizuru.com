@@ -2,6 +2,8 @@ const express = require("express")
 
 const healthRoutes = require("./healthRoutes")
 const contactRoutes = require("./contactRoutes")
+const clientLogoRoutes = require("./clientLogoRoutes")
+const adminClientLogoRoutes = require("./adminClientLogoRoutes")
 const productRoutes = require("./productRoutes")
 const orderRoutes = require("./orderRoutes")
 const invoiceRoutes = require("./invoiceRoutes")
@@ -53,7 +55,9 @@ const addressRoutes = require("./addressRoutes")                      // B08
 
 // Priority #8 · Client project management (milestones + files)
 const adminClientProjectRoutes  = require("./adminClientProjectRoutes")
+const adminInvoiceRoutes = require("./adminInvoiceRoutes")
 const memberClientProjectRoutes = require("./memberClientProjectRoutes")
+const portalRoutes              = require("./portalRoutes")           // Tier 4 — magic-link + PIN portal
 
 // M15 · Refunds — admin orchestrator + member-side visibility
 const adminRefundRoutes  = require("./adminRefundRoutes")
@@ -70,6 +74,7 @@ const adminSessionRoutes = require("./adminSessionRoutes")
 
 // M19 · Marketing campaigns
 const adminCampaignRoutes = require("./adminCampaignRoutes")
+const adminLeadRoutes = require("./adminLeadRoutes")                // T3 — unified leads inbox
 
 const router = express.Router()
 
@@ -142,6 +147,7 @@ v1.use("/services",        serviceRoutes)
 v1.use("/reviews",         reviewRoutes)
 v1.use("/portfolio",   portfolioRoutes)
 v1.use("/newsletter",  newsletterRoutes)
+v1.use("/client-logos", clientLogoRoutes)
 v1.use("/bio",         bioRoutes)                                    // M12
 v1.use("/analytics",   analyticsRoutes)                              // M14
 v1.use("/coupons",     couponRoutes)
@@ -155,6 +161,7 @@ v1.use("/availability",  availabilityRoutes)        // Public read — slot list
 v1.use("/consultations", consultationRoutes)        // Member booking lifecycle
 v1.use("/blog",          blogRoutes)                // M16 — Public blog list + detail
 v1.use("/",              diagnosticRoutes)          // Self-audit: POST /diagnostic-submission + GET /admin/diagnostic
+v1.use("/portal",        portalRoutes)              // Tier 4 — no-login client portal (magic link + emailed PIN)
 
 // Admin
 v1.use("/admin/dashboard",        adminDashboardRoutes)
@@ -170,8 +177,10 @@ v1.use("/admin/email-templates",  adminEmailTemplatesRoutes)
 v1.use("/admin/email-logs",       adminEmailLogRoutes)
 v1.use("/admin/newsletter",       adminNewsletterRoutes)
 v1.use("/admin/media",            adminMediaRoutes)
+v1.use("/admin/client-logos",     adminClientLogoRoutes)
 v1.use("/admin/service-orders",   adminServiceOrdersRoutes)
 v1.use("/admin/client-projects",  adminClientProjectRoutes)
+v1.use("/admin/invoices",         adminInvoiceRoutes)             // Tier 4 — manual invoices + dunning
 v1.use("/admin/services",         adminServiceRoutes)
 v1.use("/admin/portfolio",        adminPortfolioRoutes)
 v1.use("/admin/reviews",          adminReviewRoutes)
@@ -184,6 +193,7 @@ v1.use("/admin",                  adminRefundRoutes)              // M15 — /ad
 v1.use("/admin/blog",             adminBlogRoutes)                // M16 — Blog CRUD (posts + categories + tags)
 v1.use("/admin/sessions",         adminSessionRoutes)             // M17 — Active sessions, revoke individual / revoke-all
 v1.use("/admin/campaigns",        adminCampaignRoutes)            // M19 — Marketing email campaigns
+v1.use("/admin/leads",            adminLeadRoutes)                // T3 — unified leads inbox
 
 // Member
 v1.use("/member/profile",         profileRoutes)
@@ -216,7 +226,11 @@ router.use("/v1", v1)
 // (the request became "" inside the sub-router). Keeping the comment so we
 // don't reintroduce the same mount.
 router.use("/health",                 healthRoutes)
-router.use("/mercadopago/webhook",    mercadoPagoRoutes)       // narrow exempt
+// Mercado Pago's narrow mount was removed for the same reason AND because
+// mounting the whole router under "/mercadopago/webhook" exposed
+// /api/mercadopago/webhook/refund + /create-preference on a path the CSRF
+// guard treats as a webhook. The webhook itself is served by the
+// deprecated parent mount below (inner "/webhook") and by /api/v1.
 
 // Public (deprecated) — order matters: webhook subroutes already mounted above
 //

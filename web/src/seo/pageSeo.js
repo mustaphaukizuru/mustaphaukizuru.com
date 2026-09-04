@@ -41,7 +41,7 @@ export const staticSeoByRoute = {
   "/services": {
     title: "Technology Services · IT Strategy · AI & Automation · Cloud · Product Engineering",
     description:
-      "Four service lines, 21 services: IT strategy consulting, AI & workflow automation, cloud architecture & migration, and end-to-end digital product engineering for SMBs.",
+      "Four service lines, 20 services: IT strategy consulting, AI & workflow automation, cloud architecture & migration, and end-to-end digital product engineering for SMBs.",
     type: "website",
     image: absoluteUrl("/og/og-services.png"),
     schemaType: "Service",
@@ -51,6 +51,22 @@ export const staticSeoByRoute = {
       "AI automation consulting",
       "cloud migration consultant",
       "MVP development",
+    ],
+  },
+
+  "/schools": {
+    title: "School IT & STEM Solutions · Technology for Schools in Mexico",
+    description:
+      "IT strategy, admissions automation, backups and school platforms for K-12 schools in Mexico — from an IT manager who runs a school's technology every day.",
+    type: "website",
+    image: DEFAULT_OG_IMAGE,
+    schemaType: "WebPage",
+    keywords: [
+      "school IT consultant Mexico",
+      "school technology solutions",
+      "STEM program planning",
+      "school website admissions",
+      "EdTech consultant Mexico",
     ],
   },
 
@@ -124,6 +140,16 @@ export const staticSeoByRoute = {
       "EdTech projects",
       "digital product launches",
     ],
+  },
+
+  "/self-audit": {
+    title: "Free Digital Self-Audit · Score Your School or Business Tech",
+    description:
+      "A 5-minute self-assessment of your website, security, cloud and digital workflows — get a score and the three fixes with the biggest payoff.",
+    type: "website",
+    image: DEFAULT_OG_IMAGE,
+    schemaType: "WebPage",
+    keywords: ["digital audit", "IT self-assessment", "school technology audit", "website audit Mexico"],
   },
 
   "/contact": {
@@ -211,6 +237,7 @@ export const pageSeo = {
   home: staticSeoByRoute["/"],
   about: staticSeoByRoute["/about"],
   services: staticSeoByRoute["/services"],
+  schools: staticSeoByRoute["/schools"],
   store: staticSeoByRoute["/store"],
   portfolio: staticSeoByRoute["/portfolio"],
   contact: staticSeoByRoute["/contact"],
@@ -226,6 +253,8 @@ export const pageSeo = {
    NOINDEX ROUTES
 ───────────────────────────────────────────── */
 export const noindexPrefixes = [
+  "/portal",
+  "/unsubscribed",
   "/login",
   "/signup",
   "/forgot-password",

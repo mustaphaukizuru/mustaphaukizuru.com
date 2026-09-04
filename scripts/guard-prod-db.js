@@ -24,6 +24,14 @@
  *
  * Typing that is the point — it makes touching production a decision rather
  * than a default.
+ *
+ * TWO ENTRY POINTS
+ * ----------------
+ * As a CLI it front-runs an npm script (`node scripts/guard-prod-db.js "db
+ * push" && …`). As a module it exports `assertLocalDatabase(action)` so a
+ * script can guard ITSELF. Both matter: the npm wrapper is skipped entirely by
+ * `node prisma/seed/portfolio-seed.js`, which is a normal thing to type and
+ * which used to walk straight past the guard into the production database.
  */
 
 require("dotenv").config()
@@ -45,6 +53,34 @@ function hostFromUrl(raw) {
 function isLocal(host) {
   if (!host) return false
   return LOCAL_HOSTS.has(host) || host.endsWith(".local")
+}
+
+/**
+ * Throw unless DATABASE_URL is local (or ALLOW_PROD_DB=1 was set deliberately).
+ * For in-process use at the top of a script that writes to the database.
+ */
+function assertLocalDatabase(action = "this script") {
+  const url = process.env.DATABASE_URL
+  const host = hostFromUrl(url)
+
+  if (!url) throw new Error(`guard-prod-db: DATABASE_URL is not set. Refusing to run ${action}.`)
+  if (process.env.ALLOW_PROD_DB === "1") {
+    console.warn(`⚠️  guard-prod-db: ALLOW_PROD_DB=1 — running ${action} against ${host}.`)
+    return
+  }
+  if (isLocal(host)) return
+
+  // Exit rather than throw: the reader needs the two recovery steps, not a
+  // stack trace through a script they did not write.
+  console.error("")
+  console.error(`✖ guard-prod-db: DATABASE_URL points at "${host}", which is not a local host.`)
+  console.error(`  Refusing to run ${action} — this would modify live data.`)
+  console.error("")
+  console.error("  If that is genuinely what you want:")
+  console.error("    1. node scripts/backup-db-json.js")
+  console.error("    2. ALLOW_PROD_DB=1 <your command>")
+  console.error("")
+  process.exit(1)
 }
 
 function main() {
@@ -76,4 +112,6 @@ function main() {
   process.exit(1)
 }
 
-main()
+if (require.main === module) main()
+
+module.exports = { assertLocalDatabase, hostFromUrl, isLocal }

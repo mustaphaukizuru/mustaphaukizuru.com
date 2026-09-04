@@ -1,5 +1,6 @@
 const express = require("express")
 const { validate } = require("../controllers/couponController")
+const { publicWriteRateLimiter } = require("../middleware/rateLimiter")
 
 /**
  * Public coupon endpoints.
@@ -12,6 +13,6 @@ const { validate } = require("../controllers/couponController")
 
 const router = express.Router()
 
-router.post("/validate", validate)
+router.post("/validate", publicWriteRateLimiter, validate)
 
 module.exports = router

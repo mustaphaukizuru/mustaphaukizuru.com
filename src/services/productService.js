@@ -101,6 +101,23 @@ function serializeProduct(product) {
 
   const primaryFile = files.find((f) => f.isPrimary) || files[0] || null
 
+  // T3 · tiered licences (active only, lowest sortOrder first)
+  const licenses = Array.isArray(product.licenses)
+    ? product.licenses
+        .filter((l) => l && l.isActive !== false)
+        .sort((a, b) => safeNum(a.sortOrder) - safeNum(b.sortOrder))
+        .map((l) => ({
+          id:             l.id,
+          tier:           l.tier,
+          name:           l.name,
+          price:          safeNum(l.price),
+          priceFormatted: formatPrice(l.price, l.currency || product.currency),
+          currency:       l.currency || product.currency || "MXN",
+          seats:          l.seats ?? null,
+          sortOrder:      safeNum(l.sortOrder),
+        }))
+    : []
+
   // Full category object when categoryRef is included, fallback to legacy string.
   const categoryObject = product.categoryRef
     ? {
@@ -109,13 +126,6 @@ function serializeProduct(product) {
         slug: product.categoryRef.slug,
       }
     : null
-
-  const tags = Array.isArray(product.tags)
-    ? product.tags
-        .map((t) => t.tag)
-        .filter(Boolean)
-        .map((t) => ({ id: t.id, name: t.name, slug: t.slug }))
-    : []
 
   return {
     ...product,
@@ -127,7 +137,7 @@ function serializeProduct(product) {
     features,
     files,
     reviews,
-    tags,
+    licenses,
     categoryRef:    categoryObject,
     fileType:       primaryFile?.fileType || product.fileType || null,
     deliveryType:   product.deliveryType || (product.productType === "service" ? "Scheduled service" : "Instant access"),
@@ -159,6 +169,9 @@ function parseJsonField(value, fallback = null) {
   return fallback
 }
 
+/** Single source of truth for "visible to the public". */
+const PUBLIC_WHERE = { isActive: true, deletedAt: null, status: "published" }
+
 /* ────────────────────────────────────────────────────────────────────────────
  * getAllProducts — preserved contract.
  * Accepts either a category string OR a filters object:
@@ -166,7 +179,11 @@ function parseJsonField(value, fallback = null) {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function getAllProductsUncached(filters = {}) {
-  const where = { isActive: true, deletedAt: null }
+  // PUBLIC_WHERE: every public read agrees — drafts/archived are invisible in
+  // the listing, search, categories, related and featured rows, exactly as in
+  // getProductBySlug and the sitemap. (They disagreed once: the store listed a
+  // draft whose detail page then 404'd.)
+  const where = { ...PUBLIC_WHERE }
 
   const categoryFilter = typeof filters === "string" ? filters : (filters.category || "")
   if (categoryFilter) where.category = categoryFilter
@@ -222,13 +239,15 @@ async function getAllProductsUncached(filters = {}) {
 
 async function getProductBySlug(slug, locale = "en") {
   const product = await prisma.product.findFirst({
-    where: { slug, isActive: true, deletedAt: null },
+    // Public lookup: drafts/archived are invisible here (the sitemap and the
+    // listing already filter on published; the OG injector reuses this).
+    where: { slug, ...PUBLIC_WHERE },
     include: {
       images:      { orderBy: { sortOrder: "asc" } },
       features:    { orderBy: { sortOrder: "asc" } },
       files:       { orderBy: { isPrimary: "desc" } },
+      licenses:    { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
       categoryRef: { select: { id: true, name: true, slug: true } },
-      tags:        { include: { tag: { select: { id: true, name: true, slug: true } } } },
       reviews: {
         orderBy: { createdAt: "desc" },
         take: 20,
@@ -301,7 +320,7 @@ async function getProductBySlug(slug, locale = "en") {
 
 async function getCategoriesUncached() {
   const rows = await prisma.product.findMany({
-    where:    { isActive: true, deletedAt: null, category: { not: null } },
+    where:    { ...PUBLIC_WHERE, category: { not: null } },
     select:   { category: true },
     distinct: ["category"],
     orderBy:  { category: "asc" },
@@ -326,9 +345,8 @@ async function getRelatedProducts(slug) {
 
   const items = await prisma.product.findMany({
     where: {
+      ...PUBLIC_WHERE,
       category: current.category,
-      isActive: true,
-      deletedAt: null,
       id:       { not: current.id },
     },
     include: {
@@ -352,7 +370,7 @@ async function getRelatedProducts(slug) {
 
 async function getFeaturedProductsUncached() {
   const items = await prisma.product.findMany({
-    where:   { isFeatured: true, isActive: true, deletedAt: null },
+    where:   { ...PUBLIC_WHERE, isFeatured: true },
     include: {
       images:      { orderBy: { sortOrder: "asc" }, take: 1 },
       features:    { orderBy: { sortOrder: "asc" }, take: 3 },
@@ -385,14 +403,12 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
   const candidates = await prisma.product.findMany({
     where: {
       AND: [
-        { isActive: true },
-        { deletedAt: null },
+        PUBLIC_WHERE,
         {
           OR: [
             { title:            { contains: trimmed } },
             { shortDescription: { contains: trimmed } },
             { category:         { contains: trimmed } },
-            { tags:             { some: { tag: { name: { contains: trimmed } } } } },
             { categoryRef:      { name: { contains: trimmed } } },
           ],
         },
@@ -403,7 +419,6 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
       features:    { orderBy: { sortOrder: "asc" }, take: 3 },
       files:       { orderBy: { isPrimary: "desc" }, take: 1, select: { id: true, fileName: true, fileType: true, fileSize: true, isPrimary: true, version: true } },
       categoryRef: { select: { id: true, name: true, slug: true } },
-      tags:        { include: { tag: { select: { id: true, name: true, slug: true } } } },
     },
     take: SEARCH_CANDIDATE_CAP,
   })
@@ -413,7 +428,6 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
     let score = 0
     if (p.title?.toLowerCase().includes(needle))            score += 3
     if (p.shortDescription?.toLowerCase().includes(needle)) score += 2
-    if (p.tags?.some((tm) => tm.tag?.name?.toLowerCase().includes(needle))) score += 1
     if (p.category?.toLowerCase().includes(needle))         score += 1
     if (p.categoryRef?.name?.toLowerCase().includes(needle)) score += 1
     return { p, score }
@@ -447,7 +461,7 @@ async function searchProducts(q, { page = 1, limit = 24 } = {}) {
  * ──────────────────────────────────────────────────────────────────────────── */
 
 async function getProductsByCategory(categorySlug, opts = {}) {
-  const { page = 1, limit = 12, sort = "newest", tag } = opts
+  const { page = 1, limit = 12, sort = "newest" } = opts
 
   const safePage  = Math.max(1, Number(page) || 1)
   const safeLimit = Math.min(48, Math.max(1, Number(limit) || 12))
@@ -459,7 +473,7 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     select: { id: true, name: true, slug: true, description: true, isActive: true },
   })
 
-  let where = { isActive: true, deletedAt: null }
+  let where = { ...PUBLIC_WHERE }
 
   if (category && category.isActive) {
     where.categoryId = category.id
@@ -468,15 +482,13 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     //     e.g. "digital-toolkits" → "digital toolkits", "Digital Toolkits", "Digital & Toolkits"
     const candidates = buildCategoryCandidates(categorySlug)
     const match = await prisma.product.findFirst({
-      where:  { isActive: true, deletedAt: null, OR: candidates.map((name) => ({ category: { contains: name } })) },
+      where:  { ...PUBLIC_WHERE, OR: candidates.map((name) => ({ category: { contains: name } })) },
       select: { category: true },
     })
     if (!match || !match.category) return null
     where.category = match.category
     category = { id: null, name: match.category, slug: categorySlug, description: null, isActive: true }
   }
-
-  if (tag) where.tags = { some: { tag: { slug: tag } } }
 
   const orderBy = resolveOrderBy(safeSort)
 
@@ -501,7 +513,6 @@ async function getProductsByCategory(categorySlug, opts = {}) {
     items:      items.map(serializeProduct),
     pagination: buildPagination(safePage, safeLimit, total),
     sort:       safeSort,
-    tag:        tag || null,
   }
 }
 
@@ -582,4 +593,6 @@ module.exports = {
   getAllProductsUncached,
   getCategoriesUncached,
   getFeaturedProductsUncached,
+  // T3 · exported for unit tests
+  serializeProduct,
 }

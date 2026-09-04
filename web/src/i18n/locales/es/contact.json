@@ -68,7 +68,9 @@
       "consent": "Confirma que aceptas que te contactemos.",
       "fixFields": "Corrige los campos resaltados e inténtalo de nuevo.",
       "sendFailed": "No se pudo enviar. Inténtalo de nuevo.",
-      "subjectFallback": "Consulta desde el formulario de contacto"
+      "subjectFallback": "Consulta desde el formulario de contacto",
+      "fixTitle": "Algunos campos necesitan tu atención",
+      "sendFailedTitle": "No pudimos enviar tu mensaje"
     }
   },
   "info": {
@@ -198,5 +200,11 @@
     "discussPlaceholder": "Comparte metas, enlaces o contexto para aprovechar el tiempo al máximo.",
     "signInHint": "Te pediremos iniciar sesión para confirmar. Tu selección se conserva.",
     "confirmBooking": "Confirmar reserva"
+  },
+  "booking": {
+    "context": {
+      "label": "Reserva sobre",
+      "change": "Cambiar"
+    }
   }
 }

@@ -1,3 +1,4 @@
+import fs from "node:fs"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
@@ -59,7 +60,14 @@ function seoVerificationReplacePlugin() {
   }
 }
 
+// Telemetry · src/lib/sentry.js tags every event with the release. Read
+// package.json here (not via import assertions, which older Node lacks).
+const APP_VERSION = JSON.parse(fs.readFileSync(new URL("./package.json", import.meta.url), "utf8")).version
+
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
   plugins: [
     react(),
     gaIdReplacePlugin(),
@@ -75,7 +83,7 @@ export default defineConfig({
         "web-app-manifest-192x192.png",
         "web-app-manifest-512x512.png",
         "site.webmanifest",
-        "robots.txt", "sitemap.xml",
+        "robots.txt",
         "fonts/Sora-Variable.woff2",
         "fonts/JetBrainsMono-Variable.woff2",
       ],
@@ -127,7 +135,7 @@ export default defineConfig({
           },
           // ── Images: cache-first, 30 days ──
           {
-            urlPattern: /\/images\/.*\.(webp|jpg|jpeg|png|svg|gif|avif)$/i,
+            urlPattern: /\/images\/(?!avatars\/).*\.(webp|jpg|jpeg|png|svg|gif|avif)$/i,
             handler: "CacheFirst",
             options: {
               cacheName: "image-cache",

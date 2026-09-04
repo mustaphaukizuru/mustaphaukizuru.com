@@ -251,14 +251,14 @@ function TicketThread({ ticket, onClose }) {
           <div
             key={msg.id}
             className={`rounded-xl p-4 text-meta ${
-              msg.isAdmin
+              (msg.isAdmin || msg.senderRole === "admin")
                 ? "border border-violet/15 bg-violet-ghost text-violet"
                 : "border border-charcoal-80/10 bg-mist text-charcoal-80"
             }`}
           >
             <div className="mb-1.5 flex items-center gap-2">
               <span className="text-micro font-semibold">
-                {msg.isAdmin ? t("support.thread.supportTeam") : t("support.thread.you")}
+                {(msg.isAdmin || msg.senderRole === "admin") ? t("support.thread.supportTeam") : t("support.thread.you")}
               </span>
               <span className="text-micro text-charcoal-80/65">
                 {new Date(msg.createdAt).toLocaleString(localeTag)}

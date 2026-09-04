@@ -22,6 +22,7 @@ async function getAdminDashboardStats() {
     totalDownloads,
     recentOrders,
     topProductsRaw,
+    payingCustomers,
     revenueAgg,
   ] = await Promise.all([
     prisma.user.count(),
@@ -50,9 +51,22 @@ async function getAdminDashboardStats() {
     // Group order items by product to find top sellers
     prisma.orderItem.groupBy({
       by: ["productId"],
+      // Service line items carry a null productId. Without this they group into a
+      // null bucket that can occupy one of the five slots and is then dropped,
+      // silently leaving only four products on the panel.
+      where: { productId: { not: null } },
       _sum: { quantity: true, lineTotal: true },
       orderBy: { _sum: { quantity: "desc" } },
       take: 5,
+    }).catch(() => []),
+    // Active customers = distinct people who have actually paid. Grouped on
+    // customerEmail, not userId: userId is nullable (guest checkout), so
+    // counting it drops every guest who paid. The page used to derive this
+    // from the 8 rows in recentOrders — which never carried userId anyway, so
+    // it always rendered 0.
+    prisma.order.groupBy({
+      by: ["customerEmail"],
+      where: { status: "paid" },
     }).catch(() => []),
     prisma.order.aggregate({
       where: { status: "paid" },
@@ -107,6 +121,7 @@ async function getAdminDashboardStats() {
       failedOrders:  safeNum(failedOrders),
       refundedOrders:safeNum(refundedOrders),
       totalDownloads:safeNum(totalDownloads),
+      activeCustomers:safeNum(payingCustomers?.length),
       revenue:       safeNum(revenueAgg?._sum?.totalAmount),
     },
     recentOrders: recentOrders.map((o) => ({

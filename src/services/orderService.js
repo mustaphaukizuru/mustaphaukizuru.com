@@ -1,7 +1,10 @@
 const prisma = require("../lib/prisma")
 const AppError = require("../utils/AppError")
+const { mintLicenseKey } = require("../utils/licenseKey")
 const { countConsumedByFile, computeDownloadsRemaining } = require("./downloadService")
 const { validateCoupon, calculateDiscount } = require("./couponService")
+const { computeOrderTax } = require("../lib/tax")
+const { normalizeFiscal } = require("../lib/fiscal")
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Helpers (preserved)
@@ -64,10 +67,26 @@ function serializeOrderItem(item) {
   }
 }
 
+function serializeInvoice(inv) {
+  if (!inv) return null
+  return {
+    id:            inv.id,
+    invoiceNumber: inv.invoiceNumber,
+    status:        inv.status || "paid",
+    issuedAt:      inv.issuedAt,
+    dueDate:       inv.dueDate || null,
+    paidAt:        inv.paidAt || null,
+    lateFeeAmount: safeNumber(inv.lateFeeAmount),
+  }
+}
+
 function serializeOrder(order) {
   if (!order) return null
+  const { invoices, ...rest } = order
   return {
-    ...order,
+    ...rest,
+    // Tier 4 · due / overdue chip on the member orders page.
+    invoice: Array.isArray(invoices) ? serializeInvoice(invoices[0]) : undefined,
     subtotalAmount: safeNumber(order.subtotalAmount),
     discountAmount: safeNumber(order.discountAmount),
     serviceFeeAmount: safeNumber(order.serviceFeeAmount),
@@ -116,14 +135,43 @@ const ORDER_INCLUDE = {
   },
 }
 
+/**
+ * Billing / fiscal snapshot for the order row. Everything optional; MX
+ * fiscal fields are validated against the SAT catalogs (src/lib/fiscal.js)
+ * and rejected with 400 rather than stored dirty — a bad RFC found at
+ * stamping time is far more expensive than one found at checkout.
+ */
+function buildBillingSnapshot(billing = {}) {
+  const country = billing.country ? String(billing.country).trim().toUpperCase().slice(0, 2) : null
+  const fiscal = normalizeFiscal(billing, { country: country || "MX" })
+  if (!fiscal.ok) throw AppError.badRequest(fiscal.message, "VALIDATION_ERROR")
+  const str = (v, max = 200) => (v == null || String(v).trim() === "" ? null : String(v).trim().slice(0, max))
+  return {
+    billingCountry:          country,
+    billingCity:             str(billing.city),
+    billingStateRegion:      str(billing.state),
+    billingPostalCode:       str(billing.postalCode, 20),
+    billingCompany:          str(billing.company),
+    billingTaxId:            fiscal.data.taxId || null,
+    billingLegalName:        fiscal.data.legalName || null,
+    billingRegimenFiscal:    fiscal.data.regimenFiscal || null,
+    billingUsoCfdi:          fiscal.data.usoCfdi || null,
+    billingFiscalPostalCode: fiscal.data.fiscalPostalCode || null,
+  }
+}
+
 async function createOrder(payload) {
-  const { customerName, customerEmail, userId = null, items, couponCode, idempotencyKey = null } = payload
+  const { customerName, customerEmail, userId = null, items, couponCode, idempotencyKey = null, billing = {} } = payload
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     throw AppError.badRequest("Order items are required", "VALIDATION_ERROR")
   }
 
+  const billingSnapshot = buildBillingSnapshot(billing)
+
   const productIds = items.map((item) => item.productId)
+  // T3 · licence tiers requested per line ("" / null = base price)
+  const wantsTier = items.some((item) => item.licenseTier)
 
   const products = await prisma.product.findMany({
     where: {
@@ -133,6 +181,7 @@ async function createOrder(payload) {
     include: {
       images: { orderBy: { sortOrder: "asc" } },
       files:  true,
+      ...(wantsTier ? { licenses: { where: { isActive: true } } } : {}),
     },
   })
 
@@ -154,7 +203,19 @@ async function createOrder(payload) {
       throw AppError.badRequest(`Quantity for ${product.title} exceeds the maximum of ${MAX_QUANTITY_PER_ITEM}`, "VALIDATION_ERROR")
     }
 
-    const unitPrice = Number(product.price)
+    // T3 · tiered licensing: price from the chosen active licence, never
+    // from the client. An unknown/inactive tier is a hard validation error.
+    let licenseTier = null
+    let unitPrice = Number(product.price)
+    if (item.licenseTier) {
+      const tier = String(item.licenseTier).trim().toLowerCase()
+      const license = (product.licenses || []).find((l) => l.tier === tier && l.isActive)
+      if (!license) {
+        throw AppError.badRequest(`License tier "${tier}" is not available for ${product.title}`, "LICENSE_TIER_INVALID")
+      }
+      licenseTier = license.tier
+      unitPrice   = Number(license.price)
+    }
     const lineTotal = unitPrice * quantity
 
     return {
@@ -166,6 +227,8 @@ async function createOrder(payload) {
       price: unitPrice,
       unitPrice,
       lineTotal,
+      taxExempt: Boolean(product.taxExempt),
+      licenseTier,
     }
   })
 
@@ -197,6 +260,8 @@ async function createOrder(payload) {
   }
 
   const totalAmount = Math.max(0, Number((subtotal - discountAmount).toFixed(2)))
+  // IVA contained in the total — a breakdown, never an add-on (src/lib/tax.js).
+  const tax = computeOrderTax({ items: normalizedItems, discount: discountAmount })
 
   const orderNumber = await createUniqueOrderNumber()
 
@@ -218,8 +283,12 @@ async function createOrder(payload) {
         customerEmail,
         subtotalAmount: subtotal,
         discountAmount,
+        taxRate:     tax.taxRate,
+        taxAmount:   tax.taxAmount,
+        taxIncluded: true,
         totalAmount,
         currency: "MXN",
+        ...billingSnapshot,
         ...(userId ? { user: { connect: { id: userId } } } : {}),
         ...(appliedCoupon ? { coupon: { connect: { id: appliedCoupon.id } } } : {}),
         items: {
@@ -232,6 +301,7 @@ async function createOrder(payload) {
             price:          item.price,
             unitPrice:      item.unitPrice,
             lineTotal:      item.lineTotal,
+            licenseTier:    item.licenseTier,
           })),
         },
       },
@@ -248,6 +318,16 @@ async function createOrder(payload) {
         },
       },
     })
+
+    // T3 · mint licence keys. The key is an HMAC of the order-item id, so it
+    // can only exist once the row does — hence a second write inside the
+    // same transaction rather than a value in the nested create.
+    for (const orderItem of created.items || []) {
+      if (!orderItem.licenseTier || orderItem.licenseKey) continue
+      const licenseKey = mintLicenseKey(orderItem.id)
+      await tx.orderItem.update({ where: { id: orderItem.id }, data: { licenseKey } })
+      orderItem.licenseKey = licenseKey
+    }
 
     if (appliedCoupon) {
       // Race-safe consumption · optimistic lock on usedCount. validateCoupon
@@ -341,6 +421,11 @@ async function getOrdersByUserId(userId) {
             },
           },
         },
+      },
+      invoices: {
+        orderBy: { issuedAt: "desc" },
+        take: 1,
+        select: { id: true, invoiceNumber: true, status: true, issuedAt: true, dueDate: true, paidAt: true, lateFeeAmount: true },
       },
     },
     orderBy: { createdAt: "desc" },
@@ -548,9 +633,9 @@ async function getEnrichedOrderById(id) {
 
   const base = serializeOrder(order)
 
-  // Strip payments/invoices raw from the base so clients consume our named fields
+  // Strip payments raw from the base so clients consume our named fields
+  // (serializeOrder already folded `invoices` into `invoice`).
   delete base.payments
-  delete base.invoices
 
   return {
     ...base,

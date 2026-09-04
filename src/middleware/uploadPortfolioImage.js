@@ -1,21 +1,18 @@
-const fs = require("fs")
 const path = require("path")
 const multer = require("multer")
+const { STORAGE_PATHS, ensureDir } = require("../config/storagePaths")
 
 /**
  * Multer storage for portfolio images (cover + gallery).
  * Mirrors the pattern established by uploadProductImage.js so the admin
  * upload flow behaves consistently across modules.
  *
- * Destination: /public/images/portfolio/<timestamp>-<slugified-name>.<ext>
- * Public URL:  /images/portfolio/<filename>  (served by Express static)
+ * Destination: <storage>/uploads/portfolio/<timestamp>-<slugified-name>.<ext>
+ *              (outside the versioned deploy dir — see storagePaths.js)
+ * Public URL:  /images/portfolio/<filename>  (served by app.js static mount)
  */
 
-const PORTFOLIO_IMAGE_DIR = path.resolve(__dirname, "../../public/images/portfolio")
-
-if (!fs.existsSync(PORTFOLIO_IMAGE_DIR)) {
-  fs.mkdirSync(PORTFOLIO_IMAGE_DIR, { recursive: true })
-}
+const PORTFOLIO_IMAGE_DIR = ensureDir(STORAGE_PATHS.portfolioImages)
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {

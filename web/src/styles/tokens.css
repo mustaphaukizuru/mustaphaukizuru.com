@@ -286,6 +286,19 @@
   --shadow-lift-3: 0 10px 28px rgb(var(--color-violet-rgb) / 0.22);
   --shadow-lift-4: 0 8px  20px rgb(var(--color-violet-rgb) / 0.20);
 
+  /* Stage — the six-layer cast under a tilted "screen" (ui/ContainerScroll).
+     Neutral charcoal rather than violet: the frame is near-black, and a
+     violet cast under it reads as a colour fringe instead of a shadow. The
+     layers are deliberately uneven — a tight contact shadow plus four
+     progressively wider, fainter ones is what sells a surface standing away
+     from the page. */
+  --shadow-stage:
+     0 9px   20px rgb(var(--color-charcoal-rgb) / 0.29),
+     0 37px  37px rgb(var(--color-charcoal-rgb) / 0.26),
+     0 84px  50px rgb(var(--color-charcoal-rgb) / 0.15),
+     0 149px 60px rgb(var(--color-charcoal-rgb) / 0.04),
+     0 233px 65px rgb(var(--color-charcoal-rgb) / 0.01);
+
   /* Semantic aliases — the original three names, kept so existing
      `shadow-[var(--shadow-rest)]` call sites keep working. Values are
      unchanged from before this refactor. */

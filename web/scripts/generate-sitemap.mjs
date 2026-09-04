@@ -16,7 +16,12 @@ const outDir      = publicDir
 // deploy late — production kept serving the previous run's 12 URLs. Mirror
 // the file into the build output whenever it exists.
 const buildOutDir = path.resolve(process.cwd(), "..", "public")
-const indexFile   = path.join(outDir, "sitemap.xml")
+// NOT "sitemap.xml": Hostinger's web server serves any existing file in the
+// document root itself, so a static public/sitemap.xml shadows the dynamic
+// Express route (src/app.js) that emits the DB-backed sitemap with hreflang
+// alternates. This build-time file is the offline fallback only.
+const STATIC_SITEMAP = "sitemap-static.xml"
+const indexFile   = path.join(outDir, STATIC_SITEMAP)
 const pagesFile   = path.join(outDir, "sitemap-pages.xml")
 const productsXml = path.join(outDir, "sitemap-products.xml")
 const servicesXml = path.join(outDir, "sitemap-services.xml")
@@ -31,6 +36,7 @@ const staticRoutes = [
   { path: "/",           changefreq: "weekly",  priority: "1.0" },
   { path: "/about",      changefreq: "monthly", priority: "0.8" },
   { path: "/services",   changefreq: "weekly",  priority: "0.9" },
+  { path: "/schools",    changefreq: "monthly", priority: "0.85" },
   { path: "/store",      changefreq: "daily",   priority: "0.9" },
   { path: "/portfolio",  changefreq: "weekly",  priority: "0.85" },
   { path: "/blog",       changefreq: "weekly",  priority: "0.85" },
@@ -130,7 +136,7 @@ function hreflangBlock(routePath) {
   if (!I18N_ENABLED) return ""
   const cleanPath = routePath === "/" ? "/" : routePath.replace(/\/$/, "")
   return [
-    `    <xhtml:link rel="alternate" hreflang="en" href="${SITE_URL}/en${cleanPath === "/" ? "" : cleanPath}" />`,
+    `    <xhtml:link rel="alternate" hreflang="en" href="${SITE_URL}${cleanPath}" />`,
     `    <xhtml:link rel="alternate" hreflang="es" href="${SITE_URL}/es${cleanPath === "/" ? "" : cleanPath}" />`,
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_URL}${cleanPath}" />`,
   ].join("\n")
@@ -285,7 +291,7 @@ async function main() {
   if (totalCount <= SPLIT_THRESHOLD) {
     const flat = [...allPages, ...productList, ...serviceList, ...portfolioList, ...blogList]
       .sort((a, b) => a.path.localeCompare(b.path))
-    await writeMirrored("sitemap.xml", urlSetXml(flat))
+    await writeMirrored(STATIC_SITEMAP, urlSetXml(flat))
     // Clean up split files if they exist from a previous large run.
     for (const f of [pagesFile, productsXml, servicesXml, portfolioXml, blogXml]) {
       try { await fs.unlink(f) } catch { /* not present â fine */ }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
-import { m } from "framer-motion"
+import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 import {
   ArrowLeft, ArrowRight, ExternalLink, Github, Calendar, Briefcase,
   CheckCircle2, AlertCircle, Sparkles, ChevronRight, Tag,
@@ -17,6 +17,7 @@ import ApproachSteps from "../components/portfolio/ApproachSteps"
 import ServiceCta from "../components/portfolio/ServiceCta"
 import ProjectPager from "../components/portfolio/ProjectPager"
 import { getCaseStudy, responsiveSrcSet } from "../components/portfolio/caseStudy"
+import { STAGE_FRAME_CLASS } from "../components/ui/ContainerScroll"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  ProjectDetailPage · /projects/:slug  (roadmap step 27 — case study)
@@ -53,6 +54,7 @@ function adaptHardcoded(row) {
     tools: row.tools || row.tags || [],
     tags: row.tags || [],
     liveUrl: row.liveUrl || row.website || null,
+    repoUrl: row.repoUrl || null,
     year: row.year || null,
     caseStudy: row.caseStudy || null,
   }
@@ -63,6 +65,7 @@ function Container({ children, className = "" }) {
 }
 
 export default function ProjectDetailPage() {
+  const reduced = useReducedMotion()
   const { t } = useTranslation("portfolio")
   const { slug } = useParams()
   const [project, setProject] = useState(null)
@@ -251,9 +254,25 @@ export default function ProjectDetailPage() {
       {displayImage ? (
         <section className="py-10 sm:py-14">
           <Container>
-            <div className="overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e6)]">
-              {/* layoutId shared with PortfolioCard/CaseStudyCard for the page transition */}
-              <m.div layoutId={`project-cover-${slug}`} className="aspect-[16/9] w-full bg-violet-pale">
+            {/* The same bezel the portfolio stages use (ui/ContainerScroll), held
+                flat: this hero is where a stage's tilt hands off, and there is
+                no scroll above the fold to drive one. */}
+            <div className={`mx-auto w-full max-w-5xl ${STAGE_FRAME_CLASS}`}>
+              {/* layoutId shared with ProjectShowcase's cover for the page transition */}
+              <m.div layoutId={`project-cover-${slug}`} className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-violet-pale">
+                {/* Picking a thumbnail used to hard-cut the frame to a new
+                    photograph. Keyed on the index so each view fades in over
+                    the last; `mode="wait"` would blank the frame between two,
+                    which is worse than the cut it replaces. */}
+                <AnimatePresence initial={false}>
+                <m.div
+                  key={activeImage}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: reduced ? 0 : 0.35, ease: "easeOut" }}
+                  className="absolute inset-0 h-full w-full"
+                >
                 {heroSrcSet ? (
                   <picture className="block h-full w-full">
                     <source type="image/webp" srcSet={heroSrcSet} sizes="(max-width: 1152px) 100vw, 1152px" />
@@ -272,9 +291,12 @@ export default function ProjectDetailPage() {
                     className="h-full w-full"
                   />
                 )}
+                </m.div>
+                </AnimatePresence>
               </m.div>
-              {gallery.length > 1 ? (
-                <div className="flex gap-3 overflow-x-auto p-4">
+            </div>
+            {gallery.length > 1 ? (
+              <div className="mx-auto mt-4 flex max-w-5xl gap-3 overflow-x-auto">
                   {gallery.map((src, idx) => (
                     <button
                       key={idx}
@@ -297,9 +319,8 @@ export default function ProjectDetailPage() {
                       />
                     </button>
                   ))}
-                </div>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </Container>
         </section>
       ) : null}

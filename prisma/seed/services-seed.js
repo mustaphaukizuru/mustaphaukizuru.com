@@ -12,6 +12,13 @@
 
 const prisma = require("../../src/lib/prisma")
 
+const { assertLocalDatabase } = require("../../scripts/guard-prod-db")
+
+// The npm wrapper runs this guard too, but `node prisma/seed/services-seed.js` skips
+// the wrapper entirely — and that is a normal thing to type. Guarding in here
+// as well means the check follows the script, not the way it was invoked.
+assertLocalDatabase("services-seed.js")
+
 /* ────────────────────────────────────────────────────────────────────────────
  * Data — taken verbatim from web/src/data/sitePagesData.js (servicesCards +
  * servicePricing), reshaped into the DB schema.

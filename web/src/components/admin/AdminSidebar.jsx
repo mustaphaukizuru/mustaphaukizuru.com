@@ -23,6 +23,7 @@ import {
   BookUser, TrendingUp,
   Tag,
   MessageSquare,
+  Inbox,
   Calendar,
   CalendarCheck,
   ClipboardCheck,
@@ -31,6 +32,7 @@ import {
   Activity,
   Newspaper,
   Megaphone,
+  Building2,
 } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 import { API_BASE_URL, authFetch } from "../../lib/api"
@@ -100,6 +102,7 @@ const navigation = [
       { label: "Services", to: "/admin/services", icon: Briefcase, description: "Consulting & delivery" },
       { label: "Service Orders", to: "/admin/service-orders", icon: ClipboardCheck, description: "Paid service deliveries" },
       { label: "Client Projects", to: "/admin/client-projects", icon: Briefcase, description: "Milestones, files, timeline" },
+      { label: "Invoices", to: "/admin/invoices", icon: Receipt, description: "Manual invoices & dunning" },
       { label: "Availability", to: "/admin/availability", icon: Calendar, description: "Booking calendar rules" },
       { label: "Consultations", to: "/admin/consultations", icon: CalendarCheck, description: "Booked calls & status" },
     ],
@@ -110,6 +113,7 @@ const navigation = [
     items: [
       { label: "Blog", to: "/admin/blog", icon: Newspaper, description: "Posts, categories, tags" },
       { label: "Portfolio", to: "/admin/portfolio", icon: FolderOpen, description: "Case studies & gallery" },
+      { label: "Clients", to: "/admin/clients", icon: Building2, description: "Logo wall on the About page" },
       { label: "Bio CMS", to: "/admin/bio", icon: BookUser, description: "Experience · certificates · skills" },
     ],
   },
@@ -120,6 +124,7 @@ const navigation = [
     items: [
       { label: "Support Tickets", to: "/admin/support", icon: Headphones, description: "Member requests" },
       { label: "Contact Messages", to: "/admin/contact-messages", icon: MessageSquare, description: "Contact form submissions" },
+      { label: "Leads Inbox", to: "/admin/leads", icon: Inbox, description: "Every contact, audit, sign-up & booking by email" },
       { label: "Newsletter", to: "/admin/newsletter", icon: Mail, description: "Subscribers & exports" },
     ],
   },

@@ -22,7 +22,10 @@
       "title": "More from {{label}}",
       "fallbackLabel": "the blog",
       "readArticle": "Read article"
-    }
+    },
+    "ctaTitle": "Working on something similar?",
+    "ctaBody": "Book a free 30-minute strategy call — no pitch, just answers.",
+    "allArticles": "All articles →"
   },
   "list": {
     "page": "Blog",
@@ -71,5 +74,11 @@
     "success": "You're in! Check your inbox to confirm.",
     "invalid": "Please enter a valid email address.",
     "error": "Something went wrong. Please try again."
+  },
+  "index": {
+    "loadMore": "Load more articles",
+    "newsletterTitle": "Stay in the loop",
+    "newsletterLead": "New articles, every week.",
+    "newsletterBody": "Tech strategy, dev tutorials, and STEM insights — no spam."
   }
 }

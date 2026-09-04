@@ -69,7 +69,7 @@ describe("computeDownloadsRemaining", () => {
 describe("getDownloadLibraryForUser", () => {
   const order = {
     id: "o1", orderNumber: "MU-1001", status: "paid", currency: "MXN",
-    createdAt: new Date("2026-01-01"), paidAt: new Date("2026-01-02"), invoice: { id: "inv1" },
+    createdAt: new Date("2026-01-01"), paidAt: new Date("2026-01-02"), invoices: [{ id: "inv1" }],
   }
   const product = {
     id: "p1", title: "Guide", slug: "guide", isActive: true, updatedAt: new Date("2026-02-01"), version: null,
@@ -120,8 +120,8 @@ describe("getDownloadLibraryForUser", () => {
 
   it("does not duplicate a product bought twice in the same order and omits the invoice link when none exists", async () => {
     prisma.userDownload.findMany.mockResolvedValue([
-      { id: "e1", orderId: "o1", productId: "p1", downloadAccessStatus: "active", downloadLimit: null, downloadCount: 0, order: { ...order, invoice: null }, product },
-      { id: "e2", orderId: "o1", productId: "p1", downloadAccessStatus: "active", downloadLimit: null, downloadCount: 0, order: { ...order, invoice: null }, product },
+      { id: "e1", orderId: "o1", productId: "p1", downloadAccessStatus: "active", downloadLimit: null, downloadCount: 0, order: { ...order, invoices: [] }, product },
+      { id: "e2", orderId: "o1", productId: "p1", downloadAccessStatus: "active", downloadLimit: null, downloadCount: 0, order: { ...order, invoices: [] }, product },
     ])
     prisma.downloadLog.findMany.mockResolvedValue([])
 

@@ -1,6 +1,7 @@
 const prisma = require("../lib/prisma")
 const AppError = require("../utils/AppError")
 const { validateCoupon, calculateDiscount } = require("./couponService")
+const { computeOrderTax } = require("../lib/tax")
 
 /* ────────────────────────────────────────────────────────────────────────────
  * Helpers
@@ -47,7 +48,7 @@ const CART_INCLUDE = {
 }
 
 /**
- * Compute totals for a cart. Digital-goods tax policy = 0.
+ * Compute totals for a cart. `tax` is the IVA contained in `total`.
  *
  * @param {Array} items       cart items (with prismaed product/service relations)
  * @param {object|null} coupon applied coupon row or null
@@ -86,14 +87,24 @@ function computeTotals(items, coupon) {
     discount = calculateDiscount(coupon, subtotal)
   }
 
-  const tax = 0 // Digital goods — zero tax under current policy.
-  const total = Math.max(0, subtotal - discount + tax)
+  // IVA is CONTAINED in listed prices (src/lib/tax.js) — it never changes
+  // the total, only how it is broken down for the customer and the invoice.
+  const total = Math.max(0, subtotal - discount)
+  const { taxRate, taxAmount } = computeOrderTax({
+    items:    items.map((item) => ({
+      lineTotal: toNumber(item.priceSnapshot) * (item.quantity || 1),
+      taxExempt: Boolean(item.product?.taxExempt || item.service?.taxExempt),
+    })),
+    discount,
+  })
 
   return {
-    subtotal: Number(subtotal.toFixed(2)),
-    discount: Number(discount.toFixed(2)),
-    tax:      Number(tax.toFixed(2)),
-    total:    Number(total.toFixed(2)),
+    subtotal:    Number(subtotal.toFixed(2)),
+    discount:    Number(discount.toFixed(2)),
+    tax:         taxAmount,
+    taxRate,
+    taxIncluded: true,
+    total:       Number(total.toFixed(2)),
   }
 }
 
@@ -110,6 +121,7 @@ function serializeCart(cart) {
     serviceId:     item.serviceId,
     titleSnapshot: item.titleSnapshot,
     priceSnapshot: toNumber(item.priceSnapshot),
+    licenseTier:   item.licenseTier || null,
     quantity:      item.quantity,
     product:       item.product
       ? {
@@ -195,8 +207,9 @@ async function getCart(userId) {
  * the cart is stable even if the product price changes later.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-async function addItem(userId, { productId, serviceId, quantity = 1 }) {
+async function addItem(userId, { productId, serviceId, quantity = 1, licenseTier = null }) {
   const qty = Math.max(1, Math.floor(Number(quantity) || 1))
+  const tier = licenseTier ? String(licenseTier).trim().toLowerCase() : null
 
   if (!productId && !serviceId) {
     throw new AppError("productId or serviceId is required", { statusCode: 400, code: "VALIDATION_ERROR" })
@@ -218,7 +231,18 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
     itemType      = "product"
     titleSnapshot = product.title
     priceSnapshot = product.price
+    // T3 · tiered licensing: the tier must be an active licence of this
+    // product and its price replaces the base price in the snapshot.
+    if (tier) {
+      const license = await prisma.productLicense.findFirst({
+        where: { productId, tier, isActive: true },
+        select: { tier: true, price: true },
+      })
+      if (!license) throw new AppError("License tier not available for this product", { statusCode: 400, code: "LICENSE_TIER_INVALID" })
+      priceSnapshot = license.price
+    }
   } else {
+    if (tier) throw new AppError("licenseTier only applies to products", { statusCode: 400, code: "VALIDATION_ERROR" })
     const service = await prisma.service.findUnique({
       where:  { id: serviceId },
       select: { id: true, title: true, basePrice: true, status: true },
@@ -236,6 +260,7 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
       itemType,
       productId: productId || null,
       serviceId: serviceId || null,
+      licenseTier: tier,
     },
   })
 
@@ -253,6 +278,7 @@ async function addItem(userId, { productId, serviceId, quantity = 1 }) {
         serviceId: serviceId || null,
         titleSnapshot,
         priceSnapshot,
+        licenseTier: tier,
         quantity:  qty,
       },
     })
@@ -320,14 +346,14 @@ async function mergeGuestCart(userId, items = []) {
     const qty = Math.max(1, Math.floor(Number(raw.quantity) || 1))
     try {
       if (raw.productId) {
-        await addItem(userId, { productId: raw.productId, quantity: qty })
+        await addItem(userId, { productId: raw.productId, quantity: qty, licenseTier: raw.licenseTier || null })
         results.merged++
       } else if (raw.serviceId) {
         await addItem(userId, { serviceId: raw.serviceId, quantity: qty })
         results.merged++
       } else if (raw.id) {
         // Guest carts traditionally use product id as `id`. Try that path.
-        await addItem(userId, { productId: raw.id, quantity: qty })
+        await addItem(userId, { productId: raw.id, quantity: qty, licenseTier: raw.licenseTier || null })
         results.merged++
       } else {
         results.skipped++

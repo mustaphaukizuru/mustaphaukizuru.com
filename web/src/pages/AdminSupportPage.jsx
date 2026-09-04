@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import {
   Headphones, MessageSquare, AlertCircle, Send, X, Filter,
   CheckCircle2, AlertTriangle, ArchiveRestore, Mail, RotateCcw, ExternalLink,
+  FolderKanban, Paperclip,
 } from "lucide-react"
 import { authFetch } from "../lib/api"
 import { useToast } from "../context/ToastContext"
@@ -64,6 +65,32 @@ function CategoryBadge({ category }) {
   )
 }
 
+/* Tier 2 — ticket attachments are ProjectFile rows; admins download them
+ * through the project-scoped admin endpoint. */
+const MAX_REPLY_FILES = 10
+const ALLOWED_ATTACHMENT_EXT = ".png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.zip,.txt,.md,.csv,.json,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.fig,.sketch,.ai,.psd"
+const adminFileUrl = (projectId, fileId) =>
+  `/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}/download`
+
+function AttachmentChips({ projectId, attachments }) {
+  if (!projectId || !Array.isArray(attachments) || attachments.length === 0) return null
+  return (
+    <div className="mt-3 flex flex-wrap gap-2" aria-label="Attachments">
+      {attachments.map((f) => (
+        <a
+          key={f.id}
+          href={adminFileUrl(projectId, f.id)}
+          download={f.fileName}
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-charcoal-80/15 bg-white px-2.5 py-1 text-[12px] font-medium text-violet transition hover:border-violet/40 hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
+        >
+          <Paperclip className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span className="truncate">{f.fileName}</span>
+        </a>
+      ))}
+    </div>
+  )
+}
+
 function PriorityBadge({ priority }) {
   // Map priority onto StatusPill tones via semantic equivalents
   const map = { high: "failed", medium: "pending", low: "open" }
@@ -81,7 +108,10 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
   const [status, setStatus] = useState(ticket.status)
   // M16 — full ticket data (with order relation) loaded on detail fetch
   const [fullTicket, setFullTicket] = useState(ticket)
+  // Tier 2 — attachments on replies (project tickets only)
+  const [files, setFiles] = useState([])
   const { showSuccess, showError } = useToast()
+  const projectId = fullTicket.projectId || fullTicket.project?.id || null
 
   useEffect(() => {
     async function load() {
@@ -105,12 +135,26 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
     if (!reply.trim()) return
     setSending(true); setError("")
     try {
-      const res = await authFetch(`/api/admin/support/tickets/${ticket.id}/messages`, {
-        method: "POST",
-        body: JSON.stringify({ message: reply }),
-      })
+      let res
+      if (projectId && files.length > 0) {
+        // Attachments are stored under the project's folder, so the reply goes
+        // through the project-scoped admin route (multipart `files[]`).
+        const fd = new FormData()
+        fd.append("message", reply)
+        files.forEach((f) => fd.append("files", f))
+        res = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/tickets/${encodeURIComponent(ticket.id)}/messages`, {
+          method: "POST",
+          body: fd,
+        })
+      } else {
+        res = await authFetch(`/api/admin/support/tickets/${ticket.id}/messages`, {
+          method: "POST",
+          body: JSON.stringify({ message: reply }),
+        })
+      }
       setMessages((prev) => [...prev, res.data])
       setReply("")
+      setFiles([])
       showSuccess("Reply sent")
     } catch (err) {
       setError(err.message || "Failed to send reply.")
@@ -186,6 +230,24 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
         })}
       </div>
 
+      {/* Tier 2 — project-scoped ticket: deep-link to the project workspace */}
+      {projectId ? (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-violet/20 bg-violet-pale p-4">
+          <div className="flex min-w-0 items-center gap-2 text-meta font-semibold text-violet">
+            <FolderKanban className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">Project · {fullTicket.project?.projectName || projectId}</span>
+            {fullTicket.project?.projectStatus ? <StatusPill status={fullTicket.project.projectStatus} /> : null}
+          </div>
+          <Link
+            to={`/admin/client-projects/${projectId}`}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-violet/30 bg-white px-3 py-1.5 text-micro font-semibold text-violet transition hover:bg-violet hover:text-white focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
+          >
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            Open project
+          </Link>
+        </div>
+      ) : null}
+
       {/* M16, Refund request banner with deep-link to the order's refund modal */}
       {(fullTicket.category === "refund_request") && fullTicket.order ? (
         <div className="mb-5 rounded-xl border border-rose/20 bg-rose/5/60 p-4">
@@ -236,18 +298,20 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
             No messages yet.
           </div>
         )}
-        {messages.map((msg) => (
+        {messages.map((msg) => {
+          const isAdmin = msg.isAdmin || msg.senderRole === "admin"
+          return (
           <div
             key={msg.id}
             className={`rounded-lg p-4 text-meta ${
-              msg.isAdmin
+              isAdmin
                 ? "border border-violet/15 bg-violet-pale/40 text-violet"
                 : "border border-charcoal-80/10 bg-mist text-charcoal-80"
             }`}
           >
             <div className="mb-1.5 flex items-center justify-between gap-2">
               <span className="text-micro font-bold">
-                {msg.isAdmin ? "Support Team" : (ticket.user?.fullName || "User")}
+                {isAdmin ? "Support Team" : (ticket.user?.fullName || "User")}
               </span>
               <span className="font-mono text-[10px] tabular-nums text-charcoal-80/65">
                 {new Date(msg.createdAt).toLocaleString(undefined, {
@@ -257,8 +321,10 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
               </span>
             </div>
             <div className="leading-6 whitespace-pre-wrap">{msg.message}</div>
+            <AttachmentChips projectId={projectId} attachments={msg.attachments} />
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Reply box */}
@@ -275,6 +341,38 @@ function AdminTicketThread({ ticket, onClose, onStatusChange }) {
             />
           )}
         </Field>
+        {projectId ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-charcoal-80/12 bg-white px-3 py-1.5 text-micro font-semibold text-violet transition hover:border-violet/20 hover:bg-violet-pale focus-within:ring-[3px] focus-within:ring-azure/30">
+              <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
+              Attach files
+              <input
+                type="file"
+                multiple
+                accept={ALLOWED_ATTACHMENT_EXT}
+                className="sr-only"
+                onChange={(e) => {
+                  const picked = Array.from(e.target.files || [])
+                  setFiles((prev) => [...prev, ...picked].slice(0, MAX_REPLY_FILES))
+                  e.target.value = ""
+                }}
+              />
+            </label>
+            {files.map((f, i) => (
+              <span key={`${f.name}-${i}`} className="inline-flex items-center gap-1.5 rounded-full border border-charcoal-80/15 bg-white px-2.5 py-1 text-[12px] text-charcoal-80">
+                <span className="max-w-[16rem] truncate">{f.name}</span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${f.name}`}
+                  onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
+                  className="rounded-full p-0.5 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
+                >
+                  <X className="h-3 w-3" aria-hidden="true" />
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={handleReply}

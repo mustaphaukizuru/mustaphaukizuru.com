@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Outlet, NavLink, useLocation, useNavigate, Link } from "react-router-dom"
 import {
   LayoutDashboard,
@@ -14,6 +14,8 @@ import {
 } from "lucide-react"
 import AdminSidebar, { navigation } from "../components/admin/AdminSidebar"
 import AdminHeader from "../components/admin/AdminHeader"
+import useBodyScrollLock from "../hooks/useBodyScrollLock"
+import useFocusTrap from "../hooks/useFocusTrap"
 import { useAuth } from "../context/AuthContext"
 import { API_BASE_URL } from "../lib/api"
 
@@ -79,6 +81,7 @@ const pageMeta = {
   "/admin/categories": { title: "Categories", subtitle: "Organize the catalog." },
   "/admin/coupons": { title: "Coupons", subtitle: "Create discount codes, set caps, and track redemptions." },
   "/admin/contact-messages":{ title: "Contact Messages",subtitle: "View, reply to, and manage submissions from the contact form." },
+  "/admin/leads": { title: "Leads Inbox", subtitle: "One row per email across contact messages, self-audits, newsletter sign-ups and bookings (newest 500 per source)." },
   "/admin/newsletter": { title: "Newsletter", subtitle: "Manage subscribers, export the list, or remove entries (GDPR)." },
   "/admin/services": { title: "Services", subtitle: "Consulting and packages." },
   "/admin/availability": { title: "Availability", subtitle: "Recurring rules and date-specific exceptions for the public booking calendar." },
@@ -108,11 +111,18 @@ function resolveMeta(pathname) {
  *  Mobile slide-out menu — re-uses AdminSidebar's navigation array
  *  ──────────────────────────────────────────────────────────────────── */
 function AdminMobileMenu({ open, onClose, user, initials }) {
-  useEffect(() => {
-    if (open) document.body.style.overflow = "hidden"
-    else document.body.style.overflow = ""
-    return () => { document.body.style.overflow = "" }
-  }, [open])
+  /* Scroll lock + focus management.
+   * The hand-rolled `document.body.style.overflow` this replaced had two
+   * defects: it clobbered any inline overflow already on <body>, and it
+   * released the lock as soon as THIS menu closed even if another overlay
+   * (modal, cart drawer) was still open. useBodyScrollLock is ref-counted
+   * and locks <html> too, which is what iOS actually honours.
+   * useFocusTrap keeps Tab inside the open panel and restores focus to the
+   * trigger on close — the header comment claimed a focus trap, but there
+   * was none. */
+  const panelRef = useRef(null)
+  useBodyScrollLock(open)
+  useFocusTrap(panelRef, open)
 
   // ESC dismiss
   useEffect(() => {
@@ -126,7 +136,7 @@ function AdminMobileMenu({ open, onClose, user, initials }) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300 motion-reduce:transition-none lg:hidden ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onClose}
@@ -135,7 +145,13 @@ function AdminMobileMenu({ open, onClose, user, initials }) {
 
       {/* Panel */}
       <div
-        className={`fixed inset-y-0 right-0 z-[70] w-[300px] max-w-[85vw] bg-white shadow-2xl transition-transform duration-300 ease-out lg:hidden ${
+        ref={panelRef}
+        /* inert (React 19) — a closed drawer sits off-screen but stayed in
+           the tab order and in the accessibility tree, so keyboard users
+           tabbed into invisible links and screen readers announced a menu
+           that is not there. */
+        inert={!open}
+        className={`fixed inset-y-0 right-0 z-[70] flex w-[300px] max-w-[85vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none lg:hidden ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         role="dialog"
@@ -235,7 +251,7 @@ export default function AdminLayout() {
     // `data-dashboard-shell` scopes dashboard-only dark mode to this
     // subtree (see styles/tokens.css). The admin surface uses the same
     // anchor as the member dashboard so they share theme styling.
-    <section data-dashboard-shell className="min-h-screen bg-mist pb-20 lg:pb-0">
+    <section data-dashboard-shell className="min-h-screen bg-mist pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
       {/* Skip to content for keyboard users */}
       <a
         href="#admin-main"
@@ -245,10 +261,10 @@ export default function AdminLayout() {
       </a>
 
       <div className="mx-auto max-w-[1700px] px-3 py-3 sm:px-5 lg:px-5 lg:py-4">
-        <div className="grid min-h-[calc(100vh-2rem)] gap-4 lg:grid-cols-[280px_1fr]">
+        <div className="grid min-h-[calc(100dvh-2rem)] gap-4 lg:grid-cols-[280px_1fr]">
 
           {/* ── Desktop Sidebar ── */}
-          <div className="hidden lg:sticky lg:top-4 lg:block lg:h-[calc(100vh-2rem)]">
+          <div className="hidden lg:sticky lg:top-4 lg:block lg:h-[calc(100dvh-2rem)]">
             <AdminSidebar />
           </div>
 

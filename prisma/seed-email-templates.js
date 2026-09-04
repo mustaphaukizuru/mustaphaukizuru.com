@@ -32,6 +32,13 @@ require("dotenv").config({ path: path.join(__dirname, "..", ".env") })
 
 const prisma = require("../src/lib/prisma")
 
+const { assertLocalDatabase } = require("../scripts/guard-prod-db")
+
+// The npm wrapper runs this guard too, but `node prisma/seed-email-templates.js` skips
+// the wrapper entirely — and that is a normal thing to type. Guarding in here
+// as well means the check follows the script, not the way it was invoked.
+assertLocalDatabase("seed-email-templates.js")
+
 /* ─────────────────────────── shared chrome ─────────────────────────────── */
 
 const BRAND_VIOLET     = "#5D3FD3"
@@ -429,6 +436,83 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // 4b · Milestone awaiting client approval (Tier 2 client portal)
+  {
+    key: "project.approval-requested",
+    subject: "Your review is needed: {{milestoneTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "A milestone is ready for your approval.",
+      eyebrow:   "Review requested",
+      bodyHtml:
+        heading(`Ready for your review: {{milestoneTitle}}`) +
+        paragraph(`The milestone <strong>{{milestoneTitle}}</strong> on <strong>{{projectName}}</strong> has been delivered and is waiting for your sign-off.`) +
+        paragraph(`Open the project, look at the deliverables, and either approve it with one click or tell us what should change. Approving moves the work to the next phase.`) +
+        button("{{dashboardUrl}}", "Review and approve") +
+        calloutCard(`Nothing to approve yet? Leave a comment on the milestone instead — it lands directly with the project owner.`),
+    }),
+    text: [
+      "Ready for your review: {{milestoneTitle}}",
+      "",
+      "The milestone {{milestoneTitle}} on {{projectName}} has been delivered",
+      "and is waiting for your sign-off. Approve it or request changes here:",
+      "  {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 4c · Portal PIN (Tier 4 magic-link portal, no login)
+  {
+    key: "portal.pin",
+    subject: "Your access PIN for {{projectName}}: {{pin}}",
+    html: chrome({
+      preheader: "Your one-time PIN to open the project portal.",
+      eyebrow:   "Project portal",
+      bodyHtml:
+        heading(`Your PIN: {{pin}}`) +
+        paragraph(`Someone opened the portal link for <strong>{{projectName}}</strong>. Enter this PIN on the page to see the project's milestones, files and preview:`) +
+        calloutCard(`<span style="font-family:monospace;font-size:28px;letter-spacing:6px;font-weight:700">{{pin}}</span>`) +
+        paragraph(`The PIN expires in {{expiresMinutes}} minutes and works once. If you did not open the link, you can ignore this email — nothing is shared without the PIN.`),
+    }),
+    text: [
+      "Your PIN: {{pin}}",
+      "",
+      "Someone opened the portal link for {{projectName}}. Enter this PIN on the",
+      "page to see the project's milestones, files and preview.",
+      "",
+      "The PIN expires in {{expiresMinutes}} minutes and works once. If you did",
+      "not open the link, ignore this email.",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 4d · Review request when a project is completed (Tier 4)
+  {
+    key: "project.review-request",
+    subject: "{{projectName}} is complete — how did we do?",
+    html: chrome({
+      preheader: "Two minutes to share how the project went.",
+      eyebrow:   "Project complete",
+      bodyHtml:
+        heading(`{{projectName}} is done`) +
+        paragraph(`Thank you for working with me on <strong>{{projectName}}</strong>. The project is now marked complete and your files stay available in your dashboard for a while longer.`) +
+        paragraph(`If you have two minutes, a short review of <strong>{{serviceName}}</strong> helps the next client decide — and tells me what to keep doing.`) +
+        button("{{reviewUrl}}", "Leave a review") +
+        calloutCard(`Prefer to say it privately? Just reply to this email.`),
+    }),
+    text: [
+      "{{projectName}} is done",
+      "",
+      "Thank you for working with me on {{projectName}}. The project is now",
+      "marked complete. If you have two minutes, a short review helps the",
+      "next client decide:",
+      "  {{reviewUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // 5 · Support reply
   {
     key: "support.reply",
@@ -457,6 +541,79 @@ const TEMPLATES = [
   },
 
   // 6 · Order refunded
+  // Tier 4 · manual invoice issued
+  {
+    key: "invoice.issued",
+    subject: "Invoice {{invoiceNumber}} — {{orderTotal}} due {{dueDate}}",
+    html: chrome({
+      preheader: "A new invoice is ready for you.",
+      eyebrow:   "Invoice",
+      bodyHtml:
+        heading(`Hi {{customerName}}, you have a new invoice.`) +
+        paragraph(`Invoice <strong>{{invoiceNumber}}</strong> for <strong>{{description}}</strong> is ready. The amount is <strong>{{orderTotal}}</strong>, due on <strong>{{dueDate}}</strong>.`) +
+        button("{{orderUrl}}", "View and pay invoice") +
+        calloutCard(`Pay online with Mercado Pago or PayPal from the link above. Invoices paid after the due date incur a late fee; questions or a different arrangement — just reply to this email.`),
+    }),
+    text: [
+      "Invoice {{invoiceNumber}} — {{orderTotal}} due {{dueDate}}",
+      "",
+      "Hi {{customerName}}, invoice {{invoiceNumber}} for {{description}}",
+      "is ready. Amount: {{orderTotal}}. Due: {{dueDate}}.",
+      "View and pay: {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // Tier 4 · invoice overdue (sent once by invoiceDunningJob)
+  {
+    key: "invoice.overdue",
+    subject: "Invoice {{invoiceNumber}} is overdue",
+    html: chrome({
+      preheader: "Your invoice was due {{dueDate}}.",
+      eyebrow:   "Payment reminder",
+      bodyHtml:
+        heading(`Invoice {{invoiceNumber}} is past due.`) +
+        paragraph(`Hi {{customerName}}, invoice <strong>{{invoiceNumber}}</strong> for <strong>{{orderTotal}}</strong> was due on <strong>{{dueDate}}</strong> and is still unpaid. A late fee of <strong>{{lateFee}}</strong> has been applied, bringing the balance to <strong>{{amountDue}}</strong>.`) +
+        button("{{orderUrl}}", "Pay now") +
+        calloutCard(`Project access is paused while a balance stays overdue, and deliverables are released once it is settled. Already paid? Ignore this message — it can take a few hours to reconcile.`),
+    }),
+    text: [
+      "Invoice {{invoiceNumber}} is overdue",
+      "",
+      "Hi {{customerName}}, invoice {{invoiceNumber}} for {{orderTotal}} was due",
+      "on {{dueDate}} and is still unpaid. Late fee applied: {{lateFee}}.",
+      "Balance: {{amountDue}}. Pay now: {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // Tier 4 · change request quoted
+  {
+    key: "project.change-request-quoted",
+    subject: "Quote ready: {{requestTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "Your extra-work request has been quoted.",
+      eyebrow:   "Quote ready",
+      bodyHtml:
+        heading(`Hi {{customerName}}, your quote is ready.`) +
+        paragraph(`We reviewed <strong>{{requestTitle}}</strong> on <strong>{{projectName}}</strong>. The extra work comes to <strong>{{quoteAmount}}</strong>.`) +
+        calloutCard(`<strong>Notes from the team:</strong><br/>{{quoteNote}}`) +
+        paragraph(`Accept the quote from the project page and you'll get a payable order right away — work on the new milestone starts once it's paid. You can also decline it; nothing changes on the project.`) +
+        button("{{dashboardUrl}}", "Review the quote"),
+    }),
+    text: [
+      "Quote ready: {{requestTitle}} — {{projectName}}",
+      "",
+      "Hi {{customerName}}, the extra work \"{{requestTitle}}\" comes to {{quoteAmount}}.",
+      "Notes: {{quoteNote}}",
+      "Accept or decline it here: {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   {
     key: "order.refunded",
     subject: "Refund processed — order {{orderNumber}}",
@@ -712,6 +869,30 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // Variables: customerName · itemCount · firstItem · itemsSummary · cartTotal · cartUrl · couponCode · discountPct · offerExpires
+  {
+    key: "cart.abandoned-offer",
+    subject: "{{discountPct}}% off {{firstItem}} — a small thank-you for coming back",
+    html:
+      heading(`Here's {{discountPct}}% off, {{customerName}}.`) +
+      paragraph(`Your cart — {{itemsSummary}} — is still saved. Use the code below at checkout and take <strong>{{discountPct}}%</strong> off the <strong>{{cartTotal}}</strong> total.`) +
+      calloutCard(`<span style="font-family:monospace;font-size:20px;letter-spacing:0.08em;"><strong>{{couponCode}}</strong></span><br>Single use, just for you. Valid until {{offerExpires}}.`) +
+      button("{{cartUrl}}", "Finish my order") +
+      paragraph(`Digital downloads unlock the moment your payment clears, and every purchase is covered by a full-refund guarantee.`),
+    text: [
+      "Here's {{discountPct}}% off, {{customerName}}.",
+      "",
+      "Your cart — {{itemsSummary}} — is still saved.",
+      "Use this code at checkout for {{discountPct}}% off {{cartTotal}}:",
+      "",
+      "  {{couponCode}}",
+      "",
+      "Single use, just for you. Valid until {{offerExpires}}.",
+      "Finish your order: {{cartUrl}}",
+      "",
+      "This is the last reminder we'll send for this cart.",
+    ].join("\n"),
+  },
   // Variables: customerName · orderNumber · orderTotal · orderUrl
   {
     key: "order.pending",
@@ -793,6 +974,25 @@ const TEMPLATES = [
       "If you did NOT change your password, reply to this email immediately.",
       "",
       "Sign in: {{loginUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // 15b · Account deleted (confirmation after self-service deletion)
+  // Variables: name
+  {
+    key: "account.deleted",
+    subject: "Your account has been deleted",
+    html:
+      heading(`Account deleted.`) +
+      paragraph(`Hi {{name}}, your account and personal data at mustaphaukizuru.com have been removed as you requested. Purchase records required for tax purposes are kept anonymised.`) +
+      paragraph(`If you did <strong>not</strong> request this, reply to this email right away.`),
+    text: [
+      "Hi {{name}}, your account at mustaphaukizuru.com has been deleted as requested.",
+      "",
+      "Purchase records required for tax purposes are kept anonymised.",
+      "If you did NOT request this, reply to this email right away.",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),
@@ -1167,6 +1367,83 @@ const TEMPLATES_ES = [
     ].join("\n"),
   },
 
+  // project.approval-requested
+  {
+    key: "project.approval-requested",
+    subject: "Necesitamos tu revisión: {{milestoneTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "Un hito está listo para tu aprobación.",
+      eyebrow:   "Revisión solicitada",
+      bodyHtml:
+        heading(`Listo para tu revisión: {{milestoneTitle}}`) +
+        paragraph(`El hito <strong>{{milestoneTitle}}</strong> de <strong>{{projectName}}</strong> ya fue entregado y espera tu visto bueno.`) +
+        paragraph(`Abre el proyecto, revisa los entregables y apruébalo con un clic o dinos qué debería cambiar. Al aprobar, el trabajo pasa a la siguiente fase.`) +
+        button("{{dashboardUrl}}", "Revisar y aprobar") +
+        calloutCard(`¿Aún no hay nada que aprobar? Deja un comentario en el hito — llega directo al responsable del proyecto.`),
+    }),
+    text: [
+      "Listo para tu revisión: {{milestoneTitle}}",
+      "",
+      "El hito {{milestoneTitle}} de {{projectName}} ya fue entregado y",
+      "espera tu visto bueno. Apruébalo o solicita cambios aquí:",
+      "  {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // portal.pin
+  {
+    key: "portal.pin",
+    subject: "Tu PIN de acceso para {{projectName}}: {{pin}}",
+    html: chrome({
+      preheader: "Tu PIN de un solo uso para abrir el portal del proyecto.",
+      eyebrow:   "Portal del proyecto",
+      bodyHtml:
+        heading(`Tu PIN: {{pin}}`) +
+        paragraph(`Alguien abrió el enlace del portal de <strong>{{projectName}}</strong>. Escribe este PIN en la página para ver los hitos, archivos y la vista previa del proyecto:`) +
+        calloutCard(`<span style="font-family:monospace;font-size:28px;letter-spacing:6px;font-weight:700">{{pin}}</span>`) +
+        paragraph(`El PIN caduca en {{expiresMinutes}} minutos y funciona una sola vez. Si no abriste el enlace, ignora este correo — nada se comparte sin el PIN.`),
+    }),
+    text: [
+      "Tu PIN: {{pin}}",
+      "",
+      "Alguien abrió el enlace del portal de {{projectName}}. Escribe este PIN en",
+      "la página para ver los hitos, archivos y la vista previa del proyecto.",
+      "",
+      "El PIN caduca en {{expiresMinutes}} minutos y funciona una sola vez. Si no",
+      "abriste el enlace, ignora este correo.",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.review-request
+  {
+    key: "project.review-request",
+    subject: "{{projectName}} está completo — ¿cómo lo hicimos?",
+    html: chrome({
+      preheader: "Dos minutos para contar cómo fue el proyecto.",
+      eyebrow:   "Proyecto completado",
+      bodyHtml:
+        heading(`{{projectName}} está listo`) +
+        paragraph(`Gracias por trabajar conmigo en <strong>{{projectName}}</strong>. El proyecto ya está marcado como completado y tus archivos seguirán disponibles en tu panel un tiempo más.`) +
+        paragraph(`Si tienes dos minutos, una reseña breve de <strong>{{serviceName}}</strong> ayuda al próximo cliente a decidir — y me dice qué debo seguir haciendo.`) +
+        button("{{reviewUrl}}", "Dejar una reseña") +
+        calloutCard(`¿Prefieres decirlo en privado? Responde a este correo.`),
+    }),
+    text: [
+      "{{projectName}} está listo",
+      "",
+      "Gracias por trabajar conmigo en {{projectName}}. El proyecto ya está",
+      "marcado como completado. Si tienes dos minutos, una reseña breve ayuda",
+      "al próximo cliente a decidir:",
+      "  {{reviewUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // support.reply
   {
     key: "support.reply",
@@ -1195,6 +1472,79 @@ const TEMPLATES_ES = [
   },
 
   // order.refunded
+  // invoice.issued
+  {
+    key: "invoice.issued",
+    subject: "Factura {{invoiceNumber}} — {{orderTotal}} vence el {{dueDate}}",
+    html: chrome({
+      preheader: "Tienes una nueva factura lista.",
+      eyebrow:   "Factura",
+      bodyHtml:
+        heading(`Hola {{customerName}}, tienes una nueva factura.`) +
+        paragraph(`La factura <strong>{{invoiceNumber}}</strong> por <strong>{{description}}</strong> ya está lista. El importe es <strong>{{orderTotal}}</strong> y vence el <strong>{{dueDate}}</strong>.`) +
+        button("{{orderUrl}}", "Ver y pagar factura") +
+        calloutCard(`Paga en línea con Mercado Pago o PayPal desde el enlace de arriba. Las facturas pagadas después de la fecha de vencimiento generan un recargo; si tienes dudas o necesitas otro arreglo, responde a este correo.`),
+    }),
+    text: [
+      "Factura {{invoiceNumber}} — {{orderTotal}} vence el {{dueDate}}",
+      "",
+      "Hola {{customerName}}, la factura {{invoiceNumber}} por {{description}}",
+      "ya está lista. Importe: {{orderTotal}}. Vence: {{dueDate}}.",
+      "Ver y pagar: {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // invoice.overdue
+  {
+    key: "invoice.overdue",
+    subject: "La factura {{invoiceNumber}} está vencida",
+    html: chrome({
+      preheader: "Tu factura venció el {{dueDate}}.",
+      eyebrow:   "Recordatorio de pago",
+      bodyHtml:
+        heading(`La factura {{invoiceNumber}} está vencida.`) +
+        paragraph(`Hola {{customerName}}, la factura <strong>{{invoiceNumber}}</strong> por <strong>{{orderTotal}}</strong> venció el <strong>{{dueDate}}</strong> y sigue pendiente. Se aplicó un recargo de <strong>{{lateFee}}</strong>, por lo que el saldo es <strong>{{amountDue}}</strong>.`) +
+        button("{{orderUrl}}", "Pagar ahora") +
+        calloutCard(`El acceso al proyecto se pausa mientras haya un saldo vencido y los entregables se liberan al liquidarlo. ¿Ya pagaste? Ignora este mensaje — la conciliación puede tardar unas horas.`),
+    }),
+    text: [
+      "La factura {{invoiceNumber}} está vencida",
+      "",
+      "Hola {{customerName}}, la factura {{invoiceNumber}} por {{orderTotal}} venció",
+      "el {{dueDate}} y sigue pendiente. Recargo aplicado: {{lateFee}}.",
+      "Saldo: {{amountDue}}. Pagar ahora: {{orderUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.change-request-quoted
+  {
+    key: "project.change-request-quoted",
+    subject: "Cotización lista: {{requestTitle}} — {{projectName}}",
+    html: chrome({
+      preheader: "Tu solicitud de trabajo adicional ya tiene cotización.",
+      eyebrow:   "Cotización lista",
+      bodyHtml:
+        heading(`Hola {{customerName}}, tu cotización está lista.`) +
+        paragraph(`Revisamos <strong>{{requestTitle}}</strong> en <strong>{{projectName}}</strong>. El trabajo adicional tiene un costo de <strong>{{quoteAmount}}</strong>.`) +
+        calloutCard(`<strong>Notas del equipo:</strong><br/>{{quoteNote}}`) +
+        paragraph(`Acepta la cotización desde la página del proyecto y recibirás un pedido listo para pagar; el trabajo en el nuevo hito empieza al confirmarse el pago. También puedes rechazarla; el proyecto no cambia.`) +
+        button("{{dashboardUrl}}", "Revisar la cotización"),
+    }),
+    text: [
+      "Cotización lista: {{requestTitle}} — {{projectName}}",
+      "",
+      "Hola {{customerName}}, el trabajo adicional \"{{requestTitle}}\" cuesta {{quoteAmount}}.",
+      "Notas: {{quoteNote}}",
+      "Acéptala o recházala aquí: {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   {
     key: "order.refunded",
     subject: "Reembolso procesado — pedido {{orderNumber}}",
@@ -1471,6 +1821,29 @@ const TEMPLATES_ES = [
     ].join("\n"),
   },
   {
+    key: "cart.abandoned-offer",
+    subject: "{{discountPct}}% de descuento en {{firstItem}} — un detalle por volver",
+    html:
+      heading(`Aquí tienes {{discountPct}}% de descuento, {{customerName}}.`) +
+      paragraph(`Tu carrito — {{itemsSummary}} — sigue guardado. Usa el código de abajo al pagar y obtén <strong>{{discountPct}}%</strong> de descuento sobre el total de <strong>{{cartTotal}}</strong>.`) +
+      calloutCard(`<span style="font-family:monospace;font-size:20px;letter-spacing:0.08em;"><strong>{{couponCode}}</strong></span><br>De un solo uso, solo para ti. Válido hasta el {{offerExpires}}.`) +
+      button("{{cartUrl}}", "Terminar mi pedido") +
+      paragraph(`Las descargas digitales se liberan en cuanto se confirma el pago, y cada compra incluye garantía de reembolso total.`),
+    text: [
+      "Aquí tienes {{discountPct}}% de descuento, {{customerName}}.",
+      "",
+      "Tu carrito — {{itemsSummary}} — sigue guardado.",
+      "Usa este código al pagar para {{discountPct}}% de descuento sobre {{cartTotal}}:",
+      "",
+      "  {{couponCode}}",
+      "",
+      "De un solo uso, solo para ti. Válido hasta el {{offerExpires}}.",
+      "Terminar mi pedido: {{cartUrl}}",
+      "",
+      "Este es el último recordatorio que enviaremos por este carrito.",
+    ].join("\n"),
+  },
+  {
     key: "order.failed",
     subject: "El pago del pedido {{orderNumber}} falló",
     html:
@@ -1504,6 +1877,22 @@ const TEMPLATES_ES = [
       "Si NO cambiaste tu contraseña, responde a este correo de inmediato.",
       "",
       "Iniciar sesión: {{loginUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  {
+    key: "account.deleted",
+    subject: "Tu cuenta ha sido eliminada",
+    html:
+      heading(`Cuenta eliminada.`) +
+      paragraph(`Hola {{name}}, tu cuenta y tus datos personales en mustaphaukizuru.com se eliminaron como lo solicitaste. Los registros de compra requeridos por motivos fiscales se conservan de forma anonimizada.`) +
+      paragraph(`Si <strong>no</strong> solicitaste esto, responde a este correo de inmediato.`),
+    text: [
+      "Hola {{name}}, tu cuenta en mustaphaukizuru.com fue eliminada como lo solicitaste.",
+      "",
+      "Los registros de compra requeridos por motivos fiscales se conservan anonimizados.",
+      "Si NO solicitaste esto, responde a este correo de inmediato.",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),

@@ -19,6 +19,9 @@ const { STORAGE_PATHS } = require("./config/storagePaths")
 // returns `null` if @sentry/node isn't installed or SENTRY_DSN is unset,
 // so the handlers below degrade silently. Init runs once at require time.
 const Sentry = require("./lib/sentry")
+// The SPA's @sentry/react client posts to the DSN host; CSP connect-src must
+// allow it or every browser report is silently dropped (src/lib/sentryCsp.js).
+const { sentryConnectSrc } = require("./lib/sentryCsp")
 
 const app = express()
 
@@ -58,28 +61,6 @@ app.use(cookieParser())
 // Compression
 app.use(compression({ level: 6, threshold: 1024 }))
 
-// Static uploads
-// __dirname = mustaphaukizuru.com/src  →  ../public = mustaphaukizuru.com/public ✓
-app.use("/images/products", express.static(path.join(__dirname, "../public/images/products"), {
-  maxAge: "7d",
-  setHeaders: (res) => {
-    res.setHeader("X-Content-Type-Options", "nosniff")
-    res.setHeader("Cache-Control", "public, max-age=604800, immutable")
-  },
-}))
-// Avatars & media are user uploads — served from storage/ (persists across
-// builds), NOT ../public (wiped by Vite emptyOutDir on every build). The URL
-// prefix stays /images/* so existing database URLs keep resolving.
-app.use("/images/avatars", express.static(STORAGE_PATHS.avatars, {
-  setHeaders: (res) => {
-    res.setHeader("X-Content-Type-Options", "nosniff")
-    res.setHeader("Content-Disposition", "inline")
-  },
-}))
-app.use("/images/media", express.static(STORAGE_PATHS.media, {
-  setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
-}))
-
 // CORS
 const allowedOrigins = [
   clientUrl,
@@ -100,6 +81,10 @@ app.use(cors({
 // ─────────────────────────────────────────────────────────────────────────────
 // B10 · Security headers — extended CSP + HSTS preload + Referrer-Policy
 // ─────────────────────────────────────────────────────────────────────────────
+// T3 · Cloudflare Turnstile is opt-in: the widget (and its CSP allowance)
+// only exist when the operator has configured the server-side secret.
+const turnstileHosts = process.env.TURNSTILE_SECRET_KEY ? ["https://challenges.cloudflare.com"] : [];
+
 app.use(helmet({
   crossOriginEmbedderPolicy: false,     // PayPal iframe requires this
   crossOriginOpenerPolicy:   false,
@@ -112,17 +97,24 @@ app.use(helmet({
                     "https://www.paypal.com",
                     "https://www.paypalobjects.com",
                     "https://sdk.mercadopago.com",
-                    "https://http2.mlstatic.com"],
+                    "https://http2.mlstatic.com",
+                    ...turnstileHosts],
       frameSrc:    ["'self'",                       // CSP · same-origin iframes (e.g. inline PDF certificates)
                     "https://accounts.google.com",
                     "https://www.paypal.com",
                     "https://www.mercadopago.com",
-                    "https://www.mercadopago.com.br"],
+                    "https://www.mercadopago.com.br",
+                    // Tier 2 · client-project live previews. Operator-declared
+                    // origins only (PREVIEW_FRAME_HOSTS); everything else is a link.
+                                        ...String(process.env.PREVIEW_FRAME_HOSTS || "").split(",").map((s) => s.trim()).filter(Boolean),
+                    ...turnstileHosts],
       connectSrc:  ["'self'",
                     "https://accounts.google.com",
                     "https://oauth2.googleapis.com",
                     "https://api.mercadopago.com",
-                    "https://www.paypal.com"],
+                    "https://www.paypal.com",
+                    ...sentryConnectSrc(),
+                    ...turnstileHosts],
       imgSrc:      ["'self'", "data:", "https:"],
       styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc:     ["'self'", "https://fonts.gstatic.com", "data:"],
@@ -144,6 +136,44 @@ app.use(helmet({
     preload:           true,
   },
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+}))
+
+// Static uploads — mounted AFTER helmet on purpose.
+//
+// These five mounts used to sit above the security headers, so every
+// response under /images/* went out with no Content-Security-Policy, no
+// HSTS and no frame headers. Combined with an avatar filename taken from
+// the upload's own name, a member could store a .html under /images/avatars
+// and have it rendered on the origin as a document with no CSP at all.
+// express.static still applies the per-mount setHeaders below; helmet now
+// stamps its headers first. Nothing between the old and new position
+// depends on the order — CORS does not apply to same-origin image loads.
+// __dirname = mustaphaukizuru.com/src  →  ../public = mustaphaukizuru.com/public ✓
+//
+// Product + portfolio images have TWO sources behind one URL prefix: runtime
+// admin uploads (storage/, persists across deploys) and seed images tracked
+// in git (public/). Storage is mounted first; a miss falls through to public.
+const immutableImageHeaders = (res) => {
+  res.setHeader("X-Content-Type-Options", "nosniff")
+  res.setHeader("Cache-Control", "public, max-age=604800, immutable")
+}
+app.use("/images/products",  express.static(STORAGE_PATHS.productImages,   { maxAge: "7d", setHeaders: immutableImageHeaders }))
+app.use("/images/portfolio", express.static(STORAGE_PATHS.portfolioImages, { maxAge: "7d", setHeaders: immutableImageHeaders }))
+app.use("/images/products", express.static(path.join(__dirname, "../public/images/products"), {
+  maxAge: "7d",
+  setHeaders: immutableImageHeaders,
+}))
+// Avatars & media are user uploads — served from storage/ (persists across
+// builds), NOT ../public (wiped by Vite emptyOutDir on every build). The URL
+// prefix stays /images/* so existing database URLs keep resolving.
+app.use("/images/avatars", express.static(STORAGE_PATHS.avatars, {
+  setHeaders: (res) => {
+    res.setHeader("X-Content-Type-Options", "nosniff")
+    res.setHeader("Content-Disposition", "inline")
+  },
+}))
+app.use("/images/media", express.static(STORAGE_PATHS.media, {
+  setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
 }))
 
 // Request id · FIRST, so every later middleware, controller, service and
@@ -251,7 +281,7 @@ app.get("/sitemap.xml", async (_req, res) => {
     res.status(200).send(xml)
   } catch (err) {
     console.error("[sitemap.xml] dynamic build failed, falling back:", err.message)
-    res.status(200).sendFile(path.join(__dirname, "../public/sitemap.xml"))
+    res.status(200).sendFile(path.join(__dirname, "../public/sitemap-static.xml"))
   }
 })
 
@@ -330,7 +360,10 @@ app.use("/files/projects", (_req, res) => {
 app.use(express.static(frontendPath, {
   maxAge: "7d",
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith("index.html")) {
+    // index.html AND the service-worker scripts must always be revalidated —
+    // a cached sw.js pins the previous precache manifest (and its deleted
+    // hashed chunks) for up to 24h after a deploy.
+    if (filePath.endsWith("index.html") || /(?:^|[\\/])(?:sw|workbox-[\w-]+)\.js$/.test(filePath)) {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
     }
   },

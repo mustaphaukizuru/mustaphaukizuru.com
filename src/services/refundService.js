@@ -31,15 +31,21 @@
 //     — captured in the audit row so abuse is traceable
 //
 // Concurrency model:
+//   - A `processing` Refund row is claimed before the provider call, keyed on
+//     refund_gateway_uq with a deterministic claim key, so two concurrent
+//     attempts on one payment cannot both reach the gateway (the loser gets
+//     409 CONFLICT). Its id is the provider idempotency key.
 //   - Provider call happens BEFORE the DB transaction (we can't roll back a
 //     gateway-side refund — pretending we can would be a worse failure mode)
 //   - DB writes (Refund row + Payment + Order + UserDownload + AdminAuditLog)
 //     are wrapped in a single Prisma $transaction so partial state is
 //     impossible
-//   - Idempotency anchor is the gateway response id stored on the Refund row
-//     in the future (Refund schema doesn't have that column today; we still
-//     guard against double-refunds by checking sum-of-prior-refunds before
-//     hitting the gateway).
+//   - Idempotency anchor is the provider refund id stored in
+//     Refund.gatewayRefundId (unique per payment). Out-of-band refunds
+//     reported by a webhook go through recordExternalRefund(), which matches
+//     on that id first, then on amount, and only then writes — through the
+//     same applyRefundWrites() the admin path uses, so entitlements are
+//     revoked and the order flips to refunded either way.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const prisma = require("../lib/prisma")
@@ -382,9 +388,47 @@ async function processOrderRefund({
     throw withCode("Payment has no gateway transaction id — cannot refund", "NO_PAYMENT", 409)
   }
 
-  // 6 · Provider call — done BEFORE the DB transaction so we never hold a
-  //     DB lock open across an external HTTP request. If the provider fails,
-  //     we throw and no DB writes happen.
+  // 6 · Claim the refund BEFORE calling the gateway.
+  //
+  //     Everything above is a read: two admins, or one double-click, can both
+  //     see `paid` and both reach the provider — and until now both did,
+  //     each with a fresh idempotency key. The claim is a Refund row in
+  //     `processing` whose gatewayRefundId is a deterministic per-payment
+  //     key; `refund_gateway_uq` (paymentId, gatewayRefundId) then makes the
+  //     second concurrent insert fail with P2002, which surfaces as 409.
+  //     No schema change is needed for this. The row id doubles as the
+  //     provider idempotency key, so a retry after a network failure
+  //     reaches the gateway with the same key instead of a new one.
+  //
+  //     Outcomes: success rewrites the row to `succeeded` with the provider
+  //     id (inside the transaction below); a provider failure marks it
+  //     `failed` and releases the claim so the admin can try again. A row
+  //     left in `processing` (process died mid-call) keeps the order locked
+  //     and visible in the refunds list until someone looks at it — the
+  //     safe direction for money.
+  const claimKey = `claim-${targetPayment.id}`
+  let refundRow
+  try {
+    refundRow = await prisma.refund.create({
+      data: {
+        paymentId:       targetPayment.id,
+        orderId:         order.id,
+        amount:          requestedAmount,
+        reason:          reason || null,
+        refundStatus:    "processing",
+        gatewayRefundId: claimKey,
+      },
+    })
+  } catch (e) {
+    if (e?.code === "P2002") {
+      throw withCode("A refund for this order is already in progress", "CONFLICT", 409)
+    }
+    throw e
+  }
+
+  // 7 · Provider call — outside the DB transaction so we never hold a DB
+  //     lock open across an external HTTP request. If the provider fails,
+  //     the claim is released and no other local state changes.
   let providerRaw
   try {
     if (targetPayment.paymentGateway === "paypal") {
@@ -392,49 +436,37 @@ async function processOrderRefund({
         amount:   requestedAmount,
         currency: targetPayment.currency || order.currency || "MXN",
         note:     reason || undefined,
+        refundId: refundRow.id,
       })
     } else if (targetPayment.paymentGateway === "mercadopago") {
       providerRaw = await refundMercadoPagoPayment({
         paymentId: targetPayment.gatewayTransactionId,
         amount:    requestedAmount,
+        refundId:  refundRow.id,
       })
     } else {
       throw withCode(`Unsupported payment gateway: ${targetPayment.paymentGateway}`, "GATEWAY_ERROR", 500)
     }
   } catch (providerErr) {
     logger.error(`[refund] provider call failed for order ${order.orderNumber} (${targetPayment.paymentGateway}): ${providerErr.message}`)
+    await prisma.refund.update({
+      where: { id: refundRow.id },
+      data:  { refundStatus: "failed", gatewayRefundId: null },
+    }).catch((e) => logger.error(`[refund] could not release claim ${refundRow.id}: ${e.message}`))
     const err = withCode(`Refund declined by ${targetPayment.paymentGateway}: ${providerErr.message}`, "GATEWAY_ERROR", 502)
     err.details = { provider: targetPayment.paymentGateway, raw: providerErr.message }
     throw err
   }
 
-  // 7 · Transactional DB writes.
+  // 8 · Transactional DB writes.
   const result = await prisma.$transaction(async (tx) => {
-    const refund = await tx.refund.create({
-      data: {
-        paymentId:    targetPayment.id,
-        orderId:      order.id,
-        amount:       requestedAmount,
-        reason:       reason || null,
-        refundStatus: "succeeded",
-        processedAt:  new Date(),
-      },
-    })
-
-    await tx.payment.update({
-      where: { id: targetPayment.id },
-      data:  { paymentStatus: "refunded" },
-    })
-
-    await tx.order.update({
-      where: { id: order.id },
-      data:  { status: "refunded" },
-    })
-
-    // Revoke ALL active UserDownload entitlements for the order.
-    const revoked = await tx.userDownload.updateMany({
-      where: { orderId: order.id, downloadAccessStatus: "active" },
-      data:  { downloadAccessStatus: "revoked" },
+    const { refund, revoked } = await applyRefundWrites(tx, {
+      refundId:        refundRow.id,
+      paymentId:       targetPayment.id,
+      orderId:         order.id,
+      amount:          requestedAmount,
+      reason:          reason || null,
+      gatewayRefundId: providerRaw?.id ? String(providerRaw.id) : null,
     })
 
     // Audit row — captures who, what, why, override usage, blocked items
@@ -470,7 +502,7 @@ async function processOrderRefund({
     return { refund, revokedCount: revoked.count }
   })
 
-  // 8 · Best-effort side effects. Failures here MUST NOT roll back the refund.
+  // 9 · Best-effort side effects. Failures here MUST NOT roll back the refund.
   const customerName = order.customerName || order.user?.fullName || "Customer"
   const customerEmail = order.customerEmail || order.user?.email
   const emailOrder = {
@@ -517,11 +549,107 @@ async function processOrderRefund({
       isFull,
       provider:     targetPayment.paymentGateway,
       providerRefundId: providerRaw?.id || null,
+      gatewayRefundId:  providerRaw?.id ? String(providerRaw.id) : null,
       revokedDownloads: result.revokedCount,
     },
     isFull,
     orderStatus:  "refunded",
     providerRaw,
+  }
+}
+
+/* ─────────────────────── shared local-state writes ─────────────────────── */
+
+/**
+ * applyRefundWrites — the ONE place local refund state is flipped:
+ *   Refund row (succeeded) → Payment refunded → Order refunded → revoke
+ *   every active UserDownload entitlement on the order.
+ * Used inside a transaction by processOrderRefund (admin), which passes the
+ * `processing` row it claimed so it is completed rather than duplicated, and
+ * by recordExternalRefund (webhook), which has no prior row and creates one.
+ * Never calls a gateway.
+ */
+async function applyRefundWrites(tx, { refundId = null, paymentId, orderId, amount, reason = null, gatewayRefundId = null }) {
+  const refund = refundId
+    ? await tx.refund.update({
+        where: { id: refundId },
+        data: {
+          refundStatus:    "succeeded",
+          gatewayRefundId: gatewayRefundId || null,
+          processedAt:     new Date(),
+        },
+      })
+    : await tx.refund.create({
+        data: {
+          paymentId,
+          orderId,
+          amount,
+          reason:          reason || null,
+          refundStatus:    "succeeded",
+          gatewayRefundId: gatewayRefundId || null,
+          processedAt:     new Date(),
+        },
+      })
+  await tx.payment.update({ where: { id: paymentId }, data: { paymentStatus: "refunded" } })
+  await tx.order.update({ where: { id: orderId }, data: { status: "refunded" } })
+  const revoked = await tx.userDownload.updateMany({
+    where: { orderId, downloadAccessStatus: "active" },
+    data:  { downloadAccessStatus: "revoked" },
+  })
+  return { refund, revoked }
+}
+
+/**
+ * recordExternalRefund — a refund that happened OUTSIDE this app (PayPal /
+ * Mercado Pago dashboard) and reached us through a webhook.
+ *
+ *   1. Match on gatewayRefundId → already recorded (admin path stores it,
+ *      or an earlier delivery of this webhook did) → no-op.
+ *   2. Fallback amount match on (paymentId, amount, money-moving status) →
+ *      legacy rows without a provider id; backfill the id and stop.
+ *   3. Otherwise write through applyRefundWrites: Refund row + Payment +
+ *      Order → refunded + UserDownload entitlements revoked.
+ *   A P2002 on refund_gateway_uq (two deliveries racing) is treated as "already recorded".
+ *
+ * @returns {Promise<{ created: boolean, matchedBy: "gatewayRefundId"|"amount"|null, refundId: string|null, revokedDownloads: number }>}
+ */
+async function recordExternalRefund({ paymentId, orderId, amount, gatewayRefundId = null, reason = "Gateway webhook refund" }) {
+  if (!paymentId || !orderId) throw withCode("paymentId and orderId are required", "VALIDATION", 400)
+  const amt = round2(toNumber(amount))
+  const providerId = gatewayRefundId ? String(gatewayRefundId).slice(0, 128) : null
+
+  if (providerId) {
+    const byId = await prisma.refund.findFirst({ where: { paymentId, gatewayRefundId: providerId }, select: { id: true } })
+    if (byId) return { created: false, matchedBy: "gatewayRefundId", refundId: byId.id, revokedDownloads: 0 }
+  }
+  if (amt > 0) {
+    const byAmount = await prisma.refund.findFirst({
+      where:  { paymentId, amount: amt, refundStatus: { in: ["approved", "processing", "succeeded"] } },
+      select: { id: true, gatewayRefundId: true },
+    })
+    if (byAmount) {
+      if (providerId && !byAmount.gatewayRefundId) {
+        await prisma.refund.update({ where: { id: byAmount.id }, data: { gatewayRefundId: providerId } }).catch(() => null)
+      }
+      return { created: false, matchedBy: "amount", refundId: byAmount.id, revokedDownloads: 0 }
+    }
+  }
+  if (amt <= 0) throw withCode("Refund amount must be positive", "INVALID_AMOUNT", 400)
+
+  try {
+    const { refund, revoked } = await prisma.$transaction((tx) => applyRefundWrites(tx, {
+      paymentId, orderId, amount: amt, reason, gatewayRefundId: providerId,
+    }))
+    logger.warn(`[refund] out-of-band refund recorded for order ${orderId} (${amt}) — order flipped to refunded, ${revoked.count} entitlement(s) revoked`)
+    return { created: true, matchedBy: null, refundId: refund.id, revokedDownloads: revoked.count }
+  } catch (e) {
+    if (e?.code === "P2002") {
+      const dup = providerId
+        ? await prisma.refund.findFirst({ where: { paymentId, gatewayRefundId: providerId }, select: { id: true } })
+        : null
+      return { created: false, matchedBy: "gatewayRefundId", refundId: dup?.id || null, revokedDownloads: 0 }
+    }
+    throw e
   }
 }
 
@@ -570,6 +698,7 @@ async function listAdminRefunds({ status, orderId, page = 1, limit = 30 } = {}) 
       amount:       round2(toNumber(r.amount)),
       currency:     r.order?.currency,
       reason:       r.reason,
+      gatewayRefundId: r.gatewayRefundId || null,
       refundStatus: r.refundStatus,
       processedAt:  r.processedAt,
       createdAt:    r.createdAt,
@@ -621,6 +750,8 @@ module.exports = {
   VALID_REFUND_STATUSES,
   checkRefundEligibility,
   processOrderRefund,
+  applyRefundWrites,
+  recordExternalRefund,
   listAdminRefunds,
   listRefundsForOrder,
 }

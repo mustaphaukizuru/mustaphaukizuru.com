@@ -15,7 +15,7 @@ const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { parsePendingPaymentDetails } = require("../services/mercadoPagoService")
 
-const DEFAULT_HOURS = 24
+const DEFAULT_HOURS = Number(process.env.STALE_ORDER_HOURS || 24) // kept in sync with the Mercado Pago preference TTL
 const BATCH = 500
 // Grace after an OXXO / SPEI voucher expires before the order is swept, so
 // a payment made at the last minute has time to reach us via webhook.
@@ -44,10 +44,18 @@ async function cancelStaleOrders({ hours = DEFAULT_HOURS, dryRun = false } = {})
   const now    = Date.now()
   const cutoff = new Date(now - hours * 60 * 60 * 1000)
 
+  // Manual invoices (Tier 4) are pending orders by design — they live until
+  // their due date and the dunning job, never this janitor.
+  //
+  // The name stays `scanned` (this branch's): the offline-hold filter below
+  // derives `candidates` from it, and the returned counts distinguish the two.
   const scanned = await prisma.order.findMany({
-    where:   { status: "pending", paidAt: null, createdAt: { lt: cutoff } },
+    where:   { status: "pending", paidAt: null, createdAt: { lt: cutoff }, invoices: { none: {} } },
     select:  {
       id: true, orderNumber: true, customerEmail: true, couponId: true, createdAt: true,
+      // Needed by offlineHoldUntil(): an OXXO voucher or SPEI transfer is
+      // legitimately pending until it expires, so the janitor must read the
+      // latest payment before deciding anything is stale.
       payments: {
         orderBy: { createdAt: "desc" },
         take:    1,

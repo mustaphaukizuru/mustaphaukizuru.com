@@ -221,7 +221,7 @@ export default function LoginPage() {
               to="/contact"
               className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
-              Contact support →
+              {t("login.contactSupportLink")}
             </Link>
           ),
         })
@@ -243,7 +243,7 @@ export default function LoginPage() {
               to="/forgot-password"
               className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
-              Reset password →
+              {t("login.resetPasswordLink")}
             </Link>
           ),
         })
@@ -257,7 +257,7 @@ export default function LoginPage() {
               to="/forgot-password"
               className="inline-flex items-center gap-1 rounded-md text-[12.5px] font-semibold text-violet underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
             >
-              Forgot password →
+              {t("login.forgotPasswordLink")}
             </Link>
           ),
         })
@@ -477,7 +477,7 @@ export default function LoginPage() {
             {loading ? (
               <span className="inline-flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Signing in…
+                {t("login.signingIn")}
               </span>
             ) : lockout.isRunning ? (
               `Try again in ${lockout.seconds}s`

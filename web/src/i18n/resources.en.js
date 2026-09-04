@@ -24,6 +24,8 @@ import portfolio from "./locales/en/portfolio.json"
 import legal from "./locales/en/legal.json"
 import errors from "./locales/en/errors.json"
 import blog from "./locales/en/blog.json"
+import audit from "./locales/en/audit.json"
+import schools from "./locales/en/schools.json"
 
 export default {
   common,
@@ -42,4 +44,6 @@ export default {
   legal,
   errors,
   blog,
+  audit,
+  schools,
 }

@@ -62,6 +62,7 @@ function adaptGuestItem(raw) {
     currency: raw.currency || "MXN",
     category: raw.category || "General",
     imageUrl: raw.imageUrl || getPrimaryImage(raw),
+    licenseTier: raw.licenseTier || null,
     quantity: Math.max(1, Math.floor(Number(raw.quantity) || 1)),
   }
 }
@@ -83,6 +84,7 @@ function adaptServerItem(item) {
     currency: item.product?.currency || item.service?.currency || "MXN",
     category: "General",
     imageUrl,
+    licenseTier: item.licenseTier || null,
     quantity: item.quantity,
   }
 }
@@ -138,7 +140,7 @@ export function CartProvider({ children }) {
         if (!mergedOnceRef.current && guestItems.length > 0) {
           mergedOnceRef.current = true
           const { cart } = await apiMergeGuestCart(
-            guestItems.map((g) => ({ productId: g.productId || g.id, quantity: g.quantity }))
+            guestItems.map((g) => ({ productId: g.productId || g.id, quantity: g.quantity, licenseTier: g.licenseTier || null }))
           )
           if (cancelled) return
           setServerCart(cart)
@@ -172,7 +174,11 @@ export function CartProvider({ children }) {
     if (isAuthenticated) {
       setLoading(true)
       try {
-        const cart = await apiAddCartItem({ productId: product.id, quantity: qty })
+        const cart = await apiAddCartItem({
+          productId: product.id,
+          quantity: qty,
+          ...(product.licenseTier ? { licenseTier: product.licenseTier } : {}),
+        })
         setServerCart(cart)
         setError(null)
       } catch (err) {
@@ -184,10 +190,13 @@ export function CartProvider({ children }) {
     }
 
     setGuestItems((current) => {
-      const existing = current.find((item) => item.id === product.id)
+      // T3 · the same product under a different licence tier is a separate line
+      const tier = product.licenseTier || null
+      const sameLine = (item) => item.id === product.id && (item.licenseTier || null) === tier
+      const existing = current.find(sameLine)
       if (existing) {
         return current.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + qty } : item
+          sameLine(item) ? { ...item, quantity: item.quantity + qty } : item
         )
       }
       return [
@@ -200,6 +209,7 @@ export function CartProvider({ children }) {
           currency: product.currency || "MXN",
           category: product.category || "General",
           imageUrl: getPrimaryImage(product),
+          licenseTier: tier,
           quantity: qty,
         },
       ]
@@ -339,7 +349,7 @@ export function CartProvider({ children }) {
     ? serverCart.totals.total || 0
     : Math.max(0, subtotal - discount + tax)
 
-  const appliedCoupon = isAuthenticated ? serverCart?.coupons?.[0] || null : null
+  const appliedCoupon = isAuthenticated ? serverCart?.appliedCoupon || serverCart?.coupons?.[0] || null : null
 
   const value = {
     cartItems,

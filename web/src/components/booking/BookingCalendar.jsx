@@ -10,11 +10,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { m, AnimatePresence } from "framer-motion"
 import {
   Calendar, ChevronLeft, ChevronRight, ChevronDown, Clock, Globe2,
-  Check, ArrowLeft, Loader2, AlertCircle, CheckCircle2,
+  Check, ArrowLeft, Loader2, AlertCircle, CheckCircle2, LogIn, Mail,
 } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 import { useToast } from "../../context/ToastContext"
@@ -30,6 +30,9 @@ import {
 } from "../../services/bookingService"
 
 import { useTranslation } from "react-i18next"
+
+// Same pragmatic email check the API applies (orderController / consultationController).
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // ── Motion variants (match site convention) ──────────────────────────────────
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -312,6 +315,12 @@ export default function BookingCalendar({
   const [submitting, setSubmitting] = useState(false)
   const [bookedRecord, setBookedRecord] = useState(null)
   const [errorMessage, setErrorMessage] = useState("")
+  // Guest booking (Tier 3) · anonymous visitors give a name + email instead
+  // of being bounced to /login; the API creates a claimable account.
+  const [guestName, setGuestName] = useState("")
+  const [guestEmail, setGuestEmail] = useState("")
+  const [guestErrors, setGuestErrors] = useState({})
+  const [accountExists, setAccountExists] = useState(false)
 
   const grid = useMemo(() => buildMonthGrid(year, month), [year, month])
 
@@ -407,29 +416,40 @@ export default function BookingCalendar({
     setStep(3)
   }
 
+  // Preserve intent so post-login the user lands back on the booking page
+  const loginHref = `/login?from=${encodeURIComponent(serviceSlug ? `/book/${serviceSlug}` : "/book")}`
+
+  function validateGuest() {
+    const errs = {}
+    if (!guestName.trim()) errs.name = t("bookingCalendar.guestNameRequired")
+    if (!EMAIL_RE.test(guestEmail.trim())) errs.email = t("bookingCalendar.guestEmailInvalid")
+    setGuestErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
   async function handleConfirm() {
     if (!selectedSlot) return
-    if (!user) {
-      // Preserve intent so post-login the user lands back on the booking page
-      const dest = serviceSlug ? `/book/${serviceSlug}` : "/book"
-      navigate(`/login?from=${encodeURIComponent(dest)}`)
-      return
-    }
+    if (!user && !validateGuest()) return
 
     try {
-      setSubmitting(true); setErrorMessage("")
+      setSubmitting(true); setErrorMessage(""); setAccountExists(false)
       const consultation = await bookConsultation({
         serviceId,
         startUtc: selectedSlot.startUtc,
         timezone,
         clientNotes: clientNotes.trim() || null,
+        ...(user ? {} : { customerName: guestName.trim(), customerEmail: guestEmail.trim() }),
       })
       setBookedRecord(consultation)
-      toast?.show?.({ type: "success", title: "Booked", message: "We'll send a confirmation email shortly." })
+      toast?.show?.({ type: "success", title: t("bookingCalendar.bookedToast"), message: t("bookingCalendar.bookedToastBody") })
       if (typeof onBooked === "function") onBooked(consultation)
     } catch (e) {
-      setErrorMessage(e?.message || "Could not complete the booking")
-      toast?.show?.({ type: "error", title: "Booking failed", message: e?.message || "Please try again" })
+      if (e?.code === "ACCOUNT_EXISTS" || e?.code === "LOGIN_REQUIRED_FOR_PAID_BOOKING") {
+        setAccountExists(true)
+        return
+      }
+      setErrorMessage(e?.message || t("bookingCalendar.bookingFailedBody"))
+      toast?.show?.({ type: "error", title: t("bookingCalendar.bookingFailed"), message: e?.message || t("bookingCalendar.tryAgain") })
     } finally {
       setSubmitting(false)
     }
@@ -452,8 +472,14 @@ export default function BookingCalendar({
           {formatLongDate(bookedRecord.scheduledAt, timezone)} · {formatTime(bookedRecord.scheduledAt, timezone)}
         </p>
         <p className="mt-1 text-[12px] text-charcoal/65">
-          {t("bookingCalendar.confirmationOnWay")} {bookedRecord?.user?.email || "your inbox"}.
+          {t("bookingCalendar.confirmationOnWay")} {bookedRecord?.user?.email || guestEmail || t("bookingCalendar.yourInbox")}.
         </p>
+        {bookedRecord?.isNewUser && (
+          <div className="mx-auto mt-4 flex max-w-md items-start gap-2 rounded-xl border border-violet/15 bg-violet-ghost px-4 py-3 text-left text-[12px] text-charcoal/75">
+            <Mail className="mt-0.5 h-4 w-4 shrink-0 text-violet" />
+            <span>{t("bookingCalendar.accountCreated")}</span>
+          </div>
+        )}
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <button
@@ -724,11 +750,64 @@ export default function BookingCalendar({
             className="mt-1.5 w-full rounded-xl border border-charcoal/15 bg-white px-3 py-2.5 text-[13px] text-violet outline-none transition focus:border-violet"
           />
 
-          {/* Auth notice */}
+          {/* Guest details · shown only when there is no session */}
           {!user && (
+            <div className="mt-5 rounded-xl border border-charcoal/10 bg-white p-4 sm:p-5">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">{t("bookingCalendar.guestDetails")}</div>
+              <p className="mt-1 text-[12px] text-charcoal/65">
+                {t("bookingCalendar.guestIntro")}{" "}
+                <Link to={loginHref} className="font-semibold text-violet hover:underline">{t("bookingCalendar.guestSignIn")}</Link>
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="bk-guest-name" className="block text-[12px] font-semibold text-violet">{t("bookingCalendar.guestName")}</label>
+                  <input
+                    id="bk-guest-name"
+                    type="text"
+                    autoComplete="name"
+                    value={guestName}
+                    onChange={(e) => { setGuestName(e.target.value); setGuestErrors((g) => ({ ...g, name: undefined })) }}
+                    maxLength={120}
+                    aria-invalid={Boolean(guestErrors.name)}
+                    className="mt-1.5 w-full rounded-xl border border-charcoal/15 bg-white px-3 py-2.5 text-[13px] text-violet outline-none transition focus:border-violet"
+                  />
+                  {guestErrors.name && <p className="mt-1 text-[11px] text-red-700">{guestErrors.name}</p>}
+                </div>
+                <div>
+                  <label htmlFor="bk-guest-email" className="block text-[12px] font-semibold text-violet">{t("bookingCalendar.guestEmail")}</label>
+                  <input
+                    id="bk-guest-email"
+                    type="email"
+                    autoComplete="email"
+                    value={guestEmail}
+                    onChange={(e) => { setGuestEmail(e.target.value); setGuestErrors((g) => ({ ...g, email: undefined })); setAccountExists(false) }}
+                    maxLength={254}
+                    aria-invalid={Boolean(guestErrors.email)}
+                    className="mt-1.5 w-full rounded-xl border border-charcoal/15 bg-white px-3 py-2.5 text-[13px] text-violet outline-none transition focus:border-violet"
+                  />
+                  {guestErrors.email && <p className="mt-1 text-[11px] text-red-700">{guestErrors.email}</p>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Existing account → must sign in */}
+          {accountExists && (
             <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber/20 bg-amber/10 px-4 py-3 text-[12px] text-amber-700">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              {t("bookingCalendar.signInHint")}
+              <span>
+                {t("bookingCalendar.accountExists")}{" "}
+                <Link to={loginHref} className="inline-flex items-center gap-1 font-semibold underline">
+                  <LogIn className="h-3.5 w-3.5" /> {t("bookingCalendar.accountExistsCta")}
+                </Link>
+              </span>
+            </div>
+          )}
+
+          {errorMessage && !accountExists && (
+            <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-700/20 bg-red-700/10 px-4 py-3 text-[12px] text-red-700">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              {errorMessage}
             </div>
           )}
 

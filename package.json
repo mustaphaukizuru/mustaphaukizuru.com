@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "postinstall": "node scripts/prisma-generate.js",
     "build": "cd web && npm run build:seo",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -15,6 +16,8 @@
     "smoke": "bash scripts/smoke-test.sh",
     "deploy": "bash scripts/deploy.sh",
     "seed:email": "node scripts/guard-prod-db.js \"seed:email\" && node prisma/seed-email-templates.js",
+    "seed:client-logos": "node scripts/guard-prod-db.js \"seed client logos\" && node prisma/seed-client-logos.js",
+    "seed:plans": "node scripts/guard-prod-db.js \"seed:plans\" && node prisma/seed-service-plans.js",
     "seed:bio": "node scripts/guard-prod-db.js \"seed:bio\" && node prisma/seed-bio.js",
     "seed:audience-plans": "node scripts/guard-prod-db.js \"seed:audience-plans\" && node prisma/seed-audience-plans.js",
     "janitor:orders": "node scripts/cancel-stale-orders.js",
@@ -27,7 +30,12 @@
     "test:integration": "jest test/integration",
     "test:unit": "jest --testPathIgnorePatterns=test/integration",
     "db:guard": "node scripts/guard-prod-db.js",
-    "db:push": "node scripts/guard-prod-db.js \"prisma db push\" && npx prisma db push && npx prisma generate"
+    "db:push": "node scripts/guard-prod-db.js \"prisma db push\" && node scripts/db-push.js",
+    "restore": "node scripts/guard-prod-db.js \"restore into this database\" && node scripts/restore-db-json.js",
+    "seed:demo": "node scripts/guard-prod-db.js \"seed:demo\" && node prisma/seed/demo-seed.js",
+    "seed:content": "node scripts/guard-prod-db.js \"seed:content\" && node prisma/seed/products-seed.js && node prisma/seed/services-seed.js && node prisma/seed/portfolio-seed.js && node prisma/seed-bio.js && node prisma/seed-client-logos.js && node prisma/seed-blog.js && node prisma/seed-service-plans.js && node prisma/seed-audience-plans.js && node prisma/seed-email-templates.js && node prisma/seed/product-images-seed.js",
+    "dev:demo": "node scripts/dev-demo.js",
+    "seed:product-images": "node scripts/guard-prod-db.js \"seed:product-images\" && node prisma/seed/product-images-seed.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -92,5 +100,10 @@
   },
   "engines": {
     "node": ">=20.0.0 <23.0.0"
+  },
+  "overrides": {
+    "uuid": "^11.1.1",
+    "deepmerge-ts": ">=8.0.0",
+    "qs": "^6.16.0"
   }
 }

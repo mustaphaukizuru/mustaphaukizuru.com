@@ -37,6 +37,8 @@ const PUBLIC_ROUTES = [
   "/book",
   "/book/:serviceSlug",
   "/_system",
+  // Tier 4 · no-login client portal (magic link + PIN)
+  "/portal/:token",
   // Auth
   "/login",
   "/signup",
@@ -52,7 +54,7 @@ const PRIVATE_ROUTES = ["/dashboard", "/dashboard/*", "/admin", "/admin/*"]
 
 // I18N02 · Spanish mirror of the public tree only (admin/dashboard not mirrored).
 const ES_ROUTES = PUBLIC_ROUTES
-  .filter((p) => !["/home", "/self-audit", "/_system"].includes(p))
+  .filter((p) => !["/home", "/_system"].includes(p))
   .map((p) => (p === "/" ? "/es" : `/es${p}`))
 
 const SPA_ROUTES = [...PUBLIC_ROUTES, ...PRIVATE_ROUTES, ...ES_ROUTES]

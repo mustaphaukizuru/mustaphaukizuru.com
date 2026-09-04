@@ -23,14 +23,31 @@ const BRAND = Object.freeze({
   accentBg:      "#f5f0fe",
 })
 
-const COMPANY = Object.freeze({
-  name:     "mustaphaukizuru.com",
-  tagline:  "Technology Consulting · Digital Products · STEM & School Solutions",
-  email:    "hello@mustaphaukizuru.com",
-  website:  "https://mustaphaukizuru.com",
-  address:  "Tlalnepantla de Baz, Estado de México, MX",
-  taxId:    "RFC: —",
-})
+const { orderTaxBreakdown } = require("../lib/tax")
+const { REGIMEN_FISCAL, USO_CFDI } = require("../lib/fiscal")
+
+/**
+ * Issuer block. Fiscal identity comes from env (see .env.example) so the
+ * PDF never ships a placeholder dash as if it were an RFC. Read lazily —
+ * tests and the operator can change env without a restart of the module.
+ */
+function company() {
+  const rfc = (process.env.INVOICE_RFC || "").trim().toUpperCase()
+  const regimen = (process.env.INVOICE_REGIMEN_FISCAL || "").trim()
+  return {
+    name:      process.env.INVOICE_LEGAL_NAME?.trim() || "mustaphaukizuru.com",
+    tagline:   "Technology Consulting · Digital Products · STEM & School Solutions",
+    email:     "hello@mustaphaukizuru.com",
+    website:   "https://mustaphaukizuru.com",
+    address:   "Tlalnepantla de Baz, Estado de México, MX",
+    postalCode: (process.env.INVOICE_POSTAL_CODE || "").trim(),
+    taxId:     rfc ? `RFC: ${rfc}` : "RFC: pending registration",
+    regimen:   regimen && REGIMEN_FISCAL[regimen] ? `Régimen ${regimen} · ${REGIMEN_FISCAL[regimen]}` : null,
+    serie:     (process.env.INVOICE_SERIE || "A").trim().toUpperCase().slice(0, 8),
+  }
+}
+// Back-compat for the few render helpers that read a static object.
+const COMPANY = new Proxy({}, { get: (_t, k) => company()[k] })
 
 /* ────────────────────────────────────────────────────────────────────────────
  * ensureInvoiceDir
@@ -94,17 +111,51 @@ async function ensureInvoice(orderId) {
 
   if (!order) return null
 
-  // 1 · Find or create Invoice row
+  // 1 · Find or create Invoice row.
+  //     Storefront invoices only ever exist for paid orders, so a fresh row
+  //     is born `paid`. A pre-existing manual invoice (issued / overdue) whose
+  //     order has since been paid is flipped to `paid` here — fulfillOrder
+  //     calls ensureInvoice on every paid transition, so this is the single
+  //     place the invoice learns about the payment. Late fees already
+  //     accrued are kept on the row for the record.
+  const isPaid = order.status === "paid" || order.status === "completed"
+  const paidAt = order.paidAt || order.payments?.[0]?.paidAt || new Date()
   let invoice = await prisma.invoice.findUnique({ where: { orderId: order.id } })
 
   if (!invoice) {
-    const invoiceNumber = await generateInvoiceNumber()
-    invoice = await prisma.invoice.create({
-      data: {
-        orderId:       order.id,
-        invoiceNumber,
-        invoicePdfUrl: publicInvoiceUrl(order.id),
-      },
+    // Snapshot the money at issue time; the order row may change later
+    // (refund) but an issued document must not.
+    const tb = orderTaxBreakdown(order)
+    const snapshot = {
+      orderId:        order.id,
+      invoicePdfUrl:  publicInvoiceUrl(order.id),
+      serie:          company().serie,
+      currency:       (order.currency || "MXN").toUpperCase(),
+      subtotalAmount: tb.net,
+      taxRate:        tb.rate,
+      taxAmount:      tb.tax,
+      totalAmount:    tb.total,
+      ...(isPaid ? { status: "paid", paidAt } : {}),
+    }
+    // Numbering is read-then-insert; two webhooks landing together can pick
+    // the same number. The @unique on invoiceNumber turns the loser into a
+    // P2002 — retry with a fresh number instead of failing the fulfilment.
+    // A P2002 on orderId means the other writer already created THIS order's
+    // invoice — reuse it.
+    for (let attempt = 0; attempt < 5 && !invoice; attempt += 1) {
+      const invoiceNumber = await generateInvoiceNumber()
+      try {
+        invoice = await prisma.invoice.create({ data: { ...snapshot, invoiceNumber } })
+      } catch (err) {
+        if (err?.code !== "P2002") throw err
+        invoice = await prisma.invoice.findUnique({ where: { orderId: order.id } })
+      }
+    }
+    if (!invoice) throw new Error(`Could not allocate an invoice number for order ${order.id}`)
+  } else if (isPaid && invoice.status !== "paid") {
+    invoice = await prisma.invoice.update({
+      where: { id: invoice.id },
+      data:  { status: "paid", paidAt: invoice.paidAt || paidAt },
     })
   }
 
@@ -188,6 +239,8 @@ function renderMeta(doc, invoice, order) {
     .text(COMPANY.email)
     .text(COMPANY.website)
     .text(COMPANY.taxId)
+  if (COMPANY.regimen) doc.text(COMPANY.regimen)
+  if (COMPANY.postalCode) doc.text(`C.P. ${COMPANY.postalCode}`)
 
   // Right — invoice meta
   const rightX = 350
@@ -212,7 +265,15 @@ function renderMeta(doc, invoice, order) {
 
     .font("Helvetica-Bold").fillColor(BRAND.text).text("Status")
     .font("Helvetica").fillColor(BRAND.muted)
-    .text(humanStatus(order.status))
+    .text(humanStatus(invoice.status === "paid" ? "paid" : invoice.status || order.status))
+
+  if (invoice.dueDate) {
+    doc
+      .moveDown(0.5)
+      .font("Helvetica-Bold").fillColor(BRAND.text).text("Due date")
+      .font("Helvetica").fillColor(BRAND.muted)
+      .text(formatDate(invoice.dueDate))
+  }
 
   // Move cursor below whichever column is taller
   doc.y = Math.max(doc.y, topY + 100)
@@ -241,6 +302,18 @@ function renderBillTo(doc, order) {
     order.billingCountry,
   ].filter(Boolean).join(", ")
   if (addressLine) doc.text(addressLine)
+
+  // CFDI 4.0 receiver block — only what the customer supplied.
+  if (order.billingLegalName) doc.text(`Razón social: ${order.billingLegalName}`)
+  if (order.billingCompany && !order.billingLegalName) doc.text(order.billingCompany)
+  if (order.billingTaxId) doc.text(`RFC: ${order.billingTaxId}`)
+  if (order.billingRegimenFiscal) {
+    doc.text(`Régimen fiscal: ${order.billingRegimenFiscal}${REGIMEN_FISCAL[order.billingRegimenFiscal] ? ` · ${REGIMEN_FISCAL[order.billingRegimenFiscal]}` : ""}`)
+  }
+  if (order.billingUsoCfdi) {
+    doc.text(`Uso CFDI: ${order.billingUsoCfdi}${USO_CFDI[order.billingUsoCfdi] ? ` · ${USO_CFDI[order.billingUsoCfdi]}` : ""}`)
+  }
+  if (order.billingFiscalPostalCode) doc.text(`Domicilio fiscal C.P.: ${order.billingFiscalPostalCode}`)
 
   doc.moveDown(0.5)
   hr(doc)
@@ -289,6 +362,18 @@ function renderLineItems(doc, order) {
       .text(String(qty),          colQty,      rowY, { width: 60, align: "right" })
       .text(formatMoney(unit, currency),  colPrice, rowY, { width: 60, align: "right" })
       .text(formatMoney(total, currency), colTotal, rowY, { width: 60, align: "right" })
+
+    // T3 · licence tier + key under the line title (digital products only)
+    if (item.licenseTier || item.licenseKey) {
+      const tierLabel = item.licenseTier
+        ? `${String(item.licenseTier).charAt(0).toUpperCase()}${String(item.licenseTier).slice(1)} licence`
+        : "Licence"
+      doc.fillColor(BRAND.muted).font("Helvetica").fontSize(8)
+        .text(
+          [tierLabel, item.licenseKey ? `Key: ${item.licenseKey}` : null].filter(Boolean).join("  ·  "),
+          colItem + 8, doc.y, { width: colQty - colItem - 16 },
+        )
+    }
     doc.moveDown(0.6)
   })
 
@@ -303,8 +388,8 @@ function renderTotals(doc, order) {
 
   const subtotal = Number(order.subtotalAmount ?? 0)
   const discount = Number(order.discountAmount ?? 0)
-  const tax      = 0
-  const total    = Number(order.totalAmount ?? subtotal - discount + tax)
+  const tb       = orderTaxBreakdown(order)
+  const total    = tb.total || Number(order.totalAmount ?? subtotal - discount)
 
   doc.moveDown(0.5)
   const labelX = x + width - 220
@@ -320,7 +405,13 @@ function renderTotals(doc, order) {
 
   row("Subtotal", subtotal)
   if (discount > 0) row("Discount", -discount)
-  row("Tax", tax)
+  if (tb.tax > 0) {
+    // Prices are IVA-inclusive: show the split, never add on top.
+    row("Net (before IVA)", tb.net)
+    row(`IVA ${tb.ratePct}% (included)`, tb.tax)
+  } else {
+    row("IVA", 0)
+  }
   doc.moveDown(0.15)
 
   // Bold total
@@ -406,7 +497,7 @@ function formatMoney(n, currency = "MXN") {
 
 function humanStatus(status) {
   if (!status) return "—"
-  const map = { paid: "Paid", pending: "Pending", failed: "Failed", cancelled: "Cancelled", refunded: "Refunded" }
+  const map = { paid: "Paid", pending: "Pending", failed: "Failed", cancelled: "Cancelled", refunded: "Refunded", issued: "Issued", overdue: "Overdue", void: "Void" }
   return map[status] || String(status).replace(/_/g, " ")
 }
 

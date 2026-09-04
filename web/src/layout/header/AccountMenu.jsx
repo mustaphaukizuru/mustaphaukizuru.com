@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { ChevronDown, LogOut, Shield } from "lucide-react"
+import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 
 import { useAuth } from "../../context/AuthContext"
 import { API_BASE_URL, clearAuth } from "../../lib/api"
@@ -84,6 +85,7 @@ export function UserAvatar({ user, size = 36 }) {
 
 export default function AccountMenu() {
   const { t } = useTranslation("common")
+  const reduce = useReducedMotion()
   const auth = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -141,9 +143,17 @@ export default function AccountMenu() {
         />
       </button>
 
+      {/* Animated popover — previously mounted/unmounted with no transition,
+          which looked abrupt against the rest of the header. Falls back to a
+          plain fade under prefers-reduced-motion. */}
+      <AnimatePresence>
       {open ? (
-        <div
+        <m.div
           role="menu"
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.96 }}
+          animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.98 }}
+          transition={{ duration: reduce ? 0.08 : 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="absolute right-0 top-[calc(100%+10px)] z-50 w-[260px] origin-top-right overflow-hidden rounded-2xl border border-charcoal-80/8 bg-white shadow-[0_20px_60px_-12px_rgb(var(--color-violet-rgb)/0.20),0_0_0_1px_rgb(var(--color-violet-rgb)/0.04)]"
         >
           <div className="bg-gradient-to-br from-violet-pale to-white p-4">
@@ -197,8 +207,9 @@ export default function AccountMenu() {
               {t("header.signOut")}
             </button>
           </div>
-        </div>
+        </m.div>
       ) : null}
+      </AnimatePresence>
     </div>
   )
 }

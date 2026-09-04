@@ -84,8 +84,21 @@ async function getPostById(id) {
     isDeleted:       row.deletedAt != null,
     metaTitle:       row.metaTitle,
     metaDescription: row.metaDescription,
+    // Spanish overlay, raw (the admin form edits both languages)
+    titleEs:           row.titleEs || "",
+    excerptEs:         row.excerptEs || "",
+    bodyEs:            Array.isArray(row.bodyEs) ? row.bodyEs : [],
+    metaTitleEs:       row.metaTitleEs || "",
+    metaDescriptionEs: row.metaDescriptionEs || "",
     categoryId:      row.categoryId,
   }
+}
+
+/** Empty strings / empty arrays mean "no Spanish version" → null. */
+function esOrNull(v) {
+  if (v == null) return null
+  if (Array.isArray(v)) return v.length ? v : null
+  return String(v).trim() ? String(v).trim() : null
 }
 
 /** Resolves tag labels to BlogTag rows, creating any missing. */
@@ -124,6 +137,11 @@ async function createPost(input) {
       publishedAt:     input.status === "published" ? new Date() : null,
       metaTitle:       input.metaTitle || null,
       metaDescription: input.metaDescription || null,
+      titleEs:           esOrNull(input.titleEs),
+      excerptEs:         esOrNull(input.excerptEs),
+      bodyEs:            esOrNull(input.bodyEs),
+      metaTitleEs:       esOrNull(input.metaTitleEs),
+      metaDescriptionEs: esOrNull(input.metaDescriptionEs),
       categoryId:      input.categoryId,
       authorUserId:    input.authorUserId || null,
       authorName:      input.authorName  || "Mustapha Ukizuru",
@@ -178,6 +196,11 @@ async function updatePost(id, input) {
       isFeatured:      input.isFeatured,
       metaTitle:       input.metaTitle,
       metaDescription: input.metaDescription,
+      ...(input.titleEs           !== undefined ? { titleEs:           esOrNull(input.titleEs) } : {}),
+      ...(input.excerptEs         !== undefined ? { excerptEs:         esOrNull(input.excerptEs) } : {}),
+      ...(input.bodyEs            !== undefined ? { bodyEs:            esOrNull(input.bodyEs) } : {}),
+      ...(input.metaTitleEs       !== undefined ? { metaTitleEs:       esOrNull(input.metaTitleEs) } : {}),
+      ...(input.metaDescriptionEs !== undefined ? { metaDescriptionEs: esOrNull(input.metaDescriptionEs) } : {}),
       categoryId:      input.categoryId,
       authorUserId:    input.authorUserId,
       authorName:      input.authorName,

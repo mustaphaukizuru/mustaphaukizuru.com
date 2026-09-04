@@ -71,8 +71,15 @@ jobs:
       - name: Audit dependencies (backend + web)
         run: node scripts/audit-gate.js
 
-      - name: Run backend tests
-        run: npm test
+      # `npm test` is bare jest, and jest only enforces coverageThreshold when
+      # it is run with --coverage. So the 44/41/26/27 gate in package.json has
+      # never once been evaluated in CI: the thresholds were decorative and
+      # coverage could rot to zero without turning the build red. Measured at
+      # the time of the switch: statements 56.9%, branches 41.9%, functions
+      # 48.2% — comfortably clear, so this goes green immediately and holds the
+      # line from here.
+      - name: Run backend tests (with coverage gate)
+        run: npm run test:coverage
         env:
           NODE_ENV: test
 
@@ -128,6 +135,20 @@ jobs:
       - name: Build (production parity gate — MUST PASS)
         working-directory: web
         run: npm run build
+        env:
+          # Same-origin, deliberately. `.env*` is gitignored, so a CI checkout
+          # has no env files at all and web/src/lib/api.js falls back to
+          # "http://localhost:5000" — a port nothing listens on in these jobs.
+          # Every API call in the artifact then failed with
+          # ERR_CONNECTION_REFUSED, which cost us twice: Lighthouse scored
+          # `errors-in-console` 0 on best-practices, and /about silently fell
+          # back to aboutProjectsData (AboutPage.jsx:916) so CI audited a page
+          # local runs never rendered. Empty means same-origin, which
+          # scripts/lighthouse-server.js answers from its fixture — so CI and a
+          # local `lhci autorun` finally look at the same page.
+          # The deployed bundle is the committed public/, built from
+          # web/.env.production; this only shapes the CI artifact.
+          VITE_API_BASE_URL: ""
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -232,10 +253,17 @@ jobs:
       - name: Run Lighthouse CI (${{ matrix.name }})
         run: lhci autorun --config=${{ matrix.config }}
 
+      # include-hidden-files is REQUIRED here. upload-artifact@v4 skips hidden
+      # paths by default, and `.lighthouseci` is a dotfile directory — so this
+      # step has silently uploaded nothing since the v4 bump, logging only
+      # "No files were found with the provided path". Every Lighthouse failure
+      # since then has been undebuggable from CI: you get a score in the log
+      # and no report saying which audit lost the points.
       - name: Upload Lighthouse report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lhci-${{ matrix.name }}
           path: .lighthouseci
+          include-hidden-files: true
           retention-days: 7

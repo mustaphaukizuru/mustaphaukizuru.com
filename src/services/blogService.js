@@ -14,8 +14,16 @@ const prisma = require("../lib/prisma")
 /** Default selection for public reads — drafts/archived are excluded. */
 const PUBLIC_WHERE = { status: "published", deletedAt: null }
 
-function serializePost(post) {
-  if (!post) return null
+const { pickLocale } = require("../utils/pickLocale")
+
+/**
+ * @param {object} post   Prisma row (may carry *Es columns)
+ * @param {"en"|"es"} locale  Spanish swaps in titleEs/excerptEs/bodyEs/meta*Es
+ *                            when present (null → English fallback).
+ */
+function serializePost(row, locale = "en") {
+  if (!row) return null
+  const post = pickLocale(row, locale)
   return {
     slug:        post.slug,
     title:       post.title,
@@ -48,7 +56,7 @@ function serializeCategory(c) {
 
 /* ── Public reads ─────────────────────────────────────────────────────── */
 
-async function listPublicPostsUncached({ category, tag, q, limit = 50, offset = 0 } = {}) {
+async function listPublicPostsUncached({ category, tag, q, limit = 50, offset = 0, locale = "en" } = {}) {
   const where = { ...PUBLIC_WHERE }
   if (category) where.category = { slug: category }
   if (tag)      where.tags = { some: { tag: { slug: tag } } }
@@ -67,6 +75,7 @@ async function listPublicPostsUncached({ category, tag, q, limit = 50, offset = 
       // getPublicPostBySlug returns the full post.
       select: {
         id: true, slug: true, title: true, excerpt: true, cover: true,
+        titleEs: true, excerptEs: true,
         readMinutes: true, isFeatured: true, publishedAt: true, createdAt: true,
         authorName: true, authorRole: true, authorAvatar: true,
         category: { select: { id: true, label: true, slug: true } },
@@ -77,15 +86,42 @@ async function listPublicPostsUncached({ category, tag, q, limit = 50, offset = 
     }),
     prisma.blogPost.count({ where }),
   ])
-  return { posts: rows.map(serializePost), total }
+  return { posts: rows.map((r) => serializePost(r, locale)), total }
 }
 
-async function getPublicPostBySlug(slug) {
+async function getPublicPostBySlug(slug, locale = "en") {
   const row = await prisma.blogPost.findFirst({
     where: { slug, ...PUBLIC_WHERE },
     include: { category: true, tags: { include: { tag: true } } },
   })
-  return serializePost(row)
+  if (!row) return null
+  const post = serializePost(row, locale)
+  // Up to 3 related posts: same category first, then the newest others.
+  try {
+    const related = await prisma.blogPost.findMany({
+      where: { ...PUBLIC_WHERE, slug: { not: row.slug }, ...(row.categoryId ? { categoryId: row.categoryId } : {}) },
+      orderBy: { publishedAt: "desc" },
+      take: 3,
+      include: { category: true },
+    })
+    let picks = related
+    if (picks.length < 3) {
+      const more = await prisma.blogPost.findMany({
+        where: { ...PUBLIC_WHERE, slug: { notIn: [row.slug, ...picks.map((p) => p.slug)] } },
+        orderBy: { publishedAt: "desc" },
+        take: 3 - picks.length,
+        include: { category: true },
+      })
+      picks = [...picks, ...more]
+    }
+    post.related = picks.map((p) => {
+      const { body, ...card } = serializePost(p, locale)
+      return card
+    })
+  } catch {
+    post.related = []
+  }
+  return post
 }
 
 async function listCategoriesWithCountsUncached() {

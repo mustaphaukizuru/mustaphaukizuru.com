@@ -16,23 +16,50 @@ cd web && npm run dev  # Vite SPA on :5173
 cd web && npm run lint # eslint
 cd web && npm run build:seo   # vite build → ../public + sitemap (or `npm run build`)
 npm run seed:email     # upsert email templates from prisma/seed-email-templates.js
+npm run seed:content   # every content seed in order (products, services, portfolio, bio, logos, blog, plans, email)
+npm run seed:demo      # LOCAL ONLY — a launch-year of orders/projects/tickets/analytics; see docs/LOCAL_DEV_DB.md
+npm run seed:demo -- --purge   # remove it all again
+npm run dev:demo       # API :5001 against the local demo DB (SPA: cd web && npm run dev:demo -> :5174)
+npm run seed:product-images   # attach generated covers to Product rows
+cd web && npm run covers:build   # render the 9 product covers (see docs/LOCAL_DEV_DB.md)
 ```
 
 ## Database — always `db push`, never `migrate`
 ```bash
 npm run db:push          # guarded: refuses a non-local DATABASE_URL
 ```
-**`.env` points at PRODUCTION** — there is no dev database. `scripts/guard-prod-db.js`
-now blocks `db:push` and every `seed:*` script unless the host is local. To act on
-production deliberately: `node scripts/backup-db-json.js` first, then
-`ALLOW_PROD_DB=1 npm run db:push`. Unrecognised hosts count as production by design.
+**`.env` points at the LOCAL dev database** (`mysql://muk:muk@127.0.0.1:3307/muk_dev`,
+Docker MySQL from `docker-compose.dev.yml`). Development is local by default: build and
+verify here, deploy to production deliberately. The production URL is kept in
+`.env.production` and as a commented `# PRODUCTION_DATABASE_URL=` line in `.env`, so
+switching back is a one-line edit — see `docs/LOCAL_DEV_DB.md`.
+
+`.env` also sets `DISABLE_CRON=1`: it still carries **live** SMTP and payment
+credentials, and the scheduler pointed at the demo dataset would mail 200
+`@demo.test` subscribers and every abandoned cart through the real SMTP account.
+
+`scripts/guard-prod-db.js` blocks `db:push` and every `seed:*` script unless the host
+is local. To act on production deliberately: `node scripts/backup-db-json.js` first,
+then `ALLOW_PROD_DB=1 npm run db:push`. Unrecognised hosts count as production by
+design. `seed:demo` is the one guarded script with **no** `ALLOW_PROD_DB` override and
+it re-checks the host in-process: it writes invented customers, revenue and reviews,
+which must never reach a live site.
+
 Hostinger MySQL cannot create the shadow DB `migrate dev` needs. There is no migrations history; the schema file is the source of truth. Import the client from `src/lib/prisma.js` only (never `new PrismaClient()`).
 
 ## Deploy — Hostinger + Passenger (not PM2)
 - `npm run deploy` → `scripts/deploy.sh`: pull, `npm ci`, build SPA into `public/`, `prisma generate`, `db push`, restart, smoke test.
 - Restart = `mkdir -p tmp && touch tmp/restart.txt` (Passenger). PM2/nohup is only a fallback for non-Passenger hosts.
 - `scripts/hostinger-recover.sh {status|log|restart|recover|reinstall}` for broken `node_modules` / stale Prisma client.
-- `public/` build output (`assets/`, `index.html`, `sw.js`, `workbox-*.js`) is gitignored and rebuilt on the server. Source assets under `public/` (images, fonts, cv, documents, flags, favicons, `.htaccess`, error pages) are tracked.
+- **The SPA bundle is committed, not built on the server.** Hostinger Git deploy clones
+  `master` into a fresh `hbuilds/versions/<uuid>/` and starts the app — it never runs
+  `deploy.sh` and never builds the SPA. `public/assets/`, `public/index.html`, `sw.js`
+  and `workbox-*.js` are therefore **tracked**; ignoring them once caused a hard outage
+  (every request 500d on a missing `public/index.html`). See the rationale block in
+  `.gitignore`. So: build locally with `cd web && npm run build:seo`, then **commit the
+  regenerated `public/` output** in the same change as the `web/src/` edit that caused it.
+  Only `/public/__prerender/` is ignored. Other `public/` content (images, fonts, cv,
+  documents, flags, favicons, `.htaccess`, error pages) is source and tracked as before.
 
 ## Session auth — httpOnly cookie + CSRF (step 40)
 - The session JWT lives in an **httpOnly cookie `mu_session`** (`sameSite=lax`, `path=/`, `secure` in production, 7 d / 30 d with rememberMe). It is **never** written to `localStorage` — that is the point of the migration. Set/cleared only via `src/utils/sessionCookie.js`.

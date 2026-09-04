@@ -123,10 +123,10 @@
   "portfolio": {
     "eyebrow": "Portafolio",
     "title": "Proyectos seleccionados",
-    "subtitle": "Soluciones tecnológicas y sistemas digitales entregados en múltiples industrias y organizaciones.",
-    "linkLearnMore": "Conocer más",
+    "subtitle": "Sistemas entregados en varias industrias.",
+    "linkLearnMore": "Explorar este proyecto",
     "linkCaseStudy": "Ver caso de estudio",
-    "errorState": "Portafolio temporalmente no disponible. Inténtalo de nuevo más tarde.",
+    "errorState": "Portafolio no disponible. Inténtalo más tarde.",
     "emptyState": "Más proyectos en camino."
   },
   "ctaBand": {
@@ -182,5 +182,11 @@
     "studentsHint": "K-12 · calificados por cohorte",
     "source": "Fuente: perfil público · certificaciones verificadas · listas de cohortes · cifras actualizadas",
     "verifyCta": "Verificar las credenciales"
+  },
+  "clients": {
+    "eyebrow": "Clientes seleccionados",
+    "heading": "Organizaciones para las que he",
+    "headingAccent": "trabajado",
+    "body": "Colegios, comercio y empresas de servicios en México, Ruanda y Turquía: desde estrategia e infraestructura de TI hasta los sitios y plataformas que sus equipos usan a diario."
   }
 }

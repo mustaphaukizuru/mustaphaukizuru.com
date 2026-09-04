@@ -314,3 +314,120 @@ describe("coupon race", () => {
     expect(res.body.message).toMatch(/usage limit/i)
   })
 })
+
+// ─────────────────────────────────────────────────────────────────────────────
+// T0-1 · A refund or chargeback that happens AT Mercado Pago must revoke the
+// buyer's entitlements. Before this, `markOrderPaidByMP` mapped `refunded` /
+// `charged_back` to a Payment-only write, the order stayed `paid`, and every
+// UserDownload stayed `active` — the customer kept the files after the money
+// went back.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("Mercado Pago refunds and chargebacks revoke entitlements", () => {
+  let buyer, product
+
+  function mpFetch({ payments = {}, chargebacks = {} }) {
+    return async (url) => {
+      const u = String(url)
+      const json = (body) => ({ ok: true, status: 200, json: async () => body, text: async () => JSON.stringify(body) })
+      for (const [id, payment] of Object.entries(payments)) if (u.includes(`/v1/payments/${id}`)) return json(payment)
+      for (const [id, cb] of Object.entries(chargebacks)) if (u.includes(`/v1/chargebacks/${id}`)) return json(cb)
+      return { ok: false, status: 404, json: async () => ({}), text: async () => "not found" }
+    }
+  }
+
+  async function postWebhook({ dataId, requestId, type = "payment", action = `${type}.updated` }) {
+    return request(ctx.app)
+      .post("/api/v1/mercadopago/webhook")
+      .set("x-signature", mpSignature({ dataId, requestId, secret: ctx.TEST_MP_WEBHOOK_SECRET }))
+      .set("x-request-id", requestId)
+      .send({ type, action, data: { id: dataId } })
+  }
+
+  async function createPendingOrder() {
+    const res = await request(ctx.app)
+      .post("/api/v1/orders")
+      .set("Authorization", `Bearer ${ctx.signToken(buyer.id)}`)
+      .send({ customerEmail: buyer.email, items: [{ productId: product.id, quantity: 1 }] })
+    expect(res.status).toBe(201)
+    return res.body.data.id
+  }
+
+  const orderRow    = (id) => ctx.prisma.rows("order").find((o) => o.id === id)
+  const downloadRow = (id) => ctx.prisma.rows("userDownload").find((d) => d.orderId === id)
+  const refundRows  = (id) => ctx.prisma.rows("refund").filter((r) => r.orderId === id)
+
+  beforeAll(() => {
+    buyer   = ctx.seedUser({ fullName: "MP Buyer", email: "mp-buyer@example.com", passwordHash: "$2a$10$x" })
+    product = ctx.prisma.seed("product", { title: "MP Kit", slug: "mp-kit", price: 300, isActive: true })
+    ctx.prisma.seed("productFile", { productId: product.id, fileName: "mp.zip", filePath: "/x/mp.zip", isPrimary: true, version: "1.0", fileSize: 1 })
+  })
+
+  test("approved → refunded: order refunded, one Refund row, entitlement revoked; a redelivery changes nothing", async () => {
+    const orderId = await createPendingOrder()
+    const payment = { id: "MP-PAY-77", status: "approved", external_reference: orderId, transaction_amount: 300, currency_id: "MXN" }
+    ctx.mocks.fetch.mockImplementation(mpFetch({ payments: { "MP-PAY-77": payment } }))
+
+    expect((await postWebhook({ dataId: "MP-PAY-77", requestId: "req-mp-approved-77" })).status).toBe(200)
+    expect(orderRow(orderId).status).toBe("paid")
+    expect(await eventually(() => downloadRow(orderId)?.downloadAccessStatus === "active")).toBe(true)
+
+    payment.status = "refunded"
+    expect((await postWebhook({ dataId: "MP-PAY-77", requestId: "req-mp-refunded-77" })).status).toBe(200)
+
+    expect(orderRow(orderId).status).toBe("refunded")
+    expect(ctx.prisma.rows("payment").find((p) => p.gatewayTransactionId === "MP-PAY-77").paymentStatus).toBe("refunded")
+    expect(downloadRow(orderId).downloadAccessStatus).toBe("revoked")
+    expect(refundRows(orderId)).toEqual([expect.objectContaining({ amount: 300, refundStatus: "succeeded", gatewayRefundId: "mp-MP-PAY-77-refunded" })])
+    expect(ctx.prisma.rows("paymentWebhook").find((w) => w.gatewayEventId === "req-mp-refunded-77").processed).toBe(true)
+
+    // MP redelivers with a fresh x-request-id → deterministic key makes it a no-op.
+    expect((await postWebhook({ dataId: "MP-PAY-77", requestId: "req-mp-refunded-77-again" })).status).toBe(200)
+    expect(refundRows(orderId)).toHaveLength(1)
+    expect(orderRow(orderId).status).toBe("refunded")
+  })
+
+  test("a `chargebacks` event resolves the disputed payment and revokes the entitlement", async () => {
+    const orderId = await createPendingOrder()
+    const payment = { id: "MP-PAY-78", status: "approved", external_reference: orderId, transaction_amount: 300, currency_id: "MXN" }
+    ctx.mocks.fetch.mockImplementation(mpFetch({
+      payments:    { "MP-PAY-78": payment },
+      chargebacks: { "CB-1": { id: "CB-1", payments: ["MP-PAY-78"], amount: 300, currency_id: "MXN" } },
+    }))
+
+    expect((await postWebhook({ dataId: "MP-PAY-78", requestId: "req-mp-approved-78" })).status).toBe(200)
+    expect(await eventually(() => downloadRow(orderId)?.downloadAccessStatus === "active")).toBe(true)
+
+    payment.status = "charged_back"
+    const res = await postWebhook({ dataId: "CB-1", requestId: "req-mp-cb-1", type: "chargebacks", action: "chargebacks.created" })
+    expect(res.status).toBe(200)
+    expect(ctx.mocks.fetch).toHaveBeenCalledWith(expect.stringContaining("/v1/chargebacks/CB-1"), expect.anything())
+
+    expect(orderRow(orderId).status).toBe("refunded")
+    expect(downloadRow(orderId).downloadAccessStatus).toBe("revoked")
+    expect(refundRows(orderId)).toEqual([expect.objectContaining({ gatewayRefundId: "mp-MP-PAY-78-charged_back", reason: "Mercado Pago chargeback" })])
+  })
+
+  test("the webhook MP sends back after an admin-initiated refund is matched by amount, not recorded twice", async () => {
+    const orderId = await createPendingOrder()
+    const payment = { id: "MP-PAY-79", status: "approved", external_reference: orderId, transaction_amount: 300, currency_id: "MXN" }
+    ctx.mocks.fetch.mockImplementation(async (url, opts) => {
+      if (String(url).includes("/refunds")) return { ok: true, status: 201, json: async () => ({ id: "MP-REF-79" }), text: async () => "" }
+      return mpFetch({ payments: { "MP-PAY-79": payment } })(url, opts)
+    })
+    expect((await postWebhook({ dataId: "MP-PAY-79", requestId: "req-mp-approved-79" })).status).toBe(200)
+    expect(await eventually(() => downloadRow(orderId)?.downloadAccessStatus === "active")).toBe(true)
+
+    const admin = ctx.seedUser({ email: "mp-admin@example.com", role: "admin", passwordHash: "x" })
+    const refund = await request(ctx.app)
+      .post(`/api/v1/admin/orders/${orderId}/refund`)
+      .set("Authorization", `Bearer ${ctx.signToken(admin.id)}`)
+      .send({ reason: "Duplicate purchase" })
+    expect(refund.status).toBe(200)
+    expect(refundRows(orderId)).toHaveLength(1)
+
+    payment.status = "refunded"
+    expect((await postWebhook({ dataId: "MP-PAY-79", requestId: "req-mp-refunded-79" })).status).toBe(200)
+    expect(refundRows(orderId)).toHaveLength(1)
+    expect(orderRow(orderId).status).toBe("refunded")
+  })
+})

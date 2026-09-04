@@ -22,6 +22,7 @@ const crypto = require("crypto")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { transitionOrderPayment } = require("./paymentTransitionService")
+const { providerFetch, providerError, isTimeoutError } = require("../lib/providerHttp")
 
 const MP_BASE_URL  = "https://api.mercadopago.com"
 const ACCESS_TOKEN = () => process.env.MP_ACCESS_TOKEN || ""
@@ -66,7 +67,7 @@ function decimalToNumber(value) {
  */
 function verifyMercadoPagoSignature({ signatureHeader, requestId, dataId }) {
   const secret = WEBHOOK_SECRET()
-  if (!secret) return true                         // dev mode
+  if (!secret) return process.env.NODE_ENV !== "production"   // dev: skip · prod: fail closed
   if (!signatureHeader || !requestId || !dataId) return false
 
   const parts = String(signatureHeader)
@@ -243,13 +244,18 @@ function parsePendingPaymentDetails(payment) {
 
 /* ───────────────────── create Checkout Pro preference ──────────────────── */
 
-async function createMercadoPagoPreference({ orderId }) {
+const PREFERENCE_TTL_HOURS = Number(process.env.STALE_ORDER_HOURS || 24)
+
+async function createMercadoPagoPreference({ orderId, userId = null, isAdmin = false }) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { items: true },
   })
 
   if (!order)               throw new Error("Order not found")
+  // Ownership: a member may only start payment for their own order
+  // (PayPal's controller enforces the same; this closed an IDOR).
+  if (!isAdmin && userId && order.userId && order.userId !== userId) throw new Error("Order not found")
   if (!order.items?.length) throw new Error("Order has no items")
 
   const token = ACCESS_TOKEN()
@@ -292,14 +298,21 @@ async function createMercadoPagoPreference({ orderId }) {
       email:   order.customerEmail || order.billingEmail || "customer@example.com",
     },
     back_urls,
+    // Expire the preference when the stale-order janitor (jobs/cancelStaleOrders,
+    // 24 h) would cancel the order. Without this an OXXO/SPEI voucher stayed
+    // payable for ~3 days after the order was already cancelled, and the late
+    // "approved" webhook then hit the terminal-state guard: payment recorded,
+    // order never fulfilled. MP wants an offset timestamp, not "Z".
+    expires: true,
+    expiration_date_to: new Date(Date.now() + PREFERENCE_TTL_HOURS * 60 * 60 * 1000).toISOString().replace("Z", "+00:00"),
     ...(isLocal ? {} : { auto_return: "approved" }),
     external_reference:    order.id,
     statement_descriptor:  "MustaphaUkizuru",
-    ...(isLocal ? {} : { notification_url: `${apiBase}/api/mercadopago/webhook` }),
+    ...(isLocal ? {} : { notification_url: `${apiBase}/api/v1/mercadopago/webhook` }),
     metadata: { orderId: order.id },
   }
 
-  const res = await fetch(`${MP_BASE_URL}/checkout/preferences`, {
+  const res = await providerFetch("Mercado Pago", "create preference", `${MP_BASE_URL}/checkout/preferences`, {
     method: "POST",
     headers: {
       Authorization:       `Bearer ${token}`,
@@ -310,10 +323,7 @@ async function createMercadoPagoPreference({ orderId }) {
     body: JSON.stringify(preference),
   })
 
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`Mercado Pago preference creation failed: ${text}`)
-  }
+  if (!res.ok) throw providerError("Mercado Pago", "create preference", res.status, await res.text())
 
   const data = await res.json()
 
@@ -335,7 +345,7 @@ async function getMercadoPagoPayment(paymentId) {
   const token = ACCESS_TOKEN()
   if (!token || !paymentId) return null
   try {
-    const res = await fetch(`${MP_BASE_URL}/v1/payments/${paymentId}`, {
+    const res = await providerFetch("Mercado Pago", "payment lookup", `${MP_BASE_URL}/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) {
@@ -344,9 +354,47 @@ async function getMercadoPagoPayment(paymentId) {
     }
     return res.json()
   } catch (err) {
+    // A timeout is not "no such payment": let it propagate so the webhook
+    // can answer 500 and Mercado Pago redelivers instead of losing the event.
+    if (isTimeoutError(err)) throw err
     logger.error(`[MP] payment lookup error: ${err.message}`)
     return null
   }
+}
+
+/* ───────────────────── lookup chargeback by ID ─────────────────────────── */
+
+/**
+ * A `chargebacks` notification carries the chargeback id in `data.id`, not
+ * the payment id. The chargeback resource names the payment(s) it disputes
+ * (`payments: [id]`); the webhook then continues with the normal payment
+ * lookup so the authoritative status (`charged_back`) drives the transition.
+ */
+async function getMercadoPagoChargeback(chargebackId) {
+  const token = ACCESS_TOKEN()
+  if (!token || !chargebackId) return null
+  try {
+    const res = await providerFetch("Mercado Pago", "chargeback lookup", `${MP_BASE_URL}/v1/chargebacks/${chargebackId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) {
+      logger.warn(`[MP] chargeback lookup failed ${res.status} for id ${chargebackId}`)
+      return null
+    }
+    return res.json()
+  } catch (err) {
+    if (isTimeoutError(err)) throw err
+    logger.error(`[MP] chargeback lookup error: ${err.message}`)
+    return null
+  }
+}
+
+/** The payment id a chargeback resource disputes, or null. */
+function chargebackPaymentId(chargeback) {
+  if (!chargeback) return null
+  const id = chargeback.payment_id
+    ?? (Array.isArray(chargeback.payments) ? chargeback.payments[0] : null)
+  return id == null ? null : String(typeof id === "object" ? id.id : id)
 }
 
 /* ──────────────────── idempotent mark-order-paid ───────────────────────── */
@@ -397,7 +445,7 @@ async function refundMercadoPagoPayment({ paymentId, amount, refundId }) {
     ? `refund-${refundId}`
     : `refund-${paymentId}-${amount != null ? Number(amount).toFixed(2) : "full"}`
 
-  const res = await fetch(`${MP_BASE_URL}/v1/payments/${paymentId}/refunds`, {
+  const res = await providerFetch("Mercado Pago", "refund", `${MP_BASE_URL}/v1/payments/${paymentId}/refunds`, {
     method: "POST",
     headers: {
       Authorization:       `Bearer ${token}`,
@@ -406,10 +454,7 @@ async function refundMercadoPagoPayment({ paymentId, amount, refundId }) {
     },
     body: JSON.stringify(body),
   })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`Mercado Pago refund failed: ${text}`)
-  }
+  if (!res.ok) throw providerError("Mercado Pago", "refund", res.status, await res.text())
   return res.json()
 }
 
@@ -421,6 +466,8 @@ module.exports = {
   OFFLINE_PAYMENT_TYPES,
   createMercadoPagoPreference,
   getMercadoPagoPayment,
+  getMercadoPagoChargeback,
+  chargebackPaymentId,
   markOrderPaidByMP,
   refundMercadoPagoPayment,
   verifyMercadoPagoSignature,

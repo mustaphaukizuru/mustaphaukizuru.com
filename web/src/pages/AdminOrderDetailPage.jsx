@@ -13,8 +13,6 @@ import {
 } from "../services/adminRefundService"
 import { useToast } from "../context/ToastContext"
 
-const STATUS_OPTIONS = ["pending", "paid", "failed", "cancelled", "refunded"]
-
 /* ──────────────────────────────────────────────────────────────────────────
  *  AdminOrderDetailPage · M15 (Refund flow)
  *
@@ -196,12 +194,26 @@ export default function AdminOrderDetailPage() {
             </button>
           ) : null}
 
+          {/* Only the moves the API allows from the current status are
+              offered (order.allowedTransitions). `paid` leaves through the
+              refund button above; refunded and cancelled are final, so the
+              control is disabled there rather than listing dead options. */}
           <select
             value={order.status}
             onChange={(e) => handleStatusChange(e.target.value)}
-            className="rounded-xl border border-charcoal-80/10 bg-white px-4 py-3 text-meta text-violet outline-none"
+            disabled={!(order.allowedTransitions || []).length}
+            aria-label="Order status"
+            title={(order.allowedTransitions || []).length
+              ? "Change order status"
+              : order.status === "paid"
+                ? "Paid orders change only through a refund"
+                : "This status is final"}
+            className="rounded-xl border border-charcoal-80/10 bg-white px-4 py-3 text-meta text-violet outline-none disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {STATUS_OPTIONS.map((status) => (
+            <option value={order.status} disabled>
+              {order.status}
+            </option>
+            {(order.allowedTransitions || []).map((status) => (
               <option key={status} value={status}>
                 {status}
               </option>

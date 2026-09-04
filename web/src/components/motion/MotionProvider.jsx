@@ -5,7 +5,7 @@
  * src/ uses the lightweight `m.*` components (not `motion.*`), so the
  * initial bundle only carries the framer-motion core; the feature runtime
  * (`domMax` — needed because layout / layoutId animations are in use in
- * Toast, CartPage, MobileMenu, SkillsByCapability, UpcomingMeetingBanner)
+ * Toast, CartPage, MobileMenu, UpcomingMeetingBanner)
  * is loaded async from ./features.js as its own chunk.
  *
  * `strict` throws in dev if a `motion.*` component slips back in.
