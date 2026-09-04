@@ -140,18 +140,20 @@ function requireHealthAccess(req, res, next) {
 const getDeepHealth = asyncHandler(async (req, res) => {
   const TIMEOUT_MS = 5000
 
-  const [dbResult, smtpResult, mpResult, paypalResult] = await Promise.allSettled([
+  const [dbResult, concurrencyResult, smtpResult, mpResult, paypalResult] = await Promise.allSettled([
     timeboxed(checkDatabase(),    TIMEOUT_MS, "db"),
+    timeboxed(checkDbConcurrency(), TIMEOUT_MS, "dbConcurrency"),
     timeboxed(checkSmtp(),        TIMEOUT_MS, "smtp"),
     timeboxed(checkMercadoPago(), TIMEOUT_MS, "mercadopago"),
     timeboxed(checkPaypal(),      TIMEOUT_MS, "paypal"),
   ])
 
   const checks = {
-    database:    settledToStatus(dbResult),
-    smtp:        settledToStatus(smtpResult),
-    mercadopago: settledToStatus(mpResult),
-    paypal:      settledToStatus(paypalResult),
+    database:      settledToStatus(dbResult),
+    dbConcurrency: settledToStatus(concurrencyResult),
+    smtp:          settledToStatus(smtpResult),
+    mercadopago:   settledToStatus(mpResult),
+    paypal:        settledToStatus(paypalResult),
   }
 
   // Per spec: 200 only if ALL checks pass. Skipped does NOT count as fail.
@@ -183,6 +185,24 @@ const getDeepHealth = asyncHandler(async (req, res) => {
 async function checkDatabase() {
   await prisma.$queryRaw`SELECT 1`
   return { ok: true }
+}
+
+/**
+ * T1-5 · two queries at once, which is what every Promise.all in the API
+ * does. With connection_limit=1 they serialise (elapsed ≈ 2× a single
+ * query, still "ok" — the pool is doing its job). With 2 or more, a P1001
+ * here is the host fault from 2026-08-28 showing up on a probe instead of
+ * on a customer's checkout. The configured limit is reported alongside so
+ * the number can be read against it.
+ */
+async function checkDbConcurrency() {
+  const limit = (() => {
+    try { return new URL(prisma.poolBoundsUrl?.() || process.env.DATABASE_URL).searchParams.get("connection_limit") }
+    catch { return process.env.DB_CONNECTION_LIMIT || null }
+  })()
+  const started = Date.now()
+  await Promise.all([prisma.$queryRaw`SELECT 1`, prisma.$queryRaw`SELECT 1`])
+  return { ok: true, detail: { pairElapsedMs: Date.now() - started, connectionLimit: limit } }
 }
 
 async function checkSmtp() {
@@ -249,7 +269,7 @@ function settledToStatus(settled) {
     if (settled.value?.skipped) {
       return { status: "skipped", reason: settled.value.reason }
     }
-    return { status: "ok" }
+    return { status: "ok", ...(settled.value?.detail ? settled.value.detail : {}) }
   }
   return { status: "down", error: settled.reason?.message || "Unknown error" }
 }
