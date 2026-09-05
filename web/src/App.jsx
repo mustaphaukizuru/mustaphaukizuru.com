@@ -92,6 +92,7 @@ const SelfAuditPage = lazy(() => import("./pages/SelfAuditPage"));
 const SchoolsPage = lazy(() => import("./pages/SchoolsPage")); // audience page, not a service category
 const HowWeWorkPage = lazy(() => import("./pages/HowWeWorkPage")); // the full engagement process (T2-9)
 const TrackPage = lazy(() => import("./pages/TrackPage")); // public project tracking (T5-5)
+const StatusPage = lazy(() => import("./pages/StatusPage")); // live service status (T1-9)
 
 const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
 const AdminPortfolioPage = lazy(() => import("./pages/AdminPortfolioPage"));
@@ -228,6 +229,9 @@ export default function App() {
             {/* "Where is my project?", without a login. /track is the form;
                 /track/:code is the result, and both are noindex — a crawled
                 code would put a client's progress in a search result. */}
+            {/* Live service status. Served from public/ by Passenger without
+                Node, so it answers during exactly the outage it reports. */}
+            <Route path="/status" element={<PublicShell><StatusPage /></PublicShell>} />
             <Route path="/track" element={<PublicShell><TrackPage /></PublicShell>} />
             <Route path="/track/:code" element={<PublicShell><TrackPage /></PublicShell>} />
             <Route path="/schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
@@ -406,6 +410,7 @@ export default function App() {
               <Route path="schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
               <Route path="how-we-work" element={<PublicShell><HowWeWorkPage /></PublicShell>} />
               <Route path="track" element={<PublicShell><TrackPage /></PublicShell>} />
+              <Route path="status" element={<PublicShell><StatusPage /></PublicShell>} />
               <Route path="track/:code" element={<PublicShell><TrackPage /></PublicShell>} />
               <Route path="contact" element={<PublicShell><ContactPage /></PublicShell>} />
               <Route path="self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />

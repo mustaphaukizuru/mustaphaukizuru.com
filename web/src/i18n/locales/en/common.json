@@ -120,6 +120,7 @@
     "subscribeError": "We couldn't complete your subscription. Please try again.",
     "navHowWeWork": "How we work",
     "navTrack": "Track a project",
+    "navStatus": "Service status",
     "navSelfAudit": "Self-audit"
   },
   "language": {
@@ -440,5 +441,41 @@
   "languages": {
     "threeContinents": "Three continents.",
     "cefrScale": "CEFR scale"
+  },
+  "serviceStatus": {
+    "seoTitle": "Service status",
+    "seoDescription": "Live status of the API, the database and the scheduled jobs.",
+    "title": "Service status",
+    "recheck": "Check again",
+    "checking": "Checking…",
+    "lastChecked": "Last checked at {{time}}",
+    "build": "build {{commit}}",
+    "contact": "Something wrong that is not listed here?",
+    "contactLink": "Tell us",
+    "prismaStale": "The database client on the server is older than the schema. Some pages will error until it is rebuilt — we have been alerted.",
+    "overall": {
+      "ok": "Everything is working.",
+      "degraded": "Working, with something behind.",
+      "down": "Something is down. We have been alerted automatically.",
+      "unknown": "Checking the service…"
+    },
+    "state": {
+      "ok": "Operational",
+      "degraded": "Degraded",
+      "down": "Down",
+      "unknown": "Checking"
+    },
+    "tiles": {
+      "api": "API",
+      "apiNote": "Sign-in, checkout and everything else that is not a plain page.",
+      "apiDown": "The application is not responding. Pages may still load from cache; anything that needs an account will not work.",
+      "database": "Database",
+      "databaseNote": "Products, orders, projects and accounts.",
+      "databaseDown": "The application is up but cannot reach its database. Browsing, signing in and checkout are all affected.",
+      "jobs": "Scheduled jobs",
+      "jobsNote": "Emails, reminders and nightly maintenance.",
+      "jobsLate_one": "1 job has not run on time. The site works; some emails may be delayed.",
+      "jobsLate_other": "{{count}} jobs have not run on time. The site works; some emails may be delayed."
+    }
   }
 }

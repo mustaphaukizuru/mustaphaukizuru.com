@@ -120,6 +120,7 @@
     "subscribeError": "No pudimos completar tu suscripción. Inténtalo de nuevo.",
     "navHowWeWork": "Cómo trabajamos",
     "navTrack": "Rastrear un proyecto",
+    "navStatus": "Estado del servicio",
     "navSelfAudit": "Autodiagnóstico"
   },
   "language": {
@@ -440,5 +441,41 @@
   "languages": {
     "threeContinents": "Tres continentes.",
     "cefrScale": "Escala MCER"
+  },
+  "serviceStatus": {
+    "seoTitle": "Estado del servicio",
+    "seoDescription": "Estado en vivo de la API, la base de datos y los procesos programados.",
+    "title": "Estado del servicio",
+    "recheck": "Volver a revisar",
+    "checking": "Revisando…",
+    "lastChecked": "Última revisión a las {{time}}",
+    "build": "compilación {{commit}}",
+    "contact": "¿Algo anda mal y no aparece aquí?",
+    "contactLink": "Avísanos",
+    "prismaStale": "El cliente de base de datos del servidor es más viejo que el esquema. Algunas páginas darán error hasta que se reconstruya — ya nos avisaron.",
+    "overall": {
+      "ok": "Todo está funcionando.",
+      "degraded": "Funcionando, con algo atrasado.",
+      "down": "Algo está caído. Ya recibimos la alerta automáticamente.",
+      "unknown": "Revisando el servicio…"
+    },
+    "state": {
+      "ok": "Operativo",
+      "degraded": "Degradado",
+      "down": "Caído",
+      "unknown": "Revisando"
+    },
+    "tiles": {
+      "api": "API",
+      "apiNote": "Inicio de sesión, pagos y todo lo que no es una página simple.",
+      "apiDown": "La aplicación no responde. Puede que las páginas sigan cargando desde caché; nada que requiera cuenta va a funcionar.",
+      "database": "Base de datos",
+      "databaseNote": "Productos, pedidos, proyectos y cuentas.",
+      "databaseDown": "La aplicación está arriba pero no alcanza su base de datos. Navegar, iniciar sesión y pagar están afectados.",
+      "jobs": "Procesos programados",
+      "jobsNote": "Correos, recordatorios y mantenimiento nocturno.",
+      "jobsLate_one": "1 proceso no corrió a tiempo. El sitio funciona; algunos correos pueden retrasarse.",
+      "jobsLate_other": "{{count}} procesos no corrieron a tiempo. El sitio funciona; algunos correos pueden retrasarse."
+    }
   }
 }

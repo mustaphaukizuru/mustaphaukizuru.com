@@ -98,6 +98,13 @@ export const staticSeoEsByRoute = {
     keywords: ["desarrollo de MVP México", "app móvil multiplataforma", "diseño de APIs", "automatización CI/CD"],
   },
 
+  "/status": {
+    title: "Estado del Servicio · Mustapha Ukizuru",
+    description:
+      "Estado en vivo de la API, la base de datos y los procesos programados de mustaphaukizuru.com.",
+    keywords: ["estado del servicio", "disponibilidad"],
+  },
+
   "/track": {
     title: "Rastrea tu Proyecto · Mustapha Ukizuru",
     description:

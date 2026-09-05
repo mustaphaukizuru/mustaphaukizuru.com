@@ -27,6 +27,11 @@ const PUBLIC_ROUTES = [
   // address, reloading the page, or following a shared link did not. Found
   // by adding /schools to the Lighthouse URL list.
   "/schools",
+  // T1-9 · the status page. It has to be answerable when the app is
+  // struggling, which is the whole point of it — but the Express fallback
+  // only runs when Node is alive; when it is not, Passenger serves
+  // public/index.html statically and the SPA routes itself.
+  "/status",
   // T5-5 · both forms. The result page is the one a client reloads and
   // shares, so it has to be answerable by the server, not only reachable
   // through the router.

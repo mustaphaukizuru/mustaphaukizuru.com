@@ -47,6 +47,9 @@ const PRIVATE = new Set([
   "/unsubscribed", "/_system",
   // T5-5 · noindex, and the /:code form carries a live code.
   "/track",
+  // T1-9 · noindex, and a share card for a status page is an invitation to
+  // post it when something breaks.
+  "/status",
 ])
 
 /* The detail routes the database-backed injector already owns. Listing a

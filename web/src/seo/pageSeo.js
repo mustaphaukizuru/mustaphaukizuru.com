@@ -171,6 +171,16 @@ export const staticSeoByRoute = {
     keywords: ["digital audit", "IT self-assessment", "school technology audit", "website audit Mexico"],
   },
 
+  "/status": {
+    title: "Service Status · Mustapha Ukizuru",
+    description:
+      "Live status of the API, the database and the scheduled jobs behind mustaphaukizuru.com.",
+    type: "website",
+    image: DEFAULT_OG_IMAGE,
+    schemaType: "WebPage",
+    keywords: ["service status", "uptime"],
+  },
+
   "/track": {
     title: "Track Your Project · Mustapha Ukizuru",
     description:
@@ -286,6 +296,9 @@ export const noindexPrefixes = [
   // T5-5 · /track/:code puts a live tracking code in a URL. Indexed, that is
   // a client's progress in a search result and a code anyone can replay.
   "/track",
+  // T1-9 · a status page in a search result is how people arrive at it
+  // believing it is the site. follow, though — the links out are real.
+  "/status",
   "/unsubscribed",
   "/login",
   "/signup",

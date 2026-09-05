@@ -44,6 +44,8 @@ const QUICK_LINKS = [
   // T5-5 · clients arrive here from an invoice with a code in hand and
   // nothing else; the footer is on every page they might land on first.
   { nameKey: "footer.navTrack", path: "/track" },
+  // T1-9 · in the footer because the footer is on the error page too.
+  { nameKey: "footer.navStatus", path: "/status" },
   { nameKey: "footer.navStore", path: "/store" },
   { nameKey: "footer.navBlog", path: "/blog" },
   { nameKey: "footer.navContact", path: "/contact" },
