@@ -159,6 +159,13 @@ async function ensureInvoice(orderId) {
       where: { id: invoice.id },
       data:  { status: "paid", paidAt: invoice.paidAt || paidAt },
     })
+    // T5-9 · "Payment received" on the project timeline. This is the moment
+    // the invoice actually changes, which is why the event is written here
+    // and not at the webhook: every path that pays a bill comes through
+    // ensureInvoice. Lazily required — invoice generation is the hot path in
+    // fulfilment and must not pull the project graph in when it is not
+    // needed. Best-effort: the money has already moved.
+    require("./projectInvoiceService").recordInvoicePaid(invoice).catch(() => null)
   }
 
   // 2 · Generate PDF on disk if missing

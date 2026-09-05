@@ -24,6 +24,7 @@ const { generateReceiptPdf } = require("../services/receiptPdfService")
 // flips Payment + Order to refunded and revokes every download entitlement.
 const { processOrderRefund, recordExternalRefund } = require("../services/refundService")
 const { isTimeoutError } = require("../lib/providerHttp")
+const { recordPaymentInitiated } = require("../services/projectInvoiceService")
 
 /**
  * Mercado Pago controller · V2
@@ -48,6 +49,10 @@ const createPreference = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "orderId is required" })
   }
   const result = await createMercadoPagoPreference({ orderId, userId: req.user?.id || null, isAdmin: req.user?.role === "admin" })
+  // T5-9 · "Payment started" on the project timeline, if this order is
+  // billed through one. After the preference exists, so a failure to create
+  // it never leaves a client reading that they paid.
+  recordPaymentInitiated(orderId, { gateway: "mercadopago" }).catch(() => null)
   return res.status(200).json({
     success: true,
     data: {

@@ -15,6 +15,7 @@ const { setPortalCookie, clearPortalCookie } = require("../utils/portalCookie")
 const { sendProjectFile } = require("./clientProjectController")
 const { ndaStatus, attachClientFiles } = require("../services/projectPortalService")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
+const { createMercadoPagoPreference } = require("../services/mercadoPagoService")
 
 function portalError(res, e) {
   if (e?.statusCode && e?.code) {
@@ -199,5 +200,53 @@ const downloadInvoice = asyncHandler(async (req, res) => {
   stream.pipe(res)
 })
 
-module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice, listEvents, listFileRequests,
+/**
+ * POST /portal/me/invoices/:invoiceId/pay  (T5-9)
+ *
+ * A client holding a PIN session can settle their own bill without an
+ * account. That sounds like a widening and it is the opposite: the only
+ * thing this endpoint can do is send money TO us, for an amount this server
+ * decided, on an order the portal's project is already billed through.
+ *
+ * NO NEW PAYMENT CODE. It calls the same createMercadoPagoPreference the
+ * member pay card calls, with `userId` set to the project's owner — so the
+ * ownership check, the amount, the idempotency key and the webhook path are
+ * the ones already written and tested. What the portal cannot do is choose
+ * the order, the amount or the recipient.
+ *
+ * Three refusals, and each closes a different hole:
+ *   findForProject   an invoice from somebody else's project answers 404,
+ *                    identically to one that does not exist.
+ *   status           only issued/overdue. Paying a paid invoice twice is the
+ *                    single worst outcome available here.
+ *   order.status     the invoice may say issued while the order was already
+ *                    cancelled by the stale-order janitor; a preference for
+ *                    a cancelled order is a payment nobody will fulfil.
+ */
+const payInvoice = asyncHandler(async (req, res) => {
+  const invoice = await projectInvoices.findForProject(req.params.invoiceId, req.portal.projectId)
+  if (!invoice) {
+    return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Invoice not found" } })
+  }
+  if (!projectInvoices.UNPAID_STATUSES.includes(invoice.status)) {
+    return res.status(409).json({ success: false, error: { code: "INVOICE_NOT_PAYABLE", message: "This invoice is not awaiting payment" } })
+  }
+  const order = invoice.orderId
+    ? await prisma.order.findUnique({ where: { id: invoice.orderId }, select: { id: true, status: true } })
+    : null
+  if (!order || order.status !== "pending") {
+    return res.status(409).json({ success: false, error: { code: "INVOICE_NOT_PAYABLE", message: "This invoice is not awaiting payment" } })
+  }
+
+  const pref = await createMercadoPagoPreference({ orderId: order.id, userId: req.portal.userId })
+  const redirectUrl = pref?.initPoint || pref?.sandboxPoint
+  if (!redirectUrl) {
+    return res.status(502).json({ success: false, error: { code: "PAYMENT_UNAVAILABLE", message: "Could not start the payment" } })
+  }
+
+  projectInvoices.recordPaymentInitiated(order.id, { gateway: "mercadopago" }).catch(() => null)
+  res.status(200).json({ success: true, data: { redirectUrl } })
+})
+
+module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice, payInvoice, listEvents, listFileRequests,
   sendPinByCode, verifyByCode }

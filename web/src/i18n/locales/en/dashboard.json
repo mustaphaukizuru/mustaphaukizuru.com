@@ -1383,6 +1383,9 @@
       "overdue": "Overdue",
       "paid": "Paid",
       "void": "Void"
-    }
+    },
+    "payLabel": "Pay",
+    "payNamed": "Pay {{number}}",
+    "payError": "We could not start the payment. Please try again."
   }
 }

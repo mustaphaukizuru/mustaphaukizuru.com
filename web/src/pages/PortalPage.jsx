@@ -331,6 +331,7 @@ function PortalView({ project, t }) {
         <ProjectInvoices
           invoices={panels.invoices}
           billing={panels.billing}
+          onPay={panels.pay}
           loading={panels.loading}
         />
       </Section>

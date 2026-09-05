@@ -107,6 +107,16 @@ const EVENT_DEFINITIONS = {
   "invoice.issued": {
     title: "Invoice issued", titleEs: "Factura emitida", visibility: "client",
   },
+  // T5-9 · the client pressed pay and went to the gateway. Recorded because
+  // OXXO and SPEI are not instant: a client who paid at a shop on Friday and
+  // sees nothing on the tracker until Monday assumes it failed and pays
+  // twice. "Payment started" is the line that stops that call.
+  //
+  // Client visibility, like every other money row — a shared code must not
+  // tell a client's own staff what they are being charged.
+  "payment.initiated": {
+    title: "Payment started", titleEs: "Pago iniciado", visibility: "client",
+  },
   "invoice.paid": {
     title: "Payment received", titleEs: "Pago recibido", visibility: "client",
   },

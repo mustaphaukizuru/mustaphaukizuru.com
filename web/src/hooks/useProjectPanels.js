@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 
 import {
   fetchPortalEvents, fetchPortalFileRequests, fetchPortalInvoices, uploadPortalRequestFiles,
+  payPortalInvoice,
   fetchProjectEvents, fetchProjectFileRequests, fetchProjectInvoices, uploadAgainstRequest,
 } from "../services/trackingService"
 
@@ -78,5 +79,19 @@ export default function useProjectPanels(source, projectId) {
     [portal, projectId],
   )
 
-  return { ...state, reload: load, upload }
+  /**
+   * T5-9 · start a payment for one invoice.
+   *
+   * Only the portal needs a call here: a member is sent to the order page,
+   * which already has the pay card, the due date and the late fee, so there
+   * is no second implementation of "charge this person". The server says
+   * which of the two applies in `invoice.pay.mode`, for the same reason it
+   * says which download URL to use.
+   */
+  const pay = useCallback(
+    (invoiceId) => (portal ? payPortalInvoice(invoiceId) : Promise.resolve(null)),
+    [portal],
+  )
+
+  return { ...state, reload: load, upload, pay }
 }

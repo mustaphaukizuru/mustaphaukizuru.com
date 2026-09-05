@@ -7,13 +7,14 @@
  *          POST /logout             clear the cookie
  * Cookie:  GET  /me/project         read-only project (portalAuth)
  *          GET  /me/files/:fileId/download
+ *          POST /me/invoices/:id/pay   start a Mercado Pago payment
  *
  * `/me` is declared before `/:token` so it can never be read as a token.
  */
 const express = require("express")
 const c = require("../controllers/portalController")
 const { portalAuth } = require("../middleware/portalAuth")
-const { portalPinRateLimiter, portalVerifyRateLimiter, uploadRateLimiter } = require("../middleware/rateLimiter")
+const { portalPinRateLimiter, portalVerifyRateLimiter, uploadRateLimiter, paymentRateLimiter } = require("../middleware/rateLimiter")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
 
 /**
@@ -38,6 +39,12 @@ router.get ("/me/events",                  portalAuth, c.listEvents)
 router.get ("/me/file-requests",           portalAuth, c.listFileRequests)
 router.get ("/me/invoices",                portalAuth, c.listInvoices)
 router.get ("/me/invoices/:invoiceId/pdf", portalAuth, c.downloadInvoice)
+// T5-9 · the portal's second write, and the narrowest one: it can only
+// start a payment for an invoice on THIS portal's project, for an amount the
+// server decides. Same paymentRateLimiter as every other gateway call —
+// a preference is an outbound API request to Mercado Pago, and this door
+// opens with a six-digit PIN.
+router.post("/me/invoices/:invoiceId/pay", portalAuth, paymentRateLimiter, c.payInvoice)
 // T5-3 · the portal's first write. Order matters:
 //   portalAuth        → verifies mu_portal, populates req.portal
 //   projectIdForUpload → multer's destination reads req.params.id, which this

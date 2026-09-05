@@ -1383,6 +1383,9 @@
       "overdue": "Vencida",
       "paid": "Pagada",
       "void": "Anulada"
-    }
+    },
+    "payLabel": "Pagar",
+    "payNamed": "Pagar {{number}}",
+    "payError": "No pudimos iniciar el pago. Inténtalo de nuevo."
   }
 }

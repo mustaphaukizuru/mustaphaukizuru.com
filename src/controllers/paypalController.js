@@ -13,6 +13,7 @@ const {
 } = require("../services/paypalService")
 
 const { sendTemplateEmail } = require("../services/emailService")
+const { recordPaymentInitiated } = require("../services/projectInvoiceService")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const { notifyOrderPaid }   = require("../services/notificationService")
 const { fulfillOrder, recordOrderEvent } = require("../services/orderFulfillmentService")
@@ -70,6 +71,10 @@ const createOrder = asyncHandler(async (req, res) => {
     returnUrl,
     cancelUrl,
   })
+
+  // T5-9 · "Payment started" on the project timeline, if this order is
+  // billed through one.
+  recordPaymentInitiated(order.id, { gateway: "paypal" }).catch(() => null)
 
   return res.status(200).json({
     success: true,

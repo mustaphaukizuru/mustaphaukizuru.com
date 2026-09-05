@@ -112,6 +112,20 @@ export async function fetchPortalInvoices() {
   return { invoices: data?.invoices || [], billing: data?.billing || null }
 }
 
+/**
+ * T5-9 · start a Mercado Pago payment for one invoice from the PIN portal.
+ *
+ * The server picks the order and the amount; all this sends is which invoice.
+ * Returns the gateway URL to send the browser to.
+ */
+export async function payPortalInvoice(invoiceId) {
+  const data = stripData(await authFetch(
+    `/api/v1/portal/me/invoices/${encodeURIComponent(invoiceId)}/pay`,
+    { method: "POST", body: JSON.stringify({}) },
+  ))
+  return data?.redirectUrl || null
+}
+
 export async function uploadPortalRequestFiles(requestId, files) {
   const form = new FormData()
   for (const file of Array.from(files || [])) form.append("files", file)

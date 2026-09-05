@@ -1,7 +1,8 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Download, Receipt } from "lucide-react"
+import { CreditCard, Download, Loader2, Receipt } from "lucide-react"
 import { Badge, EmptyStateSurface, Spinner } from "../ui"
+import LocalizedLink from "../LocalizedLink"
 import { API_BASE_URL } from "../../lib/api"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -17,6 +18,12 @@ import { API_BASE_URL } from "../../lib/api"
  *  Amounts come from the invoice's own snapshot, so a refund on the order
  *  later does not change the total on a bill the client has already been
  *  sent.
+ *
+ *  T5-9 · it now also carries a way to PAY, and that comes from the server
+ *  too (`invoice.pay`), for exactly the same reason: a member goes to the
+ *  order page that already holds the pay card, a portal visitor has no
+ *  session for that page to read and gets an endpoint instead. Nothing here
+ *  decides an amount or a gateway.
  *  ──────────────────────────────────────────────────────────────────── */
 
 const STATUS_TONE = {
@@ -31,6 +38,7 @@ export default function ProjectInvoices({
   invoices = [],
   billing = null,
   loading = false,
+  onPay = null,
   className = "",
 }) {
   const { t, i18n } = useTranslation("dashboard")
@@ -100,6 +108,9 @@ export default function ProjectInvoices({
               <th scope="col" className="py-2 pe-3 text-end font-semibold">{t("invoices.total")}</th>
               <th scope="col" className="py-2 pe-3 text-start font-semibold">{t("invoices.statusLabel")}</th>
               <th scope="col" className="py-2 text-end font-semibold">
+                <span className="sr-only">{t("invoices.payLabel")}</span>
+              </th>
+              <th scope="col" className="py-2 text-end font-semibold">
                 <span className="sr-only">{t("invoices.download")}</span>
               </th>
             </tr>
@@ -125,6 +136,9 @@ export default function ProjectInvoices({
                   </Badge>
                 </td>
                 <td className="py-3 text-end">
+                  <PayAction invoice={invoice} onPay={onPay} t={t} />
+                </td>
+                <td className="py-3 text-end">
                   {invoice.downloadUrl ? (
                     <a
                       href={`${API_BASE_URL}${invoice.downloadUrl}`}
@@ -143,6 +157,68 @@ export default function ProjectInvoices({
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
+
+/* ── T5-9 · pay ──────────────────────────────────────────────────────────
+ *
+ * Two shapes because the two surfaces genuinely differ, and the server said
+ * which is which. The link needs no handler at all — that is the point of
+ * routing a member to the page that already pays invoices.
+ *
+ * The visible text names the invoice. "Pay" ×6 down a column is six
+ * identical links to a screen reader, and an aria-label does not satisfy
+ * Lighthouse's link-text rule either.
+ */
+function PayAction({ invoice, onPay, t }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState("")
+  const pay = invoice.pay
+  if (!pay) return null
+
+  if (pay.mode === "link") {
+    return (
+      <LocalizedLink
+        to={pay.url}
+        className="inline-flex items-center gap-1.5 text-meta font-semibold text-violet underline-offset-2 hover:underline"
+      >
+        <CreditCard className="size-4" aria-hidden="true" />
+        {t("invoices.payNamed", { number: invoice.invoiceNumber })}
+      </LocalizedLink>
+    )
+  }
+
+  const start = async () => {
+    if (busy || !onPay) return
+    setBusy(true); setError("")
+    try {
+      const url = await onPay(invoice.id)
+      if (!url) throw new Error(t("invoices.payError"))
+      // Leaving the app for the gateway, so `busy` is never cleared on the
+      // success path — the button must not flicker back to "Pay" while the
+      // browser is already navigating.
+      window.location.href = url
+    } catch (e) {
+      setError(e?.message || t("invoices.payError"))
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="inline-flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={start}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3 py-1.5 text-meta font-semibold text-white transition hover:bg-violet/90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
+      >
+        {busy
+          ? <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          : <CreditCard className="size-4" aria-hidden="true" />}
+        {t("invoices.payNamed", { number: invoice.invoiceNumber })}
+      </button>
+      {error ? <span role="alert" className="text-micro text-[var(--color-feedback-danger-text)]">{error}</span> : null}
     </div>
   )
 }

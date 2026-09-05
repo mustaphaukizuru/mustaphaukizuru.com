@@ -17,6 +17,7 @@
 
 const prisma = require("../lib/prisma")
 const { loadBillingLinks } = require("./projectPortalService")
+const projectEvents = require("./projectEventService")
 
 /** Unpaid, in the same sense as the handover gate uses. */
 const UNPAID_STATUSES = ["issued", "overdue"]
@@ -53,6 +54,19 @@ function serializeInvoice(invoice, { portal = false } = {}) {
     downloadUrl: portal
       ? `/api/v1/portal/me/invoices/${invoice.id}/pdf`
       : `/api/v1/orders/${invoice.orderId}/invoice.pdf`,
+    // T5-9 · how this bill gets paid, decided HERE for the same reason
+    // downloadUrl is: the two surfaces do not agree, and a component that
+    // guessed would be a second opinion on a question about money.
+    //
+    // A member is sent to the order page, which already carries the pay
+    // card, the due date and the late fee — no new payment code. A portal
+    // visitor has no session for that page to read, so they get an endpoint
+    // that mints the preference server-side.
+    pay: (UNPAID_STATUSES.includes(invoice.status) && invoice.orderId)
+      ? (portal
+        ? { mode: "api",  url: `/api/v1/portal/me/invoices/${invoice.id}/pay` }
+        : { mode: "link", url: `/dashboard/orders/${invoice.orderId}` })
+      : null,
   }
 }
 
@@ -119,8 +133,133 @@ async function findForProject(invoiceId, projectId) {
   return invoice
 }
 
+/**
+ * Which project an order is billed through, if any. (T5-9)
+ *
+ * The inverse of loadBillingLinks, and it has to look in two places because
+ * a project can be billed through two kinds of order: the service order it
+ * was sold under, and any order raised by an accepted change request. Both
+ * are the same project's money.
+ *
+ * Returns null and never throws — every caller is recording an event about
+ * something that has already happened, and an event that cannot be written
+ * must not undo it.
+ */
+async function projectIdForOrder(orderId) {
+  if (!orderId) return null
+  try {
+    const viaServiceOrder = await prisma.clientProject.findFirst({
+      where:  { serviceOrder: { orderId: String(orderId) } },
+      select: { id: true },
+    })
+    if (viaServiceOrder) return viaServiceOrder.id
+
+    const viaChangeRequest = await prisma.changeRequest.findFirst({
+      where:  { orderId: String(orderId) },
+      select: { projectId: true },
+    })
+    return viaChangeRequest?.projectId || null
+  } catch {
+    return null
+  }
+}
+
+/** Same, from an invoice — which may name the service order directly. */
+async function projectIdForInvoice(invoice) {
+  if (!invoice) return null
+  try {
+    if (invoice.serviceOrderId) {
+      const p = await prisma.clientProject.findFirst({
+        where:  { serviceOrderId: String(invoice.serviceOrderId) },
+        select: { id: true },
+      })
+      if (p) return p.id
+    }
+    return projectIdForOrder(invoice.orderId)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * "Payment started" on the project timeline. (T5-9)
+ *
+ * Called from every place a client can begin paying — the member pay card
+ * through Mercado Pago or PayPal, and the portal's own route — because the
+ * reason it exists is the same at all three: OXXO and SPEI are not instant,
+ * and a client who paid at a shop on Friday and sees nothing on the tracker
+ * until Monday assumes it failed and pays twice.
+ *
+ * Deduplicated within the window because a client who bounces off the
+ * gateway and comes back is one payment attempt, not four timeline rows.
+ * Best-effort throughout: the payment matters, the note about it does not.
+ */
+const PAYMENT_EVENT_DEDUPE_MS = 30 * 60 * 1000
+
+async function recordPaymentInitiated(orderId, { gateway = null } = {}) {
+  try {
+    const projectId = await projectIdForOrder(orderId)
+    if (!projectId) return null
+
+    const since = new Date(Date.now() - PAYMENT_EVENT_DEDUPE_MS)
+    const recent = await prisma.projectEvent.findFirst({
+      where:  { projectId, type: "payment.initiated", createdAt: { gte: since } },
+      select: { id: true },
+    })
+    if (recent) return null
+
+    const label = gateway === "paypal" ? "PayPal" : gateway === "mercadopago" ? "Mercado Pago" : null
+    return await projectEvents.record({
+      projectId,
+      type: "payment.initiated",
+      actorRole: "client",
+      ...(label ? { detail: label, detailEs: label } : {}),
+      refs: { orderId: String(orderId) },
+    })
+  } catch {
+    return null
+  }
+}
+
+/**
+ * A row on the project timeline for an invoice that just changed state.
+ *
+ * "invoice.paid" and "invoice.overdue" have both been in the event
+ * catalogue since T5-2 and neither was ever written, so the timeline said
+ * "Invoice issued" and then went quiet on the two lines a client most wants
+ * to see — including the one that says they owe money.
+ *
+ * Callers pass the invoice they just updated. Only ever on a real
+ * transition: every call site guards on an updateMany count, because an
+ * event is a record of something that happened.
+ */
+async function recordInvoiceEvent(invoice, type) {
+  try {
+    const projectId = await projectIdForInvoice(invoice)
+    if (!projectId) return null
+    return await projectEvents.record({
+      projectId,
+      type,
+      actorRole: "system",
+      detail:   invoice.invoiceNumber || undefined,
+      detailEs: invoice.invoiceNumber || undefined,
+      refs: { invoiceId: invoice.id },
+    })
+  } catch {
+    return null
+  }
+}
+
+const recordInvoicePaid    = (invoice) => recordInvoiceEvent(invoice, "invoice.paid")
+const recordInvoiceOverdue = (invoice) => recordInvoiceEvent(invoice, "invoice.overdue")
+
 module.exports = {
   UNPAID_STATUSES,
+  recordPaymentInitiated,
+  recordInvoicePaid,
+  recordInvoiceOverdue,
+  projectIdForOrder,
+  projectIdForInvoice,
   serializeInvoice,
   listForProject,
   findForProject,
