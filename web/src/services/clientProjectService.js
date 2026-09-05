@@ -370,3 +370,15 @@ export async function removeProjectMember(id, memberId) {
   const r = await authFetch(`${adminProject(id)}/members/${encodeURIComponent(memberId)}`, { method: "DELETE" })
   return stripData(r)
 }
+
+/**
+ * T5-19 · rebuild the handover pack.
+ *
+ * It is generated automatically the moment a project moves to handover, and
+ * that generation is fire-and-forget — so there has to be a way to run it
+ * again when it failed, or when a deliverable was added afterwards.
+ */
+export async function rebuildHandoverPack(id) {
+  const r = await authFetch(`${adminProject(id)}/handover-pack`, { method: "POST", body: "{}" })
+  return stripData(r)
+}

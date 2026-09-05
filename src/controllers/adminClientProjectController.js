@@ -6,6 +6,7 @@ const { sendProjectFile, resolveSafePath } = require("./clientProjectController"
 const { createComment, resolveComment, onMilestoneAwaitingClient } = require("../services/projectPortalService")
 const secretHandoff = require("../services/secretHandoffService")
 const projectMembers = require("../services/projectMemberService")
+const handoverPack = require("../services/handoverPackService")
 const { FILE_REQUEST_PRESETS } = require("../data/fileRequestPresets")
 const { mintPortalLink } = require("../services/portalAccessService")
 const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
@@ -500,6 +501,24 @@ const removeMember = asyncHandler(async (req, res) => {
   res.json({ success: true, data: await projectMembers.removeMember(req.params.id, req.params.memberId) })
 })
 
+/**
+ * POST /admin/client-projects/:id/handover-pack  (T5-19)
+ *
+ * Rebuild it on demand. The pack is generated automatically the moment a
+ * project moves to handover, and that generation is fire-and-forget — so
+ * there has to be a way to run it again when it failed, or when a
+ * deliverable was added afterwards.
+ *
+ * Each run is a NEW ProjectFile row rather than an overwrite: a client who
+ * already downloaded one should not find that the copy they were given has
+ * silently changed underneath its own checksums.
+ */
+const rebuildHandoverPack = asyncHandler(async (req, res) => {
+  const row = await handoverPack.buildHandoverPack(req.params.id, { createdById: req.user?.id || null })
+  if (!row) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Project not found" } })
+  res.status(201).json({ success: true, data: { id: row.id, fileName: row.fileName, fileSize: row.fileSize } })
+})
+
 module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
@@ -510,5 +529,6 @@ module.exports = {
   listFileRequests, addFileRequest, reviewFileRequest, listEvents,
   listFileRequestPresets, listSecrets, createSecret, revealSecret,
   listMembers, addMember, removeMember,
+  rebuildHandoverPack,
   getQueue,
 }

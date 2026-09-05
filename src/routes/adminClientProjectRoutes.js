@@ -9,6 +9,7 @@ const {
   listFileRequests, addFileRequest, reviewFileRequest, listEvents, getQueue,
   listFileRequestPresets, listSecrets, createSecret, revealSecret,
   listMembers, addMember, removeMember,
+  rebuildHandoverPack,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -55,6 +56,9 @@ router.post  ("/:id/secrets/:secretId/reveal",   revealSecret)
 router.get   ("/:id/members",                    listMembers)
 router.post  ("/:id/members",                    addMember)
 router.delete("/:id/members/:memberId",          removeMember)
+
+// T5-19 · the pack is built automatically at handover; this rebuilds it.
+router.post  ("/:id/handover-pack",              rebuildHandoverPack)
 router.delete("/:id/files/:fileId",         removeFile)
 router.get   ("/:id/files/:fileId/download", downloadFile)
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import {
-  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2, AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare, Link2, Copy, BookOpen, Receipt,
+  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2, AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare, Link2, Copy, BookOpen, Receipt, PackageCheck,
 } from "lucide-react"
 import {
   fetchAdminProject, updateAdminProject, createAdminProject, createAdminPortalLink, createAdminCaseStudyDraft,
@@ -10,6 +10,7 @@ import {
   postAdminProjectComment, toggleAdminCommentResolved,
   quoteChangeRequest, completeChangeRequest,
   fetchAdminProjectEvents,
+  rebuildHandoverPack,
 } from "../services/clientProjectService"
 // T5-5 · the operator half of the document requests, and the same
 // timeline component the client and /track see — at admin visibility.
@@ -48,6 +49,42 @@ const fileUrl = (projectId, file) =>
 
 const MILESTONE_ICON = { pending: Hourglass, in_progress: Clock, awaiting_client: Eye, approved: ThumbsUp, completed: CheckCircle2 }
 const SELECT_CLASS = "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-charcoal focus:border-violet focus:outline-none focus:ring-[3px] focus:ring-azure/30"
+
+/* ── T5-19 · rebuild the handover pack ───────────────────────────────── */
+function HandoverPackButton({ projectId }) {
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState("")
+  const { showSuccess, showError } = useToast()
+
+  const run = async () => {
+    setBusy(true)
+    setResult("")
+    try {
+      const out = await rebuildHandoverPack(projectId)
+      setResult(out?.fileName || "")
+      showSuccess("Handover pack built — it is in the client's deliverables.")
+    } catch (e) {
+      showError(e?.message || "Could not build the pack")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="shrink-0 text-end">
+      <button
+        type="button"
+        onClick={run}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 rounded-xl border border-violet/30 px-3 py-2 text-meta font-semibold text-violet hover:bg-violet-pale disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackageCheck className="h-4 w-4" />}
+        Build it now
+      </button>
+      {result ? <p className="mt-1 font-mono text-[11px] text-charcoal-80/65">{result}</p> : null}
+    </div>
+  )
+}
 
 export default function AdminClientProjectDetailPage() {
   const { id } = useParams()
@@ -463,6 +500,28 @@ export default function AdminClientProjectDetailPage() {
           </div>
           <div className="mt-4">
             <ProjectRequestsAdmin projectId={id} milestones={project.milestones || []} />
+          </div>
+        </div>
+      )}
+
+      {/* T5-19 · the handover pack. Built automatically the moment the
+          project moves to handover; this is the rerun for when it failed, or
+          when a deliverable arrived afterwards. Each run is a NEW file
+          rather than an overwrite — a client who already downloaded one
+          should not find their copy changed under its own checksums. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-card font-bold text-violet">Handover pack</h2>
+              <p className="mt-0.5 max-w-prose text-meta text-charcoal-80/65">
+                One ZIP with the full history as a PDF, every deliverable with a SHA-256, every
+                invoice, a runbook and a manifest. Attached as a deliverable, so the unpaid-invoice
+                gate applies to it. Credentials are never in it — those go through the read-once
+                handoff above.
+              </p>
+            </div>
+            <HandoverPackButton projectId={id} />
           </div>
         </div>
       )}

@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const logger = require("../utils/logger")
 const { withUniqueTrackingCode } = require("../utils/trackingCode")
 const projectEvents = require("./projectEventService")
 const { isMeaningfulReschedule } = require("./projectHealthService")
@@ -184,6 +185,13 @@ async function updateAdminProject(id, data) {
   // The handover gate is its own moment in the story, separate from status.
   if ("accessState" in data && patch.accessState === "handover") {
     await projectEvents.record({ projectId: updated.id, type: "project.handover", actorRole: "admin" })
+    // T5-19 · and the pack, which is the point of the moment. Fire and
+    // forget: building a ZIP takes seconds and the admin's save must not
+    // wait on it, and a failed pack must never undo a handover that has
+    // already been recorded and emailed. It is rebuildable on demand.
+    require("./handoverPackService")
+      .buildHandoverPack(updated.id)
+      .catch((e) => logger.error(`[handover] pack failed for ${updated.id}: ${e.message}`))
   }
 
   return updated
