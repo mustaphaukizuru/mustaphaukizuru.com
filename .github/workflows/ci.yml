@@ -96,6 +96,24 @@ jobs:
       # without turning the build red. Measured at the switch: statements
       # 56.9%, branches 41.9%, functions 48.2% — comfortably clear. This branch
       # additionally ratchets per-path thresholds over the money paths.
+      # The backend suite covers two FRONTEND build scripts —
+      # catalogueGenerator.test.js and sitemapStatic.test.js shell out to
+      # web/scripts/generate-service-catalog.mjs and generate-sitemap.mjs,
+      # which import web/src/data/servicesCatalogue.js, which imports
+      # lucide-react because the catalogue carries Icon components in its
+      # data. Without web/ installed those two files fail with
+      # ERR_MODULE_NOT_FOUND — invisible locally, where web/node_modules
+      # always exists.
+      #
+      # The real fix is to split that 1,100-line module into pure data and a
+      # separate icon map, so a build script never pulls a React icon
+      # library. That is a 27-consumer change and does not belong in a CI
+      # repair; installing web/ here is the honest interim, and the cost is
+      # one cached npm ci.
+      - name: Install web dependencies (two backend tests drive web/ scripts)
+        working-directory: web
+        run: npm ci
+
       - name: Run backend tests (with coverage gate)
         run: npm run test:coverage
         env:
@@ -187,8 +205,20 @@ jobs:
       - name: Drift check (base database vs PR schema)
         run: node scripts/check-db-drift.js
 
+      # `--accept-data-loss` here is safe BECAUSE the drift check above ran
+      # first and exits 2 on anything that would be dropped. Prisma refuses
+      # without the flag on any warning, and one of those warnings is "a
+      # unique constraint will be added" — which this PR does, on
+      # ClientProject.trackingCode. That is an ADD, not a drop, and the base
+      # step on line 184 already passes the same flag for the same reason.
+      #
+      # Verified against real rows rather than assumed: a scratch MySQL with
+      # the base schema and three ClientProject rows, then this push. All
+      # three survived with trackingCode NULL, the unique index applied, and
+      # MySQL permits multiple NULLs under it — which is why a new nullable
+      # unique column cannot collide on existing data.
       - name: Push the PR schema
-        run: npx prisma db push --skip-generate
+        run: npx prisma db push --skip-generate --accept-data-loss
 
       # Query plans on an empty database are not the production plans; this
       # is advisory until the seeded `real` lane (T3-4) gives it rows.

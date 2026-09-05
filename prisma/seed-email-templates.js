@@ -34,10 +34,6 @@ const prisma = require("../src/lib/prisma")
 
 const { assertLocalDatabase } = require("../scripts/guard-prod-db")
 
-// The npm wrapper runs this guard too, but `node prisma/seed-email-templates.js` skips
-// the wrapper entirely — and that is a normal thing to type. Guarding in here
-// as well means the check follows the script, not the way it was invoked.
-assertLocalDatabase("seed-email-templates.js")
 
 /* ─────────────────────────── shared chrome ─────────────────────────────── */
 
@@ -2653,8 +2649,17 @@ async function main() {
  * file and check the two arrays against each other. Without it, importing the
  * seed opens a database connection and writes to it — which is not a thing a
  * unit test may do, and is the reason there was no test here before.
+ *
+ * `assertLocalDatabase` lives IN here for the same reason, and it did not
+ * used to. It ran at module scope, so merely importing this file for its
+ * TEMPLATES arrays threw `DATABASE_URL is not set` — invisible locally, where
+ * .env supplies one, and red in CI, where ci.yml deliberately ships no env
+ * files. Three test files went down on it. The guard protects RUNNING the
+ * seed, not reading its data: `node prisma/seed-email-templates.js` still
+ * hits it, which is the case the comment it replaced was written for.
  */
 if (require.main === module) {
+  assertLocalDatabase("seed-email-templates.js")
   main()
     .catch((e) => { console.error(e); process.exit(1) })
     .finally(async () => { await prisma.$disconnect() })
