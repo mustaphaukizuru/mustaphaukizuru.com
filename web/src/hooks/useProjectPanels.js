@@ -6,6 +6,7 @@ import {
   fetchProjectEvents, fetchProjectFileRequests, fetchProjectInvoices, uploadAgainstRequest,
   fetchPortalSecrets, createPortalSecret, revealPortalSecret,
   fetchProjectSecrets, createProjectSecret, revealProjectSecret,
+  fetchPortalHours, fetchProjectHours,
 } from "../services/trackingService"
 
 /**
@@ -33,6 +34,7 @@ export default function useProjectPanels(source, projectId) {
     requests: [],
     invoices: [],
     secrets: [],
+    hours: null,
     billing: null,
     loading: true,
     error: null,
@@ -44,19 +46,24 @@ export default function useProjectPanels(source, projectId) {
       // In parallel and settled rather than raced: one panel failing (an
       // expired portal cookie mid-session, say) should not blank the other
       // two. Each falls back to empty and the page still renders.
-      const [events, requests, invoices, secrets] = await Promise.all([
+      const [events, requests, invoices, secrets, hours] = await Promise.all([
         (portal ? fetchPortalEvents() : fetchProjectEvents(projectId)).catch(() => []),
         (portal ? fetchPortalFileRequests() : fetchProjectFileRequests(projectId)).catch(() => []),
         (portal ? fetchPortalInvoices() : fetchProjectInvoices(projectId))
           .catch(() => ({ invoices: [], billing: null })),
         // T5-13 · metadata only; a value only ever comes back from reveal.
         (portal ? fetchPortalSecrets() : fetchProjectSecrets(projectId)).catch(() => []),
+        // T5-18 · null on failure, not an empty ledger: "no hours" and "we
+        // could not load them" must not look the same to a client counting
+        // what they paid for.
+        (portal ? fetchPortalHours() : fetchProjectHours(projectId)).catch(() => null),
       ])
       setState({
         events,
         requests,
         invoices: invoices.invoices,
         secrets,
+        hours,
         billing: invoices.billing,
         loading: false,
         error: null,

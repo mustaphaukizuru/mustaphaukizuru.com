@@ -10,6 +10,7 @@ const {
   listFileRequestPresets, listSecrets, createSecret, revealSecret,
   listMembers, addMember, removeMember,
   rebuildHandoverPack,
+  listProjectTime, logProjectTime, deleteProjectTime, projectTimeStatement,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -59,6 +60,14 @@ router.delete("/:id/members/:memberId",          removeMember)
 
 // T5-19 · the pack is built automatically at handover; this rebuilds it.
 router.post  ("/:id/handover-pack",              rebuildHandoverPack)
+
+// T5-18 · hours against a monthly allowance. `:month` is YYYY-MM and the
+// statement route is declared before the bare /time so it cannot be read
+// as an entry id.
+router.get   ("/:id/time",                       listProjectTime)
+router.post  ("/:id/time",                       logProjectTime)
+router.get   ("/:id/time/:month/statement.pdf",  projectTimeStatement)
+router.delete("/:id/time/:entryId",              deleteProjectTime)
 router.delete("/:id/files/:fileId",         removeFile)
 router.get   ("/:id/files/:fileId/download", downloadFile)
 

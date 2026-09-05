@@ -98,6 +98,14 @@ const EVENT_DEFINITIONS = {
   "invoice.viewed": {
     title: "Invoice opened", titleEs: "Factura abierta", visibility: "admin",
   },
+  // T5-18 · hours were logged. Recorded once a DAY at most, not once per
+  // entry: an operator logging six entries on a Friday afternoon should not
+  // produce six timeline rows saying the same thing. It carries no number —
+  // the ledger is where the detail belongs, and a total on a page anyone
+  // with a shared code could open is money.
+  "project.hours_logged": {
+    title: "Time logged", titleEs: "Horas registradas", visibility: "client",
+  },
   // T5-13 · the credential handoff. The LABEL only, and that is not a
   // detail: this table is designed to be read by both parties and kept for
   // the life of the project, which is the last place a password belongs.

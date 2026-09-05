@@ -6,6 +6,7 @@ const projectInvoices = require("../services/projectInvoiceService")
 const readReceipts = require("../services/readReceiptService")
 const projectEvents = require("../services/projectEventService")
 const secretHandoff = require("../services/secretHandoffService")
+const projectTime = require("../services/projectTimeService")
 const fileRequests = require("../services/projectFileRequestService")
 const { invoicePathFor } = require("../services/invoiceService")
 const {
@@ -304,5 +305,22 @@ const revealSecret = asyncHandler(async (req, res) => {
   }
 })
 
-module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice, payInvoice, listSecrets, createSecret, revealSecret, listEvents, listFileRequests,
+/* ── T5-18 · the hours ledger, from a PIN session ──────────────────────── */
+
+const listTime = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await projectTime.ledgerFor(req.portal.projectId, { locale: resolveUserLocale({ req }) }) })
+})
+
+const timeStatement = asyncHandler(async (req, res) => {
+  const out = await projectTime.buildMonthlyStatement(req.portal.projectId, req.params.month, {
+    locale: resolveUserLocale({ req }),
+  })
+  if (!out) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "No statement for that month" } })
+  res.setHeader("Content-Type", "application/pdf")
+  res.setHeader("Content-Disposition", `attachment; filename="hours-${req.params.month}.pdf"`)
+  res.setHeader("Cache-Control", "private, no-store")
+  res.send(out.buffer)
+})
+
+module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice, payInvoice, listTime, timeStatement, listSecrets, createSecret, revealSecret, listEvents, listFileRequests,
   sendPinByCode, verifyByCode }

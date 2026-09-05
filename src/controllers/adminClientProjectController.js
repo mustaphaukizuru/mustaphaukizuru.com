@@ -7,6 +7,7 @@ const { createComment, resolveComment, onMilestoneAwaitingClient } = require("..
 const secretHandoff = require("../services/secretHandoffService")
 const projectMembers = require("../services/projectMemberService")
 const handoverPack = require("../services/handoverPackService")
+const projectTime = require("../services/projectTimeService")
 const { FILE_REQUEST_PRESETS } = require("../data/fileRequestPresets")
 const { mintPortalLink } = require("../services/portalAccessService")
 const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
@@ -519,6 +520,34 @@ const rebuildHandoverPack = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, data: { id: row.id, fileName: row.fileName, fileSize: row.fileSize } })
 })
 
+/* ── T5-18 · hours against a retainer ──────────────────────────────────── */
+
+/** GET /admin/client-projects/:id/time?months=6 */
+const listProjectTime = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await projectTime.ledgerFor(req.params.id, { months: req.query?.months }) })
+})
+
+/** POST /admin/client-projects/:id/time */
+const logProjectTime = asyncHandler(async (req, res) => {
+  const { entry } = await projectTime.logTime(req.params.id, req.body, { createdById: req.user?.id || null })
+  res.status(201).json({ success: true, data: entry })
+})
+
+/** DELETE /admin/client-projects/:id/time/:entryId */
+const deleteProjectTime = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await projectTime.removeEntry(req.params.id, req.params.entryId) })
+})
+
+/** GET /admin/client-projects/:id/time/:month/statement.pdf */
+const projectTimeStatement = asyncHandler(async (req, res) => {
+  const out = await projectTime.buildMonthlyStatement(req.params.id, req.params.month, { locale: resolveUserLocale({ req }) })
+  if (!out) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "No statement for that month" } })
+  res.setHeader("Content-Type", "application/pdf")
+  res.setHeader("Content-Disposition", `attachment; filename="hours-${req.params.month}.pdf"`)
+  res.setHeader("Cache-Control", "private, no-store")
+  res.send(out.buffer)
+})
+
 module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
@@ -530,5 +559,6 @@ module.exports = {
   listFileRequestPresets, listSecrets, createSecret, revealSecret,
   listMembers, addMember, removeMember,
   rebuildHandoverPack,
+  listProjectTime, logProjectTime, deleteProjectTime, projectTimeStatement,
   getQueue,
 }

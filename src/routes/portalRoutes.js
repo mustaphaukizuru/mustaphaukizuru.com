@@ -51,6 +51,10 @@ router.post("/me/invoices/:invoiceId/pay", portalAuth, paymentRateLimiter, c.pay
 router.get ("/me/secrets",                        portalAuth, c.listSecrets)
 router.post("/me/secrets",                        portalAuth, c.createSecret)
 router.post("/me/secrets/:secretId/reveal",       portalAuth, c.revealSecret)
+// T5-18 · the same ledger a signed-in client sees. Read-only on this
+// surface: logging time is an operator action and always was.
+router.get ("/me/time",                           portalAuth, c.listTime)
+router.get ("/me/time/:month/statement.pdf",      portalAuth, c.timeStatement)
 // T5-3 · the portal's first write. Order matters:
 //   portalAuth        → verifies mu_portal, populates req.portal
 //   projectIdForUpload → multer's destination reads req.params.id, which this

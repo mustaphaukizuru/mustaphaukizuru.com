@@ -19,6 +19,8 @@ import ProjectRequestsAdmin from "../components/admin/ProjectRequestsAdmin"
 import ProjectSecretsAdmin from "../components/admin/ProjectSecretsAdmin"
 // T5-17 · a school has a director who approves and an IT person who uploads.
 import ProjectMembersAdmin from "../components/admin/ProjectMembersAdmin"
+// T5-18 · hours against a retainer's monthly allowance.
+import ProjectTimeAdmin from "../components/admin/ProjectTimeAdmin"
 import ProjectTimeline from "../components/projects/ProjectTimeline"
 import { useToast } from "../context/ToastContext"
 import { SkeletonCard, Checkbox } from "../components/ui/index"
@@ -500,6 +502,24 @@ export default function AdminClientProjectDetailPage() {
           </div>
           <div className="mt-4">
             <ProjectRequestsAdmin projectId={id} milestones={project.milestones || []} />
+          </div>
+        </div>
+      )}
+
+      {/* T5-18 · hours against the plan's monthly allowance. Shown for every
+          project: a project that turns out to have hours logged on it is one
+          the client can now see, and hiding the form until somebody proves
+          the project is a retainer is a chicken-and-egg. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">Hours</h2>
+          <p className="mt-0.5 max-w-prose text-meta text-charcoal-80/65">
+            The client sees this month by month against the plan&apos;s allowance, and can download a
+            statement per month. Non-billable time is shown to them and does not count against the
+            allowance.
+          </p>
+          <div className="mt-4">
+            <ProjectTimeAdmin projectId={id} milestones={project.milestones || []} />
           </div>
         </div>
       )}

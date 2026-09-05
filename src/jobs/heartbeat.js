@@ -42,6 +42,8 @@ const JOB_INTERVALS = Object.freeze({
   // stale. A weekly job checked against a daily allowance would alert every
   // Tuesday.
   weeklyDigest:          7 * DAY,
+  // T5-18 · monthly, so the dead-man window is a generous month and a bit.
+  monthlyStatement:      35 * DAY,
   reviewFollowUp:        DAY,
 })
 

@@ -17,6 +17,7 @@ import ProjectTimeline from "../components/projects/ProjectTimeline"
 import FileRequestPanel from "../components/projects/FileRequestPanel"
 import ProjectInvoices from "../components/projects/ProjectInvoices"
 import SecretsPanel from "../components/projects/SecretsPanel"
+import HoursLedger from "../components/projects/HoursLedger"
 import useProjectPanels from "../hooks/useProjectPanels"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
@@ -336,6 +337,12 @@ function PortalView({ project, t }) {
           loading={panels.loading}
         />
       </Section>
+
+      {(panels.hours?.allowance || panels.hours?.months?.some((m) => m.entries.length > 0)) ? (
+        <Section title={t("projects.hours.title")}>
+          <HoursLedger ledger={panels.hours} portal loading={panels.loading} />
+        </Section>
+      ) : null}
 
       {/* T5-13 · this is the surface the credential handoff exists for: a
           client with no account, on a forwarded link, who has been asked for

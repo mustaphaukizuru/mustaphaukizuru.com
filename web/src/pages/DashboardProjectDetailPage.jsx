@@ -24,6 +24,7 @@ import ProjectTimeline from "../components/projects/ProjectTimeline"
 import FileRequestPanel from "../components/projects/FileRequestPanel"
 import ProjectInvoices from "../components/projects/ProjectInvoices"
 import SecretsPanel from "../components/projects/SecretsPanel"
+import HoursLedger from "../components/projects/HoursLedger"
 import useProjectPanels from "../hooks/useProjectPanels"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
@@ -394,6 +395,17 @@ export default function DashboardProjectDetailPage() {
           loading={panels.loading}
         />
       </SectionBlock>
+
+      {/* T5-18 · hours against the plan's monthly allowance. Rendered only
+          when there is something to say: a project that is not a retainer and
+          has no logged time gets no empty panel. */}
+      {(panels.hours?.allowance || panels.hours?.months?.some((m) => m.entries.length > 0)) ? (
+        <SectionBlock title={t("projects.hours.title")}>
+          <div className={CARD}>
+            <HoursLedger ledger={panels.hours} projectId={project.id} loading={panels.loading} />
+          </div>
+        </SectionBlock>
+      ) : null}
 
       {/* T5-13 · credentials never travel as files. Read once, then the
           server destroys its copy. */}

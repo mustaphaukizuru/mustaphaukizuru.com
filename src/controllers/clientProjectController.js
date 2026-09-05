@@ -5,6 +5,7 @@ const readReceipts = require("../services/readReceiptService")
 const projectInvoices = require("../services/projectInvoiceService")
 const fileRequests = require("../services/projectFileRequestService")
 const secretHandoff = require("../services/secretHandoffService")
+const projectTime = require("../services/projectTimeService")
 const projectEvents = require("../services/projectEventService")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
@@ -493,11 +494,53 @@ const revealSecret = asyncHandler(async (req, res) => {
   }
 })
 
+/* ── T5-18 · the hours ledger, client side ─────────────────────────────── */
+
+/** GET /member/projects/:id/time */
+const listTime = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const locale = resolveUserLocale({ req, user: req.user })
+    res.json({ success: true, data: await projectTime.ledgerFor(req.params.id, { locale }) })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/**
+ * GET /member/projects/:id/time/:month/statement.pdf
+ *
+ * Generated on request rather than stored. A statement is a rendering of
+ * rows that already exist, and keeping a copy on disk would mean two answers
+ * to "how many hours did we use in September" the first time an entry was
+ * corrected.
+ */
+const timeStatement = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const out = await projectTime.buildMonthlyStatement(req.params.id, req.params.month, {
+      locale: resolveUserLocale({ req, user: req.user }),
+    })
+    if (!out) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "No statement for that month" } })
+    res.setHeader("Content-Type", "application/pdf")
+    res.setHeader("Content-Disposition", `attachment; filename="hours-${req.params.month}.pdf"`)
+    res.setHeader("Cache-Control", "private, no-store")
+    res.send(out.buffer)
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
 module.exports = {
   listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
   listInvoices, listEvents, listFileRequests,
   listSecrets, createSecret, revealSecret,
+  listTime, timeStatement,
   listTickets, getTicket, createTicket, replyTicket,
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
 }

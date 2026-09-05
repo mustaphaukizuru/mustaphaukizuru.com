@@ -547,6 +547,39 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // 4f · The retainer month, closed (T5-18)
+  //
+  // Sent on the 1st for the month that just ended. It leads with the number
+  // the client actually wants — hours used against hours included — because
+  // that is the whole reason a retainer client opens anything from us.
+  {
+    key: "project.monthly-statement",
+    subject: "{{monthLabel}} on {{projectName}} — {{usedHours}} h used",
+    html: chrome({
+      preheader: "Your hours for the month, and what is left.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`{{monthLabel}} on {{projectName}}`) +
+        paragraph(`{{summaryLine}}`) +
+        calloutCard(`{{detailHtml}}`) +
+        paragraph(`The full month, entry by entry, is in the statement — and the ledger on the project always shows the current month as it goes, so nothing here should be a surprise.`) +
+        button("{{ledgerUrl}}", "Open the hours ledger"),
+    }),
+    text: [
+      "{{monthLabel}} on {{projectName}} ({{trackingCode}})",
+      "",
+      "{{summaryLine}}",
+      "",
+      "{{detailText}}",
+      "",
+      "The hours ledger:",
+      "  {{ledgerUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+
   // 5 · Support reply
   {
     key: "support.reply",
@@ -1762,6 +1795,35 @@ const TEMPLATES_ES = [
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),
   },
+
+  // project.monthly-statement
+  {
+    key: "project.monthly-statement",
+    subject: "{{monthLabel}} en {{projectName}} — {{usedHours}} h usadas",
+    html: chrome({
+      preheader: "Tus horas del mes y lo que queda.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`{{monthLabel}} en {{projectName}}`) +
+        paragraph(`{{summaryLine}}`) +
+        calloutCard(`{{detailHtml}}`) +
+        paragraph(`El mes completo, entrada por entrada, viene en el estado de cuenta — y el registro del proyecto muestra el mes en curso conforme avanza, así que nada de esto debería sorprenderte.`) +
+        button("{{ledgerUrl}}", "Abrir el registro de horas"),
+    }),
+    text: [
+      "{{monthLabel}} en {{projectName}} ({{trackingCode}})",
+      "",
+      "{{summaryLine}}",
+      "",
+      "{{detailText}}",
+      "",
+      "El registro de horas:",
+      "  {{ledgerUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
 
   // support.reply
   {

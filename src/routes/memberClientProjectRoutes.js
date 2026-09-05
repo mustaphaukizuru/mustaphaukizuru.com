@@ -6,6 +6,7 @@ const {
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
   listInvoices, listEvents, listFileRequests,
   listSecrets, createSecret, revealSecret,
+  listTime, timeStatement,
 } = require("../controllers/clientProjectController")
 const { protect } = require("../middleware/authMiddleware")
 const { uploadRateLimiter, ticketRateLimiter } = require("../middleware/rateLimiter")
@@ -34,6 +35,12 @@ router.get("/:id/file-requests",          listFileRequests)
 router.get ("/:id/secrets",                       listSecrets)
 router.post("/:id/secrets",                       createSecret)
 router.post("/:id/secrets/:secretId/reveal",      revealSecret)
+
+// T5-18 · hours against the plan's monthly allowance. The statement is
+// rendered on request, not stored: a stored copy would be a second answer to
+// "how many hours in September" the first time an entry was corrected.
+router.get ("/:id/time",                          listTime)
+router.get ("/:id/time/:month/statement.pdf",     timeStatement)
 
 // ── Tier 2 · client collaboration (ownership + lifecycle checked in service) ──
 router.post("/:id/files",                                  uploadRateLimiter, uploadProjectFile.many, uploadFiles)

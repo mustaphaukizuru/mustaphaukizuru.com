@@ -54,7 +54,7 @@ test("every registered job has an expected interval", () => {
   expect(Object.keys(JOB_INTERVALS).sort()).toEqual([
     "abandonedCart", "aggregateDailyMetrics", "bookingReminders", "campaignSender", "cancelStaleOrders",
     "databaseBackup", "emailRetry", "fileRequestReminders", "fulfillmentReconcile", "invoiceDunning",
-    "projectPurge", "retention", "reviewFollowUp", "weeklyDigest",
+    "monthlyStatement", "projectPurge", "retention", "reviewFollowUp", "weeklyDigest",
   ])
 })
 

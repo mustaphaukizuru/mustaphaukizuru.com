@@ -161,3 +161,12 @@ export async function revealProjectSecret(projectId, secretId) {
 export async function revealPortalSecret(secretId) {
   return stripData(await authFetch(`/api/v1/portal/me/secrets/${encodeURIComponent(secretId)}/reveal`, { method: "POST", body: "{}" }))
 }
+
+/* ── T5-18 · the hours ledger, on both surfaces ──────────────────────── */
+
+export async function fetchProjectHours(projectId) {
+  return stripData(await authFetch(memberPath(projectId, "/time")))
+}
+export async function fetchPortalHours() {
+  return stripData(await authFetch("/api/v1/portal/me/time"))
+}

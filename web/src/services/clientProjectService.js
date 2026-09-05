@@ -1,4 +1,4 @@
-import { authFetch } from "../lib/api"
+import { authFetch, API_BASE_URL } from "../lib/api"
 
 // ─────────────────────────────────────────────────────────────
 // Client Project Service · member + admin
@@ -381,4 +381,31 @@ export async function removeProjectMember(id, memberId) {
 export async function rebuildHandoverPack(id) {
   const r = await authFetch(`${adminProject(id)}/handover-pack`, { method: "POST", body: "{}" })
   return stripData(r)
+}
+
+/* ── T5-18 · hours against a retainer, admin side ────────────────────── */
+
+export async function fetchAdminProjectTime(id) {
+  const r = await authFetch(`${adminProject(id)}/time`)
+  return stripData(r)
+}
+
+/** Minutes, never decimal hours — the form converts and the server stores. */
+export async function logAdminProjectTime(id, body) {
+  const r = await authFetch(`${adminProject(id)}/time`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+export async function deleteAdminProjectTime(id, entryId) {
+  const r = await authFetch(`${adminProject(id)}/time/${encodeURIComponent(entryId)}`, { method: "DELETE" })
+  return stripData(r)
+}
+
+/**
+ * A plain link, not a fetch: the PDF is streamed through a cookie-session
+ * route, so an anchor works and a blob round trip would only add a step.
+ */
+export function adminTimeStatementUrl(id, month) {
+  const root = (API_BASE_URL || "").replace(/\/$/, "")
+  return `${root}${adminProject(id)}/time/${encodeURIComponent(month)}/statement.pdf`
 }

@@ -35,6 +35,7 @@ const PROJECT_TEMPLATES = [
   "project.file-received",
   "project.status-update",
   "project.weekly-digest",
+  "project.monthly-statement",
 ]
 
 function frontendBase() {
@@ -537,6 +538,77 @@ async function sendStatusUpdate({ project, status, locale }) {
   })
 }
 
+/**
+ * T5-18 · the retainer month, closed.
+ *
+ * Sent on the 1st for the month that just ended, and only when there is
+ * something to report: a month with no hours on a project with no allowance
+ * is an email that says nothing, and the fastest way to teach somebody to
+ * ignore us.
+ *
+ * It leads with the number the client actually wants — used against
+ * included — because that is the whole reason a retainer client opens
+ * anything from us.
+ */
+async function sendMonthlyStatement({ project, month, allowance, locale }) {
+  const user = await clientFor(project.userId)
+  if (!user?.email) return false
+  const lc = localeFor(user, locale)
+  const es = ES(lc)
+
+  const used = month.usedHours
+  const included = month.includedHours
+
+  // Formatted HERE, in the reader's language — the job does not know it, and
+  // a month name is the one thing in this email a Spanish reader would
+  // notice arriving in English.
+  const monthLabel = new Intl.DateTimeFormat(es ? "es-MX" : "en-US", { month: "long", year: "numeric", timeZone: "UTC" })
+    .format(new Date(`${month.month}-01T12:00:00Z`))
+
+  let summaryLine
+  if (included == null) {
+    summaryLine = es
+      ? `Registramos ${used} h en ${project.projectName} el mes pasado.`
+      : `We logged ${used} h on ${project.projectName} last month.`
+  } else if (month.overHours > 0) {
+    summaryLine = es
+      ? `Usaste ${used} h de las ${included} h incluidas — ${month.overHours} h por encima del plan.`
+      : `You used ${used} h of the ${included} h included — ${month.overHours} h over the plan.`
+  } else {
+    summaryLine = es
+      ? `Usaste ${used} h de las ${included} h incluidas. Quedaron ${month.remainingHours} h sin usar.`
+      : `You used ${used} h of the ${included} h included. ${month.remainingHours} h went unused.`
+  }
+
+  // The five biggest entries, not all of them: the statement in the ledger
+  // is where the full list belongs, and a forty-line email is a scroll
+  // nobody performs.
+  const top = [...(month.entries || [])].sort((a, b) => b.minutes - a.minutes).slice(0, 5)
+  const detailLines = top.map((e) => `${e.hours} h · ${e.note || (es ? "Trabajo del proyecto" : "Project work")}`)
+  if (!detailLines.length) {
+    detailLines.push(es ? "No se registraron horas este mes." : "No hours were logged this month.")
+  }
+
+  const base = frontendBase()
+  return send({
+    project,
+    templateKey: "project.monthly-statement",
+    to: user.email,
+    userId: project.userId,
+    locale: lc,
+    variables: {
+      monthLabel: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
+      usedHours: String(used),
+      summaryLine,
+      // *Html because it carries markup; every value inside is escaped.
+      detailHtml: detailLines.map((l) => escapeHtml(l)).join("<br>"),
+      detailText: detailLines.map((l) => `  · ${l}`).join("\n"),
+      ledgerUrl: `${base}/dashboard/projects/${project.id}`,
+      planName: allowance ? (es && allowance.packageNameEs) || allowance.packageName : "",
+    },
+  })
+}
+
 module.exports = {
   PROJECT_TEMPLATES,
   send,
@@ -550,4 +622,5 @@ module.exports = {
   sendFileReceived,
   sendStatusUpdate,
   sendWeeklyDigest,
+  sendMonthlyStatement,
 }

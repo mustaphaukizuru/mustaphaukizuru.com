@@ -317,6 +317,7 @@ model User {
   assignedConsultations  Consultation[]   @relation("AssignedConsultations")
   clientProjects         ClientProject[]  @relation("UserClientProjects")
   assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
+  loggedTimeEntries     ProjectTimeEntry[] @relation("LoggedTimeEntries")
   projectMemberships    ProjectMember[]  @relation("ProjectMemberships")
   createdSecretHandoffs SecretHandoff[]  @relation("CreatedSecretHandoffs")
   requestedFileRequests  ProjectFileRequest[] @relation("RequestedFileRequests")
@@ -874,6 +875,16 @@ model ServicePackage {
   /// saveLabel: small chip e.g. "Save 20%" / "All-inclusive"
   tierKey   String? @db.VarChar(32)
   period    String? @db.VarChar(32)
+  /// T5-18 · the monthly allowance for a retainer ("iguala mensual"), in
+  /// whole hours. Null for everything that is not a retainer, which is most
+  /// packages — a ledger with no allowance still shows the hours, it just
+  /// has nothing to show them against.
+  ///
+  /// It lives HERE because ServicePackage is already the row the database
+  /// treats as the price source of truth, and an allowance is part of what
+  /// was bought. If T2-11 lands on the two-retainer-offerings option, this
+  /// column moves with the price it belongs to.
+  includedHoursPerMonth Int?
   popular   Boolean @default(false)
   saveLabel String? @db.VarChar(64)
 
@@ -1491,6 +1502,7 @@ model ClientProject {
   comments      ProjectComment[]
   tickets       SupportTicket[]
   agreements    ProjectAgreement[]
+  timeEntries    ProjectTimeEntry[]
   members        ProjectMember[]
   secretHandoffs SecretHandoff[]
   reviews       Review[]
@@ -1640,6 +1652,43 @@ model SecretHandoff {
 /// exists; `userId` is filled in when they sign in with that address, and
 /// until then they reach the project through the tracking code and a PIN
 /// sent to their own inbox (T5-8).
+/// T5-18 · time logged against a retainer project.
+///
+/// Retainer clients ("iguala mensual") were buying a number of hours a month
+/// and had no way to see how many were left. The answer lived in the
+/// operator's head, which means the client either over-asks and is
+/// surprised by an invoice, or under-asks and quietly wastes what they paid
+/// for. Both are worse than a number on a page.
+///
+/// Entries are the raw record, in MINUTES: an hour-and-a-half logged as 1.5
+/// is a rounding argument waiting to happen, and minutes make the month
+/// total exact.
+model ProjectTimeEntry {
+  id          String    @id @default(cuid())
+  projectId   String
+  /// The day the work happened, not the day it was typed in. Backdating is
+  /// normal and the ledger has to be right about the month.
+  date        DateTime
+  minutes     Int
+  note        String?   @db.Text
+  noteEs      String?   @db.Text
+  milestoneId String?
+  /// Non-billable time is still shown — a client seeing "we spent two hours
+  /// on this and did not charge you" is the point of showing it at all —
+  /// but it does not count against the allowance.
+  billable    Boolean   @default(true)
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project   ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  createdBy User?             @relation("LoggedTimeEntries", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([projectId, date])
+  @@index([milestoneId])
+}
+
 model ProjectMember {
   id         String    @id @default(cuid())
   projectId  String
@@ -1701,6 +1750,7 @@ model ProjectMilestone {
   files    ProjectFile[]
   fileRequests ProjectFileRequest[]
 
+  timeEntries ProjectTimeEntry[]
   @@index([projectId])
 }
 

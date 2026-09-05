@@ -35,6 +35,7 @@ const { runReminderPass } = require("./bookingReminderJob")
 const { cancelStaleOrders } = require("./cancelStaleOrders")
 const { runFileRequestReminderPass } = require("./fileRequestReminderJob")
 const { runWeeklyDigestPass } = require("./weeklyDigestJob")
+const { runMonthlyStatementPass } = require("./monthlyStatementJob")
 const { runReviewFollowUpPass } = require("./reviewFollowUpJob")
 const { runCampaignSenderPass } = require("./campaignSenderJob")
 const { runEmailRetryPass } = require("./emailRetryJob")
@@ -160,6 +161,15 @@ function startScheduler() {
     cron.schedule(
       "0 8 * * 1",
       () => guarded("weeklyDigest", runWeeklyDigestPass),
+      { timezone: "America/Mexico_City" },
+    )
+
+    // T5-18 · the retainer month, closed. The 1st at 09:00 Mexico City —
+    // the same schedule family as the digest, an hour later so the two
+    // never contend for the mailer on the one morning they coincide.
+    cron.schedule(
+      "0 9 1 * *",
+      () => guarded("monthlyStatement", runMonthlyStatementPass),
       { timezone: "America/Mexico_City" },
     )
 

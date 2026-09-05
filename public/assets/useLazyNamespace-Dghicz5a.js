@@ -1,1 +1,0 @@
-import{r as u}from"./react-vendor-BhzkbE4T.js";import{ah as n}from"./index-jjwmSv34.js";import{u as o}from"./i18n-Cu57dKZT.js";function i(a){const{i18n:e}=o(),[s,r]=u.useState(()=>e.hasResourceBundle(e.language,a));return u.useEffect(()=>{let t=!1;return n(a,e.language).then(()=>{t||r(!0)}).catch(()=>{t||r(!0)}),()=>{t=!0}},[a,e.language]),s}export{i as u};

@@ -333,6 +333,23 @@
         "hint": "Encrypted before it is stored, readable once by us, and never written to a file. Do not put the value in the label.",
         "submit": "Send securely"
       }
+    },
+    "hours": {
+      "title": "Hours",
+      "plan": "{{plan}} — {{hours}} h included each month.",
+      "noPlan": "This plan has no monthly hour allowance, so these are the hours as they were logged.",
+      "usedOf": "{{used}} h used of {{included}} h · {{remaining}} h left",
+      "usedOver": "{{used}} h used of {{included}} h · {{over}} h over the plan",
+      "usedOnly": "{{used}} h logged",
+      "plusFree": "{{hours}} h at no charge",
+      "noCharge": "no charge",
+      "hoursValue": "{{hours}} h",
+      "barLabel": "{{used}} of {{included}} hours used",
+      "defaultNote": "Project work",
+      "emptyMonth": "No hours were logged this month.",
+      "statementNamed": "Statement for {{month}}",
+      "empty": "No hours logged",
+      "emptyBody": "When we log time on this project it appears here, month by month."
     }
   },
   "serviceOrders": {

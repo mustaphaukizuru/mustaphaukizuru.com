@@ -333,6 +333,23 @@
         "hint": "Se cifra antes de guardarse, la leemos una sola vez y nunca se escribe en un archivo. No pongas el valor en la etiqueta.",
         "submit": "Enviar de forma segura"
       }
+    },
+    "hours": {
+      "title": "Horas",
+      "plan": "{{plan}} — {{hours}} h incluidas cada mes.",
+      "noPlan": "Este plan no tiene horas incluidas al mes, así que estas son las horas tal como se registraron.",
+      "usedOf": "{{used}} h usadas de {{included}} h · quedan {{remaining}} h",
+      "usedOver": "{{used}} h usadas de {{included}} h · {{over}} h por encima del plan",
+      "usedOnly": "{{used}} h registradas",
+      "plusFree": "{{hours}} h sin cargo",
+      "noCharge": "sin cargo",
+      "hoursValue": "{{hours}} h",
+      "barLabel": "{{used}} de {{included}} horas usadas",
+      "defaultNote": "Trabajo del proyecto",
+      "emptyMonth": "No se registraron horas este mes.",
+      "statementNamed": "Estado de cuenta de {{month}}",
+      "empty": "Sin horas registradas",
+      "emptyBody": "Cuando registremos horas en este proyecto aparecerán aquí, mes por mes."
     }
   },
   "serviceOrders": {
