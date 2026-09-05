@@ -101,7 +101,7 @@
       "./src/services/mercadoPagoService.js": { "lines": 60 },
       "./src/services/paymentTransitionService.js": { "lines": 60 },
       "./src/lib/providerHttp.js": { "lines": 60 },
-      "./src/services/invoiceService.js": { "lines": 19 },
+      "./src/services/invoiceService.js": { "lines": 90 },
       "./src/controllers/refundController.js": { "lines": 34 },
       "./src/controllers/downloadController.js": { "lines": 15 }
     },

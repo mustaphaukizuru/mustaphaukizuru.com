@@ -3,6 +3,7 @@ const path   = require("path")
 const fs     = require("fs")
 const { STORAGE_PATHS } = require("../config/storagePaths")
 const AppError = require("../utils/AppError")
+const logger = require("../utils/logger")
 
 // Uploads MUST live outside ../public — that directory is the Vite build
 // output and is wiped on every `npm run build` (vite.config emptyOutDir:true),
@@ -90,7 +91,13 @@ function verifyAvatarSignature(req, res, next) {
   if (!file) return next()
   const ext = path.extname(file.filename || "").toLowerCase()
   if (matchesSignature(readHead(file.path), ext)) return next()
-  fs.unlink(file.path, () => {})
+  // Synchronously, and that matters. Fire-and-forget left the rejected
+  // bytes on disk after the 400 had already been written — a caller that
+  // was told "refused" could still fetch the file for as long as the
+  // unlink took to land, and a failing unlink said nothing at all.
+  try { fs.unlinkSync(file.path) } catch (err) {
+    if (err?.code !== "ENOENT") logger.error(`[uploadAvatar] could not remove ${file.path}: ${err.message}`)
+  }
   req.file = undefined
   next(AppError.badRequest("The uploaded file is not the image type it claims to be", "UNSUPPORTED_MEDIA_TYPE"))
 }

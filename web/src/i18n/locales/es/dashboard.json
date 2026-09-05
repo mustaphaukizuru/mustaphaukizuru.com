@@ -166,7 +166,10 @@
       "thanks": "Gracias — recibimos tu reseña.",
       "failed": "No pudimos guardar tu reseña. Inténtalo de nuevo.",
       "doneTitle": "Gracias por tu reseña",
-      "doneBody": "Calificaste este proyecto con {{rating}}/5."
+      "doneBody": "Calificaste este proyecto con {{rating}}/5.",
+      "pulseQuestion": "¿Cómo te fue trabajando con nosotros?",
+      "pulseValue": "{{n}} de 5",
+      "pulseScale": "1 = mal · 5 = muy bien"
     },
     "changeRequests": {
       "title": "Solicitar trabajo adicional",

@@ -416,6 +416,11 @@ export default function DashboardProjectDetailPage() {
 function ReviewCard({ project, highlighted, onSubmitted, t }) {
   const existing = (project.reviews || [])[0] || null
   const [rating, setRating] = useState(0)
+  // T5-21 · the pulse. Asked ABOVE the stars and answered first, because a
+  // client who abandons the form after one tap has still told us the thing
+  // worth knowing — and "how did this go" is a different question from "how
+  // good is this service", which is what the public stars are for.
+  const [pulse, setPulse] = useState(0)
   const [hover, setHover] = useState(0)
   const [text, setText] = useState("")
   const [busy, setBusy] = useState(false)
@@ -439,7 +444,7 @@ function ReviewCard({ project, highlighted, onSubmitted, t }) {
     if (!rating || busy) return
     setBusy(true); setError("")
     try {
-      const saved = await postProjectReview(service.slug, { projectId: project.id, rating, reviewText: text.trim() || undefined })
+      const saved = await postProjectReview(service.slug, { projectId: project.id, rating, reviewText: text.trim() || undefined, pulse: pulse || undefined })
       onSubmitted?.(saved?.id ? { id: saved.id, rating: saved.rating, status: saved.status, createdAt: saved.createdAt } : { id: "local", rating })
     } catch (e2) {
       setError(e2?.message || t("projects.review.failed"))
@@ -457,7 +462,34 @@ function ReviewCard({ project, highlighted, onSubmitted, t }) {
           <h2 className="text-card font-bold text-violet">{t("projects.review.title")}</h2>
           <p className="mt-0.5 text-meta text-charcoal-80/65">{t("projects.review.subtitle", { service: service.title })}</p>
 
-          <div className="mt-3 flex items-center gap-1" role="radiogroup" aria-label={t("projects.review.ratingLabel")}>
+          {/* One question, first. Numbers rather than stars so it reads as a
+              different question from the rating below it, and never
+              published — this is for us, the stars are for the next client. */}
+          <fieldset className="mt-3">
+            <legend className="text-meta font-medium text-charcoal-80">{t("projects.review.pulseQuestion")}</legend>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={t("projects.review.pulseQuestion")}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  role="radio"
+                  aria-checked={pulse === n}
+                  aria-label={t("projects.review.pulseValue", { n })}
+                  onClick={() => setPulse(n)}
+                  className={`h-9 w-9 rounded-lg border text-meta font-semibold transition-colors ${
+                    pulse === n
+                      ? "border-violet bg-violet text-white"
+                      : "border-charcoal-80/15 bg-white text-charcoal-80 hover:border-violet"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+              <span className="ms-2 text-micro text-charcoal-80/65">{t("projects.review.pulseScale")}</span>
+            </div>
+          </fieldset>
+
+          <div className="mt-4 flex items-center gap-1" role="radiogroup" aria-label={t("projects.review.ratingLabel")}>
             {[1, 2, 3, 4, 5].map((n) => (
               <button
                 key={n}

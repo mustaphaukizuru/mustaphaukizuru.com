@@ -513,6 +513,40 @@ const TEMPLATES = [
     ].join("\n"),
   },
 
+  // 4e · The one nudge, a week after completion (T5-21)
+  //
+  // Deliberately NOT a resend of 4d. A week later the client already got the
+  // completion email and ignored it; sending the same words again is how you
+  // teach someone to stop opening your mail.
+  {
+    key: "project.review-follow-up",
+    subject: "One last thing about {{projectName}}",
+    html: chrome({
+      preheader: "A week on — did the work hold up?",
+      eyebrow:   "A week later",
+      bodyHtml:
+        heading(`How did {{projectName}} turn out?`) +
+        paragraph(`Hi {{customerName}} — it has been a week since I marked <strong>{{projectName}}</strong> complete, which is about long enough to know whether the work actually holds up in daily use.`) +
+        paragraph(`If it did, two minutes on <strong>{{serviceName}}</strong> helps the next client decide. If it did not, I would rather hear that — just reply to this email and it comes straight to me.`) +
+        button("{{reviewUrl}}", "Leave a review") +
+        calloutCard(`This is the only reminder I will send about it.`),
+    }),
+    text: [
+      "How did {{projectName}} turn out?",
+      "",
+      "Hi {{customerName}} — it has been a week since I marked {{projectName}}",
+      "complete, which is long enough to know whether the work holds up.",
+      "",
+      "If it did, two minutes on {{serviceName}} helps the next client decide:",
+      "  {{reviewUrl}}",
+      "",
+      "If it did not, reply to this email instead. This is the only reminder",
+      "I will send about it.",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
   // 5 · Support reply
   {
     key: "support.reply",
@@ -1693,6 +1727,37 @@ const TEMPLATES_ES = [
       "marcado como completado. Si tienes dos minutos, una reseña breve ayuda",
       "al próximo cliente a decidir:",
       "  {{reviewUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.review-follow-up
+  {
+    key: "project.review-follow-up",
+    subject: "Una última cosa sobre {{projectName}}",
+    html: chrome({
+      preheader: "Una semana después — ¿el trabajo funcionó?",
+      eyebrow:   "Una semana después",
+      bodyHtml:
+        heading(`¿Cómo resultó {{projectName}}?`) +
+        paragraph(`Hola {{customerName}} — ha pasado una semana desde que marqué <strong>{{projectName}}</strong> como completado, tiempo suficiente para saber si el trabajo aguanta en el uso diario.`) +
+        paragraph(`Si aguantó, dos minutos sobre <strong>{{serviceName}}</strong> ayudan al próximo cliente a decidir. Si no, prefiero saberlo — responde a este correo y me llega directo.`) +
+        button("{{reviewUrl}}", "Dejar una reseña") +
+        calloutCard(`Este es el único recordatorio que te enviaré.`),
+    }),
+    text: [
+      "¿Cómo resultó {{projectName}}?",
+      "",
+      "Hola {{customerName}} — ha pasado una semana desde que marqué",
+      "{{projectName}} como completado, tiempo suficiente para saber si el",
+      "trabajo aguanta.",
+      "",
+      "Si aguantó, dos minutos sobre {{serviceName}} ayudan al próximo cliente:",
+      "  {{reviewUrl}}",
+      "",
+      "Si no, responde a este correo. Este es el único recordatorio que te",
+      "enviaré.",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),

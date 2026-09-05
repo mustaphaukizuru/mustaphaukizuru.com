@@ -35,6 +35,7 @@ const { runReminderPass } = require("./bookingReminderJob")
 const { cancelStaleOrders } = require("./cancelStaleOrders")
 const { runFileRequestReminderPass } = require("./fileRequestReminderJob")
 const { runWeeklyDigestPass } = require("./weeklyDigestJob")
+const { runReviewFollowUpPass } = require("./reviewFollowUpJob")
 const { runCampaignSenderPass } = require("./campaignSenderJob")
 const { runEmailRetryPass } = require("./emailRetryJob")
 const { runBackupPass } = require("./backupDatabaseJob")
@@ -159,6 +160,15 @@ function startScheduler() {
     cron.schedule(
       "0 8 * * 1",
       () => guarded("weeklyDigest", runWeeklyDigestPass),
+      { timezone: "America/Mexico_City" },
+    )
+
+    // T5-21 · one review nudge a week after completion, for the clients who
+    // simply forgot. 09:30 Mexico City: a request to write something lands
+    // better mid-morning than first thing.
+    cron.schedule(
+      "30 9 * * *",
+      () => guarded("reviewFollowUp", runReviewFollowUpPass),
       { timezone: "America/Mexico_City" },
     )
 

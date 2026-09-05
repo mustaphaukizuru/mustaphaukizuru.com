@@ -166,7 +166,10 @@
       "thanks": "Thank you — your review has been received.",
       "failed": "We could not save your review. Please try again.",
       "doneTitle": "Thanks for your review",
-      "doneBody": "You rated this project {{rating}}/5."
+      "doneBody": "You rated this project {{rating}}/5.",
+      "pulseQuestion": "How did working with us go?",
+      "pulseValue": "{{n}} out of 5",
+      "pulseScale": "1 = badly · 5 = very well"
     },
     "changeRequests": {
       "title": "Request extra work",

@@ -42,6 +42,7 @@ const JOB_INTERVALS = Object.freeze({
   // stale. A weekly job checked against a daily allowance would alert every
   // Tuesday.
   weeklyDigest:          7 * DAY,
+  reviewFollowUp:        DAY,
 })
 
 /** A job is stale after twice its interval, never sooner than ten minutes. */

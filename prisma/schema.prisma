@@ -645,6 +645,15 @@ model Review {
   projectId          String?
   userId             String
   rating             Int
+  /// T5-21 · the one-question pulse above the review form: "how did this
+  /// go", 1 to 5.
+  ///
+  /// Separate from `rating`, which is the PUBLIC star rating on a service.
+  /// This one is never published — it is asked before the review, answers a
+  /// different question ("how was working with us" rather than "how good is
+  /// this service"), and a client who abandons the form after answering it
+  /// has still told us the thing worth knowing.
+  pulse              Int?
   reviewText         String?      @db.Text
   isVerifiedPurchase Boolean      @default(false)
   status             ReviewStatus @default(pending)
@@ -1454,6 +1463,13 @@ model ClientProject {
   /// human-facing handle, and it is nullable so existing rows are valid
   /// until the backfill runs.
   trackingCode    String?       @unique @db.VarChar(16)
+
+  /// T5-21 · when the seven-day review follow-up went out.
+  ///
+  /// The stamp is what makes it ONCE. A client who did not want to review
+  /// the work after the first ask did not want to after the second either,
+  /// and a third would be the message that makes them stop reading us.
+  reviewRequestedAt DateTime?
 
   /// T5-15 · this project's Monday digest is off.
   ///
