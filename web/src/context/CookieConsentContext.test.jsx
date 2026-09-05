@@ -151,7 +151,16 @@ describe("across tabs", () => {
     }))
     window.dispatchEvent(new StorageEvent("storage", { key: STORAGE_KEY }))
 
+    // BOTH assertions poll, and the second one is why this test was flaky —
+    // it failed once locally and once in CI, always on the spy.
+    //
+    // `decided` flips inside the storage handler; `setAnalyticsConsent` is
+    // called from an effect that reacts to the new consent state. Those are
+    // two different flushes, so a bare assertion after the first waitFor can
+    // run while the spy still holds its mount-time call with `false`. The
+    // claim is unchanged — the LAST call must be `true` — only the waiting is
+    // fixed.
     await waitFor(() => expect(screen.getByTestId("decided")).toHaveTextContent("true"))
-    expect(analytics.setAnalyticsConsent).toHaveBeenLastCalledWith(true)
+    await waitFor(() => expect(analytics.setAnalyticsConsent).toHaveBeenLastCalledWith(true))
   })
 })
