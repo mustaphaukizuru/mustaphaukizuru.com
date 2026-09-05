@@ -4,6 +4,7 @@ const asyncHandler = require("../utils/asyncHandler")
 const readReceipts = require("../services/readReceiptService")
 const projectInvoices = require("../services/projectInvoiceService")
 const fileRequests = require("../services/projectFileRequestService")
+const secretHandoff = require("../services/secretHandoffService")
 const projectEvents = require("../services/projectEventService")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
@@ -432,10 +433,71 @@ const listInvoices = asyncHandler(async (req, res) => {
   }
 })
 
+/* ── T5-13 · the secure credential handoff ────────────────────────────────
+ *
+ * Three handlers, and the direction is NOT a parameter on any of them. A
+ * member creating a secret is always sending one TO us; the direction
+ * decides who may reveal it, so letting the caller pick would let a client
+ * mint a secret only they can read, which is a note to self dressed as a
+ * handoff.
+ */
+
+/** GET /member/projects/:id/secrets — metadata only, never a value. */
+const listSecrets = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    res.json({ success: true, data: await secretHandoff.listForProject(req.params.id, "client") })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/** POST /member/projects/:id/secrets — the client sends us a credential. */
+const createSecret = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const { secret } = await secretHandoff.createSecret(req.params.id, {
+      ...req.body,
+      direction: "to_admin",
+    }, { createdById: userId })
+    res.status(201).json({ success: true, data: secret })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/**
+ * POST /member/projects/:id/secrets/:secretId/reveal
+ *
+ * POST, not GET, and that is a deliberate departure from the plan. This call
+ * DESTROYS the thing it returns, and a GET that destroys state is consumed
+ * by a link scanner, a prefetch, a chat client's preview or the browser
+ * restoring a tab — every one of which burns the client's one read before
+ * they have seen it.
+ */
+const revealSecret = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const out = await secretHandoff.revealSecret(req.params.secretId, req.params.id, "client")
+    // Never cached, anywhere. This body is a credential.
+    res.setHeader("Cache-Control", "no-store")
+    res.json({ success: true, data: out })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
 module.exports = {
   listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
   listInvoices, listEvents, listFileRequests,
+  listSecrets, createSecret, revealSecret,
   listTickets, getTicket, createTicket, replyTicket,
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
 }

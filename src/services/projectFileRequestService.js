@@ -22,6 +22,7 @@
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const projectEvents = require("./projectEventService")
+const { presetById, looksLikeCredentialRequest } = require("../data/fileRequestPresets")
 
 const STATUSES = ["requested", "submitted", "accepted", "rejected", "cancelled"]
 /** The states a client may still upload against. */
@@ -87,8 +88,38 @@ function serialize(request, locale = "en") {
 
 async function createRequest(projectId, data = {}, { requestedById = null } = {}) {
   if (!projectId) throw err("Project id is required", "VALIDATION_ERROR")
+
+  // T5-13 · a preset fills in the fields nobody wants to retype, and the
+  // caller's own values still win. Applied here rather than in the admin UI
+  // so the API is the same shape however it is driven — and so the Spanish
+  // half cannot go missing because a form did not have a field for it.
+  const preset = presetById(data.presetId)
+  if (data.presetId && !preset) throw err(`Unknown preset "${data.presetId}"`, "VALIDATION_ERROR")
+  if (preset) {
+    data = {
+      ...preset,
+      ...Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined && v !== null && v !== "")),
+    }
+  }
+
   const title = String(data.title || "").trim()
   if (!title) throw err("A request needs a title — say what you are asking for", "VALIDATION_ERROR")
+
+  // T5-13 · a request titled "hosting password" is answered with a .txt
+  // containing a hosting password, which then lives in storage/projects/ for
+  // the whole retention window and goes into any handover pack built
+  // afterwards. Refused, with the alternative named — a refusal that does
+  // not say what to do instead is how people find a workaround.
+  //
+  // The check is on the title only. Instructions legitimately say things
+  // like "do NOT send the login", and refusing that would be exactly
+  // backwards.
+  if (looksLikeCredentialRequest(title) || looksLikeCredentialRequest(data.titleEs)) {
+    throw err(
+      "Credentials must not be requested as files — a password in an upload stays on disk for the whole retention window. Use the secure credential handoff instead: it can be read once and is then destroyed.",
+      "USE_SECRET_HANDOFF",
+    )
+  }
 
   const project = await prisma.clientProject.findUnique({
     where: { id: String(projectId) },

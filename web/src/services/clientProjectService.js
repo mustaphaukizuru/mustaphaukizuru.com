@@ -298,3 +298,57 @@ export async function completeChangeRequest(projectId, crId) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/change-requests/${encodeURIComponent(crId)}/done`, { method: "POST", body: "{}" })
   return stripData(r)
 }
+
+/* ── T5-13 · presets and the secure credential handoff ───────────────── */
+
+/**
+ * The static preset list. Fetched rather than duplicated in the SPA: the
+ * server already owns it (src/data/fileRequestPresets.js) and the Spanish
+ * instructions are the point — a second copy is the one that goes stale.
+ */
+export async function fetchFileRequestPresets() {
+  const r = await authFetch("/api/v1/admin/client-projects/file-request-presets")
+  return Array.isArray(r) ? r : Array.isArray(r?.data) ? r.data : []
+}
+
+/** Admin · metadata for every credential on this project. */
+export async function fetchAdminSecrets(id) {
+  const r = await authFetch(`${adminProject(id)}/secrets`)
+  return {
+    secrets: Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : [],
+    // False when the server has no SECRET_HANDOFF_KEY, so the form is hidden
+    // rather than shown and then refused.
+    configured: r?.meta?.configured !== false,
+  }
+}
+
+/** Admin · hand a credential over. Direction is decided by the server. */
+export async function createAdminSecret(id, body) {
+  const r = await authFetch(`${adminProject(id)}/secrets`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+/**
+ * Admin · read one, once.
+ *
+ * POST, not GET: this call destroys what it returns, and a GET would be
+ * spent by a link scanner or a restored tab before anyone read it.
+ */
+export async function revealAdminSecret(id, secretId) {
+  const r = await authFetch(`${adminProject(id)}/secrets/${encodeURIComponent(secretId)}/reveal`, { method: "POST", body: "{}" })
+  return stripData(r)
+}
+
+/** Member · the same three, ownership-scoped. */
+export async function fetchMySecrets(projectId) {
+  const r = await authFetch(`${memberBase(projectId)}/secrets`)
+  return Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : []
+}
+export async function createMySecret(projectId, body) {
+  const r = await authFetch(`${memberBase(projectId)}/secrets`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+export async function revealMySecret(projectId, secretId) {
+  const r = await authFetch(`${memberBase(projectId)}/secrets/${encodeURIComponent(secretId)}/reveal`, { method: "POST", body: "{}" })
+  return stripData(r)
+}

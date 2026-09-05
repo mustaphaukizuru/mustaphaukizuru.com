@@ -5,6 +5,7 @@ import {
 
 import {
   fetchAdminFileRequests, createAdminFileRequest, reviewAdminFileRequest,
+  fetchFileRequestPresets,
 } from "../../services/clientProjectService"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -46,6 +47,7 @@ export default function ProjectRequestsAdmin({ projectId, milestones = [] }) {
   const [form, setForm] = useState(BLANK)
   const [busyId, setBusyId] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [presets, setPresets] = useState([])
 
   const load = useCallback(async () => {
     try {
@@ -58,12 +60,32 @@ export default function ProjectRequestsAdmin({ projectId, milestones = [] }) {
     }
   }, [projectId])
 
+  // Best-effort and separate from the rows: presets are a convenience, and
+  // a form that will not open because a static list failed to load is worse
+  // than one without shortcuts.
+  useEffect(() => {
+    fetchFileRequestPresets().then(setPresets).catch(() => setPresets([]))
+  }, [])
+
   useEffect(() => {
     if (!projectId) return
     // Inside a callback rather than the effect body: setting state
     // synchronously there cascades a render before anything has loaded.
     load()
   }, [projectId, load])
+
+  /**
+   * Fill from a preset, keeping the two fields that are about THIS project
+   * rather than about the document: the due date and the milestone.
+   */
+  const applyPreset = (preset) => setForm((prev) => ({
+    ...prev,
+    title: preset.title,
+    titleEs: preset.titleEs || "",
+    instructions: preset.instructions || "",
+    instructionsEs: preset.instructionsEs || "",
+    acceptExt: preset.acceptExt || "",
+  }))
 
   const submit = async (e) => {
     e.preventDefault()
@@ -84,6 +106,9 @@ export default function ProjectRequestsAdmin({ projectId, milestones = [] }) {
       setFormOpen(false)
       await load()
     } catch (err) {
+      // USE_SECRET_HANDOFF comes back when the title reads like a credential
+      // ("hosting password"). The server's message names the alternative, so
+      // it is shown as-is rather than replaced with something vaguer.
       setError(err?.message || "Could not create the request")
     } finally {
       setSaving(false)
@@ -131,6 +156,26 @@ export default function ProjectRequestsAdmin({ projectId, milestones = [] }) {
 
       {formOpen && (
         <form onSubmit={submit} className="space-y-3 rounded-xl border border-charcoal-80/10 bg-white p-4">
+          {presets.length > 0 && (
+            <div>
+              <p className="text-meta font-semibold text-charcoal-80">Start from a preset</p>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {presets.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => applyPreset(preset)}
+                    className="rounded-full border border-charcoal-80/15 bg-white px-3 py-1 text-[11px] font-semibold text-charcoal-80 transition hover:border-violet hover:text-violet"
+                  >
+                    {preset.title}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[11px] text-charcoal-80/65">
+                Fills both languages and the accepted types. Everything stays editable.
+              </p>
+            </div>
+          )}
           <div className="grid gap-3 md:grid-cols-2">
             <label className="block text-meta font-semibold text-charcoal-80">
               Title (English)

@@ -303,6 +303,36 @@
       "sent": {
         "question": "Enviado — te respondemos aquí."
       }
+    },
+    "secrets": {
+      "title": "Credenciales",
+      "subtitle": "Las contraseñas y las llaves viajan por aquí, no como archivos ni por correo. Cada una se lee una sola vez y después se destruye.",
+      "send": "Enviar una credencial",
+      "reveal": "Ver una vez",
+      "readOnly": "Este proyecto está cerrado, así que ya no se puede enviar nada.",
+      "empty": "Nada pendiente",
+      "emptyBody": "Si te pedimos una contraseña o una llave de acceso, mándala por aquí en lugar de por correo — se cifra, se lee una vez y desaparece.",
+      "onceWarning": "Puedes verla exactamente una vez. Ten dónde pegarla antes de hacer clic.",
+      "onlyTime": "Esta es la única vez que se mostrará. Nuestra copia ya se destruyó.",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "expiresOn": "caduca el {{date}}",
+      "sentOn": "enviada el {{date}}",
+      "revealError": "No se pudo leer esa credencial. Puede que ya se haya abierto o que haya caducado.",
+      "sendError": "No pudimos guardarla. Inténtalo de nuevo.",
+      "state": {
+        "pending": "Pendiente",
+        "viewed": "Leída",
+        "expired": "Caducada"
+      },
+      "form": {
+        "label": "Qué es",
+        "labelPlaceholder": "Contraseña de cPanel · admin de WordPress · acceso al registrador",
+        "value": "La credencial",
+        "valuePlaceholder": "Pégala tal cual.",
+        "hint": "Se cifra antes de guardarse, la leemos una sola vez y nunca se escribe en un archivo. No pongas el valor en la etiqueta.",
+        "submit": "Enviar de forma segura"
+      }
     }
   },
   "serviceOrders": {

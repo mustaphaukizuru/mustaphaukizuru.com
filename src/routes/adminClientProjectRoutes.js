@@ -7,6 +7,7 @@ const {
   createPortalLink, createCaseStudy,
   quoteChangeRequest, completeChangeRequest,
   listFileRequests, addFileRequest, reviewFileRequest, listEvents, getQueue,
+  listFileRequestPresets, listSecrets, createSecret, revealSecret,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -19,6 +20,8 @@ router.post  ("/",                          createProject)
 // T5-16 · BEFORE /:id, or Express reads "queue" as a project id and this
 // route is never reached.
 router.get   ("/queue",                     getQueue)
+// T5-13 · a static list, and BEFORE /:id for the same reason as /queue.
+router.get   ("/file-request-presets",      listFileRequestPresets)
 router.get   ("/:id",                       getProject)
 router.patch ("/:id",                       updateProject)
 router.delete("/:id",                       removeProject)
@@ -40,6 +43,11 @@ router.get   ("/:id/events",                     listEvents)
 router.get   ("/:id/file-requests",              listFileRequests)
 router.post  ("/:id/file-requests",              addFileRequest)
 router.patch ("/:id/file-requests/:reqId",       reviewFileRequest)
+// T5-13 · credentials never travel as files, in either direction. Reveal is
+// a POST because it destroys what it returns.
+router.get   ("/:id/secrets",                    listSecrets)
+router.post  ("/:id/secrets",                    createSecret)
+router.post  ("/:id/secrets/:secretId/reveal",   revealSecret)
 router.delete("/:id/files/:fileId",         removeFile)
 router.get   ("/:id/files/:fileId/download", downloadFile)
 

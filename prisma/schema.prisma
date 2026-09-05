@@ -317,6 +317,7 @@ model User {
   assignedConsultations  Consultation[]   @relation("AssignedConsultations")
   clientProjects         ClientProject[]  @relation("UserClientProjects")
   assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
+  createdSecretHandoffs SecretHandoff[]  @relation("CreatedSecretHandoffs")
   requestedFileRequests  ProjectFileRequest[] @relation("RequestedFileRequests")
   projectFiles           ProjectFile[]
   projectComments        ProjectComment[] @relation("UserProjectComments")
@@ -1489,6 +1490,7 @@ model ClientProject {
   comments      ProjectComment[]
   tickets       SupportTicket[]
   agreements    ProjectAgreement[]
+  secretHandoffs SecretHandoff[]
   reviews       Review[]
   changeRequests ChangeRequest[]
   events         ProjectEvent[]
@@ -1572,6 +1574,50 @@ model ProjectFileRequest {
 
   @@index([projectId, status])
   @@index([dueAt])
+}
+
+/// T5-13 · a credential in transit, and nothing else.
+///
+/// Credentials were arriving as files: a hosting password in a .txt, the
+/// registrar login in a screenshot, WiFi keys in the body of a support
+/// ticket. Every one of those lands in `storage/projects/` and stays there
+/// for the retention window, readable by anything that can read the disk and
+/// included in any handover ZIP built later.
+///
+/// This row holds AES-256-GCM ciphertext under SECRET_HANDOFF_KEY and can be
+/// read exactly ONCE — the reveal stamps `viewedAt` and the ciphertext is
+/// wiped in the same write. Both directions: the client hands over a hosting
+/// password, and at handover we hand back the admin credentials.
+///
+/// What is NOT encrypted is `label`, deliberately: both parties need to see
+/// "cPanel password" in a list to know what is waiting, and the timeline
+/// events carry the label only.
+model SecretHandoff {
+  id          String    @id @default(cuid())
+  projectId   String
+  /// "to_client" (we are handing something over) or "to_admin" (the client
+  /// is sending us something). It decides who may reveal it, and it is the
+  /// whole access model: the other party wrote it and must not read it back.
+  direction   String    @db.VarChar(16)
+  /// What it is, in the clear. Never the value.
+  label       String    @db.VarChar(160)
+  /// AES-256-GCM. Null once revealed — the wipe is the point.
+  ciphertext  String?   @db.Text
+  iv          String?   @db.VarChar(32)
+  tag         String?   @db.VarChar(32)
+  /// Default seven days. An unclaimed credential is a liability, not an
+  /// inbox.
+  expiresAt   DateTime
+  /// Set the moment it is read. Non-null means gone.
+  viewedAt    DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User?         @relation("CreatedSecretHandoffs", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([projectId, direction])
+  @@index([expiresAt])
 }
 
 model ProjectMilestone {

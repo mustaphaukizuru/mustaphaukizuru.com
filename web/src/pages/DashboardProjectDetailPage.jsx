@@ -23,6 +23,7 @@ import MessagesPanel from "../components/projects/MessagesPanel"
 import ProjectTimeline from "../components/projects/ProjectTimeline"
 import FileRequestPanel from "../components/projects/FileRequestPanel"
 import ProjectInvoices from "../components/projects/ProjectInvoices"
+import SecretsPanel from "../components/projects/SecretsPanel"
 import useProjectPanels from "../hooks/useProjectPanels"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
@@ -392,6 +393,20 @@ export default function DashboardProjectDetailPage() {
           onPay={panels.pay}
           loading={panels.loading}
         />
+      </SectionBlock>
+
+      {/* T5-13 · credentials never travel as files. Read once, then the
+          server destroys its copy. */}
+      <SectionBlock title={t("projects.secrets.title")}>
+        <div className={CARD}>
+          <SecretsPanel
+            secrets={panels.secrets}
+            onReveal={panels.revealSecret}
+            onSend={panels.sendSecret}
+            onChanged={panels.reload}
+            readOnly={readOnly}
+          />
+        </div>
       </SectionBlock>
 
       {/* T5-5 · the same timeline component the portal and /track render. */}

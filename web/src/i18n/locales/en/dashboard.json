@@ -303,6 +303,36 @@
       "sent": {
         "question": "Sent — we will answer here."
       }
+    },
+    "secrets": {
+      "title": "Credentials",
+      "subtitle": "Passwords and keys travel here, not as files or in email. Each one can be read once and is then destroyed.",
+      "send": "Send a credential",
+      "reveal": "Reveal once",
+      "readOnly": "This project is closed, so nothing new can be sent.",
+      "empty": "Nothing waiting",
+      "emptyBody": "If we ask you for a password or an access key, send it here rather than by email — it is encrypted, read once, and then gone.",
+      "onceWarning": "You can read this exactly once. Have somewhere to paste it before you click.",
+      "onlyTime": "This is the only time it will be shown. Our copy has already been destroyed.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "expiresOn": "expires {{date}}",
+      "sentOn": "sent {{date}}",
+      "revealError": "That credential could not be read. It may already have been opened or expired.",
+      "sendError": "We could not store that. Please try again.",
+      "state": {
+        "pending": "Waiting",
+        "viewed": "Read",
+        "expired": "Expired"
+      },
+      "form": {
+        "label": "What it is",
+        "labelPlaceholder": "cPanel password · WordPress admin · registrar login",
+        "value": "The credential",
+        "valuePlaceholder": "Paste it exactly as it is.",
+        "hint": "Encrypted before it is stored, readable once by us, and never written to a file. Do not put the value in the label.",
+        "submit": "Send securely"
+      }
     }
   },
   "serviceOrders": {

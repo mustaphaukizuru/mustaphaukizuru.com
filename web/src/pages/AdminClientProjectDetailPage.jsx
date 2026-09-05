@@ -14,6 +14,8 @@ import {
 // T5-5 · the operator half of the document requests, and the same
 // timeline component the client and /track see — at admin visibility.
 import ProjectRequestsAdmin from "../components/admin/ProjectRequestsAdmin"
+// T5-13 · credentials never travel as files, in either direction.
+import ProjectSecretsAdmin from "../components/admin/ProjectSecretsAdmin"
 import ProjectTimeline from "../components/projects/ProjectTimeline"
 import { useToast } from "../context/ToastContext"
 import { SkeletonCard, Checkbox } from "../components/ui/index"
@@ -459,6 +461,22 @@ export default function AdminClientProjectDetailPage() {
           </div>
           <div className="mt-4">
             <ProjectRequestsAdmin projectId={id} milestones={project.milestones || []} />
+          </div>
+        </div>
+      )}
+
+      {/* T5-13 · the secure credential handoff, immediately below the
+          document requests — because that is where an operator is standing
+          when they are about to ask for a password by the wrong route. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">Credentials</h2>
+          <p className="mt-0.5 max-w-prose text-meta text-charcoal-80/65">
+            Read once, then destroyed. Both directions: hand over admin access at handover, and
+            collect a hosting password without it living in an inbox or on disk.
+          </p>
+          <div className="mt-4">
+            <ProjectSecretsAdmin projectId={id} />
           </div>
         </div>
       )}

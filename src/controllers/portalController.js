@@ -5,6 +5,7 @@ const fs = require("fs")
 const projectInvoices = require("../services/projectInvoiceService")
 const readReceipts = require("../services/readReceiptService")
 const projectEvents = require("../services/projectEventService")
+const secretHandoff = require("../services/secretHandoffService")
 const fileRequests = require("../services/projectFileRequestService")
 const { invoicePathFor } = require("../services/invoiceService")
 const {
@@ -248,5 +249,43 @@ const payInvoice = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: { redirectUrl } })
 })
 
-module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice, payInvoice, listEvents, listFileRequests,
+/* ── T5-13 · the credential handoff, from a PIN session ─────────────────── */
+
+/** GET /portal/me/secrets — metadata only. */
+const listSecrets = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await secretHandoff.listForProject(req.portal.projectId, "client") })
+})
+
+/**
+ * POST /portal/me/secrets — the client sends us a credential.
+ *
+ * The portal is where this matters most: a client with no account, on a
+ * forwarded link, who has been asked for the hosting password. Without this
+ * they reply to the email with it in the body, and it lives in an inbox
+ * forever.
+ */
+const createSecret = asyncHandler(async (req, res) => {
+  try {
+    const { secret } = await secretHandoff.createSecret(req.portal.projectId, {
+      ...req.body,
+      direction: "to_admin",
+    }, { createdById: req.portal.userId })
+    res.status(201).json({ success: true, data: secret })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/** POST /portal/me/secrets/:secretId/reveal — once, then it is gone. */
+const revealSecret = asyncHandler(async (req, res) => {
+  try {
+    const out = await secretHandoff.revealSecret(req.params.secretId, req.portal.projectId, "client")
+    res.setHeader("Cache-Control", "no-store")
+    res.json({ success: true, data: out })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice, payInvoice, listSecrets, createSecret, revealSecret, listEvents, listFileRequests,
   sendPinByCode, verifyByCode }

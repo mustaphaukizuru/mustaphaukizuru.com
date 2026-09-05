@@ -134,3 +134,30 @@ export async function uploadPortalRequestFiles(requestId, files) {
     { method: "POST", body: form },
   ))
 }
+
+/* ── T5-13 · the credential handoff, on both surfaces ────────────────── */
+
+export async function fetchProjectSecrets(projectId) {
+  return asArray(await authFetch(memberPath(projectId, "/secrets")))
+}
+export async function fetchPortalSecrets() {
+  return asArray(await authFetch("/api/v1/portal/me/secrets"))
+}
+
+export async function createProjectSecret(projectId, body) {
+  return stripData(await authFetch(memberPath(projectId, "/secrets"), { method: "POST", body: JSON.stringify(body) }))
+}
+export async function createPortalSecret(body) {
+  return stripData(await authFetch("/api/v1/portal/me/secrets", { method: "POST", body: JSON.stringify(body) }))
+}
+
+/**
+ * Reveal, once. POST on purpose — this destroys what it returns, and a GET
+ * is spent by a link scanner, a prefetch or a restored tab.
+ */
+export async function revealProjectSecret(projectId, secretId) {
+  return stripData(await authFetch(memberPath(projectId, `/secrets/${encodeURIComponent(secretId)}/reveal`), { method: "POST", body: "{}" }))
+}
+export async function revealPortalSecret(secretId) {
+  return stripData(await authFetch(`/api/v1/portal/me/secrets/${encodeURIComponent(secretId)}/reveal`, { method: "POST", body: "{}" }))
+}

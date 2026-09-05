@@ -45,6 +45,12 @@ router.get ("/me/invoices/:invoiceId/pdf", portalAuth, c.downloadInvoice)
 // a preference is an outbound API request to Mercado Pago, and this door
 // opens with a six-digit PIN.
 router.post("/me/invoices/:invoiceId/pay", portalAuth, paymentRateLimiter, c.payInvoice)
+// T5-13 · the credential handoff. This is where it matters most: a client
+// with no account, on a forwarded link, asked for the hosting password.
+// Without it they reply to the email with the password in the body.
+router.get ("/me/secrets",                        portalAuth, c.listSecrets)
+router.post("/me/secrets",                        portalAuth, c.createSecret)
+router.post("/me/secrets/:secretId/reveal",       portalAuth, c.revealSecret)
 // T5-3 · the portal's first write. Order matters:
 //   portalAuth        → verifies mu_portal, populates req.portal
 //   projectIdForUpload → multer's destination reads req.params.id, which this

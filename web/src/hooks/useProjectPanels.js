@@ -4,6 +4,8 @@ import {
   fetchPortalEvents, fetchPortalFileRequests, fetchPortalInvoices, uploadPortalRequestFiles,
   payPortalInvoice,
   fetchProjectEvents, fetchProjectFileRequests, fetchProjectInvoices, uploadAgainstRequest,
+  fetchPortalSecrets, createPortalSecret, revealPortalSecret,
+  fetchProjectSecrets, createProjectSecret, revealProjectSecret,
 } from "../services/trackingService"
 
 /**
@@ -30,6 +32,7 @@ export default function useProjectPanels(source, projectId) {
     events: [],
     requests: [],
     invoices: [],
+    secrets: [],
     billing: null,
     loading: true,
     error: null,
@@ -41,16 +44,19 @@ export default function useProjectPanels(source, projectId) {
       // In parallel and settled rather than raced: one panel failing (an
       // expired portal cookie mid-session, say) should not blank the other
       // two. Each falls back to empty and the page still renders.
-      const [events, requests, invoices] = await Promise.all([
+      const [events, requests, invoices, secrets] = await Promise.all([
         (portal ? fetchPortalEvents() : fetchProjectEvents(projectId)).catch(() => []),
         (portal ? fetchPortalFileRequests() : fetchProjectFileRequests(projectId)).catch(() => []),
         (portal ? fetchPortalInvoices() : fetchProjectInvoices(projectId))
           .catch(() => ({ invoices: [], billing: null })),
+        // T5-13 · metadata only; a value only ever comes back from reveal.
+        (portal ? fetchPortalSecrets() : fetchProjectSecrets(projectId)).catch(() => []),
       ])
       setState({
         events,
         requests,
         invoices: invoices.invoices,
+        secrets,
         billing: invoices.billing,
         loading: false,
         error: null,
@@ -93,5 +99,15 @@ export default function useProjectPanels(source, projectId) {
     [portal],
   )
 
-  return { ...state, reload: load, upload, pay }
+  /** T5-13 · send us a credential, and read one, once. */
+  const sendSecret = useCallback(
+    (body) => (portal ? createPortalSecret(body) : createProjectSecret(projectId, body)),
+    [portal, projectId],
+  )
+  const revealSecret = useCallback(
+    (secretId) => (portal ? revealPortalSecret(secretId) : revealProjectSecret(projectId, secretId)),
+    [portal, projectId],
+  )
+
+  return { ...state, reload: load, upload, pay, sendSecret, revealSecret }
 }

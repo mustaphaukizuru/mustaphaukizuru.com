@@ -16,6 +16,7 @@ import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import ProjectTimeline from "../components/projects/ProjectTimeline"
 import FileRequestPanel from "../components/projects/FileRequestPanel"
 import ProjectInvoices from "../components/projects/ProjectInvoices"
+import SecretsPanel from "../components/projects/SecretsPanel"
 import useProjectPanels from "../hooks/useProjectPanels"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
@@ -333,6 +334,19 @@ function PortalView({ project, t }) {
           billing={panels.billing}
           onPay={panels.pay}
           loading={panels.loading}
+        />
+      </Section>
+
+      {/* T5-13 · this is the surface the credential handoff exists for: a
+          client with no account, on a forwarded link, who has been asked for
+          the hosting password. Without a box to put it in they reply to the
+          email with it in the body. */}
+      <Section title={t("projects.secrets.title")}>
+        <SecretsPanel
+          secrets={panels.secrets}
+          onReveal={panels.revealSecret}
+          onSend={panels.sendSecret}
+          onChanged={panels.reload}
         />
       </Section>
 

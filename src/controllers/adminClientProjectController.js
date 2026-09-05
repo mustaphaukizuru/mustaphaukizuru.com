@@ -4,6 +4,8 @@ const logger = require("../utils/logger")
 const prisma = require("../lib/prisma")
 const { sendProjectFile, resolveSafePath } = require("./clientProjectController")
 const { createComment, resolveComment, onMilestoneAwaitingClient } = require("../services/projectPortalService")
+const secretHandoff = require("../services/secretHandoffService")
+const { FILE_REQUEST_PRESETS } = require("../data/fileRequestPresets")
 const { mintPortalLink } = require("../services/portalAccessService")
 const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
 const fileRequests = require("../services/projectFileRequestService")
@@ -438,6 +440,42 @@ const getQueue = asyncHandler(async (_req, res) => {
   res.json({ success: true, data })
 })
 
+/* ── T5-13 · presets and the secure credential handoff ─────────────────── */
+
+/** GET /admin/client-projects/file-request-presets — the static list. */
+const listFileRequestPresets = asyncHandler(async (_req, res) => {
+  res.json({ success: true, data: FILE_REQUEST_PRESETS })
+})
+
+/** GET /admin/client-projects/:id/secrets */
+const listSecrets = asyncHandler(async (req, res) => {
+  res.json({
+    success: true,
+    data: await secretHandoff.listForProject(req.params.id, "admin"),
+    // The form is hidden rather than shown and then refused when the key is
+    // missing: an operator clicking "share a secret" and getting a 503 is
+    // how a credential ends up in a support ticket instead.
+    meta: { configured: secretHandoff.isConfigured() },
+  })
+})
+
+/** POST /admin/client-projects/:id/secrets — hand something over. */
+const createSecret = asyncHandler(async (req, res) => {
+  const { secret } = await secretHandoff.createSecret(req.params.id, {
+    ...req.body,
+    // Not a parameter. An admin creating a secret is handing one over.
+    direction: "to_client",
+  }, { createdById: req.user?.id || null })
+  res.status(201).json({ success: true, data: secret })
+})
+
+/** POST /admin/client-projects/:id/secrets/:secretId/reveal */
+const revealSecret = asyncHandler(async (req, res) => {
+  const out = await secretHandoff.revealSecret(req.params.secretId, req.params.id, "admin")
+  res.setHeader("Cache-Control", "no-store")
+  res.json({ success: true, data: out })
+})
+
 module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
@@ -446,5 +484,6 @@ module.exports = {
   createPortalLink, createCaseStudy, sendReviewRequest,
   quoteChangeRequest, completeChangeRequest,
   listFileRequests, addFileRequest, reviewFileRequest, listEvents,
+  listFileRequestPresets, listSecrets, createSecret, revealSecret,
   getQueue,
 }

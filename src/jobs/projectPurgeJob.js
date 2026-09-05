@@ -78,10 +78,19 @@ async function purgeProject(project, now, dryRun) {
     data:  { status: "cancelled", closedAt: now },
   })
 
+  // T5-13 · and every credential still sitting on it, read or not. A secret
+  // is already unreadable once it expires, but "the check keeps refusing" is
+  // a weaker guarantee than "the bytes are gone", and this is the sweep that
+  // exists to make the second one true.
+  const wipedSecrets = await prisma.secretHandoff.updateMany({
+    where: { projectId: project.id, ciphertext: { not: null } },
+    data:  { ciphertext: null, iv: null, tag: null },
+  })
+
   if (failed === 0) {
     await prisma.clientProject.update({ where: { id: project.id }, data: { purgedAt: now } })
   }
-  return { projectId: project.id, files: files.length, purged, failed, requestsClosed: closedRequests.count }
+  return { projectId: project.id, files: files.length, purged, failed, requestsClosed: closedRequests.count, secretsWiped: wipedSecrets.count }
 }
 
 async function runProjectPurgePass({ dryRun = false, now = new Date() } = {}) {

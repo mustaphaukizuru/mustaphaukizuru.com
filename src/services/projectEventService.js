@@ -98,6 +98,15 @@ const EVENT_DEFINITIONS = {
   "invoice.viewed": {
     title: "Invoice opened", titleEs: "Factura abierta", visibility: "admin",
   },
+  // T5-13 · the credential handoff. The LABEL only, and that is not a
+  // detail: this table is designed to be read by both parties and kept for
+  // the life of the project, which is the last place a password belongs.
+  "secret.shared": {
+    title: "Credential shared", titleEs: "Credencial compartida", visibility: "client",
+  },
+  "secret.viewed": {
+    title: "Credential read and destroyed", titleEs: "Credencial leída y destruida", visibility: "client",
+  },
   "comment.added": {
     title: "New comment", titleEs: "Nuevo comentario", visibility: "client",
   },
@@ -160,7 +169,12 @@ function visibilitiesFor(audience) {
  * @param {string} [input.detailEs]
  * @param {string} [input.title]        overrides the dictionary title
  * @param {string} [input.titleEs]
- * @param {object} [input.refs]         { milestoneId, fileId, fileRequestId, invoiceId }
+ * @param {object} [input.refs]         { milestoneId, fileId, fileRequestId,
+ *                                    invoiceId } — and ONLY those four.
+ *                                    ProjectEvent has a column per ref, so
+ *                                    any other key is silently dropped;
+ *                                    test/projectEvents guards against a
+ *                                    caller inventing one.
  */
 async function record(input = {}) {
   try {

@@ -214,7 +214,8 @@ async function recordPaymentInitiated(orderId, { gateway = null } = {}) {
       type: "payment.initiated",
       actorRole: "client",
       ...(label ? { detail: label, detailEs: label } : {}),
-      refs: { orderId: String(orderId) },
+      // No orderId ref: ProjectEvent's ref columns are milestone, file, file
+      // request and invoice, and anything else is dropped on the floor.
     })
   } catch {
     return null

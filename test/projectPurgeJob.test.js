@@ -13,6 +13,9 @@ jest.mock("../src/lib/prisma", () => ({
   // real Prisma model that is absent is a misconfiguration, and hiding it
   // behind ?. turns a loud failure into a silent no-op.
   projectFileRequest: { updateMany: jest.fn() },
+  // T5-13 · same argument: the sweep wipes every remaining credential
+  // ciphertext on a purged project, so the model has to be here.
+  secretHandoff: { updateMany: jest.fn() },
 }))
 jest.mock("../src/utils/logger", () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() }))
 jest.mock("../src/controllers/clientProjectController", () => ({
@@ -34,6 +37,23 @@ beforeEach(() => {
   prisma.clientProject.update.mockResolvedValue({})
   prisma.projectFile.update.mockResolvedValue({})
   prisma.projectFileRequest.updateMany.mockResolvedValue({ count: 0 })
+  prisma.secretHandoff.updateMany.mockResolvedValue({ count: 0 })
+})
+
+test("a purged project has every remaining credential ciphertext wiped (T5-13)", async () => {
+  // A secret is already unreadable once it expires, but "the check keeps
+  // refusing" is a weaker guarantee than "the bytes are gone".
+  prisma.clientProject.findMany.mockResolvedValue([{ id: "p1", projectName: "P", closedAt: new Date(0) }])
+  prisma.projectFile.findMany.mockResolvedValue([])
+  prisma.secretHandoff.updateMany.mockResolvedValue({ count: 3 })
+
+  const out = await runProjectPurgePass({ now: NOW })
+
+  expect(prisma.secretHandoff.updateMany.mock.calls[0][0]).toEqual({
+    where: { projectId: "p1", ciphertext: { not: null } },
+    data:  { ciphertext: null, iv: null, tag: null },
+  })
+  expect(out.results[0].secretsWiped).toBe(3)
 })
 
 test("a purged project stops chasing the client for paperwork (T5-7)", async () => {

@@ -5,6 +5,7 @@ const {
   listTickets, getTicket, createTicket, replyTicket,
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
   listInvoices, listEvents, listFileRequests,
+  listSecrets, createSecret, revealSecret,
 } = require("../controllers/clientProjectController")
 const { protect } = require("../middleware/authMiddleware")
 const { uploadRateLimiter, ticketRateLimiter } = require("../middleware/rateLimiter")
@@ -26,6 +27,13 @@ router.get("/:id/invoices",               listInvoices)
 // ownership in the handler, like every other member read here.
 router.get("/:id/events",                 listEvents)
 router.get("/:id/file-requests",          listFileRequests)
+
+// T5-13 · the secure credential handoff. Reveal is a POST because it
+// DESTROYS what it returns — a GET would be burned by a link scanner, a
+// prefetch or a restored tab before the client ever saw the value.
+router.get ("/:id/secrets",                       listSecrets)
+router.post("/:id/secrets",                       createSecret)
+router.post("/:id/secrets/:secretId/reveal",      revealSecret)
 
 // ── Tier 2 · client collaboration (ownership + lifecycle checked in service) ──
 router.post("/:id/files",                                  uploadRateLimiter, uploadProjectFile.many, uploadFiles)
