@@ -2165,6 +2165,41 @@ model DailyMetric {
   @@index([date])
 }
 
+/// T3-6 · real-user Web Vitals, rolled up.
+///
+/// Lighthouse is a lab estimate on one simulated machine. This is what
+/// visitors actually experienced, at p75 — the percentile Core Web Vitals is
+/// defined on, and the reason a mean is useless here: the whole point is the
+/// slow quarter of visits, and an average hides them behind the fast ones.
+///
+/// One row per (day, route, metric). Route rather than URL: /store/:slug is
+/// one performance story, and a row per product would be noise nobody can
+/// act on. The raw AnalyticsEvent rows stay for as long as they stay; this
+/// is what the admin page reads.
+model DailyVital {
+  id      String   @id @default(cuid())
+  date    DateTime @db.Date
+  /// The ROUTE PATTERN, not the URL. "/store/:slug", never "/store/red-hat".
+  path    String   @db.VarChar(255)
+  /// "LCP" | "CLS" | "INP" — the three Core Web Vitals.
+  metric  String   @db.VarChar(16)
+  /// Milliseconds for LCP and INP; a unitless ratio for CLS. Decimal because
+  /// CLS lives in the third decimal place and an Int would round every
+  /// meaningful value to 0.
+  p75     Decimal  @db.Decimal(10, 4)
+  /// How many measurements the p75 was taken over. A p75 of three samples is
+  /// not a number to act on, and the admin table says so rather than
+  /// pretending otherwise.
+  samples Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, path, metric])
+  @@index([date])
+  @@index([metric, date])
+}
+
 /// =============================================================
 /// M16 · BLOG · BlogPost · BlogCategory · BlogTag · BlogTagMap
 /// Powers the public /blog index + admin CMS at /admin/blog.

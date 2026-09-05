@@ -336,6 +336,15 @@ export default defineConfig({
           // Rollup even for dynamic imports, so without this it lands back in
           // "vendor" and ships to everyone regardless.
           if (id.includes("node_modules/lenis"))                      return undefined
+          // web-vitals is reached ONLY through the dynamic import in
+          // lib/vitals.js, which is itself started after first paint. The
+          // node_modules catch-all below was pinning it into "vendor" — a
+          // critical-path chunk — so the telemetry that watches the
+          // first-paint budget was being loaded by every visitor before the
+          // page rendered. Third time this exact trap has been documented
+          // in this file; manualChunks overrides Rollup even for dynamic
+          // imports.
+          if (id.includes("node_modules/web-vitals"))                 return undefined
           if (id.includes("node_modules/pdfjs-dist"))                 return "pdfjs"
           if (id.includes("node_modules/i18next") ||
               id.includes("node_modules/react-i18next"))              return "i18n"

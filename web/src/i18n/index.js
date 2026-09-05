@@ -2,6 +2,7 @@ import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
 import LanguageDetector from "i18next-browser-languagedetector"
 import { isI18nEnabled } from "./i18nEnabled"
+import afterFirstPaint from "../lib/afterFirstPaint"
 
 import {
   loadLanguageBundle,
@@ -105,26 +106,11 @@ const initialLanguage = I18N_ENABLED
  * render.
  */
 /**
- * Run `fn` well after first paint, never during it.
- *
- * requestIdleCallback ALONE is not enough, and the trace explains why: while
- * the app is waiting on network the main thread is idle, so rIC fires almost
- * immediately — measured at ~500ms, still 800ms before the nav rendered. An
- * idle main thread is not the same as a finished page.
- *
- * So the load event gates it first, and idle only schedules within that. The
- * setTimeout covers Safari <16.4, which has no requestIdleCallback.
+ * Run `fn` well after first paint, never during it. The reasoning that shaped
+ * the schedule lives in lib/afterFirstPaint.js, which T3-6 extracted so the
+ * vitals collector could use the same ordering rather than a second copy.
  */
-function warmAfterFirstPaint(fn) {
-  if (typeof window === "undefined") return
-  const schedule = () => {
-    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(fn, { timeout: 10000 })
-    else window.setTimeout(fn, 1000)
-  }
-  const afterLoad = () => window.setTimeout(schedule, 1500)
-  if (document.readyState === "complete") afterLoad()
-  else window.addEventListener("load", afterLoad, { once: true })
-}
+const warmAfterFirstPaint = afterFirstPaint
 
 const i18nReady = loadLanguageBundle(initialLanguage)
   .then((bundle) =>

@@ -6,7 +6,7 @@ import {
 } from "lucide-react"
 import { m } from "framer-motion"
 
-import { adminFetchAnalyticsDashboard, adminFetchAnalyticsEvents, adminFetchRevenueReport } from "../services/analyticsService"
+import { adminFetchAnalyticsDashboard, adminFetchAnalyticsEvents, adminFetchRevenueReport, adminFetchFieldVitals } from "../services/analyticsService"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  AdminAnalyticsPage · M14
@@ -170,6 +170,9 @@ export default function AdminAnalyticsPage() {
               )}
             </m.section>
           </div>
+
+          {/* T3-6 · what visitors actually experienced, beside the lab numbers */}
+          <FieldVitalsPanel days={days} />
 
           {/* Tier 4 · Revenue reporting */}
           <RevenuePanel />
@@ -507,6 +510,107 @@ function RevenueTable({ icon: Icon, title, rows, empty, currency }) {
         </div>
       )}
     </div>
+  )
+}
+
+/* ─────────────── T3-6 · field vitals ─────────────── */
+
+/**
+ * Core Web Vitals thresholds. Google's, not ours — the point of this panel is
+ * to show the same judgement Search Console will make.
+ */
+const VITAL_BANDS = {
+  lcp: { good: 2500, poor: 4000, unit: "ms", label: "LCP", hint: "Largest Contentful Paint — when the main content finished painting" },
+  inp: { good: 200,  poor: 500,  unit: "ms", label: "INP", hint: "Interaction to Next Paint — how long a tap took to do something" },
+  cls: { good: 0.1,  poor: 0.25, unit: "",   label: "CLS", hint: "Cumulative Layout Shift — how much the page moved under the reader" },
+}
+
+/** A p75 over a handful of visits is noise wearing a statistic's clothes. */
+const MIN_SAMPLES = 5
+
+function VitalCell({ kind, value, trusted }) {
+  const band = VITAL_BANDS[kind]
+  if (value == null) return <td className="py-2 pe-3 text-sm text-charcoal-50">—</td>
+  const state = value <= band.good ? "good" : value <= band.poor ? "warn" : "bad"
+  const tone = {
+    good: "text-mint-700",
+    warn: "text-amber-700",
+    bad:  "text-rose-700",
+  }[state]
+  const shown = band.unit === "ms" ? `${Math.round(value)} ms` : value.toFixed(3)
+  return (
+    <td className={`py-2 pe-3 font-mono text-sm tabular-nums ${trusted ? tone : "text-charcoal-50"}`}>
+      {shown}
+    </td>
+  )
+}
+
+function FieldVitalsPanel({ days }) {
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    adminFetchFieldVitals({ days })
+      .then((data) => { if (!cancelled) setRows(data) })
+      .catch(() => { if (!cancelled) setRows([]) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [days])
+
+  return (
+    <m.section {...fadeUp} className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-lg font-semibold text-charcoal">Field vitals</h2>
+        <p className="text-xs text-charcoal-80">p75, from real visits · rolled up nightly</p>
+      </div>
+      <p className="mb-3 text-sm text-charcoal-80">
+        What visitors actually experienced, next to the Lighthouse numbers, which are a lab
+        estimate on one simulated machine. Greyed rows have fewer than {MIN_SAMPLES} measurements
+        and are not worth acting on yet.
+      </p>
+
+      {loading ? (
+        <p className="py-4 text-center text-sm text-charcoal-50">Loading…</p>
+      ) : rows.length === 0 ? (
+        <p className="py-4 text-center text-sm text-charcoal-50">
+          No measurements yet. They arrive from visitors who accepted analytics cookies, and are
+          rolled up by the nightly job — so the first row appears the day after the first visit.
+        </p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[36rem] border-collapse text-start">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-charcoal-80">
+                <th scope="col" className="py-2 pe-3 text-start font-semibold">Route</th>
+                {Object.entries(VITAL_BANDS).map(([key, band]) => (
+                  <th key={key} scope="col" className="py-2 pe-3 text-start font-semibold" title={band.hint}>
+                    {band.label}
+                  </th>
+                ))}
+                <th scope="col" className="py-2 text-end font-semibold">Samples</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const trusted = row.samples >= MIN_SAMPLES
+                return (
+                  <tr key={row.path} className="border-b border-slate-100 last:border-0">
+                    <td className="py-2 pe-3 font-mono text-sm text-charcoal">{row.path}</td>
+                    <VitalCell kind="lcp" value={row.lcp} trusted={trusted} />
+                    <VitalCell kind="inp" value={row.inp} trusted={trusted} />
+                    <VitalCell kind="cls" value={row.cls} trusted={trusted} />
+                    <td className="py-2 text-end font-mono text-sm tabular-nums text-charcoal-80">
+                      {row.samples}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </m.section>
   )
 }
 

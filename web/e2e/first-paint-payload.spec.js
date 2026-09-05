@@ -79,18 +79,26 @@ test.describe("first-paint payload", () => {
     const assets = await collectAssets(page)
     const totalKb = assets.reduce((sum, a) => sum + a.kb, 0)
 
-    // 1446 KB measured, from 1683 KB before the fallback locale (-136 KB)
-    // and gsap (-112 KB) came off the critical path, then the `dashboard`
-    // namespace (-40 KB, T5-5) — 50 KB of JSON per language that no public
-    // page has ever read, sitting on the homepage since it existed. The
-    // budget sits just above the measurement, not at a round number: a
-    // ceiling with slack in it does not catch the thing it was set to catch.
+    // 1451 KB measured. The history, because the direction matters more than
+    // the number: 1683 before the fallback locale (-136) and gsap (-112) came
+    // off the critical path, then 1446 after the `dashboard` namespace
+    // (-40, T5-5) — 50 KB of JSON per language that no public page has ever
+    // read, sitting on the homepage since it existed.
     //
-    // Lower it as the remaining wins land. What is still here, in order:
-    // 333 KB CSS, 280 KB entry, 192 KB react-vendor, 152 KB vendor,
-    // and a 60 KB bioService that has no business on the homepage.
-    // Raise it only with a reason written down here.
-    expect(totalKb, `first paint fetched ${totalKb.toFixed(0)} KB across ${assets.length} files`).toBeLessThan(1450)
+    // RAISED 1450 → 1455 in T3-6, and this is the reason. The Web Vitals
+    // collector is a 5.4 KB chunk, dynamically imported and started by
+    // afterFirstPaint (load + 1500ms + idle), so it does not block anything
+    // — but the boundary this test uses is "the nav is visible", and on a
+    // fast local machine that lands after the idle callback has already
+    // fired. It is counted here even though a visitor never waits for it.
+    // The alternative was tuning a timeout until a test passed, which is
+    // worse than an honest five kilobytes.
+    //
+    // Still 25 KB below where this session started. Lower it as the
+    // remaining wins land. What is left, in order: 322 KB CSS, 276 KB entry,
+    // 188 KB react-vendor, 154 KB vendor, and a 60 KB bioService that has no
+    // business on the homepage.
+    expect(totalKb, `first paint fetched ${totalKb.toFixed(0)} KB across ${assets.length} files`).toBeLessThan(1455)
   })
 
   test("pdf.js is not on the critical path", async ({ page }) => {
