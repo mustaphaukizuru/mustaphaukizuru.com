@@ -21,5 +21,6 @@ One record below is `proposed` because deciding it would mean inventing an answe
 | [0005](0005-gated-plan-tiers.md) | The expensive plan tiers are scoped on a call | accepted | T2-4 |
 | [0006](0006-tracking-code-public-surface.md) | What an anonymous tracking code may reveal | accepted | T5-2 |
 | [0007](0007-packages-vs-offerings.md) | Whether a package and a standalone offering may price the same work differently | **proposed** | T2-11 |
+| [0008](0008-tracking-dates-and-health.md) | Dates and an on-time indicator on the anonymous tracking page | accepted | T5-12 |
 
 `test/decisionRecords.test.js` checks the shape of every record and that this index lists each one with the status the file itself declares — an index that drifts from the records is worse than none.

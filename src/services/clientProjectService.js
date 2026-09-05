@@ -1,6 +1,7 @@
 const prisma = require("../lib/prisma")
 const { withUniqueTrackingCode } = require("../utils/trackingCode")
 const projectEvents = require("./projectEventService")
+const { isMeaningfulReschedule } = require("./projectHealthService")
 const { validatePreviewUrl, assertAccessStateChange } = require("./projectPortalService")
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -245,6 +246,8 @@ async function updateMilestone(milestoneId, data) {
   if ("title"       in data) patch.title       = String(data.title).trim()
   if ("description" in data) patch.description = data.description?.trim() || null
   if ("dueDate"     in data) patch.dueDate     = data.dueDate ? new Date(data.dueDate) : null
+  // T5-12 · the current honest belief, separate from the commitment above.
+  if ("estimatedAt" in data) patch.estimatedAt = data.estimatedAt ? new Date(data.estimatedAt) : null
   if ("sortOrder"   in data) patch.sortOrder   = Number(data.sortOrder)
 
   let isNewlyComplete = false
@@ -276,6 +279,25 @@ async function updateMilestone(milestoneId, data) {
     where: { id: String(milestoneId) },
     data:  patch,
   })
+
+  // T5-12 · a date that moved. Recorded BEFORE the status event so the
+  // timeline reads in the order things happened when both change at once.
+  //
+  // Only a MOVE, not the first estimate and not a cleared one: setting a date
+  // for the first time is news the milestone itself already carries, and
+  // clearing one says "we no longer know", which is a different message and
+  // deserves a conversation rather than an automatic notice.
+  if ("estimatedAt" in data && isMeaningfulReschedule(existing.estimatedAt, patch.estimatedAt)) {
+    const fmt = (d) => new Date(d).toISOString().slice(0, 10)
+    await projectEvents.record({
+      projectId: existing.projectId,
+      type: "milestone.rescheduled",
+      actorRole: "admin",
+      detail:   `${updated.title}: ${fmt(existing.estimatedAt)} → ${fmt(patch.estimatedAt)}`,
+      detailEs: `${updated.title}: ${fmt(existing.estimatedAt)} → ${fmt(patch.estimatedAt)}`,
+      refs: { milestoneId: updated.id },
+    })
+  }
 
   if ("status" in data && data.status !== existing.status) {
     const TYPE_FOR_STATUS = {

@@ -1279,7 +1279,17 @@
     "moreTitle": "No code to hand?",
     "moreBody": "Everything is in your dashboard if you have an account with us, and we are always happy to look it up for you.",
     "openDashboard": "Open my dashboard",
-    "askUs": "Ask us"
+    "askUs": "Ask us",
+    "health": {
+      "on_track": "On schedule",
+      "at_risk": "Running behind the agreed date",
+      "late": "Past its date",
+      "lateCount_one": "1 milestone is past its date",
+      "lateCount_other": "{{count}} milestones are past their dates",
+      "expected": "Next expected {{date}}"
+    },
+    "timezone": "Times shown in {{zone}}",
+    "rescheduled": "Date moved"
   },
   "timeline": {
     "emptyTitle": "Nothing here yet",

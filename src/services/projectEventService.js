@@ -65,6 +65,13 @@ const EVENT_DEFINITIONS = {
   "milestone.changes_requested": {
     title: "Changes requested", titleEs: "Cambios solicitados", visibility: "public",
   },
+  // T5-12 · public, and deliberately so. A date moving is exactly the kind of
+  // thing a client should learn from the tracker rather than discover on the
+  // day nothing arrives. It carries only the two dates — no reason, because
+  // a reason is a conversation and this is a notice.
+  "milestone.rescheduled": {
+    title: "Date moved", titleEs: "Fecha movida", visibility: "public",
+  },
   // Files and documents name things. A file name can carry a client's own
   // client's name, a case number, a salary band — so nothing here is public.
   "file.requested": {

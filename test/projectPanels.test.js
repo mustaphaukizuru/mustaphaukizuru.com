@@ -118,6 +118,8 @@ describe("the public surface the page renders", () => {
     const allowed = new Set([
       "reference", "status", "percentComplete", "startDate", "dueDate",
       "isClosed", "milestones", "events", "openRequestCount", "links",
+      // ADR 0008.
+      "health", "expectedAt", "lateCount", "openCount",
     ])
     const used = new Set([...page.matchAll(/\bproject\.([A-Za-z]+)/g)].map((m) => m[1]))
     expect([...used].filter((k) => !allowed.has(k))).toEqual([])

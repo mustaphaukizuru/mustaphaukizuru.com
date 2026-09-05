@@ -1279,7 +1279,17 @@
     "moreTitle": "Sin código a la mano",
     "moreBody": "Todo está en tu panel si tienes cuenta con nosotros, y con gusto lo buscamos por ti.",
     "openDashboard": "Abrir mi panel",
-    "askUs": "Escríbenos"
+    "askUs": "Escríbenos",
+    "health": {
+      "on_track": "En tiempo",
+      "at_risk": "Va después de la fecha acordada",
+      "late": "Pasó su fecha",
+      "lateCount_one": "1 hito pasó su fecha",
+      "lateCount_other": "{{count}} hitos pasaron su fecha",
+      "expected": "Lo siguiente se espera el {{date}}"
+    },
+    "timezone": "Horarios en {{zone}}",
+    "rescheduled": "Fecha movida"
   },
   "timeline": {
     "emptyTitle": "Todavía no hay nada",

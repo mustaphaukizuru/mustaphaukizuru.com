@@ -144,11 +144,14 @@ describe("what the public projection contains", () => {
   test("the agreed fields, and nothing else", async () => {
     prisma.clientProject.findUnique.mockResolvedValue(projectRow())
     const out = await tracking.findByTrackingCode("MU-7K4C-9XQF")
-    // An exact key set. Adding a field here means editing ADR 0006 first,
-    // which is the whole point of writing this assertion as equality.
+    // An exact key set. Adding a field here means writing the decision
+    // FIRST, which is the whole point of the assertion being equality — and
+    // it did its job: T5-12 failed on this line, and ADR 0008 is the record
+    // that widened it.
     expect(Object.keys(out).sort()).toEqual([
-      "dueDate", "events", "isClosed", "links", "milestones",
-      "openRequestCount", "percentComplete", "reference", "startDate", "status",
+      "dueDate", "events", "expectedAt", "health", "isClosed", "lateCount",
+      "links", "milestones", "openCount", "openRequestCount",
+      "percentComplete", "reference", "startDate", "status",
     ])
   })
 
@@ -168,11 +171,15 @@ describe("what the public projection contains", () => {
     expect(out.links).toEqual({ portal: "/portal", dashboard: "/dashboard/projects" })
   })
 
-  test("milestone titles only — no descriptions", async () => {
+  test("milestone titles and dates — still no descriptions", async () => {
+    // The dates joined the set under ADR 0008: a client cannot have a
+    // schedule they were never told. A description still carries scope
+    // notes, names and figures, and still may not appear.
     prisma.clientProject.findUnique.mockResolvedValue(projectRow())
     const out = await tracking.findByTrackingCode("MU-7K4C-9XQF")
     for (const m of out.milestones) {
-      expect(Object.keys(m).sort()).toEqual(["completedAt", "status", "title"])
+      expect(Object.keys(m).sort())
+        .toEqual(["completedAt", "dueDate", "estimatedAt", "status", "title"])
     }
   })
 

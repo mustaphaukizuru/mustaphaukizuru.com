@@ -1552,6 +1552,14 @@ model ProjectMilestone {
   description String?         @db.Text
   status      MilestoneStatus @default(pending)
   dueDate     DateTime?
+  /// T5-12 · when we now think this will actually land.
+  ///
+  /// Distinct from dueDate, and the distinction is the whole feature.
+  /// dueDate is the COMMITMENT — what was agreed, and what a slip is measured
+  /// against. estimatedAt is the current honest belief. A client who can see
+  /// both knows whether a date has moved; a client who can only see one
+  /// discovers it on the day.
+  estimatedAt DateTime?
   completedAt DateTime?
   /// One-click client approval (Tier 2). approvedById is the client user.
   approvedAt         DateTime?

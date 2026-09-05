@@ -26,12 +26,19 @@ const MOBILE = { width: 390, height: 844 }
  * the next time a section is added above.
  */
 async function scrollIntoTrack(page, offset) {
-  await page.evaluate((px) => {
-    const track = document.querySelector("[data-step]")?.closest("section")
-    const top = track ? track.getBoundingClientRect().top + window.scrollY : 0
-    window.scrollTo(0, top + px)
-  }, offset)
-  await page.waitForTimeout(300)
+  // TWICE, and that is not belt-and-braces. The first scroll pulls lazy
+  // images and below-the-fold sections into view, which changes the
+  // document height and moves the track underneath the position just
+  // computed — so a single pass lands somewhere else on a cold page and the
+  // reveal reads as 0. The second pass measures the settled layout.
+  for (let pass = 0; pass < 2; pass += 1) {
+    await page.evaluate((px) => {
+      const track = document.querySelector("[data-step]")?.closest("section")
+      const top = track ? track.getBoundingClientRect().top + window.scrollY : 0
+      window.scrollTo(0, top + px)
+    }, offset)
+    await page.waitForTimeout(300)
+  }
 }
 
 /** Scroll to a fraction of the whole page and let the frame settle. */

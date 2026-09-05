@@ -84,6 +84,10 @@ describe("the anonymous response carries exactly what ADR 0006 allows", () => {
   const ALLOWED = [
     "reference", "status", "percentComplete", "startDate", "dueDate",
     "isClosed", "milestones", "events", "openRequestCount", "links",
+    // ADR 0008 extends 0006 with dates and an on-time indicator. Each is a
+    // date this client already agreed to, or a judgement about one — never
+    // an amount, a name, or a reason.
+    "health", "expectedAt", "lateCount", "openCount",
   ]
 
   test("the top-level key set is exactly the allowlist, in both directions", () => {
@@ -95,9 +99,13 @@ describe("the anonymous response carries exactly what ADR 0006 allows", () => {
     expect(Object.keys(out).sort()).toEqual([...ALLOWED].sort())
   })
 
-  test("a milestone gives up title and status, and nothing else", () => {
+  test("a milestone gives up its title, status and DATES, and nothing else", () => {
+    // The dates joined the set in ADR 0008: a client cannot have a schedule
+    // they were never told, so those dates were already theirs. The
+    // description — scope notes, names and figures — still may not.
     const { milestones } = tracking.serializePublicProject(ROW, "en")
-    expect(Object.keys(milestones[0]).sort()).toEqual(["completedAt", "status", "title"])
+    expect(Object.keys(milestones[0]).sort())
+      .toEqual(["completedAt", "dueDate", "estimatedAt", "status", "title"])
   })
 
   test("an event's detail never survives, even when the row has one", () => {

@@ -30,6 +30,7 @@ const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { normalizeTrackingCode } = require("../utils/trackingCode")
 const { serializePublicEvent } = require("./projectEventService")
+const { projectHealth } = require("./projectHealthService")
 
 const CLOSED_STATUSES = new Set(["completed", "cancelled"])
 
@@ -77,11 +78,19 @@ function serializePublicProject(project, locale = "en") {
     startDate: project.startDate?.toISOString?.() || null,
     dueDate: project.dueDate?.toISOString?.() || null,
     isClosed: CLOSED_STATUSES.has(project.projectStatus) || Boolean(project.closedAt),
+    // T5-12 · on time, or not. ADDING TO THIS RESPONSE IS A CHANGE TO ADR
+    // 0006 — health passes because it is a three-word judgement about dates
+    // the client already agreed to, and `expectedAt` is a date they were
+    // already told. Neither says anything about money, names or content.
+    ...projectHealth(milestones),
     // Titles and status only. A milestone description can contain scope
-    // notes, names and figures.
+    // notes, names and figures. estimatedAt joins them for the same reason
+    // dueDate would: it is a date this client agreed a schedule around.
     milestones: milestones.map((m) => ({
       title: m.title,
       status: m.status,
+      dueDate: m.dueDate?.toISOString?.() || null,
+      estimatedAt: m.estimatedAt?.toISOString?.() || null,
       completedAt: m.completedAt?.toISOString?.() || null,
     })),
     // Already filtered to visibility "public" by the query; projected again
@@ -119,7 +128,10 @@ async function findByTrackingCode(rawCode, { locale = "en" } = {}) {
       dueDate: true,
       closedAt: true,
       milestones: {
-        select: { title: true, status: true, completedAt: true, approvedAt: true },
+        select: {
+          title: true, status: true, completedAt: true, approvedAt: true,
+          dueDate: true, estimatedAt: true,
+        },
         // ProjectMilestone has no createdAt; sortOrder is the plan's own order.
         orderBy: { sortOrder: "asc" },
       },

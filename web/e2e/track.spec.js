@@ -43,6 +43,11 @@ const PROJECT = {
   ],
   openRequestCount: 2,
   links: { portal: "/portal", dashboard: "/dashboard/projects" },
+  // T5-12 · on time, or not.
+  health: "at_risk",
+  expectedAt: "2026-10-02T00:00:00.000Z",
+  lateCount: 0,
+  openCount: 2,
 }
 
 const stubTrack = (page, body = PROJECT, status = 200) =>
@@ -126,6 +131,34 @@ for (const locale of LOCALES) {
     await expect(page.getByLabel(/tracking code|c[oó]digo de seguimiento/i)).toBeVisible()
   })
 }
+
+test("it says whether the work is on time, and what is expected next", async ({ page }) => {
+  // The question a phase strip cannot answer. at_risk is the state worth
+  // distinguishing: the client can still do something about it.
+  await stubTrack(page)
+  await page.goto(`/track/${CODE}`)
+  await consentAway(page)
+  await expect(page.getByText(/Running behind the agreed date/i)).toBeVisible()
+  await expect(page.getByText(/Next expected/i)).toBeVisible()
+})
+
+test("late says how many, and says it in Spanish too", async ({ page }) => {
+  await stubTrack(page, { ...PROJECT, health: "late", lateCount: 2 })
+  await page.goto(`/es/track/${CODE}`)
+  await consentAway(page)
+  await expect(page.getByText(/2 hitos pasaron su fecha/i)).toBeVisible()
+})
+
+test("the timezone the times are in is stated once", async ({ page }) => {
+  // A timeline of bare times invites the reader to assume theirs and the
+  // operator to assume Mexico City, and nobody notices until a date lands on
+  // the wrong day.
+  await stubTrack(page)
+  await page.goto(`/track/${CODE}`)
+  await consentAway(page)
+  const shown = page.getByText(/Times shown in /i)
+  await expect(shown).toHaveCount(1)
+})
 
 test("the rendered page carries no money, no names and no file names", async ({ page }) => {
   // The serializer cannot return these (Jest covers that). This asserts the

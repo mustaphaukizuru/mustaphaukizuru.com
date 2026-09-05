@@ -46,11 +46,14 @@ const parse = (file) => {
 const records = files.map(parse)
 
 describe("there are records to check", () => {
-  test("the folder holds the seven the plan calls for", () => {
-    expect(files).toHaveLength(7)
-    expect(files.map((f) => f.slice(0, 4))).toEqual([
-      "0001", "0002", "0003", "0004", "0005", "0006", "0007",
-    ])
+  test("the folder holds every record, numbered without a gap", () => {
+    // A count rather than a fixed list of seven: records are added by the
+    // change that decides them, so the assertion that matters is that the
+    // numbering has no hole and no duplicate — a gap means a record was
+    // deleted rather than superseded.
+    expect(files.length).toBeGreaterThanOrEqual(8)
+    expect(files.map((f) => f.slice(0, 4)))
+      .toEqual(files.map((_, i) => String(i + 1).padStart(4, "0")))
   })
 })
 

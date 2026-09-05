@@ -116,6 +116,26 @@ export default function AdminClientProjectDetailPage() {
     return () => { alive = false }
   }, [id, isNew])
 
+  /**
+   * T5-12 · set or clear a milestone's expected date.
+   *
+   * On blur rather than on change: a date input fires on every keystroke in
+   * some browsers, and each one would be a write — and, past the two-day
+   * threshold, an event the client sees. One write when the operator is done.
+   */
+  async function handleMilestoneEstimate(m, value) {
+    const next = value || null
+    const current = m.estimatedAt ? new Date(m.estimatedAt).toISOString().slice(0, 10) : null
+    if (next === current) return
+    try {
+      await updateMilestone(id, m.id, { estimatedAt: next })
+      showSuccess(next ? "Expected date updated" : "Expected date cleared")
+      load()
+    } catch (err) {
+      showError(err.message || "Could not update the expected date")
+    }
+  }
+
   // Tier 4 · case-study draft
   const [draftingCase, setDraftingCase] = useState(false)
   async function handleCaseStudyDraft() {
@@ -468,6 +488,26 @@ export default function AdminClientProjectDetailPage() {
                       <StatusPill status={m.status} />
                     </div>
                     {m.description && <p className="mt-1 text-micro text-charcoal-80/65">{m.description}</p>}
+                    {/* T5-12 · the estimate, editable inline.
+                        Separate from "Due" beside it on purpose: due is what
+                        was AGREED and what a slip is measured against;
+                        this is what we now believe. Moving it by more than
+                        two days writes a public milestone.rescheduled event,
+                        so the client learns from the tracker rather than on
+                        the day. */}
+                    <label className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-charcoal-80/65">
+                      <span className="font-semibold">Now expected</span>
+                      <input
+                        type="date"
+                        defaultValue={m.estimatedAt ? new Date(m.estimatedAt).toISOString().slice(0, 10) : ""}
+                        onBlur={(e) => handleMilestoneEstimate(m, e.target.value)}
+                        className="rounded-md border border-charcoal-80/15 bg-white px-2 py-1 text-[11px] text-charcoal-80 focus:border-violet focus:outline-none"
+                        aria-label={`Expected date for ${m.title}`}
+                      />
+                      {m.dueDate && m.estimatedAt && new Date(m.estimatedAt) > new Date(m.dueDate) ? (
+                        <span className="font-semibold text-amber-700">past the agreed date</span>
+                      ) : null}
+                    </label>
                     <div className="mt-1.5 font-mono text-[11px] text-charcoal-80/65">
                       {m.dueDate && <>Due {new Date(m.dueDate).toLocaleDateString()} · </>}
                       {m.approvedAt && <>Approved by client {fmtWhen(m.approvedAt)} · </>}

@@ -2,6 +2,8 @@ const fs = require("fs")
 const path = require("path")
 const PDFDocument = require("pdfkit")
 const prisma = require("../lib/prisma")
+const QRCode = require("qrcode")
+const logger = require("../utils/logger")
 const generateInvoiceNumber = require("../utils/generateInvoiceNumber")
 const { STORAGE_PATHS } = require("../config/storagePaths")
 
@@ -162,10 +164,88 @@ async function ensureInvoice(orderId) {
   // 2 · Generate PDF on disk if missing
   const diskPath = invoicePathFor(invoice.invoiceNumber)
   if (!fs.existsSync(diskPath)) {
-    await generatePdf(order, invoice, diskPath)
+    // T5-11 · the tracking QR, resolved BEFORE the document is built.
+    // qrcode.toBuffer is async and PDFKit's render path is not, so this
+    // cannot happen inside generatePdf without turning it inside out.
+    const tracking = await resolveTracking(order)
+    await generatePdf(order, invoice, diskPath, tracking)
   }
 
   return invoice
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * T5-11 · the tracking QR
+ *
+ * An invoice is the piece of paper a client keeps. Putting the project's
+ * tracking code on it — as a code they can read and a QR they can scan —
+ * means the one document they file is also the way back to the work.
+ *
+ * Both, not either: a QR is unusable to somebody reading a printed invoice
+ * at a desk with no phone, and a twelve-character code is tedious to type on
+ * one. They are the same destination in two forms.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * The project this order is billed through, if any, with its QR pre-rendered.
+ *
+ * Returns null for everything that is not a project invoice — a store
+ * purchase has nothing to track, and a footer that says so would be noise on
+ * most of the invoices this system produces.
+ */
+async function resolveTracking(order) {
+  try {
+    const project = await prisma.clientProject.findFirst({
+      where: {
+        OR: [
+          { serviceOrderId: order.serviceOrderId || "\u0000" },
+          { serviceOrder: { orderId: order.id } },
+        ],
+      },
+      select: { trackingCode: true },
+    })
+    const code = project?.trackingCode
+    if (!code) return null
+
+    const base = String(process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/$/, "")
+    if (!base) return null
+    const url = `${base}/track/${code}`
+
+    // Error correction M, not H: the code is short, the print is small, and
+    // H spends a third of the modules on redundancy the scan does not need
+    // at this size. margin 0 because the PDF supplies the quiet zone.
+    const png = await QRCode.toBuffer(url, {
+      type: "png",
+      errorCorrectionLevel: "M",
+      margin: 0,
+      width: 220,
+      color: { dark: "#1A1B23", light: "#FFFFFF" },
+    })
+    return { code, url, png }
+  } catch (err) {
+    // A missing QR is a slightly less useful invoice. A failed invoice is a
+    // client who cannot pay. Never the second because of the first.
+    logger.warn?.(`[invoice] tracking QR skipped: ${err.message}`)
+    return null
+  }
+}
+
+/**
+ * Draw it above the footer text, at 22mm — small enough to be unobtrusive on
+ * a document about money, large enough for a phone camera to find.
+ */
+function renderTrackingQr(doc, tracking) {
+  if (!tracking?.png) return
+  const MM = 2.8346457  // PostScript points per millimetre
+  const size = 22 * MM
+  const x = doc.page.width - doc.page.margins.right - size
+  const y = doc.page.height - doc.page.margins.bottom - 40 - size - 14
+
+  doc.image(tracking.png, x, y, { width: size, height: size })
+  doc.font("Courier").fontSize(7).fillColor(BRAND.muted)
+     .text(tracking.code, x - 20, y + size + 3, { width: size + 40, align: "center" })
+  doc.font("Helvetica").fontSize(6.5).fillColor(BRAND.muted)
+     .text("Track this project", x - 20, y + size + 12, { width: size + 40, align: "center" })
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -174,7 +254,7 @@ async function ensureInvoice(orderId) {
  * Returns a Promise that resolves when the stream has finished flushing.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-function generatePdf(order, invoice, outPath) {
+function generatePdf(order, invoice, outPath, tracking = null) {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({ size: "A4", margin: 48 })
@@ -187,6 +267,7 @@ function generatePdf(order, invoice, outPath) {
       renderLineItems(doc, order)
       renderTotals(doc, order)
       renderPayment(doc, order)
+      renderTrackingQr(doc, tracking)
       renderFooter(doc)
 
       doc.end()

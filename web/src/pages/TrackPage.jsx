@@ -23,6 +23,7 @@ import { m, useReducedMotion } from "framer-motion"
 import {
   Search, PackageSearch, ArrowRight, ArrowLeft, FileWarning, LayoutDashboard,
   KeyRound, Loader2, CheckCircle2, Circle, CircleDot, Copy, Check,
+  CalendarClock, TriangleAlert, Clock3,
 } from "lucide-react"
 
 import { LocalizedLink as Link } from "../components/LocalizedLink"
@@ -146,6 +147,46 @@ function CopyableCode({ code }) {
   )
 }
 
+/**
+ * On time, or not (T5-12).
+ *
+ * The three words a carrier uses, with the next expected date beside them.
+ * "In progress, 40%" answers where the work is; this answers the question a
+ * client actually has, which is whether it will be ready when they were told.
+ *
+ * on_track is deliberately quiet. A green badge shouting ON TRACK on every
+ * project teaches a reader to stop seeing the strip, and then to miss the day
+ * it says something else.
+ */
+const HEALTH_TONE = {
+  on_track: { icon: CalendarClock, chip: "bg-mint/15 text-mint-700 ring-mint/25" },
+  at_risk: { icon: Clock3, chip: "bg-amber/10 text-amber-700 ring-amber/25" },
+  late: { icon: TriangleAlert, chip: "bg-rose/10 text-rose-700 ring-rose/25" },
+}
+
+function HealthPill({ health, expectedAt, lateCount, fmtDate }) {
+  const { t } = useTranslation("dashboard")
+  const tone = HEALTH_TONE[health]
+  if (!tone) return null
+  const Icon = tone.icon
+
+  return (
+    <div className="mb-6 flex flex-wrap items-center gap-3">
+      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-meta font-semibold ring-1 ${tone.chip}`}>
+        <Icon className="size-4" aria-hidden="true" />
+        {health === "late" && lateCount > 0
+          ? t("track.health.lateCount", { count: lateCount })
+          : t(`track.health.${health}`)}
+      </span>
+      {expectedAt ? (
+        <span className="text-meta text-charcoal-80/70">
+          {t("track.health.expected", { date: fmtDate.format(new Date(expectedAt)) })}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
 /* ── the result ───────────────────────────────────────────── */
 
 function PhaseStrip({ status, percent }) {
@@ -243,6 +284,24 @@ export default function TrackPage() {
     () => new Intl.DateTimeFormat(locale, { year: "numeric", month: "long", day: "numeric" }),
     [locale],
   )
+
+  // T5-23 · which clock these times are on.
+  //
+  // Intl already renders in the READER's zone, which is the right default —
+  // "3pm" should mean 3pm where they are. What was missing is saying so: a
+  // timeline of bare times invites the reader to assume theirs and the
+  // operator to assume Mexico City, and nobody notices the difference until
+  // a due date lands on the wrong day.
+  //
+  // Falls back to America/Mexico_City when the browser will not say, which is
+  // the studio's own zone and therefore the one the dates were set in.
+  const timeZone = useMemo(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Mexico_City"
+    } catch {
+      return "America/Mexico_City"
+    }
+  }, [])
 
   useEffect(() => {
     if (!code) return undefined
@@ -389,6 +448,15 @@ export default function TrackPage() {
 
             <PhaseStrip status={project.status} percent={project.percentComplete} />
 
+            {/* Whether it will be ready when we said, which is the question
+                the phase strip above does not answer. */}
+            <HealthPill
+              health={project.health}
+              expectedAt={project.expectedAt}
+              lateCount={project.lateCount}
+              fmtDate={fmtDate}
+            />
+
             {/* A count, never the documents themselves: which documents is
                 not an anonymous surface's business (ADR 0006). Acting on it
                 needs the portal or the dashboard, and both ask who you are. */}
@@ -436,6 +504,13 @@ export default function TrackPage() {
               <h2 className="mb-4 text-h4 font-semibold text-charcoal-80">{t("track.activity")}</h2>
               <ProjectTimeline events={project.events} />
             </section>
+
+            {/* Said once, under the timeline rather than beside every
+                timestamp — repeating it on each row is noise, and omitting
+                it entirely is the trap. */}
+            <p className="mb-8 text-meta text-charcoal-80/65">
+              {t("track.timezone", { zone: timeZone.replace(/_/g, " ") })}
+            </p>
 
             {/* The two doors. Destinations, not credentials: the response
                 carries no portal token, so signing in is what unlocks
