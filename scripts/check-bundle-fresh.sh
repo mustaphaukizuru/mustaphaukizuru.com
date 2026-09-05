@@ -45,16 +45,58 @@ fi
 
 if [ "$SRC_SHA" = "$BUNDLE_SHA" ]; then
   echo "✅ bundle fresh — source and bundle last changed together in ${SRC_SHA:0:7}"
-  exit 0
+  # No early exit: freshness and integrity are separate questions and the
+  # second one is checked below regardless of how the first was answered.
+  FRESH_OK=1
 fi
 
 # Is the bundle's last commit an ancestor of the source's last commit?
-if git merge-base --is-ancestor "$BUNDLE_SHA" "$SRC_SHA"; then
+if [ "${FRESH_OK:-0}" != "1" ] && git merge-base --is-ancestor "$BUNDLE_SHA" "$SRC_SHA"; then
   echo "❌ stale bundle: web/src changed in ${SRC_SHA:0:7} ($(git log -1 --format=%s "$SRC_SHA"))"
   echo "   but public/ was last rebuilt in ${BUNDLE_SHA:0:7} ($(git log -1 --format=%s "$BUNDLE_SHA"))."
   echo "   Run: cd web && npm run build:seo  — then commit public/ in the same change."
   exit 1
 fi
 
-echo "✅ bundle fresh — public/ (${BUNDLE_SHA:0:7}) is newer than or diverged from the last source change (${SRC_SHA:0:7})"
+# =============================================================================
+# Part 2 · does the committed bundle actually RESOLVE?
+#
+# Freshness and integrity are different questions, and only the first one was
+# being asked. `master` is in this state right now: public/index.html points at
+# /assets/index-IfKybSJ8.js, and that file was never committed. Every other
+# asset it references is there. The entry chunk is not.
+#
+# A browser served that gets a blank page — the server falls back to
+# index.html for the missing .js, the browser refuses it on MIME type, and
+# nothing boots. It is the same failure mode as the outage recorded in
+# .gitignore's rationale block, arrived at from the other direction: not an
+# ignored directory, but an incomplete commit of a tracked one.
+#
+# CI never caught it because the frontend job BUILDS the bundle and serves
+# what it just built. Only Hostinger serves the committed one, and it finds
+# out in production.
+#
+# Cheap to check, so it is checked on every run rather than only on the
+# frontend job: every /assets/ URL in public/index.html must exist on disk.
+# =============================================================================
+missing=()
+while IFS= read -r asset; do
+  [ -z "$asset" ] && continue
+  [ -f "public${asset}" ] || missing+=("$asset")
+done < <(grep -oE '/assets/[A-Za-z0-9_.-]+\.(js|css)' public/index.html | sort -u)
+
+if [ ${#missing[@]} -gt 0 ]; then
+  echo "❌ incomplete bundle: public/index.html references ${#missing[@]} file(s) that are not committed:"
+  for a in "${missing[@]}"; do echo "     public${a}"; done
+  echo "   A browser served this gets a blank page — the missing chunk falls back to"
+  echo "   index.html and is refused on MIME type. Run: cd web && npm run build:seo"
+  echo "   and commit ALL of public/, not just the files git happened to show as changed."
+  exit 1
+fi
+
+echo "✅ bundle complete — every asset public/index.html references is committed"
+
+if [ "${FRESH_OK:-0}" != "1" ]; then
+  echo "✅ bundle fresh — public/ (${BUNDLE_SHA:0:7}) is newer than or diverged from the last source change (${SRC_SHA:0:7})"
+fi
 exit 0

@@ -165,7 +165,7 @@ export default function PrivacyPage() {
           </div>
           <div>
             <div className="font-semibold">{t("privacy.questions")}</div>
-            <a href={`mailto:${CONTACT_EMAIL}`} className="mt-1 text-meta text-white/60 hover:text-white hover:underline">{CONTACT_EMAIL}</a>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="mt-1 text-meta text-white/85 hover:text-white hover:underline">{CONTACT_EMAIL}</a>
           </div>
         </div>
       </div>
