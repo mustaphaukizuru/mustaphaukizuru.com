@@ -9,7 +9,6 @@ import {
 import {
   fetchMyProject, uploadMyProjectFiles, postMyProjectComment,
   approveMyMilestone, requestMyMilestoneChanges, acceptMyProjectAgreement, postProjectReview,
-  fetchMyChangeRequests, createMyChangeRequest, acceptMyChangeRequest, declineMyChangeRequest,
 } from "../services/clientProjectService"
 import useApiQuery from "../hooks/useApiQuery"
 import { SkeletonCard, Button, Modal, Textarea, Select, Input, InlineBanner } from "../components/ui/index"
@@ -17,7 +16,7 @@ import StatusPill from "../components/admin/StatusPill"
 import { API_BASE_URL } from "../lib/api"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import { useToast } from "../context/ToastContext"
-import ProjectSupportPanel from "../components/projects/ProjectSupportPanel"
+import MessagesPanel from "../components/projects/MessagesPanel"
 // T5-5 · the three panels shared with the PIN portal and (for the
 // timeline) the anonymous /track page. useProjectPanels owns the only
 // difference between the two surfaces: which endpoint answers.
@@ -368,29 +367,20 @@ export default function DashboardProjectDetailPage() {
         />
       </SectionBlock>
 
-      {/* Tier 4 · extra work (change requests) */}
-      <SectionBlock title={t("projects.changeRequests.title")} subtitle={t("projects.changeRequests.subtitle")}>
-        <ChangeRequestsPanel projectId={project.id} readOnly={readOnly} currency={project.serviceOrder?.order?.currency} t={t} />
-      </SectionBlock>
-
-      {/* Project thread */}
-      <SectionBlock title={t("projects.detail.thread.title")} subtitle={t("projects.detail.thread.subtitle")}>
-        <div className={CARD}>
-          <CommentList comments={threadComments} empty={t("projects.detail.thread.empty")} t={t} />
-          <ReplyBox
-            className="mt-4"
-            readOnly={readOnly}
-            placeholder={t("projects.detail.thread.placeholder")}
-            onSubmit={(body) => handleComment({ body })}
-            t={t}
-          />
-        </div>
-      </SectionBlock>
-
-      {/* Support tickets scoped to this project — status next to the
-          project's, attachments via the same private file pipeline. */}
-      <SectionBlock title={t("projects.support.title")} subtitle={t("projects.support.subtitle")}>
-        <ProjectSupportPanel projectId={project.id} readOnly={readOnly} milestones={project.milestones || []} />
+      {/* T5-20 · one Messages panel over three models.
+          The client used to face three boxes for one intention — a thread,
+          a support form and a change-request form — and had to classify
+          their own message before they could send it. The models are
+          unchanged; only the presentation merges. */}
+      <SectionBlock title={t("projects.messages.title")}>
+        <MessagesPanel
+          projectId={project.id}
+          readOnly={readOnly}
+          milestones={project.milestones || []}
+          currency={project.serviceOrder?.order?.currency}
+          comments={threadComments}
+          onComment={handleComment}
+        />
       </SectionBlock>
 
       {/* T5-5 · the bills for this piece of work, rather than on a bare order
@@ -1027,160 +1017,3 @@ function Dropzone({ projectId, milestones, onUploaded, t }) {
   )
 }
 
-/* ── Tier 4 · change requests ──────────────────────────────────────────── */
-
-const CR_TONE = {
-  requested: "bg-amber/10 text-amber-700",
-  quoted:    "bg-violet-pale text-violet",
-  accepted:  "bg-azure/10 text-azure-deep",
-  declined:  "bg-charcoal-80/5 text-charcoal-80",
-  done:      "bg-mint/15 text-mint-700",
-}
-const fmtMoney = (v, currency) => {
-  try { return new Intl.NumberFormat(undefined, { style: "currency", currency: currency || "MXN", maximumFractionDigits: 2 }).format(Number(v || 0)) }
-  catch { return `${Number(v || 0).toFixed(2)} ${currency || "MXN"}` }
-}
-
-function ChangeRequestsPanel({ projectId, readOnly, t }) {
-  const navigate = useNavigate()
-  const { showSuccess, showError } = useToast()
-  const [formOpen, setFormOpen] = useState(false)
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [formError, setFormError] = useState({})
-  const [busyId, setBusyId] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
-
-  const { data: requests = [], loading, refetch, setData } = useApiQuery(
-    `projects:${projectId}:change-requests`,
-    () => fetchMyChangeRequests(projectId),
-    { enabled: Boolean(projectId), select: (d) => (Array.isArray(d) ? d : []) },
-  )
-
-  const reset = () => { setTitle(""); setDescription(""); setFormError({}); setFormOpen(false) }
-
-  const submit = async (e) => {
-    e.preventDefault()
-    const errs = {}
-    if (!title.trim()) errs.title = t("projects.changeRequests.form.titleRequired")
-    if (!description.trim()) errs.description = t("projects.changeRequests.form.descriptionRequired")
-    setFormError(errs)
-    if (Object.keys(errs).length) return
-    setSubmitting(true)
-    try {
-      const created = await createMyChangeRequest(projectId, { title: title.trim(), description: description.trim() })
-      if (created?.id) setData((prev) => [created, ...(prev || [])])
-      else refetch()
-      showSuccess(t("projects.changeRequests.toast.created"))
-      reset()
-    } catch (ex) {
-      showError(ex?.message || t("projects.changeRequests.toast.failed"))
-    } finally { setSubmitting(false) }
-  }
-
-  const accept = async (cr) => {
-    setBusyId(cr.id)
-    try {
-      const r = await acceptMyChangeRequest(projectId, cr.id)
-      showSuccess(t("projects.changeRequests.toast.accepted"))
-      if (r?.orderId) navigate(`/dashboard/orders/${r.orderId}`)
-      else refetch()
-    } catch (ex) {
-      showError(ex?.message || t("projects.changeRequests.toast.failed"))
-      setBusyId(null)
-    }
-  }
-  const decline = async (cr) => {
-    setBusyId(cr.id)
-    try {
-      const saved = await declineMyChangeRequest(projectId, cr.id)
-      setData((prev) => (prev || []).map((x) => x.id === cr.id ? { ...x, ...(saved?.id ? saved : { status: "declined" }) } : x))
-      showSuccess(t("projects.changeRequests.toast.declined"))
-    } catch (ex) {
-      showError(ex?.message || t("projects.changeRequests.toast.failed"))
-    } finally { setBusyId(null) }
-  }
-
-  return (
-    <div className={`${CARD} space-y-4`}>
-      {readOnly ? (
-        <p className="flex items-center gap-1.5 text-micro text-charcoal-80/65">
-          <Lock className="h-3 w-3" aria-hidden="true" /> {t("projects.changeRequests.readOnly")}
-        </p>
-      ) : !formOpen ? (
-        <Button size="sm" variant="secondary" icon={Plus} onClick={() => setFormOpen(true)}>
-          {t("projects.changeRequests.new")}
-        </Button>
-      ) : (
-        <form onSubmit={submit} className="space-y-3 rounded-lg border border-violet/15 bg-violet-pale/30 p-4">
-          <Input
-            label={t("projects.changeRequests.form.title")} value={title} maxLength={160} required
-            placeholder={t("projects.changeRequests.form.titlePlaceholder")} error={formError.title}
-            onChange={(e) => { setTitle(e.target.value); setFormError((f) => ({ ...f, title: "" })) }}
-          />
-          <Textarea
-            rows={4} value={description} maxLength={5000} required
-            label={t("projects.changeRequests.form.description")}
-            placeholder={t("projects.changeRequests.form.descriptionPlaceholder")} error={formError.description}
-            onChange={(e) => { setDescription(e.target.value); setFormError((f) => ({ ...f, description: "" })) }}
-          />
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" size="sm" icon={Send} loading={submitting}>{t("projects.changeRequests.form.submit")}</Button>
-            <Button type="button" size="sm" variant="ghost" icon={X} onClick={reset} disabled={submitting}>{t("projects.changeRequests.form.cancel")}</Button>
-          </div>
-        </form>
-      )}
-
-      {loading ? (
-        <SkeletonCard height="h-20" />
-      ) : requests.length === 0 ? (
-        <div className={EMPTY}>{t("projects.changeRequests.empty")}</div>
-      ) : (
-        <ul className="space-y-3">
-          {requests.map((cr) => {
-            const tone = CR_TONE[cr.status] || CR_TONE.requested
-            const busy = busyId === cr.id
-            return (
-              <li key={cr.id} className={`rounded-lg border p-4 ${cr.status === "quoted" && !readOnly ? "border-violet/40" : "border-charcoal-80/10"}`}>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Receipt className="h-4 w-4 text-violet" aria-hidden="true" />
-                  <h3 className="text-meta font-semibold text-charcoal-80">{cr.title}</h3>
-                  <span className={`rounded-full px-2 py-px text-[10px] font-bold uppercase tracking-wider ${tone}`}>
-                    {t(`projects.changeRequests.status.${cr.status}`, { defaultValue: cr.status })}
-                  </span>
-                </div>
-                <p className="mt-1 whitespace-pre-wrap text-micro text-charcoal-80/75">{cr.description}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
-                  <span>{t("projects.changeRequests.requestedOn", { date: fmtDate(cr.createdAt) })}</span>
-                  {cr.quotedAt && <span>{t("projects.changeRequests.quotedOn", { date: fmtDate(cr.quotedAt) })}</span>}
-                  {cr.quoteAmount != null && (
-                    <span className="font-semibold text-violet">{t("projects.changeRequests.quote", { amount: fmtMoney(cr.quoteAmount, cr.quoteCurrency) })}</span>
-                  )}
-                </div>
-                {cr.quoteNote && (
-                  <div className="mt-3 rounded-lg bg-violet-pale/40 px-3 py-2 text-micro text-charcoal-80">
-                    <span className="font-semibold">{t("projects.changeRequests.quoteNote")}</span>
-                    <p className="mt-0.5 whitespace-pre-wrap">{cr.quoteNote}</p>
-                  </div>
-                )}
-                {cr.status === "quoted" && !readOnly && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Button size="sm" icon={CreditCard} loading={busy} onClick={() => accept(cr)}>{t("projects.changeRequests.accept")}</Button>
-                    <Button size="sm" variant="secondary" icon={X} disabled={busy} onClick={() => decline(cr)}>{t("projects.changeRequests.decline")}</Button>
-                  </div>
-                )}
-                {cr.orderId && (
-                  <div className="mt-3">
-                    <Link to={`/dashboard/orders/${cr.orderId}`} className="inline-flex items-center gap-1 text-micro font-semibold text-violet hover:underline">
-                      <ExternalLink className="h-3 w-3" aria-hidden="true" /> {t("projects.changeRequests.viewOrder")}
-                    </Link>
-                  </div>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      )}
-    </div>
-  )
-}

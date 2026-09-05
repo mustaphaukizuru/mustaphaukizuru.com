@@ -273,6 +273,36 @@
         "created": "Ticket opened. We'll get back to you soon.",
         "replied": "Reply sent."
       }
+    },
+    "messages": {
+      "title": "Messages",
+      "subtitle": "Ask a question, report a problem or request extra work — all in one place.",
+      "new": "New message",
+      "readOnly": "This project is closed, so nothing new can be posted here.",
+      "openThread": "Open the thread",
+      "empty": "Nothing here yet",
+      "emptyBody": "Questions, problems and requests for extra work all appear in this one list.",
+      "openThreadLabel": "Open ticket {{subject}}",
+      "compose": {
+        "type": "What is this about?",
+        "question": "A question",
+        "problem": "A problem",
+        "extra": "Extra work",
+        "questionHint": "Goes straight to the project thread. We answer here.",
+        "problemHint": "Opens a numbered ticket you can follow, and you can attach files.",
+        "extraHint": "Work outside what we agreed. We quote it first — nothing starts until you accept.",
+        "questionPlaceholder": "Ask us anything about the project…",
+        "problemPlaceholder": "What happened, what you expected, and where you saw it.",
+        "extraPlaceholder": "Describe the extra work you need and why."
+      },
+      "kind": {
+        "question": "Question",
+        "problem": "Problem",
+        "extra": "Extra work"
+      },
+      "sent": {
+        "question": "Sent — we will answer here."
+      }
     }
   },
   "serviceOrders": {

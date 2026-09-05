@@ -273,6 +273,36 @@
         "created": "Ticket abierto. Te responderemos pronto.",
         "replied": "Respuesta enviada."
       }
+    },
+    "messages": {
+      "title": "Mensajes",
+      "subtitle": "Haz una pregunta, reporta un problema o pide trabajo extra — todo en un mismo lugar.",
+      "new": "Nuevo mensaje",
+      "readOnly": "Este proyecto está cerrado, así que ya no se puede publicar nada aquí.",
+      "openThread": "Abrir la conversación",
+      "empty": "Todavía no hay nada",
+      "emptyBody": "Las preguntas, los problemas y las solicitudes de trabajo extra aparecen todos en esta lista.",
+      "openThreadLabel": "Abrir el ticket {{subject}}",
+      "compose": {
+        "type": "¿De qué se trata?",
+        "question": "Una pregunta",
+        "problem": "Un problema",
+        "extra": "Trabajo extra",
+        "questionHint": "Va directo a la conversación del proyecto. Respondemos aquí.",
+        "problemHint": "Abre un ticket con número que puedes seguir, y puedes adjuntar archivos.",
+        "extraHint": "Trabajo fuera de lo acordado. Primero lo cotizamos — nada empieza hasta que lo aceptes.",
+        "questionPlaceholder": "Pregúntanos lo que sea sobre el proyecto…",
+        "problemPlaceholder": "Qué pasó, qué esperabas y dónde lo viste.",
+        "extraPlaceholder": "Describe el trabajo extra que necesitas y por qué."
+      },
+      "kind": {
+        "question": "Pregunta",
+        "problem": "Problema",
+        "extra": "Trabajo extra"
+      },
+      "sent": {
+        "question": "Enviado — te respondemos aquí."
+      }
     }
   },
   "serviceOrders": {
