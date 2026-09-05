@@ -18,7 +18,21 @@
 # =============================================================================
 set -euo pipefail
 
-SRC_PATHS=(web/src web/public web/index.html web/vite.config.js web/package-lock.json web/scripts/generate-sitemap.mjs)
+# Unit tests under web/src are NOT source for this purpose. They cannot reach
+# the bundle — nothing shipped imports a `.test.` module, and the built
+# assets contain no reference to one (both checked, not assumed) — so a
+# test-only commit was failing this gate and demanding a rebuild that
+# produces an identical bundle plus 150 files of renamed-hash churn.
+#
+# The exclusion is deliberately narrow: only files whose names end in
+# .test/.spec. Anything else under web/src still counts, which is the case
+# ADR 0001 exists for.
+SRC_PATHS=(
+  web/src web/public web/index.html web/vite.config.js web/package-lock.json
+  web/scripts/generate-sitemap.mjs
+  ':(exclude)web/src/**/*.test.js'   ':(exclude)web/src/**/*.test.jsx'
+  ':(exclude)web/src/**/*.spec.js'   ':(exclude)web/src/**/*.spec.jsx'
+)
 BUNDLE_PATHS=(public/index.html public/assets public/sw.js)
 
 SRC_SHA="$(git log -1 --format=%H -- "${SRC_PATHS[@]}" 2>/dev/null || true)"
