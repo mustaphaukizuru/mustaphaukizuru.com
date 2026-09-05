@@ -10,7 +10,9 @@
  *      never resolved outside the storage root),
  *   2. stamps ProjectFile.purgedAt on each row (metadata stays: name, size,
  *      who uploaded it, when — the audit trail survives, the bytes do not),
- *   3. stamps ClientProject.purgedAt so the project is never scanned again.
+ *   3. closes any document request still open (T5-7), so the reminder job
+ *      cannot keep chasing a client for a file with nowhere to land.
+ *   4. stamps ClientProject.purgedAt so the project is never scanned again.
  *
  * Already-missing files count as purged (ENOENT is fine). Any other unlink
  * error leaves that row un-stamped so the next nightly pass retries it, and
@@ -63,10 +65,23 @@ async function purgeProject(project, now, dryRun) {
     await prisma.projectFile.update({ where: { id: f.id }, data: { purgedAt: now } })
     purged += 1
   }
+  // T5-7 · close any document request still open on a purged project.
+  //
+  // Without this a request survives its project: the bytes are gone, the
+  // project is purged, and the row still reads "requested" — so the reminder
+  // job would keep chasing a client for a document there is no longer
+  // anywhere to put, and an admin could reject it back into an open state.
+  // Only OPEN rows are touched; an accepted one keeps its status, because
+  // overwriting it would erase the record that the document ever arrived.
+  const closedRequests = await prisma.projectFileRequest.updateMany({
+    where: { projectId: project.id, status: { in: ["requested", "rejected", "submitted"] } },
+    data:  { status: "cancelled", closedAt: now },
+  })
+
   if (failed === 0) {
     await prisma.clientProject.update({ where: { id: project.id }, data: { purgedAt: now } })
   }
-  return { projectId: project.id, files: files.length, purged, failed }
+  return { projectId: project.id, files: files.length, purged, failed, requestsClosed: closedRequests.count }
 }
 
 async function runProjectPurgePass({ dryRun = false, now = new Date() } = {}) {
