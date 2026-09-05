@@ -188,9 +188,9 @@ export default function DashboardNotificationsPage() {
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           {t("notificationsPage.eyebrow")}
         </span>
-        <h1 className="mt-3 text-section font-bold text-violet">
+        <h2 className="mt-3 text-section font-bold text-violet">
           {t("notificationsPage.title")}
-        </h1>
+        </h2>
         <p className="mt-2 max-w-2xl text-meta leading-6 text-charcoal-80/65">
           {t("notificationsPage.subtitle")}
         </p>

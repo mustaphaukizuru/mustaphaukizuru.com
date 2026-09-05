@@ -125,7 +125,7 @@ export default function DashboardProjectDetailPage() {
         <BackLink t={t} />
         <div className={`${CARD} text-center`}>
           <Lock className="mx-auto h-8 w-8 text-charcoal-80" aria-hidden="true" />
-          <h1 className="mt-3 text-card font-bold text-violet">{t("projects.detail.expired.title")}</h1>
+          <h2 className="mt-3 text-card font-bold text-violet">{t("projects.detail.expired.title")}</h2>
           <p className="mt-1 text-meta text-charcoal-80/65">{t("projects.detail.expired.body")}</p>
         </div>
       </section>
@@ -243,7 +243,7 @@ export default function DashboardProjectDetailPage() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <Briefcase className="h-5 w-5 text-violet" aria-hidden="true" />
-              <h1 className="text-card font-bold text-violet">{project.projectName}</h1>
+              <h2 className="text-card font-bold text-violet">{project.projectName}</h2>
               <StatusPill status={project.projectStatus} />
             </div>
             {project.description && (

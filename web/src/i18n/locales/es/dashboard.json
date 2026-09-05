@@ -1245,7 +1245,8 @@
       "support": "Ayuda y tickets",
       "profile": "Datos, direcciones, seguridad"
     },
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "breadcrumbRoot": "Panel"
   },
   "portal": {
     "eyebrow": "Portal del cliente",

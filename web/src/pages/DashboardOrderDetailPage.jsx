@@ -117,7 +117,7 @@ export default function DashboardOrderDetailPage() {
             <p className="text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
               {t("orderDetail.title", "Order")}
             </p>
-            <h1 className="mt-1 font-mono text-section font-bold text-violet">{orderRef}</h1>
+            <h2 className="mt-1 font-mono text-section font-bold text-violet">{orderRef}</h2>
             {createdAt && (
               <p className="mt-1 text-meta text-charcoal-80/65">{createdAt}</p>
             )}

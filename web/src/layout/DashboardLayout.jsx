@@ -10,7 +10,6 @@ import {
   ChevronRight,
   ShieldCheck,
   HelpCircle,
-  Search,
   X,
   Menu,
   Globe,
@@ -37,7 +36,6 @@ import { useTranslation } from "react-i18next"
  *    - Mobile menu uses the same active-state treatment for consistency.
  *    - Bottom mobile tab bar active state matches with violet pale + filled
  *      icon container.
- *    - Search input gets Deep Azure focus ring per a11y guidelines.
  *    - All icon-only buttons get aria-labels (mobile menu close, support,
  *      mobile menu toggle, etc.).
  *    - Skip-to-main-content link added for keyboard users.
@@ -168,7 +166,10 @@ function SidebarItem({ item }) {
       end={item.end}
       className={({ isActive: navActive }) =>
         [
-          "group relative flex items-start gap-3 rounded-xl py-3 transition-all duration-200",
+          // snap-start pairs with snap-proximity on the scroller: a scroll
+          // settles on a row boundary rather than leaving one bisected,
+          // which is what made a scrollable rail read as a rendering fault.
+          "group relative flex snap-start items-start gap-3 rounded-xl py-2.5 transition-all duration-200",
           // F10.B · 4px Deep Azure left border on active. The pl-3 accounts
           // for the 4px left border so the icon remains in the same x-axis
           // position regardless of state.
@@ -304,7 +305,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
           {/* Nav */}
           <div className="flex-1 overflow-y-auto px-4 pb-4">
             {navigation.map((group) => (
-              <div key={group.sectionKey} className="mb-6">
+              <div key={group.sectionKey} className="mb-4 last:mb-0">
                 <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
                   {td(group.sectionKey)}
                 </div>
@@ -398,7 +399,14 @@ export default function DashboardLayout() {
       </a>
 
       <div className="mx-auto max-w-[1700px] px-3 py-3 sm:px-5 lg:px-6 lg:py-4">
-        <div className="grid gap-4 lg:min-h-[calc(100dvh-2rem)] lg:grid-cols-[300px_1fr]">
+        {/* D1-4 · a narrower rail between lg and xl.
+             *
+             * The sidebar appears at lg (1024px) and took 300px of it, which
+             * left the content column 650px — measured — and that is also
+             * where DashboardPage used to split its cards in two, so each
+             * card got ~310px and titles wrapped onto two lines. The rail
+             * gets its full 300px back at xl, where there is room for it. */}
+        <div className="grid gap-4 lg:min-h-[calc(100dvh-2rem)] lg:grid-cols-[264px_1fr] xl:grid-cols-[300px_1fr]">
 
           {/* ── Desktop Sidebar ── */}
           <div className="hidden lg:sticky lg:top-4 lg:block lg:h-[calc(100dvh-2rem)]">
@@ -428,10 +436,18 @@ export default function DashboardLayout() {
                 {t("layout.backToWebsite")}
               </Link>
 
-              {/* Nav */}
-              <div className="mt-4 flex-1 overflow-y-auto pr-1">
+              {/* Nav
+               *
+               * The fade at the bottom is the affordance: when the rail is
+               * short enough for this to scroll, a row cut by the scroller's
+               * edge reads as a rendering fault rather than as "there is
+               * more below". mask-image would be tidier but is not in the
+               * gradient token set.
+               */}
+              <div className="relative mt-4 min-h-0 flex-1">
+                <div className="h-full snap-y snap-proximity overflow-y-auto pr-1">
                 {navigation.map((group) => (
-                  <div key={group.sectionKey} className="mb-6">
+                  <div key={group.sectionKey} className="mb-4 last:mb-0">
                     <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
                       {t(group.sectionKey)}
                     </div>
@@ -442,36 +458,50 @@ export default function DashboardLayout() {
                     </div>
                   </div>
                 ))}
+                </div>
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-6 rounded-b-xl bg-gradient-to-t from-white to-transparent"
+                  aria-hidden="true"
+                />
               </div>
 
-              {/* User card */}
-              <div className="mt-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 p-4">
-                <div className="flex items-center gap-3">
-                  <UserAvatar src={user?.avatarUrl} initials={initials} size={11} />
+              {/* Footer · one card (D1-3)
+               *
+               * This was three stacked blocks — user card, theme switcher,
+               * logout — at 190px with their margins, pinned below a nav that
+               * needs 642px. On a 600px-tall window the nav got 201px of that
+               * and hid 441px of itself; at 800px it hid 241px and sliced the
+               * "Projects" row in half, 40px of it below the scroller's edge.
+               * Measured at five viewport heights.
+               *
+               * Folded into one ~110px card: logout moves onto the avatar row
+               * as a 44px icon button, the theme control sits under it.
+               * Nothing is lost — Light / Dark / System are all still here —
+               * and the nav now fits WITHOUT SCROLLING at 1920x950, the window
+               * the report came from.
+               */}
+              <div className="mt-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 p-3">
+                <div className="flex items-center gap-2.5">
+                  <UserAvatar src={user?.avatarUrl} initials={initials} size={9} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-meta font-semibold text-violet">{user?.fullName || "Member"}</div>
                     <div className="truncate text-micro text-charcoal-80/70">{user?.email || ""}</div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    aria-label={t("layout.logout")}
+                    title={t("layout.logout")}
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose/20 bg-white text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30 focus-visible:ring-offset-2"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
+                  </button>
                 </div>
+                {/* Scoped to the dashboard subtree via data-dashboard-shell on
+                    this section's root, so toggling here does NOT alter the
+                    public website's canonical light brand. */}
+                <ThemeSwitcher variant="segmented" size="sm" className="mt-2.5 w-full justify-between" />
               </div>
-
-              {/* Theme switcher — 3-way Light / Dark / System control.
-                  Scoped to the dashboard subtree via data-dashboard-shell
-                  on this section's root, so toggling here does NOT alter
-                  the public website's canonical light brand. */}
-              <div className="mt-3">
-                <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
-              </div>
-
-              {/* Logout */}
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-rose/20 bg-white px-4 py-3 text-meta font-semibold text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
-              >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-                Logout
-              </button>
             </aside>
           </div>
 
@@ -508,55 +538,91 @@ export default function DashboardLayout() {
               </div>
             </header>
 
-            {/* ── Desktop Header ── */}
-            <header className="sticky top-4 z-20 hidden rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[var(--shadow-e6)] lg:block">
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                <div className="min-w-0">
+            {/* ── Desktop Header ── (D1-1, D1-2, D4-1)
+             *
+             * THE WRAPPER IS THE FIX FOR THE BLEED. The header used to be
+             * `sticky top-4`, which parks it 16px below the viewport edge and
+             * leaves a 16px window that scrolling cards slide through in full
+             * view — measured with elementFromPoint(x, 12) returning page
+             * content, and visible in the screenshot that started this. The
+             * WRAPPER is what sticks now, at top-0, and it carries the page's
+             * own 16px gap as its own padding on a `bg-mist` ground. So the
+             * gap is painted, the card still sits 16px down, and nothing shows
+             * through. `-mt-4` cancels the grid container's padding, so the
+             * resting layout is unchanged.
+             *
+             * ONE ROW, FROM lg UP. It was `flex-col ... xl:flex-row`, so
+             * between 1024 and 1280 the title block and the toolbar stacked:
+             * 184px of sticky header on a 600px-tall laptop — 31% of the
+             * screen, measured. Now a single row that holds at every width.
+             *
+             * WHAT WENT, AND WHY
+             *   · the subtitle — every page renders its own heading and
+             *     description; this was a second, more generic copy, and it
+             *     cost 40px of every screen permanently.
+             *   · the <h1> — the PAGE owns the h1. Two per document is what
+             *     the a11y probe found at all four viewports; a breadcrumb is
+             *     not the document's heading.
+             *   · the search box — no state, no handler, no form. It did
+             *     nothing, and being the widest thing here it is what forced
+             *     the wrap. Orders and Downloads already have their own
+             *     WORKING search inputs over the data they hold; a global one
+             *     needs a backend endpoint that does not exist, which is a
+             *     feature rather than a layout fix.
+             */}
+            <div className="sticky top-0 z-20 hidden -mt-4 bg-mist pt-4 lg:block">
+              <header className="flex items-center gap-4 rounded-xl border border-charcoal-80/10 bg-white px-5 py-3 shadow-[var(--shadow-e6)]">
+                <div className="min-w-0 flex-1">
                   <div className="text-micro font-medium uppercase tracking-[0.12em] text-charcoal-80/65">
-                    Dashboard / {currentMeta.title}
+                    {t("layout.breadcrumbRoot")}
                   </div>
-                  <div className="mt-2">
-                    <h1 className="truncate text-section font-bold tracking-tight text-violet">
-                      {currentMeta.title}
-                    </h1>
-                    <p className="mt-0.5 text-micro text-charcoal-80/70">{currentMeta.subtitle}</p>
-                  </div>
+                  {/* D4-1 · the h1 lives HERE, and only here.
+                   *
+                   * The probe found two per page — this one and the page's —
+                   * on all four viewports. Removing this one was tried first
+                   * and was worse: NINE of the fourteen dashboard pages have
+                   * no heading of their own (Consultations, Downloads,
+                   * Products and Profile have no visible title at all), so
+                   * the documents ended up with none.
+                   *
+                   * The layout already knows the page title from pageMeta and
+                   * renders it on every route, so it is the one place that can
+                   * guarantee exactly one. The three pages that had their own
+                   * h1 are now h2 under it, which is also the hierarchy the
+                   * heading-order probe wanted. */}
+                  <h1 className="truncate text-card font-bold tracking-tight text-violet">
+                    {currentMeta.title}
+                  </h1>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <label htmlFor="dashboard-search" className="sr-only">{t("layout.searchDashboard")}</label>
-                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-mist px-4 py-3 transition focus-within:border-violet/40 focus-within:ring-[3px] focus-within:ring-azure/20">
-                    <Search className="h-4 w-4 text-charcoal-80/65" aria-hidden="true" />
-                    <input
-                      id="dashboard-search"
-                      type="text"
-                      placeholder="Search orders, products..."
-                      className="w-[180px] bg-transparent text-meta text-violet outline-none placeholder:text-charcoal-80/65"
-                    />
-                  </div>
+                <div className="flex shrink-0 items-center gap-2">
                   <button
                     type="button"
                     onClick={() => navigate("/dashboard/support")}
                     aria-label={t("layout.openSupport")}
-                    title="Support"
+                    title={t("layout.openSupport")}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-violet-pale/60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
                   >
                     <HelpCircle className="h-[18px] w-[18px]" aria-hidden="true" />
                   </button>
                   <NotificationDropdown />
-                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3.5 py-2">
+                  {/* The name appears from xl and the email from 2xl: between
+                      1024 and 1279 the content column is only 650px wide, and
+                      an email address is the least useful thing in a header
+                      belonging to the person already signed in. */}
+                  <div className="flex items-center gap-2.5 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3 py-2">
                     <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[var(--shadow-lift-1)]" />
-                    <div className="min-w-0">
-                      <div className="truncate text-meta font-semibold leading-none text-violet">
+                    <div className="hidden min-w-0 xl:block">
+                      <div className="truncate text-meta font-semibold leading-tight text-violet">
                         {user?.fullName?.split(" ")[0] || "Member"}
                       </div>
-                      <div className="mt-0.5 truncate text-micro leading-none text-charcoal-80/65">
+                      <div className="mt-0.5 hidden truncate text-micro leading-tight text-charcoal-80/65 2xl:block">
                         {user?.email || ""}
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </header>
+              </header>
+            </div>
 
             {/* Page content */}
             <main id="dashboard-main" className="mt-3 min-w-0 lg:mt-4">

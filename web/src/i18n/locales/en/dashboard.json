@@ -1245,7 +1245,8 @@
       "support": "Help and tickets",
       "profile": "Details, addresses, security"
     },
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "breadcrumbRoot": "Dashboard"
   },
   "portal": {
     "eyebrow": "Client portal",

@@ -240,6 +240,17 @@ export default function DashboardPage() {
         )}
 
         {/* ── Summary blocks ─────────────────────────────────────────── */}
+        {/* D1-4 · two columns from lg, unchanged.
+         *
+         * The cramping at 1024-1279 was fixed in the SHELL, by giving the
+         * sidebar 264px instead of 300px below xl — the content column goes
+         * 650px → 686px and the card titles stop wrapping. Moving this split
+         * to xl was tried and reverted: at 1024 the grid stayed at two
+         * columns regardless, which the compiled CSS says it should not
+         * (`.xl\:grid-cols-2` sits in `@media(min-width:80rem)`, and
+         * matchMedia agrees that does not match at 1024). Rather than ship a
+         * class whose name disagrees with what the browser does, the original
+         * breakpoint stays and the win comes from the rail. */}
         <div className="grid gap-4 lg:grid-cols-2">
           {/* Orders · last 3 */}
           <Block
