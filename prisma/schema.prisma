@@ -1454,6 +1454,13 @@ model ClientProject {
   /// human-facing handle, and it is nullable so existing rows are valid
   /// until the backfill runs.
   trackingCode    String?       @unique @db.VarChar(16)
+
+  /// T5-15 · this project's Monday digest is off.
+  ///
+  /// Per PROJECT, not per person: a client with three projects may want the
+  /// digest for the live one and not for the two winding down, and a single
+  /// global switch would make them choose all or nothing.
+  digestOptOut    Boolean       @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 

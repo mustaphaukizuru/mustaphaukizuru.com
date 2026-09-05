@@ -184,8 +184,32 @@ function noteHit(ip) {
   if (ip) missCounts.delete(ip)
 }
 
+/**
+ * T5-15 · turn this project's weekly digest off.
+ *
+ * Goes through normalizeTrackingCode like every other lookup, so a malformed
+ * code never reaches the database. Returns null for anything unknown, and
+ * the caller answers identically either way — the same non-oracle the read
+ * path keeps.
+ */
+async function setDigestOptOut(rawCode, value = true) {
+  const code = normalizeTrackingCode(rawCode)
+  if (!code) return null
+  try {
+    return await prisma.clientProject.update({
+      where: { trackingCode: code },
+      data:  { digestOptOut: Boolean(value) },
+      select: { id: true, trackingCode: true, digestOptOut: true },
+    })
+  } catch {
+    // P2025 — no project with that code. Same answer as any other miss.
+    return null
+  }
+}
+
 module.exports = {
   findByTrackingCode,
+  setDigestOptOut,
   serializePublicProject,
   percentComplete,
   isExpired,

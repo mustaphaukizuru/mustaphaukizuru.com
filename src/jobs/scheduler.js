@@ -34,6 +34,7 @@ const { aggregateDailyMetrics } = require("./aggregateDailyMetrics")
 const { runReminderPass } = require("./bookingReminderJob")
 const { cancelStaleOrders } = require("./cancelStaleOrders")
 const { runFileRequestReminderPass } = require("./fileRequestReminderJob")
+const { runWeeklyDigestPass } = require("./weeklyDigestJob")
 const { runCampaignSenderPass } = require("./campaignSenderJob")
 const { runEmailRetryPass } = require("./emailRetryJob")
 const { runBackupPass } = require("./backupDatabaseJob")
@@ -152,6 +153,15 @@ function startScheduler() {
   // for campaigns in status "sending". The overlap guard keeps two passes
   // from racing on the same rows.
   try {
+    // T5-15 · Monday 08:00 Mexico City. Not Sunday night and not Friday: the
+    // digest is a thing to act on, and it should land at the start of a
+    // working week rather than at the end of one.
+    cron.schedule(
+      "0 8 * * 1",
+      () => guarded("weeklyDigest", runWeeklyDigestPass),
+      { timezone: "America/Mexico_City" },
+    )
+
     cron.schedule("* * * * *", () => guarded("campaignSender", runCampaignSenderPass))
     logger.info("[scheduler] registered campaign sender · every minute")
   } catch (err) {

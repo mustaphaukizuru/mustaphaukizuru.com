@@ -34,6 +34,7 @@ const PROJECT_TEMPLATES = [
   "project.file-rejected",
   "project.file-received",
   "project.status-update",
+  "project.weekly-digest",
 ]
 
 function frontendBase() {
@@ -359,6 +360,77 @@ async function sendFileReceived({ project, request, file, client }) {
   })
 }
 
+/**
+ * T5-15 · the Monday digest.
+ *
+ * Takes the digest weeklyDigestJob already built — the decision about
+ * WHETHER to send lives there, so this only has to render one.
+ */
+async function sendWeeklyDigest({ project, events, moreEvents = 0, openRequests = [], billing }) {
+  const user = await clientFor(project.userId)
+  if (!user?.email) return false
+  const lc = localeFor(user)
+  const es = ES(lc)
+
+  const lines = (events || []).map((e) => {
+    const serialized = projectEvents.serializeEvent(e, es ? "es" : "en")
+    return { title: serialized.title, date: fmtDate(serialized.createdAt, lc) }
+  })
+
+  // The summary line does the work of the subject: a reader who opens this
+  // on a phone should know within one sentence whether it needs them.
+  const moved = lines.length
+  const summaryLine = moved
+    ? (es
+      ? `${moved} ${moved === 1 ? "cosa avanzó" : "cosas avanzaron"} esta semana.`
+      : `${moved} thing${moved === 1 ? "" : "s"} moved this week.`)
+    : (es
+      ? "Nada avanzó esta semana de nuestro lado."
+      : "Nothing moved on our side this week.")
+
+  const owed = (openRequests || []).length
+  const unpaid = billing?.unpaidCount || 0
+  const waiting = []
+  if (owed) {
+    waiting.push(es
+      ? `Seguimos esperando ${owed} documento${owed === 1 ? "" : "s"} de tu parte.`
+      : `We are still waiting on ${owed} document${owed === 1 ? "" : "s"} from you.`)
+  }
+  if (unpaid) {
+    waiting.push(es
+      ? `Hay ${unpaid} factura${unpaid === 1 ? "" : "s"} pendiente${unpaid === 1 ? "" : "s"}.`
+      : `${unpaid} invoice${unpaid === 1 ? " is" : "s are"} outstanding.`)
+  }
+  const waitingLine = waiting.length
+    ? waiting.join(" ")
+    : (es ? "No necesitamos nada de tu parte ahora mismo." : "We do not need anything from you right now.")
+
+  const base = frontendBase()
+  return send({
+    project,
+    templateKey: "project.weekly-digest",
+    to: user.email,
+    userId: project.userId,
+    locale: lc,
+    variables: {
+      summaryLine,
+      waitingLine,
+      // *Html because it carries markup; anything interpolated in is escaped.
+      eventsHtml: lines.length
+        ? lines.map((l) => `${escapeHtml(l.title)}${l.date ? ` · <span style="font-weight:400">${l.date}</span>` : ""}`).join("<br>")
+          + (moreEvents ? `<br><span style="font-weight:400">${es ? `y ${moreEvents} más` : `and ${moreEvents} more`}</span>` : "")
+        : (es ? "Sin actividad esta semana." : "No activity this week."),
+      eventsText: lines.length
+        ? lines.map((l) => `  · ${l.title}${l.date ? ` (${l.date})` : ""}`).join("\n")
+        : (es ? "  · Sin actividad esta semana." : "  · No activity this week."),
+      // A token would be one more credential to mint and expire. The project
+      // id is enough: the link only ever turns a digest OFF, and the worst a
+      // stranger with it can do is stop an email they were not receiving.
+      optOutUrl: `${base}/api/v1/track/${project.trackingCode}/digest-opt-out`,
+    },
+  })
+}
+
 /** T5-6g · the phase changed, with the last three events. */
 async function sendStatusUpdate({ project, status, locale }) {
   const user = await clientFor(project.userId)
@@ -436,4 +508,5 @@ module.exports = {
   sendFileReviewed,
   sendFileReceived,
   sendStatusUpdate,
+  sendWeeklyDigest,
 }

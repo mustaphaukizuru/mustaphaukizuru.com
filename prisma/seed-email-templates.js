@@ -1311,6 +1311,42 @@ const TEMPLATES = [
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),
   },
+  // T5-15 · the Monday digest. Only sent when there is something to say —
+  // see weeklyDigestJob: a digest that arrives saying "nothing happened" is
+  // one people filter, and once filtered it is gone for the week something
+  // did.
+  {
+    key: "project.weekly-digest",
+    subject: "This week on {{projectName}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "What moved this week, and what is still with you.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`This week on {{projectName}}`) +
+        paragraph(`{{summaryLine}}`) +
+        calloutCard(`{{eventsHtml}}`) +
+        paragraph(`{{waitingLine}}`) +
+        button("{{trackUrl}}", "See the full timeline") +
+        paragraph(`Do not want this weekly note for this project? <a href="{{optOutUrl}}" style="color:${BRAND_VIOLET};">Turn it off</a> — it will not affect anything else we send you.`),
+    }),
+    text: [
+      "This week on {{projectName}} ({{trackingCode}})",
+      "",
+      "{{summaryLine}}",
+      "",
+      "{{eventsText}}",
+      "",
+      "{{waitingLine}}",
+      "",
+      "The full timeline:",
+      "  {{trackUrl}}",
+      "",
+      "Turn this weekly note off for this project:",
+      "  {{optOutUrl}}",
+      "",
+      "\u00a9 {{year}} Mustapha Ukizuru \u00b7 " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
 ]
 
 
@@ -2411,6 +2447,39 @@ const TEMPLATES_ES = [
       "  {{trackUrl}}",
       "",
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+  // project.weekly-digest
+  {
+    key: "project.weekly-digest",
+    subject: "Esta semana en {{projectName}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "Qu\u00e9 avanz\u00f3 esta semana y qu\u00e9 sigue de tu lado.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Esta semana en {{projectName}}`) +
+        paragraph(`{{summaryLine}}`) +
+        calloutCard(`{{eventsHtml}}`) +
+        paragraph(`{{waitingLine}}`) +
+        button("{{trackUrl}}", "Ver la l\u00ednea de tiempo") +
+        paragraph(`\u00bfNo quieres este resumen semanal de este proyecto? <a href="{{optOutUrl}}" style="color:${BRAND_VIOLET};">Desactívalo</a> — no afecta nada m\u00e1s de lo que te enviamos.`),
+    }),
+    text: [
+      "Esta semana en {{projectName}} ({{trackingCode}})",
+      "",
+      "{{summaryLine}}",
+      "",
+      "{{eventsText}}",
+      "",
+      "{{waitingLine}}",
+      "",
+      "La l\u00ednea de tiempo completa:",
+      "  {{trackUrl}}",
+      "",
+      "Desactivar este resumen para este proyecto:",
+      "  {{optOutUrl}}",
+      "",
+      "\u00a9 {{year}} Mustapha Ukizuru \u00b7 " + SUPPORT_EMAIL,
     ].join("\n"),
   },
 ]

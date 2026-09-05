@@ -13,5 +13,8 @@ const c = require("../controllers/trackController")
 const router = express.Router()
 
 router.get("/:code", trackRateLimiter, c.getByCode)
+// T5-15 · the opt-out link at the foot of the weekly digest. Same limiter:
+// it takes the same code and must not become a way around the other one.
+router.get("/:code/digest-opt-out", trackRateLimiter, c.optOutOfDigest)
 
 module.exports = router

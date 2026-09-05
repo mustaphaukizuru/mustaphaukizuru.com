@@ -53,8 +53,24 @@ afterEach(() => {
 test("every registered job has an expected interval", () => {
   expect(Object.keys(JOB_INTERVALS).sort()).toEqual([
     "abandonedCart", "aggregateDailyMetrics", "bookingReminders", "campaignSender", "cancelStaleOrders",
-    "databaseBackup", "emailRetry", "fulfillmentReconcile", "invoiceDunning", "projectPurge", "retention",
+    "databaseBackup", "emailRetry", "fileRequestReminders", "fulfillmentReconcile", "invoiceDunning",
+    "projectPurge", "retention", "weeklyDigest",
   ])
+})
+
+test("every job the SCHEDULER runs is watched by the dead-man switch", () => {
+  // The list above is a list; this is the check that it matches reality.
+  // fileRequestReminders shipped in T5-3 and was never registered, so
+  // /health/jobs reported the scheduler healthy while that job could have
+  // stopped silently — which is exactly the failure the switch exists for.
+  // A name typo does the same thing, quietly.
+  const fs = require("fs")
+  const path = require("path")
+  const scheduler = fs.readFileSync(path.join(__dirname, "..", "src", "jobs", "scheduler.js"), "utf8")
+  const scheduled = [...scheduler.matchAll(/guarded\(\s*"([a-zA-Z]+)"/g)].map((m) => m[1])
+  expect(scheduled.length).toBeGreaterThan(8)
+  const unwatched = [...new Set(scheduled)].filter((name) => !(name in JOB_INTERVALS))
+  expect(unwatched).toEqual([])
 })
 
 test("recordHeartbeat creates the file, keeps other jobs, and readHeartbeats tolerates garbage", () => {

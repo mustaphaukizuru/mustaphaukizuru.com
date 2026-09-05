@@ -191,6 +191,12 @@ describe("one unauthenticated route, and it is the one we meant", () => {
    */
   const PUBLIC_ALLOWLIST = new Set([
     "/track · GET /:code",
+    // T5-15 · the opt-out link at the foot of the weekly digest. No token,
+    // deliberately: it can only turn a digest OFF for a project whose
+    // tracking code the holder already has, so the worst a stranger who
+    // intercepted the link can do is stop an email they were not receiving.
+    // Same rate limiter as the lookup, so it is not a way around that one.
+    "/track · GET /:code/digest-opt-out",
     "/portal · POST /logout",
     "/portal · GET /:token",
     "/portal · POST /:token/pin",
