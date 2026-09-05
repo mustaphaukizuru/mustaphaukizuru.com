@@ -2,6 +2,7 @@ const prisma = require("../lib/prisma")
 const { withUniqueTrackingCode } = require("../utils/trackingCode")
 const { ensureInvoice } = require("./invoiceService")
 const { notifyProjectCreated } = require("./notificationService")
+const { sendTrackingCodeEmail } = require("./projectEmailService")
 
 /**
  * Default milestone scaffold seeded on every newly auto-created ClientProject.
@@ -204,6 +205,11 @@ async function autoCreateClientProjectsForOrder(orderId, userId) {
         // repeat notifications on webhook retries).
         await seedMilestoneScaffold(project.id).catch(() => 0)
         await notifyProjectCreated(userId, project).catch(() => null)
+        // T5-6 · the code, once, at the start. It is the only email that
+        // explains what the code is for, and every later project email
+        // repeats it in the eyebrow — so if this one is missed the client
+        // meets the code as an unexplained string on an invoice.
+        await sendTrackingCodeEmail(userId, project).catch(() => null)
       } catch (e) {
         if (e?.code !== "P2002") {
           console.error(`[fulfillOrder] auto-project failed for serviceOrder ${so.id}:`, e.message)

@@ -20,6 +20,7 @@
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { notify } = require("../services/notificationService")
+const projectEmails = require("../services/projectEmailService")
 
 /** How close to the due date a request starts being chased. */
 const DUE_WITHIN_DAYS = 2
@@ -51,7 +52,13 @@ async function runFileRequestReminderPass({ now = new Date() } = {}) {
     },
     select: {
       id: true, projectId: true, title: true, titleEs: true, dueAt: true, remindedAt: true,
-      project: { select: { id: true, userId: true, projectName: true, closedAt: true } },
+      instructions: true, instructionsEs: true,
+      project: {
+        select: {
+          id: true, userId: true, projectName: true, closedAt: true,
+          trackingCode: true, assignedAdminId: true,
+        },
+      },
     },
     take: 200,
   })
@@ -77,13 +84,17 @@ async function runFileRequestReminderPass({ now = new Date() } = {}) {
       })
       if (claim.count !== 1) { skipped += 1; continue }
 
-      const overdue = request.dueAt && request.dueAt < now
+      const overdue = Boolean(request.dueAt && request.dueAt < now)
       await notify(request.project.userId, {
         type: "project",
         title: overdue ? "A document is overdue" : "A document is due soon",
         message: request.title,
         linkUrl: `/dashboard/projects/${request.projectId}?request=${request.id}`,
       })
+      // T5-6 · and the email. AFTER the notification and after the claim, so
+      // a mail failure cannot cause a second reminder: remindedAt is already
+      // stamped and the cooldown holds either way.
+      await projectEmails.sendFileReminder({ project: request.project, request, overdue })
       reminded += 1
     } catch (err) {
       // One bad row must not abort the sweep. remindedAt is already stamped,

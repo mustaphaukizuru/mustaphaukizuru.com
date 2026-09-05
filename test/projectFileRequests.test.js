@@ -26,6 +26,12 @@ jest.mock("../src/utils/logger", () => ({
 }))
 
 jest.mock("../src/services/notificationService", () => ({ notify: jest.fn() }))
+// T5-6 · the job now emails as well as notifying. Its own service and its
+// own test; here it only has to be reached with the right arguments.
+jest.mock("../src/services/projectEmailService", () => ({
+  sendFileReminder: jest.fn().mockResolvedValue(true),
+  sendFileReceived: jest.fn().mockResolvedValue(true),
+}))
 
 const fs = require("fs")
 const path = require("path")
@@ -34,6 +40,7 @@ const prisma = require("../src/lib/prisma")
 const { notify } = require("../src/services/notificationService")
 const fileRequests = require("../src/services/projectFileRequestService")
 const { runFileRequestReminderPass } = require("../src/jobs/fileRequestReminderJob")
+const { sendFileReminder } = require("../src/services/projectEmailService")
 
 const ROOT = path.join(__dirname, "..")
 
@@ -204,7 +211,8 @@ describe("the reminder job", () => {
   }
   const row = (over = {}) => ({
     id: "fr1", projectId: "p1", title: "RFC", titleEs: null, dueAt: due(1), remindedAt: null,
-    project: { id: "p1", userId: "u1", projectName: "Audit", closedAt: null },
+    instructions: null, instructionsEs: null,
+    project: { id: "p1", userId: "u1", projectName: "Audit", closedAt: null, trackingCode: "MU-7K4C-9XQF", assignedAdminId: null },
     ...over,
   })
 
@@ -244,6 +252,27 @@ describe("the reminder job", () => {
     // "whenever you can".
     expect(where.dueAt.not).toBeNull()
     expect(where.OR).toEqual([{ remindedAt: null }, { remindedAt: { lte: expect.any(Date) } }])
+  })
+
+  test("it emails as well as notifying, and says which one is overdue", async () => {
+    // The in-app badge alone is a notification nobody sees until they next
+    // sign in, which for a client chasing paperwork is exactly never.
+    prisma.projectFileRequest.findMany.mockResolvedValue([row({ dueAt: due(-3) })])
+    prisma.projectFileRequest.updateMany.mockResolvedValue({ count: 1 })
+    await runFileRequestReminderPass()
+    expect(sendFileReminder).toHaveBeenCalledTimes(1)
+    const arg = sendFileReminder.mock.calls[0][0]
+    expect(arg.overdue).toBe(true)
+    // The project has to carry the tracking code or the send is refused —
+    // which is why the job's select fetches it.
+    expect(arg.project.trackingCode).toBe("MU-7K4C-9XQF")
+  })
+
+  test("a lost claim emails nobody either", async () => {
+    prisma.projectFileRequest.findMany.mockResolvedValue([row()])
+    prisma.projectFileRequest.updateMany.mockResolvedValue({ count: 0 })
+    await runFileRequestReminderPass()
+    expect(sendFileReminder).not.toHaveBeenCalled()
   })
 
   test("one bad row does not abort the sweep", async () => {

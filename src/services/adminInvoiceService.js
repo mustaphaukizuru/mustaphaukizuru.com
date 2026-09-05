@@ -15,6 +15,7 @@
 
 const prisma = require("../lib/prisma")
 const projectEvents = require("./projectEventService")
+const { notifyInvoiceIssued } = require("./notificationService")
 const logger = require("../utils/logger")
 const generateInvoiceNumber = require("../utils/generateInvoiceNumber")
 const { sendTemplateEmail } = require("./emailService")
@@ -204,7 +205,7 @@ async function createManualInvoice({ serviceOrderId, amount, dueDate, descriptio
   // they are being billed for.
   const project = await prisma.clientProject.findFirst({
     where: { serviceOrderId: so.id },
-    select: { id: true, trackingCode: true },
+    select: { id: true, trackingCode: true, projectName: true },
   }).catch(() => null)
 
   if (project) {
@@ -216,6 +217,15 @@ async function createManualInvoice({ serviceOrderId, amount, dueDate, descriptio
       detailEs: `${invoiceNumber} · ${fmtMoney(tax.totalAmount, currency)} · vence ${fmtDate(due)}`,
       refs: { invoiceId: result.invoice.id },
     })
+    // T5-6 · a bell badge beside the invoice email, landing on the project
+    // rather than a bare order number. Best-effort: the invoice is already
+    // written and its own email is about to go out regardless.
+    notifyInvoiceIssued(so.user.id, {
+      project,
+      invoiceNumber,
+      amountLabel: fmtMoney(tax.totalAmount, currency),
+      dueLabel: fmtDate(due),
+    }).catch(() => null)
   }
 
   const variables = {

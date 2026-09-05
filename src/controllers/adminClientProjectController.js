@@ -9,6 +9,8 @@ const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
 const fileRequests = require("../services/projectFileRequestService")
 const projectEvents = require("../services/projectEventService")
 const { notify } = require("../services/notificationService")
+const { notifyFileRequested, notifyFileReviewed, notifyProjectPhase } = require("../services/notificationService")
+const projectEmails = require("../services/projectEmailService")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
@@ -50,17 +52,39 @@ const createProject = asyncHandler(async (req, res) => {
   }
 })
 
+/**
+ * T5-6 · which phase changes are worth an email.
+ *
+ * Not `planning` — that is where a project starts, and project.tracking-code
+ * already covered it. Not `cancelled` — that deserves a conversation, and an
+ * automated "your project is now cancelled" is the wrong way to hear it. The
+ * in-app notification still fires for both.
+ */
+const EMAILED_PHASES = new Set(["in_progress", "review", "completed"])
+
 const updateProject = asyncHandler(async (req, res) => {
   try {
-    // Tier 4 · review collector: fire once, on the transition into completed.
-    const movingToCompleted = req.body?.projectStatus === "completed"
-    const before = movingToCompleted
+    // Read the status before the write so both side-effects below describe a
+    // TRANSITION: re-saving an already-complete project should not send the
+    // client a second "it is done" email.
+    const statusChanging = typeof req.body?.projectStatus === "string"
+    const before = statusChanging
       ? await prisma.clientProject.findUnique({ where: { id: String(req.params.id) }, select: { projectStatus: true } })
       : null
     const updated = await updateAdminProject(req.params.id, req.body)
-    if (movingToCompleted && before && before.projectStatus !== "completed") {
+    const moved = Boolean(before && before.projectStatus !== updated.projectStatus)
+
+    if (moved && updated.projectStatus === "completed") {
       sendReviewRequest({ req, project: updated })
         .catch((err) => logger.error("[project] review-request email failed:", err.message))
+    }
+    if (moved) {
+      notifyProjectPhase(updated.userId, { project: updated, status: updated.projectStatus })
+        .catch((err) => logger.warn(`[project] phase notify failed: ${err.message}`))
+      if (EMAILED_PHASES.has(updated.projectStatus)) {
+        projectEmails.sendStatusUpdate({ project: updated, status: updated.projectStatus, locale: resolveUserLocale({ req }) })
+          .catch((err) => logger.warn(`[project] status-update email failed: ${err.message}`))
+      }
     }
     res.status(200).json({ success: true, data: updated })
   } catch (e) {
@@ -352,14 +376,12 @@ const addFileRequest = asyncHandler(async (req, res) => {
     requestedById: req.user?.id || null,
   })
 
-  // Best-effort: the request exists whether or not the client can be told
-  // right now, and a failed notification must not lose it.
-  notify(project.userId, {
-    type: "project",
-    title: "A document is needed",
-    message: request.title,
-    linkUrl: `/dashboard/projects/${project.id}?request=${request.id}`,
-  }).catch((e) => logger.warn(`[fileRequest] notify failed: ${e.message}`))
+  // Best-effort, both of them: the request exists whether or not the client
+  // can be told right now, and a failed notification must not lose it.
+  notifyFileRequested(project.userId, { project, request })
+    .catch((e) => logger.warn(`[fileRequest] notify failed: ${e.message}`))
+  projectEmails.sendFileRequested({ project, request, locale: resolveUserLocale({ req }) })
+    .catch((e) => logger.warn(`[fileRequest] email failed: ${e.message}`))
 
   res.status(201).json({ success: true, data: fileRequests.serialize(request) })
 })
@@ -373,22 +395,17 @@ const reviewFileRequest = asyncHandler(async (req, res) => {
 
   const project = await prisma.clientProject.findUnique({
     where: { id: updated.projectId },
-    select: { id: true, userId: true },
+    // trackingCode and projectName because the email needs both; the
+    // notification only needed the id.
+    select: { id: true, userId: true, projectName: true, trackingCode: true },
   })
   if (project) {
-    const TITLE = {
-      accepted:  "Document accepted",
-      rejected:  "Document needs changes",
-      cancelled: "Document no longer needed",
-    }[updated.status]
-    if (TITLE) {
-      notify(project.userId, {
-        type: "project",
-        title: TITLE,
-        message: updated.reviewNote || updated.title,
-        linkUrl: `/dashboard/projects/${project.id}?request=${updated.id}`,
-      }).catch((e) => logger.warn(`[fileRequest] notify failed: ${e.message}`))
-    }
+    notifyFileReviewed(project.userId, { project, request: updated })
+      .catch((e) => logger.warn(`[fileRequest] notify failed: ${e.message}`))
+    // Cancelled sends nothing. "We no longer need that thing we asked you
+    // for" is worth a notification badge and not worth an email.
+    projectEmails.sendFileReviewed({ project, request: updated, locale: resolveUserLocale({ req }) })
+      .catch((e) => logger.warn(`[fileRequest] email failed: ${e.message}`))
   }
 
   res.json({ success: true, data: fileRequests.serialize(updated) })

@@ -20,6 +20,7 @@ const logger = require("../utils/logger")
 const { notifyAdminsProjectActivity, notifyProjectComment, notifyMilestoneAwaitingClient } = require("./notificationService")
 const projectEvents = require("./projectEventService")
 const fileRequests = require("./projectFileRequestService")
+const projectEmails = require("./projectEmailService")
 
 const CLOSED_STATUSES = new Set(["completed", "cancelled"])
 const ACCESS_STATES = ["active", "suspended", "handover"]
@@ -72,6 +73,10 @@ async function loadOwnedProject({ userId, projectId, skipNda = false }) {
     select: {
       id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true, assignedAdminId: true,
       requiresNda: true, ndaVersion: true, accessState: true,
+      // T5-6 · every project email refuses to send without the code rather
+      // than mailing a literal {{trackingCode}}, so the gate that loads the
+      // project has to fetch it.
+      trackingCode: true,
     },
   })
   if (!project) throw err("Project not found", "NOT_FOUND", 404)
@@ -333,6 +338,11 @@ async function attachClientFiles({ userId, projectId, files = [], milestoneId = 
     // Answers the request, and records file.received with the request's
     // title rather than the file name.
     await fileRequests.markSubmitted(fileRequest, rows[0])
+    // T5-6 · and tell the operator, because a document sitting unreviewed is
+    // the same stall as one never sent. The only project email that names a
+    // file, which is why it goes nowhere near the client.
+    projectEmails.sendFileReceived({ project, request: fileRequest, file: rows[0], client: { id: userId } })
+      .catch((e) => logger.warn(`[portal] file-received email failed: ${e.message}`))
   }
 
   // One event per upload, at "client" visibility: a file NAME can carry the

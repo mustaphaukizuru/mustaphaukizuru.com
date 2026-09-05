@@ -1093,6 +1093,224 @@ const TEMPLATES = [
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),
   },
+
+  /* ── T5-6 · the tracking code, and the documents it is about ────────────
+   *
+   * Every template below carries {{trackingCode}} in the eyebrow, the way a
+   * carrier repeats the waybill number on every message about a parcel. It
+   * is the one string a client can hold on to across an engagement: the
+   * project name changes, the milestone names mean nothing to them, and the
+   * order number is ours. The code is theirs.
+   *
+   * `trackingCode` is therefore required by all seven. projectEmails.send()
+   * supplies it and refuses to send without one, because an unresolved
+   * {{placeholder}} renders literally in an inbox.
+   * ──────────────────────────────────────────────────────────────────── */
+
+  // T5-6a · sent once, when the project is created.
+  {
+    key: "project.tracking-code",
+    subject: "Your project code: {{trackingCode}} — {{projectName}}",
+    html: chrome({
+      preheader: "Your tracking code, and where to use it.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Your project is open`) +
+        paragraph(`<strong>{{projectName}}</strong> is set up and has a tracking code of its own:`) +
+        calloutCard(`<span style="font-family:monospace;font-size:26px;letter-spacing:4px;font-weight:700">{{trackingCode}}</span>`) +
+        paragraph(`Enter it at <a href="{{trackUrl}}" style="color:${BRAND_VIOLET};">{{trackUrlLabel}}</a> to see which phase the work is in, what has been delivered, and whether we are waiting on anything from you. No sign-in needed, so you can hand it to a colleague.`) +
+        paragraph(`It shows progress only — never amounts, file names or messages. Those live behind your dashboard, where you can also upload documents and approve work.`) +
+        button("{{dashboardUrl}}", "Open your dashboard") +
+        calloutCard(`Keep this email. The code is on every invoice and every project message we send you.`),
+    }),
+    text: [
+      "Your project is open — {{projectName}}",
+      "",
+      "Tracking code: {{trackingCode}}",
+      "",
+      "Check progress any time, without signing in:",
+      "  {{trackUrl}}",
+      "",
+      "It shows the phase, the milestones and anything we are waiting on from",
+      "you — never amounts, file names or messages.",
+      "",
+      "Your dashboard (uploads, approvals, invoices):",
+      "  {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // T5-6b · we need a document from you.
+  {
+    key: "project.file-requested",
+    subject: "We need a document: {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "One document is needed to keep your project moving.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`We need one thing from you`) +
+        paragraph(`To keep <strong>{{projectName}}</strong> moving, please send us:`) +
+        calloutCard(`<strong>{{requestTitle}}</strong>{{instructionsHtml}}`) +
+        paragraph(`{{dueLineHtml}}{{acceptLineHtml}}`) +
+        button("{{requestUrl}}", "Upload it now") +
+        paragraph(`If you are not sure what is being asked for, reply to this email — it reaches the person who asked.`),
+    }),
+    text: [
+      "We need one thing from you — {{projectName}} ({{trackingCode}})",
+      "",
+      "{{requestTitle}}",
+      "{{instructionsText}}",
+      "{{dueText}}",
+      "{{acceptText}}",
+      "",
+      "Upload it here:",
+      "  {{requestUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // T5-6c · the nudge, sent by fileRequestReminderJob.
+  {
+    key: "project.file-reminder",
+    subject: "{{reminderSubjectLead}}: {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "A document we asked for is still outstanding.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`{{reminderHeading}}`) +
+        paragraph(`We are still waiting on one document for <strong>{{projectName}}</strong>:`) +
+        calloutCard(`<strong>{{requestTitle}}</strong>{{instructionsHtml}}`) +
+        paragraph(`{{dueLineHtml}}Work on this part of the project is paused until it arrives.`) +
+        button("{{requestUrl}}", "Upload it now") +
+        paragraph(`Already sent it another way, or no longer have it? Reply and tell us — we would rather hear that than keep asking.`),
+    }),
+    text: [
+      "{{reminderHeading}} — {{projectName}} ({{trackingCode}})",
+      "",
+      "{{requestTitle}}",
+      "{{dueText}}",
+      "",
+      "Work on this part of the project is paused until it arrives.",
+      "",
+      "Upload it here:",
+      "  {{requestUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // T5-6d · accepted.
+  {
+    key: "project.file-accepted",
+    subject: "Received, thank you: {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "The document you sent has been accepted.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`That is everything we needed`) +
+        paragraph(`<strong>{{requestTitle}}</strong> has been checked and accepted, and <strong>{{projectName}}</strong> carries on.`) +
+        paragraph(`{{remainingLine}}`) +
+        button("{{projectUrl}}", "See your project"),
+    }),
+    text: [
+      "That is everything we needed — {{projectName}} ({{trackingCode}})",
+      "",
+      "{{requestTitle}} has been checked and accepted.",
+      "{{remainingText}}",
+      "",
+      "See your project:",
+      "  {{projectUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // T5-6e · rejected, with the reason. The note is the whole email.
+  {
+    key: "project.file-rejected",
+    subject: "One change needed: {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "The document you sent needs one change.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Almost — one change needed`) +
+        paragraph(`Thank you for sending <strong>{{requestTitle}}</strong>. We cannot use it as it is, and here is exactly why:`) +
+        calloutCard(`{{reviewNote}}`) +
+        paragraph(`Send a corrected version whenever you can and we will pick it straight back up. Nothing else about <strong>{{projectName}}</strong> changes.`) +
+        button("{{requestUrl}}", "Send a new version"),
+    }),
+    text: [
+      "Almost — one change needed ({{trackingCode}})",
+      "",
+      "Thank you for sending {{requestTitle}}. We cannot use it as it is:",
+      "",
+      "  {{reviewNote}}",
+      "",
+      "Send a corrected version here:",
+      "  {{requestUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // T5-6f · to the OPERATOR, not the client. The only one in this block that
+  // names a file, which is why it never goes anywhere else.
+  {
+    key: "project.file-received",
+    subject: "{{clientName}} sent {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "A client uploaded a document you asked for.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`A document arrived`) +
+        paragraph(`<strong>{{clientName}}</strong> uploaded a file against <strong>{{requestTitle}}</strong> on <strong>{{projectName}}</strong>.`) +
+        calloutCard(`{{fileName}}`) +
+        paragraph(`It is waiting for review — accept it or send it back with a note from the project page.`) +
+        button("{{adminUrl}}", "Review it"),
+    }),
+    text: [
+      "A document arrived — {{projectName}} ({{trackingCode}})",
+      "",
+      "{{clientName}} uploaded {{fileName}} against {{requestTitle}}.",
+      "",
+      "Review it:",
+      "  {{adminUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // T5-6g · the phase changed. Carries the last three events so the email
+  // answers "what happened" without a click.
+  {
+    key: "project.status-update",
+    subject: "{{projectName}} is now {{statusLabel}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "Your project moved to a new phase.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Now {{statusLabel}}`) +
+        paragraph(`<strong>{{projectName}}</strong> has moved to <strong>{{statusLabel}}</strong>. Here is what happened most recently:`) +
+        calloutCard(`{{recentEventsHtml}}`) +
+        paragraph(`{{outstandingLine}}`) +
+        button("{{trackUrl}}", "Follow the progress"),
+    }),
+    text: [
+      "{{projectName}} is now {{statusLabel}} ({{trackingCode}})",
+      "",
+      "Recently:",
+      "{{recentEventsText}}",
+      "",
+      "{{outstandingText}}",
+      "",
+      "Follow the progress:",
+      "  {{trackUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
 ]
 
 
@@ -1979,6 +2197,222 @@ const TEMPLATES_ES = [
       "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
     ].join("\n"),
   },
+
+  /* ── T5-6 · the tracking code, and the documents it is about ────────────
+   *
+   * Every template below carries {{trackingCode}} in the eyebrow, the way a
+   * carrier repeats the waybill number on every message about a parcel. It
+   * is the one string a client can hold on to across an engagement: the
+   * project name changes, the milestone names mean nothing to them, and the
+   * order number is ours. The code is theirs.
+   *
+   * `trackingCode` is therefore required by all seven. projectEmails.send()
+   * supplies it and refuses to send without one, because an unresolved
+   * {{placeholder}} renders literally in an inbox.
+   * ──────────────────────────────────────────────────────────────────── */
+
+  // project.tracking-code
+  {
+    key: "project.tracking-code",
+    subject: "Tu código de proyecto: {{trackingCode}} — {{projectName}}",
+    html: chrome({
+      preheader: "Tu código de seguimiento y dónde usarlo.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Tu proyecto ya está abierto`) +
+        paragraph(`<strong>{{projectName}}</strong> quedó configurado y tiene su propio código de seguimiento:`) +
+        calloutCard(`<span style="font-family:monospace;font-size:26px;letter-spacing:4px;font-weight:700">{{trackingCode}}</span>`) +
+        paragraph(`Ingrésalo en <a href="{{trackUrl}}" style="color:${BRAND_VIOLET};">{{trackUrlLabel}}</a> para ver en qué etapa va el trabajo, qué se ha entregado y si estamos esperando algo de tu parte. No necesitas iniciar sesión, así que puedes compartirlo con un colega.`) +
+        paragraph(`Solo muestra el avance — nunca montos, nombres de archivos ni mensajes. Eso vive detrás de tu panel, donde además puedes subir documentos y aprobar el trabajo.`) +
+        button("{{dashboardUrl}}", "Abrir mi panel") +
+        calloutCard(`Guarda este correo. El código aparece en cada factura y en cada mensaje que te enviamos sobre el proyecto.`),
+    }),
+    text: [
+      "Tu proyecto ya está abierto — {{projectName}}",
+      "",
+      "Código de seguimiento: {{trackingCode}}",
+      "",
+      "Consulta el avance cuando quieras, sin iniciar sesión:",
+      "  {{trackUrl}}",
+      "",
+      "Muestra la etapa, los hitos y lo que esperamos de ti — nunca montos,",
+      "nombres de archivos ni mensajes.",
+      "",
+      "Tu panel (subidas, aprobaciones, facturas):",
+      "  {{dashboardUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.file-requested
+  {
+    key: "project.file-requested",
+    subject: "Necesitamos un documento: {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "Falta un documento para que tu proyecto siga avanzando.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Necesitamos una cosa de tu parte`) +
+        paragraph(`Para que <strong>{{projectName}}</strong> siga avanzando, envíanos:`) +
+        calloutCard(`<strong>{{requestTitle}}</strong>{{instructionsHtml}}`) +
+        paragraph(`{{dueLineHtml}}{{acceptLineHtml}}`) +
+        button("{{requestUrl}}", "Subirlo ahora") +
+        paragraph(`Si no tienes claro qué te estamos pidiendo, responde a este correo — llega directo a quien lo solicitó.`),
+    }),
+    text: [
+      "Necesitamos una cosa de tu parte — {{projectName}} ({{trackingCode}})",
+      "",
+      "{{requestTitle}}",
+      "{{instructionsText}}",
+      "{{dueText}}",
+      "{{acceptText}}",
+      "",
+      "Súbelo aquí:",
+      "  {{requestUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.file-reminder
+  {
+    key: "project.file-reminder",
+    subject: "{{reminderSubjectLead}}: {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "Sigue pendiente un documento que te pedimos.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`{{reminderHeading}}`) +
+        paragraph(`Seguimos esperando un documento de <strong>{{projectName}}</strong>:`) +
+        calloutCard(`<strong>{{requestTitle}}</strong>{{instructionsHtml}}`) +
+        paragraph(`{{dueLineHtml}}Esta parte del proyecto está detenida hasta que llegue.`) +
+        button("{{requestUrl}}", "Subirlo ahora") +
+        paragraph(`¿Ya lo enviaste por otro medio, o ya no lo tienes? Responde y cuéntanos — preferimos saberlo a seguir insistiendo.`),
+    }),
+    text: [
+      "{{reminderHeading}} — {{projectName}} ({{trackingCode}})",
+      "",
+      "{{requestTitle}}",
+      "{{dueText}}",
+      "",
+      "Esta parte del proyecto está detenida hasta que llegue.",
+      "",
+      "Súbelo aquí:",
+      "  {{requestUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.file-accepted
+  {
+    key: "project.file-accepted",
+    subject: "Recibido, gracias: {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "El documento que enviaste fue aceptado.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Eso era todo lo que necesitábamos`) +
+        paragraph(`<strong>{{requestTitle}}</strong> fue revisado y aceptado, y <strong>{{projectName}}</strong> continúa.`) +
+        paragraph(`{{remainingLine}}`) +
+        button("{{projectUrl}}", "Ver mi proyecto"),
+    }),
+    text: [
+      "Eso era todo lo que necesitábamos — {{projectName}} ({{trackingCode}})",
+      "",
+      "{{requestTitle}} fue revisado y aceptado.",
+      "{{remainingText}}",
+      "",
+      "Ver mi proyecto:",
+      "  {{projectUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.file-rejected
+  {
+    key: "project.file-rejected",
+    subject: "Falta un ajuste: {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "El documento que enviaste necesita un ajuste.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Casi — falta un ajuste`) +
+        paragraph(`Gracias por enviar <strong>{{requestTitle}}</strong>. Así no lo podemos usar, y esta es la razón exacta:`) +
+        calloutCard(`{{reviewNote}}`) +
+        paragraph(`Envía una versión corregida cuando puedas y la retomamos de inmediato. Nada más de <strong>{{projectName}}</strong> cambia.`) +
+        button("{{requestUrl}}", "Enviar una nueva versión"),
+    }),
+    text: [
+      "Casi — falta un ajuste ({{trackingCode}})",
+      "",
+      "Gracias por enviar {{requestTitle}}. Así no lo podemos usar:",
+      "",
+      "  {{reviewNote}}",
+      "",
+      "Envía una versión corregida aquí:",
+      "  {{requestUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.file-received  (al operador, no al cliente)
+  {
+    key: "project.file-received",
+    subject: "{{clientName}} envió {{requestTitle}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "Un cliente subió un documento que pediste.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Llegó un documento`) +
+        paragraph(`<strong>{{clientName}}</strong> subió un archivo para <strong>{{requestTitle}}</strong> en <strong>{{projectName}}</strong>.`) +
+        calloutCard(`{{fileName}}`) +
+        paragraph(`Está esperando revisión — acéptalo o devuélvelo con una nota desde la página del proyecto.`) +
+        button("{{adminUrl}}", "Revisarlo"),
+    }),
+    text: [
+      "Llegó un documento — {{projectName}} ({{trackingCode}})",
+      "",
+      "{{clientName}} subió {{fileName}} para {{requestTitle}}.",
+      "",
+      "Revisarlo:",
+      "  {{adminUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
+
+  // project.status-update
+  {
+    key: "project.status-update",
+    subject: "{{projectName}} ahora está {{statusLabel}} — {{trackingCode}}",
+    html: chrome({
+      preheader: "Tu proyecto pasó a una nueva etapa.",
+      eyebrow:   "{{trackingCode}}",
+      bodyHtml:
+        heading(`Ahora {{statusLabel}}`) +
+        paragraph(`<strong>{{projectName}}</strong> pasó a estar <strong>{{statusLabel}}</strong>. Esto es lo más reciente:`) +
+        calloutCard(`{{recentEventsHtml}}`) +
+        paragraph(`{{outstandingLine}}`) +
+        button("{{trackUrl}}", "Seguir el avance"),
+    }),
+    text: [
+      "{{projectName}} ahora está {{statusLabel}} ({{trackingCode}})",
+      "",
+      "Recientemente:",
+      "{{recentEventsText}}",
+      "",
+      "{{outstandingText}}",
+      "",
+      "Seguir el avance:",
+      "  {{trackUrl}}",
+      "",
+      "© {{year}} Mustapha Ukizuru · " + SUPPORT_EMAIL,
+    ].join("\n"),
+  },
 ]
 
 async function main() {
@@ -2016,6 +2450,18 @@ async function main() {
   console.log(`\nDone. Seeded ${TEMPLATES.length} EN + ${TEMPLATES_ES.length} ES templates.`)
 }
 
-main()
-  .catch((e) => { console.error(e); process.exit(1) })
-  .finally(async () => { await prisma.$disconnect() })
+/**
+ * Run only when invoked directly (`npm run seed:email`).
+ *
+ * T5-6 · the guard exists so test/emailTemplatesSeed.test.js can require this
+ * file and check the two arrays against each other. Without it, importing the
+ * seed opens a database connection and writes to it — which is not a thing a
+ * unit test may do, and is the reason there was no test here before.
+ */
+if (require.main === module) {
+  main()
+    .catch((e) => { console.error(e); process.exit(1) })
+    .finally(async () => { await prisma.$disconnect() })
+}
+
+module.exports = { TEMPLATES, TEMPLATES_ES }

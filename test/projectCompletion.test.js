@@ -24,6 +24,17 @@ jest.mock("../src/services/emailService", () => ({ sendTemplateEmail: jest.fn().
 jest.mock("../src/services/notificationService", () => ({
   notifyProjectMilestoneCompleted: jest.fn(), notifyReviewPosted: jest.fn().mockResolvedValue(null),
   notifyAdminsProjectActivity: jest.fn(), notifyProjectComment: jest.fn(), notifyMilestoneAwaitingClient: jest.fn(),
+  // T5-6 · the controller now also fires these on a real status transition.
+  notifyFileRequested: jest.fn().mockResolvedValue(null),
+  notifyFileReviewed: jest.fn().mockResolvedValue(null),
+  notifyProjectPhase: jest.fn().mockResolvedValue(null),
+}))
+// The project emails are their own service and their own test; stubbing them
+// here keeps this file about the review-request transition it was written for.
+jest.mock("../src/services/projectEmailService", () => ({
+  sendStatusUpdate: jest.fn().mockResolvedValue(true),
+  sendFileRequested: jest.fn().mockResolvedValue(true),
+  sendFileReviewed: jest.fn().mockResolvedValue(true),
 }))
 jest.mock("../src/services/supportService", () => ({ addAdminMessage: jest.fn() }))
 jest.mock("../src/services/portalAccessService", () => ({ mintPortalLink: jest.fn() }))
