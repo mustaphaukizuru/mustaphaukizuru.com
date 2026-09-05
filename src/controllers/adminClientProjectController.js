@@ -7,6 +7,7 @@ const { createComment, resolveComment, onMilestoneAwaitingClient } = require("..
 const { mintPortalLink } = require("../services/portalAccessService")
 const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
 const fileRequests = require("../services/projectFileRequestService")
+const projectEvents = require("../services/projectEventService")
 const { notify } = require("../services/notificationService")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
@@ -393,6 +394,18 @@ const reviewFileRequest = asyncHandler(async (req, res) => {
   res.json({ success: true, data: fileRequests.serialize(updated) })
 })
 
+/**
+ * GET /admin/client-projects/:id/events  (T5-5)
+ *
+ * The full timeline at admin visibility — the same rows the client sees plus
+ * the ones written narrower than "client". Admin routers are all behind
+ * protect + admin, so there is no per-row gate here beyond the audience.
+ */
+const listEvents = asyncHandler(async (req, res) => {
+  const rows = await projectEvents.listForProject(req.params.id, { audience: "admin", limit: 200 })
+  res.json({ success: true, data: rows.map((r) => projectEvents.serializeEvent(r)) })
+})
+
 module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
@@ -400,5 +413,5 @@ module.exports = {
   addAdminComment, toggleResolveComment, replyProjectTicket,
   createPortalLink, createCaseStudy, sendReviewRequest,
   quoteChangeRequest, completeChangeRequest,
-  listFileRequests, addFileRequest, reviewFileRequest,
+  listFileRequests, addFileRequest, reviewFileRequest, listEvents,
 }

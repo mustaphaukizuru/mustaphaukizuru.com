@@ -8,8 +8,15 @@ import {
 } from "lucide-react"
 import { probePortal, requestPortalPin, verifyPortalPin, fetchPortalProject, portalFileDownloadUrl } from "../services/portalService"
 import { Button, Input } from "../components/ui/index"
+import useLazyNamespace from "../hooks/useLazyNamespace"
 import StatusPill from "../components/admin/StatusPill"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
+// T5-5 · the same three panels the signed-in project page renders. The
+// only difference is which endpoint answers, and that lives in the hook.
+import ProjectTimeline from "../components/projects/ProjectTimeline"
+import FileRequestPanel from "../components/projects/FileRequestPanel"
+import ProjectInvoices from "../components/projects/ProjectInvoices"
+import useProjectPanels from "../hooks/useProjectPanels"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
 const CARD = "rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]"
@@ -87,6 +94,16 @@ export default function PortalPage() {
     } catch (e2) { setError(e2?.message || t("portal.errors.pinInvalid")) }
     finally { setBusy(false) }
   }
+
+  // T5-5 · `dashboard` is route-scoped now (LAZY_NAMESPACES in
+  // i18n/resources.js): 50 KB per language that no public page reads. It is
+  // fetched here and this tree waits for it, because the project does not use
+  // Suspense for translations and rendering early paints raw keys.
+  //
+  // The guard sits AFTER every hook, not at the top: an early return above
+  // them would change the hook order between renders.
+  const i18nReady = useLazyNamespace("dashboard")
+  if (!i18nReady) return null
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
@@ -168,6 +185,12 @@ export default function PortalPage() {
 /* ── read-only view ────────────────────────────────────────────────────── */
 
 function PortalView({ project, t }) {
+  // The portal is read-only for everything EXCEPT satisfying a document
+  // request: that is the one write T5-3 opened, because a client who has
+  // no account still has to be able to send the thing that unblocks the
+  // work. Everything else here stays a read.
+  const panels = useProjectPanels("portal")
+
   const milestones = project.milestones || []
   const files = project.files || []
   const done = milestones.filter((ms) => ms.status === "completed" || ms.status === "approved").length
@@ -258,6 +281,17 @@ function PortalView({ project, t }) {
         </Section>
       )}
 
+      {/* T5-5 · above the file gallery for the same reason as on the
+          dashboard: it is the only block that asks the client to act. */}
+      <Section title={t("fileRequests.title")}>
+        <FileRequestPanel
+          requests={panels.requests}
+          loading={panels.loading}
+          onUpload={panels.upload}
+          onChanged={panels.reload}
+        />
+      </Section>
+
       <Section title={t("projects.detail.deliverables")} subtitle={t("projects.detail.files", { count: files.length })}>
         {files.length === 0 ? <div className={EMPTY}>{t("portal.noFiles")}</div> : (
           <ul className="grid gap-2 sm:grid-cols-2">
@@ -288,6 +322,21 @@ function PortalView({ project, t }) {
             })}
           </ul>
         )}
+      </Section>
+
+      {/* T5-5 · invoices, through the portal's own authorisation gate — the
+          order-scoped PDF route checks a session and a portal holder has
+          none. */}
+      <Section title={t("invoices.title")}>
+        <ProjectInvoices
+          invoices={panels.invoices}
+          billing={panels.billing}
+          loading={panels.loading}
+        />
+      </Section>
+
+      <Section title={t("track.activity")}>
+        <ProjectTimeline events={panels.events} loading={panels.loading} />
       </Section>
     </div>
   )

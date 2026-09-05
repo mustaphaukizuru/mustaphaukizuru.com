@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import {
-  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2, AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare, Link2, Copy, BookOpen,
+  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2, AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare, Link2, Copy, BookOpen, Receipt,
 } from "lucide-react"
 import {
   fetchAdminProject, updateAdminProject, createAdminProject, createAdminPortalLink, createAdminCaseStudyDraft,
@@ -9,7 +9,12 @@ import {
   uploadProjectFile, deleteProjectFile,
   postAdminProjectComment, toggleAdminCommentResolved,
   quoteChangeRequest, completeChangeRequest,
+  fetchAdminProjectEvents,
 } from "../services/clientProjectService"
+// T5-5 · the operator half of the document requests, and the same
+// timeline component the client and /track see — at admin visibility.
+import ProjectRequestsAdmin from "../components/admin/ProjectRequestsAdmin"
+import ProjectTimeline from "../components/projects/ProjectTimeline"
 import { useToast } from "../context/ToastContext"
 import { SkeletonCard, Checkbox } from "../components/ui/index"
 import StatusPill from "../components/admin/StatusPill"
@@ -79,6 +84,37 @@ export default function AdminClientProjectDetailPage() {
     try { await navigator.clipboard.writeText(portalLink.url); showSuccess("Link copied") }
     catch { showError("Copy failed — select the link and copy it manually") }
   }
+
+  // T5-5 · same shape as copyPortalLink. Clipboard access can be refused
+  // (an insecure origin, a locked-down browser) and the code is on screen
+  // anyway, so a failure is reported rather than thrown.
+  async function copyTrackingCode() {
+    if (!project?.trackingCode) return
+    try { await navigator.clipboard.writeText(project.trackingCode); showSuccess("Tracking code copied") }
+    catch { showError("Could not copy — select the code and copy it by hand") }
+  }
+
+  // T5-5 · the admin-visibility timeline. Its own fetch rather than a field
+  // on the project payload: it is 200 rows of history, and the project read
+  // is on the critical path of every save.
+  const [adminEvents, setAdminEvents] = useState([])
+  const [eventsLoading, setEventsLoading] = useState(true)
+  useEffect(() => {
+    if (isNew || !id) { setEventsLoading(false); return }
+    let alive = true
+    ;(async () => {
+      try {
+        const rows = await fetchAdminProjectEvents(id)
+        if (alive) setAdminEvents(rows)
+      } catch {
+        // A missing timeline is not worth failing the page over; the panel
+        // renders its own empty state.
+      } finally {
+        if (alive) setEventsLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [id, isNew])
 
   // Tier 4 · case-study draft
   const [draftingCase, setDraftingCase] = useState(false)
@@ -354,6 +390,59 @@ export default function AdminClientProjectDetailPage() {
         </div>
       )}
 
+      {/* T5-5 · the tracking code. Read off an invoice by a client who then
+          types it into /track, so the operator needs it copyable rather than
+          only visible. It is assigned at creation and never changes. */}
+      {!isNew && project?.trackingCode && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-card font-bold text-violet">Tracking code</h2>
+              <p className="mt-0.5 text-meta text-charcoal-80/65">
+                The client can check progress at /track with this, without signing in. It shows phase,
+                milestones and how many documents are outstanding — never amounts, names or file names.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <code className="rounded-lg bg-charcoal-80/5 px-3 py-2 font-mono text-[13px] tracking-[0.12em] text-charcoal">{project.trackingCode}</code>
+              <button
+                type="button" onClick={copyTrackingCode}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3 py-2 text-sm font-semibold text-white transition hover:bg-violet-deep"
+              >
+                <Copy className="h-4 w-4" /> Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* T5-5 · documents we are waiting on from this client. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-card font-bold text-violet">Documents from the client</h2>
+              <p className="mt-0.5 text-meta text-charcoal-80/65">
+                The client sees these in their dashboard and in the portal, and is emailed when one is raised or reviewed.
+              </p>
+            </div>
+            {/* The invoice form wants a service-order cuid, which is otherwise
+                copied by hand from another page. */}
+            {project.serviceOrderId && (
+              <Link
+                to={`/admin/invoices?serviceOrderId=${encodeURIComponent(project.serviceOrderId)}`}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-violet/30 px-3 py-2 text-sm font-semibold text-violet transition hover:bg-violet-pale"
+              >
+                <Receipt className="h-4 w-4" /> Issue an invoice
+              </Link>
+            )}
+          </div>
+          <div className="mt-4">
+            <ProjectRequestsAdmin projectId={id} milestones={project.milestones || []} />
+          </div>
+        </div>
+      )}
+
       {/* Milestones */}
       {!isNew && project && (
         <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
@@ -576,6 +665,18 @@ export default function AdminClientProjectDetailPage() {
             />
             <ReplyBox className="mt-3" placeholder="Write a message to the client…" onSubmit={(body) => handleComment({ body })} />
           </div>
+        </div>
+      )}
+
+      {/* T5-5 · the full timeline, admin visibility: everything the client
+          sees plus the rows written narrower than "client". */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">Timeline</h2>
+          <p className="mt-0.5 mb-4 text-meta text-charcoal-80/65">
+            Every recorded event on this project. The client sees a subset; /track sees less again.
+          </p>
+          <ProjectTimeline events={adminEvents} loading={eventsLoading} />
         </div>
       )}
     </section>

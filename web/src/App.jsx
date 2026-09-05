@@ -91,6 +91,7 @@ const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
 const SelfAuditPage = lazy(() => import("./pages/SelfAuditPage"));
 const SchoolsPage = lazy(() => import("./pages/SchoolsPage")); // audience page, not a service category
 const HowWeWorkPage = lazy(() => import("./pages/HowWeWorkPage")); // the full engagement process (T2-9)
+const TrackPage = lazy(() => import("./pages/TrackPage")); // public project tracking (T5-5)
 
 const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
 const AdminPortfolioPage = lazy(() => import("./pages/AdminPortfolioPage"));
@@ -224,6 +225,11 @@ export default function App() {
             <Route path="/services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
             {/* The full six-step engagement process, for prospects who arrive from a proposal link. */}
             <Route path="/how-we-work" element={<PublicShell><HowWeWorkPage /></PublicShell>} />
+            {/* "Where is my project?", without a login. /track is the form;
+                /track/:code is the result, and both are noindex — a crawled
+                code would put a client's progress in a search result. */}
+            <Route path="/track" element={<PublicShell><TrackPage /></PublicShell>} />
+            <Route path="/track/:code" element={<PublicShell><TrackPage /></PublicShell>} />
             <Route path="/schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
             {/* Public lead magnet — the Services hero links here for visitors. */}
             <Route path="/self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
@@ -399,6 +405,8 @@ export default function App() {
               <Route path="services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
               <Route path="schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
               <Route path="how-we-work" element={<PublicShell><HowWeWorkPage /></PublicShell>} />
+              <Route path="track" element={<PublicShell><TrackPage /></PublicShell>} />
+              <Route path="track/:code" element={<PublicShell><TrackPage /></PublicShell>} />
               <Route path="contact" element={<PublicShell><ContactPage /></PublicShell>} />
               <Route path="self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
               <Route path="portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />

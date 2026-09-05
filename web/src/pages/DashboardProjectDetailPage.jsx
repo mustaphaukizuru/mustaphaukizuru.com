@@ -18,6 +18,13 @@ import { API_BASE_URL } from "../lib/api"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import { useToast } from "../context/ToastContext"
 import ProjectSupportPanel from "../components/projects/ProjectSupportPanel"
+// T5-5 · the three panels shared with the PIN portal and (for the
+// timeline) the anonymous /track page. useProjectPanels owns the only
+// difference between the two surfaces: which endpoint answers.
+import ProjectTimeline from "../components/projects/ProjectTimeline"
+import FileRequestPanel from "../components/projects/FileRequestPanel"
+import ProjectInvoices from "../components/projects/ProjectInvoices"
+import useProjectPanels from "../hooks/useProjectPanels"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
 const MAX_FILES = 10
@@ -89,6 +96,12 @@ export default function DashboardProjectDetailPage() {
     },
     { enabled: Boolean(id), select: (data) => data || null }
   )
+
+  // T5-5 · above the early returns, because hooks are. The three panel
+  // fetches are independent of the project payload and each falls back to
+  // empty on its own, so an expired or NDA-gated project simply renders
+  // empty panels rather than failing the page.
+  const panels = useProjectPanels("member", id)
 
   const milestoneLabel = useCallback((status) => {
     const key = `projects.detail.status.${status}`
@@ -314,6 +327,20 @@ export default function DashboardProjectDetailPage() {
         </SectionBlock>
       )}
 
+      {/* T5-5 · what the studio is waiting on. Above Files deliberately: it is
+          the only block on this page that asks the client to DO something,
+          and burying it under three galleries is how a project stalls for a
+          fortnight over one missing PDF. */}
+      <SectionBlock title={t("fileRequests.title")}>
+        <FileRequestPanel
+          requests={panels.requests}
+          loading={panels.loading}
+          readOnly={readOnly}
+          onUpload={panels.upload}
+          onChanged={panels.reload}
+        />
+      </SectionBlock>
+
       {/* Files */}
       <SectionBlock title={t("projects.detail.deliverables")} subtitle={t("projects.detail.files", { count: files.length })}>
         {!readOnly && (
@@ -364,6 +391,21 @@ export default function DashboardProjectDetailPage() {
           project's, attachments via the same private file pipeline. */}
       <SectionBlock title={t("projects.support.title")} subtitle={t("projects.support.subtitle")}>
         <ProjectSupportPanel projectId={project.id} readOnly={readOnly} milestones={project.milestones || []} />
+      </SectionBlock>
+
+      {/* T5-5 · the bills for this piece of work, rather than on a bare order
+          page the client cannot connect to the project. */}
+      <SectionBlock title={t("invoices.title")}>
+        <ProjectInvoices
+          invoices={panels.invoices}
+          billing={panels.billing}
+          loading={panels.loading}
+        />
+      </SectionBlock>
+
+      {/* T5-5 · the same timeline component the portal and /track render. */}
+      <SectionBlock title={t("track.activity")}>
+        <ProjectTimeline events={panels.events} loading={panels.loading} />
       </SectionBlock>
     </section>
   )

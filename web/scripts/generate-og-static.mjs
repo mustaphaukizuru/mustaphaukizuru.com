@@ -45,6 +45,8 @@ const PRIVATE = new Set([
   "/login", "/signup", "/forgot-password", "/reset-password",
   "/checkout", "/cart", "/dashboard", "/admin", "/portal",
   "/unsubscribed", "/_system",
+  // T5-5 · noindex, and the /:code form carries a live code.
+  "/track",
 ])
 
 /* The detail routes the database-backed injector already owns. Listing a

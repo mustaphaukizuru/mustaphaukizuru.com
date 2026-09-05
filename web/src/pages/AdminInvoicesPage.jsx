@@ -7,7 +7,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import {
   FileText, RefreshCw, Search, X, ExternalLink, AlertCircle, Plus, Ban, Loader2,
 } from "lucide-react"
@@ -48,6 +48,10 @@ const INPUT = "w-full rounded-lg border border-charcoal-80/15 bg-white px-3 py-2
 
 export default function AdminInvoicesPage() {
   const toast = useToast()
+  // T5-5 · the project page links here with the service-order id already in
+  // hand, so the operator does not copy a cuid between two admin screens.
+  const [searchParams] = useSearchParams()
+  const prefillServiceOrderId = searchParams.get("serviceOrderId") || ""
   const [invoices, setInvoices] = useState([])
   const [meta, setMeta] = useState({ total: 0, page: 1, pages: 1 })
   const [loading, setLoading] = useState(true)
@@ -55,8 +59,9 @@ export default function AdminInvoicesPage() {
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState("")
   const [page, setPage] = useState(1)
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ serviceOrderId: "", amount: "", dueDate: "", description: "" })
+  // Opened already when a project sent us here — the whole point of the link.
+  const [showForm, setShowForm] = useState(Boolean(prefillServiceOrderId))
+  const [form, setForm] = useState({ serviceOrderId: prefillServiceOrderId, amount: "", dueDate: "", description: "" })
   const [saving, setSaving] = useState(false)
   const [voiding, setVoiding] = useState("")
 

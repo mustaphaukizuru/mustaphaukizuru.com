@@ -10,7 +10,7 @@ import {
 import Seo from "../components/seo/Seo"
 import { trackEvent } from "../lib/analytics"
 import AuditModal from "../components/audit/AuditModal"
-import { ensureNamespace } from "../i18n"
+import useLazyNamespace from "../hooks/useLazyNamespace"
 import { AUDIT_SECTIONS, TIERS, auditLength } from "../data/auditData"
 
 /* Everything a visitor reads here used to be module-scope constants — which
@@ -36,23 +36,13 @@ const AUDIENCE_PREVIEWS = [
 const RESULT_POINTS = ["page.resultScore", "page.resultPriorities", "page.resultCategory", "page.resultPdf"]
 
 export default function SelfAuditPage() {
-  const { t, i18n } = useTranslation("audit")
+  const { t } = useTranslation("audit")
 
   /* The audit namespace is route-scoped (LAZY_NAMESPACES in i18n/resources.js):
      6.6 KB per language for one page, which does not belong on every page's
-     critical path. It is fetched here, and the page holds its first paint
-     until it lands — this project does not use Suspense for translations, so
-     rendering early would paint key strings like "page.heroTitle". */
-  const [i18nReady, setI18nReady] = useState(() => i18n.hasResourceBundle(i18n.language, "audit"))
-  useEffect(() => {
-    let cancelled = false
-    ensureNamespace("audit", i18n.language)
-      .then(() => { if (!cancelled) setI18nReady(true) })
-      // A failed namespace fetch must not leave a blank page: render anyway.
-      // Keys are ugly; nothing at all is worse.
-      .catch(() => { if (!cancelled) setI18nReady(true) })
-    return () => { cancelled = true }
-  }, [i18n.language])
+     critical path. The hook fetches it and holds this page's first paint
+     until it lands. */
+  const i18nReady = useLazyNamespace("audit")
 
   // Counted, not written down. See the note above AUDIENCE_PREVIEWS.
   const totalItems = AUDIT_SECTIONS.reduce((n, s) => n + s.items.length, 0)

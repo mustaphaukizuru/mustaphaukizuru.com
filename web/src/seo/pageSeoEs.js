@@ -98,6 +98,13 @@ export const staticSeoEsByRoute = {
     keywords: ["desarrollo de MVP México", "app móvil multiplataforma", "diseño de APIs", "automatización CI/CD"],
   },
 
+  "/track": {
+    title: "Rastrea tu Proyecto · Mustapha Ukizuru",
+    description:
+      "Ingresa el código de seguimiento de tu factura para ver en qué etapa va tu proyecto, sus hitos y qué documentos esperamos de ti.",
+    keywords: ["seguimiento de proyecto", "estado del proyecto"],
+  },
+
   "/self-audit": {
     title: "Autodiagnóstico Digital Gratuito · Califica tu Tecnología",
     description:

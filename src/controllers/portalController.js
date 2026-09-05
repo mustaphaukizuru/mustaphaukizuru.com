@@ -3,6 +3,8 @@ const prisma = require("../lib/prisma")
 const fsp = require("fs/promises")
 const fs = require("fs")
 const projectInvoices = require("../services/projectInvoiceService")
+const projectEvents = require("../services/projectEventService")
+const fileRequests = require("../services/projectFileRequestService")
 const { invoicePathFor } = require("../services/invoiceService")
 const { requestPin, verifyPin, loadPortalProject, loadProjectByToken } = require("../services/portalAccessService")
 const { setPortalCookie, clearPortalCookie } = require("../utils/portalCookie")
@@ -101,6 +103,25 @@ const uploadRequestFiles = asyncHandler(async (req, res) => {
   }
 })
 
+/**
+ * GET /portal/me/events  (T5-5)
+ *
+ * Same ceiling as the member timeline: a portal holder proved control of the
+ * project owner's inbox with a PIN, so they see what the owner sees.
+ */
+const listEvents = asyncHandler(async (req, res) => {
+  const locale = resolveUserLocale({ req })
+  const rows = await projectEvents.listForProject(req.portal.projectId, { audience: "client" })
+  res.json({ success: true, data: rows.map((r) => projectEvents.serializeEvent(r, locale)) })
+})
+
+/** GET /portal/me/file-requests  (T5-5) — what the studio is waiting on. */
+const listFileRequests = asyncHandler(async (req, res) => {
+  const locale = resolveUserLocale({ req })
+  const rows = await fileRequests.listForProject(req.portal.projectId)
+  res.json({ success: true, data: rows.map((r) => fileRequests.serialize(r, locale)) })
+})
+
 /** GET /portal/me/invoices  (T5-4) */
 const listInvoices = asyncHandler(async (req, res) => {
   const data = await projectInvoices.listForProject(req.portal.projectId, { portal: true })
@@ -144,4 +165,4 @@ const downloadInvoice = asyncHandler(async (req, res) => {
   stream.pipe(res)
 })
 
-module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice }
+module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice, listEvents, listFileRequests }

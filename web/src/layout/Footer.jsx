@@ -41,6 +41,9 @@ const QUICK_LINKS = [
   { nameKey: "footer.navHowWeWork", path: "/how-we-work" },
   { nameKey: "footer.navSelfAudit", path: "/self-audit" },
   { nameKey: "footer.navSchools", path: "/schools" },
+  // T5-5 · clients arrive here from an invoice with a code in hand and
+  // nothing else; the footer is on every page they might land on first.
+  { nameKey: "footer.navTrack", path: "/track" },
   { nameKey: "footer.navStore", path: "/store" },
   { nameKey: "footer.navBlog", path: "/blog" },
   { nameKey: "footer.navContact", path: "/contact" },

@@ -2,6 +2,8 @@ const path = require("path")
 const fs   = require("fs")
 const asyncHandler = require("../utils/asyncHandler")
 const projectInvoices = require("../services/projectInvoiceService")
+const fileRequests = require("../services/projectFileRequestService")
+const projectEvents = require("../services/projectEventService")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const fsp = require("fs/promises")
@@ -365,6 +367,44 @@ function sendProjectFile({ file, req, res, userId, action }) {
 }
 
 /**
+ * GET /member/projects/:id/events  (T5-5)
+ *
+ * The timeline behind the project page. "client" is the ceiling: a signed-in
+ * owner sees file names, comments and requests, never the admin-only rows.
+ */
+const listEvents = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const locale = resolveUserLocale({ req, user: req.user })
+    const rows = await projectEvents.listForProject(req.params.id, { audience: "client" })
+    res.json({ success: true, data: rows.map((r) => projectEvents.serializeEvent(r, locale)) })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/**
+ * GET /member/projects/:id/file-requests  (T5-5)
+ *
+ * What the studio is waiting on. The admin list already existed; this is the
+ * same rows read by the person who has to satisfy them.
+ */
+const listFileRequests = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const locale = resolveUserLocale({ req, user: req.user })
+    const rows = await fileRequests.listForProject(req.params.id)
+    res.json({ success: true, data: rows.map((r) => fileRequests.serialize(r, locale)) })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/**
  * GET /member/projects/:id/invoices  (T5-4)
  *
  * The invoices already existed; they were just findable only from a bare
@@ -387,7 +427,7 @@ const listInvoices = asyncHandler(async (req, res) => {
 module.exports = {
   listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
-  listInvoices,
+  listInvoices, listEvents, listFileRequests,
   listTickets, getTicket, createTicket, replyTicket,
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
 }

@@ -79,16 +79,18 @@ test.describe("first-paint payload", () => {
     const assets = await collectAssets(page)
     const totalKb = assets.reduce((sum, a) => sum + a.kb, 0)
 
-    // 1438 KB measured, from 1683 KB before the fallback locale (-136 KB)
-    // and gsap (-112 KB) were taken off the critical path. The budget sits
-    // just above the measurement, not at a round number: a ceiling with
-    // slack in it does not catch the thing it was set to catch.
+    // 1446 KB measured, from 1683 KB before the fallback locale (-136 KB)
+    // and gsap (-112 KB) came off the critical path, then the `dashboard`
+    // namespace (-40 KB, T5-5) — 50 KB of JSON per language that no public
+    // page has ever read, sitting on the homepage since it existed. The
+    // budget sits just above the measurement, not at a round number: a
+    // ceiling with slack in it does not catch the thing it was set to catch.
     //
     // Lower it as the remaining wins land. What is still here, in order:
-    // 325 KB CSS, 211 KB entry, 188 KB react-vendor, 149 KB vendor,
+    // 333 KB CSS, 280 KB entry, 192 KB react-vendor, 152 KB vendor,
     // and a 60 KB bioService that has no business on the homepage.
     // Raise it only with a reason written down here.
-    expect(totalKb, `first paint fetched ${totalKb.toFixed(0)} KB across ${assets.length} files`).toBeLessThan(1480)
+    expect(totalKb, `first paint fetched ${totalKb.toFixed(0)} KB across ${assets.length} files`).toBeLessThan(1450)
   })
 
   test("pdf.js is not on the critical path", async ({ page }) => {

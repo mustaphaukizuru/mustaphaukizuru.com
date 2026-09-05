@@ -4,7 +4,7 @@ const {
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
   listTickets, getTicket, createTicket, replyTicket,
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
-  listInvoices,
+  listInvoices, listEvents, listFileRequests,
 } = require("../controllers/clientProjectController")
 const { protect } = require("../middleware/authMiddleware")
 const { uploadRateLimiter, ticketRateLimiter } = require("../middleware/rateLimiter")
@@ -22,6 +22,10 @@ router.get("/:id/files/:fileId/download", streamFile)
 // T5-4 · the project's invoices. Ownership is checked in the handler via
 // loadOwnedProject, the same gate every other member read uses.
 router.get("/:id/invoices",               listInvoices)
+// T5-5 · the two panels the project page is built from. Both check
+// ownership in the handler, like every other member read here.
+router.get("/:id/events",                 listEvents)
+router.get("/:id/file-requests",          listFileRequests)
 
 // ── Tier 2 · client collaboration (ownership + lifecycle checked in service) ──
 router.post("/:id/files",                                  uploadRateLimiter, uploadProjectFile.many, uploadFiles)

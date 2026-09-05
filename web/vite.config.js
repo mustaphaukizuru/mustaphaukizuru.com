@@ -301,7 +301,7 @@ export default defineConfig({
           // chunk anyway and the point of loading it lazily — keeping 6.6 KB
           // per language off every page — is lost. It was: removing the static
           // import alone changed the built payload by nothing at all.
-          if (/[\\/]src[\\/]i18n[\\/]locales[\\/](en|es)[\\/]audit\.json$/.test(id)) return undefined
+          if (/[\\/]src[\\/]i18n[\\/]locales[\\/](en|es)[\\/](audit|dashboard)\.json$/.test(id)) return undefined
           if (/[\\/]src[\\/]i18n[\\/](locales[\\/]en[\\/]|resources\.en\.js)/.test(id)) return "locale-en"
           if (/[\\/]src[\\/]i18n[\\/](locales[\\/]es[\\/]|resources\.es\.js)/.test(id)) return "locale-es"
           if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return "react-vendor"

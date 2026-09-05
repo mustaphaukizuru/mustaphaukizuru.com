@@ -171,6 +171,16 @@ export const staticSeoByRoute = {
     keywords: ["digital audit", "IT self-assessment", "school technology audit", "website audit Mexico"],
   },
 
+  "/track": {
+    title: "Track Your Project · Mustapha Ukizuru",
+    description:
+      "Enter the tracking code from your invoice to see where your project stands — phase, milestones and what we are waiting on from you.",
+    type: "website",
+    image: DEFAULT_OG_IMAGE,
+    schemaType: "WebPage",
+    keywords: ["project tracking", "project status"],
+  },
+
   "/contact": {
     title: "Contact Mustapha Ukizuru · Technology Consulting Inquiries",
     description:
@@ -273,6 +283,9 @@ export const pageSeo = {
 ───────────────────────────────────────────── */
 export const noindexPrefixes = [
   "/portal",
+  // T5-5 · /track/:code puts a live tracking code in a URL. Indexed, that is
+  // a client's progress in a search result and a code anyone can replay.
+  "/track",
   "/unsubscribed",
   "/login",
   "/signup",

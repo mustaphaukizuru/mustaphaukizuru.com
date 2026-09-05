@@ -27,6 +27,14 @@ Disallow: /reset-password/
 Disallow: /2fa
 Disallow: /unsubscribed
 
+# ── Public project tracking (T5-5) ──────────────────────────────────────────
+# /track/:code carries a live tracking code. The page is noindex, but the
+# pre-hydration shell that a non-JS crawler sees is not — Helmet only
+# rewrites the robots tag after React mounts. This is the copy a crawler
+# reads first.
+Disallow: /track/
+Disallow: /es/track/
+
 # ── Machine endpoints ───────────────────────────────────────────────────────
 Disallow: /api/
 Disallow: /uploads/

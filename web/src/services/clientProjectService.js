@@ -92,6 +92,37 @@ export async function createAdminPortalLink(id) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/portal-link`, { method: "POST", body: JSON.stringify({}) })
   return stripData(r)
 }
+/* ── T5-5 · admin document requests and the full timeline ───────────── */
+
+const adminProject = (id) => `/api/v1/admin/client-projects/${encodeURIComponent(id)}`
+
+export async function fetchAdminFileRequests(id) {
+  const r = await authFetch(`${adminProject(id)}/file-requests`)
+  return Array.isArray(r) ? r : Array.isArray(r?.data) ? r.data : []
+}
+
+export async function createAdminFileRequest(id, body) {
+  const r = await authFetch(`${adminProject(id)}/file-requests`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+/**
+ * Accept, reject or cancel one request.
+ *
+ * Reject reopens rather than closes — the client has to be able to try
+ * again, and the request row is the only place that remembers what was asked
+ * for. The service enforces that; this is only the call.
+ */
+export async function reviewAdminFileRequest(id, reqId, body) {
+  const r = await authFetch(`${adminProject(id)}/file-requests/${encodeURIComponent(reqId)}`, { method: "PATCH", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+export async function fetchAdminProjectEvents(id) {
+  const r = await authFetch(`${adminProject(id)}/events`)
+  return Array.isArray(r) ? r : Array.isArray(r?.data) ? r.data : []
+}
+
 /** Tier 4 · create a draft Portfolio case study from the project. Returns { id, slug, editUrl }. */
 export async function createAdminCaseStudyDraft(id) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/case-study-draft`, { method: "POST", body: JSON.stringify({}) })

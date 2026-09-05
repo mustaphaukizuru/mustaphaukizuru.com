@@ -19,6 +19,7 @@ import useBodyScrollLock from "../hooks/useBodyScrollLock"
 import useFocusTrap from "../hooks/useFocusTrap"
 import useSwipeToDismiss from "../hooks/useSwipeToDismiss"
 import { useAuth } from "../context/AuthContext"
+import useLazyNamespace from "../hooks/useLazyNamespace"
 import { API_BASE_URL } from "../lib/api"
 import NotificationDropdown from "../components/dashboard/NotificationDropdown"
 import UpcomingMeetingBanner from "../components/dashboard/UpcomingMeetingBanner"
@@ -369,6 +370,16 @@ export default function DashboardLayout() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- close menu on route change
     setMobileMenuOpen(false)
   }, [location.pathname])
+
+  // T5-5 · `dashboard` is route-scoped now (LAZY_NAMESPACES in
+  // i18n/resources.js): 50 KB per language that no public page reads. It is
+  // fetched here and this tree waits for it, because the project does not use
+  // Suspense for translations and rendering early paints raw keys.
+  //
+  // The guard sits AFTER every hook, not at the top: an early return above
+  // them would change the hook order between renders.
+  const i18nReady = useLazyNamespace("dashboard")
+  if (!i18nReady) return null
 
   return (
     // `data-dashboard-shell` is the scoping anchor for dashboard-only

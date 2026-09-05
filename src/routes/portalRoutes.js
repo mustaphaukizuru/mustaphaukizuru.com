@@ -32,6 +32,10 @@ const router = express.Router()
 router.get ("/me/project",                 portalAuth, c.getProject)
 router.get ("/me/files/:fileId/download",  portalAuth, c.downloadFile)
 // T5-4 · invoices beside the work, not on a bare order page.
+// T5-5 · the timeline and the outstanding-document list, the two panels
+// the portal page shares with the dashboard.
+router.get ("/me/events",                  portalAuth, c.listEvents)
+router.get ("/me/file-requests",           portalAuth, c.listFileRequests)
 router.get ("/me/invoices",                portalAuth, c.listInvoices)
 router.get ("/me/invoices/:invoiceId/pdf", portalAuth, c.downloadInvoice)
 // T5-3 · the portal's first write. Order matters:

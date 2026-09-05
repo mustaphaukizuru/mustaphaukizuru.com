@@ -21,7 +21,7 @@ export const NAMESPACES = [
 ]
 
 /**
- * Namespaces that belong to ONE route and are loaded when that route mounts.
+ * Namespaces that belong to ONE route tree and are loaded when it mounts.
  *
  * `audit` is 6.6 KB per language and is read by exactly one page. Shipping it
  * in the per-language bundle put it on the critical path of every page on the
@@ -29,10 +29,23 @@ export const NAMESPACES = [
  * budget e2e/first-paint-payload.spec.js enforces when T2-3 moved the
  * self-audit's copy out of hardcoded strings and into JSON.
  *
- * It stays in NAMESPACES above so `npm run test:i18n` keeps checking its
+ * `dashboard` is the same argument at seven times the size: 50 KB per
+ * language, the largest namespace by a wide margin, read only under
+ * /dashboard, /portal and /track — every one of them a lazy route, none of
+ * them reachable without arriving somewhere else first. It has been on the
+ * homepage's critical path since it existed. T5-5 is only what made that
+ * measurable: adding the tracking strings pushed first paint 3 KB past the
+ * budget, and the honest fix was not 3 KB but 50.
+ *
+ * Adding one here has a cost: every route that reads it must call
+ * ensureNamespace (see hooks/useLazyNamespace) and hold its first paint,
+ * because this project does not use Suspense for translations. Do it only
+ * where the namespace is big and the route tree is small.
+ *
+ * They stay in NAMESPACES above so `npm run test:i18n` keeps checking their
  * en/es parity; only the bundling changes.
  */
-export const LAZY_NAMESPACES = ["audit"]
+export const LAZY_NAMESPACES = ["audit", "dashboard"]
 
 /** What the per-language bundle actually carries. */
 export const EAGER_NAMESPACES = NAMESPACES.filter((ns) => !LAZY_NAMESPACES.includes(ns))
@@ -42,6 +55,8 @@ export const EAGER_NAMESPACES = NAMESPACES.filter((ns) => !LAZY_NAMESPACES.inclu
 const nsLoaders = {
   "audit:en": () => import("./locales/en/audit.json"),
   "audit:es": () => import("./locales/es/audit.json"),
+  "dashboard:en": () => import("./locales/en/dashboard.json"),
+  "dashboard:es": () => import("./locales/es/dashboard.json"),
 }
 
 const nsCache = new Map()
