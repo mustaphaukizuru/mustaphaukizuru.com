@@ -200,14 +200,30 @@ test.describe("case study · outcomes and approach", () => {
 
     const counts = page.locator("[data-count]")
     await expect(counts).toHaveCount(3)
-    await counts.first().scrollIntoViewIfNeeded()
-    await page.waitForTimeout(2400)
 
+    // EACH counter is scrolled into view, not just the first, and the value
+    // is polled rather than slept on. Both halves of that were wrong before
+    // and the test was flaky because of it — once here, twice in CI
+    // including a retry, always reading a bare 0.
+    //
+    // Counter uses `useInView(ref, { once: true, amount: 0.5 })`, so an
+    // element has to be HALF VISIBLE before it starts counting. Scrolling
+    // only `counts.first()` left the others below the fold on any layout
+    // where the three do not share a screen — so they never animated, and 0
+    // was the honest reading of a counter that had not been asked to run.
+    //
+    // The fixed 2400ms wait was the other half: it passes on a fast machine
+    // and fails on a loaded CI runner, which is a property of the runner
+    // rather than of the page. Polling asserts the same end state — the
+    // spring settles on the real figure — without encoding a guess about
+    // how long that takes.
     for (let i = 0; i < 3; i += 1) {
       const el = counts.nth(i)
+      await el.scrollIntoViewIfNeeded()
       const target = Number(await el.getAttribute("data-count"))
-      const shown = Number((await el.textContent())?.replace(/,/g, ""))
-      expect(shown).toBeCloseTo(target, 2)
+      await expect
+        .poll(async () => Number((await el.textContent())?.replace(/,/g, "")), { timeout: 8000 })
+        .toBeCloseTo(target, 2)
     }
     // And the grouped one keeps its separator rather than reading "1240".
     await expect(counts.nth(1)).toHaveText("1,240")
