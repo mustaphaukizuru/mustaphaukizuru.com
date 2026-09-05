@@ -21,6 +21,7 @@
     "seo:og-static": "node ./scripts/generate-og-static.mjs",
     "catalog:check": "node ./scripts/generate-service-catalog.mjs && git diff --exit-code HEAD -- ../docs/catalogue ./public/documents",
     "build:seo": "npm run build && npm run seo:sitemap && npm run seo:og-static && npm run catalog:generate",
+    "stats:build": "cd .. && npm run test:coverage -- --json --outputFile=jest-results.json && node web/scripts/generate-engineering-stats.mjs",
     "seo:ping": "node ./scripts/sitemap-ping.mjs",
     "images:webp": "node ./scripts/convert-images.mjs",
     "og:build": "node ./scripts/generate-og-images.mjs",

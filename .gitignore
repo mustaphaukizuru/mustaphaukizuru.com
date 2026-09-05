@@ -96,6 +96,11 @@ Desktop.ini
 
 # ── Misc tooling ────────────────────────────────────────────────────────────
 coverage/
+# T4-4 · jest's JSON report, the source for the /about test count. Written by
+# `npm run stats:build`, read once by generate-engineering-stats.mjs, and
+# never committed — the NUMBERS are committed (public/engineering-stats.json),
+# the 2 MB report they came from is not.
+jest-results.json
 .nyc_output/
 *.pid
 *.seed

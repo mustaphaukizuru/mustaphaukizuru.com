@@ -36,6 +36,7 @@ import OrbitingCircles from "../components/motion/OrbitingCircles"
 import AboutHero from "../components/heroes/AboutHero" // V2, universal hero
 import CertificateCoverflow from "../components/CertificateCoverflow" // V3, cover-flow rail
 import SpokenLanguages from "../components/SpokenLanguages" // F06.v4, CEFR strip
+import EngineeringStats from "../components/EngineeringStats" // T4-4, CI-sourced numbers
 import LogoCloud from "../components/ui/LogoCloud" // client logo wall
 import Counter from "../components/motion/Counter" // Phase 10 · animated number counter
 import Reveal from "../components/motion/Reveal" // Phase 10 · scroll-reveal wrapper
@@ -1239,6 +1240,19 @@ export default function AboutPage() {
                 : null
             }
           />
+        </Container>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════
+           ENGINEERING · numbers a stranger can check (T4-4)
+           Directly before the client logos, so "who trusted this" is read
+           against "and here is what the work is actually like". Every figure
+           comes from a tool; the strip hides any tile it has no number for,
+           and hides itself when it has none.
+          ══════════════════════════════════════════════════════════════════ */}
+      <section className="py-16 lg:py-20" aria-label={t("engineering.heading")}>
+        <Container>
+          <EngineeringStats />
         </Container>
       </section>
 

@@ -100,6 +100,29 @@ jobs:
           path: coverage/coverage-summary.json
           retention-days: 7
 
+      # T4-4 · the numbers behind the /about stat strip.
+      #
+      # Uploaded rather than committed, and the difference is ADR 0001: the
+      # SPA bundle is committed rather than built on the server, so a file CI
+      # writes into its own workspace never reaches a visitor. This is how the
+      # owner refreshes the committed copy after a run whose numbers are worth
+      # publishing — download it, drop it in public/, commit.
+      #
+      # The Lighthouse scores are absent here because the lighthouse job runs
+      # later and separately; the generator omits what it cannot find, and the
+      # strip hides a tile it has no number for.
+      - name: Generate engineering stats
+        if: always()
+        run: node web/scripts/generate-engineering-stats.mjs
+
+      - name: Upload engineering stats
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engineering-stats
+          path: web/public/engineering-stats.json
+          retention-days: 7
+
   # ────────────────────────────────────────────────────────────────────────────
   # Schema — drift gate on pull requests. Hostinger MySQL has no shadow DB and
   # the project uses `db push`, which silently DROPS anything the schema no
