@@ -487,7 +487,7 @@ async function rescheduleConsultation({ id, userId, isAdmin = false, newStartUtc
       end:   newEnd,
       timezone: tz,
     }).catch((e) => {
-      // eslint-disable-next-line no-console
+       
       console.error("[consultation] Google Calendar reschedule failed:", e?.message)
     })
   }
@@ -539,7 +539,7 @@ async function cancelConsultation({ id, userId, isAdmin = false, reason }) {
   // doesn't roll back the DB cancel — the row is already cancelled.
   if (existing.googleEventId && googleCalendar.isConfigured()) {
     googleCalendar.cancelCalendarEvent(existing.googleEventId).catch((e) => {
-      // eslint-disable-next-line no-console
+       
       console.error("[consultation] Google Calendar cancel failed:", e?.message)
     })
   }
@@ -868,7 +868,7 @@ async function adminUpdateConsultation(id, patch, ctx = {}) {
     sendConsultationConfirmationEmail(finalRow, { locale }).catch((e) => {
       // Don't blow up the admin action on email failure — the row is
       // already updated, the audit log already recorded. Best-effort.
-      // eslint-disable-next-line no-console
+       
       console.error("[consultation] confirmation email failed:", e?.message)
     })
   }

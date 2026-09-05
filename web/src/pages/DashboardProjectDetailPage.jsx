@@ -25,6 +25,7 @@ import FileRequestPanel from "../components/projects/FileRequestPanel"
 import ProjectInvoices from "../components/projects/ProjectInvoices"
 import SecretsPanel from "../components/projects/SecretsPanel"
 import HoursLedger from "../components/projects/HoursLedger"
+import PanelLoadError from "../components/projects/PanelLoadError"
 import useProjectPanels from "../hooks/useProjectPanels"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
@@ -395,6 +396,10 @@ export default function DashboardProjectDetailPage() {
           loading={panels.loading}
         />
       </SectionBlock>
+
+      {/* D0-4 · a panel that failed must not look like a panel that is
+          empty. Renders nothing on the normal path. */}
+      <PanelLoadError failed={panels.failed} onRetry={panels.reload} className="mb-4" />
 
       {/* T5-18 · hours against the plan's monthly allowance. Rendered only
           when there is something to say: a project that is not a retainer and

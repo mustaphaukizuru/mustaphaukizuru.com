@@ -71,7 +71,7 @@ async function runFulfillmentReconcilePass({ now = new Date(), batchSize = BATCH
   if (!missing.length) return summary
 
   for (const order of missing) {
-    /* eslint-disable-next-line no-await-in-loop */
+     
     const result = await fulfillOrder(order.id)
     if (result?.ok) {
       summary.fulfilled += 1

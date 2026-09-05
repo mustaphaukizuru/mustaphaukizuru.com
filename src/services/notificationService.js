@@ -91,7 +91,7 @@ async function notifyOrderRefunded(order) {
 
 // ── Downloads ──
 
-async function notifyDownloadReady(userId, productTitle, orderNumber) {
+async function notifyDownloadReady(userId, productTitle, _orderNumber) {
   return notify(userId, {
     type: "download_ready",
     title: "Download ready",
@@ -328,7 +328,7 @@ async function notifyAdminsProjectActivity({ project, kind, summary }) {
     if (project.assignedAdminId) ids.add(project.assignedAdminId)
     const out = []
     for (const id of ids) {
-      // eslint-disable-next-line no-await-in-loop
+       
       out.push(await notify(id, {
         type: "system",
         title: `${ADMIN_ACTIVITY_TITLES[kind] || "Project activity"} · ${project.projectName || project.id}`,

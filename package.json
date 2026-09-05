@@ -12,6 +12,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint:structure": "bash scripts/guard-duplicates.sh",
+    "lint:server": "eslint -c eslint.server.config.mjs --no-config-lookup \"src/**/*.js\" \"prisma/*.js\" \"scripts/**/*.js\"",
+    "lint": "npm run lint:structure && npm run lint:server",
     "backup": "bash scripts/backup-db.sh",
     "smoke": "bash scripts/smoke-test.sh",
     "deploy": "bash scripts/deploy.sh",
@@ -65,6 +67,7 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "eslint": "^9.39.5",
     "jest": "^29.7.0",
     "nodemon": "^3.1.14",
     "prisma": "^6.19.3",
@@ -86,7 +89,11 @@
       "!src/lib/prisma.js"
     ],
     "coverageDirectory": "<rootDir>/coverage",
-    "coverageReporters": ["text-summary", "lcov", "json-summary"],
+    "coverageReporters": [
+      "text-summary",
+      "lcov",
+      "json-summary"
+    ],
     "verbose": true,
     "coverageThreshold": {
       "global": {
@@ -95,15 +102,33 @@
         "branches": 40,
         "functions": 46
       },
-      "./src/services/adminOrderService.js": { "lines": 60 },
-      "./src/services/paypalService.js": { "lines": 60 },
-      "./src/services/refundService.js": { "lines": 60 },
-      "./src/services/mercadoPagoService.js": { "lines": 60 },
-      "./src/services/paymentTransitionService.js": { "lines": 60 },
-      "./src/lib/providerHttp.js": { "lines": 60 },
-      "./src/services/invoiceService.js": { "lines": 90 },
-      "./src/controllers/refundController.js": { "lines": 34 },
-      "./src/controllers/downloadController.js": { "lines": 15 }
+      "./src/services/adminOrderService.js": {
+        "lines": 60
+      },
+      "./src/services/paypalService.js": {
+        "lines": 60
+      },
+      "./src/services/refundService.js": {
+        "lines": 60
+      },
+      "./src/services/mercadoPagoService.js": {
+        "lines": 60
+      },
+      "./src/services/paymentTransitionService.js": {
+        "lines": 60
+      },
+      "./src/lib/providerHttp.js": {
+        "lines": 60
+      },
+      "./src/services/invoiceService.js": {
+        "lines": 90
+      },
+      "./src/controllers/refundController.js": {
+        "lines": 34
+      },
+      "./src/controllers/downloadController.js": {
+        "lines": 15
+      }
     },
     "globalSetup": "<rootDir>/test/helpers/ensureIndexHtml.js",
     "globalTeardown": "<rootDir>/test/helpers/globalTeardown.js"

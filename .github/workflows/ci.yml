@@ -80,6 +80,15 @@ jobs:
       - name: Structure guard
         run: npm run lint:structure
 
+      # D0-3 · the backend had NO linter. `web/` has six gates; `src/` had
+      # none, and `node --check` knows nothing about whether an identifier
+      # resolves. Four member endpoints shipped answering 500 on
+      # `resolveUserLocale is not defined` — four call sites, zero imports —
+      # through 1873 passing tests, because nothing loaded that controller
+      # and invoked those handlers. `no-undef` finds it in under a second.
+      - name: Server lint (correctness rules only)
+        run: npm run lint:server
+
       # Both sides of this merge reached the same conclusion independently:
       # `npm test` is bare jest, and jest only enforces coverageThreshold under
       # --coverage, so the 44/41/26/27 gate in package.json had never once been

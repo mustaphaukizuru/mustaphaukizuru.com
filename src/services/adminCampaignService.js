@@ -224,17 +224,6 @@ async function forEachAudiencePage(audience, recipientEmails, fn) {
   }
 }
 
-/**
- * Kept for the test-send path, which needs at most one recipient's token.
- * NOT for bulk use — returns the whole audience. Bulk callers use
- * forEachAudiencePage.
- */
-async function resolveAudience(audience, recipientEmails) {
-  const out = []
-  await forEachAudiencePage(audience, recipientEmails, async (page) => { out.push(...page) })
-  return out
-}
-
 /* ── Render an HTML preview of the campaign (used for test send + UI) ─ */
 
 function renderCampaignHtml(campaign, { unsubscribeUrl = null } = {}) {

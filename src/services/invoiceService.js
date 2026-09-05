@@ -291,7 +291,7 @@ function generatePdf(order, invoice, outPath, tracking = null) {
  * PDF sections
  * ──────────────────────────────────────────────────────────────────────────── */
 
-function renderHeader(doc, invoice, _order) {
+function renderHeader(doc, _invoice, _order) {
   const x = doc.page.margins.left
   const y = doc.page.margins.top
 

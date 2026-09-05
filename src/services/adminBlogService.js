@@ -22,7 +22,7 @@ async function uniqueSlug(base, ignoreId = null) {
   let slug = base || "post"
   let n = 1
   // Walk until we find one nobody else uses.
-  // eslint-disable-next-line no-constant-condition
+   
   while (true) {
     const hit = await prisma.blogPost.findFirst({
       where: { slug, NOT: ignoreId ? { id: ignoreId } : undefined },

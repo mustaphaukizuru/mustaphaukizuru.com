@@ -93,10 +93,14 @@ function detectProfanity(body) {
  * Run the moderation pipeline on a review payload before persistence.
  * The caller is responsible for validating the rating range etc.
  *
+ * The RATING is deliberately not consulted: moderation here is about the
+ * text, and a one-star review is a valid opinion rather than a signal of
+ * abuse. Star-only reviews skip every check below.
+ *
  * @param {{ rating:number, reviewText?:string|null, isVerifiedPurchase:boolean }} input
  * @returns {{ status:'approved'|'pending'|'flagged', flaggedReason:string|null }}
  */
-function moderateReview({ rating, reviewText, isVerifiedPurchase }) {
+function moderateReview({ reviewText, isVerifiedPurchase }) {
   const body = (reviewText || "").trim()
 
   // Empty body is allowed — many reviewers leave only stars. Push through

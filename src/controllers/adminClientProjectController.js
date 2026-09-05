@@ -14,14 +14,12 @@ const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
 const fileRequests = require("../services/projectFileRequestService")
 const projectEvents = require("../services/projectEventService")
 const adminQueue = require("../services/adminQueueService")
-const { notify } = require("../services/notificationService")
 const { notifyFileRequested, notifyFileReviewed, notifyProjectPhase } = require("../services/notificationService")
 const projectEmails = require("../services/projectEmailService")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
   attachFile, deleteFile,
-  VALID_PROJECT_STATUSES, VALID_MILESTONE_STATUSES,
 } = require("../services/clientProjectService")
 const { addAdminMessage } = require("../services/supportService")
 const changeRequestService = require("../services/changeRequestService")

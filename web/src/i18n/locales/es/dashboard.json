@@ -350,6 +350,18 @@
       "statementNamed": "Estado de cuenta de {{month}}",
       "empty": "Sin horas registradas",
       "emptyBody": "Cuando registremos horas en este proyecto aparecerán aquí, mes por mes."
+    },
+    "panelError": {
+      "title": "No se pudo cargar parte de esta página",
+      "body": "{{names}} no cargó, así que lo de abajo puede estar incompleto. No se perdió nada — vuelve a intentarlo.",
+      "retry": "Reintentar",
+      "names": {
+        "events": "Actividad",
+        "requests": "Documentos que necesitamos",
+        "invoices": "Facturas",
+        "secrets": "Credenciales",
+        "hours": "Horas"
+      }
     }
   },
   "serviceOrders": {

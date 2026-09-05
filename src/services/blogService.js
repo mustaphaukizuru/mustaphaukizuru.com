@@ -119,7 +119,8 @@ async function getPublicPostBySlug(slug, locale = "en") {
       picks = [...picks, ...more]
     }
     post.related = picks.map((p) => {
-      const { body, ...card } = serializePost(p, locale)
+      // `body` is pulled out to drop it from the card payload, not to use it.
+      const { body: _body, ...card } = serializePost(p, locale)
       return card
     })
   } catch {

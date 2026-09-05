@@ -78,7 +78,7 @@ async function runReminderPass() {
 
     let due
     try {
-      /* eslint-disable-next-line no-await-in-loop */
+       
       due = await prisma.consultation.findMany({
         where: {
           status: { in: ACTIVE_STATUSES },
@@ -101,7 +101,7 @@ async function runReminderPass() {
       // the next 5-minute tick will retry with a fresh engine.
       if (isEnginePanic(err)) {
         logger.warn(`[bookingReminder] engine panic on ${w.hoursAway}h window — recycling, will retry next tick`)
-        /* eslint-disable-next-line no-await-in-loop */
+         
         await recycle()
         return
       }
@@ -112,9 +112,9 @@ async function runReminderPass() {
 
     for (const c of due) {
       try {
-        /* eslint-disable-next-line no-await-in-loop */
+         
         await sendConsultationReminderEmail(c, w.hoursAway)
-        /* eslint-disable-next-line no-await-in-loop */
+         
         await prisma.consultation.update({
           where: { id: c.id },
           data:  { reminderSentAt: new Date() },
@@ -126,7 +126,7 @@ async function runReminderPass() {
           // this consultation will fire on the next pass (watermark is
           // still null or older than 2h).
           logger.warn(`[bookingReminder] engine panic during update for ${c.id} — recycling`)
-          /* eslint-disable-next-line no-await-in-loop */
+           
           await recycle()
           return
         }

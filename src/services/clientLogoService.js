@@ -56,7 +56,8 @@ async function listPublicClientLogos(locale = "en") {
   })
   return pickLocaleMany(rows.map(serialize), locale).map((row) => {
     // The wall never needs the raw Spanish column once it is resolved.
-    const { sectorEs, ...rest } = pickLocale(row, locale)
+    // Pulled out to drop it from the response, not to use it.
+    const { sectorEs: _sectorEs, ...rest } = pickLocale(row, locale)
     return rest
   })
 }

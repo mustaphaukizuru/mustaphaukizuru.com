@@ -12,11 +12,12 @@ const logger = require("../utils/logger")
 const fsp = require("fs/promises")
 const { listMyProjects, getMyProject } = require("../services/clientProjectService")
 const {
-  assertReadable, previewCanFrame, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
+  assertReadable, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
   ndaStatus, applyNdaGate, acceptAgreement,
   presentForMember, assertDeliverableAccess, loadOwnedProject,
 } = require("../services/projectPortalService")
 const { STORAGE_PATHS } = require("../config/storagePaths")
+const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const supportService = require("../services/supportService")
 const changeRequestService = require("../services/changeRequestService")
 

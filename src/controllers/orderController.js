@@ -11,7 +11,6 @@ const {
   getEnrichedOrderById,
   getOrdersByUserId,
 } = require("../services/orderService")
-const { sendOrderPlacedEmail } = require("../utils/mailer")
 const { notifyOrderPlaced } = require("../services/notificationService")
 const { findOrCreateUserForCheckout } = require("../services/authService")
 const { sendTemplateEmail } = require("../services/emailService")

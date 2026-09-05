@@ -91,7 +91,7 @@ exports.trackPageView = async (req, { path, referrer, country }) => {
       },
     })
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error("[analytics] trackPageView failed:", err?.message || err)
     return null
   }
@@ -151,7 +151,7 @@ exports.trackEvent = async (req, payload = {}) => {
       },
     })
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error("[analytics] trackEvent failed:", err?.message || err)
     return null
   }

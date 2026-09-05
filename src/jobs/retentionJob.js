@@ -54,7 +54,9 @@ function whereFor(table, cutoff) {
   return base
 }
 
-async function sweep(model, where, { dryRun, chunk, now }) {
+// `now` is deliberately not a parameter: whereFor() has already turned it
+// into a cutoff, and a second clock in here could disagree with it.
+async function sweep(model, where, { dryRun, chunk }) {
   if (dryRun) {
     const candidates = await prisma[model].count({ where })
     return { candidates, deleted: 0 }

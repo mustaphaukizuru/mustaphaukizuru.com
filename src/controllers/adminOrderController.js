@@ -1,5 +1,4 @@
 const asyncHandler = require("../utils/asyncHandler")
-const prisma = require("../lib/prisma")
 const {
   getAdminOrders,
   getAdminOrderById,

@@ -38,7 +38,7 @@ try {
   if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true })
 } catch (err) {
   // If we can't create the log dir we log to console only — don't crash boot.
-  // eslint-disable-next-line no-console
+   
   console.error("[logger] Could not create log directory:", err.message)
 }
 
@@ -120,7 +120,7 @@ try {
     })
   )
 } catch (err) {
-  // eslint-disable-next-line no-console
+   
   console.error("[logger] File transport setup failed:", err.message)
 }
 

@@ -350,6 +350,18 @@
       "statementNamed": "Statement for {{month}}",
       "empty": "No hours logged",
       "emptyBody": "When we log time on this project it appears here, month by month."
+    },
+    "panelError": {
+      "title": "Some of this page could not be loaded",
+      "body": "{{names}} did not load, so what you see below may be incomplete. Nothing is lost — try again.",
+      "retry": "Try again",
+      "names": {
+        "events": "Activity",
+        "requests": "Documents we need",
+        "invoices": "Invoices",
+        "secrets": "Credentials",
+        "hours": "Hours"
+      }
     }
   },
   "serviceOrders": {

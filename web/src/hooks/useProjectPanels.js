@@ -38,6 +38,16 @@ export default function useProjectPanels(source, projectId) {
     billing: null,
     loading: true,
     error: null,
+    // D0-4 · which panels could not be loaded, by name.
+    //
+    // Every fetch below used to `.catch(() => [])`, so a panel that failed
+    // was indistinguishable from a panel with nothing in it. Four member
+    // endpoints answered 500 for several commits and the only symptom was
+    // an empty timeline — the client had no way to know, and neither did we.
+    //
+    // Settling per panel is still right: one failure must not blank the
+    // other five. What changes is that the failure is now VISIBLE.
+    failed: [],
   })
 
   const load = useCallback(async () => {
@@ -46,17 +56,26 @@ export default function useProjectPanels(source, projectId) {
       // In parallel and settled rather than raced: one panel failing (an
       // expired portal cookie mid-session, say) should not blank the other
       // two. Each falls back to empty and the page still renders.
+      const failed = []
+      /** Settle one panel, remember its name if it broke. */
+      const panel = (name, promise, fallback) => promise.catch((e) => {
+        failed.push(name)
+        // The console line is not decoration: this is the only place a 500
+        // on one of these six endpoints becomes visible during development.
+        if (typeof console !== "undefined") console.error(`[projectPanels] ${name} failed:`, e?.message || e)
+        return fallback
+      })
+
       const [events, requests, invoices, secrets, hours] = await Promise.all([
-        (portal ? fetchPortalEvents() : fetchProjectEvents(projectId)).catch(() => []),
-        (portal ? fetchPortalFileRequests() : fetchProjectFileRequests(projectId)).catch(() => []),
-        (portal ? fetchPortalInvoices() : fetchProjectInvoices(projectId))
-          .catch(() => ({ invoices: [], billing: null })),
+        panel("events", portal ? fetchPortalEvents() : fetchProjectEvents(projectId), []),
+        panel("requests", portal ? fetchPortalFileRequests() : fetchProjectFileRequests(projectId), []),
+        panel("invoices", portal ? fetchPortalInvoices() : fetchProjectInvoices(projectId), { invoices: [], billing: null }),
         // T5-13 · metadata only; a value only ever comes back from reveal.
-        (portal ? fetchPortalSecrets() : fetchProjectSecrets(projectId)).catch(() => []),
+        panel("secrets", portal ? fetchPortalSecrets() : fetchProjectSecrets(projectId), []),
         // T5-18 · null on failure, not an empty ledger: "no hours" and "we
         // could not load them" must not look the same to a client counting
         // what they paid for.
-        (portal ? fetchPortalHours() : fetchProjectHours(projectId)).catch(() => null),
+        panel("hours", portal ? fetchPortalHours() : fetchProjectHours(projectId), null),
       ])
       setState({
         events,
@@ -67,6 +86,7 @@ export default function useProjectPanels(source, projectId) {
         billing: invoices.billing,
         loading: false,
         error: null,
+        failed,
       })
     } catch (e) {
       setState((prev) => ({ ...prev, loading: false, error: e?.message || "load failed" }))

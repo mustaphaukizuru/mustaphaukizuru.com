@@ -42,7 +42,7 @@ async function runEmailRetryPass({ now = new Date(), batchSize = BATCH_SIZE } = 
 
   for (const log of due) {
     try {
-      /* eslint-disable-next-line no-await-in-loop */
+       
       const result = await emailService.retryEmailLog(log)
       if (result?.ok) summary.sent += 1
       else if (result?.willRetry) summary.rescheduled += 1

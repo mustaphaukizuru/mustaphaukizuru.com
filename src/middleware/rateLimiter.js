@@ -146,13 +146,14 @@ function makeLimiter({ windowMs, max, keyGenerator, message, name }) {
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => IS_DEV && isLocalhost(req),
-    handler: (req, res) => {
-      const msg = typeof message === "string" ? message : message?.message || "Too many requests."
+    handler: (req, res, _next, options) => {
       logger.warn(`[rate-limit:${name || "anon"}] ${req.ip} hit limit on ${req.method} ${req.originalUrl}`)
-      res.status(429).json({
-        success: false,
-        error:   { code: "RATE_LIMITED", message: msg },
-      })
+      // Through rateLimitedResponse, which is the shape this module's own
+      // header documents. It was written, documented and never wired: every
+      // one of the 23 limiters answered with a narrower body that omitted
+      // the top-level legacy fields AND `details.retryAfter`, so a client
+      // could not tell the user how long to wait. `no-unused-vars` found it.
+      return rateLimitedResponse(req, res, { ...options, statusCode: 429, message })
     },
   })
 }
@@ -461,6 +462,10 @@ const publicWriteRateLimiter = makeLimiter({
 })
 
 module.exports = {
+  // The 429 body builder. Exported so a test can assert the SHAPE this
+  // module's header documents — it was unwired for long enough that
+  // nothing noticed the contract was not being met.
+  rateLimitedResponse,
   // Global
   globalApiLimiter,
   publicWriteRateLimiter,
