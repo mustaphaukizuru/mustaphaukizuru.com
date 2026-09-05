@@ -18,6 +18,7 @@ import Container from "../components/system/Container"
 import Seo from "../components/seo/Seo"
 import Breadcrumbs from "../components/Breadcrumbs"
 import { SITE_URL } from "../seo/siteSeo"
+import { articleSchema } from "../seo/schemas/articleSchema"
 import SocialLinks from "../components/SocialLinks"
 import BlogContentRenderer, { extractTOC } from "../components/blog/BlogContentRenderer"
 import BlogCoverGradient from "../components/BlogCoverGradient"
@@ -214,6 +215,7 @@ function categoryByValue(slug) {
 export default function BlogPostPage() {
   const { t, i18n } = useTranslation("blog")
   const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
+  const lang = String(i18n.language || "en").toLowerCase().startsWith("es") ? "es" : "en"
   const { slug } = useParams()
   const reduce = useReducedMotion()
 
@@ -237,38 +239,6 @@ export default function BlogPostPage() {
   const url = post ? `${SITE_URL}/blog/${post.slug}` : ""
   const toc = useMemo(() => (post ? extractTOC(post.body) : []), [post])
 
-  // BlogPosting JSON-LD — injected per-article for Google rich results
-  useEffect(() => {
-    if (!post) return undefined
-    const id = "blog-post-jsonld"
-    document.getElementById(id)?.remove()
-    const script = document.createElement("script")
-    script.type  = "application/ld+json"
-    script.id    = id
-    script.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
-      headline:        post.title,
-      description:     post.excerpt,
-      datePublished:   post.publishedAt,
-      image:           post.cover ? `${SITE_URL}${post.cover}` : `${SITE_URL}/og/og-default.png`,
-      mainEntityOfPage: { "@type": "WebPage", "@id": url },
-      author: {
-        "@type":    "Person",
-        name:       post.author.name,
-        jobTitle:   post.author.role,
-        url:        SITE_URL,
-      },
-      publisher: {
-        "@type": "Organization",
-        name:    "MUSTAPHA UKIZURU",
-        url:     SITE_URL,
-      },
-    })
-    document.head.appendChild(script)
-    return () => document.getElementById(id)?.remove()
-  }, [post, url])
-
   if (!post) return <Navigate to="/blog" replace />
 
   const category = categoryByValue(post.category)
@@ -286,12 +256,18 @@ export default function BlogPostPage() {
       <ReadingProgress />
       <BackToTop />
 
+      {/* The BlogPosting schema used to be built by hand in a useEffect and
+          appended to document.head, outside the component that owns every
+          other schema on the site. It goes through Seo now, which is also
+          what gives it the right language: the same slug serves English and
+          Spanish, so a crawler has to be told which one it is reading. */}
       <Seo
         title={`${post.title} · ${t("post.seo.titleSuffix")}`}
         description={post.excerpt}
         type="article"
         canonical={`/blog/${post.slug}`}
         image={post.cover || undefined}
+        jsonLd={[articleSchema(post, { lang })].filter(Boolean)}
       />
       {/* Print-only header: title + canonical URL */}
       <div className="hidden print:block print:mb-6 print:border-b print:border-gray-200 print:pb-4">

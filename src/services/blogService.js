@@ -33,6 +33,10 @@ function serializePost(row, locale = "en") {
     readMinutes: post.readMinutes,
     featured:    post.isFeatured,
     publishedAt: (post.publishedAt || post.createdAt)?.toISOString?.() || null,
+    // For BlogPosting's dateModified (T2-6). Falls back to the publish date so
+    // the field is always present: schema.org treats a missing dateModified as
+    // "never updated", which is a different claim from "updated when published".
+    updatedAt:   (post.updatedAt || post.publishedAt || post.createdAt)?.toISOString?.() || null,
     category:    post.category?.slug || null,
     tags:        Array.isArray(post.tags)
                    ? post.tags.map((t) => t.tag?.slug).filter(Boolean)
@@ -76,7 +80,7 @@ async function listPublicPostsUncached({ category, tag, q, limit = 50, offset = 
       select: {
         id: true, slug: true, title: true, excerpt: true, cover: true,
         titleEs: true, excerptEs: true,
-        readMinutes: true, isFeatured: true, publishedAt: true, createdAt: true,
+        readMinutes: true, isFeatured: true, publishedAt: true, createdAt: true, updatedAt: true,
         authorName: true, authorRole: true, authorAvatar: true,
         category: { select: { id: true, label: true, slug: true } },
         tags:     { select: { tag: { select: { id: true, label: true, slug: true } } } },
