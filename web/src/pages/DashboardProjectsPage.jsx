@@ -96,7 +96,7 @@ export default function DashboardProjectsPage() {
                       <h3 className="truncate text-meta font-bold text-violet">{p.projectName}</h3>
                       <StatusPill status={p.projectStatus} />
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
+                    <div className="mt-1 flex flex-wrap items-center gap-3 font-mono text-meta text-charcoal-80/65">
                       <span><Calendar className="inline h-3 w-3 mr-1" />{t("projects.card.due", { date: fmtDate(p.dueDate) })}</span>
                       <span><FileText className="inline h-3 w-3 mr-1" />{t("projects.card.files", { count: fileCount })}</span>
                     </div>
@@ -104,13 +104,20 @@ export default function DashboardProjectsPage() {
                 </div>
 
                 <div>
-                  <div className="mb-1 flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">
+                  <div className="mb-1 flex items-center justify-between font-mono text-micro uppercase tracking-wider text-charcoal-80/65">
                     <span>{t("projects.card.milestones")}</span>
                     <span className="tabular-nums">
                       {p.milestones.filter((m) => m.status === "completed").length} / {p.milestones.length}
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-violet-pale" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                  <div
+                    className="h-2 overflow-hidden rounded-full bg-violet-pale"
+                    role="progressbar"
+                    aria-valuenow={pct}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={t("projects.progressLabel", { percent: pct })}
+                  >
                     <div className="h-full rounded-full bg-violet transition-all duration-500" style={{ width: `${pct}%` }} />
                   </div>
                 </div>

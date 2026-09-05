@@ -251,7 +251,7 @@ export default function DashboardProjectDetailPage() {
             {project.description && (
               <p className="mt-2 max-w-2xl text-meta text-charcoal-80/75">{project.description}</p>
             )}
-            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/65">
+            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-meta text-charcoal-80/65">
               <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDay(project.startDate) })}</span>
               <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDay(project.dueDate) })}</span>
               {project.assignedAdmin && (
@@ -260,11 +260,18 @@ export default function DashboardProjectDetailPage() {
             </div>
           </div>
           <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
+            <div className="font-mono text-micro uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
             <div className="font-mono text-display font-bold tabular-nums text-violet">{pct}%</div>
           </div>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-violet-pale" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+        <div
+          className="mt-4 h-2 overflow-hidden rounded-full bg-violet-pale"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t("projects.progressLabel", { percent: pct })}
+        >
           <div className="h-full rounded-full bg-violet transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
       </div>
@@ -652,11 +659,11 @@ function PurgedTile({ file: f, t }) {
     <li className="flex h-full flex-col overflow-hidden rounded-xl border border-dashed border-charcoal-80/15 bg-charcoal-80/5 opacity-80">
       <div className="relative flex aspect-[4/3] items-center justify-center">
         <Icon className="h-10 w-10 text-charcoal-80" aria-hidden="true" />
-        <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
+        <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-micro font-bold ${chip}`}>{label}</span>
       </div>
       <div className="px-3 py-2">
         <p className="truncate text-meta font-semibold text-charcoal-80/65">{f.fileName}</p>
-        <p className="font-mono text-[11px] text-charcoal-80/65">{t("projects.detail.gallery.purged", { date: fmtDate(f.purgedAt) })}</p>
+        <p className="font-mono text-meta text-charcoal-80/65">{t("projects.detail.gallery.purged", { date: fmtDate(f.purgedAt) })}</p>
       </div>
     </li>
   )
@@ -730,7 +737,7 @@ function MilestoneCard({ milestone: ms, index, comments, readOnly, label, onAppr
             <StatusPill status={ms.status} label={label} />
           </div>
           {ms.description && <p className="mt-1 text-micro text-charcoal-80/65">{ms.description}</p>}
-          <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
+          <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-meta text-charcoal-80/65">
             {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDay(ms.dueDate) })}</span>}
             {ms.approvedAt && <span>{t("projects.detail.milestoneApproved", { date: fmtDate(ms.approvedAt) })}</span>}
             {ms.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(ms.completedAt) })}</span>}
@@ -832,16 +839,16 @@ function CommentList({ comments, empty, compact = false, t }) {
         const isTeam = c.authorRole === "admin"
         return (
           <li key={c.id} className={`rounded-lg px-3 py-2 ${isTeam ? "bg-violet-pale/40" : "bg-charcoal-80/5"}`}>
-            <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-charcoal-80/65">
+            <div className="flex flex-wrap items-center gap-2 font-mono text-meta text-charcoal-80/65">
               <span className="font-semibold text-charcoal-80">
                 {c.author?.fullName || (isTeam ? t("projects.detail.thread.team") : t("projects.detail.thread.you"))}
               </span>
-              <span className={`rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${isTeam ? "bg-violet-pale text-violet" : "bg-azure/10 text-azure-deep"}`}>
+              <span className={`rounded-full px-1.5 py-px text-micro font-bold uppercase tracking-wider ${isTeam ? "bg-violet-pale text-violet" : "bg-azure/10 text-azure-deep"}`}>
                 {isTeam ? t("projects.detail.thread.roleTeam") : t("projects.detail.thread.roleClient")}
               </span>
               <span>{fmtDateTime(c.createdAt)}</span>
               {c.resolvedAt && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-mint-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-1.5 py-px text-micro font-bold uppercase tracking-wider text-mint-700">
                   <Check className="h-2.5 w-2.5" aria-hidden="true" /> {t("projects.detail.thread.resolved")}
                 </span>
               )}
@@ -899,7 +906,7 @@ function ReplyBox({ onSubmit, readOnly, placeholder, compact = false, className 
 function FileGallery({ projectId, files, title, empty, locked = false, t }) {
   return (
     <div>
-      <h3 className="mb-2 font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{title} · {files.length}</h3>
+      <h3 className="mb-2 font-mono text-micro uppercase tracking-wider text-charcoal-80/65">{title} · {files.length}</h3>
       {files.length === 0 ? (
         <div className={EMPTY}>{empty}</div>
       ) : (
@@ -937,9 +944,9 @@ function FileTile({ projectId, file: f, locked = false, t }) {
           ) : (
             <Icon className={`h-10 w-10 ${iconColor}`} aria-hidden="true" />
           )}
-          <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
+          <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-micro font-bold ${chip}`}>{label}</span>
           {f.isDeliverable && (
-            <span className={`absolute right-2 top-2 rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${locked ? "bg-rose-50 text-rose-600" : "bg-mint/15 text-mint-700"}`}>
+            <span className={`absolute right-2 top-2 rounded-full px-1.5 py-px text-micro font-bold uppercase tracking-wider ${locked ? "bg-rose-50 text-rose-600" : "bg-mint/15 text-mint-700"}`}>
               {locked ? t("projects.detail.access.locked") : t("projects.detail.gallery.deliverable")}
             </span>
           )}
@@ -947,7 +954,7 @@ function FileTile({ projectId, file: f, locked = false, t }) {
         <div className="flex flex-1 items-start justify-between gap-2 px-3 py-2.5">
           <div className="min-w-0">
             <div className="truncate text-meta font-semibold text-charcoal-80" title={f.fileName}>{f.fileName}</div>
-            <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
+            <div className="mt-0.5 font-mono text-meta text-charcoal-80/65">
               {[formatFileSize(f.fileSize), isTeam ? t("projects.detail.gallery.byTeam") : t("projects.detail.gallery.byYou"), fmtDate(f.createdAt)].filter(Boolean).join(" · ")}
             </div>
           </div>

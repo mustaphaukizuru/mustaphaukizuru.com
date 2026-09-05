@@ -362,7 +362,8 @@
         "secrets": "Credentials",
         "hours": "Hours"
       }
-    }
+    },
+    "progressLabel": "Project progress: {{percent}}%"
   },
   "serviceOrders": {
     "errors": {
@@ -1060,7 +1061,8 @@
         "phone": "Phone",
         "country": "Country",
         "bio": "Short bio"
-      }
+      },
+      "progressLabel": "Profile {{percent}}% complete"
     },
     "kpi": {
       "orders": "Orders",

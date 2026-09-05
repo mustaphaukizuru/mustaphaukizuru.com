@@ -137,7 +137,7 @@ export default function PortalPage() {
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-pale text-violet">
                 <ShieldCheck className="h-6 w-6" aria-hidden="true" />
               </div>
-              <p className="mt-4 font-mono text-[11px] uppercase tracking-wider text-charcoal-80/65">{t("portal.eyebrow")}</p>
+              <p className="mt-4 font-mono text-meta uppercase tracking-wider text-charcoal-80/65">{t("portal.eyebrow")}</p>
               <h1 className="mt-1 text-card font-bold text-violet">{probe?.projectName || t("portal.title")}</h1>
               <p className="mt-2 text-meta text-charcoal-80/70">{t("portal.intro")}</p>
             </div>
@@ -226,7 +226,7 @@ function PortalView({ project, t }) {
               <StatusPill status={project.projectStatus} />
             </div>
             {project.description && <p className="mt-2 max-w-2xl text-meta text-charcoal-80/75">{project.description}</p>}
-            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/65">
+            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-meta text-charcoal-80/65">
               <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDay(project.startDate) })}</span>
               <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDay(project.dueDate) })}</span>
               {project.assignedAdmin && (
@@ -235,11 +235,18 @@ function PortalView({ project, t }) {
             </div>
           </div>
           <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
+            <div className="font-mono text-micro uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
             <div className="font-mono text-display font-bold tabular-nums text-violet">{pct}%</div>
           </div>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-violet-pale" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+        <div
+          className="mt-4 h-2 overflow-hidden rounded-full bg-violet-pale"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t("projects.progressLabel", { percent: pct })}
+        >
           <div className="h-full rounded-full bg-violet transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
       </div>
@@ -257,14 +264,14 @@ function PortalView({ project, t }) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[11px] text-charcoal-80/65">{String(idx + 1).padStart(2, "0")}</span>
+                    <span className="font-mono text-meta text-charcoal-80/65">{String(idx + 1).padStart(2, "0")}</span>
                     <h3 className="font-semibold text-violet">{ms.title}</h3>
-                    <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${MILESTONE_TONE[ms.status] || MILESTONE_TONE.pending}`}>
+                    <span className={`rounded-full px-2 py-0.5 font-mono text-micro uppercase tracking-wider ${MILESTONE_TONE[ms.status] || MILESTONE_TONE.pending}`}>
                       {label === key ? ms.status : label}
                     </span>
                   </div>
                   {ms.description && <p className="mt-1 text-meta text-charcoal-80/75">{ms.description}</p>}
-                  <div className="mt-2 flex flex-wrap gap-3 font-mono text-[11px] text-charcoal-80/65">
+                  <div className="mt-2 flex flex-wrap gap-3 font-mono text-meta text-charcoal-80/65">
                     {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDay(ms.dueDate) })}</span>}
                     {ms.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(ms.completedAt) })}</span>}
                   </div>
@@ -314,13 +321,13 @@ function PortalView({ project, t }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-meta font-semibold text-violet">{f.fileName}</p>
-                    <p className="font-mono text-[11px] text-charcoal-80/65">
-                      <span className={`mr-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
+                    <p className="font-mono text-meta text-charcoal-80/65">
+                      <span className={`mr-1 rounded-md px-1.5 py-0.5 text-micro font-bold ${chip}`}>{label}</span>
                       {formatFileSize(f.fileSize)} · {fmtDate(f.createdAt)}
                     </p>
                   </div>
                   {purged ? (
-                    <span className="font-mono text-[10px] uppercase text-charcoal-80/65">{t("portal.purged")}</span>
+                    <span className="font-mono text-micro uppercase text-charcoal-80/65">{t("portal.purged")}</span>
                   ) : (
                     <a href={portalFileDownloadUrl(f.id)} className="rounded-lg p-2 text-violet hover:bg-violet-pale" aria-label={t("portal.download", { name: f.fileName })}>
                       <Download className="h-4 w-4" aria-hidden="true" />

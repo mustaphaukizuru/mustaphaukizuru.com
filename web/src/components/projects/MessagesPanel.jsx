@@ -68,7 +68,7 @@ const fmtMoney = (v, currency) => {
 function KindBadge({ kind, t }) {
   const Icon = kind === "question" ? MessageSquare : kind === "problem" ? LifeBuoy : Receipt
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-charcoal-80/5 px-2 py-px text-[10px] font-bold uppercase tracking-wider text-charcoal-80">
+    <span className="inline-flex items-center gap-1 rounded-full bg-charcoal-80/5 px-2 py-px text-micro font-bold uppercase tracking-wider text-charcoal-80">
       <Icon className="h-3 w-3" aria-hidden="true" />
       {t(`projects.messages.kind.${kind}`)}
     </span>
@@ -81,14 +81,14 @@ function CommentRow({ comment: c, t }) {
   const isTeam = c.authorRole === "admin"
   return (
     <div className={`rounded-lg border p-4 ${isTeam ? "border-violet/20 bg-violet-pale/40" : "border-charcoal-80/10 bg-white"}`}>
-      <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-charcoal-80/65">
+      <div className="flex flex-wrap items-center gap-2 font-mono text-meta text-charcoal-80/65">
         <KindBadge kind="question" t={t} />
         <span className="font-semibold text-charcoal-80">
           {c.author?.fullName || (isTeam ? t("projects.detail.thread.team") : t("projects.detail.thread.you"))}
         </span>
         <span>{fmtDateTime(c.createdAt)}</span>
         {c.resolvedAt && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-mint-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-1.5 py-px text-micro font-bold uppercase tracking-wider text-mint-700">
             <Check className="h-2.5 w-2.5" aria-hidden="true" /> {t("projects.detail.thread.resolved")}
           </span>
         )}
@@ -105,11 +105,11 @@ function TicketRow({ ticket: tk, onOpen, t }) {
       onClick={() => onOpen(tk.id)}
       className="block w-full rounded-lg border border-charcoal-80/10 bg-white p-4 text-left transition hover:border-violet/40 hover:bg-mist focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/40"
     >
-      <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-charcoal-80/65">
+      <div className="flex flex-wrap items-center gap-2 font-mono text-meta text-charcoal-80/65">
         <KindBadge kind="problem" t={t} />
         <span className="tabular-nums">#{tk.ticketNumber}</span>
         <span>{fmtDateTime(tk.updatedAt || tk.createdAt)}</span>
-        <span className={`rounded-full px-2 py-px text-[10px] font-bold uppercase tracking-wider ${TICKET_TONE[tk.status] || TICKET_TONE.open}`}>
+        <span className={`rounded-full px-2 py-px text-micro font-bold uppercase tracking-wider ${TICKET_TONE[tk.status] || TICKET_TONE.open}`}>
           {t(`projects.support.status.${tk.status}`, { defaultValue: tk.status })}
         </span>
       </div>
@@ -157,10 +157,10 @@ function ChangeRow({ request: cr, projectId, readOnly, currency, onChanged, t })
   const decidable = cr.status === "quoted" && !readOnly
   return (
     <div className={`rounded-lg border p-4 ${decidable ? "border-violet/40 bg-white" : "border-charcoal-80/10 bg-white"}`}>
-      <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-charcoal-80/65">
+      <div className="flex flex-wrap items-center gap-2 font-mono text-meta text-charcoal-80/65">
         <KindBadge kind="extra" t={t} />
         <span>{fmtDate(cr.createdAt)}</span>
-        <span className={`rounded-full px-2 py-px text-[10px] font-bold uppercase tracking-wider ${CR_TONE[cr.status] || CR_TONE.requested}`}>
+        <span className={`rounded-full px-2 py-px text-micro font-bold uppercase tracking-wider ${CR_TONE[cr.status] || CR_TONE.requested}`}>
           {t(`projects.changeRequests.status.${cr.status}`, { defaultValue: cr.status })}
         </span>
       </div>

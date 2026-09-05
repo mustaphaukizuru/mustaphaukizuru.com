@@ -103,7 +103,7 @@ function NotificationRow({ notification, onRead, t }) {
                 {notification.title || t("notificationsPage.row.markRead")}
               </h3>
               {!notification.isRead && (
-                <span className="inline-flex items-center rounded-full bg-violet px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                <span className="inline-flex items-center rounded-full bg-violet px-2 py-0.5 text-micro font-bold uppercase tracking-wider text-white">
                   {t("notificationsPage.row.newBadge")}
                 </span>
               )}
@@ -113,7 +113,7 @@ function NotificationRow({ notification, onRead, t }) {
                 {notification.message}
               </p>
             )}
-            <p className="mt-1 font-mono text-[11px] tabular-nums text-charcoal-80/65">
+            <p className="mt-1 font-mono text-meta tabular-nums text-charcoal-80/65">
               {formatTimestamp(notification.createdAt, localeTag)}
             </p>
           </div>
@@ -241,7 +241,7 @@ export default function DashboardNotificationsPage() {
                     }`}
                   >
                     {t(f.labelKey)}
-                    <span className={`rounded-full px-1.5 py-0.5 font-mono text-[10px] tabular-nums ${
+                    <span className={`rounded-full px-1.5 py-0.5 font-mono text-micro tabular-nums ${
                       active ? "bg-white/15 text-white" : "bg-charcoal-80/8 text-charcoal-80/65"
                     }`}>
                       {f.count}

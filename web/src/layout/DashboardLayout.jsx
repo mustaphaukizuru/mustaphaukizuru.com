@@ -236,7 +236,21 @@ function SidebarItem({ item }) {
                 aria-hidden="true"
               />
             </div>
-            <div className={["mt-0.5 truncate text-micro", isActive ? "text-violet/70" : "text-charcoal-80/65"].join(" ")}>
+            {/* D4-2 · the description is neutral on every row now.
+              *
+              * The active row used `text-violet/70`, which composites over
+              * the violet-pale active background to 3.19:1 — axe flags it on
+              * all twelve routes. Raising the opacity would
+              * take violet/90 to reach 4.70:1, which is the wrong lever
+              * (and Brand v3 says use the darker sibling, not more alpha).
+              *
+              * The label above already carries the active violet, in
+              * semibold. Making the description neutral gives the row one
+              * accent instead of two at different strengths, and
+              * charcoal-80/65 measures 4.96:1 on violet-pale, 5.32:1 on
+              * white and 5.12:1 on violet-ghost — every background this row
+              * has. */}
+            <div className="mt-0.5 truncate text-micro text-charcoal-80/65">
               {t(item.descKey)}
             </div>
           </div>

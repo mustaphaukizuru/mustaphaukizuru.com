@@ -232,7 +232,7 @@ function InvoicePayCard({ order, invoice }) {
         <div className="min-w-0">
           <h2 className="text-card font-bold text-violet">{t("orders.invoice.title", { number: invoice.invoiceNumber })}</h2>
           <p className="mt-1 text-meta text-charcoal-80/75">{t("orders.invoice.body")}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-[11px]">
+          <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-meta">
             {dueDate && (
               <span className={`inline-flex items-center gap-1 ${overdue ? "font-semibold text-rose-700" : "text-charcoal-80/65"}`}>
                 <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />

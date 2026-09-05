@@ -321,7 +321,7 @@ function ProductRow({ product, localeTag, t, downloadingKey, onDownload }) {
                             {file.fileName}
                           </span>
                           <span
-                            className={`shrink-0 rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold ${styles.chip}`}
+                            className={`shrink-0 rounded-md px-1.5 py-0.5 font-mono text-micro font-bold ${styles.chip}`}
                           >
                             {styles.label}
                           </span>

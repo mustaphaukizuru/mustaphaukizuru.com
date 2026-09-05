@@ -124,10 +124,10 @@ function ServiceOrderCard({ order }) {
       <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-start">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ring-1 ${visual.bg} ${visual.fg} ${visual.ring}`}>
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-meta font-bold uppercase tracking-wider ring-1 ${visual.bg} ${visual.fg} ${visual.ring}`}>
               <StatusIcon className="h-3 w-3" aria-hidden="true" /> {statusLabel}
             </span>
-            <span className="font-mono text-[11px] text-charcoal-80/65">
+            <span className="font-mono text-meta text-charcoal-80/65">
               #{(order.id || "").slice(-8).toUpperCase()}
             </span>
           </div>
@@ -153,7 +153,7 @@ function ServiceOrderCard({ order }) {
                 return (
                   <li key={step} className="flex flex-col items-center gap-1.5 text-center">
                     <div
-                      className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold transition ${
+                      className={`flex h-7 w-7 items-center justify-center rounded-full text-meta font-bold transition ${
                         reached
                           ? `${stepVisual.bg} ${stepVisual.fg} ring-2 ${stepVisual.ring}`
                           : "bg-mist text-charcoal-80/35 ring-1 ring-charcoal-80/10"
@@ -162,7 +162,7 @@ function ServiceOrderCard({ order }) {
                     >
                       {idx + 1}
                     </div>
-                    <span className={`font-mono text-[10px] uppercase tracking-wider ${reached ? "text-charcoal" : "text-charcoal-80/65"}`}>
+                    <span className={`font-mono text-micro uppercase tracking-wider ${reached ? "text-charcoal" : "text-charcoal-80/65"}`}>
                       {t(`serviceOrders.status.${step}.label`)}
                     </span>
                   </li>
@@ -206,7 +206,7 @@ function ServiceOrderCard({ order }) {
 
 function Chip({ Icon, label, value }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/10 bg-mist px-2 py-1 text-[11px] text-charcoal-80/75">
+    <span className="inline-flex items-center gap-1.5 rounded-lg border border-charcoal-80/10 bg-mist px-2 py-1 text-meta text-charcoal-80/75">
       <Icon className="h-3 w-3 text-charcoal-80/65" aria-hidden="true" />
       <span className="font-mono uppercase tracking-wider text-charcoal-80/65">{label}:</span>
       <span className="font-semibold text-charcoal">{value}</span>

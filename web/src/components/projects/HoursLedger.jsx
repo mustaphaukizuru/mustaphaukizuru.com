@@ -97,7 +97,7 @@ function MonthBlock({ month, projectId, portal, open, onToggle, locale, t }) {
               {month.entries.map((entry) => (
                 <li key={entry.id} className="flex flex-wrap items-baseline justify-between gap-2 py-2">
                   <div className="min-w-0">
-                    <span className="font-mono text-[11px] text-charcoal-80/65">{entry.date}</span>
+                    <span className="font-mono text-meta text-charcoal-80/65">{entry.date}</span>
                     <span className="ms-2 text-micro text-charcoal-80">
                       {entry.note || t("projects.hours.defaultNote")}
                     </span>

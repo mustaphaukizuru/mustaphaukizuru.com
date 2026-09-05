@@ -43,7 +43,7 @@ function AttachmentChip({ projectId, file }) {
     >
       <Paperclip className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <span className="truncate">{file.fileName}</span>
-      {file.fileSize ? <span className="shrink-0 font-mono text-[11px] tabular-nums text-charcoal-80">{formatBytes(file.fileSize)}</span> : null}
+      {file.fileSize ? <span className="shrink-0 font-mono text-meta tabular-nums text-charcoal-80">{formatBytes(file.fileSize)}</span> : null}
     </a>
   )
 }
@@ -100,7 +100,7 @@ export function Dropzone({ id, files, fileError, onAdd, onRemove, disabled, comp
             <li key={`${f.name}-${f.size}-${i}`} className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-charcoal-80/15 bg-white px-2.5 py-1 text-[12px] text-charcoal-80">
               <FileText className="h-3.5 w-3.5 shrink-0 text-violet" aria-hidden="true" />
               <span className="truncate">{f.name}</span>
-              <span className="font-mono text-[11px] tabular-nums">{formatBytes(f.size)}</span>
+              <span className="font-mono text-meta tabular-nums">{formatBytes(f.size)}</span>
               <button
                 type="button"
                 onClick={() => onRemove(i)}
@@ -178,7 +178,7 @@ export function TicketThread({ projectId, ticketId, readOnly, onBack, onUpdated 
         <>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-charcoal-80">#{ticket.ticketNumber}</div>
+              <div className="font-mono text-meta font-bold uppercase tracking-[0.16em] text-charcoal-80">#{ticket.ticketNumber}</div>
               <h4 className="mt-1 text-[17px] font-bold leading-snug text-violet">{ticket.subject}</h4>
               <p className="mt-1 text-[12px] text-charcoal-80">{t("projects.support.opened", { date: formatDate(ticket.createdAt, i18n.language) })}</p>
             </div>
@@ -205,7 +205,7 @@ export function TicketThread({ projectId, ticketId, readOnly, onBack, onUpdated 
                 >
                   <div className="mb-1.5 flex items-center justify-between gap-2">
                     <span className="text-[12px] font-bold text-violet">{mine ? t("projects.support.thread.you") : t("projects.support.thread.team")}</span>
-                    <time dateTime={m.createdAt} className="font-mono text-[11px] tabular-nums text-charcoal-80">{formatDate(m.createdAt, i18n.language)}</time>
+                    <time dateTime={m.createdAt} className="font-mono text-meta tabular-nums text-charcoal-80">{formatDate(m.createdAt, i18n.language)}</time>
                   </div>
                   <div className="whitespace-pre-wrap">{m.message}</div>
                   {Array.isArray(m.attachments) && m.attachments.length > 0 && (

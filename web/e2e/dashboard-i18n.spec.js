@@ -45,6 +45,12 @@ async function signedIn(page) {
     window.localStorage.setItem("mu_cookie_consent_v1", JSON.stringify({
       version: 1, necessary: true, analytics: true, marketing: false, at: Date.now(),
     }))
+    // A signed-in member is by definition a returning visitor, and the
+    // splash is what they skip. Without this flag LoadingScreen covers the
+    // app at z-9999 with `pointer-events: none` for ~1.6 s, so anything
+    // measured inside that window is measuring the splash: elementFromPoint
+    // returns it, and its own controls show up in a11y scans of the page.
+    window.localStorage.setItem("ukz-splash-skip", "1")
   }, USER)
   await page.route("**/api/**", (route) => {
     const url = route.request().url()

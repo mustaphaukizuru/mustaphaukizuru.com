@@ -24,7 +24,8 @@ import { useTranslation } from "react-i18next"
  * Accessibility
  *   • role="status" / aria-live="polite" / aria-busy
  *   • progressbar with aria-value{now,min,max}
- *   • Skip button has an explicit aria-label
+ *   • Skip button has an explicit aria-label, and is `disabled` +
+ *     `aria-hidden` until it is actually visible (D4-2)
  *   • Honors prefers-reduced-motion via CSS
  */
 
@@ -104,7 +105,7 @@ export default function LoadingScreen({ onFinish }) {
       role="status"
       aria-live="polite"
       aria-busy={!fading}
-      aria-label="Loading mustaphaukizuru.com"
+      aria-label={t("loading.splashAria")}
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-violet transition-opacity duration-[400ms]"
       style={{ opacity: fading ? 0 : 1, pointerEvents: fading ? "none" : "auto" }}
     >
@@ -190,6 +191,10 @@ export default function LoadingScreen({ onFinish }) {
           aria-valuenow={progress}
           aria-valuemin={0}
           aria-valuemax={100}
+          /* D4-2 · axe `aria-progressbar-name`. This is the first thing a
+             screen reader meets on a cold load, and it announced a bare
+             number. */
+          aria-label={t("loading.progressAria")}
         >
           <div
             className="h-full rounded-full transition-[width] duration-300 ease-out"
@@ -202,9 +207,17 @@ export default function LoadingScreen({ onFinish }) {
         </div>
 
         {/* Skip splash */}
+        {/* D4-2 · `pointer-events-none` takes it away from the mouse but NOT
+            from the keyboard: for the first 1.6 s of every cold load, Tab
+            landed on a completely invisible control. `disabled` plus
+            `aria-hidden` removes it from both the tab order and the
+            accessibility tree while it is hidden, and the opacity transition
+            still runs when it appears. */}
         <button
           type="button"
           onClick={skip}
+          disabled={!showSkip}
+          aria-hidden={!showSkip}
           className={`mt-1 inline-flex items-center gap-1.5 rounded-full bg-white/[0.08] px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-white/75 ring-1 ring-white/15 backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
             showSkip ? "opacity-100" : "pointer-events-none opacity-0"
           }`}

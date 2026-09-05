@@ -53,7 +53,7 @@ function InvoiceChip({ invoice, status, localeTag }) {
   const date = new Date(invoice.dueDate).toLocaleDateString(localeTag, { year: "numeric", month: "short", day: "numeric" })
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset ${
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-micro font-bold uppercase tracking-wider ring-1 ring-inset ${
         overdue ? "bg-rose-50 text-rose-600 ring-rose-300/40" : "bg-amber/10 text-amber-700 ring-amber-300/40"
       }`}
     >

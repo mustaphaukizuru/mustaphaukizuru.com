@@ -75,8 +75,8 @@ function SecretRow({ secret, onReveal, t }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
           <div className="truncate text-meta font-semibold text-charcoal-80">{secret.label}</div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-[11px] text-charcoal-80/65">
-            <span className={`rounded-full px-2 py-px text-[10px] font-bold uppercase tracking-wider ${STATE_TONE[secret.state]}`}>
+          <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-meta text-charcoal-80/65">
+            <span className={`rounded-full px-2 py-px text-micro font-bold uppercase tracking-wider ${STATE_TONE[secret.state]}`}>
               {t(`projects.secrets.state.${secret.state}`)}
             </span>
             <span>

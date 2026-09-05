@@ -240,7 +240,9 @@
   "loading": {
     "brandAlt": "Mustapha Ukizuru",
     "skipAria": "Skip the loading splash",
-    "skipLabel": "Skip splash"
+    "skipLabel": "Skip splash",
+    "progressAria": "Loading progress",
+    "splashAria": "Loading mustaphaukizuru.com"
   },
   "errorBoundary": {
     "homeAria": "Mustapha Ukizuru, home",
