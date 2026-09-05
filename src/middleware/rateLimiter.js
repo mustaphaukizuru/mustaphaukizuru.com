@@ -254,6 +254,25 @@ const newsletterRateLimiter = makeLimiter({
 })
 
 /**
+ * Public project tracking — 30 per 15 minutes per IP (T5-2).
+ *
+ * The tracking code carries about 2^39 of entropy, which is a lookup key and
+ * not a secret. THIS LIMIT is what makes enumeration impractical, not the
+ * length: 30 guesses per window against 2^39 possibilities is not a search,
+ * it is a hobby. Generous enough that a client refreshing their own page,
+ * or a team all opening the same link, never sees a 429.
+ *
+ * See docs/decisions/0006-tracking-code-public-surface.md.
+ */
+const trackRateLimiter = makeLimiter({
+  name:         "track",
+  windowMs:     FIFTEEN_MIN,
+  max:          30,
+  keyGenerator: ipKey,
+  message:      "Too many lookups. Please wait a few minutes before trying again.",
+})
+
+/**
  * Self-audit (diagnostic) submission — 5 per hour per IP. Each submission
  * renders a multi-page PDF and sends two emails, so an unthrottled endpoint
  * is a CPU + mail amplifier. Same shape as the newsletter limiter.
@@ -436,6 +455,7 @@ module.exports = {
   contactRateLimiter,
   newsletterRateLimiter,
   diagnosticRateLimiter,
+  trackRateLimiter,
   // Resource-scoped
   paymentRateLimiter,
   uploadRateLimiter,

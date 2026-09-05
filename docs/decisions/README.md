@@ -8,7 +8,9 @@ One short file per decision a future contributor would otherwise reopen: context
 
 **`proposed`** — *not decided.* The record exists so the question is visible and does not get answered by accident, in a hurry, by whoever touches that code next. A proposed record states what is true today, the options, and what blocks the choice. Nothing in it is a decision, and no code depends on one. Whoever decides edits that file to `accepted` in the same change as the code.
 
-Three records below are `proposed` because deciding them would have meant inventing an answer: one waits on a design decision (T3-2), one on an endpoint that does not exist yet (T5-2), and one is a pricing call with revenue consequences that belongs to the owner (T2-11).
+Two records below are `proposed` because deciding them would have meant inventing an answer: one waits on a design decision (T3-2), and one is a pricing call with revenue consequences that belongs to the owner (T2-11).
+
+0006 was `proposed` for the same reason and is now `accepted`: T5-2 built the endpoint it governs, so the question stopped being hypothetical and was answered in that change — which is exactly the transition this folder is for.
 
 | # | Decision | Status | Item |
 |---|---|---|---|
@@ -17,7 +19,7 @@ Three records below are `proposed` because deciding them would have meant invent
 | [0003](0003-product-currency.md) | Store prices are MXN, and the figures were wrong | accepted | T2-4 |
 | [0004](0004-spanish-register-tu.md) | Spanish addresses the reader as `tú` | accepted | T2-5 / T2-8 |
 | [0005](0005-gated-plan-tiers.md) | The expensive plan tiers are scoped on a call | accepted | T2-4 |
-| [0006](0006-tracking-code-public-surface.md) | What an anonymous tracking code may reveal | **proposed** | T5-2 |
+| [0006](0006-tracking-code-public-surface.md) | What an anonymous tracking code may reveal | accepted | T5-2 |
 | [0007](0007-packages-vs-offerings.md) | Whether a package and a standalone offering may price the same work differently | **proposed** | T2-11 |
 
 `test/decisionRecords.test.js` checks the shape of every record and that this index lists each one with the status the file itself declares — an index that drifts from the records is worse than none.

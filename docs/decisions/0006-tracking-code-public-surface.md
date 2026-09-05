@@ -1,10 +1,10 @@
 # 0006 · What an anonymous tracking code may reveal
 
-**Date:** 2026-09-04 · **Status:** proposed — NOT DECIDED · **Item:** T5-2
+**Date:** 2026-09-05 · **Status:** accepted · **Item:** T5-2
 
-> This record exists so the next contributor does not decide it by accident.
-> It states the constraint and the shape of the contract. T5-2 builds it and
-> edits this file to `accepted` in the same change, with the final field list.
+> Superseded the `proposed` version of this record, which stated the question
+> and the options without choosing. Decided here, in the change that builds
+> the endpoint, as that record required.
 
 ## Context
 
@@ -15,47 +15,84 @@ Everything else public is either catalogue content (products, services, blog)
 or write-only (contact, newsletter, webhooks).
 
 A tracking code is shared the way tracking codes always are: pasted into
-email, forwarded, screenshotted into a group chat. It has to be assumed
-public the moment it is issued. So whatever the endpoint returns is, in
-practice, world-readable — and it is read without any prior claim of identity,
-so there is no user to attribute a leak to and no session to revoke.
+email, forwarded, screenshotted into a group chat. It has to be assumed public
+the moment it is issued. Whatever the endpoint returns is therefore, in
+practice, world-readable — read without any prior claim of identity, so there
+is no user to attribute a leak to and no session to revoke.
 
-The plan already narrows it: phase and percent complete, milestone titles with
-status, `visibility = "public"` events (type, title, timestamp, no detail), a
-count of open document requests, and two deep links. Explicitly never:
-amounts, file names, comment bodies, or the client's name. Unknown codes 404
-with the same timing as a hit, and a rate limiter allows 30 attempts per 15
-minutes per IP against 40 bits of code entropy.
+The code carries about 2^39.3 of entropy. That is a lookup key, not a secret,
+and it is never used for authorisation.
 
-## What is actually undecided
+## Decision
 
-The mechanism is designed; the **contract** is not written down, and it is the
-contract that matters, because the endpoint will be extended later by someone
-who did not design it. Three questions:
+**An allowlist, in one serializer, and the three open questions answered
+conservatively.**
 
-1. **Is the project name public?** The plan lists "project name" in the
-   response. A project name is very often the client's name, or names the
-   thing they have not announced yet ("Acme storefront relaunch"). Options:
-   return it, return a client-chosen public label, or return nothing but the
-   phase.
-2. **Are the deep links safe to return?** `/portal/<token>` in a response
-   keyed by a shareable code turns a shareable code into a portal credential.
-   The portal has its own PIN (T5-8), which may or may not be enough.
-3. **Does the code expire?** Nothing in the plan retires a code at handover,
-   so a code shared during delivery keeps answering forever.
+### The rule that outlives the first version
 
-## The rule this record proposes, whatever the answers
+The endpoint returns **only fields named in one explicit projection**, and
+that projection lives in a single function. Adding a field to it is a change
+to this record, not a convenience during a frontend task. The risk was never
+the first version; it is the fourth, when somebody adds the invoice total
+because a page needed it.
 
-The endpoint returns **only fields on an explicit allowlist**, the allowlist
-lives in one serializer, and adding a field to it is a decision someone
-writes down here — never a convenience during a frontend task. The risk is
-not the first version; it is the fourth, when somebody adds the invoice total
-"because the page needs it".
+### What it returns
 
-T5-7 tests this surface and T4-1's external reviewer is asked to grade it.
+- the project's **phase** (`projectStatus`) and percent complete
+- **milestone titles with status** — titles only, no descriptions
+- events with `visibility = "public"`, projected to **type, title and
+  timestamp**
+- a **count** of open document requests
+- `startDate` and `dueDate`
 
-## Consequences of leaving it open
+`serializePublicEvent` deliberately drops `detail` even though only public
+rows reach it. `detail` is free text written by whoever recorded the event,
+and the anonymous surface must not depend on every future caller having been
+careful about what they typed into it.
 
-None yet — the endpoint does not exist. It must not ship before this record is
-`accepted`, because "what may this return" is exactly the question that gets
-answered implicitly by whatever the first page happens to render.
+### 1. Is the project name public? **No.**
+
+A project name is very often the client's own name, or names the thing they
+have not announced yet ("Acme storefront relaunch"). The response carries a
+`reference` — the tracking code itself — and the phase. Someone who holds the
+code already knows which project it is; someone who found it does not learn
+who the client is.
+
+### 2. Are the deep links returned? **No.**
+
+The `proposed` record flagged that returning `/portal/<token>` in a response
+keyed by a shareable code turns a shareable code into a portal credential.
+That is exactly what it does, so it is not returned. The response links to
+`/portal` and `/dashboard` as **destinations without tokens**: someone who
+belongs there can sign in, and someone who does not gains nothing.
+
+### 3. Does the code expire? **At handover plus the grace window.**
+
+`ClientProject.closedAt` already exists and `PROJECT_ACCESS_GRACE_DAYS`
+already governs how long a closed project stays readable. The tracking
+endpoint reuses both rather than inventing a second lifetime: a code stops
+answering when the project has been closed longer than the grace window. A
+code shared during delivery does not keep answering forever, and nothing new
+has to be remembered or rotated.
+
+### Behaviour under probing
+
+- **Unknown code and expired code answer identically** — 404, same shape, same
+  timing. A distinguishable "expired" response confirms that a code was once
+  real, which is a small oracle but a free one to close.
+- **Rate limited** at 30 per 15 minutes per IP, on top of the global limiter.
+  Against 2^39 that makes enumeration impractical; the limit, not the length,
+  is what does the work.
+- **Ten consecutive misses from one IP is logged** at warn, so a sweep is
+  visible rather than merely slow.
+
+## Consequences
+
+- The public page can show progress and cannot show identity, money, file
+  names or comments. That is the intended trade: enough for "where is my
+  project", nothing for someone who found a forwarded link.
+- A frontend that wants more has to come back here first. That is the point.
+- T5-7 tests this surface and T4-1's external reviewer is asked to grade it.
+- If a client ever wants a genuinely public status page with their name on
+  it, that is a per-project opt-in flag and a new record — not a change to
+  the default.

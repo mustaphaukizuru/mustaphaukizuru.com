@@ -1,5 +1,6 @@
 const prisma = require("../lib/prisma")
 const { withUniqueTrackingCode } = require("../utils/trackingCode")
+const projectEvents = require("./projectEventService")
 const { validatePreviewUrl, assertAccessStateChange } = require("./projectPortalService")
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -104,7 +105,17 @@ async function createAdminProject(data) {
       trackingCode,
     },
     include: PROJECT_INCLUDE,
-  }))
+  })).then(async (project) => {
+    // The timeline starts here. Never awaited for its side effect on the
+    // response: record() swallows and logs its own failures, so a project is
+    // never lost because its first event could not be written.
+    await projectEvents.record({
+      projectId: project.id,
+      type: "project.created",
+      actorRole: "admin",
+    })
+    return project
+  })
 }
 
 /* ── Admin · update project metadata ─────────────────────────────────── */
@@ -144,11 +155,37 @@ async function updateAdminProject(id, data) {
     }
   }
 
-  return prisma.clientProject.update({
+  // Read the status before the write so the event describes a TRANSITION
+  // rather than a state: re-saving a project that is already on hold should
+  // not tell the client it was just paused.
+  const before = "projectStatus" in data
+    ? await prisma.clientProject.findUnique({ where: { id: String(id) }, select: { projectStatus: true } })
+    : null
+
+  const updated = await prisma.clientProject.update({
     where: { id: String(id) },
     data:  patch,
     include: PROJECT_INCLUDE,
   })
+
+  if (before && before.projectStatus !== updated.projectStatus) {
+    const TYPE_FOR_STATUS = {
+      in_progress: before.projectStatus === "on_hold" ? "project.resumed" : "project.started",
+      on_hold:     "project.on_hold",
+      completed:   "project.completed",
+    }
+    const type = TYPE_FOR_STATUS[updated.projectStatus]
+    if (type) {
+      await projectEvents.record({ projectId: updated.id, type, actorRole: "admin" })
+    }
+  }
+
+  // The handover gate is its own moment in the story, separate from status.
+  if ("accessState" in data && patch.accessState === "handover") {
+    await projectEvents.record({ projectId: updated.id, type: "project.handover", actorRole: "admin" })
+  }
+
+  return updated
 }
 
 async function deleteAdminProject(id) {
@@ -240,6 +277,24 @@ async function updateMilestone(milestoneId, data) {
     data:  patch,
   })
 
+  if ("status" in data && data.status !== existing.status) {
+    const TYPE_FOR_STATUS = {
+      in_progress:     "milestone.started",
+      awaiting_client: "milestone.delivered",
+    }
+    const type = TYPE_FOR_STATUS[data.status]
+    if (type) {
+      await projectEvents.record({
+        projectId: existing.projectId,
+        type,
+        actorRole: "admin",
+        detail: updated.title,
+        detailEs: updated.title,
+        refs: { milestoneId: updated.id },
+      })
+    }
+  }
+
   return { milestone: updated, project: existing.project, isNewlyComplete, isNewlyAwaitingClient }
 }
 
@@ -266,6 +321,20 @@ async function attachFile(projectId, { fileName, filePath, fileType, fileSize, u
       fileSize:       Number.isFinite(Number(fileSize)) ? Number(fileSize) : null,
       isDeliverable:  Boolean(isDeliverable),
     },
+  }).then(async (file) => {
+    // Only deliverables. An ordinary shared file is working material and
+    // announcing each one turns the timeline into a upload log.
+    if (file.isDeliverable) {
+      await projectEvents.record({
+        projectId: file.projectId,
+        type: "file.delivered",
+        actorRole: "admin",
+        detail: file.fileName,
+        detailEs: file.fileName,
+        refs: { fileId: file.id, milestoneId: file.milestoneId || null },
+      })
+    }
+    return file
   })
 }
 

@@ -18,6 +18,7 @@
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { notifyAdminsProjectActivity, notifyProjectComment, notifyMilestoneAwaitingClient } = require("./notificationService")
+const projectEvents = require("./projectEventService")
 
 const CLOSED_STATUSES = new Set(["completed", "cancelled"])
 const ACCESS_STATES = ["active", "suspended", "handover"]
@@ -308,6 +309,19 @@ async function attachClientFiles({ userId, projectId, files = [], milestoneId = 
     summary: `${rows.length} file(s) uploaded: ${rows.slice(0, 3).map((r) => r.fileName).join(", ")}${rows.length > 3 ? "…" : ""}`,
   }).catch((e) => logger.warn("[portal] admin notify failed", e.message))
 
+  // One event per upload, at "client" visibility: a file NAME can carry the
+  // client's own client, a case number, a salary band. Never public.
+  for (const row of rows) {
+    await projectEvents.record({
+      projectId: project.id,
+      type: "file.received",
+      actorRole: "client",
+      detail: row.fileName,
+      detailEs: row.fileName,
+      refs: { fileId: row.id, milestoneId: row.milestoneId || null },
+    })
+  }
+
   return rows
 }
 
@@ -366,6 +380,15 @@ async function createComment({ projectId, authorId, authorRole, body, milestoneI
     notifyProjectComment(project.userId, { project, comment })
       .catch((e) => logger.warn("[portal] client notify failed", e.message))
   }
+  // The comment BODY is not carried into the event. The timeline says a
+  // conversation happened; the conversation itself lives in the thread,
+  // where the access rules for it already are.
+  await projectEvents.record({
+    projectId: project.id,
+    type: "comment.added",
+    actorRole: authorRole === "client" ? "client" : "admin",
+    refs: { milestoneId: comment.milestoneId || null, fileId: comment.fileId || null },
+  })
   return comment
 }
 
@@ -412,6 +435,17 @@ async function approveMilestone({ userId, projectId, milestoneId, note = null })
   }).catch(() => null)
   notifyAdminsProjectActivity({ project, kind: "approval", summary: `"${ms.title}" approved${note ? ` — ${String(note).slice(0, 100)}` : ""}` })
     .catch((e) => logger.warn("[portal] admin notify failed", e.message))
+  // The client-facing event, beside the admin activityLog row above. The
+  // note is deliberately NOT carried into the detail: the client wrote it
+  // for us, and this event is public-adjacent.
+  await projectEvents.record({
+    projectId: project.id,
+    type: "milestone.approved",
+    actorRole: "client",
+    detail: ms.title,
+    detailEs: ms.title,
+    refs: { milestoneId: ms.id },
+  })
   return updated
 }
 
@@ -442,6 +476,14 @@ async function requestMilestoneChanges({ userId, projectId, milestoneId, note })
       description: `Client requested changes on "${ms.title}" (${project.projectName})`,
     },
   }).catch(() => null)
+  await projectEvents.record({
+    projectId: project.id,
+    type: "milestone.changes_requested",
+    actorRole: "client",
+    detail: ms.title,
+    detailEs: ms.title,
+    refs: { milestoneId: ms.id },
+  })
   notifyAdminsProjectActivity({ project, kind: "changes", summary: `Changes requested on "${ms.title}": ${text.slice(0, 120)}` })
     .catch((e) => logger.warn("[portal] admin notify failed", e.message))
   return updated

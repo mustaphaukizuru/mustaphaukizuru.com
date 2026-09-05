@@ -17,6 +17,7 @@ const serviceRoutes = require("./serviceRoutes")
 const reviewRoutes = require("./reviewRoutes")
 const portfolioRoutes = require("./portfolioRoutes")
 const newsletterRoutes = require("./newsletterRoutes")              // B07
+const trackRoutes = require("./trackRoutes")                        // T5-2 · public project tracking
 const bioRoutes = require("./bioRoutes")                            // M12
 const adminBioRoutes = require("./adminBioRoutes")                  // M12
 const analyticsRoutes = require("./analyticsRoutes")                // M14
@@ -147,6 +148,10 @@ v1.use("/services",        serviceRoutes)
 v1.use("/reviews",         reviewRoutes)
 v1.use("/portfolio",   portfolioRoutes)
 v1.use("/newsletter",  newsletterRoutes)
+// T5-2 · public and unauthenticated by design. v1 only: the legacy /api/*
+// surface is deprecated and a new anonymous endpoint has no business
+// being added to it.
+v1.use("/track",       trackRoutes)
 v1.use("/client-logos", clientLogoRoutes)
 v1.use("/bio",         bioRoutes)                                    // M12
 v1.use("/analytics",   analyticsRoutes)                              // M14
