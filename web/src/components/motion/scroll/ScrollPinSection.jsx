@@ -9,8 +9,11 @@
  * section. On viewports without the `lg:` classes the track collapses to the
  * content height — a plain stacked section.
  *
- * Pair with useScrollNarrative: `trigger: scope, start: "top top",
- * end: "bottom bottom", scrub: …` gives a 0→1 progress across the runway.
+ * Pair with Framer's useScroll: pass the same ref as `trackRef` and as
+ * `useScroll({ target, offset: ["start start", "end end"] })`, which gives a
+ * 0→1 progress across the runway. (Before T4-3 that was gsap's
+ * `trigger: scope, start: "top top", end: "bottom bottom", scrub` — the same
+ * window, said in the other library's words.)
  */
 export default function ScrollPinSection({
   as: Tag = "section",

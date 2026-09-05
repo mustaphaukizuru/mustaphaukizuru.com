@@ -1,17 +1,25 @@
 /* eslint-disable react-refresh/only-export-components -- exports outcome helpers used by the case-study page */
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { animate, m, useInView, useReducedMotion } from "framer-motion"
+
 import { hasPlaceholder } from "./caseStudy"
-import { useScrollNarrative } from "../motion/scroll"
 
 /**
  * OutcomeStats · 2–3 quantified results.
  * Placeholder figures render with `data-placeholder="true"`, an asterisk and
  * a footnote so illustrative numbers are never mistaken for audited ones.
  *
- * Step 33 · the numeric part of each value counts up from 0 the first time
- * the card scrolls into view (GSAP, lazy). The DOM is authored with the final
- * value, so reduced-motion / no-JS show the real figure; the number span has
- * a `min-width` in `ch` matching the final string so counting never reflows.
+ * The numeric part of each value counts up from 0 the first time the card
+ * scrolls into view. The DOM is authored with the FINAL value, so
+ * reduced-motion and no-JS show the real figure; the number span has a
+ * `min-width` in `ch` matching the final string, so counting never reflows.
+ *
+ * T4-3 · ported from gsap to Framer's `animate`, which tweens a plain number
+ * with an onUpdate exactly as gsap did. This was the only one of the three
+ * scroll narratives that was not really a scroll animation at all — it is a
+ * one-shot tween on enter, and it was pulling in ScrollTrigger to ask
+ * "is this on screen yet", which is what useInView answers.
  */
 
 /** "-40%" → { prefix: "-", number: 40, suffix: "%", decimals: 0 }; null when no number. */
@@ -33,6 +41,45 @@ export function splitNumeric(value) {
   }
 }
 
+/**
+ * The number itself, counting up once.
+ *
+ * Renders the FINAL string on the first frame and every frame after the tween
+ * ends, so a reader with reduced motion, no JS, or a screen reader sees the
+ * real figure rather than a zero that is about to change.
+ */
+function CountUp({ parts, delay, run }) {
+  const ref = useRef(null)
+  const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    if (!run || done || !ref.current) return undefined
+    const el = ref.current
+    // Same shape as the gsap tween it replaces: 1.4s, power3.out, staggered.
+    const controls = animate(0, parts.number, {
+      duration: 1.4,
+      delay,
+      ease: [0.215, 0.61, 0.355, 1],
+      onUpdate: (v) => { el.textContent = formatNumber(v, parts) },
+      onComplete: () => { el.textContent = parts.raw; setDone(true) },
+    })
+    return () => controls.stop()
+  }, [run, done, parts, delay])
+
+  return (
+    <span
+      ref={ref}
+      data-count={parts.number}
+      data-decimals={parts.decimals}
+      data-grouped={parts.grouped ? "true" : "false"}
+      className="inline-block text-right"
+      style={{ minWidth: `${parts.raw.length}ch` }}
+    >
+      {parts.raw}
+    </span>
+  )
+}
+
 function formatNumber(n, { decimals, grouped }) {
   return grouped
     ? n.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
@@ -43,29 +90,12 @@ export default function OutcomeStats({ outcomes = [], compact = false }) {
   const { t } = useTranslation("portfolio")
   const anyPlaceholder = hasPlaceholder(outcomes)
 
-  const scope = useScrollNarrative(({ gsap, scope: root }) => {
-    gsap.utils.toArray("[data-count]", root).forEach((el, i) => {
-      const target = parseFloat(el.dataset.count)
-      const decimals = parseInt(el.dataset.decimals || "0", 10)
-      const grouped = el.dataset.grouped === "true"
-      if (!Number.isFinite(target)) return
-      const state = { v: 0 }
-      gsap.fromTo(state, { v: 0 }, {
-        v: target,
-        duration: 1.4,
-        delay: i * 0.12,
-        ease: "power3.out",
-        onUpdate: () => { el.textContent = formatNumber(state.v, { decimals, grouped }) },
-        scrollTrigger: { trigger: el, start: "top 88%", once: true },
-      })
-    })
-    gsap.fromTo(
-      gsap.utils.toArray("[data-stat]", root),
-      { autoAlpha: 0, y: 20 },
-      { autoAlpha: 1, y: 0, duration: 0.55, stagger: 0.1, ease: "power2.out",
-        scrollTrigger: { trigger: root, start: "top 88%", once: true } },
-    )
-  }, [outcomes])
+  const scope = useRef(null)
+  const reduce = useReducedMotion()
+  // margin, not amount: gsap fired at "top 88%", i.e. when the block's top
+  // reached 88% down the viewport. -12% off the bottom of the root margin is
+  // the same line.
+  const inView = useInView(scope, { once: true, margin: "0px 0px -12% 0px" })
 
   if (!outcomes.length) return null
 
@@ -75,10 +105,13 @@ export default function OutcomeStats({ outcomes = [], compact = false }) {
         {outcomes.map((o, i) => {
           const parts = splitNumeric(o.value)
           return (
-            <div
+            <m.div
               key={i}
               data-stat
               data-placeholder={o.placeholder ? "true" : undefined}
+              initial={reduce ? false : { opacity: 0, y: 20 }}
+              animate={inView && !reduce ? { opacity: 1, y: 0 } : undefined}
+              transition={{ duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
               className={`relative overflow-hidden rounded-2xl border p-5 ${
                 o.placeholder
                   ? "border-dashed border-violet/30 bg-violet-ghost"
@@ -89,15 +122,7 @@ export default function OutcomeStats({ outcomes = [], compact = false }) {
                 {parts ? (
                   <>
                     {parts.prefix}
-                    <span
-                      data-count={parts.number}
-                      data-decimals={parts.decimals}
-                      data-grouped={parts.grouped ? "true" : "false"}
-                      className="inline-block text-right"
-                      style={{ minWidth: `${parts.raw.length}ch` }}
-                    >
-                      {parts.raw}
-                    </span>
+                    <CountUp parts={parts} delay={i * 0.12} run={inView && !reduce} />
                     {parts.suffix}
                   </>
                 ) : (
@@ -111,7 +136,7 @@ export default function OutcomeStats({ outcomes = [], compact = false }) {
                   {t("detail.placeholderBadge")}
                 </span>
               ) : null}
-            </div>
+            </m.div>
           )
         })}
       </dl>

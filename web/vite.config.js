@@ -310,10 +310,6 @@ export default defineConfig({
           // MotionProvider) async-loads the domMax feature bundle, and pinning the
           // whole package into one chunk would drag it back into the critical path.
           if (id.includes("node_modules/framer-motion"))              return undefined
-          // gsap + ScrollTrigger: own chunk, only reached via dynamic import()
-          // from components/motion/scroll/useScrollNarrative (Home process,
-          // case studies) — admin/dashboard bundles never pull it.
-          if (id.includes("node_modules/gsap"))                       return "gsap"
           if (id.includes("node_modules/lucide-react"))               return "lucide"
           // react-icons is deliberately NOT pinned to a shared chunk. It is
           // used by exactly five files, all brand/tech logos on About and the

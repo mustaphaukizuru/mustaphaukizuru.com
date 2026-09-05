@@ -1,5 +1,4 @@
-/* eslint-disable react-refresh/only-export-components -- exports the Lenis context hooks used by scroll narratives */
-import { createContext, useContext, useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 // PERF · Lenis is loaded on demand, not with the app shell.
 //
 // Momentum scrolling is a progressive enhancement that this effect already
@@ -24,38 +23,29 @@ import { createContext, useContext, useEffect, useMemo, useRef } from "react"
  *   - Native scrolling APIs (scrollIntoView, anchor #hash) still work
  *     because Lenis only intercepts wheel/touch.
  *
- * Step 33 · GSAP ScrollTrigger sync
- *   The Lenis instance is exposed through `LenisContext` (see `useLenis`).
- *   Consumers that lazily load GSAP (components/motion/scroll/useScrollNarrative)
- *   call `subscribe(fn)` — `fn(lenis | null)` fires immediately with the current
- *   instance and again whenever it is (re)created or destroyed — then wire
- *   `lenis.on("scroll", ScrollTrigger.update)`. `claimTicker()` hands the RAF
- *   loop to an external driver (gsap.ticker) so Lenis and ScrollTrigger tick in
- *   the same frame; the provider's own loop resumes when the claim is released.
- *   The provider itself never imports gsap, so the gsap chunk stays lazy.
+ * T4-3 · the GSAP bridge is gone. `LenisContext`, `useLenis`, `subscribe()`
+ *   and `claimTicker()` existed so useScrollNarrative could hand this RAF loop
+ *   to `gsap.ticker` and keep Lenis and ScrollTrigger ticking in one frame.
+ *   With the narratives on Framer there is nothing to hand it to: Framer's
+ *   useScroll reads window.scrollY, and Lenis scrolls the real document, so
+ *   the two need no introduction. The provider owns its own loop again.
+ *
+ *   Lenis itself stays. Framer has no momentum scrolling, so removing it
+ *   would be a product change rather than a refactor.
  *
  * Usage (main.jsx, wrap App):
  *   <SmoothScrollProvider>
  *     <App />
  *   </SmoothScrollProvider>
  */
-export const LenisContext = createContext(null)
-
-/** Access the Lenis bridge: `{ get lenis, subscribe, claimTicker }` (null outside the provider). */
-export function useLenis() {
-  return useContext(LenisContext)
-}
-
 export default function SmoothScrollProvider({ children, enabled }) {
-  const lenisRef     = useRef(null)
-  const listenersRef = useRef(new Set())
-  const claimsRef    = useRef(0)
-  const rafRef       = useRef({ id: 0, running: false })
+  const lenisRef = useRef(null)
+  const rafRef   = useRef({ id: 0, running: false })
 
-  const api = useMemo(() => {
-    const startLoop = () => {
+  const api = useMemo(() => ({
+    startLoop() {
       const state = rafRef.current
-      if (state.running || claimsRef.current > 0 || !lenisRef.current) return
+      if (state.running || !lenisRef.current) return
       state.running = true
       const raf = (time) => {
         if (!state.running) return
@@ -63,36 +53,13 @@ export default function SmoothScrollProvider({ children, enabled }) {
         state.id = requestAnimationFrame(raf)
       }
       state.id = requestAnimationFrame(raf)
-    }
-    const stopLoop = () => {
+    },
+    stopLoop() {
       const state = rafRef.current
       state.running = false
       cancelAnimationFrame(state.id)
-    }
-    return {
-      get lenis() { return lenisRef.current },
-      /** fn(lenis|null) now + on every change. Returns unsubscribe. */
-      subscribe(fn) {
-        listenersRef.current.add(fn)
-        fn(lenisRef.current)
-        return () => { listenersRef.current.delete(fn) }
-      },
-      /** Pause the internal RAF loop while an external ticker drives `lenis.raf`. Returns release(). */
-      claimTicker() {
-        claimsRef.current += 1
-        stopLoop()
-        let released = false
-        return () => {
-          if (released) return
-          released = true
-          claimsRef.current = Math.max(0, claimsRef.current - 1)
-          startLoop()
-        }
-      },
-      _startLoop: startLoop,
-      _stopLoop: stopLoop,
-    }
-  }, [])
+    },
+  }), [])
 
   useEffect(() => {
     // Resolve final enabled state. Order of precedence:
@@ -142,8 +109,7 @@ export default function SmoothScrollProvider({ children, enabled }) {
         }
 
         lenisRef.current = lenis
-        api._startLoop()
-        listenersRef.current.forEach((fn) => fn(lenis))
+        api.startLoop()
       })
       .catch(() => {
         // Chunk failed to load (offline, deploy mid-session). Native
@@ -153,9 +119,8 @@ export default function SmoothScrollProvider({ children, enabled }) {
     return () => {
       cancelled = true
       if (!lenis) return
-      api._stopLoop()
+      api.stopLoop()
       lenisRef.current = null
-      listenersRef.current.forEach((fn) => fn(null))
       lenis.destroy()
       if (typeof window !== "undefined" && window.__lenis === lenis) {
         delete window.__lenis
@@ -163,5 +128,8 @@ export default function SmoothScrollProvider({ children, enabled }) {
     }
   }, [enabled, api])
 
-  return <LenisContext.Provider value={api}>{children}</LenisContext.Provider>
+  // No context any more: nothing outside this file needs the instance.
+  // useBodyScrollLock reaches it through window.__lenis, which is the
+  // convention Lenis's own community uses and which survives this change.
+  return children
 }
