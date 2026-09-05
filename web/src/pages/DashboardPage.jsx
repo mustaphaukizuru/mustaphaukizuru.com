@@ -63,7 +63,7 @@ function Block({ title, icon: Icon, to, linkLabel, query, empty, children, class
         </h3>
         <Link
           to={to}
-          className="inline-flex items-center gap-1 text-micro font-semibold text-violet transition hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
+          className="inline-flex items-center gap-1 py-1.5 -my-1.5 text-micro font-semibold text-violet transition hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
         >
           {linkLabel}
           <ArrowUpRight className="h-3 w-3" aria-hidden="true" />

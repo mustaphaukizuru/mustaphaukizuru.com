@@ -298,7 +298,7 @@ export default function DashboardProjectDetailPage() {
                 </div>
                 <a
                   href={project.previewUrl} target="_blank" rel="noopener noreferrer"
-                  className="min-w-0 truncate font-mono text-[12px] text-violet hover:underline"
+                  className="min-w-0 truncate py-1.5 -my-1.5 font-mono text-[12px] text-violet hover:underline"
                 >
                   {project.previewUrl}
                 </a>
@@ -664,7 +664,7 @@ function PurgedTile({ file: f, t }) {
 
 function BackLink({ t }) {
   return (
-    <Link to="/dashboard/projects" className="inline-flex items-center gap-1 text-meta text-violet hover:underline">
+    <Link to="/dashboard/projects" className="inline-flex items-center gap-1 py-2 -my-2 text-meta text-violet hover:underline">
       <ArrowLeft className="h-4 w-4" /> {t("projects.detail.back")}
     </Link>
   )
@@ -1026,7 +1026,7 @@ function Dropzone({ projectId, milestones, onUploaded, t }) {
           {busy ? t("projects.detail.upload.uploading") : t("projects.detail.upload.title")}
         </div>
         <div className="text-micro text-charcoal-80/65">{t("projects.detail.upload.hint", { max: MAX_FILES, size: formatFileSize(MAX_BYTES) })}</div>
-        <div className="font-mono text-[10px] text-charcoal-80/65">{[...ALLOWED_EXT].map((x) => x.slice(1)).join(" · ")}</div>
+        <div className="max-w-full text-center text-micro text-charcoal-80/65">{[...ALLOWED_EXT].map((x) => x.slice(1)).join(" · ")}</div>
         <input
           ref={inputRef} type="file" multiple className="hidden" disabled={busy}
           accept={[...ALLOWED_EXT].join(",")}

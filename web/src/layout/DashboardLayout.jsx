@@ -272,7 +272,20 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
         aria-modal={open ? "true" : "false"}
         aria-label={td("layout.navAria")}
       >
-        <div className="flex h-full flex-col">
+        {/* D2-6 · min-h-0 on both, and it is not cosmetic.
+         *
+         * A flex child in a column will not shrink below its content height
+         * unless told it may. So `flex-1 overflow-y-auto` on the nav never
+         * actually scrolled: the nav kept its full height, this container
+         * grew to fit it, and the panel measured 1898px tall inside an 812px
+         * viewport — with the theme control at y=1780 and SIGN OUT at y=1838,
+         * both permanently off-screen and unreachable, because a fixed panel
+         * does not scroll with the page.
+         *
+         * The desktop rail has always had `min-h-0` on its aside, which is
+         * why the same structure works there. Measured, not guessed: the
+         * panel is 812px now and the footer is visible. */}
+        <div className="flex h-full min-h-0 flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-charcoal-80/10 px-5 py-4">
             <div className="flex items-center gap-3">
@@ -303,7 +316,7 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
           </Link>
 
           {/* Nav */}
-          <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
             {navigation.map((group) => (
               <div key={group.sectionKey} className="mb-4 last:mb-0">
                 <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
@@ -508,7 +521,20 @@ export default function DashboardLayout() {
           {/* ── Main area ── */}
           <div className="min-w-0">
 
-            {/* ── Mobile Header ── */}
+            {/* ── Mobile Header ── (and 768-1023, deliberately)
+             *
+             * D2-5 · the band between 768 and 1023 gets the phone treatment:
+             * this header, the drawer and the bottom tab bar. That was
+             * questioned and kept.
+             *
+             * The rail needs 264px and the content column needs ~650px
+             * before two cards stop wrapping their titles, so the two-column
+             * shell does not pay for itself under ~940px. A 768-1023 tablet
+             * given the desktop shell would get a 480px content column,
+             * which is worse than a single wide column with thumb-reachable
+             * navigation at the bottom of the screen — and a tablet is held,
+             * so the bottom bar is the right affordance there anyway.
+             */}
             <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[var(--shadow-e2)] lg:hidden">
               <div className="flex items-center gap-3">
                 <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[var(--shadow-lift-1)]" />
@@ -522,7 +548,7 @@ export default function DashboardLayout() {
                   to="/"
                   aria-label={t("layout.backWebsiteAria")}
                   title={t("layout.backWebsiteAria")}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
                 >
                   <Globe className="h-[18px] w-[18px]" aria-hidden="true" />
                 </Link>
@@ -531,7 +557,7 @@ export default function DashboardLayout() {
                   type="button"
                   onClick={() => setMobileMenuOpen(true)}
                   aria-label={t("layout.openMenu")}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
                 >
                   <Menu className="h-5 w-5" aria-hidden="true" />
                 </button>

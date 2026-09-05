@@ -116,7 +116,7 @@ function MonthBlock({ month, projectId, portal, open, onToggle, locale, t }) {
           {hasEntries ? (
             <a
               href={statementHref}
-              className="mt-2 inline-flex items-center gap-1.5 text-meta font-semibold text-violet underline-offset-2 hover:underline"
+              className="mt-2 inline-flex items-center gap-1.5 py-2 text-meta font-semibold text-violet underline-offset-2 hover:underline"
             >
               <Download className="size-4" aria-hidden="true" />
               {/* Named, because "Statement" ×6 down a page is six identical

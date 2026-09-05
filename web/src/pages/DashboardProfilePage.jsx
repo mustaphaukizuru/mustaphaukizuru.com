@@ -506,7 +506,7 @@ export default function DashboardProfilePage() {
             </div>
 
             <Link to="/privacy#aviso-de-privacidad"
-              className="mt-4 inline-flex items-center gap-1.5 text-micro font-semibold text-violet underline-offset-2 hover:underline"
+              className="mt-4 inline-flex items-center gap-1.5 py-1.5 text-micro font-semibold text-violet underline-offset-2 hover:underline"
             >
               {t("profile.privacy.learnMore")} <ExternalLink className="h-3.5 w-3.5" />
             </Link>
