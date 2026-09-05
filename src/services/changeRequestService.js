@@ -17,7 +17,7 @@
 
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
-const { loadOwnedProject, assertWritable } = require("./projectPortalService")
+const { loadOwnedProject, assertWritable, assertCanApprove } = require("./projectPortalService")
 const { notifyAdminsProjectActivity, notify } = require("./notificationService")
 const { sendTemplateEmail } = require("./emailService")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
@@ -168,6 +168,9 @@ async function quoteRequest({ projectId, crId, amount, note, currency, adminId, 
 async function acceptRequest({ userId, projectId, crId }) {
   const owned = await loadOwnedProject({ userId, projectId })
   assertWritable(owned)
+  // T5-17 · accepting a quote raises an order the client has to pay. That is
+  // the clearest case of committing them to something.
+  assertCanApprove(owned, "accept a quote")
   const cr = await loadOnProject(owned.id, crId)
   if (cr.status !== "quoted") throw err(`Request is "${cr.status}" — only quoted requests can be accepted`, "INVALID_STATE", 409)
 
@@ -272,6 +275,9 @@ async function acceptRequest({ userId, projectId, crId }) {
 async function declineRequest({ userId, projectId, crId, note = null }) {
   const project = await loadOwnedProject({ userId, projectId })
   assertWritable(project)
+  // Declining is a decision about money too, and it closes the request for
+  // everyone. Same authority as accepting.
+  assertCanApprove(project, "decline a quote")
   const cr = await loadOnProject(project.id, crId)
   if (!["requested", "quoted"].includes(cr.status)) {
     throw err(`Request is "${cr.status}" — it can no longer be declined`, "INVALID_STATE", 409)

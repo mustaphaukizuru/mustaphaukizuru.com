@@ -366,8 +366,46 @@ async function sendFileReceived({ project, request, file, client }) {
  * Takes the digest weeklyDigestJob already built — the decision about
  * WHETHER to send lives there, so this only has to render one.
  */
-async function sendWeeklyDigest({ project, events, moreEvents = 0, openRequests = [], billing }) {
-  const user = await clientFor(project.userId)
+/**
+ * T5-17 · everyone on the project, not just the account it was sold to.
+ *
+ * The digest is the ONE email that fans out. Every other project email fires
+ * on an event, and multiplying those by the number of contacts is how a
+ * project starts producing ten emails a day — which is how people stop
+ * reading any of them. A weekly summary is exactly the shape that survives
+ * being sent to three people.
+ */
+async function sendWeeklyDigest(args) {
+  const { project } = args
+  let recipients = []
+  try {
+    recipients = await require("./projectMemberService").recipientsFor(project.id)
+  } catch (_) { recipients = [] }
+
+  if (!recipients.length) {
+    const owner = await clientFor(project.userId)
+    if (!owner?.email) return false
+    recipients = [{ userId: owner.id, email: owner.email, name: owner.fullName, role: "owner" }]
+  }
+
+  // One send per recipient, and the OWNER's result is the return value: the
+  // job counts a digest as sent when the person who is billed for the work
+  // received it. A member's bounce is logged, not fatal.
+  let ownerResult = false
+  for (const to of recipients) {
+    const ok = await sendWeeklyDigestTo(args, to).catch((e) => {
+      logger.warn(`[projectEmail] digest to ${to.role} failed: ${e.message}`)
+      return false
+    })
+    if (to.role === "owner") ownerResult = ok
+  }
+  return ownerResult
+}
+
+async function sendWeeklyDigestTo({ project, events, moreEvents = 0, openRequests = [], billing }, recipient) {
+  const user = recipient?.email
+    ? { id: recipient.userId, email: recipient.email, fullName: recipient.name }
+    : await clientFor(project.userId)
   if (!user?.email) return false
   const lc = localeFor(user)
   const es = ES(lc)
@@ -410,6 +448,9 @@ async function sendWeeklyDigest({ project, events, moreEvents = 0, openRequests 
     project,
     templateKey: "project.weekly-digest",
     to: user.email,
+    // The OWNER's id on every copy: EmailLog and the suppression list are
+    // keyed by account, a member may not have one, and attributing a
+    // member's copy to a null user would make it unloggable.
     userId: project.userId,
     locale: lc,
     variables: {

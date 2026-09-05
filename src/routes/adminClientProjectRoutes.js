@@ -8,6 +8,7 @@ const {
   quoteChangeRequest, completeChangeRequest,
   listFileRequests, addFileRequest, reviewFileRequest, listEvents, getQueue,
   listFileRequestPresets, listSecrets, createSecret, revealSecret,
+  listMembers, addMember, removeMember,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -48,6 +49,12 @@ router.patch ("/:id/file-requests/:reqId",       reviewFileRequest)
 router.get   ("/:id/secrets",                    listSecrets)
 router.post  ("/:id/secrets",                    createSecret)
 router.post  ("/:id/secrets/:secretId/reveal",   revealSecret)
+
+// T5-17 · a school has a director who approves and an IT person who
+// uploads. Adding the same address twice is an edit, not an error.
+router.get   ("/:id/members",                    listMembers)
+router.post  ("/:id/members",                    addMember)
+router.delete("/:id/members/:memberId",          removeMember)
 router.delete("/:id/files/:fileId",         removeFile)
 router.get   ("/:id/files/:fileId/download", downloadFile)
 

@@ -352,3 +352,21 @@ export async function revealMySecret(projectId, secretId) {
   const r = await authFetch(`${memberBase(projectId)}/secrets/${encodeURIComponent(secretId)}/reveal`, { method: "POST", body: "{}" })
   return stripData(r)
 }
+
+/* ── T5-17 · the other people on the client's side ───────────────────── */
+
+export async function fetchProjectMembers(id) {
+  const r = await authFetch(`${adminProject(id)}/members`)
+  return Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : []
+}
+
+/** Adding the same address twice is an edit, not an error. */
+export async function addProjectMember(id, body) {
+  const r = await authFetch(`${adminProject(id)}/members`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+export async function removeProjectMember(id, memberId) {
+  const r = await authFetch(`${adminProject(id)}/members/${encodeURIComponent(memberId)}`, { method: "DELETE" })
+  return stripData(r)
+}

@@ -67,23 +67,104 @@ function assertWritable(project) {
   return lc
 }
 
+/* ── T5-17 · roles on the client's side ───────────────────────────────────
+ *
+ * `ClientProject.userId` is still the owner. A ProjectMember is somebody else
+ * on the same project, and the role says what they may commit the client to:
+ *
+ *   owner     the account the project was sold to. Everything.
+ *   approver  a second person who may also approve, accept and pay — the
+ *             director in the school case.
+ *   viewer    reads, uploads, comments, opens tickets. What they may NOT do
+ *             is commit the client to anything: approve a milestone, accept
+ *             a quote or start a payment.
+ *
+ * "Viewer" is therefore not a read-only role and is deliberately not named
+ * one. The IT person in the driving example is a viewer and their whole job
+ * is to send us files; a role that could not type would be useless to them.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+const MEMBER_ROLES = ["owner", "approver", "viewer"]
+/** The roles that may commit the client to something. */
+const APPROVING_ROLES = ["owner", "approver"]
+
+const OWNED_PROJECT_SELECT = {
+  id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true, assignedAdminId: true,
+  requiresNda: true, ndaVersion: true, accessState: true,
+  // T5-6 · every project email refuses to send without the code rather
+  // than mailing a literal {{trackingCode}}, so the gate that loads the
+  // project has to fetch it.
+  trackingCode: true,
+}
+
+/**
+ * Load a project this user may reach — as its owner, or as a member.
+ *
+ * Returns the project with `memberRole` attached. Every caller that used to
+ * get a project back still does; the ones that gate a privileged action call
+ * assertCanApprove with it.
+ *
+ * TWO QUERIES, NOT A CLEVER `OR`. The membership lookup runs only when the
+ * owner query misses, so the ordinary case — the owner opening their own
+ * project — costs exactly what it did before, and the fallback path is the
+ * one that pays.
+ */
 async function loadOwnedProject({ userId, projectId, skipNda = false }) {
-  const project = await prisma.clientProject.findFirst({
-    where:  { id: String(projectId), userId: String(userId) },
-    select: {
-      id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true, assignedAdminId: true,
-      requiresNda: true, ndaVersion: true, accessState: true,
-      // T5-6 · every project email refuses to send without the code rather
-      // than mailing a literal {{trackingCode}}, so the gate that loads the
-      // project has to fetch it.
-      trackingCode: true,
-    },
+  const uid = String(userId)
+  const pid = String(projectId)
+
+  let project = await prisma.clientProject.findFirst({
+    where:  { id: pid, userId: uid },
+    select: OWNED_PROJECT_SELECT,
   })
+  let memberRole = project ? "owner" : null
+
+  if (!project) {
+    const membership = await prisma.projectMember.findFirst({
+      where:  { projectId: pid, userId: uid },
+      select: { id: true, role: true, acceptedAt: true },
+    })
+    if (membership) {
+      project = await prisma.clientProject.findUnique({ where: { id: pid }, select: OWNED_PROJECT_SELECT })
+      // A role the database holds but this build does not know is treated as
+      // the least privileged one. New roles must not become "everything" on
+      // a server running last week's code.
+      memberRole = MEMBER_ROLES.includes(membership.role) ? membership.role : "viewer"
+      if (project && !membership.acceptedAt) {
+        // First arrival. Best-effort: a failed stamp must not block the read.
+        prisma.projectMember
+          .update({ where: { id: membership.id }, data: { acceptedAt: new Date() } })
+          .catch(() => null)
+      }
+    }
+  }
+
   if (!project) throw err("Project not found", "NOT_FOUND", 404)
   // Tier 4 · every client write (upload, comment, approval, ticket) goes
   // through here, so the NDA gate is enforced once, centrally.
-  if (!skipNda) await assertNdaAccepted(project, userId)
-  return project
+  //
+  // It applies to members too, and per member: an NDA accepted by the owner
+  // says nothing about the IT person now reading the files.
+  if (!skipNda) await assertNdaAccepted(project, uid)
+  return { ...project, memberRole }
+}
+
+/**
+ * Refuse the three actions that commit the client to something.
+ *
+ * Separate from loadOwnedProject on purpose: the gate has to be visible at
+ * each call site, because "which actions are privileged" is a product
+ * decision and burying it in the loader makes it invisible the next time
+ * somebody adds one.
+ */
+function assertCanApprove(project, action = "do that") {
+  const role = project?.memberRole || "owner"
+  if (APPROVING_ROLES.includes(role)) return role
+  throw err(
+    `You can see this project but cannot ${action}. Ask whoever owns it, or the approver on it, to do this.`,
+    "MEMBER_ROLE_FORBIDDEN",
+    403,
+  )
 }
 
 /* ── NDA click-wrap (Tier 4) ───────────────────────────────────────────── */
@@ -452,6 +533,9 @@ async function loadOwnedMilestone({ userId, projectId, milestoneId }) {
 
 async function approveMilestone({ userId, projectId, milestoneId, note = null }) {
   const { project, ms } = await loadOwnedMilestone({ userId, projectId, milestoneId })
+  // T5-17 · a viewer may upload and comment on this milestone all day. What
+  // they may not do is sign it off on the client's behalf.
+  assertCanApprove(project, "approve work on it")
   if (ms.status !== "awaiting_client") {
     throw err(`Milestone is "${ms.status}" — only milestones awaiting your review can be approved`, "INVALID_STATE", 409)
   }
@@ -491,6 +575,9 @@ async function requestMilestoneChanges({ userId, projectId, milestoneId, note })
   const text = String(note || "").trim()
   if (!text) throw err("Tell us what should change (note is required)", "VALIDATION_ERROR", 400)
   const { project, ms } = await loadOwnedMilestone({ userId, projectId, milestoneId })
+  // Requesting changes UNDOES an approval, so it is the same authority as
+  // giving one. A viewer who disagrees says so in a comment.
+  assertCanApprove(project, "send work back for changes")
   if (!["awaiting_client", "approved"].includes(ms.status)) {
     throw err(`Milestone is "${ms.status}" — changes can be requested only on delivered work`, "INVALID_STATE", 409)
   }
@@ -534,6 +621,7 @@ async function onMilestoneAwaitingClient({ project, milestone }) {
 
 module.exports = {
   lifecycle, assertReadable, assertWritable, loadOwnedProject,
+  MEMBER_ROLES, APPROVING_ROLES, assertCanApprove,
   ndaStatus, assertNdaAccepted, applyNdaGate, acceptAgreement, ndaVersionOf, NDA_DEFAULT_VERSION,
   ACCESS_STATES, UNPAID_INVOICE_STATUSES, suspendGraceDays,
   loadBillingLinks, unpaidInvoiceWhere, countUnpaidInvoices, assertAccessStateChange,

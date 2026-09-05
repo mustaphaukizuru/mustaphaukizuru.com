@@ -34,6 +34,27 @@ async function ensureProfile(userId) {
   } catch (_) {
     // ignore if profile table is not available yet
   }
+
+  // T5-17 · claim any project membership invited to this address before the
+  // account existed. Here because ensureProfile already runs on every
+  // finalised sign-in — sign-up, password login, the 2FA second step and
+  // OAuth — and a fifth call site is a fifth chance to forget one.
+  //
+  // Without it an invitation to somebody who signs up afterwards stays
+  // email-only forever: they can still reach the project by code and PIN but
+  // never from their own dashboard, which is the half-state where somebody
+  // assumes the invitation failed. Never throws.
+  await linkProjectMemberships(userId);
+}
+
+async function linkProjectMemberships(userId) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true } });
+    if (!user?.email) return;
+    await require("./projectMemberService").linkExistingAccounts(user);
+  } catch (_) {
+    // A membership that could not be linked must never fail a login.
+  }
 }
 
 /* ── T3-5 · account lockout ──────────────────────────────────────────────

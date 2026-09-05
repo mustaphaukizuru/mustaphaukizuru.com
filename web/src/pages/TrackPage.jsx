@@ -277,6 +277,10 @@ function PortalDoor({ code }) {
   const navigate = useLocalizedNavigate()
   const [stage, setStage] = useState("idle")   // idle | sent | verifying
   const [hint, setHint] = useState(null)
+  // T5-17 · optional, and left blank by the client the project belongs to.
+  // Typing an address only matters for the OTHER people on a project — the
+  // IT person who has the code and whose inbox is not the one on the account.
+  const [email, setEmail] = useState("")
   const [pin, setPin] = useState("")
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
@@ -285,7 +289,7 @@ function PortalDoor({ code }) {
     setBusy(true)
     setError("")
     try {
-      const data = await requestPortalPinByCode(code)
+      const data = await requestPortalPinByCode(code, email.trim() || undefined)
       setHint(data?.emailHint || null)
       setStage("sent")
     } catch (e) {
@@ -313,10 +317,24 @@ function PortalDoor({ code }) {
   if (stage === "idle") {
     return (
       <div className="mt-3">
-        <Button size="sm" variant="secondary" disabled={busy} onClick={send}>
-          {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Mail className="size-4" aria-hidden="true" />}
-          {t("track.door.sendPin")}
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <Input
+            type="email"
+            className="flex-1"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            label={t("track.door.emailLabel")}
+            placeholder={t("track.door.emailPlaceholder")}
+            autoComplete="email"
+          />
+          <Button size="sm" variant="secondary" disabled={busy} onClick={send} className="shrink-0">
+            {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Mail className="size-4" aria-hidden="true" />}
+            {t("track.door.sendPin")}
+          </Button>
+        </div>
+        {/* Says what happens to an address that is not on the project, so
+            nobody is left wondering why no PIN arrived. */}
+        <p className="mt-2 text-micro text-charcoal-80/65">{t("track.door.emailHint")}</p>
         {error ? <p className="mt-2 text-meta text-rose-700">{error}</p> : null}
       </div>
     )

@@ -169,7 +169,8 @@ async function notifyProjectMilestoneCompleted(userId, { project, milestone }) {
  */
 async function notifyMilestoneAwaitingClient(userId, { project, milestone }) {
   if (!userId || !project?.id || !milestone?.title) return null
-  return notify(userId, {
+  // T5-17 · The approver has to see this, and the approver is often not the owner.
+  return notifyProjectAudience(project.id, userId, {
     type: "system",
     title: `Your review is needed · ${milestone.title}`,
     message: `"${milestone.title}" on ${project.projectName || "your project"} is ready for your approval. Approve it or request changes from the project page.`,
@@ -186,10 +187,41 @@ async function notifyMilestoneAwaitingClient(userId, { project, milestone }) {
  * go and find it" is how a notification gets ignored.
  */
 
+/**
+ * T5-17 · the same bell, for everybody on the project.
+ *
+ * The project-scoped helpers below each take ONE userId, which was correct
+ * while a project had one contact. Now a school has a director and an IT
+ * person, and a notification that reaches only the account the project was
+ * sold to reaches the wrong half of them.
+ *
+ * Members with no account get nothing here, and that is not an omission:
+ * there is no dashboard to show a bell in. They hear about it by email and
+ * reach the project by code and PIN.
+ *
+ * Best-effort per recipient — one member's failed insert must not swallow
+ * the rest, and none of them may unwind the thing being notified about.
+ */
+async function notifyProjectAudience(projectId, ownerId, payload, { roles } = {}) {
+  const ids = new Set()
+  if (ownerId) ids.add(String(ownerId))
+  try {
+    const { recipientsFor } = require("./projectMemberService")
+    for (const r of await recipientsFor(projectId, roles ? { roles } : undefined)) {
+      if (r.userId) ids.add(String(r.userId))
+    }
+  } catch (_) { /* the owner still gets it */ }
+
+  const out = []
+  for (const id of ids) out.push(await notify(id, payload).catch(() => null))
+  return out
+}
+
 /** A document is being asked for. Pairs with project.file-requested. */
 async function notifyFileRequested(userId, { project, request }) {
   if (!userId || !project?.id || !request?.id) return null
-  return notify(userId, {
+  // T5-17 · A document request is for whoever can actually send the file, which is usually not the account holder.
+  return notifyProjectAudience(project.id, userId, {
     type: "project",
     title: "A document is needed",
     message: request.title,
@@ -213,7 +245,8 @@ async function notifyFileReviewed(userId, { project, request }) {
   if (!userId || !project?.id || !request?.id) return null
   const title = FILE_REVIEW_TITLES[request.status]
   if (!title) return null
-  return notify(userId, {
+  // T5-17 · Same audience as the request itself.
+  return notifyProjectAudience(project.id, userId, {
     type: "project",
     // The rejection note IS the message. Without it the client opens the
     // page to find out what to change, which is a step this can save.
@@ -236,7 +269,8 @@ async function notifyProjectPhase(userId, { project, status }) {
   if (!userId || !project?.id) return null
   const label = PHASE_LABELS[status]
   if (!label) return null
-  return notify(userId, {
+  // T5-17 · A phase change is news for everyone on the project.
+  return notifyProjectAudience(project.id, userId, {
     type: "project",
     title: `${project.projectName || "Your project"} is now ${label}`,
     message: project.trackingCode
@@ -332,6 +366,7 @@ async function notifyContactReceived(email) {
 
 module.exports = {
   notify,
+  notifyProjectAudience,
   notifyMilestoneAwaitingClient,
   notifyFileRequested,
   notifyFileReviewed,

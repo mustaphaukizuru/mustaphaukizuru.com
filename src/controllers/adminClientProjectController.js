@@ -5,6 +5,7 @@ const prisma = require("../lib/prisma")
 const { sendProjectFile, resolveSafePath } = require("./clientProjectController")
 const { createComment, resolveComment, onMilestoneAwaitingClient } = require("../services/projectPortalService")
 const secretHandoff = require("../services/secretHandoffService")
+const projectMembers = require("../services/projectMemberService")
 const { FILE_REQUEST_PRESETS } = require("../data/fileRequestPresets")
 const { mintPortalLink } = require("../services/portalAccessService")
 const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
@@ -476,6 +477,29 @@ const revealSecret = asyncHandler(async (req, res) => {
   res.json({ success: true, data: out })
 })
 
+/* ── T5-17 · the other people on the client's side ─────────────────────── */
+
+/** GET /admin/client-projects/:id/members */
+const listMembers = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await projectMembers.listForProject(req.params.id) })
+})
+
+/**
+ * POST /admin/client-projects/:id/members
+ *
+ * A second POST to the same address is an EDIT, not an error: "add the
+ * director again as an approver" is the natural way to change a role.
+ */
+const addMember = asyncHandler(async (req, res) => {
+  const { member } = await projectMembers.addMember(req.params.id, req.body)
+  res.status(201).json({ success: true, data: member })
+})
+
+/** DELETE /admin/client-projects/:id/members/:memberId */
+const removeMember = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await projectMembers.removeMember(req.params.id, req.params.memberId) })
+})
+
 module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
@@ -485,5 +509,6 @@ module.exports = {
   quoteChangeRequest, completeChangeRequest,
   listFileRequests, addFileRequest, reviewFileRequest, listEvents,
   listFileRequestPresets, listSecrets, createSecret, revealSecret,
+  listMembers, addMember, removeMember,
   getQueue,
 }

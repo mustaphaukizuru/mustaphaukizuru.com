@@ -14,7 +14,7 @@ const {
 } = require("../services/portalAccessService")
 const { setPortalCookie, clearPortalCookie } = require("../utils/portalCookie")
 const { sendProjectFile } = require("./clientProjectController")
-const { ndaStatus, attachClientFiles } = require("../services/projectPortalService")
+const { ndaStatus, attachClientFiles, APPROVING_ROLES } = require("../services/projectPortalService")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const { createMercadoPagoPreference } = require("../services/mercadoPagoService")
 
@@ -68,7 +68,15 @@ const logout = asyncHandler(async (_req, res) => {
 /** POST /portal/by-code/:code/pin */
 const sendPinByCode = asyncHandler(async (req, res) => {
   try {
-    const data = await requestPinByCode(req.params.code, { locale: resolveUserLocale({ req }) })
+    // T5-17 · an optional address, because this is how the second person on
+    // a project gets in. It is a REQUEST, not an instruction: only an
+    // address already on the project can receive anything, and anything else
+    // falls back to the owner rather than being refused — refusing would
+    // answer "is this person on the project?" for anyone holding a code.
+    const data = await requestPinByCode(req.params.code, {
+      locale: resolveUserLocale({ req }),
+      email: req.body?.email,
+    })
     res.status(200).json({ success: true, data })
   } catch (e) { return portalError(res, e) }
 })
@@ -225,6 +233,15 @@ const downloadInvoice = asyncHandler(async (req, res) => {
  *                    a cancelled order is a payment nobody will fulfil.
  */
 const payInvoice = asyncHandler(async (req, res) => {
+  // T5-17 · paying is one of the three things only an owner or an approver
+  // may do. A viewer on this project sees the invoice and its amount; what
+  // they cannot do is spend the client's money on their behalf.
+  if (!APPROVING_ROLES.includes(req.portal.role || "owner")) {
+    return res.status(403).json({
+      success: false,
+      error: { code: "MEMBER_ROLE_FORBIDDEN", message: "You can see this invoice but cannot pay it. Ask whoever owns the project, or its approver." },
+    })
+  }
   const invoice = await projectInvoices.findForProject(req.params.invoiceId, req.portal.projectId)
   if (!invoice) {
     return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Invoice not found" } })

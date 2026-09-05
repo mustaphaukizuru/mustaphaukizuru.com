@@ -31,8 +31,18 @@ export async function verifyPortalPin(token, pin) {
  */
 const byCode = (code) => `/api/v1/portal/by-code/${encodeURIComponent(code)}`
 
-export async function requestPortalPinByCode(code) {
-  return stripData(await apiRequest(`${byCode(code)}/pin`, { method: "POST", body: JSON.stringify({}) }))
+/**
+ * T5-17 · an optional address, because this is how the second person on a
+ * project gets in. It is a REQUEST, not an instruction: the server sends a
+ * PIN only to an address already on the project, and falls back to the owner
+ * otherwise — refusing would answer "is this person on the project?" for
+ * anyone holding a code.
+ */
+export async function requestPortalPinByCode(code, email) {
+  return stripData(await apiRequest(`${byCode(code)}/pin`, {
+    method: "POST",
+    body: JSON.stringify(email ? { email } : {}),
+  }))
 }
 
 export async function verifyPortalPinByCode(code, pin) {

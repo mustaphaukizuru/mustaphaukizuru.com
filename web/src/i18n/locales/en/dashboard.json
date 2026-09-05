@@ -1360,7 +1360,10 @@
       "pinLabel": "6-digit PIN",
       "open": "Open",
       "failed": "We could not send the PIN. Try again in a moment.",
-      "pinFailed": "That PIN is wrong or has expired. Ask for a new one."
+      "pinFailed": "That PIN is wrong or has expired. Ask for a new one.",
+      "emailLabel": "Your email (optional)",
+      "emailPlaceholder": "you@yourschool.mx",
+      "emailHint": "Leave it blank and the PIN goes to the address on the project. Enter yours only if you were added to it — any other address falls back to the project's own."
     }
   },
   "timeline": {

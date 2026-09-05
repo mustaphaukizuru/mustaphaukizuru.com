@@ -29,6 +29,26 @@ const { lifecycle, previewCanFrame, ndaStatus } = require("./projectPortalServic
 const { getMyProject } = require("./clientProjectService")
 const { sendTemplateEmail } = require("./emailService")
 
+/** How many live PINs one project may have in flight. */
+const PIN_CANDIDATES = 10
+
+/**
+ * Which role the inbox that received this PIN carries.
+ *
+ * Defaults to "viewer", never to "owner": an address we cannot account for
+ * must not arrive with the authority to approve work.
+ */
+async function roleForEmail(project, email) {
+  const addr = String(email || "").trim().toLowerCase()
+  if (!addr) return "viewer"
+  if (project.user?.email && addr === project.user.email.toLowerCase()) return "owner"
+  const member = await prisma.projectMember.findFirst({
+    where:  { projectId: project.id, email: addr },
+    select: { role: true },
+  })
+  return member?.role || "viewer"
+}
+
 const OTP_PURPOSE = "portal"
 const OTP_TTL_MS = 10 * 60 * 1000
 const PORTAL_JWT_TTL = "2h"
@@ -155,9 +175,45 @@ async function requestPin(token, { locale } = {}) {
   return requestPinForProject(await loadProjectByToken(token), { locale })
 }
 
-/** T5-8 · the same PIN, for a project reached by its tracking code. */
-async function requestPinByCode(code, { locale } = {}) {
-  return requestPinForProject(await loadProjectByCode(code), { locale })
+/**
+ * T5-8 · the same PIN, for a project reached by its tracking code.
+ *
+ * T5-17 · with an optional address, because this is how the second person on
+ * a project gets in. A school's IT staff member has the code and no account;
+ * without this the only PIN that exists goes to the director's inbox.
+ */
+async function requestPinByCode(code, { locale, email } = {}) {
+  const project = await loadProjectByCode(code)
+  return requestPinForProject(project, { locale, requestedEmail: email })
+}
+
+/**
+ * Who this PIN is for.
+ *
+ * The rule is the one that made the tracking code safe to share in the first
+ * place: the caller may ASK for an address, but only an address already on
+ * the project can receive anything. Anything else falls back to the owner —
+ * not refused, because refusing would answer "is this person on the
+ * project?" for anyone holding a code, which is exactly the oracle the code
+ * is designed not to be.
+ *
+ * So a stranger who types their own address gets nothing, and learns nothing.
+ */
+async function resolveRecipient(project, requestedEmail) {
+  const ownerEmail = project.user?.email || null
+  const asked = String(requestedEmail || "").trim().toLowerCase()
+  if (!asked || (ownerEmail && asked === ownerEmail.toLowerCase())) {
+    return { email: ownerEmail, role: "owner" }
+  }
+
+  const member = await prisma.projectMember.findFirst({
+    where:  { projectId: project.id, email: asked },
+    select: { email: true, role: true },
+  })
+  if (member?.email) return { email: member.email, role: member.role || "viewer" }
+
+  // Not on this project. The PIN goes where it always went.
+  return { email: ownerEmail, role: "owner" }
 }
 
 /**
@@ -167,12 +223,17 @@ async function requestPinByCode(code, { locale } = {}) {
  * template are the security-relevant part, and two copies is two things to
  * keep in step.
  */
-async function requestPinForProject(project, { locale } = {}) {
-  const email = project.user?.email
+async function requestPinForProject(project, { locale, requestedEmail = null } = {}) {
+  const { email } = await resolveRecipient(project, requestedEmail)
   if (!email) throw err("No contact address on this project", "PORTAL_NO_EMAIL", 409)
 
   const otpCode = generatePin()
   const expiresAt = new Date(Date.now() + OTP_TTL_MS)
+  // userId stays the OWNER's on every row, member or not: a member need not
+  // have an account, and AuthOtp hangs off User. The recipient is carried by
+  // `email`, and verify matches on the code itself rather than on "the most
+  // recent row" — otherwise a director and an IT person requesting a minute
+  // apart would invalidate each other.
   await prisma.authOtp.create({
     data: { userId: project.userId, email, otpCode, purpose: OTP_PURPOSE, expiresAt },
   })
@@ -210,17 +271,27 @@ async function verifyPinForProject(project, pin) {
   const given = String(pin || "").replace(/\s+/g, "")
   if (!/^\d{6}$/.test(given)) throw err("Enter the 6-digit PIN from your email", "VALIDATION_ERROR", 400)
 
-  const otp = await prisma.authOtp.findFirst({
+  // T5-17 · every live PIN on this project, not just the newest. Two people
+  // on the same project can be asking at the same time, and "most recent
+  // wins" would mean the director's request silently invalidated the IT
+  // person's. Capped so this can never become an unbounded scan.
+  const candidates = await prisma.authOtp.findMany({
     where:   { userId: project.userId, purpose: OTP_PURPOSE, usedAt: null, expiresAt: { gt: new Date() } },
     orderBy: { createdAt: "desc" },
+    take:    PIN_CANDIDATES,
   })
-  if (!otp || !safeEqual(otp.otpCode, given)) {
+  const otp = candidates.find((row) => safeEqual(row.otpCode, given))
+  if (!otp) {
     throw err("That PIN is wrong or has expired — request a new one", "PORTAL_PIN_INVALID", 401)
   }
   await prisma.authOtp.update({ where: { id: otp.id }, data: { usedAt: new Date() } })
 
+  // Which of them it was decides what the session may do. The PIN reached
+  // one inbox; that inbox is the identity.
+  const role = await roleForEmail(project, otp.email)
+
   const portalToken = signJwt(
-    { scope: "portal", projectId: project.id, userId: project.userId },
+    { scope: "portal", projectId: project.id, userId: project.userId, role },
     { expiresIn: PORTAL_JWT_TTL },
   )
   await prisma.activityLog.create({

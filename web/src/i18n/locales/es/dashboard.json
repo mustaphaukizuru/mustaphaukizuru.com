@@ -1360,7 +1360,10 @@
       "pinLabel": "PIN de 6 dígitos",
       "open": "Entrar",
       "failed": "No pudimos enviar el PIN. Inténtalo de nuevo en un momento.",
-      "pinFailed": "Ese PIN es incorrecto o ya venció. Pide uno nuevo."
+      "pinFailed": "Ese PIN es incorrecto o ya venció. Pide uno nuevo.",
+      "emailLabel": "Tu correo (opcional)",
+      "emailPlaceholder": "tu@tuescuela.mx",
+      "emailHint": "Déjalo en blanco y el PIN va a la dirección del proyecto. Escribe la tuya sólo si te agregaron a él — cualquier otra vuelve a la dirección del proyecto."
     }
   },
   "timeline": {

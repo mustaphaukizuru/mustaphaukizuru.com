@@ -12,7 +12,8 @@
 
 jest.mock("../src/lib/prisma", () => ({
   clientProject: { findUnique: jest.fn() },
-  authOtp: { create: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
+  authOtp: { create: jest.fn(), findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn() },
+  projectMember: { findFirst: jest.fn() },
   activityLog: { create: jest.fn().mockResolvedValue({}) },
 }))
 jest.mock("../src/utils/logger", () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() }))
@@ -72,8 +73,10 @@ describe("the code opens the door, it does not unlock it", () => {
   test("it is the same PIN machinery as the magic link, not a second copy", () => {
     // Two implementations of "issue a credential by email" is one too many.
     const service = read("src", "services", "portalAccessService.js")
+    // T5-17 moved the by-code request one line down — it resolves the
+    // recipient first — but both doors still end in the same two bodies.
     expect(service).toContain("return requestPinForProject(await loadProjectByToken(token)")
-    expect(service).toContain("return requestPinForProject(await loadProjectByCode(code)")
+    expect(service).toContain("return requestPinForProject(project, { locale, requestedEmail: email })")
     expect(service).toContain("return verifyPinForProject(await loadProjectByToken(token)")
     expect(service).toContain("return verifyPinForProject(await loadProjectByCode(code)")
   })
@@ -123,7 +126,7 @@ describe("which codes are refused", () => {
 
 describe("verifying", () => {
   test("the right PIN issues the same mu_portal token as the link flow", async () => {
-    prisma.authOtp.findFirst.mockResolvedValue({ id: "o1", otpCode: "123456" })
+    prisma.authOtp.findMany.mockResolvedValue([{ id: "o1", otpCode: "123456", email: PROJECT.user.email }])
     prisma.authOtp.update.mockResolvedValue({})
     const out = await portal.verifyPinByCode(CODE, "123456")
     expect(out.projectId).toBe("p1")
@@ -132,13 +135,13 @@ describe("verifying", () => {
   })
 
   test("a wrong PIN is refused, and the OTP is not consumed", async () => {
-    prisma.authOtp.findFirst.mockResolvedValue({ id: "o1", otpCode: "123456" })
+    prisma.authOtp.findMany.mockResolvedValue([{ id: "o1", otpCode: "123456", email: PROJECT.user.email }])
     await expect(portal.verifyPinByCode(CODE, "000000")).rejects.toMatchObject({ code: "PORTAL_PIN_INVALID" })
     expect(prisma.authOtp.update).not.toHaveBeenCalled()
   })
 
   test("a used PIN cannot be replayed — it is marked the moment it works", async () => {
-    prisma.authOtp.findFirst.mockResolvedValue({ id: "o1", otpCode: "123456" })
+    prisma.authOtp.findMany.mockResolvedValue([{ id: "o1", otpCode: "123456", email: PROJECT.user.email }])
     prisma.authOtp.update.mockResolvedValue({})
     await portal.verifyPinByCode(CODE, "123456")
     expect(prisma.authOtp.update.mock.calls[0][0].data.usedAt).toBeInstanceOf(Date)
@@ -148,7 +151,7 @@ describe("verifying", () => {
     for (const bad of ["12345", "abcdef", "", "1234567"]) {
       await expect(portal.verifyPinByCode(CODE, bad)).rejects.toMatchObject({ code: "VALIDATION_ERROR" })
     }
-    expect(prisma.authOtp.findFirst).not.toHaveBeenCalled()
+    expect(prisma.authOtp.findMany).not.toHaveBeenCalled()
   })
 })
 

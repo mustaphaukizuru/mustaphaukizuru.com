@@ -16,6 +16,8 @@ import {
 import ProjectRequestsAdmin from "../components/admin/ProjectRequestsAdmin"
 // T5-13 · credentials never travel as files, in either direction.
 import ProjectSecretsAdmin from "../components/admin/ProjectSecretsAdmin"
+// T5-17 · a school has a director who approves and an IT person who uploads.
+import ProjectMembersAdmin from "../components/admin/ProjectMembersAdmin"
 import ProjectTimeline from "../components/projects/ProjectTimeline"
 import { useToast } from "../context/ToastContext"
 import { SkeletonCard, Checkbox } from "../components/ui/index"
@@ -461,6 +463,22 @@ export default function AdminClientProjectDetailPage() {
           </div>
           <div className="mt-4">
             <ProjectRequestsAdmin projectId={id} milestones={project.milestones || []} />
+          </div>
+        </div>
+      )}
+
+      {/* T5-17 · who else may reach this project. Above the credential
+          handoff because "who is on this" is the question you answer first. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">People on this project</h2>
+          <p className="mt-0.5 max-w-prose text-meta text-charcoal-80/65">
+            The account holder always has full access. Add the people who actually do the work — an
+            approver signs off milestones and quotes, a viewer reads, uploads and comments. No
+            account needed: they get in with the tracking code and a PIN sent to their own inbox.
+          </p>
+          <div className="mt-4">
+            <ProjectMembersAdmin projectId={id} />
           </div>
         </div>
       )}

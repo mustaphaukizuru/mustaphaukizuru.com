@@ -317,6 +317,7 @@ model User {
   assignedConsultations  Consultation[]   @relation("AssignedConsultations")
   clientProjects         ClientProject[]  @relation("UserClientProjects")
   assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
+  projectMemberships    ProjectMember[]  @relation("ProjectMemberships")
   createdSecretHandoffs SecretHandoff[]  @relation("CreatedSecretHandoffs")
   requestedFileRequests  ProjectFileRequest[] @relation("RequestedFileRequests")
   projectFiles           ProjectFile[]
@@ -1490,6 +1491,7 @@ model ClientProject {
   comments      ProjectComment[]
   tickets       SupportTicket[]
   agreements    ProjectAgreement[]
+  members        ProjectMember[]
   secretHandoffs SecretHandoff[]
   reviews       Review[]
   changeRequests ChangeRequest[]
@@ -1618,6 +1620,56 @@ model SecretHandoff {
 
   @@index([projectId, direction])
   @@index([expiresAt])
+}
+
+/// T5-17 · the other people on the client's side.
+///
+/// Schools were the driver and they are the ordinary case, not the exotic
+/// one: a director who approves the work and signs off the money, and an IT
+/// person who uploads the files and answers the technical questions. Before
+/// this the project belonged to exactly one User row, so the second person
+/// either shared a password or forwarded every email — and every approval
+/// came from an account that was not the person approving.
+///
+/// `ClientProject.userId` STAYS the owner. This is an addition, not a
+/// replacement: the owner is who the project was sold to, who is billed, and
+/// the fallback for every notification. A member is somebody else who may
+/// also reach it.
+///
+/// A member need not have an account. `email` is the identity that always
+/// exists; `userId` is filled in when they sign in with that address, and
+/// until then they reach the project through the tracking code and a PIN
+/// sent to their own inbox (T5-8).
+model ProjectMember {
+  id         String    @id @default(cuid())
+  projectId  String
+  /// Filled in when this person has an account. Null is normal.
+  userId     String?
+  /// The identity that always exists. Lower-cased on write so a lookup is a
+  /// lookup and not a guess.
+  email      String    @db.VarChar(190)
+  name       String?   @db.VarChar(160)
+  /// "owner" | "approver" | "viewer".
+  ///
+  /// Only owner and approver may approve a milestone, accept a change
+  /// request or start a payment — the three actions that commit the client
+  /// to something. A viewer may still upload, comment and open a ticket:
+  /// the IT person in the driving example is exactly that, and a role that
+  /// could not type would be useless to them.
+  role       String    @default("viewer") @db.VarChar(16)
+  invitedAt  DateTime  @default(now())
+  /// Set the first time they actually reach the project.
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?         @relation("ProjectMemberships", fields: [userId], references: [id], onDelete: SetNull)
+
+  /// One row per address per project. A second invitation is an edit.
+  @@unique([projectId, email])
+  @@index([userId])
+  @@index([projectId, role])
 }
 
 model ProjectMilestone {
