@@ -14,7 +14,7 @@ const { listMyProjects, getMyProject } = require("../services/clientProjectServi
 const {
   assertReadable, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
   ndaStatus, applyNdaGate, acceptAgreement,
-  presentForMember, assertDeliverableAccess, loadOwnedProject,
+  presentForMember, assertDeliverableAccess, loadOwnedProject, lifecycle,
 } = require("../services/projectPortalService")
 const { STORAGE_PATHS } = require("../config/storagePaths")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
@@ -51,10 +51,28 @@ function resolveSafePath(filePath) {
 
 /* ────────────────────────────────────────────────────────────────────── */
 
+/**
+ * GET /member/projects
+ *
+ * D5-1 · every row now carries the same `access` object the detail route
+ * sends, and the reason is a dead end the client could walk into:
+ * listMyProjects returns EVERY project the account owns, expired ones
+ * included, while `getMine` runs assertReadable and answers 410
+ * PROJECT_EXPIRED. So an expired project appeared as an ordinary card and
+ * clicking it produced an error.
+ *
+ * Hiding those rows was the other option and is worse. "This project is no
+ * longer available. Contact support if you need its files." is the whole
+ * point of the grace window — a client whose project silently disappeared
+ * from the list has no way to know it ever existed, and support gets the
+ * call anyway, without the project id. The card stays and says so; the SPA
+ * stops linking it.
+ */
 const listMine = asyncHandler(async (req, res) => {
   const userId = req.user?.id
   if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
-  const data = await listMyProjects(userId)
+  const rows = await listMyProjects(userId)
+  const data = rows.map((p) => presentForMember(p, lifecycle(p)))
   res.status(200).json({ success: true, data })
 })
 

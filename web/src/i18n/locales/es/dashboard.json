@@ -42,7 +42,9 @@
       "files_one": "{{count}} archivo",
       "files_other": "{{count}} archivos",
       "milestones": "Hitos",
-      "open": "Abrir proyecto"
+      "open": "Abrir proyecto",
+      "expired": "Archivado",
+      "expiredBody": "El periodo de acceso a este proyecto terminó. Escribe a soporte si aún necesitas sus archivos."
     },
     "detail": {
       "back": "Volver a proyectos",

@@ -314,6 +314,12 @@ function presentForMember(project, lc) {
     access: {
       readOnly:  lc.readOnly,
       isClosed:  lc.isClosed,
+      // D5-1 · always sent, even though the DETAIL route can never reach
+      // here with it true — assertReadable throws 410 first. The list route
+      // presents rows through this same function and CAN, so the shape has
+      // to carry it: one `access` object means the SPA reads a card and a
+      // detail response the same way.
+      isExpired: lc.isExpired,
       expiresAt: lc.expiresAt,
       state,
       suspended,
