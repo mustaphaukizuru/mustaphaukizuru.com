@@ -48,6 +48,7 @@ const staticRoutes = [
   // web/src/seo/pageSeo.js, and both are conversion surfaces — /book is
   // the booking funnel and /self-audit is the lead magnet. Neither was
   // listed here, so neither reached the sitemap or got hreflang.
+  { path: "/how-we-work", changefreq: "monthly", priority: "0.7" },
   { path: "/self-audit", changefreq: "monthly", priority: "0.8" },
   { path: "/book",       changefreq: "monthly", priority: "0.85" },
   { path: "/blog",       changefreq: "weekly",  priority: "0.85" },

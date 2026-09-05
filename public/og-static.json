@@ -59,6 +59,12 @@
     "image": "https://mustaphaukizuru.com/og/og-portfolio.png",
     "type": "website"
   },
+  "/how-we-work": {
+    "title": "How We Work · Six Steps From First Message to Handover",
+    "description": "The full engagement process: what to send at each stage, response and proposal timelines, remote and on-site delivery, and the access and data-privacy rules.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "website"
+  },
   "/self-audit": {
     "title": "Free Digital Self-Audit · Score Your School or Business Tech",
     "description": "A 5-minute self-assessment of your website, security, cloud and digital workflows — get a score and the three fixes with the biggest payoff.",
@@ -165,6 +171,12 @@
     "title": "Portafolio · Proyectos de Mustapha Ukizuru",
     "description": "Trabajo seleccionado: transformaciones IT escolares, sitios web a la medida, plataformas educativas y lanzamientos de productos digitales.",
     "image": "https://mustaphaukizuru.com/og/og-portfolio.png",
+    "type": "website"
+  },
+  "/es/how-we-work": {
+    "title": "Cómo Trabajamos · Seis Pasos del Primer Mensaje a la Entrega",
+    "description": "El proceso completo: qué enviar en cada etapa, tiempos de respuesta y propuesta, entrega remota y presencial, y las reglas de acceso y privacidad de datos.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
     "type": "website"
   },
   "/es/self-audit": {

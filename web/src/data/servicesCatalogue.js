@@ -63,6 +63,7 @@ import {
   Compass, Workflow, CloudCog, Blocks,
   Award, ShieldCheck, BookMarked, Globe2, Languages, UserCheck,
   Calendar, Mail, Phone, FileText,
+  Send, Video, PenLine, KeyRound, PackageCheck, MapPin,
   User, Briefcase, GraduationCap,
 } from "lucide-react"
 
@@ -781,16 +782,29 @@ export function offeringForFeature(audienceCode, feature) {
   return getOfferingBySlug(overlap.offeringSlug) || null
 }
 
+/* ── The three-step summary ──────────────────────────────────────────────
+ * Shown on /services and every category page. The full six-step process
+ * lives in data/engagementProcess.js and is NOT imported here on purpose:
+ * servicesCatalogue is on the homepage's critical path (FeaturedServices
+ * pulls in CATEGORIES), and the process copy in both languages put first
+ * paint 6.6 KB over the payload budget e2e/first-paint-payload.spec.js
+ * enforces.
+ *
+ * So these three are written out, and
+ * web/src/data/engagementProcess.test.js asserts they still match steps
+ * `call`, `proposal` and `delivery` of the detailed list word for word.
+ * The drift protection is the test, not the import.
+ */
 export const HOW_IT_WORKS = [
-  { id: "call", step: "01", Icon: Calendar, title: "30-minute call", titleEs: "Llamada de 30 min",
-    body: "Free. We diagnose the situation and agree on whether there is a fit.",
-    bodyEs: "Gratis. Diagnosticamos la situación y acordamos si hay encaje." },
+  { id: "call", step: "01", Icon: Video, title: "Discovery call", titleEs: "Llamada de diagnóstico",
+    body: "Thirty minutes to confirm scope, constraints and timeline. Free, and it ends with a clear next step either way.",
+    bodyEs: "Treinta minutos para confirmar alcance, restricciones y plazos. Gratis, y termina con un siguiente paso claro en cualquier caso." },
   { id: "proposal", step: "02", Icon: FileText, title: "Written proposal", titleEs: "Propuesta escrita",
-    body: "Scope, timeline and price in one document, usually within 3 business days.",
-    bodyEs: "Alcance, plazos y precio en un solo documento, normalmente en 3 días hábiles." },
-  { id: "delivery", step: "03", Icon: ShieldCheck, title: "Delivery", titleEs: "Entrega",
-    body: "Weekly sync, written status every Friday, runbooks at handover.",
-    bodyEs: "Sincronización semanal, estatus escrito cada viernes y manuales en la entrega." },
+    body: "Scope, deliverables, price in both currencies, payment schedule, timeline and delivery modality, in one document.",
+    bodyEs: "Alcance, entregables, precio en ambas monedas, calendario de pagos, plazos y modalidad de entrega, en un solo documento." },
+  { id: "delivery", step: "03", Icon: PackageCheck, title: "Delivery and handover", titleEs: "Entrega y cierre",
+    body: "Weekly status against the agreed timeline, then a formal handover with documentation and a 30-day support window.",
+    bodyEs: "Estatus semanal contra el plan acordado y, al final, una entrega formal con documentación y 30 días de soporte." },
 ]
 
 /* ── Per-category FAQ (3–5 each) ────────────────────────────────────────── */

@@ -159,6 +159,11 @@
       "subtitle": "Respuestas breves a lo que la mayoría de los clientes pregunta primero.",
       "items": [
         {
+          "id": "after-request",
+          "question": "¿Qué pasa después de que envío una solicitud?",
+          "answer": "Recibes respuesta en 1 día hábil, luego una llamada de diagnóstico de 30 minutos para confirmar alcance y restricciones, y una propuesta escrita dentro de los 3 días hábiles siguientes a esa llamada. El proceso completo de seis pasos, con lo que se envía en cada etapa, está en la página Cómo trabajamos."
+        },
+        {
           "id": "start",
           "question": "¿Por dónde empiezo si no sé qué servicio necesito?",
           "answer": "Agenda la llamada de 30 minutos. Lo primero es un diagnóstico claro, aunque al final no trabajemos juntos."
@@ -302,5 +307,47 @@
         "later": "Explorando"
       }
     }
+  },
+  "process": {
+    "seo": {
+      "title": "Cómo trabajamos",
+      "description": "Seis pasos desde el primer mensaje hasta la entrega: qué enviar en cada etapa, entrega remota y presencial, y las reglas de acceso y privacidad de datos."
+    },
+    "hero": {
+      "eyebrow": "Cómo trabajamos",
+      "title": "Seis pasos desde el primer mensaje hasta la entrega",
+      "subtitle": "El mismo proceso ya sea una auditoría de dos días o un proyecto de varios meses. Esto es lo que pasa, lo que envías y lo que recibes, antes de que te comprometas a nada."
+    },
+    "step": {
+      "how": "Cómo",
+      "when": "Cuándo",
+      "include": "Qué incluir"
+    },
+    "submit": {
+      "eyebrow": "Lo que envías",
+      "title": "Qué enviar, por etapa",
+      "subtitle": "Nada de esto aparece como sorpresa después. La versión campo por campo es la lista de onboarding, que se comparte al momento de la propuesta.",
+      "stageHeading": "Etapa",
+      "needsHeading": "Qué se necesita"
+    },
+    "modality": {
+      "eyebrow": "Dónde ocurre el trabajo",
+      "title": "Remoto por defecto, presencial cuando hace falta estar ahí",
+      "subtitle": "El trabajo presencial se cotiza aparte en la propuesta. Nunca se da por hecho.",
+      "seeOfferings": "Ver los servicios donde aplica"
+    },
+    "access": {
+      "eyebrow": "Accesos y datos",
+      "title": "La confianza se gana antes de dar accesos",
+      "subtitle": "Estas reglas aplican a todos los proyectos, sin importar su tamaño.",
+      "privacyLink": "Lee el aviso de privacidad",
+      "aiLink": "Ver los servicios de IA y automatización"
+    },
+    "cta": {
+      "title": "Empieza por el paso uno",
+      "body": "Cuéntame qué quieres resolver. La primera llamada dura treinta minutos, es gratis y termina con un siguiente paso claro en cualquier caso.",
+      "button": "Agenda la llamada de diagnóstico"
+    },
+    "servicesLink": "Ver el proceso completo de seis pasos"
   }
 }

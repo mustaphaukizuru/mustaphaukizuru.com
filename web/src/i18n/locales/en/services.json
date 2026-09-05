@@ -159,6 +159,11 @@
       "subtitle": "Short answers to what most clients ask first.",
       "items": [
         {
+          "id": "after-request",
+          "question": "What happens after I send a request?",
+          "answer": "You get a reply within one business day, then a 30-minute discovery call to confirm scope and constraints, and a written proposal within three business days of that call. The full six-step process, including what to send at each stage, is on the How we work page."
+        },
+        {
           "id": "start",
           "question": "Where do I start if I'm not sure which service I need?",
           "answer": "Book the 30-minute call. The first job is a clear diagnosis, even if we do not end up working together."
@@ -302,5 +307,47 @@
         "later": "Exploring"
       }
     }
+  },
+  "process": {
+    "seo": {
+      "title": "How we work",
+      "description": "Six steps from first message to handover: what to submit at each stage, remote and on-site delivery, and the access and data-privacy rules."
+    },
+    "hero": {
+      "eyebrow": "How we work",
+      "title": "Six steps from first message to handover",
+      "subtitle": "The same process whether the engagement is a two-day audit or a multi-month build. Here is what happens, what you send, and what you get back — before you commit to anything."
+    },
+    "step": {
+      "how": "How",
+      "when": "When",
+      "include": "What to include"
+    },
+    "submit": {
+      "eyebrow": "What you send",
+      "title": "What to submit, by stage",
+      "subtitle": "Nothing here is a surprise later. The full field-by-field version is the onboarding checklist, shared at proposal stage.",
+      "stageHeading": "Stage",
+      "needsHeading": "What is needed"
+    },
+    "modality": {
+      "eyebrow": "Where the work happens",
+      "title": "Remote by default, on site when it needs hands",
+      "subtitle": "On-site work is scoped and priced separately in the proposal. It is never assumed.",
+      "seeOfferings": "See the offerings this applies to"
+    },
+    "access": {
+      "eyebrow": "Access and data",
+      "title": "Trust is earned before access is granted",
+      "subtitle": "The rules below apply to every engagement, whatever its size.",
+      "privacyLink": "Read the privacy policy",
+      "aiLink": "See the AI and automation offerings"
+    },
+    "cta": {
+      "title": "Start at step one",
+      "body": "Tell me what you are solving. The first call is thirty minutes, free, and ends with a clear next step either way.",
+      "button": "Book the discovery call"
+    },
+    "servicesLink": "See the full six-step process"
   }
 }

@@ -117,7 +117,8 @@
     "subscribing": "Enviando…",
     "emailRequired": "Ingresa tu correo electrónico.",
     "subscribeSuccess": "Casi listo: revisa tu correo para confirmar la suscripción.",
-    "subscribeError": "No pudimos completar tu suscripción. Inténtalo de nuevo."
+    "subscribeError": "No pudimos completar tu suscripción. Inténtalo de nuevo.",
+    "navHowWeWork": "Cómo trabajamos"
   },
   "language": {
     "english": "Inglés",

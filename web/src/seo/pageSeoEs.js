@@ -98,6 +98,18 @@ export const staticSeoEsByRoute = {
     keywords: ["desarrollo de MVP México", "app móvil multiplataforma", "diseño de APIs", "automatización CI/CD"],
   },
 
+  "/how-we-work": {
+    title: "Cómo Trabajamos · Seis Pasos del Primer Mensaje a la Entrega",
+    description:
+      "El proceso completo: qué enviar en cada etapa, tiempos de respuesta y propuesta, entrega remota y presencial, y las reglas de acceso y privacidad de datos.",
+    keywords: [
+      "proceso de trabajo consultoría",
+      "cómo trabajamos consultoría TI",
+      "propuesta consultoría México",
+      "acuerdo de confidencialidad TI",
+    ],
+  },
+
   "/store": {
     title: "Tienda Digital · Plantillas · Kits · Recursos STEM",
     description:

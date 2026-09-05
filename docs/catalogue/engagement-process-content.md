@@ -1,8 +1,8 @@
 ---
 title: Engagement Process — Web Copy Source
 purpose: Public-facing content source for a "How We Work" / "Getting Started" page on mustaphaukizuru.com. Rewritten from the internal Client Engagement Guide (Client Engagement Documents/01 Client Engagement Guide.pdf) for a prospect audience — shorter, no internal ops detail, no legal language.
-status: draft — not yet wired into the React app
-next_step: Port into web/src/data/servicesCatalogue.js as a new HOW_IT_WORKS_DETAILED export (or extend the existing HOW_IT_WORKS), then add EN/ES keys to the relevant i18n namespace and a page/section to render it.
+status: ported — this is the authored source; the site renders it from web/src/data/servicesCatalogue.js
+ported: 2026-09-04 (T2-9). HOW_IT_WORKS_DETAILED, SUBMIT_BY_STAGE, DELIVERY_MODALITY and ACCESS_PRIVACY in web/src/data/servicesCatalogue.js; rendered at /how-we-work and /es/how-we-work; framing strings under `process.*` in services.json; also printed into the downloadable catalogue. Spanish was authored in the tu register (ADR 0004), not translated. Edit the data, not this file, for anything the site shows.
 last_updated: 2026-09-04
 ---
 
@@ -77,9 +77,11 @@ Trust is earned before access is granted, not after:
 
 ---
 
-# Suggested placement in the app
+# Where it ended up
 
-- New section on the existing "How It Works" area of the Services page (there's already a `HOW_IT_WORKS` export in `servicesCatalogue.js` — this content is a more detailed version, expand rather than duplicate).
-- A dedicated `/how-we-work` or `/getting-started` route for prospects who land from a proposal link and want the full picture before signing.
-- Short version (steps 1-6 only) reused in the funnel/FAQ component (`OfferingList.jsx` already renders `funnel.faq.items` — add an entry there linking out).
-- Needs EN/ES keys once ported — this draft is English-only; Spanish translation should go through the same `services.json` namespace pattern as the rest of the catalogue copy, not a separate namespace.
+- `/how-we-work` and `/es/how-we-work` (`web/src/pages/HowWeWorkPage.jsx`) — all four sections.
+- The three-step summary on `/services` and every category page is now **derived** from the six steps by id, so the short and long versions cannot drift.
+- One FAQ entry, "What happens after I send a request?", first in `funnel.faq.items`, which the FAQPage schema picks up.
+- `HowTo` structured data built from the same six steps (`web/src/seo/schemas/howToSchema.js`).
+- The downloadable catalogue prints the six steps, the submission table, the modality and the access rules.
+- Footer quick links, the sitemap with hreflang, and the server-side OG card map.

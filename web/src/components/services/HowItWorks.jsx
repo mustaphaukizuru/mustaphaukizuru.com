@@ -1,5 +1,7 @@
 /* call → proposal → delivery */
 import { useTranslation } from "react-i18next"
+import { ArrowRight } from "lucide-react"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { HOW_IT_WORKS } from "../../data/servicesCatalogue"
 import { pick, useCatalogueLang } from "./localize"
 import { SectionHeader } from "./Primitives"
@@ -35,6 +37,21 @@ export default function HowItWorks({ invert = false }) {
           )
         })}
       </ol>
+      {/* These three are a summary of six (T2-9). The full process — what to
+          submit at each stage, remote vs on-site, the access rules — is a
+          page, and this is the only route to it from /services and every
+          category page. Visible link text, not an aria-label: that is what
+          the link-text audit reads, and what a reader scanning for "is there
+          more?" reads too. */}
+      <p className="mt-5 text-meta">
+        <Link
+          to="/how-we-work"
+          className={`inline-flex items-center gap-1.5 font-semibold underline-offset-2 hover:underline ${invert ? "text-white" : "text-violet"}`}
+        >
+          {t("process.servicesLink")}
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </Link>
+      </p>
     </div>
   )
 }

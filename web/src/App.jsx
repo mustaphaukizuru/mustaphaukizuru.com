@@ -90,6 +90,7 @@ const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
 const SelfAuditPage = lazy(() => import("./pages/SelfAuditPage"));
 const SchoolsPage = lazy(() => import("./pages/SchoolsPage")); // audience page, not a service category
+const HowWeWorkPage = lazy(() => import("./pages/HowWeWorkPage")); // the full engagement process (T2-9)
 
 const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
 const AdminPortfolioPage = lazy(() => import("./pages/AdminPortfolioPage"));
@@ -221,6 +222,8 @@ export default function App() {
             <Route path="/about" element={<PublicShell><AboutPage /></PublicShell>} />
             <Route path="/services" element={<PublicShell><ServicesPage /></PublicShell>} />
             <Route path="/services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
+            {/* The full six-step engagement process, for prospects who arrive from a proposal link. */}
+            <Route path="/how-we-work" element={<PublicShell><HowWeWorkPage /></PublicShell>} />
             <Route path="/schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
             {/* Public lead magnet — the Services hero links here for visitors. */}
             <Route path="/self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
@@ -395,6 +398,7 @@ export default function App() {
               <Route path="services" element={<PublicShell><ServicesPage /></PublicShell>} />
               <Route path="services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
               <Route path="schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
+              <Route path="how-we-work" element={<PublicShell><HowWeWorkPage /></PublicShell>} />
               <Route path="contact" element={<PublicShell><ContactPage /></PublicShell>} />
               <Route path="self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
               <Route path="portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />

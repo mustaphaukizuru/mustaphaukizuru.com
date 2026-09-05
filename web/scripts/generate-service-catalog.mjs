@@ -41,6 +41,11 @@ import {
   QUOTE_ONLY_MXN_PER_MONTH, isQuoteOnlyTier,
   PACKAGE_OFFERING_OVERLAPS, packagesIncluding, getOfferingBySlug,
 } from "../src/data/servicesCatalogue.js"
+// Its own module: it is off the site's critical path on purpose, and the
+// catalogue is one of only two things that read it.
+import {
+  HOW_IT_WORKS_DETAILED, SUBMIT_BY_STAGE, DELIVERY_MODALITY, ACCESS_PRIVACY,
+} from "../src/data/engagementProcess.js"
 
 const VERSION = "2.0"
 // From the catalogue, not from the clock — see the determinism note above.
@@ -257,7 +262,26 @@ function buildMarkdown() {
   h(``)
   h(`### 23. Engagement Process`)
   h(``)
-  for (const step of HOW_IT_WORKS) h(`${step.step}. **${step.title}** — ${step.body}`)
+  for (const step of HOW_IT_WORKS_DETAILED) {
+    h(`${step.step}. **${step.title}** — ${step.summary}`)
+    h(`   - How: ${step.how}`)
+    h(`   - When: ${step.when}`)
+    h(`   - What to include: ${step.include}`)
+  }
+  h(``)
+  h(`#### What to submit, by stage`)
+  h(``)
+  h(`| Stage | What is needed |`)
+  h(`|---|---|`)
+  for (const row of SUBMIT_BY_STAGE) h(`| ${row.stage} | ${row.needs} |`)
+  h(``)
+  h(`#### Delivery modality`)
+  h(``)
+  for (const mode of DELIVERY_MODALITY) h(`- **${mode.title}** — ${mode.body}`)
+  h(``)
+  h(`#### Access and data privacy`)
+  h(``)
+  for (const rule of ACCESS_PRIVACY) h(`- **${rule.title}** — ${rule.body}`)
   h(``)
   h(`### 24. Credentials`)
   h(``)
@@ -480,6 +504,7 @@ th{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spaci
       <div>
         <h2 class="section">Engagement process</h2>
         <ol class="steps">${steps}</ol>
+        <p class="pricing-note" style="margin-top:10px">The full six-step process — what to submit at each stage, remote and on-site delivery, and the access and data-privacy rules — is at mustaphaukizuru.com/how-we-work and in the markdown edition of this catalogue.</p>
       </div>
       <div>
         <h2 class="section">Credentials</h2>

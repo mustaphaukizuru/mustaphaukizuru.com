@@ -411,9 +411,54 @@ For schools, colleges, and training institutions modernizing teaching, learning,
 
 ### 23. Engagement Process
 
-01. **30-minute call** — Free. We diagnose the situation and agree on whether there is a fit.
-02. **Written proposal** — Scope, timeline and price in one document, usually within 3 business days.
-03. **Delivery** — Weekly sync, written status every Friday, runbooks at handover.
+01. **Submit a request** — Tell me which offering interests you and what problem you are solving. No technical detail needed yet.
+   - How: The contact form on the Services page, email to hello@mustaphaukizuru.com, or WhatsApp.
+   - When: Any time — response within 1 business day.
+   - What to include: Which offering or category interests you, a one-paragraph description of the problem or goal, and your organisation type (business, school, individual). Technical detail is what the discovery call is for.
+02. **Discovery call** — Thirty minutes to confirm scope, constraints and timeline. Free, and it ends with a clear next step either way.
+   - How: A 30-minute video call on Google Meet, Zoom or Teams.
+   - When: No cost, no obligation.
+   - What to include: Whoever will make the final decision on scope and budget. It ends with either a written proposal, or — if the request is out of scope — a referral or an honest no.
+03. **Written proposal** — Scope, deliverables, price in both currencies, payment schedule, timeline and delivery modality, in one document.
+   - How: Delivered within 3 business days of the discovery call.
+   - When: Valid for 14 days.
+   - What to include: Exact scope and deliverables, price in USD and MXN, payment schedule, estimated timeline, and whether delivery is remote or on-site.
+04. **Agreement and deposit** — A short service agreement is signed and the deposit is paid before work is scheduled. The NDA is signed here, ahead of any access.
+   - How: Signature on the agreement, then the deposit specified in the proposal.
+   - When: Before work is scheduled.
+   - What to include: Legal or trade name, billing contact, tax ID (RFC) if you need a CFDI invoice, and signing authority.
+05. **Kickoff and access** — A kickoff call within 5 business days of the deposit clearing, and any system access granted under least privilege.
+   - How: Scoped, named-collaborator access — never a shared password — wherever the platform supports it.
+   - When: Within 5 business days of the deposit clearing.
+   - What to include: Primary contact, technical contact if different, confirmed modality, and any brand assets or existing documentation relevant to the work.
+06. **Delivery and handover** — Weekly status against the agreed timeline, then a formal handover with documentation and a 30-day support window.
+   - How: A weekly status update — async, or a short sync call on larger engagements.
+   - When: Feedback within 2 business days keeps the schedule on track.
+   - What to include: Handover means documentation, credentials transferred or revoked as agreed, and 30 days of support on the delivered work. Feedback speed is the single biggest factor in whether a project lands on time.
+
+#### What to submit, by stage
+
+| Stage | What is needed |
+|---|---|
+| Initial request | Offering of interest, problem description, organisation type |
+| Discovery call | Whoever will make the final decision on scope and budget |
+| Proposal acceptance | Legal or trade name, billing contact, tax ID (RFC) if a CFDI invoice is needed, signing authority |
+| Agreement and deposit | Signature, deposit payment |
+| Kickoff | Primary contact, technical contact if different, confirmed modality, brand assets or existing documentation |
+| During delivery | Timely feedback, a reachable decision-maker |
+
+#### Delivery modality
+
+- **Remote by default** — Every offering across all four categories is delivered online — video call, screen share, shared documentation. It schedules faster, leaves a written record, and costs less.
+- **On-site where the work needs hands** — Two cases: physical network hardware that cannot be assessed remotely — On-Premise to Cloud Migration and Zero-Trust Security Hardening — and schools with device fleets, smart-classroom installation or in-person staff training. On-site work is scoped and priced separately in the proposal; it is never assumed.
+
+#### Access and data privacy
+
+- **Least privilege** — Named-collaborator invites are the default — a GitHub collaborator role, a scoped GCP or AWS IAM role, a Google Workspace admin role. Never a shared root login. Where a platform has no scoped role, a password-manager vault is used instead of a plain-text credential.
+- **NDA first** — A mutual non-disclosure agreement is signed before any credential or system access is granted, whatever the engagement size.
+- **Reviewed and revoked** — Access is reviewed at handover and revoked unless the engagement continues as an active retainer.
+- **LFPDPPP compliance** — Personal data handled during an engagement is processed under Mexico's Federal Law on Protection of Personal Data Held by Private Parties.
+- **AI sub-processors are named** — For AI Integration and Workflow Automation work, any third-party model or API that processes your data is named in the proposal before work begins. No undisclosed sub-processors.
 
 ### 24. Credentials
 

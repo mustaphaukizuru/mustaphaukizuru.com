@@ -145,6 +145,22 @@ export const staticSeoByRoute = {
     ],
   },
 
+  "/how-we-work": {
+    title: "How We Work · Six Steps From First Message to Handover",
+    description:
+      "The full engagement process: what to send at each stage, response and proposal timelines, remote and on-site delivery, and the access and data-privacy rules.",
+    type: "website",
+    image: DEFAULT_OG_IMAGE,
+    schemaType: "WebPage",
+    keywords: [
+      "engagement process",
+      "how we work consulting",
+      "IT consulting process Mexico",
+      "consulting proposal timeline",
+      "NDA and access policy",
+    ],
+  },
+
   "/self-audit": {
     title: "Free Digital Self-Audit · Score Your School or Business Tech",
     description:

@@ -17,6 +17,9 @@ const PUBLIC_ROUTES = [
   "/about",
   "/services",
   "/services/:slug",
+  // The engagement process (T2-9). In the router, the footer and the
+  // sitemap — so it has to be answerable on a reload and a shared link.
+  "/how-we-work",
   // Audience page, not a fifth service category. It was in App.jsx, in the
   // navbar, in the footer and in sitemap.xml, and missing from this list —
   // so the server answered 404 for a URL Google is told to index. Clicking

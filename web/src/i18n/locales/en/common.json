@@ -117,7 +117,8 @@
     "subscribing": "Joining…",
     "emailRequired": "Please enter your email address.",
     "subscribeSuccess": "Almost there — check your inbox to confirm your subscription.",
-    "subscribeError": "We couldn't complete your subscription. Please try again."
+    "subscribeError": "We couldn't complete your subscription. Please try again.",
+    "navHowWeWork": "How we work"
   },
   "language": {
     "english": "English",
