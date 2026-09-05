@@ -92,6 +92,29 @@ export async function createAdminPortalLink(id) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/portal-link`, { method: "POST", body: JSON.stringify({}) })
   return stripData(r)
 }
+/* ── T5-16 · the admin queue, across every project ──────────────────── */
+
+/**
+ * Everything waiting on the operator, and everything waiting on clients.
+ *
+ * Returns the empty shape rather than throwing: this feeds a badge rendered
+ * on every admin page, and a queue that cannot be built must not take the
+ * admin shell down with it.
+ */
+export async function fetchAdminQueue() {
+  try {
+    const r = await authFetch("/api/v1/admin/client-projects/queue")
+    const data = r?.data !== undefined ? r.data : r
+    return {
+      waitingOnMe: data?.waitingOnMe || [],
+      waitingOnClient: data?.waitingOnClient || [],
+      counts: data?.counts || { me: 0, client: 0 },
+    }
+  } catch {
+    return { waitingOnMe: [], waitingOnClient: [], counts: { me: 0, client: 0 } }
+  }
+}
+
 /* ── T5-5 · admin document requests and the full timeline ───────────── */
 
 const adminProject = (id) => `/api/v1/admin/client-projects/${encodeURIComponent(id)}`

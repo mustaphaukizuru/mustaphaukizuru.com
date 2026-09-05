@@ -1,6 +1,7 @@
 const path = require("path")
 const fs   = require("fs")
 const asyncHandler = require("../utils/asyncHandler")
+const readReceipts = require("../services/readReceiptService")
 const projectInvoices = require("../services/projectInvoiceService")
 const fileRequests = require("../services/projectFileRequestService")
 const projectEvents = require("../services/projectEventService")
@@ -334,6 +335,13 @@ function sendProjectFile({ file, req, res, userId, action }) {
   if (!fs.existsSync(abs)) {
     return res.status(404).json({ success: false, error: { code: "FILE_MISSING", message: "File is no longer available. Please contact support." } })
   }
+
+  // T5-14 · the read receipt. Fire-and-forget, beside the access log and
+  // for the same reason: a note in the margin must never stop a client
+  // downloading a file they are entitled to. Only a CLIENT action stamps —
+  // an admin opening their own upload would make the receipt a lie about
+  // the person it names, and a lie in the direction that stops us chasing.
+  readReceipts.recordFileView(file, action).catch(() => null)
 
   // Best-effort access log — fire-and-forget so a logging failure never
   // blocks the download itself.

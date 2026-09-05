@@ -6,7 +6,7 @@ const {
   addAdminComment, toggleResolveComment, replyProjectTicket,
   createPortalLink, createCaseStudy,
   quoteChangeRequest, completeChangeRequest,
-  listFileRequests, addFileRequest, reviewFileRequest, listEvents,
+  listFileRequests, addFileRequest, reviewFileRequest, listEvents, getQueue,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -16,6 +16,9 @@ router.use(protect, adminOnly)
 
 router.get   ("/",                          listProjects)
 router.post  ("/",                          createProject)
+// T5-16 · BEFORE /:id, or Express reads "queue" as a project id and this
+// route is never reached.
+router.get   ("/queue",                     getQueue)
 router.get   ("/:id",                       getProject)
 router.patch ("/:id",                       updateProject)
 router.delete("/:id",                       removeProject)

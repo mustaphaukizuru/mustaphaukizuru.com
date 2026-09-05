@@ -640,6 +640,26 @@ export default function AdminClientProjectDetailPage() {
                     <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
                       {[formatFileSize(f.fileSize), f.uploadedBy?.fullName, milestone ? `↳ ${milestone.title}` : null, new Date(f.createdAt).toLocaleDateString()].filter(Boolean).join(" · ")}
                     </div>
+                    {/* T5-14 · the read receipt. Admin-only by design — a
+                        client shown "you opened this on Tuesday" is being
+                        watched; an operator who knows whether the deliverable
+                        was ever looked at is the difference between chasing
+                        and waiting.
+                        "Not opened yet" is stated rather than left blank: an
+                        absent line reads as "no data", and the whole value
+                        here is being able to tell those two apart. */}
+                    {f.uploadedByRole !== "client" ? (
+                      <div className="mt-0.5 font-mono text-[11px]">
+                        {f.firstViewedAt ? (
+                          <span className="text-mint-700">
+                            Seen {new Date(f.firstViewedAt).toLocaleDateString()}
+                            {f.viewCount > 1 ? ` · ${f.viewCount} opens` : ""}
+                          </span>
+                        ) : (
+                          <span className="text-charcoal-80/65">Not opened yet</span>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">

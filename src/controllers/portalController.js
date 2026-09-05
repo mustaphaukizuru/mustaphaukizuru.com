@@ -3,6 +3,7 @@ const prisma = require("../lib/prisma")
 const fsp = require("fs/promises")
 const fs = require("fs")
 const projectInvoices = require("../services/projectInvoiceService")
+const readReceipts = require("../services/readReceiptService")
 const projectEvents = require("../services/projectEventService")
 const fileRequests = require("../services/projectFileRequestService")
 const { invoicePathFor } = require("../services/invoiceService")
@@ -147,6 +148,10 @@ const downloadInvoice = asyncHandler(async (req, res) => {
   if (!fs.existsSync(diskPath)) {
     return res.status(404).json({ success: false, code: "INVOICE_FILE_MISSING", message: "Invoice file not found" })
   }
+
+  // T5-14 · a portal viewer is always the client — that is what the PIN
+  // proved. Stamped after the gate and before the bytes.
+  readReceipts.recordInvoiceView(invoice, { projectId: req.portal.projectId }).catch(() => null)
 
   res.setHeader("Content-Type", "application/pdf")
   // attachment, not inline: a portal visitor is usually on the link someone

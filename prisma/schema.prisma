@@ -1113,6 +1113,12 @@ model Invoice {
   lateFeeAmount     Decimal  @default(0) @db.Decimal(12, 2)
   overdueNotifiedAt DateTime?
 
+  /// T5-14 · read receipt, stamped the first time the CLIENT opens the PDF.
+  /// Admin-visible only: "did they even see the bill" is the question that
+  /// decides whether the next message is a reminder or a phone call.
+  firstViewedAt     DateTime?
+  viewCount         Int      @default(0)
+
   /// Money snapshot at issue time — an invoice must not change when the
   /// order row later does (refund, edit). Mirrors Order at ensureInvoice().
   serie          String   @default("A") @db.VarChar(8)
@@ -1594,6 +1600,16 @@ model ProjectFile {
   /// Tier 4 handover gate: deliverables are served only when the project
   /// has no outstanding balance. Default false = plain shared file.
   isDeliverable    Boolean  @default(false)
+  /// T5-14 · read receipt. Stamped the first time the CLIENT streams it —
+  /// never when an admin opens their own file, which would make every
+  /// receipt a lie about the person it names.
+  ///
+  /// Admin-visible only. A client being shown "you opened this on Tuesday"
+  /// is surveillance; an operator knowing whether the deliverable they sent
+  /// was ever looked at is the difference between chasing and waiting.
+  firstViewedAt DateTime?
+  viewCount     Int      @default(0)
+
   /// Tier 4 · retention. Bytes unlinked by projectPurgeJob; row kept as audit.
   purgedAt     DateTime?
   /// Tier 5 · the document request this upload answers, if any. A file can

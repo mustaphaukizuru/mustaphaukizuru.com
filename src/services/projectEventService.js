@@ -89,6 +89,15 @@ const EVENT_DEFINITIONS = {
   "file.delivered": {
     title: "Deliverable ready", titleEs: "Entregable listo", visibility: "client",
   },
+  // T5-14 · admin only, and that is the entire design. An operator seeing
+  // "the client opened it" is the difference between chasing and waiting; a
+  // client seeing "you opened this on Tuesday" is being watched.
+  "file.viewed": {
+    title: "Deliverable opened", titleEs: "Entregable abierto", visibility: "admin",
+  },
+  "invoice.viewed": {
+    title: "Invoice opened", titleEs: "Factura abierta", visibility: "admin",
+  },
   "comment.added": {
     title: "New comment", titleEs: "Nuevo comentario", visibility: "client",
   },

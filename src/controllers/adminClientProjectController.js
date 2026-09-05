@@ -8,6 +8,7 @@ const { mintPortalLink } = require("../services/portalAccessService")
 const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
 const fileRequests = require("../services/projectFileRequestService")
 const projectEvents = require("../services/projectEventService")
+const adminQueue = require("../services/adminQueueService")
 const { notify } = require("../services/notificationService")
 const { notifyFileRequested, notifyFileReviewed, notifyProjectPhase } = require("../services/notificationService")
 const projectEmails = require("../services/projectEmailService")
@@ -423,6 +424,20 @@ const listEvents = asyncHandler(async (req, res) => {
   res.json({ success: true, data: rows.map((r) => projectEvents.serializeEvent(r)) })
 })
 
+/**
+ * GET /admin/client-projects/queue  (T5-16)
+ *
+ * Everything waiting, across every project, split by who is blocking. Behind
+ * protect + adminOnly like the rest of this router.
+ *
+ * Declared BEFORE /:id in the routes file, or "queue" is read as a project
+ * id and this never runs.
+ */
+const getQueue = asyncHandler(async (_req, res) => {
+  const data = await adminQueue.getQueue()
+  res.json({ success: true, data })
+})
+
 module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
@@ -431,4 +446,5 @@ module.exports = {
   createPortalLink, createCaseStudy, sendReviewRequest,
   quoteChangeRequest, completeChangeRequest,
   listFileRequests, addFileRequest, reviewFileRequest, listEvents,
+  getQueue,
 }

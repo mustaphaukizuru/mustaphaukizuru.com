@@ -180,6 +180,7 @@ const AdminConsultationsPage = lazy(() => import("./pages/AdminConsultationsPage
 const AdminServiceOrdersPage = lazy(() => import("./pages/AdminServiceOrdersPage"));
 const AdminServiceOrderDetailPage = lazy(() => import("./pages/AdminServiceOrderDetailPage"));
 const AdminClientProjectsPage = lazy(() => import("./pages/AdminClientProjectsPage")); // #8
+const AdminQueuePage = lazy(() => import("./pages/AdminQueuePage")); // T5-16, one queue across projects
 const AdminClientProjectDetailPage = lazy(() => import("./pages/AdminClientProjectDetailPage")); // #8
 
 // Phase B · Placeholders (backend pending — see each page for the API plan)
@@ -371,6 +372,7 @@ export default function App() {
               <Route path="consultations" element={<AdminConsultationsPage />} />
               <Route path="service-orders" element={<AdminServiceOrdersPage />} />
               <Route path="service-orders/:id" element={<AdminServiceOrderDetailPage />} />
+              <Route path="queue" element={<AdminQueuePage />} />
               <Route path="client-projects" element={<AdminClientProjectsPage />} />
               <Route path="client-projects/new" element={<AdminClientProjectDetailPage />} />
               <Route path="client-projects/:id" element={<AdminClientProjectDetailPage />} />
