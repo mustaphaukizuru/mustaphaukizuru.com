@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const { withUniqueTrackingCode } = require("../utils/trackingCode")
 const { validatePreviewUrl, assertAccessStateChange } = require("./projectPortalService")
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -87,7 +88,10 @@ async function createAdminProject(data) {
   const status = VALID_PROJECT_STATUSES.includes(data.projectStatus)
     ? data.projectStatus : "planning"
 
-  return prisma.clientProject.create({
+  // T5-1 · every project gets its tracking code at birth. withUniqueTrackingCode
+  // redraws on the P2002 that a collision would raise, so the one time ~2^39
+  // works against us it is a retry rather than a failed project creation.
+  return withUniqueTrackingCode((trackingCode) => prisma.clientProject.create({
     data: {
       serviceOrderId:  String(data.serviceOrderId),
       userId:          String(data.userId),
@@ -97,9 +101,10 @@ async function createAdminProject(data) {
       startDate:       data.startDate ? new Date(data.startDate) : null,
       dueDate:         data.dueDate   ? new Date(data.dueDate)   : null,
       description:     data.description?.trim() || null,
+      trackingCode,
     },
     include: PROJECT_INCLUDE,
-  })
+  }))
 }
 
 /* ── Admin · update project metadata ─────────────────────────────────── */

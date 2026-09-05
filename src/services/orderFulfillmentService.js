@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma")
+const { withUniqueTrackingCode } = require("../utils/trackingCode")
 const { ensureInvoice } = require("./invoiceService")
 const { notifyProjectCreated } = require("./notificationService")
 
@@ -181,15 +182,18 @@ async function autoCreateClientProjectsForOrder(orderId, userId) {
     })
     for (const so of serviceOrders) {
       try {
-        const project = await prisma.clientProject.create({
+        // T5-1 · a code from the first moment, so the confirmation email and
+        // the invoice can both carry it.
+        const project = await withUniqueTrackingCode((trackingCode) => prisma.clientProject.create({
           data: {
             serviceOrderId: so.id,
             userId,
             projectName:    so.service?.title || "New project",
             projectStatus:  "planning",
             description:    null,
+            trackingCode,
           },
-        })
+        }))
         created++
 
         // Freshly created project — seed the milestone scaffold and notify

@@ -304,6 +304,7 @@ model User {
   assignedConsultations  Consultation[]   @relation("AssignedConsultations")
   clientProjects         ClientProject[]  @relation("UserClientProjects")
   assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
+  requestedFileRequests  ProjectFileRequest[] @relation("RequestedFileRequests")
   projectFiles           ProjectFile[]
   projectComments        ProjectComment[] @relation("UserProjectComments")
   projectAgreements      ProjectAgreement[]
@@ -1427,6 +1428,13 @@ model ClientProject {
   purgedAt        DateTime?
   /// Tier 4 kill switch / handover gate: active | suspended | handover (invoiceDunningJob + admin PATCH).
   accessState     String        @default("active") @db.VarChar(16)
+  /// Tier 5 · the short code a client can type, read over the phone, or find
+  /// on an invoice: "MU-XXXX-XXXX", Crockford base32 without 0/O/1/I so it
+  /// survives being handwritten. ~40 bits, which is why /track is rate
+  /// limited (see ADR 0006). The cuid stays the primary key; this is the
+  /// human-facing handle, and it is nullable so existing rows are valid
+  /// until the backfill runs.
+  trackingCode    String?       @unique @db.VarChar(16)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1441,9 +1449,87 @@ model ClientProject {
   agreements    ProjectAgreement[]
   reviews       Review[]
   changeRequests ChangeRequest[]
+  events         ProjectEvent[]
+  fileRequests   ProjectFileRequest[]
 
   @@index([userId])
   @@index([assignedAdminId])
+}
+
+/// Tier 5 · the client-facing story of a project.
+///
+/// Append-only and typed. The four activityLog.create calls in
+/// projectPortalService stay where they are — that is the ADMIN audit trail,
+/// written for us. This is what the client is shown, which is a different
+/// edit of the same events: fewer of them, in their language, with no
+/// internal notes.
+///
+/// `visibility` is the whole design. "public" is what an anonymous tracking
+/// code may see and is deliberately thin; "client" adds file names and
+/// comments for someone who has signed in or holds a portal link; "admin"
+/// is everything. A row is written once at the highest visibility it may
+/// ever have — narrowing later is a filter, widening later is a leak.
+model ProjectEvent {
+  id             String   @id @default(cuid())
+  projectId      String
+  /// Closed list — see PROJECT_EVENT_TYPES in src/services/projectEventService.js.
+  type           String   @db.VarChar(32)
+  title          String
+  titleEs        String?
+  detail         String?  @db.Text
+  detailEs       String?  @db.Text
+  /// "admin" | "client" | "system" — who caused it, not who may see it.
+  actorRole      String   @db.VarChar(16)
+  /// "public" | "client" | "admin"
+  visibility     String   @default("client") @db.VarChar(16)
+  milestoneId    String?
+  fileId         String?
+  fileRequestId  String?
+  invoiceId      String?
+  createdAt      DateTime @default(now())
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([projectId, visibility])
+}
+
+/// Tier 5 · "send me the thing", as a row rather than an email thread.
+///
+/// A request is answered by exactly one file (fulfilledFileId), which is why
+/// that side is unique; the other side of the relation lets several uploads
+/// hang off one request while the client tries again after a rejection.
+model ProjectFileRequest {
+  id              String    @id @default(cuid())
+  projectId       String
+  milestoneId     String?
+  title           String
+  titleEs         String?
+  instructions    String?   @db.Text
+  instructionsEs  String?   @db.Text
+  /// Comma-separated extension allowlist, e.g. ".pdf,.docx". Enforced on
+  /// upload; advisory in the UI.
+  acceptExt       String?   @db.VarChar(128)
+  dueAt           DateTime?
+  /// requested | submitted | accepted | rejected | cancelled
+  status          String    @default("requested") @db.VarChar(16)
+  requestedById   String?
+  fulfilledFileId String?   @unique
+  reviewNote      String?   @db.Text
+  remindedAt      DateTime?
+  submittedAt     DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  project       ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone     ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  requestedBy   User?             @relation("RequestedFileRequests", fields: [requestedById], references: [id], onDelete: SetNull)
+  fulfilledFile ProjectFile?      @relation("RequestFulfilment", fields: [fulfilledFileId], references: [id], onDelete: SetNull)
+  uploads       ProjectFile[]     @relation("RequestUploads")
+
+  @@index([projectId, status])
+  @@index([dueAt])
 }
 
 model ProjectMilestone {
@@ -1465,6 +1551,7 @@ model ProjectMilestone {
   project  ClientProject    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   comments ProjectComment[]
   files    ProjectFile[]
+  fileRequests ProjectFileRequest[]
 
   @@index([projectId])
 }
@@ -1488,6 +1575,10 @@ model ProjectFile {
   isDeliverable    Boolean  @default(false)
   /// Tier 4 · retention. Bytes unlinked by projectPurgeJob; row kept as audit.
   purgedAt     DateTime?
+  /// Tier 5 · the document request this upload answers, if any. A file can
+  /// exist without one (an ordinary shared file); a request points back
+  /// through fulfilledFileId.
+  fileRequestId    String?
   createdAt    DateTime @default(now())
 
   project        ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -1495,6 +1586,8 @@ model ProjectFile {
   milestone      ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
   supportMessage SupportMessage?   @relation(fields: [supportMessageId], references: [id], onDelete: SetNull)
   comments       ProjectComment[]
+  fileRequest    ProjectFileRequest? @relation("RequestUploads", fields: [fileRequestId], references: [id], onDelete: SetNull)
+  fulfils        ProjectFileRequest? @relation("RequestFulfilment")
 
   @@index([projectId])
   @@index([uploadedById])
