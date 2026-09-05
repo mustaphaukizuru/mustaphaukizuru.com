@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Member dashboard — audit and remediation</title>
+<style>
+  :root{
+    --ink:#1A1B23; --ink-2:#4a4b57; --ink-3:#6f7080;
+    --violet:#5D3FD3; --violet-pale:#EDE9FB; --violet-ghost:#F5F2FE;
+    --mint:#065F46; --mint-bg:#E5F4E8;
+    --rose:#9F1239; --rose-bg:#FFF1F2;
+    --amber:#92400E; --amber-bg:#FEF3C7;
+    --line:#e4e2ee; --bg:#faf9fd; --card:#ffffff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 20px 80px}
+  h1{font-size:30px;line-height:1.2;margin:0 0 6px;letter-spacing:-.02em}
+  .sub{color:var(--ink-3);margin:0 0 28px;font-size:14px}
+  h2{font-size:20px;margin:44px 0 4px;letter-spacing:-.01em}
+  h2 .n{font-family:var(--mono);color:var(--violet);font-size:15px;margin-right:10px}
+  .tier-line{color:var(--ink-3);font-size:14px;margin:0 0 18px}
+  .item{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;margin:0 0 12px}
+  .item h3{font-size:16px;margin:0 0 8px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .id{font-family:var(--mono);font-size:12px;color:var(--violet);background:var(--violet-pale);
+    border-radius:999px;padding:2px 9px;font-weight:700}
+  .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    border-radius:999px;padding:2px 9px}
+  .shipped{background:var(--mint-bg);color:var(--mint)}
+  .retracted{background:var(--rose-bg);color:var(--rose)}
+  .decision{background:var(--amber-bg);color:var(--amber)}
+  dl{margin:0;display:grid;grid-template-columns:104px 1fr;gap:5px 14px;font-size:14px}
+  dt{color:var(--ink-3);font-weight:600}
+  dd{margin:0;color:var(--ink-2)}
+  code{font-family:var(--mono);font-size:.88em;background:var(--violet-ghost);
+    border-radius:4px;padding:1px 5px}
+  table.m{border-collapse:collapse;margin:4px 0 0;font-size:13px}
+  table.m td{padding:1px 14px 1px 0;font-family:var(--mono)}
+  table.m td:first-child{font-family:inherit;color:var(--ink-3)}
+  .num-before{color:var(--rose)}
+  .num-after{color:var(--mint);font-weight:700}
+  .note{background:var(--violet-ghost);border-left:3px solid var(--violet);
+    border-radius:0 8px 8px 0;padding:12px 16px;margin:26px 0;font-size:14px;color:var(--ink-2)}
+  .note b{color:var(--ink)}
+  .foot{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);
+    color:var(--ink-3);font-size:13px}
+  ul{margin:4px 0 0;padding-left:20px}
+  li{margin:2px 0}
+  @media (max-width:640px){dl{grid-template-columns:1fr;gap:2px}dt{margin-top:6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Member dashboard — audit and remediation</h1>
+<p class="sub">
+  Seven tiers, 31 findings, all built on <code>build/waves</code> and <b>not pushed or deployed</b>.
+  Every number below was measured with a browser, a database or a rule engine — not read off the source.
+  The machine-readable record is embedded at the bottom as <code>#audit-source</code>; regenerate this
+  page from that rather than editing the prose.
+</p>
+
+<div class="note">
+  <b>Three findings were investigated and rejected before being reported</b>, and one was reported and
+  then retracted. They are listed with the rest, because "we looked and it was fine" is worth as much
+  as a fix to the next person who notices the same thing: dark-mode contrast (the washed-out first
+  render was the cookie-consent scrim, not the theme), <code>ProfileTabs</code> not scrolling (it does
+  — only the affordance was missing), the admin surface being untranslated (it is English by
+  convention: <code>admin.json</code> is 86 bytes and no admin page calls <code>useTranslation</code>),
+  and <code>xl:</code> utilities apparently compiling to nothing (a <code>min-width:1280px</code> grep
+  finds nothing because Tailwind v4 emits <code>80rem</code>).
+</div>
+
+<h2><span class="n">Tier 0</span>Things that were broken, not ugly</h2>
+<p class="tier-line">Endpoints answering 500, dates off by a day, a guard that was never wired.</p>
+
+<div class="item">
+  <h3><span class="id">D0-1</span> Four member endpoints answered 500 <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>clientProjectController</code> used <code>resolveUserLocale</code> at four call sites with no import, so <code>/member/projects/:id/{events,file-requests,time}</code> and the monthly statement PDF threw a <code>ReferenceError</code> on every request. Introduced by me in T5-5 and extended in T5-18; <code>master</code> was clean.</dd>
+    <dt>Why it survived</dt><dd>There was no backend linter, and all 1,890 tests covered the service layer — nothing loaded the controller. The SPA hid it too: <code>useProjectPanels</code> caught every rejection and returned <code>[]</code>, so three panels rendered empty instead of failing.</dd>
+    <dt>Fixed</dt><dd>One import. Plus <code>eslint.server.config.mjs</code> — correctness rules only, each one justified in the header — wired into <code>npm run lint</code> and into CI. Plus <code>PanelLoadError</code>, so a panel that fails now says which one and offers a retry.</dd>
+    <dt>Verify</dt><dd><code>test/memberProjectEndpoints.test.js</code>, 17 cases: every handler invoked for real, and every module under <code>src/</code> asserted to load without a ReferenceError.</dd>
+    <dt>Commit</dt><dd><code>c3cb0ffb</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D0-2</span> Every due date was a day early <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>new Date("2026-10-01")</code> is midnight <em>UTC</em>. Rendered with a local formatter in any negative-offset timezone — which is every client this business has — it prints the day before. Milestone due dates, invoice dates and statement months were all one day out.</dd>
+    <dt>Fixed</dt><dd><code>formatDay()</code> applies <code>timeZone: "UTC"</code> <em>last</em>, so a caller cannot override it, and null guards were added to the three date formatters. <code>web/vitest.config.js</code> now pins <code>TZ=America/Mexico_City</code>: the bug is invisible in UTC, which is how it shipped.</dd>
+    <dt>Verify</dt><dd><code>web/src/lib/format.test.js</code>, 13 cases — the first asserts the test environment really is negative-offset, or every assertion below it would pass for the wrong reason.</dd>
+    <dt>Commit</dt><dd><code>78228976</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D0-3</span> The rate limiter's documented response was orphaned <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>rateLimitedResponse</code> was written, documented and exported by nothing — the limiter fell back to express-rate-limit's default body, so clients never received the <code>details.retryAfter</code> the contract promised.</dd>
+    <dt>Fixed</dt><dd>Wired as the limiter's <code>handler</code> and exported. The 429 body carries both shapes, and <code>retryAfter</code> is <code>null</code> rather than <code>NaN</code> when the header is absent.</dd>
+    <dt>Commit</dt><dd><code>c3cb0ffb</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D0-4</span> A 12 KB ESM duplicate in a CommonJS tree <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>src/lib/fileTypeIcons.js</code> — ESM syntax under a CommonJS server, required by nothing, and a diverged copy of <code>web/src/lib/fileTypeIcons.js</code>.</dd>
+    <dt>Fixed</dt><dd>Deleted.</dd>
+    <dt>Commit</dt><dd><code>c3cb0ffb</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D0-5</span> "The legacy <code>/api</code> mount would break 60 SPA call sites" <span class="tag retracted">retracted</span></h3>
+  <dl>
+    <dt>What I claimed</dt><dd>That deleting the un-versioned <code>/api/*</code> mount would break dozens of frontend calls.</dd>
+    <dt>What is true</dt><dd><code>buildApiUrl</code> → <code>upgradeToVersionedPath</code> already rewrites <code>/api/foo</code> to <code>/api/v1/foo</code> at runtime, and <code>API_VERSION</code> defaults to <code>/v1</code>. Nothing was broken.</dd>
+    <dt>Worse</dt><dd>My "fix" changed <code>web/src/lib/api.js</code> from <code>"/api/"</code> to <code>"/api/v1/"</code>, which would have <b>disabled the upgrader for every unversioned path</b> — a real bug in place of an imaginary one. All 21 files and the guard test were reverted.</dd>
+    <dt>Status</dt><dd>Struck from the tiers. No change shipped.</dd>
+  </dl>
+</div>
+
+<h2><span class="n">Tier 1</span>The shell in the screenshot</h2>
+<p class="tier-line">Card tops bleeding above the header, a sidebar with rows sliced in half. Both real, both measured.</p>
+
+<div class="item">
+  <h3><span class="id">D1-1</span> Content scrolled through a 16px window above the header <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>sticky top-4</code> parks the header 16px below the viewport edge and paints nothing in that strip. <code>elementFromPoint(x, 12)</code> returned page content, not the header, at every desktop width.</dd>
+    <dt>Fixed</dt><dd>A wrapper is what sticks now, at <code>top-0</code>, carrying the page's own 16px gap as its padding on an opaque ground. The resting layout is byte-identical.</dd>
+    <dt>Measured</dt><dd>Hit-tested at six points per viewport across four viewports — zero bleed.</dd>
+    <dt>Commit</dt><dd><code>170a52fc</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D1-2</span> A sticky header taking 31% of the screen <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>flex-col … xl:flex-row</code>, so between 1024 and 1280 the title block and the toolbar stacked — permanently, because it is sticky.</dd>
+    <dt>Measured</dt><dd>
+      <table class="m">
+        <tr><td>1024×600</td><td class="num-before">184px · 31%</td><td>→</td><td class="num-after">80px · 13%</td></tr>
+        <tr><td>1280×650</td><td class="num-before">146px · 23%</td><td>→</td><td class="num-after">80px · 12%</td></tr>
+        <tr><td>1920×950</td><td class="num-before">113px · 12%</td><td>→</td><td class="num-after">80px · 9%</td></tr>
+      </table>
+    </dd>
+    <dt>What went</dt><dd>
+      <ul>
+        <li>The subtitle — a second, more generic copy of a description every page already renders, costing 40px of every screen forever.</li>
+        <li>The search box — no state, no handler, no form. It did nothing, and being the widest thing in the header it is what forced the wrap. Orders and Downloads already have working search over their own data; a global one needs an endpoint that does not exist.</li>
+        <li>The email address below <code>2xl</code> — the least useful thing in a header belonging to the person already signed in.</li>
+      </ul>
+    </dd>
+    <dt>Commit</dt><dd><code>170a52fc</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D1-3</span> 441px of navigation you could not reach <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>The rail pinned ~190px of chrome — user card, theme switcher, logout, three stacked blocks with their margins — around a nav needing 642px.</dd>
+    <dt>Measured</dt><dd>
+      <table class="m">
+        <tr><td>1920×950 (as reported)</td><td class="num-before">91px hidden</td><td>→</td><td class="num-after">0 — the whole nav fits</td></tr>
+        <tr><td>1440×900</td><td class="num-before">74px hidden</td><td>→</td><td class="num-after">0</td></tr>
+        <tr><td>1920×800</td><td class="num-before">241px hidden</td><td>→</td><td class="num-after">98px</td></tr>
+        <tr><td>1280×650</td><td class="num-before">391px hidden</td><td>→</td><td class="num-after">—</td></tr>
+        <tr><td>1024×600</td><td class="num-before">441px hidden</td><td>→</td><td class="num-after">313px</td></tr>
+      </table>
+    </dd>
+    <dt>Fixed</dt><dd>The footer folds into one ~110px card — logout is a 44px icon button on the avatar row, the theme control sits under it, and Light / Dark / System all survive. Group margins <code>mb-6</code>→<code>mb-4</code> and rows <code>py-3</code>→<code>py-2.5</code> take the nav's own height 642→566px. At 1440×700 one row is still cut, because seven described items plus the brand and the footer genuinely do not fit 700px — so the scroller gained <code>snap-y snap-proximity</code> and a gradient fade, and the spec asserts never more than one.</dd>
+    <dt>Commit</dt><dd><code>170a52fc</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D1-4</span> The 1024–1279 band <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>The sidebar appeared at <code>lg</code> and took 300px, leaving a 650px content column that wrapped "Next consultation" onto two lines and pushed its "View all" underneath.</dd>
+    <dt>Fixed</dt><dd>The rail is 264px below <code>xl</code> and 300px from <code>xl</code> up: the column goes 650→686px and the titles fit on one line.</dd>
+    <dt>Anomaly, recorded not papered over</dt><dd>Moving <code>DashboardPage</code>'s card split from <code>lg</code> to <code>xl</code> was tried and <b>reverted</b>. At 1024 the grid stayed at two columns either way — which the compiled CSS says it should not: <code>.xl\:grid-cols-2</code> sits inside <code>@media(min-width:80rem)</code>, <code>matchMedia</code> agrees that does not match, no other rule sets <code>grid-template-columns</code>, and the CSSOM reports none matching. Unexplained, so shipping a class whose name disagrees with the browser was the worse option. The win here came from the rail.</dd>
+    <dt>Commit</dt><dd><code>170a52fc</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D4-1</span> Two <code>&lt;h1&gt;</code> per page <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>The layout rendered one and so did the page, on all four viewports.</dd>
+    <dt>The wrong fix, tried first</dt><dd>Removing the layout's was worse and my own test caught it: nine of the fourteen dashboard pages have no heading of their own, and four have no visible title at all, so those documents ended up with none.</dd>
+    <dt>Fixed</dt><dd>The layout keeps it as sole owner — it is the only place that can guarantee exactly one. Project detail, order detail and notifications are <code>h2</code> under it, and heading levels are asserted not to skip.</dd>
+    <dt>Commit</dt><dd><code>170a52fc</code></dd>
+  </dl>
+</div>
+
+<h2><span class="n">Tier 2</span>The phone</h2>
+<p class="tier-line">Two of these were invisible in every screenshot, because both defects only exist at phone width.</p>
+
+<div class="item">
+  <h3><span class="id">D2-3</span> The primary navigation on a phone was not on screen <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>PageTransition</code> set <code>style={{ willChange: "opacity, transform" }}</code> on the wrapper around <em>every route in the app</em>. A persistent <code>will-change: transform</code> makes an element a containing block for <code>position: fixed</code> descendants — so nothing fixed inside a page was fixed to the viewport. It was fixed to the document.</dd>
+    <dt>Measured at 375×812</dt><dd>
+      <ul>
+        <li>The mobile bottom tab bar: <code class="num-before">top: 1901px</code> — off screen at every scroll position. Five nav destinations, invisible.</li>
+        <li>The mobile nav drawer: <code class="num-before">2003px tall</code>, theme control at y=1873 and <b>Sign out at y=1943</b>, both unreachable, because a fixed panel does not scroll with the page.</li>
+        <li>The cookie banner floating mid-page over the cards instead of pinned to the bottom — the thing in the earlier screenshots I had been reading as a z-index problem.</li>
+      </ul>
+    </dd>
+    <dt>Fixed</dt><dd>Removed. Framer Motion already sets and clears <code>will-change</code> around its own animations; hardcoding it in <code>style</code> keeps it forever and buys a GPU hint for a 240ms cross-fade at the cost of every fixed overlay in the product.</dd>
+    <dt>Verify</dt><dd>A systemic guard on the <em>public</em> homepage asserts no containing-block creator contains anything fixed — so this cannot come back through a <code>filter</code> or a <code>contain</code> either.</dd>
+    <dt>Commit</dt><dd><code>6f25b423</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D2-6</span> The drawer had a second, independent bug underneath <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>A column flex child will not shrink below its content height unless told it may, so <code>flex-1 overflow-y-auto</code> on the nav never scrolled — the container grew to fit instead. With the fixed positioning repaired the panel still measured <span class="num-before">1898px</span> in an 812px viewport, Sign out at y=1838.</dd>
+    <dt>Fixed</dt><dd><code>min-h-0</code> on both the column and the scroller. <span class="num-after">812px</span> now, footer visible. The desktop rail has always had <code>min-h-0</code>, which is why the same structure works there.</dd>
+    <dt>Commit</dt><dd><code>6f25b423</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D2-1</span> 47 tap targets under 44px <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>Measured</dt><dd>Across eleven dashboard routes at 375px with touch emulation: <span class="num-before">47 distinct interactive targets under 44px</span>, six of them under WCAG 2.5.8's 24px floor — "View all" and "Open library" at 14px tall, "Back to projects" and a statement download at 18px. After: <span class="num-after">0</span>.</dd>
+    <dt>Fixed</dt><dd>One <code>@media (pointer: coarse)</code> block rather than 47 edits. Most of those are the shared <code>&lt;Button&gt;</code> at its 36px default; raising the component's own height would change density on every desktop screen in the app. <code>pointer: coarse</code> matches a finger and not a mouse. <code>min-height</code> not <code>height</code>; <code>min-width</code> for buttons only (an icon-only button 44px tall is still 40px wide); inline links in <code>p</code>/<code>li</code>/<code>dd</code> get the area from padding with a cancelling negative margin so the line box does not move.</dd>
+    <dt>Note</dt><dd>The first assertion in the spec is that the device really is <code>pointer: coarse</code> — desktop Chrome at 375px wide does not match it, and a version of the spec without <code>hasTouch</code> proved nothing.</dd>
+    <dt>Commit</dt><dd><code>6f25b423</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D2-2</span> One element clipped off a 375px screen <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>The upload dropzone's list of 21 allowed extensions, overflowing by <span class="num-before">205px</span>. It could not wrap because a global rule sets <code>[class*="font-mono"]:not(pre) { white-space: nowrap }</code>.</dd>
+    <dt>Fixed</dt><dd>It is a human-readable list, not a code sample, so it loses the mono class and takes <code>text-micro</code> — which also lifts it off the 10px readability floor. <span class="num-after">0 clipped</span>.</dd>
+    <dt>Commit</dt><dd><code>6f25b423</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D2-4</span> Tabs that scrolled with nothing saying so <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>ProfileTabs</code> already had <code>overflow-x-auto</code> — checked before changing anything, and the row does scroll. What was missing is the affordance: at 375px "Two-step verification" sits 18px past the edge and "Notifications" 149px past it, cut mid-word with no gradient, no shadow and no partial tab.</dd>
+    <dt>Fixed</dt><dd>A right-edge fade, hidden from <code>lg</code> where all four fit, plus <code>snap-x</code> so a scroll settles a tab flush instead of mid-label.</dd>
+    <dt>Commit</dt><dd><code>6f25b423</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D2-5</span> 768–1023 keeps the phone shell <span class="tag decision">decision</span></h3>
+  <dl>
+    <dt>Questioned, and kept</dt><dd>The rail needs 264px and the content column needs ~650px before two cards stop wrapping their titles, so the two-column shell does not pay for itself under ~940px. A 768px tablet given the desktop shell gets a 480px content column — worse than one wide column with navigation at the bottom of the screen. And a tablet is held, so the bottom bar is the right affordance there anyway. The reasoning is now in the source.</dd>
+    <dt>Commit</dt><dd><code>6f25b423</code></dd>
+  </dl>
+</div>
+
+<h2><span class="n">Tier 3</span>The dashboard could not be read in Spanish</h2>
+<p class="tier-line">The tier said "twelve hardcoded English page titles". Building it found the reason nobody had noticed them.</p>
+
+<div class="item">
+  <h3><span class="id">D3-3</span> No URL existed that would render the dashboard in Spanish <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>Language on this site is read off the URL prefix: <code>LanguageWrapper</code> is mounted at the App root and calls <code>changeLanguage(detectLanguageFromPath(pathname))</code> on every navigation. <code>/dashboard</code> is not <code>/es/…</code>, so it resolved to <code>"en"</code> unconditionally. A member who chose Spanish on the marketing site was switched back to English the moment they signed in, and there was no page they could visit to undo it — the switcher lives only in the public header and footer, and coming back to <code>/dashboard</code> flipped them again.</dd>
+    <dt>Scale</dt><dd><code>es/dashboard.json</code> holds <span class="num-before">1,078 translated keys</span>. Only the handful under <code>portal</code> were reachable, through <code>/es/portal/:token</code>, which <em>was</em> mirrored. Everything else had never rendered on a screen.</dd>
+    <dt>Why it looked deliberate</dt><dd>A comment in <code>App.jsx</code>: <em>"Admin and Dashboard intentionally NOT mirrored — operator UIs stay English."</em> Admin genuinely is one. The member dashboard is not, and <code>localizeTo.js</code> had encoded the same assumption as <code>/^\/(?:admin|dashboard)/</code> — which is why every dashboard link was deliberately left unprefixed.</dd>
+    <dt>Fixed</dt><dd>
+      <ul>
+        <li><code>App.jsx</code> — the fourteen child routes are defined <em>once</em> as a fragment and mounted at both <code>/dashboard</code> and <code>/es/dashboard</code>. React Router's <code>createRoutesFromChildren</code> recurses through <code>React.Fragment</code>, so the two mounts cannot drift.</li>
+        <li><code>localizeTo.js</code> — <code>NOT_MIRRORED</code> drops to <code>/admin</code> only, so every public page that links into the dashboard (checkout → addresses, success → downloads, signup → dashboard) keeps the reader's language across the boundary.</li>
+        <li><code>eslint.config.js</code> — the dashboard pages and layout come off the <code>no-restricted-imports</code> exemption list. That exemption is what let ~19 raw <code>&lt;Link to="/dashboard/…"&gt;</code> call sites accumulate across eleven files; all eleven now use the localized variants and the linter holds the line.</li>
+        <li><code>ProtectedRoute</code> — redirected to the literal <code>"/login"</code>, so an expired session on <code>/es/dashboard</code> bounced the member to the <em>English</em> sign-in page. Its spinner label was hardcoded too.</li>
+        <li><code>pageSeo.shouldNoindex</code> — tested the raw pathname against unprefixed rules. Already wrong before this change: <code>/es/login</code>, <code>/es/signup</code>, <code>/es/checkout</code> and <code>/es/cart</code> are all mirrored and were all being served <code>index,follow</code> while their English twins were noindex.</li>
+        <li>A language control in the dashboard itself — the header from <code>lg</code>, the drawer below it. There was none, and now there is somewhere for it to go.</li>
+      </ul>
+    </dd>
+    <dt>Commit</dt><dd><code>48535996</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D3-1</span> Twelve hardcoded English title/subtitle pairs <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>Fixed</dt><dd><code>pageMeta</code> becomes <code>pageTitleKeys</code> — one i18n key per route, resolved through <code>nav.*</code>, the <em>same</em> key the sidebar entry uses. Twelve new strings were not needed: both locales already had these, and reusing them closes a drift the duplicate copy had acquired — you clicked "Orders" and landed on "Order History", clicked "Two-step verification" and landed on "Security · Two-Factor Auth". The <code>subtitle</code> half is deleted rather than translated: Tier 1 removed it from the header, so all twelve were dead strings.</dd>
+    <dt>Two mistakes worth recording</dt><dd>
+      <ul>
+        <li><b>The memo served the raw key forever.</b> <code>pageTitle</code> was a <code>useMemo</code> keyed on <code>[location.pathname, t]</code>. The <code>i18nReady</code> guard sits after every hook — it has to, or hook order changes between renders — so the memo still ran before the lazy <code>dashboard</code> bundle arrived, and react-i18next hands back a referentially stable <code>t</code>, so it never invalidated. The heading and the tab title both rendered the literal string <code>nav.orders</code>.</li>
+        <li><b>The lookup missed every Spanish route.</b> The map is unprefixed and the tree is now mounted twice, so keying on the raw pathname sent all seven Spanish routes to the fallback.</li>
+      </ul>
+    </dd>
+    <dt>Commit</dt><dd><code>48535996</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D3-1b</span> Every dashboard tab had the same title <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>/dashboard</code> appears in <code>pageSeo.js</code> only under <code>noindexPrefixes</code>; there is no <code>staticSeoByRoute</code> entry for any of the twelve routes, so all twelve fell through to <code>siteConfig.defaultTitle</code>. A member with orders, projects and support open saw the same 84-character marketing title on all three.</dd>
+    <dt>Fixed</dt><dd>A Helmet in <code>DashboardLayout</code>: <em>"&lt;page&gt; · Mustapha Ukizuru"</em> — page first, because the tab strip truncates from the right. It belongs there rather than in the global SEO manager because the title has to be translated, and doing it globally would pull 56 KB of dashboard strings into every public page load to title a page the public never sees.</dd>
+    <dt>Commit</dt><dd><code>48535996</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D3-2</span> Seven hand-rolled English <code>timeAgo</code> helpers <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>Each returned "just now" / "5m ago" / "2d ago" as literals. <code>Intl.RelativeTimeFormat</code> has been wrapped in <code>i18n/utils/formatters.js</code> since the i18n work landed.</dd>
+    <dt>Fixed</dt><dd>The three on surfaces a Spanish reader sees: the notification bell, and <code>ProductReviews</code> / <code>ServiceReviews</code>, which render on <code>/es</code> as well as <code>/</code> — so every review on the Spanish product and service pages carried an English timestamp. The four admin copies are left alone.</dd>
+    <dt>Also</dt><dd>In the bell, <code>aria-label="Notifications"</code>, the panel heading and <code>{n} unread</code> were bare English inside a component where everything else went through <code>t()</code>. <code>notifDropdown.unread</code> is pluralised.</dd>
+    <dt>Method</dt><dd>The eleven files were found by lint; the untranslated <em>strings</em> came from a scan over JSX text nodes and user-visible attributes across the whole dashboard tree. It reported 25 candidates, 22 of them false positives from JS comparison operators matching <code>&gt;…&lt;</code>. Worth stating because it is evidence of absence for the rest of the tree.</dd>
+    <dt>Commit</dt><dd><code>48535996</code></dd>
+  </dl>
+</div>
+
+<h2><span class="n">Tier 4</span>The readability floor, and what axe found underneath it</h2>
+<p class="tier-line">The floor was straightforward. Running the actual rule engine afterwards found six more things, two of which had been hiding behind a splash screen.</p>
+
+<div class="item">
+  <h3><span class="id">D4-3</span> 66 font sizes under the 12px floor <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>Fixed</dt><dd>Across 16 files: 9px and 10px → <code>text-micro</code> (10px on a phone, 11px from <code>lg</code>), 11px and 11.5px → <code>text-meta</code> (12/13px). Nothing below 12px remains in the dashboard, the portal or the project components. The typography ratchet's debt line drops from 1,625 usages to <span class="num-after">1,586</span>, and the sub-12px count it exists to shrink drops to 595 — all of it now in the public tree, which this audit did not cover. 12px is kept: it <em>is</em> the floor.</dd>
+    <dt>Commit</dt><dd><code>d9e57e3f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D4-4</span> A fixed overlay was covering every measurement <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>LoadingScreen</code> mounts at <code>z-9999</code> over the whole app on <em>every full page load</em>, for ~1.6 seconds, with the app held at <code>opacity: 0</code>. A signed-in member loading <code>/dashboard/orders</code> waits behind a marketing splash. It also made the earlier geometry tests non-deterministic — <code>networkidle</code> sometimes had already spent 1.6s and sometimes had not.</dd>
+    <dt>Fixed</dt><dd>The four dashboard specs set <code>ukz-splash-skip</code>, which is what a returning visitor has and what a signed-in member is by definition. Both findings below were invisible until this was fixed.</dd>
+    <dt>Commit</dt><dd><code>d9e57e3f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D4-5</span> <code>button-name</code> — the avatar upload overlay <span class="tag shipped">shipped</span> <span class="tag retracted">critical</span></h3>
+  <dl>
+    <dt>What</dt><dd>An icon-only button with no accessible name. An <code>aria-label</code> would have silenced axe and left the worse half in place: it is <code>opacity-0</code> until <code>group-hover</code>, so a keyboard user tabbed to a control that could not be seen, with no focus state to reveal it.</dd>
+    <dt>Fixed</dt><dd>It is a <em>mouse</em> affordance for an action with a visible labelled button eight lines below, firing the identical handler — so it leaves the tab order and the a11y tree rather than being named twice.</dd>
+    <dt>Commit</dt><dd><code>d9e57e3f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D4-6</span> <code>aria-progressbar-name</code> — five bars <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>Four in the member tree (overview, project detail, project card, portal) plus the splash's own, all carrying <code>aria-valuenow</code> with nothing to say what the number measured. The splash's is the first thing a screen reader meets on a cold load, and it announced a bare number.</dd>
+    <dt>Commit</dt><dd><code>d9e57e3f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D4-7</span> The skip button was tabbable while invisible <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>pointer-events-none</code> takes a control away from the mouse but <em>not</em> from the keyboard. For the first 1.6s of every cold load, Tab landed on the completely invisible "Skip splash" pill.</dd>
+    <dt>Fixed</dt><dd><code>disabled</code> + <code>aria-hidden</code> while hidden; the opacity transition still runs when it appears.</dd>
+    <dt>Commit</dt><dd><code>d9e57e3f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D4-8</span> <code>color-contrast</code> — the sidebar description, on all twelve routes <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>Measured</dt><dd>The active row's description was <code>text-violet/70</code>, compositing over the violet-pale active background at <span class="num-before">3.19:1</span>. Raising the alpha needs violet/90 to clear 4.5:1, which is the wrong lever — Brand v3 says reach for the darker sibling, not more alpha.</dd>
+    <dt>Fixed</dt><dd>The label above already carries the active violet in semibold, so the description goes neutral: <code>charcoal-80/65</code> measures <span class="num-after">4.96:1</span> on violet-pale, 5.32:1 on white and 5.12:1 on violet-ghost — every background this row has. One accent per row instead of two at different strengths.</dd>
+    <dt>Commit</dt><dd><code>d9e57e3f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D4-9</span> Two more contrast failures, and a mis-ordered colour ramp <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>Measured</dt><dd>
+      <table class="m">
+        <tr><td>Language switcher, inactive half</td><td class="num-before">3.83:1</td><td>→</td><td class="num-after">6.34:1</td></tr>
+        <tr><td>Profile status pill on mint-100</td><td class="num-before">3.54:1</td><td>→</td><td class="num-after">6.75:1</td></tr>
+        <tr><td>Profile "Active" on white</td><td class="num-before">3.19:1</td><td>→</td><td class="num-after">7.68:1</td></tr>
+      </table>
+    </dd>
+    <dt>Fixed</dt><dd>The switcher's inactive half goes <code>charcoal/55</code>→<code>/70</code> and is still visibly unselected; the dark tone is untouched (white/65 on charcoal-deep is 8.35:1 and the footer is its only dark call site). Both pills go to <code>mint-700</code>, the only step on the ramp that passes.</dd>
+    <dt>Worth knowing</dt><dd>Why <code>mint-800</code> was reached for: <b>the ramp is mis-ordered.</b> <code>mint-800</code> is a mid green while <code>mint-700</code> is nearly black, so the higher number is the <em>lighter</em> colour — the opposite of every other ramp in <code>index.css</code>. Left as it is; renumbering a shared ramp is not an accessibility fix.</dd>
+    <dt>Commit</dt><dd><code>d9e57e3f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D4-10</span> A systemic assertion: nothing focusable is invisible <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>Beyond the axe run, a test walks every focusable element in the shell and fails on any with computed <code>opacity: 0</code> still in the tab order (<code>sr-only</code> excluded — it is a painted 1px box that reveals itself on focus). No rule in axe's default set covers that, and it is the shape both D4-5 and D4-7 took.</dd>
+    <dt>Commit</dt><dd><code>d9e57e3f</code></dd>
+  </dl>
+</div>
+
+<h2><span class="n">Tier 5</span>An archived project that still offered a door</h2>
+
+<div class="item">
+  <h3><span class="id">D5-1</span> The expired-project card <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>Correction to my own finding</dt><dd>The tier described this as a card that leads to an error. It does not. <code>DashboardProjectDetailPage</code> already catches the 410, maps it to an <code>EXPIRED</code> sentinel and renders a proper panel — that was there before this branch, and it is the right backstop because it also covers a bookmark. So this is smaller than the tier claimed.</dd>
+    <dt>What is still wrong</dt><dd><code>GET /member/projects</code> returns every project the account owns, expired ones included, with nothing to distinguish them — same title colour, same status pill, same "Open project" button — and the click then leads to a page showing nothing but the explanation. One navigation to read one sentence.</dd>
+    <dt>Fixed</dt><dd>The list route presents every row through the <em>same</em> <code>presentForMember</code> the detail route uses, so a card and a detail response carry one <code>access</code> shape. Reusing the presenter matters for a reason unrelated to expiry: it <em>withholds</em> things — a list built by hand would have shipped the staging preview URL of a project whose access is suspended for non-payment. On the card, an expired project loses its link and carries the explanation inline.</dd>
+    <dt>Not done, deliberately</dt><dd>The row is still returned — the message is "contact support if you need its files", which a client cannot act on about a project that silently vanished. A project <em>closed</em> but inside the grace window is not marked: it is read-only, not gone, and there is a test pinning that boundary.</dd>
+    <dt>Verify</dt><dd><code>test/memberProjectList.test.js</code>, 10 cases.</dd>
+    <dt>Commit</dt><dd><code>81f75d9b</code></dd>
+  </dl>
+</div>
+
+<h2><span class="n">Tier 6</span>Nine screens of project page, down to six</h2>
+<p class="tier-line">Measured at 375×812 with six milestones and six files — a small project, not a big one.</p>
+
+<div class="item">
+  <h3><span class="id">D6-3</span> A 4:3 box holding a 40px icon <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd><code>FileTile</code> reserves an <code>aspect-[4/3]</code> panel for a thumbnail — 257px tall on a 375px phone. Most deliverables are PDFs and render a generic 40px icon in it, so six of them measured 430px each: <span class="num-before">2,577px</span>, a third of the page, to show six file names.</dd>
+    <dt>Fixed</dt><dd>Images keep the aspect ratio, because for them the box <em>is</em> the content. Everything else gets a 5rem strip — same badges, same layout, <span class="num-after">1,487px</span>. <code>PurgedTile</code> gets it unconditionally: a purged file has no thumbnail by definition.</dd>
+    <dt>Commit</dt><dd><code>a17a345f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D6-4</span> Six reply boxes for one intention <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>Every milestone card rendered its own comment textarea — six on the page at ~135px each. This is the argument T5-20 already made one section below, where three message boxes became one: a client facing several empty boxes has to classify their own message before they can write it.</dd>
+    <dt>Fixed</dt><dd>Existing comments still render unconditionally — those are content. The box that produces new ones is one tap away. It stays <em>open</em> on <code>awaiting_client</code>: that is the milestone where the client is being asked to respond, and hiding the reply there would hide the point of the screen. The test asserts exactly one open box and five toggles.</dd>
+    <dt>Measured</dt><dd>Milestone cards <span class="num-before">265–295px</span> → <span class="num-after">169–199px</span>; the one awaiting review keeps its 373px. Timeline 1,901px → 945px.</dd>
+    <dt>Commit</dt><dd><code>a17a345f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D6-5</span> 55% of a new project was boxes saying nothing is here <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>Measured</dt><dd>Nine empty placeholders, <span class="num-before">1,767px of a 3,237px page</span>, ranging from 68px to 284px — so they did not even read as the same kind of thing. Five were <code>EmptyStateSurface</code> at <code>md</code>, where a 56px stacked icon plus a heading plus a sentence is ~270px.</dd>
+    <dt>Fixed</dt><dd><code>EmptyStateSurface</code> gains an <code>xs</code> step that lays the icon <em>beside</em> the copy rather than above it — that layout change is the point of the step, not the smaller padding. It lands near 90px, matching the dashed strips the same page already used. The six project panels take it; page-level empty states keep <code>md</code>. After: <span class="num-after">868px, range 68–110px</span>.</dd>
+    <dt>Commit</dt><dd><code>a17a345f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D6-1</span> Anchors, and a jump bar <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>What</dt><dd>Ten sections, no in-page navigation, and the only way to reach the invoices was to scroll past all of them.</dd>
+    <dt>Fixed</dt><dd><code>SectionBlock</code> becomes a real <code>&lt;section&gt;</code> with an id and <code>scroll-mt-20</code> — the scroll margin is load-bearing, not decoration: the header is sticky, so without it an anchor jump puts the heading underneath the header and the reader sees the wrong section title. Above the timeline, a horizontally-scrollable row of chips built from the sections that <em>actually</em> render.</dd>
+    <dt>Deliberately not sticky</dt><dd>A second sticky strip would cost ~40px of an 812px viewport permanently and has to be stacked against a header that is already <code>sticky top-0 z-30</code> — the same class of interaction that put the bottom tab bar off screen in D2-3. This solves the case that happens (arriving and wanting one section) at zero layout cost.</dd>
+    <dt>Commit</dt><dd><code>a17a345f</code></dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D6-2</span> A workaround I wrote and then deleted <span class="tag retracted">reverted</span></h3>
+  <dl>
+    <dt>What I built</dt><dd>Every chip click routed through the Lenis instance with an explicit <code>-80</code> offset, on the theory that <code>SmoothScrollProvider</code> owns the scroll position and a native hash jump would fight it. I had a number that seemed to prove it: clicking "Invoices" left the heading 353px down the viewport, repeatably.</dd>
+    <dt>What measuring showed</dt><dd>
+      <ul>
+        <li>Native lands the heading <b>176px</b> from the top on every target; the Lenis path landed it at <b>256</b> — the explicit offset double-counts the CSS scroll margin the browser had already applied. The workaround was <em>worse</em> than doing nothing.</li>
+        <li>The 353px was taken before the empty-state work shortened the page. <code>#invoices</code> then began past the maximum scroll position on a 375px screen, so it could not reach the top of the viewport at all. Clamping, not interference.</li>
+      </ul>
+    </dd>
+    <dt>Status</dt><dd>Deleted. The anchors are plain anchors, and the reasoning is in the source, because "why is there no scroll handler here" is a question the next person will otherwise answer by adding one.</dd>
+  </dl>
+</div>
+
+<div class="item">
+  <h3><span class="id">D6-6</span> Result <span class="tag shipped">shipped</span></h3>
+  <dl>
+    <dt>Measured at 375×812</dt><dd>
+      <table class="m">
+        <tr><td>Busy project</td><td class="num-before">7,268px · 9 screens</td><td>→</td><td class="num-after">5,234px · 6.4</td></tr>
+        <tr><td>Brand-new project</td><td class="num-before">3,237px · 4 screens</td><td>→</td><td class="num-after">2,337px · 2.9</td></tr>
+        <tr><td>Same page at 1440×900</td><td class="num-before">5,297px · 5.9</td><td>→</td><td class="num-after">4,542px · 5.0</td></tr>
+      </table>
+    </dd>
+    <dt>Commit</dt><dd><code>a17a345f</code></dd>
+  </dl>
+</div>
+
+<h2>Owner steps owed at deploy</h2>
+<div class="item">
+  <dl>
+    <dt>Required</dt><dd>
+      <ul>
+        <li><code>ANALYTICS_HASH_SALT</code> in the host <code>.env</code>, at least 32 characters — <code>REQUIRED_ENV</code> in <code>src/config/env.js</code> exits 1 on boot without it.</li>
+        <li>A production <code>db push</code> for the schema additions on this branch. hPanel's git deploy runs neither <code>prisma generate</code> nor <code>db push</code>.</li>
+        <li><code>npm run seed:email</code> — 45 EN + 45 ES templates.</li>
+      </ul>
+    </dd>
+    <dt>Optional</dt><dd>
+      <ul>
+        <li><code>SECRET_HANDOFF_KEY=$(openssl rand -hex 32)</code>.</li>
+        <li>Move the Mercado Pago and PayPal webhook URLs to <code>/api/v1</code>.</li>
+        <li>Install <code>@lhci/cli</code> <b>by that exact name</b> — <code>npx lhci</code> installs a squatted package — then <code>npm run stats:build</code>.</li>
+      </ul>
+    </dd>
+    <dt>Note</dt><dd>Production was answering 503 at the time of this audit. Check <code>/api/v1/health</code> before concluding anything else is wrong — a dead Prisma engine has presented as an auth failure here before.</dd>
+  </dl>
+</div>
+
+<h2>Gates at the last commit</h2>
+<div class="item">
+  <dl>
+    <dt>Backend</dt><dd>1,900 jest across 130 suites; coverage thresholds; <code>npm run lint:server</code> clean.</dd>
+    <dt>Frontend</dt><dd>210 vitest across 14 files; 128 Playwright; eslint 0 errors; design-token, contrast, shadow, typography and palette gates; i18n smoke plus en/es key parity at 0 mismatches across all 18 namespaces.</dd>
+    <dt>New specs</dt><dd><code>dashboard-shell</code> (23), <code>dashboard-touch</code> (6), <code>dashboard-i18n</code> (11), <code>dashboard-a11y</code> (4), <code>project-detail-ia</code> (9), <code>memberProjectEndpoints</code> (17), <code>memberProjectList</code> (10), <code>format.test</code> (13).</dd>
+    <dt>Bundle</dt><dd>Rebuilt and committed in the same change as every <code>web/src</code> edit, per ADR 0001.</dd>
+  </dl>
+</div>
+
+<p class="foot">
+  Member dashboard audit &nbsp;/&nbsp; v1, 5 September 2026 &nbsp;/&nbsp;
+  built on <code>build/waves</code>, commits <code>c3cb0ffb</code> … <code>a17a345f</code> &nbsp;/&nbsp;
+  <b>not pushed, not deployed, production database untouched</b> &nbsp;/&nbsp;
+  every "shipped" stamp names the commit that closed it.
+</p>
+
+<script type="application/json" id="audit-source">
+{
+  "version": 1,
+  "date": "2026-09-05",
+  "branch": "build/waves",
+  "commit_range": ["c3cb0ffb", "a17a345f"],
+  "deployed": false,
+  "fields": ["what", "why_it_survived", "fixed", "measured", "verify", "commit"],
+  "tiers": {
+    "0": ["Things that were broken, not ugly", "Endpoints answering 500, dates off by a day, a guard that was never wired."],
+    "1": ["The shell in the screenshot", "Card tops bleeding above the header, a sidebar with rows sliced in half."],
+    "2": ["The phone", "Two defects that only exist at phone width, and were in no screenshot."],
+    "3": ["The dashboard could not be read in Spanish", "1,078 translated keys that had never rendered."],
+    "4": ["The readability floor, and what axe found underneath it", "66 sub-floor sizes, then six more findings behind a splash screen."],
+    "5": ["An archived project that still offered a door", "A list that did not carry the lifecycle the detail route enforces."],
+    "6": ["Nine screens of project page, down to six", "Wasted thumbnails, six duplicate reply boxes, no in-page navigation."]
+  },
+  "rejected_before_reporting": [
+    "dark-mode contrast — the washed-out first render was the cookie-consent scrim",
+    "ProfileTabs not scrolling — it does; only the affordance was missing",
+    "the admin surface being untranslated — English by convention, admin.json is 86 bytes",
+    "xl: utilities compiling to nothing — Tailwind v4 emits 80rem, so a 1280px grep finds nothing"
+  ],
+  "retracted_after_building": ["D0-5", "D6-2"],
+  "items": [
+    {"id": "D0-1", "tier": 0, "status": "shipped", "commit": "c3cb0ffb", "title": "Four member endpoints answered 500"},
+    {"id": "D0-2", "tier": 0, "status": "shipped", "commit": "78228976", "title": "Every due date was a day early"},
+    {"id": "D0-3", "tier": 0, "status": "shipped", "commit": "c3cb0ffb", "title": "The rate limiter's documented response was orphaned"},
+    {"id": "D0-4", "tier": 0, "status": "shipped", "commit": "c3cb0ffb", "title": "A 12 KB ESM duplicate in a CommonJS tree"},
+    {"id": "D0-5", "tier": 0, "status": "retracted", "commit": null, "title": "The legacy /api mount would break 60 SPA call sites"},
+    {"id": "D1-1", "tier": 1, "status": "shipped", "commit": "170a52fc", "title": "Content scrolled through a 16px window above the header"},
+    {"id": "D1-2", "tier": 1, "status": "shipped", "commit": "170a52fc", "title": "A sticky header taking 31% of the screen"},
+    {"id": "D1-3", "tier": 1, "status": "shipped", "commit": "170a52fc", "title": "441px of navigation you could not reach"},
+    {"id": "D1-4", "tier": 1, "status": "shipped", "commit": "170a52fc", "title": "The 1024-1279 band"},
+    {"id": "D4-1", "tier": 1, "status": "shipped", "commit": "170a52fc", "title": "Two <h1> per page"},
+    {"id": "D2-1", "tier": 2, "status": "shipped", "commit": "6f25b423", "title": "47 tap targets under 44px"},
+    {"id": "D2-2", "tier": 2, "status": "shipped", "commit": "6f25b423", "title": "One element clipped off a 375px screen"},
+    {"id": "D2-3", "tier": 2, "status": "shipped", "commit": "6f25b423", "title": "The primary navigation on a phone was not on screen"},
+    {"id": "D2-4", "tier": 2, "status": "shipped", "commit": "6f25b423", "title": "Tabs that scrolled with nothing saying so"},
+    {"id": "D2-5", "tier": 2, "status": "decision", "commit": "6f25b423", "title": "768-1023 keeps the phone shell"},
+    {"id": "D2-6", "tier": 2, "status": "shipped", "commit": "6f25b423", "title": "The drawer had a second, independent bug underneath"},
+    {"id": "D3-1", "tier": 3, "status": "shipped", "commit": "48535996", "title": "Twelve hardcoded English title/subtitle pairs"},
+    {"id": "D3-1b", "tier": 3, "status": "shipped", "commit": "48535996", "title": "Every dashboard tab had the same title"},
+    {"id": "D3-2", "tier": 3, "status": "shipped", "commit": "48535996", "title": "Seven hand-rolled English timeAgo helpers"},
+    {"id": "D3-3", "tier": 3, "status": "shipped", "commit": "48535996", "title": "No URL existed that would render the dashboard in Spanish"},
+    {"id": "D4-3", "tier": 4, "status": "shipped", "commit": "d9e57e3f", "title": "66 font sizes under the 12px floor"},
+    {"id": "D4-4", "tier": 4, "status": "shipped", "commit": "d9e57e3f", "title": "A fixed overlay was covering every measurement"},
+    {"id": "D4-5", "tier": 4, "status": "shipped", "commit": "d9e57e3f", "title": "button-name: the avatar upload overlay"},
+    {"id": "D4-6", "tier": 4, "status": "shipped", "commit": "d9e57e3f", "title": "aria-progressbar-name: five bars"},
+    {"id": "D4-7", "tier": 4, "status": "shipped", "commit": "d9e57e3f", "title": "The skip button was tabbable while invisible"},
+    {"id": "D4-8", "tier": 4, "status": "shipped", "commit": "d9e57e3f", "title": "color-contrast: the sidebar description, on all twelve routes"},
+    {"id": "D4-9", "tier": 4, "status": "shipped", "commit": "d9e57e3f", "title": "Two more contrast failures, and a mis-ordered colour ramp"},
+    {"id": "D4-10", "tier": 4, "status": "shipped", "commit": "d9e57e3f", "title": "A systemic assertion: nothing focusable is invisible"},
+    {"id": "D5-1", "tier": 5, "status": "shipped", "commit": "81f75d9b", "title": "The expired-project card"},
+    {"id": "D6-1", "tier": 6, "status": "shipped", "commit": "a17a345f", "title": "Anchors, and a jump bar"},
+    {"id": "D6-2", "tier": 6, "status": "retracted", "commit": null, "title": "A Lenis scroll workaround, written and deleted"},
+    {"id": "D6-3", "tier": 6, "status": "shipped", "commit": "a17a345f", "title": "A 4:3 box holding a 40px icon"},
+    {"id": "D6-4", "tier": 6, "status": "shipped", "commit": "a17a345f", "title": "Six reply boxes for one intention"},
+    {"id": "D6-5", "tier": 6, "status": "shipped", "commit": "a17a345f", "title": "55% of a new project was boxes saying nothing is here"},
+    {"id": "D6-6", "tier": 6, "status": "shipped", "commit": "a17a345f", "title": "Result: 9 screens to 6.4 on a phone"}
+  ],
+  "owner_steps": {
+    "required": [
+      "ANALYTICS_HASH_SALT in the host .env, >= 32 chars",
+      "production db push for this branch's schema additions",
+      "npm run seed:email (45 EN + 45 ES)"
+    ],
+    "optional": [
+      "SECRET_HANDOFF_KEY=$(openssl rand -hex 32)",
+      "move the MP and PayPal webhook URLs to /api/v1",
+      "install @lhci/cli by that exact name, then npm run stats:build"
+    ],
+    "note": "Production was answering 503 at the time of this audit; check /api/v1/health first."
+  },
+  "gates": {
+    "jest": {"tests": 1900, "suites": 130},
+    "vitest": {"tests": 210, "files": 14},
+    "playwright": {"tests": 128},
+    "eslint_web_errors": 0,
+    "eslint_server": "clean",
+    "design_gates": ["token", "contrast", "shadow", "typography", "palette"],
+    "i18n": {"smoke": "pass", "en_es_parity_mismatches": 0, "namespaces": 18}
+  }
+}
+</script>
+
+</div>
+</body>
+</html>
