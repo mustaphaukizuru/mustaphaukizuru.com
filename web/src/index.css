@@ -316,25 +316,16 @@ a { text-decoration: none; }
   a { color: inherit; }
 }
 
-/* Kept, but no longer load-bearing: with the reset layered above each of
-   these resolves to the same value its utility already sets. Retiring
-   !important across the app is T3-2's job, not this commit's. */
-a.text-white         { color: var(--color-text-on-dark) !important; }
-a.text-mist          { color: var(--color-mist)  !important; }
-a.text-violet        { color: var(--color-violet) !important; }
-a.text-charcoal,
-a.text-charcoal-80   { color: var(--color-charcoal) !important; }
-
-/* Opacity-modifier variants (Tailwind v4 syntax: text-white/85, text-white/70,
-   text-white/90, etc.). The `a { color: inherit }` reset above swallows these
-   when Tailwind's color-mix() utility hasn't generated a class because the base
-   color isn't registered in @theme. The attribute selector below is a safety
-   net — any anchor that *intends* white text gets it, regardless of opacity
-   suffix. Opacity remains best-effort (we keep solid white here so links stay
-   readable on dark surfaces); use a class outside <a> if you need partial
-   white. Brand v3 § 04 — Tier 1 Cloud Mist on dark surfaces. */
-a[class*="text-white/"] { color: var(--color-text-on-dark) !important; }
-a[class*="text-mist/"]  { color: var(--color-mist) !important; }
+/* T3-2 · the seven `!important` anchor patches that used to sit here are
+   gone. Their own comment already recorded that the layered reset above had
+   made them redundant; two of them were worse than redundant. The attribute
+   selectors `a[class*="text-white/"]` and `a[class*="text-mist/"]` forced
+   SOLID white on any anchor written as `text-white/60`, so a footer link
+   asking for 60% got 100% and the muted/prominent distinction the designer
+   drew simply did not exist on links. Removing them restores the opacity the
+   author asked for, and web/e2e/dark-mode.spec.js now checks that an anchor
+   keeps its own colour utility — which is the bug this whole block grew
+   around. */
 
 button, input, textarea, select { font: inherit; }
 img, video { max-width: 100%; display: block; }

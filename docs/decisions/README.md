@@ -8,14 +8,14 @@ One short file per decision a future contributor would otherwise reopen: context
 
 **`proposed`** — *not decided.* The record exists so the question is visible and does not get answered by accident, in a hurry, by whoever touches that code next. A proposed record states what is true today, the options, and what blocks the choice. Nothing in it is a decision, and no code depends on one. Whoever decides edits that file to `accepted` in the same change as the code.
 
-Two records below are `proposed` because deciding them would have meant inventing an answer: one waits on a design decision (T3-2), and one is a pricing call with revenue consequences that belongs to the owner (T2-11).
+One record below is `proposed` because deciding it would mean inventing an answer: a pricing call with revenue consequences that belongs to the owner (T2-11).
 
-0006 was `proposed` for the same reason and is now `accepted`: T5-2 built the endpoint it governs, so the question stopped being hypothetical and was answered in that change — which is exactly the transition this folder is for.
+0006 was `proposed` for the same reason and is now `accepted`: T5-2 built the endpoint it governs, so the question stopped being hypothetical and was answered in that change — which is exactly the transition this folder is for. 0002 made the same transition in T3-2: the dark-mode scope is decided (operator-only), with the cost of the alternative measured rather than guessed and the condition that would reopen it written down.
 
 | # | Decision | Status | Item |
 |---|---|---|---|
 | [0001](0001-tracked-spa-bundle.md) | The SPA bundle is committed, not built on the server | accepted | T1-7 |
-| [0002](0002-public-dark-mode-scope.md) | How far dark mode reaches | **proposed** | T3-2 |
+| [0002](0002-public-dark-mode-scope.md) | How far dark mode reaches | accepted | T3-2 |
 | [0003](0003-product-currency.md) | Store prices are MXN, and the figures were wrong | accepted | T2-4 |
 | [0004](0004-spanish-register-tu.md) | Spanish addresses the reader as `tú` | accepted | T2-5 / T2-8 |
 | [0005](0005-gated-plan-tiers.md) | The expensive plan tiers are scoped on a call | accepted | T2-4 |

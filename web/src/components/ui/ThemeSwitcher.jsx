@@ -52,15 +52,48 @@ function systemPrefersDark() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
 }
 
+/**
+ * Browser chrome colour per theme, read from the palette rather than typed.
+ *
+ * Royal Violet is the brand answer in light mode; in dark it would put a
+ * bright violet bar above a near-black page on Android and iOS, which reads
+ * as a rendering bug rather than as branding. Charcoal Deep is the canvas
+ * the dark dashboard actually paints.
+ *
+ * Resolved from the CSS variables at call time — a literal hex here would be
+ * the palette restated in a second place, which is the drift the token gate
+ * exists to prevent (it caught exactly that on the first version of this).
+ */
+const THEME_COLOR_VAR = { light: "--color-violet", dark: "--color-charcoal-deep" }
+
+function themeColor(effective) {
+  try {
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(THEME_COLOR_VAR[effective])
+      .trim()
+    return value || null
+  } catch {
+    return null
+  }
+}
+
 function applyTheme(theme) {
   if (typeof document === "undefined") return
   // Brand v3.1 §00 — System (and any non-explicit theme) resolves to
   // Light. Users who want dark must select Dark explicitly. This is
   // the brand-canonical-light guarantee: an OS-dark visitor never lands
   // on a dark dashboard before they've expressed an explicit preference.
+  //
+  // index.html runs this same resolution in a blocking script before first
+  // paint (T3-2). Keep the two in step: the key, the values, and the rule
+  // that anything but an explicit "dark" is light.
   const effective = theme === "dark" ? "dark" : "light"
   document.documentElement.setAttribute("data-theme", effective)
   document.documentElement.style.colorScheme = effective
+
+  const meta = document.querySelector('meta[name="theme-color"]')
+  const color = themeColor(effective)
+  if (meta && color) meta.setAttribute("content", color)
 }
 
 /**

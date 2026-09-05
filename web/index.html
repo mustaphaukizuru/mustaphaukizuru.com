@@ -9,6 +9,34 @@
          Safari from styling random number sequences (years, prices) as links. -->
     <meta name="format-detection" content="telephone=no" />
     <meta name="color-scheme" content="light" />
+
+    <!-- ────────────────────────────────────────────────────────────────
+         T3-2 · pre-paint the stored theme.
+
+         useTheme applies data-theme in a useEffect, which runs after the
+         first paint — so a dashboard user who chose dark got a full white
+         frame on every reload before the page repainted. This is the only
+         fix for that: it has to be BLOCKING, in the head, before any
+         stylesheet resolves.
+
+         Deliberately tiny and deliberately duplicated from ThemeSwitcher's
+         readStored(): the two agree on the key ("theme"), the valid values,
+         and the rule that anything other than an explicit "dark" resolves
+         to light (Brand v3.1 §00). A test asserts they stay in step.
+
+         try/catch because localStorage throws outright in a locked-down
+         browser, and a theme preference is not worth a blank page.
+         ──────────────────────────────────────────────────────────────── -->
+    <script>
+      (function () {
+        try {
+          var t = window.localStorage.getItem("theme");
+          var effective = t === "dark" ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", effective);
+          document.documentElement.style.colorScheme = effective;
+        } catch (e) { /* private mode, blocked storage — light is the default anyway */ }
+      })();
+    </script>
     <meta name="author" content="Mustapha Ukizuru" />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="alternate" type="application/rss+xml" title="MUSTAPHA UKIZURU Blog" href="/feed.xml" />
