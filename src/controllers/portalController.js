@@ -1,6 +1,9 @@
 const asyncHandler = require("../utils/asyncHandler")
 const prisma = require("../lib/prisma")
 const fsp = require("fs/promises")
+const fs = require("fs")
+const projectInvoices = require("../services/projectInvoiceService")
+const { invoicePathFor } = require("../services/invoiceService")
 const { requestPin, verifyPin, loadPortalProject, loadProjectByToken } = require("../services/portalAccessService")
 const { setPortalCookie, clearPortalCookie } = require("../utils/portalCookie")
 const { sendProjectFile } = require("./clientProjectController")
@@ -98,4 +101,47 @@ const uploadRequestFiles = asyncHandler(async (req, res) => {
   }
 })
 
-module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles }
+/** GET /portal/me/invoices  (T5-4) */
+const listInvoices = asyncHandler(async (req, res) => {
+  const data = await projectInvoices.listForProject(req.portal.projectId, { portal: true })
+  res.json({ success: true, data })
+})
+
+/**
+ * GET /portal/me/invoices/:invoiceId/pdf  (T5-4)
+ *
+ * The order-scoped route cannot serve a portal visitor: its gate is an
+ * owner-or-admin check against a SESSION, and a portal holder has none.
+ * findForProject is the replacement check — the invoice must sit on one of
+ * the orders this portal's project is billed through — and it returns null
+ * rather than throwing so "no such invoice" and "not yours" answer alike.
+ */
+const downloadInvoice = asyncHandler(async (req, res) => {
+  const invoice = await projectInvoices.findForProject(req.params.invoiceId, req.portal.projectId)
+  if (!invoice) {
+    return res.status(404).json({ success: false, code: "NOT_FOUND", message: "Invoice not found" })
+  }
+
+  const diskPath = invoicePathFor(invoice.invoiceNumber)
+  if (!fs.existsSync(diskPath)) {
+    return res.status(404).json({ success: false, code: "INVOICE_FILE_MISSING", message: "Invoice file not found" })
+  }
+
+  res.setHeader("Content-Type", "application/pdf")
+  // attachment, not inline: a portal visitor is usually on the link someone
+  // forwarded them, and a download is the thing they came for.
+  res.setHeader("Content-Disposition", `attachment; filename="${invoice.invoiceNumber}.pdf"`)
+  res.setHeader("Cache-Control", "private, no-store")
+
+  const stream = fs.createReadStream(diskPath)
+  stream.on("error", () => {
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, code: "STREAM_ERROR", message: "Could not stream invoice" })
+    } else {
+      res.end()
+    }
+  })
+  stream.pipe(res)
+})
+
+module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice }

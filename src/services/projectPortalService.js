@@ -233,6 +233,10 @@ function presentForMember(project, lc) {
       suspended,
       handover:  state === "handover",
     },
+    // T5-4 · billing, when the caller has resolved it. Left undefined rather
+    // than defaulted to zero: "no invoices" and "not looked up" are different
+    // claims, and a UI showing "0 due" for the second one is wrong.
+    ...(project.billing ? { billing: project.billing } : {}),
   }
 }
 

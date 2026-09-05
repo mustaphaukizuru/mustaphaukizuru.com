@@ -4,6 +4,7 @@ const {
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
   listTickets, getTicket, createTicket, replyTicket,
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
+  listInvoices,
 } = require("../controllers/clientProjectController")
 const { protect } = require("../middleware/authMiddleware")
 const { uploadRateLimiter, ticketRateLimiter } = require("../middleware/rateLimiter")
@@ -18,6 +19,9 @@ router.get("/:id",                       getMine)
 // Authenticated, ownership-scoped file download. Replaces the previous
 // direct-static path which exposed every project file to anyone with a URL.
 router.get("/:id/files/:fileId/download", streamFile)
+// T5-4 · the project's invoices. Ownership is checked in the handler via
+// loadOwnedProject, the same gate every other member read uses.
+router.get("/:id/invoices",               listInvoices)
 
 // ── Tier 2 · client collaboration (ownership + lifecycle checked in service) ──
 router.post("/:id/files",                                  uploadRateLimiter, uploadProjectFile.many, uploadFiles)

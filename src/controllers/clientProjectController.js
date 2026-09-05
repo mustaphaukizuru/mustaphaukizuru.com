@@ -1,6 +1,7 @@
 const path = require("path")
 const fs   = require("fs")
 const asyncHandler = require("../utils/asyncHandler")
+const projectInvoices = require("../services/projectInvoiceService")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const fsp = require("fs/promises")
@@ -8,7 +9,7 @@ const { listMyProjects, getMyProject } = require("../services/clientProjectServi
 const {
   assertReadable, previewCanFrame, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
   ndaStatus, applyNdaGate, acceptAgreement,
-  presentForMember, assertDeliverableAccess,
+  presentForMember, assertDeliverableAccess, loadOwnedProject,
 } = require("../services/projectPortalService")
 const { STORAGE_PATHS } = require("../config/storagePaths")
 const supportService = require("../services/supportService")
@@ -363,9 +364,30 @@ function sendProjectFile({ file, req, res, userId, action }) {
   stream.pipe(res)
 }
 
+/**
+ * GET /member/projects/:id/invoices  (T5-4)
+ *
+ * The invoices already existed; they were just findable only from a bare
+ * order page. loadOwnedProject is what proves this member may see them.
+ */
+const listInvoices = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    // Ownership first, then the read. Skipping this would let any signed-in
+    // member list any project's billing by id.
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const data = await projectInvoices.listForProject(req.params.id)
+    res.json({ success: true, data })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
 module.exports = {
   listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
+  listInvoices,
   listTickets, getTicket, createTicket, replyTicket,
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
 }

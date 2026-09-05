@@ -31,6 +31,9 @@ const router = express.Router()
 
 router.get ("/me/project",                 portalAuth, c.getProject)
 router.get ("/me/files/:fileId/download",  portalAuth, c.downloadFile)
+// T5-4 · invoices beside the work, not on a bare order page.
+router.get ("/me/invoices",                portalAuth, c.listInvoices)
+router.get ("/me/invoices/:invoiceId/pdf", portalAuth, c.downloadInvoice)
 // T5-3 · the portal's first write. Order matters:
 //   portalAuth        → verifies mu_portal, populates req.portal
 //   projectIdForUpload → multer's destination reads req.params.id, which this
