@@ -57,6 +57,16 @@ router.post(
   c.uploadRequestFiles,
 )
 
+// T5-8 · the second door. ABOVE /:token, like /me — a tracking code is not
+// 64 hex characters, so it would fall through to the token handler and be
+// refused as an invalid link rather than reaching this one.
+//
+// The same two limiters as the token routes, and that is not a formality:
+// this door takes a SHAREABLE code, so without them anyone holding one could
+// mail the project owner at will.
+router.post("/by-code/:code/pin",          portalPinRateLimiter,    c.sendPinByCode)
+router.post("/by-code/:code/verify",       portalVerifyRateLimiter, c.verifyByCode)
+
 router.post("/logout",                     c.logout)
 
 router.get ("/:token",                     c.probe)

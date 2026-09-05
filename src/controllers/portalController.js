@@ -7,7 +7,10 @@ const readReceipts = require("../services/readReceiptService")
 const projectEvents = require("../services/projectEventService")
 const fileRequests = require("../services/projectFileRequestService")
 const { invoicePathFor } = require("../services/invoiceService")
-const { requestPin, verifyPin, loadPortalProject, loadProjectByToken } = require("../services/portalAccessService")
+const {
+  requestPin, verifyPin, loadPortalProject, loadProjectByToken,
+  requestPinByCode, verifyPinByCode,
+} = require("../services/portalAccessService")
 const { setPortalCookie, clearPortalCookie } = require("../utils/portalCookie")
 const { sendProjectFile } = require("./clientProjectController")
 const { ndaStatus, attachClientFiles } = require("../services/projectPortalService")
@@ -49,6 +52,32 @@ const verify = asyncHandler(async (req, res) => {
 const logout = asyncHandler(async (_req, res) => {
   clearPortalCookie(res)
   res.status(200).json({ success: true })
+})
+
+/* ── T5-8 · the second door: a tracking code instead of a link ──────────
+ *
+ * Identical to the two handlers above in everything that matters. The code
+ * resolves the project; the PIN still goes to the address on file; the
+ * cookie issued is the same mu_portal with the same TTL. Only the way the
+ * project was found differs, which is the point — a second door, not a
+ * second lock.
+ */
+
+/** POST /portal/by-code/:code/pin */
+const sendPinByCode = asyncHandler(async (req, res) => {
+  try {
+    const data = await requestPinByCode(req.params.code, { locale: resolveUserLocale({ req }) })
+    res.status(200).json({ success: true, data })
+  } catch (e) { return portalError(res, e) }
+})
+
+/** POST /portal/by-code/:code/verify { pin } */
+const verifyByCode = asyncHandler(async (req, res) => {
+  try {
+    const { token, projectId, projectName } = await verifyPinByCode(req.params.code, req.body?.pin)
+    setPortalCookie(res, token)
+    res.status(200).json({ success: true, data: { projectId, projectName } })
+  } catch (e) { return portalError(res, e) }
 })
 
 /** GET /portal/me/project — read-only project view (portalAuth). */
@@ -170,4 +199,5 @@ const downloadInvoice = asyncHandler(async (req, res) => {
   stream.pipe(res)
 })
 
-module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice, listEvents, listFileRequests }
+module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles, listInvoices, downloadInvoice, listEvents, listFileRequests,
+  sendPinByCode, verifyByCode }

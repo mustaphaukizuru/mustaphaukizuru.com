@@ -1289,7 +1289,16 @@
       "expected": "Next expected {{date}}"
     },
     "timezone": "Times shown in {{zone}}",
-    "rescheduled": "Date moved"
+    "rescheduled": "Date moved",
+    "door": {
+      "sendPin": "Email me a PIN",
+      "sent": "We sent a 6-digit PIN to the address on this project.",
+      "sentTo": "We sent a 6-digit PIN to {{email}}.",
+      "pinLabel": "6-digit PIN",
+      "open": "Open",
+      "failed": "We could not send the PIN. Try again in a moment.",
+      "pinFailed": "That PIN is wrong or has expired. Ask for a new one."
+    }
   },
   "timeline": {
     "emptyTitle": "Nothing here yet",

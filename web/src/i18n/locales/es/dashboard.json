@@ -1289,7 +1289,16 @@
       "expected": "Lo siguiente se espera el {{date}}"
     },
     "timezone": "Horarios en {{zone}}",
-    "rescheduled": "Fecha movida"
+    "rescheduled": "Fecha movida",
+    "door": {
+      "sendPin": "Envíenme un PIN",
+      "sent": "Enviamos un PIN de 6 dígitos al correo de este proyecto.",
+      "sentTo": "Enviamos un PIN de 6 dígitos a {{email}}.",
+      "pinLabel": "PIN de 6 dígitos",
+      "open": "Entrar",
+      "failed": "No pudimos enviar el PIN. Inténtalo de nuevo en un momento.",
+      "pinFailed": "Ese PIN es incorrecto o ya venció. Pide uno nuevo."
+    }
   },
   "timeline": {
     "emptyTitle": "Todavía no hay nada",

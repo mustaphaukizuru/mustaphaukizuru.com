@@ -22,6 +22,23 @@ export async function requestPortalPin(token) {
 export async function verifyPortalPin(token, pin) {
   return stripData(await apiRequest(`${base(token)}/verify`, { method: "POST", body: JSON.stringify({ pin }) }))
 }
+/* ── T5-8 · the second door ─────────────────────────────────────────────
+ *
+ * The same PIN handshake, reached by the tracking code instead of the magic
+ * link — for a client who deleted the email, or who was given the code over
+ * the phone. The code is not a credential: all it does is cause a PIN to be
+ * sent to the address on the project, which the holder may well not control.
+ */
+const byCode = (code) => `/api/v1/portal/by-code/${encodeURIComponent(code)}`
+
+export async function requestPortalPinByCode(code) {
+  return stripData(await apiRequest(`${byCode(code)}/pin`, { method: "POST", body: JSON.stringify({}) }))
+}
+
+export async function verifyPortalPinByCode(code, pin) {
+  return stripData(await apiRequest(`${byCode(code)}/verify`, { method: "POST", body: JSON.stringify({ pin }) }))
+}
+
 /** Read-only project view for the cookie's project. */
 export async function fetchPortalProject() {
   return stripData(await apiRequest("/api/v1/portal/me/project"))

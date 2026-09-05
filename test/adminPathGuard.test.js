@@ -143,6 +143,12 @@ describe("the public surface is a written list, not an accident", () => {
     "/experience", "/education", "/certificates", "/skills", "/cv.pdf", "/proof",
     // A consultation confirmation link carries its own single-use token.
     "/by-token",
+    // T5-8 · the portal's second door. Unauthenticated for the same reason
+    // /portal/:token/pin is: it cannot require the cookie it exists to
+    // issue. Holding a tracking code only causes a PIN to be sent to the
+    // address on the PROJECT, so the code opens a door rather than
+    // unlocking one — and both routes carry the same tight limiters.
+    "/by-code",
   ]
   const isAllowedPublic = (p) =>
     PUBLIC_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`) || p.startsWith(`${prefix}:`))

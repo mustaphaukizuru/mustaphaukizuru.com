@@ -23,11 +23,12 @@ import { m, useReducedMotion } from "framer-motion"
 import {
   Search, PackageSearch, ArrowRight, ArrowLeft, FileWarning, LayoutDashboard,
   KeyRound, Loader2, CheckCircle2, Circle, CircleDot, Copy, Check,
-  CalendarClock, TriangleAlert, Clock3,
+  CalendarClock, TriangleAlert, Clock3, Mail,
 } from "lucide-react"
 
 import { LocalizedLink as Link } from "../components/LocalizedLink"
 import useLocalizedNavigate from "../hooks/useLocalizedNavigate"
+import { requestPortalPinByCode, verifyPortalPinByCode } from "../services/portalService"
 import Seo from "../components/seo/Seo"
 import { Button, Input, InlineBanner } from "../components/ui"
 import ProjectTimeline from "../components/projects/ProjectTimeline"
@@ -254,6 +255,97 @@ function PhaseStrip({ status, percent }) {
         </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * The second door (T5-8).
+ *
+ * A client who has the code but not the emailed link had nowhere to go from
+ * this page — asking for a new link is a message to a person, which is the
+ * friction the portal exists to remove. This is the same PIN handshake,
+ * inline, without leaving the page.
+ *
+ * WHAT HOLDING THE CODE BUYS YOU, WHICH IS ALMOST NOTHING
+ *
+ * A PIN sent to the address on the PROJECT — an inbox the holder of a
+ * forwarded code very likely does not control. The code stays what ADR 0006
+ * says it is: shareable, and not a credential.
+ */
+function PortalDoor({ code }) {
+  const { t } = useTranslation("dashboard")
+  const navigate = useLocalizedNavigate()
+  const [stage, setStage] = useState("idle")   // idle | sent | verifying
+  const [hint, setHint] = useState(null)
+  const [pin, setPin] = useState("")
+  const [error, setError] = useState("")
+  const [busy, setBusy] = useState(false)
+
+  const send = async () => {
+    setBusy(true)
+    setError("")
+    try {
+      const data = await requestPortalPinByCode(code)
+      setHint(data?.emailHint || null)
+      setStage("sent")
+    } catch (e) {
+      setError(e?.message || t("track.door.failed"))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const verify = async (event) => {
+    event.preventDefault()
+    setBusy(true)
+    setError("")
+    try {
+      await verifyPortalPinByCode(code, pin)
+      // The cookie is set; the portal reads it and needs no token in the URL.
+      navigate("/portal")
+    } catch (e) {
+      setError(e?.message || t("track.door.pinFailed"))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (stage === "idle") {
+    return (
+      <div className="mt-3">
+        <Button size="sm" variant="secondary" disabled={busy} onClick={send}>
+          {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Mail className="size-4" aria-hidden="true" />}
+          {t("track.door.sendPin")}
+        </Button>
+        {error ? <p className="mt-2 text-meta text-rose-700">{error}</p> : null}
+      </div>
+    )
+  }
+
+  return (
+    <form className="mt-3" onSubmit={verify}>
+      <p className="mb-2 text-meta text-charcoal-80/70">
+        {hint ? t("track.door.sentTo", { email: hint }) : t("track.door.sent")}
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input
+          inputClass="font-mono tracking-[0.3em] text-center"
+          className="flex-1"
+          value={pin}
+          onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          placeholder="000000"
+          aria-label={t("track.door.pinLabel")}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={6}
+        />
+        <Button type="submit" size="sm" disabled={busy || pin.length !== 6} className="shrink-0">
+          {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
+          {t("track.door.open")}
+        </Button>
+      </div>
+      {error ? <p className="mt-2 text-meta text-rose-700">{error}</p> : null}
+    </form>
   )
 }
 
@@ -516,14 +608,15 @@ export default function TrackPage() {
                 carries no portal token, so signing in is what unlocks
                 anything actionable. */}
             <section className="grid gap-4 sm:grid-cols-2">
-              <Link
-                to={project.links?.portal || "/portal"}
-                className="group rounded-xl border border-charcoal-80/10 bg-white p-5 transition-colors hover:border-violet"
-              >
+              {/* T5-8 · not a link any more. The client already HAS the code
+                  — sending them to /portal to be asked for a link they do
+                  not have was the dead end this replaces. */}
+              <div className="rounded-xl border border-charcoal-80/10 bg-white p-5">
                 <KeyRound className="mb-3 size-5 text-violet" aria-hidden="true" />
                 <p className="text-body font-medium text-charcoal-80">{t("track.doorPortal")}</p>
                 <p className="mt-1 text-meta text-charcoal-80/70">{t("track.doorPortalBody")}</p>
-              </Link>
+                <PortalDoor code={project.reference} />
+              </div>
               <Link
                 to={project.links?.dashboard || "/dashboard/projects"}
                 className="group rounded-xl border border-charcoal-80/10 bg-white p-5 transition-colors hover:border-violet"

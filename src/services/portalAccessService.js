@@ -22,6 +22,7 @@
 
 const crypto = require("crypto")
 const { signJwt } = require("../utils/jwt")
+const { normalizeTrackingCode } = require("../utils/trackingCode")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { lifecycle, previewCanFrame, ndaStatus } = require("./projectPortalService")
@@ -102,6 +103,48 @@ async function loadProjectByToken(token) {
   return project
 }
 
+/**
+ * T5-8 · the same project, reached by its TRACKING CODE instead of a link.
+ *
+ * The second door exists because the first one is a link somebody has to
+ * still have. A client who deleted the email, or who was told the code over
+ * the phone, could see the tracking page and had no way through to their
+ * files — and asking for a new magic link is a message to a person, which
+ * is exactly the friction the portal was built to remove.
+ *
+ * WHAT THIS DOES NOT CHANGE, AND IT IS THE WHOLE SECURITY ARGUMENT
+ *
+ * The code is not a credential and does not become one here (ADR 0006). All
+ * it does is cause a PIN to be sent to the ADDRESS ON THE PROJECT — which
+ * the holder of the code may well not control. Possession of a code gets you
+ * a page of progress and an email in somebody else's inbox; only that inbox
+ * gets you in. That is the same property the magic link has always had.
+ *
+ * The lifecycle gate is the same too: an expired project is unreachable by
+ * either door. What is deliberately NOT checked is portalTokenExpiresAt —
+ * this door does not use the token, and refusing on a stale one would make
+ * the code useless in exactly the case it is most useful.
+ */
+async function loadProjectByCode(rawCode) {
+  const code = normalizeTrackingCode(rawCode)
+  // The same answer as an unknown code, for the same reason the tracking
+  // endpoint gives one: a distinguishable "malformed" tells a sweep which
+  // guesses were the right SHAPE.
+  if (!code) throw err("No project matches that code", "PORTAL_CODE_INVALID", 404)
+
+  const project = await prisma.clientProject.findUnique({
+    where:  { trackingCode: code },
+    select: {
+      id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true,
+      portalTokenExpiresAt: true,
+      user: { select: { id: true, email: true, fullName: true } },
+    },
+  })
+  if (!project) throw err("No project matches that code", "PORTAL_CODE_INVALID", 404)
+  if (lifecycle(project).isExpired) throw err("This project is no longer available", "PROJECT_EXPIRED", 410)
+  return project
+}
+
 /* ── 2 · request a PIN ─────────────────────────────────────────────────── */
 
 function generatePin() {
@@ -109,7 +152,22 @@ function generatePin() {
 }
 
 async function requestPin(token, { locale } = {}) {
-  const project = await loadProjectByToken(token)
+  return requestPinForProject(await loadProjectByToken(token), { locale })
+}
+
+/** T5-8 · the same PIN, for a project reached by its tracking code. */
+async function requestPinByCode(code, { locale } = {}) {
+  return requestPinForProject(await loadProjectByCode(code), { locale })
+}
+
+/**
+ * Everything after the project is loaded, shared by both doors.
+ *
+ * Split out rather than duplicated: the PIN generation, the TTL and the
+ * template are the security-relevant part, and two copies is two things to
+ * keep in step.
+ */
+async function requestPinForProject(project, { locale } = {}) {
   const email = project.user?.email
   if (!email) throw err("No contact address on this project", "PORTAL_NO_EMAIL", 409)
 
@@ -140,7 +198,15 @@ function safeEqual(a, b) {
 }
 
 async function verifyPin(token, pin) {
-  const project = await loadProjectByToken(token)
+  return verifyPinForProject(await loadProjectByToken(token), pin)
+}
+
+/** T5-8 · the same verification, for a project reached by its code. */
+async function verifyPinByCode(code, pin) {
+  return verifyPinForProject(await loadProjectByCode(code), pin)
+}
+
+async function verifyPinForProject(project, pin) {
   const given = String(pin || "").replace(/\s+/g, "")
   if (!/^\d{6}$/.test(given)) throw err("Enter the 6-digit PIN from your email", "VALIDATION_ERROR", 400)
 
@@ -199,6 +265,9 @@ async function loadPortalProject({ projectId, userId }) {
 }
 
 module.exports = {
+  loadProjectByCode,
+  requestPinByCode,
+  verifyPinByCode,
   mintPortalLink, requestPin, verifyPin, loadPortalProject, loadProjectByToken,
   portalLinkExpiry, maskEmail, generatePin,
   OTP_PURPOSE, OTP_TTL_MS, PORTAL_JWT_TTL, OPEN_PROJECT_LINK_DAYS,

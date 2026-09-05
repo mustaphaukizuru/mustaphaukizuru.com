@@ -198,6 +198,13 @@ describe("one unauthenticated route, and it is the one we meant", () => {
     // Same rate limiter as the lookup, so it is not a way around that one.
     "/track · GET /:code/digest-opt-out",
     "/portal · POST /logout",
+    // T5-8 · the second door. Unauthenticated for the same reason the PIN
+    // handshake above is: they cannot require the cookie they exist to
+    // issue. Holding the code only causes a PIN to be sent to the address on
+    // the PROJECT, so the code opens a door rather than unlocking one — and
+    // both carry the same tight limiters as the token routes.
+    "/portal · POST /by-code/:code/pin",
+    "/portal · POST /by-code/:code/verify",
     "/portal · GET /:token",
     "/portal · POST /:token/pin",
     "/portal · POST /:token/verify",
