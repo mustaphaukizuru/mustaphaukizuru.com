@@ -442,7 +442,7 @@ export default function MessagesPanel({
           icon={MessageSquare}
           title={t("projects.messages.empty")}
           description={t("projects.messages.emptyBody")}
-          size="sm"
+          size="xs"
         />
       ) : (
         <ul className="space-y-3" aria-label={t("projects.messages.title")}>

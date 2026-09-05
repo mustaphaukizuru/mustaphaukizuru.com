@@ -156,7 +156,7 @@ export default function HoursLedger({
         icon={Clock}
         title={t("projects.hours.empty")}
         description={t("projects.hours.emptyBody")}
-        size="sm"
+        size="xs"
         className={className}
       />
     )

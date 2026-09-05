@@ -134,7 +134,9 @@
         "roleTeam": "Team",
         "roleClient": "Client",
         "resolved": "Resolved",
-        "readOnly": "This project is read-only; new messages are disabled."
+        "readOnly": "This project is read-only; new messages are disabled.",
+        "replyToggle": "Reply",
+        "commentToggle": "Comment on this milestone"
       },
       "access": {
         "suspendedTitle": "Project paused — an invoice is overdue",
@@ -154,7 +156,8 @@
         "changesRequested": "Your change request was sent to the team.",
         "uploaded": "Files uploaded.",
         "failed": "Something went wrong. Please try again."
-      }
+      },
+      "sectionNavAria": "Jump to a section"
     },
     "review": {
       "title": "How did this project go?",

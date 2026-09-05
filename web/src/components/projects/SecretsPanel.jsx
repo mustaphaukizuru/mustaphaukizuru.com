@@ -225,7 +225,7 @@ export default function SecretsPanel({
           icon={KeyRound}
           title={t("projects.secrets.empty")}
           description={t("projects.secrets.emptyBody")}
-          size="sm"
+          size="xs"
         />
       ) : (
         <ul className="space-y-3" aria-label={t("projects.secrets.title")}>

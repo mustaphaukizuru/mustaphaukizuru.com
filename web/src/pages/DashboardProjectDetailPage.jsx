@@ -148,6 +148,9 @@ export default function DashboardProjectDetailPage() {
 
   const access = project.access || { readOnly: false, isClosed: false, expiresAt: null, state: "active" }
   const readOnly = Boolean(access.readOnly)
+  // Hoisted out of the JSX so the jump bar and the section cannot disagree
+  // about whether there is an hours block to point at.
+  const showHours = Boolean(panels.hours?.allowance || panels.hours?.months?.some((m) => m.entries.length > 0))
   const suspended = access.state === "suspended"
   const handover = access.state === "handover"
   const milestones = project.milestones || []
@@ -276,8 +279,27 @@ export default function DashboardProjectDetailPage() {
         </div>
       </div>
 
+      {/* D6-2 · in-page navigation. Built from the sections that ACTUALLY
+          render — preview, handover and hours are conditional, and a chip
+          pointing at an anchor that does not exist is worse than no chip. */}
+      <SectionNav
+        label={t("projects.detail.sectionNavAria")}
+        items={[
+          { id: "timeline", label: t("projects.detail.timeline") },
+          ...(project.previewUrl ? [{ id: "preview", label: t("projects.detail.preview.title") }] : []),
+          ...(handover ? [{ id: "handover", label: t("projects.detail.handover.title") }] : []),
+          { id: "file-requests", label: t("fileRequests.title") },
+          { id: "deliverables", label: t("projects.detail.deliverables") },
+          { id: "messages", label: t("projects.messages.title") },
+          { id: "invoices", label: t("invoices.title") },
+          ...(showHours ? [{ id: "hours", label: t("projects.hours.title") }] : []),
+          { id: "secrets", label: t("projects.secrets.title") },
+          { id: "activity", label: t("track.activity") },
+        ]}
+      />
+
       {/* Milestones */}
-      <SectionBlock title={t("projects.detail.timeline")} subtitle={t("projects.detail.milestones", { count: milestones.length })}>
+      <SectionBlock id="timeline" title={t("projects.detail.timeline")} subtitle={t("projects.detail.milestones", { count: milestones.length })}>
         {milestones.length === 0 ? (
           <div className={EMPTY}>{t("projects.detail.noMilestones")}</div>
         ) : milestones.map((ms, idx) => (
@@ -298,7 +320,7 @@ export default function DashboardProjectDetailPage() {
 
       {/* Preview */}
       {project.previewUrl && (
-        <SectionBlock title={t("projects.detail.preview.title")} subtitle={t("projects.detail.preview.subtitle")}>
+        <SectionBlock id="preview" title={t("projects.detail.preview.title")} subtitle={t("projects.detail.preview.subtitle")}>
           <div className={CARD}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
@@ -333,7 +355,7 @@ export default function DashboardProjectDetailPage() {
 
       {/* Tier 4 · handover: final deliverables, served only with a zero balance */}
       {handover && (
-        <SectionBlock title={t("projects.detail.handover.title")} subtitle={t("projects.detail.handover.subtitle")}>
+        <SectionBlock id="handover" title={t("projects.detail.handover.title")} subtitle={t("projects.detail.handover.subtitle")}>
           <FileGallery
             projectId={project.id}
             files={deliverables}
@@ -348,7 +370,7 @@ export default function DashboardProjectDetailPage() {
           the only block on this page that asks the client to DO something,
           and burying it under three galleries is how a project stalls for a
           fortnight over one missing PDF. */}
-      <SectionBlock title={t("fileRequests.title")}>
+      <SectionBlock id="file-requests" title={t("fileRequests.title")}>
         <FileRequestPanel
           requests={panels.requests}
           loading={panels.loading}
@@ -359,7 +381,7 @@ export default function DashboardProjectDetailPage() {
       </SectionBlock>
 
       {/* Files */}
-      <SectionBlock title={t("projects.detail.deliverables")} subtitle={t("projects.detail.files", { count: files.length })}>
+      <SectionBlock id="deliverables" title={t("projects.detail.deliverables")} subtitle={t("projects.detail.files", { count: files.length })}>
         {!readOnly && (
           <Dropzone
             projectId={project.id}
@@ -390,7 +412,7 @@ export default function DashboardProjectDetailPage() {
           a support form and a change-request form — and had to classify
           their own message before they could send it. The models are
           unchanged; only the presentation merges. */}
-      <SectionBlock title={t("projects.messages.title")}>
+      <SectionBlock id="messages" title={t("projects.messages.title")}>
         <MessagesPanel
           projectId={project.id}
           readOnly={readOnly}
@@ -403,7 +425,7 @@ export default function DashboardProjectDetailPage() {
 
       {/* T5-5 · the bills for this piece of work, rather than on a bare order
           page the client cannot connect to the project. */}
-      <SectionBlock title={t("invoices.title")}>
+      <SectionBlock id="invoices" title={t("invoices.title")}>
         <ProjectInvoices
           invoices={panels.invoices}
           billing={panels.billing}
@@ -419,8 +441,8 @@ export default function DashboardProjectDetailPage() {
       {/* T5-18 · hours against the plan's monthly allowance. Rendered only
           when there is something to say: a project that is not a retainer and
           has no logged time gets no empty panel. */}
-      {(panels.hours?.allowance || panels.hours?.months?.some((m) => m.entries.length > 0)) ? (
-        <SectionBlock title={t("projects.hours.title")}>
+      {showHours ? (
+        <SectionBlock id="hours" title={t("projects.hours.title")}>
           <div className={CARD}>
             <HoursLedger ledger={panels.hours} projectId={project.id} loading={panels.loading} />
           </div>
@@ -429,7 +451,7 @@ export default function DashboardProjectDetailPage() {
 
       {/* T5-13 · credentials never travel as files. Read once, then the
           server destroys its copy. */}
-      <SectionBlock title={t("projects.secrets.title")}>
+      <SectionBlock id="secrets" title={t("projects.secrets.title")}>
         <div className={CARD}>
           <SecretsPanel
             secrets={panels.secrets}
@@ -442,7 +464,7 @@ export default function DashboardProjectDetailPage() {
       </SectionBlock>
 
       {/* T5-5 · the same timeline component the portal and /track render. */}
-      <SectionBlock title={t("track.activity")}>
+      <SectionBlock id="activity" title={t("track.activity")}>
         <ProjectTimeline events={panels.events} loading={panels.loading} />
       </SectionBlock>
     </section>
@@ -657,7 +679,9 @@ function PurgedTile({ file: f, t }) {
   const { icon: Icon, label, chip } = getFileTypeStyles(f.fileName || f.fileType)
   return (
     <li className="flex h-full flex-col overflow-hidden rounded-xl border border-dashed border-charcoal-80/15 bg-charcoal-80/5 opacity-80">
-      <div className="relative flex aspect-[4/3] items-center justify-center">
+      {/* D6-3 · a purged file has no thumbnail by definition — the file is
+          gone. It was still reserving a 4:3 box for one. */}
+      <div className="relative flex h-20 items-center justify-center">
         <Icon className="h-10 w-10 text-charcoal-80" aria-hidden="true" />
         <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-micro font-bold ${chip}`}>{label}</span>
       </div>
@@ -679,13 +703,78 @@ function BackLink({ t }) {
   )
 }
 
-function SectionBlock({ title, subtitle, children }) {
+/* D6-1 · a real <section> with an id, because the page needs anchors.
+ *
+ * `scroll-mt-20` is not decoration: the dashboard header is sticky, so an
+ * anchor jump lands the heading UNDER it without a scroll margin. 20 is the
+ * mobile header (~62px) plus room; the desktop wrapper is taller but its
+ * heading still clears. */
+function SectionBlock({ id, title, subtitle, children }) {
   return (
-    <div>
+    <section id={id} className="scroll-mt-20">
       <h2 className="text-card font-bold text-violet">{title}</h2>
       {subtitle && <p className="mt-0.5 text-meta text-charcoal-80/65">{subtitle}</p>}
       <div className="mt-4 space-y-3">{children}</div>
-    </div>
+    </section>
+  )
+}
+
+/* D6-2 · the jump bar.
+ *
+ * Measured with six milestones and six files: 7,268px on a 375px phone —
+ * NINE screens — and 5,297px on a 1440 desktop. Ten sections, and the only
+ * way to reach the invoices was to scroll past all of them.
+ *
+ * Deliberately NOT sticky. A second sticky strip under the header would cost
+ * ~40px of an 812px viewport permanently and has to be stacked against a
+ * header that is already `sticky top-0 z-30` on mobile and z-20 on desktop —
+ * the same class of interaction that put the bottom tab bar off-screen in
+ * D2-3. This solves the case that actually happens (arriving and wanting one
+ * section) at zero layout cost and with no z-index to get wrong. If "jump
+ * back from the bottom" turns out to matter, a scroll-to-top affordance is
+ * the cheaper answer than making this stick.
+ *
+ * Plain anchors, and that is a conclusion rather than the easy option.
+ *
+ * SmoothScrollProvider mounts Lenis against document.documentElement on
+ * every page, which is exactly the setup where a native hash jump usually
+ * fights the library. A version of this routed the click through the Lenis
+ * instance with an explicit -80 offset — and measuring the two side by side,
+ * reloading between every case, showed the workaround was for a problem that
+ * is not there: native lands the heading 176px from the top of the viewport
+ * on every target, and the Lenis path landed it at 256, because the explicit
+ * offset double-counts the CSS scroll margin the browser had already
+ * applied. Lenis only intercepts wheel and touch, which is what its own docs
+ * say and what SmoothScrollProvider's header says too.
+ *
+ * (The reading that sent me down that path was 353px on "Invoices", taken
+ * before the empty-state work shortened the page. That section then began
+ * past the maximum scroll position, so it could not reach the top of the
+ * screen at all. Clamping, not interference.)
+ */
+function SectionNav({ items, label }) {
+  if (items.length < 3) return null
+  return (
+    <nav aria-label={label} className="group relative -mx-1">
+      <ul className="flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-1">
+        {items.map((s) => (
+          <li key={s.id} className="snap-start">
+            <a
+              href={`#${s.id}`}
+              className="inline-flex items-center whitespace-nowrap rounded-full border border-charcoal-80/10 bg-white px-3 py-2 text-micro font-semibold text-charcoal-80/75 transition hover:border-violet/30 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+            >
+              {s.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+      {/* Same right-edge fade as ProfileTabs: the row scrolls on a phone and
+          nothing else says so. */}
+      <div
+        className="pointer-events-none absolute inset-y-0 end-0 w-8 bg-gradient-to-l from-mist to-transparent sm:hidden"
+        aria-hidden="true"
+      />
+    </nav>
   )
 }
 
@@ -700,6 +789,10 @@ function MilestoneCard({ milestone: ms, index, comments, readOnly, label, onAppr
   const Icon = MILESTONE_ICON[ms.status] || Hourglass
   const tone = MILESTONE_TONE[ms.status] || MILESTONE_TONE.pending
   const awaiting = ms.status === "awaiting_client" && !readOnly
+  // D6-4 · open on the milestone that is waiting for the client, closed on
+  // the rest. `useState(awaiting)` and not an effect: `awaiting` only changes
+  // when the project payload changes, which remounts this card anyway.
+  const [replyOpen, setReplyOpen] = useState(awaiting)
 
   const closeAll = () => { setApproveOpen(false); setChangesOpen(false); setNote(""); setFormError("") }
 
@@ -804,17 +897,50 @@ function MilestoneCard({ milestone: ms, index, comments, readOnly, label, onAppr
             />
           </Modal>
 
+          {/* D6-4 · the reply box is now asked for, not always there.
+            *
+            * Every milestone rendered its own textarea, so a six-milestone
+            * project put SIX of them on one page — about 135px each, and the
+            * single largest reason the timeline measured 1,901px on a phone.
+            *
+            * This is the same argument T5-20 already made one section below,
+            * where three message boxes became one: a client facing several
+            * empty boxes has to decide which one their message belongs in
+            * before they can write it. Existing comments still show
+            * unconditionally — those are content. The box that produces new
+            * ones is one tap away.
+            *
+            * It stays OPEN on `awaiting_client`, because that is the
+            * milestone where the client is the one being asked to say
+            * something, and hiding the reply there would be hiding the point
+            * of the screen. */}
           {(comments.length > 0 || !readOnly) && (
             <div className="mt-4 border-t border-charcoal-80/10 pt-3">
               <CommentList comments={comments} compact t={t} />
-              <ReplyBox
-                className={comments.length ? "mt-3" : ""}
-                compact
-                readOnly={readOnly}
-                placeholder={t("projects.detail.thread.milestonePlaceholder")}
-                onSubmit={(body) => onComment({ body, milestoneId: ms.id })}
-                t={t}
-              />
+              {!readOnly && (replyOpen ? (
+                <ReplyBox
+                  className={comments.length ? "mt-3" : ""}
+                  compact
+                  readOnly={readOnly}
+                  placeholder={t("projects.detail.thread.milestonePlaceholder")}
+                  onSubmit={async (body) => {
+                    await onComment({ body, milestoneId: ms.id })
+                    if (!awaiting) setReplyOpen(false)
+                  }}
+                  t={t}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setReplyOpen(true)}
+                  className={`inline-flex items-center gap-1.5 py-2 -my-2 text-micro font-semibold text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${comments.length ? "mt-3" : ""}`}
+                >
+                  <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+                  {comments.length
+                    ? t("projects.detail.thread.replyToggle")
+                    : t("projects.detail.thread.commentToggle")}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -938,7 +1064,14 @@ function FileTile({ projectId, file: f, locked = false, t }) {
         {...wrapperProps}
         className={`group flex h-full flex-col overflow-hidden rounded-xl border bg-white transition ${locked ? "cursor-not-allowed border-rose/20 opacity-70" : "border-charcoal-80/10 hover:border-violet/30 hover:shadow-[var(--shadow-e3)]"}`}
       >
-        <div className="relative flex aspect-[4/3] items-center justify-center bg-charcoal-80/5">
+        {/* D6-3 · the 4:3 box is for a PICTURE, and most deliverables are not
+            one. A PDF got a 257px-tall panel on a 375px phone to hold a 40px
+            icon, so six of them measured 2,577px — a third of the whole
+            page. Non-image tiles get a 5rem strip instead: same badges, same
+            layout, 1,800px back on a phone and 1,000px on a desktop.
+            Images keep the aspect ratio, because for them the box IS the
+            content. */}
+        <div className={`relative flex items-center justify-center bg-charcoal-80/5 ${isImage && !locked ? "aspect-[4/3]" : "h-20"}`}>
           {isImage && !locked ? (
             <img src={href} alt={f.fileName} loading="lazy" decoding="async" onError={() => setImgFailed(true)} className="h-full w-full object-cover" />
           ) : (

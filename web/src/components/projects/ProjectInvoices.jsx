@@ -73,6 +73,7 @@ export default function ProjectInvoices({
   if (!invoices.length) {
     return (
       <EmptyStateSurface
+        size="xs"
         icon={Receipt}
         title={t("invoices.emptyTitle")}
         description={t("invoices.emptyBody")}

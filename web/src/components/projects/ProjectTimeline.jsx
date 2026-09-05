@@ -128,6 +128,7 @@ export default function ProjectTimeline({
   if (!shown.length) {
     return (
       <EmptyStateSurface
+        size="xs"
         icon={Circle}
         title={t("timeline.emptyTitle")}
         description={t("timeline.emptyBody")}

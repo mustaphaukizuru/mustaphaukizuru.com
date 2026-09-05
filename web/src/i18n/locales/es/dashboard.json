@@ -134,7 +134,9 @@
         "roleTeam": "Equipo",
         "roleClient": "Cliente",
         "resolved": "Resuelto",
-        "readOnly": "Este proyecto es de solo lectura; los mensajes nuevos están deshabilitados."
+        "readOnly": "Este proyecto es de solo lectura; los mensajes nuevos están deshabilitados.",
+        "replyToggle": "Responder",
+        "commentToggle": "Comentar este hito"
       },
       "access": {
         "suspendedTitle": "Proyecto en pausa — hay una factura vencida",
@@ -154,7 +156,8 @@
         "changesRequested": "Tu solicitud de cambios fue enviada al equipo.",
         "uploaded": "Archivos subidos.",
         "failed": "Algo salió mal. Inténtalo de nuevo."
-      }
+      },
+      "sectionNavAria": "Ir a una sección"
     },
     "review": {
       "title": "¿Cómo fue este proyecto?",

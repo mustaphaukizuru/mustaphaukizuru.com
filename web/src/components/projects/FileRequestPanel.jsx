@@ -151,6 +151,7 @@ export default function FileRequestPanel({
   if (!requests.length) {
     return (
       <EmptyStateSurface
+        size="xs"
         icon={Inbox}
         title={t("fileRequests.emptyTitle")}
         description={t("fileRequests.emptyBody")}
