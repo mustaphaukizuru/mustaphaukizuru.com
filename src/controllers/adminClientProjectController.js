@@ -6,6 +6,8 @@ const { sendProjectFile, resolveSafePath } = require("./clientProjectController"
 const { createComment, resolveComment, onMilestoneAwaitingClient } = require("../services/projectPortalService")
 const { mintPortalLink } = require("../services/portalAccessService")
 const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
+const fileRequests = require("../services/projectFileRequestService")
+const { notify } = require("../services/notificationService")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
@@ -331,6 +333,66 @@ async function fetchUserEmail(userId) {
   return u?.email || null
 }
 
+/* ── Document requests (T5-3) ─────────────────────────────────────────────
+ * Asking a client for a file, as a row rather than an email thread. The
+ * client is notified in-app immediately; the email is T5-6 and lands once
+ * its templates are seeded.
+ */
+
+/** GET /admin/client-projects/:id/file-requests */
+const listFileRequests = asyncHandler(async (req, res) => {
+  const rows = await fileRequests.listForProject(req.params.id)
+  res.json({ success: true, data: rows.map((r) => fileRequests.serialize(r)) })
+})
+
+/** POST /admin/client-projects/:id/file-requests */
+const addFileRequest = asyncHandler(async (req, res) => {
+  const { request, project } = await fileRequests.createRequest(req.params.id, req.body, {
+    requestedById: req.user?.id || null,
+  })
+
+  // Best-effort: the request exists whether or not the client can be told
+  // right now, and a failed notification must not lose it.
+  notify(project.userId, {
+    type: "project",
+    title: "A document is needed",
+    message: request.title,
+    linkUrl: `/dashboard/projects/${project.id}?request=${request.id}`,
+  }).catch((e) => logger.warn(`[fileRequest] notify failed: ${e.message}`))
+
+  res.status(201).json({ success: true, data: fileRequests.serialize(request) })
+})
+
+/** PATCH /admin/client-projects/:id/file-requests/:reqId */
+const reviewFileRequest = asyncHandler(async (req, res) => {
+  const updated = await fileRequests.reviewRequest(req.params.reqId, {
+    action: req.body?.action,
+    reviewNote: req.body?.reviewNote,
+  })
+
+  const project = await prisma.clientProject.findUnique({
+    where: { id: updated.projectId },
+    select: { id: true, userId: true },
+  })
+  if (project) {
+    const TITLE = {
+      accepted:  "Document accepted",
+      rejected:  "Document needs changes",
+      cancelled: "Document no longer needed",
+    }[updated.status]
+    if (TITLE) {
+      notify(project.userId, {
+        type: "project",
+        title: TITLE,
+        message: updated.reviewNote || updated.title,
+        linkUrl: `/dashboard/projects/${project.id}?request=${updated.id}`,
+      }).catch((e) => logger.warn(`[fileRequest] notify failed: ${e.message}`))
+    }
+  }
+
+  res.json({ success: true, data: fileRequests.serialize(updated) })
+})
+
 module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
@@ -338,4 +400,5 @@ module.exports = {
   addAdminComment, toggleResolveComment, replyProjectTicket,
   createPortalLink, createCaseStudy, sendReviewRequest,
   quoteChangeRequest, completeChangeRequest,
+  listFileRequests, addFileRequest, reviewFileRequest,
 }

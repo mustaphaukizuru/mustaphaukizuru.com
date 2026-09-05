@@ -1,9 +1,10 @@
 const asyncHandler = require("../utils/asyncHandler")
 const prisma = require("../lib/prisma")
+const fsp = require("fs/promises")
 const { requestPin, verifyPin, loadPortalProject, loadProjectByToken } = require("../services/portalAccessService")
 const { setPortalCookie, clearPortalCookie } = require("../utils/portalCookie")
 const { sendProjectFile } = require("./clientProjectController")
-const { ndaStatus } = require("../services/projectPortalService")
+const { ndaStatus, attachClientFiles } = require("../services/projectPortalService")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
 
 function portalError(res, e) {
@@ -69,4 +70,32 @@ const downloadFile = asyncHandler(async (req, res) => {
   return sendProjectFile({ file, req, res, userId, action: "project.file.downloaded.portal" })
 })
 
-module.exports = { probe, sendPin, verify, logout, getProject, downloadFile }
+/**
+ * POST /portal/me/file-requests/:reqId/files  (T5-3)
+ *
+ * The portal's FIRST write. Everything else behind `mu_portal` is a GET,
+ * which is why that cookie had no CSRF pair until now — it has one as of this
+ * change, and csrf.js engages on it, because an httpOnly sameSite=lax cookie
+ * plus a state-changing route is precisely what CSRF is.
+ *
+ * Delegates to the same attachClientFiles the logged-in dashboard uses, with
+ * the identity taken from the verified portal token rather than a session.
+ */
+const uploadRequestFiles = asyncHandler(async (req, res) => {
+  const files = req.files || (req.file ? [req.file] : [])
+  try {
+    const rows = await attachClientFiles({
+      userId: req.portal.userId,
+      projectId: req.portal.projectId,
+      files,
+      fileRequestId: req.params.reqId,
+    })
+    res.status(201).json({ success: true, data: rows })
+  } catch (e) {
+    // Never leave orphaned bytes when the write was refused.
+    await Promise.all(files.map((f) => fsp.unlink(f.path).catch(() => null)))
+    return portalError(res, e)
+  }
+})
+
+module.exports = { probe, sendPin, verify, logout, getProject, downloadFile, uploadRequestFiles }

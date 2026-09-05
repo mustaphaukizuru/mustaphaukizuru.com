@@ -6,6 +6,7 @@ const {
   addAdminComment, toggleResolveComment, replyProjectTicket,
   createPortalLink, createCaseStudy,
   quoteChangeRequest, completeChangeRequest,
+  listFileRequests, addFileRequest, reviewFileRequest,
 } = require("../controllers/adminClientProjectController")
 const { protect, adminOnly } = require("../middleware/authMiddleware")
 const uploadProjectFile = require("../middleware/uploadProjectFile")
@@ -28,6 +29,12 @@ router.patch ("/:id/milestones/:milestoneId", patchMilestone)
 router.delete("/:id/milestones/:milestoneId", removeMilestone)
 
 router.post  ("/:id/files",                 uploadProjectFile, uploadFile)
+
+// T5-3 · document requests. Same protect + adminOnly as everything else
+// in this router (applied by the router.use above).
+router.get   ("/:id/file-requests",              listFileRequests)
+router.post  ("/:id/file-requests",              addFileRequest)
+router.patch ("/:id/file-requests/:reqId",       reviewFileRequest)
 router.delete("/:id/files/:fileId",         removeFile)
 router.get   ("/:id/files/:fileId/download", downloadFile)
 

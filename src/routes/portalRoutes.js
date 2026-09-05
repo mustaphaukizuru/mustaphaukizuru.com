@@ -13,12 +13,43 @@
 const express = require("express")
 const c = require("../controllers/portalController")
 const { portalAuth } = require("../middleware/portalAuth")
-const { portalPinRateLimiter, portalVerifyRateLimiter } = require("../middleware/rateLimiter")
+const { portalPinRateLimiter, portalVerifyRateLimiter, uploadRateLimiter } = require("../middleware/rateLimiter")
+const uploadProjectFile = require("../middleware/uploadProjectFile")
+
+/**
+ * multer's disk destination is shared with the admin and member upload
+ * routes, and it reads `req.params.id`. This route is keyed by a request id
+ * instead, so without this the bytes land under "_orphan" and
+ * resolveSafePath never finds them again.
+ */
+function projectIdForUpload(req, _res, next) {
+  req.params.id = req.portal?.projectId
+  next()
+}
 
 const router = express.Router()
 
 router.get ("/me/project",                 portalAuth, c.getProject)
 router.get ("/me/files/:fileId/download",  portalAuth, c.downloadFile)
+// T5-3 · the portal's first write. Order matters:
+//   portalAuth        → verifies mu_portal, populates req.portal
+//   projectIdForUpload → multer's destination reads req.params.id, which this
+//                        route does not have. Without it every portal upload
+//                        lands in the shared "_orphan" directory instead of
+//                        the project's own.
+//   uploadRateLimiter → same limiter as every other upload path
+//   many              → multer, up to 10 files
+// CSRF is applied globally by middleware/csrf.js, which now triggers on
+// mu_portal as well as mu_session.
+router.post(
+  "/me/file-requests/:reqId/files",
+  portalAuth,
+  projectIdForUpload,
+  uploadRateLimiter,
+  uploadProjectFile.many,
+  c.uploadRequestFiles,
+)
+
 router.post("/logout",                     c.logout)
 
 router.get ("/:token",                     c.probe)

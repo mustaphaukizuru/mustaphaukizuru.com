@@ -19,6 +19,7 @@ const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { notifyAdminsProjectActivity, notifyProjectComment, notifyMilestoneAwaitingClient } = require("./notificationService")
 const projectEvents = require("./projectEventService")
+const fileRequests = require("./projectFileRequestService")
 
 const CLOSED_STATUSES = new Set(["completed", "cancelled"])
 const ACCESS_STATES = ["active", "suspended", "handover"]
@@ -271,7 +272,7 @@ function previewCanFrame(previewUrl) {
 
 /* ── Client uploads ────────────────────────────────────────────────────── */
 
-async function attachClientFiles({ userId, projectId, files = [], milestoneId = null }) {
+async function attachClientFiles({ userId, projectId, files = [], milestoneId = null, fileRequestId = null }) {
   const project = await loadOwnedProject({ userId, projectId })
   assertWritable(project)
   if (!files.length) throw err("No files uploaded", "VALIDATION_ERROR", 400)
@@ -281,12 +282,27 @@ async function attachClientFiles({ userId, projectId, files = [], milestoneId = 
     if (!ms) throw err("Milestone not found on this project", "NOT_FOUND", 404)
   }
 
+  // T5-3 · uploading against a document request. The id arrives from the
+  // browser, so this checks it belongs to THIS project before anything is
+  // written — otherwise a client could answer someone else's request by
+  // guessing an id. It also enforces the request's own extension allowlist,
+  // on top of the global one multer has already applied.
+  let fileRequest = null
+  if (fileRequestId) {
+    fileRequest = await fileRequests.assertUploadable(
+      fileRequestId,
+      project.id,
+      files.map((f) => f.originalname || f.fileName || ""),
+    )
+  }
+
   const rows = await prisma.$transaction(files.map((f) => prisma.projectFile.create({
     data: {
       projectId:      project.id,
       uploadedById:   String(userId),
       uploadedByRole: "client",
       milestoneId:    milestoneId ? String(milestoneId) : null,
+      fileRequestId:  fileRequest ? fileRequest.id : null,
       fileName:       String(f.originalname || f.fileName || "file").trim().slice(0, 255),
       filePath:       `/files/projects/${project.id}/${f.filename}`,
       fileType:       f.mimetype || null,
@@ -309,9 +325,17 @@ async function attachClientFiles({ userId, projectId, files = [], milestoneId = 
     summary: `${rows.length} file(s) uploaded: ${rows.slice(0, 3).map((r) => r.fileName).join(", ")}${rows.length > 3 ? "…" : ""}`,
   }).catch((e) => logger.warn("[portal] admin notify failed", e.message))
 
+  if (fileRequest) {
+    // Answers the request, and records file.received with the request's
+    // title rather than the file name.
+    await fileRequests.markSubmitted(fileRequest, rows[0])
+  }
+
   // One event per upload, at "client" visibility: a file NAME can carry the
   // client's own client, a case number, a salary band. Never public.
-  for (const row of rows) {
+  // Skipped when this upload answered a request — markSubmitted already
+  // recorded that, and two events for one action reads as two uploads.
+  for (const row of (fileRequest ? [] : rows)) {
     await projectEvents.record({
       projectId: project.id,
       type: "file.received",

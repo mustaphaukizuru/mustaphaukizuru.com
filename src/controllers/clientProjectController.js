@@ -111,7 +111,14 @@ const uploadFiles = asyncHandler(async (req, res) => {
   if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
   const files = req.files || (req.file ? [req.file] : [])
   try {
-    const rows = await attachClientFiles({ userId, projectId: req.params.id, files, milestoneId: req.body?.milestoneId || null })
+    const rows = await attachClientFiles({
+      userId,
+      projectId: req.params.id,
+      files,
+      milestoneId: req.body?.milestoneId || null,
+      // T5-3 · optional: this upload answers a document request.
+      fileRequestId: req.body?.fileRequestId || null,
+    })
     res.status(201).json({ success: true, data: rows })
   } catch (e) {
     // Never leave orphaned bytes when the DB refused the rows.

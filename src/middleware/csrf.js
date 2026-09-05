@@ -1,5 +1,6 @@
 const crypto = require("crypto")
 const { SESSION_COOKIE, CSRF_COOKIE } = require("../utils/sessionCookie")
+const { PORTAL_COOKIE } = require("../utils/portalCookie")
 
 /**
  * CSRF protection · double-submit cookie (roadmap step 40).
@@ -84,8 +85,15 @@ function csrfProtection(req, res, next) {
   if (SAFE_METHODS.has(req.method)) return next()
 
   // No ambient credential → nothing for a forged request to ride on.
-  const sessionCookie = req.cookies?.[SESSION_COOKIE]
-  if (!sessionCookie) return next()
+  //
+  // BOTH cookies count. `mu_portal` is every bit as ambient as `mu_session`:
+  // httpOnly, sameSite=lax, sent by the browser on a cross-site form POST.
+  // While every portal route was a GET this guard never needed to know about
+  // it; T5-3 adds the portal's first write, and a state-changing route behind
+  // an ambient credential with no CSRF check is the whole attack.
+  const hasSession = Boolean(req.cookies?.[SESSION_COOKIE])
+  const hasPortal = Boolean(req.cookies?.[PORTAL_COOKIE])
+  if (!hasSession && !hasPortal) return next()
 
   if (isExemptPath(req)) return next()
 

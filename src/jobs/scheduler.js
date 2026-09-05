@@ -33,6 +33,7 @@ try {
 const { aggregateDailyMetrics } = require("./aggregateDailyMetrics")
 const { runReminderPass } = require("./bookingReminderJob")
 const { cancelStaleOrders } = require("./cancelStaleOrders")
+const { runFileRequestReminderPass } = require("./fileRequestReminderJob")
 const { runCampaignSenderPass } = require("./campaignSenderJob")
 const { runEmailRetryPass } = require("./emailRetryJob")
 const { runBackupPass } = require("./backupDatabaseJob")
@@ -118,6 +119,21 @@ function startScheduler() {
     logger.info("[scheduler] registered stale-order janitor · hourly")
   } catch (err) {
     logger.error("[scheduler] failed to register cancelStaleOrders", err)
+  }
+
+  // ── Document-request reminders · daily 09:00 Mexico City ────────────
+  // Chases outstanding client documents whose due date is close or past.
+  // Local time on purpose: this one lands in a person's morning, not at an
+  // arbitrary UTC hour that is 3am for the client being nudged.
+  try {
+    cron.schedule(
+      "0 9 * * *",
+      () => guarded("fileRequestReminders", () => runFileRequestReminderPass()),
+      { timezone: "America/Mexico_City" },
+    )
+    logger.info("[scheduler] registered file-request reminders · 09:00 America/Mexico_City")
+  } catch (err) {
+    logger.error("[scheduler] failed to register fileRequestReminderJob", err)
   }
 
   // ── Campaign sender · every minute ──────────────────────────────────
