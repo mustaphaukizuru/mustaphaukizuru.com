@@ -254,6 +254,26 @@ const newsletterRateLimiter = makeLimiter({
 })
 
 /**
+ * Password reset submission — 10 per hour per IP (T3-5).
+ *
+ * forgot-password was limited and reset-password/:token was not, which is the
+ * wrong way round for guessing: the token in that URL is the credential, and
+ * an unlimited endpoint lets an attacker grind it. Per IP rather than per
+ * token, because the thing being brute-forced IS the token — keying on it
+ * would give the attacker a fresh budget for every guess.
+ *
+ * Ten, not three: a real user who mistypes their new password twice and then
+ * hits a validation rule should not be locked out of a link that expires.
+ */
+const passwordResetRateLimiter = makeLimiter({
+  name:         "password-reset",
+  windowMs:     ONE_HOUR,
+  max:          10,
+  keyGenerator: ipKey,
+  message:      "Too many reset attempts. Please request a new link in an hour.",
+})
+
+/**
  * Public project tracking — 30 per 15 minutes per IP (T5-2).
  *
  * The tracking code carries about 2^39 of entropy, which is a lookup key and
@@ -456,6 +476,7 @@ module.exports = {
   newsletterRateLimiter,
   diagnosticRateLimiter,
   trackRateLimiter,
+  passwordResetRateLimiter,
   // Resource-scoped
   paymentRateLimiter,
   uploadRateLimiter,

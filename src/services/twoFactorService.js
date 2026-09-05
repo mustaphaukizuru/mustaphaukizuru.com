@@ -2,7 +2,7 @@ const crypto = require("crypto")
 const bcrypt = require("bcryptjs")
 const speakeasy = require("speakeasy")
 const QRCode = require("qrcode")
-const jwt = require("jsonwebtoken")
+const { signJwt, verifyJwt } = require("../utils/jwt")
 const prisma = require("../lib/prisma")
 
 /**
@@ -249,14 +249,13 @@ async function verifyLoginCode({ userId, code }) {
  * code at /api/auth/2fa/login-verify to receive the real session JWT.
  */
 function issueTwoFactorToken({ userId, rememberMe = false }) {
-  return jwt.sign(
+  return signJwt(
     {
       userId,
       rememberMe: Boolean(rememberMe),
       purpose:    TWO_FACTOR_TOKEN_PURPOSE,
     },
-    process.env.JWT_SECRET,
-    { expiresIn: TWO_FACTOR_TOKEN_TTL_SECONDS }
+    { expiresIn: TWO_FACTOR_TOKEN_TTL_SECONDS },
   )
 }
 
@@ -267,7 +266,7 @@ function verifyTwoFactorToken(token) {
   if (!token) throw httpError(400, "Two-factor token is required")
   let payload
   try {
-    payload = jwt.verify(token, process.env.JWT_SECRET)
+    payload = verifyJwt(token)
   } catch (err) {
     if (err.name === "TokenExpiredError") throw httpError(401, "Two-factor token has expired. Please log in again.")
     throw httpError(401, "Invalid two-factor token")

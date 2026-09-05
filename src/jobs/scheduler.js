@@ -48,6 +48,7 @@ const { runRetentionPass } = require("./retentionJob")
 const running = new Set()
 const { isAlive, recycle } = require("../lib/prisma")
 const { recordHeartbeat } = require("./heartbeat")
+const { withCronLock } = require("./cronLock")
 
 // DB pre-flight shared by every job: a cron firing on a dead engine used to
 // be the classic trigger for the Prisma "timer has gone away" panic. Probe,
@@ -69,12 +70,22 @@ async function guarded(name, fn) {
   running.add(name)
   try {
     if (await dbReady(name)) {
-      await fn()
-      // Dead-man switch: only a pass that ran to completion counts. A
-      // skipped tick (DB down) or a throw leaves the last heartbeat where
-      // it was, which is exactly what /health/jobs should then report.
-      try { recordHeartbeat(name) }
-      catch (e) { logger.warn(`[scheduler] ${name}: heartbeat not written — ${e.message}`) }
+      // T3-5 · the `running` Set above is one process wide, and Passenger
+      // runs more than one — each with its own scheduler, each convinced
+      // nothing is running. withCronLock takes a MySQL advisory lock so only
+      // one of them executes the pass. For most jobs the old behaviour was
+      // waste; for emailRetryJob it was a client getting the same email
+      // twice.
+      const ran = await withCronLock(name, fn)
+      // The heartbeat records a pass that COMPLETED. A tick skipped because
+      // another process holds the lock has not completed anything here — but
+      // the process that did hold it writes the heartbeat, so /health/jobs
+      // still sees the job as alive. Writing one on a skipped tick would
+      // report a job as healthy on a box where it never runs.
+      if (ran) {
+        try { recordHeartbeat(name) }
+        catch (e) { logger.warn(`[scheduler] ${name}: heartbeat not written — ${e.message}`) }
+      }
     }
   }
   catch (err) { logger.error(`[scheduler] ${name} failed`, err) }

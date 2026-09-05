@@ -1,6 +1,7 @@
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const asyncHandler = require("../utils/asyncHandler")
 const newsletterService = require("../services/newsletterService")
+const suppression = require("../services/suppressionService")
 const emailService = require("../services/emailService")
 
 /**
@@ -74,4 +75,27 @@ const unsubscribe = asyncHandler(async (req, res) => {
   return res.redirect(302, newsletterService.unsubscribeConfirmedUrl())
 })
 
-module.exports = { subscribe, confirm, unsubscribe }
+/**
+ * POST /api/v1/newsletter/unsubscribe/:token  (T3-5)
+ *
+ * The RFC 8058 one-click endpoint. A mail provider POSTs here on the
+ * reader's behalf; nobody is watching a browser, so the answer is a bare
+ * 200. It ALWAYS answers 200, including for a token that means nothing:
+ * a 404 tells a provider the unsubscribe failed and it may then mark the
+ * message as not honouring unsubscribes, which is the deliverability
+ * penalty this endpoint exists to avoid. An unknown token is a no-op that
+ * costs nothing.
+ *
+ * It also suppresses the address outright. A one-click unsubscribe is the
+ * strongest possible signal — it is what a reader clicks INSTEAD of pressing
+ * "spam" — so it means "never again", not "off this one list".
+ */
+const unsubscribeOneClick = asyncHandler(async (req, res) => {
+  const row = await newsletterService.unsubscribeByToken(req.params.token).catch(() => null)
+  if (row?.email) {
+    await suppression.suppress(row.email, { reason: "unsubscribe", detail: "RFC 8058 one-click" })
+  }
+  return res.status(200).end()
+})
+
+module.exports = { subscribe, confirm, unsubscribe, unsubscribeOneClick }

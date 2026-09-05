@@ -62,12 +62,19 @@ app.use(cookieParser())
 app.use(compression({ level: 6, threshold: 1024 }))
 
 // CORS
+//
+// T3-5 · the two localhost origins are DEVELOPMENT ONLY now. In production
+// they let any page served from a developer's own machine make credentialed
+// requests to the live API — the attack is "run something on localhost:5173
+// and read the signed-in user's data", which needs no compromise of this
+// server at all, only a visit to a page while signed in. They are kept in
+// development because that is where the SPA actually runs.
+const isProduction = process.env.NODE_ENV === "production"
 const allowedOrigins = [
   clientUrl,
   "https://mustaphaukizuru.com",
   "https://www.mustaphaukizuru.com",
-  "http://localhost:5173",
-  "http://localhost:3000",
+  ...(isProduction ? [] : ["http://localhost:5173", "http://localhost:3000"]),
 ].filter(Boolean)
 
 app.use(cors({
@@ -86,8 +93,14 @@ app.use(cors({
 const turnstileHosts = process.env.TURNSTILE_SECRET_KEY ? ["https://challenges.cloudflare.com"] : [];
 
 app.use(helmet({
+  // Only COEP has to be off for the PayPal iframe. COOP was disabled
+  // alongside it, which was one setting too many: without it a window this
+  // site opens keeps a reference back through window.opener, which is the
+  // tabnabbing surface. same-origin-allow-popups is the setting that keeps
+  // the isolation AND lets the PayPal popup talk back to the page that
+  // opened it — which is exactly what the checkout needs (T3-5).
   crossOriginEmbedderPolicy: false,     // PayPal iframe requires this
-  crossOriginOpenerPolicy:   false,
+  crossOriginOpenerPolicy:   { policy: "same-origin-allow-popups" },
   crossOriginResourcePolicy: false,
   contentSecurityPolicy: {
     directives: {

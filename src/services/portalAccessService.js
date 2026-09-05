@@ -21,7 +21,7 @@
  */
 
 const crypto = require("crypto")
-const jwt = require("jsonwebtoken")
+const { signJwt } = require("../utils/jwt")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { lifecycle, previewCanFrame, ndaStatus } = require("./projectPortalService")
@@ -153,9 +153,8 @@ async function verifyPin(token, pin) {
   }
   await prisma.authOtp.update({ where: { id: otp.id }, data: { usedAt: new Date() } })
 
-  const portalToken = jwt.sign(
+  const portalToken = signJwt(
     { scope: "portal", projectId: project.id, userId: project.userId },
-    process.env.JWT_SECRET,
     { expiresIn: PORTAL_JWT_TTL },
   )
   await prisma.activityLog.create({

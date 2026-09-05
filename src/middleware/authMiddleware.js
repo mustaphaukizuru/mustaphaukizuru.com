@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken")
+const { verifyJwt } = require("../utils/jwt")
 const prisma = require("../lib/prisma")
 const { SESSION_COOKIE } = require("../utils/sessionCookie")
 
@@ -55,7 +55,7 @@ async function protect(req, res, next) {
 
     let decoded
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET)
+      decoded = verifyJwt(token)
     } catch (jwtErr) {
       const code = jwtErr.name === "TokenExpiredError" ? "AUTH_EXPIRED" : "AUTH_INVALID"
       return res.status(401).json({ success: false, code, message: jwtErr.name === "TokenExpiredError" ? "Session expired, please sign in again" : "Invalid authentication token" })
@@ -173,7 +173,7 @@ async function attachUserIfPresent(req, _res, next) {
 
     let decoded
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET)
+      decoded = verifyJwt(token)
     } catch {
       // Invalid/expired token on a public route is silently ignored.
       return next()

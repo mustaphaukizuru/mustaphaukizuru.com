@@ -277,6 +277,19 @@ model User {
   /// reset, 2FA enable) or when the user manually signs out everywhere.
   /// NULL means "no revocations yet" — all valid JWTs pass.
   tokensValidFrom        DateTime?
+
+  /// T3-5 · account lockout.
+  ///
+  /// The login limiter is per IP, which is the wrong axis for the attack it
+  /// most needs to stop: a password-spraying botnet has thousands of IPs and
+  /// one address per attempt, so every request looks like a first attempt.
+  /// These count per ACCOUNT, which is where the damage would be.
+  ///
+  /// Reset to zero on any successful sign-in — a person who mistypes twice
+  /// and then gets it right has not done anything suspicious.
+  failedLoginAttempts    Int              @default(0)
+  /// Set when the threshold is crossed; cleared implicitly by expiring.
+  lockedUntil            DateTime?
   resetPasswordToken     String?
   resetPasswordExpires   DateTime?
   createdAt              DateTime         @default(now())
@@ -2163,6 +2176,31 @@ model DailyMetric {
 
   @@unique([date])
   @@index([date])
+}
+
+/// T3-5 · addresses that must never be mailed again.
+///
+/// Separate from NewsletterSubscriber.status because the two answer different
+/// questions. A subscriber row says "this person asked for the newsletter and
+/// then stopped"; a suppression says "do not send to this address AT ALL,
+/// whatever list it appears on". A hard bounce, a spam complaint and a
+/// one-click unsubscribe all produce the second, and none of them should
+/// depend on a row existing in a list the address may never have been on.
+///
+/// Filtered by countAudience and forEachAudiencePage, so a suppressed address
+/// is not merely skipped at send time — it is not counted in the preview
+/// either, and the operator sees the audience they will actually reach.
+model SuppressionList {
+  id        String   @id @default(cuid())
+  /// Lower-cased. The unique index is the enforcement.
+  email     String   @unique @db.VarChar(255)
+  /// "unsubscribe" | "bounce" | "complaint" | "manual"
+  reason    String   @db.VarChar(32)
+  /// Free text: the bounce message, the campaign it came from.
+  detail    String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  @@index([reason])
 }
 
 /// T3-6 · real-user Web Vitals, rolled up.

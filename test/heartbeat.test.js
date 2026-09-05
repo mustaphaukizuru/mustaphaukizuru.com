@@ -24,6 +24,14 @@ jest.mock("../src/jobs/abandonedCartJob", () => ({ runAbandonedCartPass: jest.fn
 jest.mock("../src/jobs/projectPurgeJob", () => ({ runProjectPurgePass: jest.fn() }))
 jest.mock("../src/jobs/invoiceDunningJob", () => ({ runInvoiceDunningPass: jest.fn() }))
 jest.mock("../src/jobs/fulfillmentReconcileJob", () => ({ runFulfillmentReconcilePass: jest.fn() }))
+// T3-5 · guarded() now takes a MySQL advisory lock so only one Passenger
+// process runs a pass. The lock is its own unit (test/cronLock.test.js);
+// here it is stubbed to "this process got it" so these cases stay about
+// the heartbeat. The default is deliberately the acquiring one — a stub
+// that always skipped would make every assertion below vacuous.
+jest.mock("../src/jobs/cronLock", () => ({
+  withCronLock: jest.fn(async (_name, fn) => { await fn(); return true }),
+}))
 
 const { JOB_INTERVALS, MIN_ALLOWANCE_MS, readHeartbeats, recordHeartbeat, jobsStatus } = require("../src/jobs/heartbeat")
 

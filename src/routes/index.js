@@ -102,7 +102,12 @@ const router = express.Router()
 // out-of-band before we drop the unversioned aliases.
 // ═════════════════════════════════════════════════════════════════════════════
 
-const SUNSET_DATE = "2026-07-01"
+// RFC 8594 requires Sunset to be an HTTP-date, not an ISO calendar date — a
+// client parsing it per spec got an Invalid Date from "2026-07-01" and could
+// not act on the deprecation it was being told about (T3-5). The ISO form is
+// kept as the source of truth because it is the readable one.
+const SUNSET_ISO = "2026-07-01"
+const SUNSET_DATE = new Date(`${SUNSET_ISO}T00:00:00Z`).toUTCString()
 
 /**
  * Deprecation middleware (RFC 8594 + RFC 5988).

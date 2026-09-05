@@ -20,11 +20,21 @@ jest.mock("../src/lib/prisma", () => ({
   user:                   { findMany: jest.fn(), count: jest.fn() },
   emailCampaign:          { findUnique: jest.fn(), update: jest.fn() },
   emailCampaignRecipient: { createMany: jest.fn() },
+  // T3-5 · the audience now excludes suppressed addresses.
+  suppressionList:        { findMany: jest.fn(), count: jest.fn(), findUnique: jest.fn(), upsert: jest.fn() },
 }))
 jest.mock("../src/utils/logger", () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() }))
 
 const prisma = require("../src/lib/prisma")
 const svc = require("../src/services/adminCampaignService")
+
+// Nobody suppressed by default, so every existing case still describes the
+// audience it was written for. The suppression behaviour has its own cases
+// in test/suppression.test.js.
+beforeEach(() => {
+  prisma.suppressionList.findMany.mockResolvedValue([])
+  prisma.suppressionList.count.mockResolvedValue(0)
+})
 
 const PAGE = 1000
 const subs = (n, offset = 0) =>

@@ -36,6 +36,63 @@ async function ensureProfile(userId) {
   }
 }
 
+/* ── T3-5 · account lockout ──────────────────────────────────────────────
+ *
+ * The login rate limiter is keyed per IP, which is the wrong axis for the
+ * attack that matters most here: a password-spraying botnet has thousands of
+ * addresses and makes one attempt from each, so every request looks like a
+ * first attempt and the limiter never fires. These counters are per ACCOUNT,
+ * which is where the damage would actually be done.
+ *
+ * Neither replaces the other. The IP limiter stops one machine hammering one
+ * account; this stops many machines hammering one account.
+ */
+
+/** Failures before an account stops accepting passwords. */
+const MAX_FAILED_LOGINS = 10
+/** How long it stays shut. Long enough to ruin a spray, short enough that a
+ *  real person who fat-fingered ten times can make coffee and come back. */
+const LOCKOUT_MINUTES = 15
+
+/**
+ * Record a failed attempt, and lock the account once it has had enough.
+ *
+ * Never throws: a counter that fails to increment must not turn a wrong
+ * password into a 500, which would itself be an oracle (a different response
+ * for a real account than for a made-up one).
+ */
+async function recordFailedLogin(userId) {
+  if (!userId) return
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data:  { failedLoginAttempts: { increment: 1 } },
+      select: { failedLoginAttempts: true },
+    })
+    if (user.failedLoginAttempts >= MAX_FAILED_LOGINS) {
+      const until = new Date(Date.now() + LOCKOUT_MINUTES * 60_000)
+      await prisma.user.update({
+        where: { id: userId },
+        // The counter resets with the lock so the next window starts clean;
+        // otherwise the eleventh failure ever would lock the account again
+        // immediately after every expiry.
+        data:  { lockedUntil: until, failedLoginAttempts: 0 },
+      })
+    }
+  } catch (_) { /* best effort */ }
+}
+
+/** A successful sign-in clears the slate. */
+async function clearFailedLogins(userId) {
+  if (!userId) return
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data:  { failedLoginAttempts: 0, lockedUntil: null },
+    })
+  } catch (_) { /* best effort */ }
+}
+
 async function registerUser({ fullName, email, password }) {
   const normalizedEmail = normalizeEmail(email);
 
@@ -120,13 +177,25 @@ async function loginUser({ email, password, rememberMe = false }) {
     throw err;
   }
 
-  if (!user.passwordHash) {
-    if (user.authProvider === "google") {
-      const err = new Error("This account uses Google sign-in");
-      err.statusCode = 400;
-      throw err;
-    }
+  // T3-5 · locked out. Answered with the SAME generic message as a wrong
+  // password, deliberately: "this account is temporarily locked" tells an
+  // attacker their spray found a real address and that they should come back
+  // later, which is two pieces of information they did not have.
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    const err = new Error("Invalid email or password");
+    err.statusCode = 401;
+    throw err;
+  }
 
+  if (!user.passwordHash) {
+    // T3-5 · one answer for every failure. "This account uses Google
+    // sign-in" confirmed both that the address is registered AND how — an
+    // oracle that turns a list of addresses into a list of accounts, and
+    // tells an attacker which ones to phish rather than guess.
+    //
+    // The UX cost is covered: the login page already offers "Continue with
+    // Google" beside the form, so a Google user who reaches for a password
+    // has the right button in front of them.
     const err = new Error("Invalid email or password");
     err.statusCode = 401;
     throw err;
@@ -145,10 +214,16 @@ async function loginUser({ email, password, rememberMe = false }) {
   // must use "forgot password".
 
   if (!isMatch) {
+    // Counted per ACCOUNT, which is the axis the per-IP limiter cannot see.
+    await recordFailedLogin(user.id);
     const err = new Error("Invalid email or password");
     err.statusCode = 401;
     throw err;
   }
+
+  // The password was right. Whatever failures came before it were somebody
+  // mistyping, so the slate is wiped — including a lock that has expired.
+  await clearFailedLogins(user.id);
 
   // ── B09 · 2FA gate ────────────────────────────────────────────────────
   // Password verified. If the user has 2FA enabled, do NOT update
@@ -360,6 +435,10 @@ async function revokeUserSessions(userId) {
 }
 
 module.exports = {
+  recordFailedLogin,
+  clearFailedLogins,
+  MAX_FAILED_LOGINS,
+  LOCKOUT_MINUTES,
   registerUser,
   loginUser,
   revokeUserSessions,

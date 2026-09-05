@@ -10,6 +10,7 @@
  */
 
 const prisma = require("../lib/prisma")
+const suppression = require("./suppressionService")
 const layout = require("./emailLayoutService")
 const { renderBlocks } = require("./emailContentRenderer")
 const emailService = require("./emailService")
@@ -134,16 +135,46 @@ function normaliseCustom(recipientEmails) {
   return [...new Set(list)].map((email) => ({ email, userId: null, unsubscribeToken: null }))
 }
 
+/**
+ * T3-5 · the audience, minus anyone who has asked never to be mailed.
+ *
+ * Applied to the COUNT as well as the send, so the number the operator
+ * approves is the number who will receive it. A count that includes
+ * suppressed addresses is not a preview, it is a guess.
+ *
+ * The count is exact for `custom` (the list is in hand) and a subtraction
+ * for the paged audiences: counting the intersection of 12,000 subscribers
+ * against the suppression table would be a second full scan for a figure
+ * that only has to be honest, not precise to the row. It can only ever
+ * OVER-subtract — a suppressed address that was never on the list — so the
+ * previewed number is never larger than the real one.
+ */
 async function countAudience(audience, recipientEmails) {
-  if (audience === "newsletter") return prisma.newsletterSubscriber.count({ where: { status: "subscribed" } })
-  if (audience === "members")    return prisma.user.count({ where: { email: { not: null } } })
-  if (audience === "custom")     return normaliseCustom(recipientEmails).length
-  return 0
+  if (audience === "custom") {
+    const list = normaliseCustom(recipientEmails)
+    const blocked = await suppression.suppressedSet(list.map((r) => r.email))
+    return list.filter((r) => !blocked.has(r.email)).length
+  }
+
+  let total = 0
+  if (audience === "newsletter") total = await prisma.newsletterSubscriber.count({ where: { status: "subscribed" } })
+  else if (audience === "members") total = await prisma.user.count({ where: { email: { not: null } } })
+  else return 0
+
+  const suppressed = await suppression.suppressedCount()
+  return Math.max(0, total - suppressed)
+}
+
+/** Drop suppressed addresses from one page before it reaches the caller. */
+async function withoutSuppressed(page) {
+  if (!page.length) return page
+  const blocked = await suppression.suppressedSet(page.map((r) => r.email))
+  return page.filter((r) => !blocked.has(suppression.normalise(r.email)))
 }
 
 async function forEachAudiencePage(audience, recipientEmails, fn) {
   if (audience === "custom") {
-    const list = normaliseCustom(recipientEmails)
+    const list = await withoutSuppressed(normaliseCustom(recipientEmails))
     if (list.length) await fn(list)
     return
   }

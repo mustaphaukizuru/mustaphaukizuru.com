@@ -95,7 +95,16 @@ async function processCampaign(campaign, now = new Date()) {
         replyTo: campaign.replyTo || campaign.fromEmail,
         subject: campaign.subject,
         html,
-        headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` },
+        headers: {
+          "List-Unsubscribe": `<${unsubscribeUrl}>`,
+          // T3-5 · RFC 8058. Without this header the List-Unsubscribe URL is
+          // only a link a client MAY offer; with it, Gmail and Yahoo render
+          // their own one-click control and POST to the URL directly. Both
+          // have required it for bulk senders since February 2024, and the
+          // penalty for not having it is deliverability, which is invisible
+          // until a campaign quietly stops arriving.
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
       })
       if (result?.ok === false) throw new Error(result.error || "Send failed")
       await prisma.emailCampaignRecipient.update({

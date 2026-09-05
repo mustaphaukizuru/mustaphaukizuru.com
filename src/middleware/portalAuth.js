@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken")
+const { verifyJwt } = require("../utils/jwt")
 const { PORTAL_COOKIE } = require("../utils/portalCookie")
 
 /**
@@ -21,7 +21,7 @@ function portalAuth(req, res, next) {
   }
   let decoded
   try {
-    decoded = jwt.verify(String(token), process.env.JWT_SECRET)
+    decoded = verifyJwt(token)
   } catch (e) {
     const expired = e?.name === "TokenExpiredError"
     return res.status(401).json({
