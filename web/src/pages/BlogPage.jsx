@@ -53,6 +53,7 @@ import {
 
 import { useTranslation } from "react-i18next"
 import BlogCoverGradient from "../components/BlogCoverGradient"
+import NewsletterInline from "../components/NewsletterInline"
 import { TOKENS } from "../styles/tokens.js"
 /* ── Motion variants ──────────────────────────────────────────────────── */
 
@@ -459,9 +460,6 @@ function BlogSidebar({
 }) {
   const { t } = useTranslation("blog")
   const searchRef = useRef(null)
-  const [newsletterEmail, setNewsletterEmail] = useState("")
-  const [newsletterStatus, setNewsletterStatus] = useState({ kind: null, message: "" })
-  const [newsletterLoading, setNewsletterLoading] = useState(false)
 
   // Press "/" anywhere on the page to jump focus to the search box.
   // Ignored when the user is already typing in an input/textarea.
@@ -476,33 +474,6 @@ function BlogSidebar({
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [])
-
-  async function handleNewsletter(e) {
-    e.preventDefault()
-    setNewsletterStatus({ kind: null, message: "" })
-    if (!newsletterEmail) {
-      setNewsletterStatus({ kind: "error", message: "Please enter your email." })
-      return
-    }
-    try {
-      setNewsletterLoading(true)
-      const res = await apiRequest("/api/newsletter", {
-        method: "POST",
-        body: JSON.stringify({ email: newsletterEmail }),
-      })
-      setNewsletterStatus({ kind: "success", message: res.message || "You're subscribed." })
-      setNewsletterEmail("")
-    } catch (err) {
-      setNewsletterStatus({
-        kind: "error",
-        message:
-          (err && typeof err.toUserMessage === "function" && err.toUserMessage()) ||
-          (err && err.message) || "Subscription failed.",
-      })
-    } finally {
-      setNewsletterLoading(false)
-    }
-  }
 
   return (
     <aside
@@ -646,45 +617,14 @@ function BlogSidebar({
             <p className="mt-1 text-[12.5px] leading-relaxed text-white/80">
               {t("page.newsletterBody")}
             </p>
-            <form onSubmit={handleNewsletter} className="mt-4 flex flex-col gap-2">
-              <label htmlFor="blog-sidebar-newsletter" className="sr-only">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/55" aria-hidden="true" />
-                <input
-                  id="blog-sidebar-newsletter"
-                  type="email"
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  className="w-full rounded-xl border border-white/25 bg-white/10 py-2 pl-9 pr-3 text-[12.5px] text-white placeholder-white/45 outline-none backdrop-blur transition focus:border-terracotta/60 focus:bg-white/15 focus:ring-[3px] focus:ring-terracotta/30"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={newsletterLoading}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-[12.5px] font-semibold text-violet transition hover:bg-violet-pale focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-white/40 disabled:opacity-60"
-              >
-                {newsletterLoading ? "Joining…" : "Subscribe"}
-                {!newsletterLoading && (
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                )}
-              </button>
-            </form>
-            <div className="min-h-[16px] mt-2" aria-live="polite">
-              {newsletterStatus.kind === "success" ? (
-                <p className="text-[11.5px] font-medium text-white">
-                  ✓ {newsletterStatus.message}
-                </p>
-              ) : null}
-              {newsletterStatus.kind === "error" ? (
-                <p className="text-[11.5px] font-medium text-rose-200">
-                  {newsletterStatus.message}
-                </p>
-              ) : null}
-            </div>
+            {/* The sidebar had its own form posting to the legacy
+                /api/newsletter and reporting "You're subscribed." on success.
+                Subscribing is DOUBLE OPT-IN: that response created a `pending`
+                row and sent a confirmation email, so the reader was told they
+                were on the list when they were not, and never learned there
+                was an email to open. NewsletterInline posts to
+                /api/v1/newsletter/subscribe and says to check the inbox. */}
+            <NewsletterInline source="blog-sidebar" />
           </div>
         </div>
       </div>
@@ -1048,82 +988,15 @@ function Dot() {
    INLINE NEWSLETTER STRIP · sits between featured card and article list
    ════════════════════════════════════════════════════════════════════════ */
 
+/* The index-page newsletter strip. It had its own form posting to the legacy
+   /api/newsletter and reporting "You're in." — but subscribing is DOUBLE
+   OPT-IN, so that response created a `pending` row and sent a confirmation
+   email. The reader was told they were subscribed when they were not, and
+   was never told to open anything. Both newsletter surfaces on this page now
+   use the shared component, which posts to /api/v1/newsletter/subscribe and
+   says to check the inbox. */
 function BlogInlineNewsletter() {
-  const { t } = useTranslation("blog")
-  const [email, setEmail] = useState("")
-  const [status, setStatus] = useState({ kind: null, message: "" })
-  const [loading, setLoading] = useState(false)
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    if (!email) return
-    try {
-      setLoading(true)
-      const res = await apiRequest("/api/newsletter", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      })
-      setStatus({ kind: "success", message: res.message || "You're in." })
-      setEmail("")
-    } catch (err) {
-      setStatus({
-        kind: "error",
-        message:
-          (err && typeof err.toUserMessage === "function" && err.toUserMessage()) ||
-          "Subscription failed — try again.",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div
-      className="mt-8 overflow-hidden rounded-2xl"
-      style={{ background: "linear-gradient(135deg, var(--color-violet), var(--color-azure))" }}
-    >
-      <div className="flex flex-col items-start gap-5 px-6 py-6 sm:flex-row sm:items-center sm:gap-8 sm:px-8">
-        <div className="flex-1 min-w-0">
-          <p className="text-[10.5px] font-bold uppercase tracking-[0.22em] text-white/60">
-            {t("index.newsletterTitle")}
-          </p>
-          <h3 className="mt-1 text-[17px] font-bold text-white">
-            {t("index.newsletterLead")}
-          </h3>
-          <p className="mt-0.5 text-[13px] text-white/70">
-            {t("index.newsletterBody")}
-          </p>
-        </div>
-        {status.kind === "success" ? (
-          <p className="shrink-0 text-[13px] font-semibold text-white">
-            ✓ {status.message}
-          </p>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex w-full shrink-0 gap-2 sm:w-auto">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-              aria-label="Email address"
-              className="w-full rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-[13px] text-white placeholder-white/45 outline-none backdrop-blur transition focus:border-white/55 focus:bg-white/15 sm:w-52"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="shrink-0 rounded-xl bg-white px-4 py-2.5 text-[13px] font-bold text-violet transition hover:bg-violet-pale disabled:opacity-60"
-            >
-              {loading ? "…" : "Subscribe"}
-            </button>
-          </form>
-        )}
-      </div>
-      {status.kind === "error" ? (
-        <p className="px-6 pb-3 text-[11.5px] text-rose-200">{status.message}</p>
-      ) : null}
-    </div>
-  )
+  return <NewsletterInline source="blog-index" className="mt-8" />
 }
 
 /* ════════════════════════════════════════════════════════════════════════

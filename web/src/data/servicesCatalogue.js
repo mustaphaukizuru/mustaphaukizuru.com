@@ -85,7 +85,7 @@ export const PRICING_BASIS = {
   rateUsdPerHour: RATE_USD_PER_HOUR,
   mxnPerUsd: MXN_PER_USD,
   note: `USD $${RATE_USD_PER_HOUR}/hour minimum rate, converted at a flat ${MXN_PER_USD} MXN/USD. "Fixed" = settled price. "From quote" / "Retainer" = starting price, confirmed in the written proposal once scope is set.`,
-  noteEs: `Tarifa mínima de USD $${RATE_USD_PER_HOUR}/hora, convertida a un tipo fijo de ${MXN_PER_USD} MXN/USD. "Fijo" = precio cerrado. "Desde cotización" / "Retainer" = precio inicial, confirmado en la propuesta escrita una vez definido el alcance.`,
+  noteEs: `Tarifa mínima de USD $${RATE_USD_PER_HOUR}/hora, convertida a un tipo fijo de ${MXN_PER_USD} MXN/USD. "Fijo" = precio cerrado. "Desde cotización" / "Iguala" = precio inicial, confirmado en la propuesta escrita una vez definido el alcance.`,
 }
 
 /* The date the catalogue's content was last settled — NOT the date the

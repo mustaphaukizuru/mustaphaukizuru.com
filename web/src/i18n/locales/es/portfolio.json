@@ -92,6 +92,9 @@
     "prevProject": "Proyecto anterior",
     "nextProject": "Proyecto siguiente",
     "showImage": "Mostrar imagen {{n}}",
-    "viewOf": "{{title}}, vista {{n}}"
+    "viewOf": "{{title}}, vista {{n}}",
+    "ctaTitle": "¿Quieres algo así?",
+    "ctaBody": "La llamada dura treinta minutos y es gratis. Trae el problema y vemos si tiene la misma forma.",
+    "ctaButton": "Agenda una llamada sobre esto"
   }
 }

@@ -20,7 +20,17 @@ The Spanish copy already answers this in practice. Across
 The apparent third-person verbs that a grep turns up — `se puede hacer`,
 `no tiene archivos descargables`, `el Consultor puede conservar`, `también te
 puede interesar` — are impersonal or third-person constructions, not `usted`
-address. There is no register drift to fix; there is an unwritten decision.
+address.
+
+**Corrected 2026-09-04 (T2-5).** This record originally concluded "there is no
+register drift to fix". That was wrong, and wrong in an instructive way: the
+scan behind it looked for the pronoun `usted` and a short list of verbs, and
+the register does not live in the pronoun — it lives in the conjugation.
+`web/src/i18n/locales/es/schools.json` asked "¿Trabaja con colegios
+pequeños?" in `usted` while every other question on the site asks in `tú`,
+which reads as a different person answering that one question. Fixed in T2-5.
+The decision below is unchanged; only the claim that it was already perfectly
+applied was false.
 
 ## Decision
 

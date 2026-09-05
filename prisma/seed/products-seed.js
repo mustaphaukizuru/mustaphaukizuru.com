@@ -55,6 +55,11 @@ const PRODUCTS = [
     shortDescription: "Practical templates to guide digital planning and implementation.",
     description:
       "A structured toolkit designed to help organizations assess digital maturity, define priorities, and organize implementation steps with practical templates and planning resources.",
+    titleEs: "Kit inicial de transformación digital",
+    shortDescriptionEs:
+      "Plantillas prácticas para planear y ejecutar tu transformación digital.",
+    descriptionEs:
+      "Un kit estructurado para evaluar la madurez digital de tu organización, definir prioridades y ordenar los pasos de implementación, con plantillas y recursos de planeación listos para usar.",
     priceUsd: 10,
     isFeatured: true,
   },
@@ -65,6 +70,10 @@ const PRODUCTS = [
     shortDescription: "A structured planning resource for consistent digital publishing.",
     description:
       "A practical planning template for organizing weekly content production, publishing priorities, and campaign coordination across digital platforms.",
+    titleEs: "Calendario de contenido semanal para creadores",
+    shortDescriptionEs: "Un recurso de planeación para publicar con constancia.",
+    descriptionEs:
+      "Una plantilla práctica para organizar la producción de contenido semanal, las prioridades de publicación y la coordinación de campañas entre plataformas digitales.",
     priceUsd: 12,
     isFeatured: true,
   },
@@ -75,6 +84,11 @@ const PRODUCTS = [
     shortDescription: "Organized teaching resources for coding and robotics initiatives.",
     description:
       "A practical education-focused resource that helps schools and trainers design structured STEM, coding, and robotics activities with implementation guidance.",
+    titleEs: "Paquete de planeación de programas STEM",
+    shortDescriptionEs:
+      "Recursos didácticos organizados para iniciativas de programación y robótica.",
+    descriptionEs:
+      "Materiales de planeación para diseñar y poner en marcha programas de programación y robótica: secuencias de contenidos, necesidades de equipamiento y criterios de evaluación para el aula.",
     priceUsd: 18,
     isFeatured: true,
   },
@@ -85,6 +99,11 @@ const PRODUCTS = [
     shortDescription: "A ready-to-use checklist for reviewing infrastructure and systems.",
     description:
       "A structured checklist for schools and educational institutions to review infrastructure, devices, connectivity, access, security, and operational technology readiness.",
+    titleEs: "Lista de verificación para auditoría de TI escolar",
+    shortDescriptionEs:
+      "Una lista práctica para revisar la infraestructura y los sistemas del colegio.",
+    descriptionEs:
+      "Una lista de verificación aplicable para revisar el estado de la infraestructura, los accesos, los respaldos y los sistemas escolares, con espacio para registrar hallazgos y prioridades de remediación.",
     priceUsd: 15,
     isFeatured: false,
   },
@@ -95,6 +114,10 @@ const PRODUCTS = [
     shortDescription: "A clean framework for planning and structuring web projects.",
     description:
       "A planning kit for individuals and organizations launching modern websites, including structure mapping, content planning, delivery checkpoints, and quality review templates.",
+    titleEs: "Kit de planeación para lanzar un sitio web",
+    shortDescriptionEs: "Un marco claro para planear y estructurar proyectos web.",
+    descriptionEs:
+      "Un marco de trabajo para planear un sitio web de principio a fin: arquitectura de la información, contenidos necesarios, requisitos técnicos y la lista de lo que debe estar listo antes de publicar.",
     priceUsd: 14,
     isFeatured: true,
   },
@@ -105,6 +128,11 @@ const PRODUCTS = [
     shortDescription: "Templates and guidance for improving digital efficiency.",
     description:
       "A consulting-style digital resource for identifying friction points, mapping workflows, and improving efficiency through better structure and modern digital practices.",
+    titleEs: "Paquete de optimización de flujos de trabajo",
+    shortDescriptionEs:
+      "Plantillas y guía para mejorar la eficiencia de tus procesos digitales.",
+    descriptionEs:
+      "Plantillas y guía para mapear los procesos que ya tienes, encontrar los pasos que se repiten o se duplican, y rediseñarlos apoyándote en las herramientas digitales que ya pagas.",
     priceUsd: 16,
     isFeatured: false,
   },
@@ -141,6 +169,9 @@ async function seedProducts() {
       category: p.category,
       shortDescription: p.shortDescription,
       description: p.description,
+      titleEs: p.titleEs || null,
+      shortDescriptionEs: p.shortDescriptionEs || null,
+      descriptionEs: p.descriptionEs || null,
       price: p.priceUsd * MXN_PER_USD,
       currency: "MXN",
       productType: "downloadable",
@@ -163,6 +194,13 @@ async function seedProducts() {
         description: data.description,
         category: data.category,
         isActive: data.isActive,
+        // Spanish is refreshed on re-seed. The price deliberately is not —
+        // an admin may have edited it — but nobody hand-edits translations
+        // in the admin, so leaving these out would mean a corrected
+        // translation could never reach a database that already has the row.
+        titleEs: data.titleEs,
+        shortDescriptionEs: data.shortDescriptionEs,
+        descriptionEs: data.descriptionEs,
       },
     })
 

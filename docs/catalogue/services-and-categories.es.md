@@ -2,7 +2,7 @@
 title: Referencia de Servicios y Categorías
 purpose: Referencia completa del catálogo de servicios vigente — 4 categorías, 20 servicios, precios, entregables y referencias cruzadas — generada desde web/src/data/servicesCatalogue.js (fuente de verdad). Para briefs, propuestas y conversaciones comerciales.
 status: generado — ejecuta `cd web && npm run catalog:generate` tras cualquier cambio del catálogo; nunca editar este archivo a mano
-pricing_basis: Tarifa mínima de USD $30/hora, convertida a un tipo fijo de 20 MXN/USD. "Fijo" = precio cerrado. "Desde cotización" / "Retainer" = precio inicial, confirmado en la propuesta escrita una vez definido el alcance.
+pricing_basis: Tarifa mínima de USD $30/hora, convertida a un tipo fijo de 20 MXN/USD. "Fijo" = precio cerrado. "Desde cotización" / "Iguala" = precio inicial, confirmado en la propuesta escrita una vez definido el alcance.
 last_updated: 2026-09-04
 ---
 

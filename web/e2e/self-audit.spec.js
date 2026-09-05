@@ -62,8 +62,14 @@ for (const locale of LOCALES) {
     const errors = []
     page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`))
     page.on("console", (m) => {
-      // The preview server has no API behind it; ignore the failed fetches.
-      if (m.type() === "error" && !/ERR_CONNECTION_REFUSED|Failed to load resource/.test(m.text())) {
+      // Network noise, not render errors. `vite preview` serves the built
+      // bundle with no API behind it, so every /api call fails — as a
+      // connection refusal normally, or as a CORS rejection when a dev API
+      // happens to be listening on :5000 with a different allowed origin.
+      // What this spec is about is the modal rendering, so both are ignored
+      // and everything else is a failure.
+      const NETWORK_NOISE = /ERR_CONNECTION_REFUSED|Failed to load resource|blocked by CORS policy|ERR_FAILED/
+      if (m.type() === "error" && !NETWORK_NOISE.test(m.text())) {
         errors.push(`console: ${m.text().slice(0, 200)}`)
       }
     })

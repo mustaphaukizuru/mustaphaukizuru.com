@@ -96,8 +96,17 @@ async function main() {
       status: "published",
       isFeatured: Boolean(p.featured),
       publishedAt: p.publishedAt ? new Date(p.publishedAt) : new Date(),
-      metaTitle: p.title,
-      metaDescription: p.excerpt,
+      metaTitle: p.metaTitleEs ? p.metaTitle || p.title : p.title,
+      metaDescription: p.metaDescriptionEs ? p.metaDescription || p.excerpt : p.excerpt,
+      // I18N · the Spanish columns. blogService overlays them via pickLocale
+      // when locale === "es", falling back to English per field, so a post
+      // with no translation is unaffected. Null rather than undefined so a
+      // removed translation is actually cleared on re-seed.
+      titleEs: p.titleEs || null,
+      excerptEs: p.excerptEs || null,
+      bodyEs: p.bodyEs || null,
+      metaTitleEs: p.metaTitleEs || null,
+      metaDescriptionEs: p.metaDescriptionEs || null,
       authorName: author.name || "Mustapha Ukizuru",
       authorRole: author.role || "IT Manager · Full-Stack Developer · CS Educator",
       authorAvatar: author.avatar || null,

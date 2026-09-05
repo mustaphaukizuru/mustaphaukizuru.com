@@ -131,7 +131,7 @@
     "pricingLabel": "Modelo de precio",
     "pricing": {
       "fixed": "Precio fijo",
-      "retainer": "Retainer mensual",
+      "retainer": "Iguala mensual",
       "quote": "Con cotización",
       "from": "Desde",
       "perMonth": "/mes"
@@ -171,7 +171,7 @@
         {
           "id": "pricing",
           "question": "¿Cómo se estructura el precio?",
-          "answer": "Cada oferta muestra un precio indicativo en dólares estadounidenses y en pesos mexicanos, con base en una tarifa mínima de $30 USD/hora. Las auditorías y el sprint de wireframing son de precio fijo; los desarrollos, migraciones y retainers a medida muestran un precio de partida, confirmado en la propuesta escrita una vez definido el alcance."
+          "answer": "Cada oferta muestra un precio indicativo en dólares estadounidenses y en pesos mexicanos, con base en una tarifa mínima de $30 USD/hora. Las auditorías y el sprint de wireframing son de precio fijo; los desarrollos, migraciones e igualas mensuales muestran un precio de partida, confirmado en la propuesta escrita una vez definido el alcance."
         },
         {
           "id": "nda",
