@@ -26,8 +26,21 @@ async function collectAssets(page, path = "/") {
   page.on("response", async (res) => {
     const url = res.url()
     if (!url.includes("/assets/")) return
+    const name = url.split("/assets/")[1]
+    // The web-vitals chunk is deferred behind afterFirstPaint (load + 1500ms
+    // + idle) and a visitor never waits for it — but the boundary below is
+    // "the nav is visible", and on a fast machine the idle callback
+    // sometimes fires inside that window and sometimes does not. So the
+    // total swung 1453 / 1455 KB across runs, 44 files or 45, and the budget
+    // assertion flaked at exactly the value T3-6 had raised it to.
+    //
+    // Excluded rather than budgeted for. Counting a chunk that is on the
+    // critical path in some runs and not others measures the machine, not
+    // the payload; the 5.4 KB it contributes was never the thing the budget
+    // is trying to hold down.
+    if (/^web-vitals-/.test(name)) return
     try {
-      assets.push({ name: url.split("/assets/")[1], kb: (await res.body()).length / 1024 })
+      assets.push({ name, kb: (await res.body()).length / 1024 })
     } catch {
       /* response body already discarded — not an asset we can weigh */
     }
@@ -85,20 +98,22 @@ test.describe("first-paint payload", () => {
     // (-40, T5-5) — 50 KB of JSON per language that no public page has ever
     // read, sitting on the homepage since it existed.
     //
-    // RAISED 1450 → 1455 in T3-6, and this is the reason. The Web Vitals
-    // collector is a 5.4 KB chunk, dynamically imported and started by
-    // afterFirstPaint (load + 1500ms + idle), so it does not block anything
-    // — but the boundary this test uses is "the nav is visible", and on a
-    // fast local machine that lands after the idle callback has already
-    // fired. It is counted here even though a visitor never waits for it.
-    // The alternative was tuning a timeout until a test passed, which is
-    // worse than an honest five kilobytes.
+    // RAISED 1450 → 1455 in T3-6 to cover the Web Vitals chunk, then put
+    // BACK to 1450 in D3-3 by excluding that chunk in collectAssets instead
+    // — see the note there. It was never on the critical path; it was only
+    // sometimes inside the measurement window, which is a different thing.
     //
-    // Still 25 KB below where this session started. Lower it as the
-    // remaining wins land. What is left, in order: 322 KB CSS, 276 KB entry,
-    // 188 KB react-vendor, 154 KB vendor, and a 60 KB bioService that has no
-    // business on the homepage.
-    expect(totalKb, `first paint fetched ${totalKb.toFixed(0)} KB across ${assets.length} files`).toBeLessThan(1455)
+    // 1453 KB measured with it, 1447 without. The history, because the
+    // direction matters more than the number: 1683 before the fallback
+    // locale (-136) and gsap (-112) came off the critical path, then 1446
+    // after the `dashboard` namespace (-40, T5-5) — 50 KB of JSON per
+    // language that no public page has ever read, sitting on the homepage
+    // since it existed.
+    //
+    // Lower it as the remaining wins land. What is left, in order: 324 KB
+    // CSS, 276 KB entry, 188 KB react-vendor, 150 KB vendor, and a 60 KB
+    // bioService chunk that has no business on the homepage.
+    expect(totalKb, `first paint fetched ${totalKb.toFixed(0)} KB across ${assets.length} files`).toBeLessThan(1450)
   })
 
   test("pdf.js is not on the critical path", async ({ page }) => {

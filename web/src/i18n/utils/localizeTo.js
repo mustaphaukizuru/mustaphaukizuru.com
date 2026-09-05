@@ -25,14 +25,22 @@ const EXTERNAL = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i
 const ALREADY_ES = /^\/es(?=\/|$)/
 
 /**
- * The operator trees are NOT mirrored under /es — App.jsx mirrors the public
- * and auth routes only — so prefixing one produces a URL with no route
- * behind it: /es/dashboard/addresses 404s on reload. Public pages link into
- * them constantly (checkout → /dashboard/addresses, the success page →
- * /dashboard/downloads, signup navigates to /dashboard), so the guard lives
- * here rather than at each call site, where it would eventually be missed.
+ * /admin is NOT mirrored under /es, so prefixing it produces a URL with no
+ * route behind it: /es/admin/orders 404s on reload. That is correct and
+ * stays — admin.json is 86 bytes and no admin page calls useTranslation, so
+ * those screens are English by convention.
+ *
+ * /dashboard USED to be in here, and should not have been (D3-3). It is a
+ * customer surface with 1,078 translated Spanish keys, and because the
+ * language is read off the URL prefix, keeping it unprefixed meant a
+ * Spanish member lost Spanish the moment they signed in and could never get
+ * it back — no URL existed that would render the dashboard in Spanish. It
+ * is mirrored now, so it localizes like everything else, and the public
+ * pages that link into it (checkout → /dashboard/addresses, the success
+ * page → /dashboard/downloads, signup → /dashboard) now keep the reader's
+ * language across the boundary instead of dropping it.
  */
-const NOT_MIRRORED = /^\/(?:admin|dashboard)(?=\/|$)/
+const NOT_MIRRORED = /^\/admin(?=\/|$)/
 
 export function localizeTo(to, lang) {
   if (lang !== "es") return to

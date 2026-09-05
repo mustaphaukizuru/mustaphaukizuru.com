@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { ArrowLeft, Package, Loader2, AlertCircle, FileDown, CalendarClock, CreditCard } from "lucide-react"
 import { fetchMyOrderById } from "../services/orderService"
 import { createMercadoPagoPreference } from "../services/mercadoPagoService"

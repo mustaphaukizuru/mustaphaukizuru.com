@@ -5,7 +5,7 @@ import {
   CreditCard, Receipt, Clock3, CheckCircle2, ChevronUp, ChevronDown,
   Eye, FileDown, Search, X, RotateCcw, ShieldCheck, AlertTriangle,
 } from "lucide-react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { fetchMyOrders, requestOrderRefund } from "../services/orderService"
 import { authFetch, API_BASE_URL } from "../lib/api"
 import { formatPrice } from "../lib/format"

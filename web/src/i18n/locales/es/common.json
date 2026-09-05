@@ -254,6 +254,7 @@
     "tryAgain": "Intentar de nuevo"
   },
   "auth": {
+    "verifyingSession": "Verificando sesión…",
     "shell": {
       "skipToForm": "Saltar al formulario",
       "backHome": "Volver al inicio",

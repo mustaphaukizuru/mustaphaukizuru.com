@@ -13,6 +13,14 @@ import {
   X,
 } from "lucide-react"
 import { useNotifications, NOTIFICATION_TYPES } from "../../context/NotificationContext"
+// D3-2 · this file carried the seventh hand-rolled English relative-time
+// helper in the repo, and the only one on a surface a Spanish member
+// reads: it returned "just now" / "5m ago" / "2d ago" literally, so every
+// timestamp in the bell dropdown stayed English under Spanish copy.
+// Intl.RelativeTimeFormat has done this properly since the i18n work
+// landed. The admin copies are left alone — those screens are English by
+// convention (admin.json is 86 bytes and no admin page calls useTranslation).
+import { formatRelativeTime } from "../../i18n/utils/formatters"
 
 import { useTranslation } from "react-i18next"
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,18 +70,10 @@ const TYPE_META = {
   },
 }
 
-function timeAgo(dateStr) {
-  const seconds = Math.floor((Date.now() - new Date(dateStr)) / 1000)
-  if (seconds < 60) return "just now"
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
-}
 
 function NotificationItem({ notification, onRead }) {
+  const { i18n } = useTranslation("dashboard")
+  const lang = i18n.language?.startsWith("es") ? "es" : "en"
   const meta = TYPE_META[notification.type] || TYPE_META[NOTIFICATION_TYPES.SYSTEM]
   const Icon = meta.icon
 
@@ -106,7 +106,7 @@ function NotificationItem({ notification, onRead }) {
         )}
 
         <div className="mt-1 text-micro text-charcoal-80/65">
-          {timeAgo(notification.createdAt)}
+          {formatRelativeTime(notification.createdAt, lang)}
         </div>
       </div>
     </button>
@@ -155,7 +155,7 @@ export default function NotificationDropdown() {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-violet-pale/60"
-        aria-label="Notifications"
+        aria-label={t("nav.notifications")}
       >
         <Bell className="h-4.5 w-4.5" />
         {unreadCount > 0 && (
@@ -180,9 +180,9 @@ export default function NotificationDropdown() {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-charcoal-80/10 px-4 py-3">
             <div>
-              <div className="text-body font-semibold text-violet">Notifications</div>
+              <div className="text-body font-semibold text-violet">{t("nav.notifications")}</div>
               {unreadCount > 0 && (
-                <div className="text-micro text-charcoal-80/65">{unreadCount} unread</div>
+                <div className="text-micro text-charcoal-80/65">{t("notifDropdown.unread", { count: unreadCount })}</div>
               )}
             </div>
 

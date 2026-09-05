@@ -1180,7 +1180,9 @@
   "notifDropdown": {
     "markAllRead": "Marcar todas como leídas",
     "allCaughtUp": "Todo al día",
-    "noNotifs": "Aún sin notificaciones"
+    "noNotifs": "Aún sin notificaciones",
+    "unread_one": "{{count}} sin leer",
+    "unread_other": "{{count}} sin leer"
   },
   "notificationsPage": {
     "eyebrow": "Actividad",
@@ -1226,7 +1228,6 @@
     "memberAreaSubtitle": "Tu central de productos digitales",
     "memberDashboard": "Panel de miembro",
     "openMenu": "Abrir menú",
-    "searchDashboard": "Buscar en el panel",
     "openSupport": "Abrir soporte",
     "quickNav": "Navegación rápida",
     "profileTabsAria": "Secciones de la cuenta",
@@ -1246,7 +1247,8 @@
       "profile": "Datos, direcciones, seguridad"
     },
     "logout": "Cerrar sesión",
-    "breadcrumbRoot": "Panel"
+    "breadcrumbRoot": "Panel",
+    "language": "Idioma"
   },
   "portal": {
     "eyebrow": "Portal del cliente",

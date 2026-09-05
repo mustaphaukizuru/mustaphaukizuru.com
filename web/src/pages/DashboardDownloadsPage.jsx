@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import {
   Download, Package, Clock3, FileArchive, RefreshCw, AlertCircle, CheckCircle2,
   Search, X, Calendar, FileText, Loader2, ShoppingBag, Sparkles, ExternalLink, KeyRound, Copy, Check,

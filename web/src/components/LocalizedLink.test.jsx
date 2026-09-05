@@ -56,14 +56,12 @@ describe("Spanish gets the prefix", () => {
   })
 })
 
-describe("the operator trees stay English", () => {
-  // App.jsx mirrors only the public and auth routes under /es, so a
-  // prefixed operator path is a URL with no route behind it. Public pages
-  // link into these constantly — checkout, the success page, signup.
+describe("/admin stays English", () => {
+  // /admin is the only tree App.jsx does not mirror under /es, so a
+  // prefixed admin path is a URL with no route behind it. It stays English
+  // on purpose: admin.json is 86 bytes and no admin page calls
+  // useTranslation.
   it.each([
-    "/dashboard",
-    "/dashboard/addresses",
-    "/dashboard/downloads",
     "/admin",
     "/admin/orders/123",
   ])("%s is left alone in Spanish", (to) => {
@@ -71,11 +69,37 @@ describe("the operator trees stay English", () => {
   })
 
   it("guards the object form too", () => {
-    expect(localize({ pathname: "/dashboard/support" }, "es")).toEqual({ pathname: "/dashboard/support" })
+    expect(localize({ pathname: "/admin/orders" }, "es")).toEqual({ pathname: "/admin/orders" })
   })
 
   it("but a path that merely begins with those letters is prefixed", () => {
     expect(localize("/administration", "es")).toBe("/es/administration")
+  })
+})
+
+describe("the member dashboard is mirrored, and localizes (D3-3)", () => {
+  // It used to be in the list above, and that is what made 1,078 translated
+  // Spanish keys unreachable: language is read off the URL prefix, so an
+  // unprefixed /dashboard link switched a Spanish member back to English at
+  // the moment they signed in, with no URL that could undo it.
+  it.each([
+    ["/dashboard", "/es/dashboard"],
+    ["/dashboard/addresses", "/es/dashboard/addresses"],
+    ["/dashboard/downloads", "/es/dashboard/downloads"],
+    ["/dashboard/projects/42", "/es/dashboard/projects/42"],
+  ])("%s → %s", (to, expected) => {
+    expect(localize(to, "es")).toBe(expected)
+  })
+
+  it("the object form too", () => {
+    expect(localize({ pathname: "/dashboard/support" }, "es")).toEqual({ pathname: "/es/dashboard/support" })
+  })
+
+  it("and is untouched in English", () => {
+    expect(localize("/dashboard/orders", "en")).toBe("/dashboard/orders")
+  })
+
+  it("a path that merely begins with those letters is still prefixed", () => {
     expect(localize("/dashboards", "es")).toBe("/es/dashboards")
   })
 })

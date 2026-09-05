@@ -312,8 +312,16 @@ export const noindexPrefixes = [
 ]
 
 export function shouldNoindex(pathname = "/") {
+  /* The /es prefix comes off first, and that is a fix rather than
+     housekeeping for the newly-mirrored dashboard (D3-3).
+     `noindexPrefixes` is written in unprefixed form, but /es mirrors
+     /login, /signup, /forgot-password, /reset-password, /checkout and
+     /cart — so every one of those Spanish URLs was falling through this
+     check and being served `index,follow`. The Spanish sign-in page was
+     indexable; the English one was not. */
+  const clean = String(pathname).replace(/^\/es(?=\/|$)/, "") || "/"
   return noindexPrefixes.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    (prefix) => clean === prefix || clean.startsWith(`${prefix}/`),
   )
 }
 

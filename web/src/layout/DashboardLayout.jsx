@@ -1,5 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from "react"
-import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom"
+import { useState, useEffect, useRef } from "react"
+import { Outlet, useLocation } from "react-router-dom"
+import { LocalizedLink as Link, LocalizedNavLink as NavLink } from "../components/LocalizedLink"
+import useLocalizedNavigate from "../hooks/useLocalizedNavigate"
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -23,6 +25,14 @@ import { API_BASE_URL } from "../lib/api"
 import NotificationDropdown from "../components/dashboard/NotificationDropdown"
 import UpcomingMeetingBanner from "../components/dashboard/UpcomingMeetingBanner"
 import ThemeSwitcher from "../components/ui/ThemeSwitcher"
+import LanguageSwitcher from "../components/LanguageSwitcher"
+// pathWithLanguage(p, "en") IS the strip, and it is a nine-line module.
+// seo/pageSeoEs exports a strip helper that does the same thing, but
+// importing it would pull the whole Spanish SEO table into the dashboard
+// chunk to run one regex.
+import { pathWithLanguage } from "../i18n/utils/pathWithLanguage"
+import { Helmet } from "react-helmet-async"
+import { siteConfig } from "../seo/siteSeo"
 
 import { useTranslation } from "react-i18next"
 /* ──────────────────────────────────────────────────────────────────────────
@@ -136,19 +146,42 @@ const bottomTabs = [
   { labelKey: "nav.profile", to: "/dashboard/profile", icon: User, match: PROFILE_ROUTES },
 ]
 
-const pageMeta = {
-  "/dashboard": { title: "Overview", subtitle: "Monitor your account, orders, downloads, and recent activity." },
-  "/dashboard/products": { title: "My Products", subtitle: "Access your paid digital products and available downloads." },
-  "/dashboard/downloads": { title: "Downloads", subtitle: "Track your file download history and access logs." },
-  "/dashboard/orders": { title: "Order History", subtitle: "Review your purchases, payment state, and order records." },
-  "/dashboard/consultations": { title: "Consultations", subtitle: "Manage upcoming bookings, reschedule, or cancel calls." },
-  "/dashboard/service-orders": { title: "Service Orders", subtitle: "Track your consulting services, consultations, and project milestones." },
-  "/dashboard/addresses": { title: "Addresses", subtitle: "Manage saved billing and invoicing addresses." },
-  "/dashboard/2fa": { title: "Security · Two-Factor Auth", subtitle: "Add an extra layer of protection to your account." },
-  "/dashboard/notifications": { title: "Notifications", subtitle: "Everything that happened on your account, in one place." },
-  "/dashboard/projects": { title: "Projects", subtitle: "Milestones, files, and timeline for every engagement." },
-  "/dashboard/support": { title: "Support", subtitle: "Open tickets, get help, and track your support requests." },
-  "/dashboard/profile": { title: "Profile", subtitle: "Manage your account information and personal details." },
+/* ──────────────────────────────────────────────────────────────────────────
+ *  PAGE TITLES · D3-1 · one key per route, from the navigation
+ *
+ *  This was twelve hardcoded English title/subtitle pairs, so a member
+ *  reading the dashboard in Spanish got Spanish navigation, Spanish section
+ *  labels and Spanish page content under an ENGLISH page heading, on every
+ *  one of the twelve routes. (The `/es` tree does not mirror /dashboard —
+ *  language here comes from the persisted i18n choice, not the URL — so
+ *  there was no prefix to notice this by.)
+ *
+ *  The titles resolve through `nav.*`, which is the SAME key the sidebar
+ *  entry uses, rather than twelve new strings. That is deliberate on two
+ *  counts: both locales already have them, and it closes a small
+ *  inconsistency the duplicate copy had drifted into — you clicked "Orders"
+ *  and landed on a page headed "Order History", clicked "Two-step
+ *  verification" and landed on "Security · Two-Factor Auth". One name per
+ *  destination.
+ *
+ *  The `subtitle` half is GONE rather than translated. Tier 1 removed it
+ *  from the header (every page renders its own description), so all twelve
+ *  were dead strings; translating them would have been twelve Spanish
+ *  strings nothing renders.
+ *  ──────────────────────────────────────────────────────────────── */
+const pageTitleKeys = {
+  "/dashboard": "nav.overview",
+  "/dashboard/products": "nav.products",
+  "/dashboard/downloads": "nav.downloads",
+  "/dashboard/orders": "nav.orders",
+  "/dashboard/consultations": "nav.consultations",
+  "/dashboard/service-orders": "nav.serviceOrders",
+  "/dashboard/addresses": "nav.addresses",
+  "/dashboard/2fa": "nav.twoFactor",
+  "/dashboard/notifications": "nav.notifications",
+  "/dashboard/projects": "nav.projects",
+  "/dashboard/support": "nav.support",
+  "/dashboard/profile": "nav.profile",
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -331,10 +364,18 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
             ))}
           </div>
 
-          {/* Theme switcher (mobile drawer) — same scoping rules as the
-              desktop sidebar control above. */}
-          <div className="border-t border-charcoal-80/10 px-4 pt-4">
+          {/* Theme and language (mobile drawer) — the theme control keeps the
+              same scoping rules as the desktop sidebar one above. Language
+              sits beside it rather than in the mobile header, which is
+              already at four controls across 375px. */}
+          <div className="space-y-2.5 border-t border-charcoal-80/10 px-4 pt-4">
             <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
+            <div className="flex items-center justify-between">
+              <span className="text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
+                {td("layout.language")}
+              </span>
+              <LanguageSwitcher variant="text" />
+            </div>
           </div>
 
           {/* Logout */}
@@ -357,15 +398,32 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
 export default function DashboardLayout() {
   const { t } = useTranslation("dashboard")
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const navigate = useLocalizedNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const currentMeta = useMemo(() => {
-    if (pageMeta[location.pathname]) return pageMeta[location.pathname]
-    const parent = Object.keys(pageMeta).find((p) => p !== "/dashboard" && location.pathname.startsWith(`${p}/`))
-    return pageMeta[parent] || { title: "Dashboard", subtitle: "Manage your account and digital products." }
-  }, [location.pathname])
+  /* The two detail routes (`orders/:id`, `projects/:id`) resolve to their
+     parent's title through the prefix match; `/dashboard` is excluded from
+     that search or it would match everything.
+
+     Deliberately not memoised. The `i18nReady` guard below sits after every
+     hook — it has to, or the hook order would change between renders — so a
+     memo here still RUNS on the renders where the `dashboard` bundle has not
+     arrived yet. react-i18next hands back a referentially stable `t`, so
+     deps of `[location.pathname, t]` never invalidate once the bundle lands
+     and the cached value stays the raw key: the heading and the tab title
+     both rendered the literal string "nav.orders" until this was unwrapped.
+     Twelve object lookups and one t() per render is not worth a cache that
+     can be wrong. */
+  /* The /es prefix comes off before the lookup: the map is written in
+     unprefixed form and the tree is mounted at both /dashboard and
+     /es/dashboard (D3-3), so keying on the raw pathname made every Spanish
+     route miss and fall through to "Panel de miembro". */
+  const routePath = pathWithLanguage(location.pathname, "en")
+  const titleKey = pageTitleKeys[routePath]
+    || pageTitleKeys[Object.keys(pageTitleKeys)
+      .find((p) => p !== "/dashboard" && routePath.startsWith(`${p}/`))]
+  const pageTitle = t(titleKey || "layout.memberDashboard")
 
   const initials = user?.fullName
     ?.split(" ")
@@ -403,6 +461,27 @@ export default function DashboardLayout() {
     // dark mode (via ThemeSwitcher in the sidebar) flips only the
     // dashboard subtree per Brand v3.1 §00 "Default Mode: Light".
     <section data-dashboard-shell className="min-h-screen bg-mist pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+      {/* D3-1 · a browser tab you can tell apart.
+       *
+       * SeoRouteManager runs globally and titles every route, but
+       * `/dashboard` appears in pageSeo.js only under `noindexPrefixes` —
+       * there is no staticSeoByRoute entry for any of the twelve routes. So
+       * all twelve fell through to siteConfig.defaultTitle, and a member
+       * with orders, projects and support open in three tabs saw the same
+       * 84-character marketing title on all three.
+       *
+       * Helmet resolves to the deepest instance, so this wins over
+       * SeoRouteManager without touching it — and it belongs here rather
+       * than in pageSeo.js because the title has to be translated, and this
+       * is the only tree that has the `dashboard` namespace loaded. Putting
+       * it in the global manager would pull 56 KB of dashboard strings into
+       * every public page load to title a page the public never sees.
+       *
+       * Title first, brand second: the tab strip truncates from the right. */}
+      <Helmet>
+        <title>{`${pageTitle} · ${siteConfig.siteName}`}</title>
+      </Helmet>
+
       {/* Skip-to-content for keyboard users */}
       <a
         href="#dashboard-main"
@@ -539,7 +618,7 @@ export default function DashboardLayout() {
               <div className="flex items-center gap-3">
                 <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[var(--shadow-lift-1)]" />
                 <div>
-                  <div className="text-body font-bold text-violet">{currentMeta.title}</div>
+                  <div className="text-body font-bold text-violet">{pageTitle}</div>
                   <div className="text-micro text-charcoal-80/65">{t("layout.memberDashboard")}</div>
                 </div>
               </div>
@@ -611,16 +690,24 @@ export default function DashboardLayout() {
                    * Products and Profile have no visible title at all), so
                    * the documents ended up with none.
                    *
-                   * The layout already knows the page title from pageMeta and
+                   * The layout already knows the page title from pageTitleKeys and
                    * renders it on every route, so it is the one place that can
                    * guarantee exactly one. The three pages that had their own
                    * h1 are now h2 under it, which is also the hierarchy the
                    * heading-order probe wanted. */}
                   <h1 className="truncate text-card font-bold tracking-tight text-violet">
-                    {currentMeta.title}
+                    {pageTitle}
                   </h1>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
+                  {/* D3-3 · the dashboard had no language control at all.
+                      It did not need one while /dashboard was English-only;
+                      now that /es/dashboard exists, this is the only screen a
+                      signed-in member lives on, and switching should not mean
+                      going back out to a marketing page to find the toggle.
+                      The `text` variant is ~44px wide and costs the header no
+                      height, which D1-2 spent real effort reclaiming. */}
+                  <LanguageSwitcher variant="text" className="me-1" />
                   <button
                     type="button"
                     onClick={() => navigate("/dashboard/support")}

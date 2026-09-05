@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useNavigate } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useLocalizedNavigate from "../hooks/useLocalizedNavigate"
 import {
   Mail, ShieldCheck, User, CalendarDays, Edit3, Save, X,
   Phone, Building, Lock, Camera, Trash2, AlertCircle, Eye, EyeOff,
@@ -36,7 +37,7 @@ export default function DashboardProfilePage() {
   const { t, i18n } = useTranslation("dashboard")
   const { user, updateUser, logout } = useAuth()
   const { showSuccess, showError } = useToast()
-  const navigate = useNavigate()
+  const navigate = useLocalizedNavigate()
 
   // ARCO · Privacy & data (LFPDPPP). Export = right of Access, delete =
   // right of Cancellation. Both hit the member profile router.

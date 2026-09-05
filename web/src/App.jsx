@@ -197,6 +197,41 @@ const AdminBlogFormPage = lazy(() => import("./pages/AdminBlogFormPage"));
 const AdminCampaignsPage = lazy(() => import("./pages/AdminCampaignsPage"));
 const AdminCampaignFormPage = lazy(() => import("./pages/AdminCampaignFormPage"));
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  D3-3 · the member dashboard's child routes, defined ONCE and mounted at
+ *  both /dashboard and /es/dashboard.
+ *
+ *  The dashboard was not mirrored under /es. Language on this site is read
+ *  off the URL prefix — LanguageWrapper calls changeLanguage() from
+ *  detectLanguageFromPath() on every navigation — so /dashboard resolved to
+ *  "en" unconditionally and there was no URL a member could visit to see it
+ *  in Spanish. es/dashboard.json holds 1,078 translated keys; only the
+ *  handful under `portal` were reachable, through /es/portal/:token, which
+ *  IS mirrored. Everything else had never rendered.
+ *
+ *  A fragment rather than a duplicated block: React Router's
+ *  createRoutesFromChildren recurses through React.Fragment, so both mounts
+ *  get the same fourteen routes and neither can drift from the other.
+ *  ──────────────────────────────────────────────────────────────── */
+const dashboardChildRoutes = (
+  <>
+    <Route index element={<DashboardPage />} />
+    <Route path="products" element={<DashboardProductsPage />} />
+    <Route path="downloads" element={<DashboardDownloadsPage />} />
+    <Route path="orders" element={<DashboardOrdersPage />} />
+    <Route path="orders/:orderId" element={<DashboardOrderDetailPage />} />
+    <Route path="notifications" element={<DashboardNotificationsPage />} />
+    <Route path="consultations" element={<DashboardConsultationsPage />} />
+    <Route path="addresses" element={<DashboardAddressesPage />} />
+    <Route path="2fa" element={<Dashboard2FAPage />} />
+    <Route path="support" element={<DashboardSupportPage />} />
+    <Route path="service-orders" element={<DashboardServiceOrdersPage />} />
+    <Route path="projects" element={<DashboardProjectsPage />} />
+    <Route path="projects/:id" element={<DashboardProjectDetailPage />} />
+    <Route path="profile" element={<DashboardProfilePage />} />
+  </>
+)
+
 export default function App() {
   const [appReady, setAppReady] = useState(false);
 
@@ -303,7 +338,10 @@ export default function App() {
             <Route path="/auth/microsoft/return" element={<MicrosoftReturnPage />} />
             <Route path="/auth/facebook/return"  element={<FacebookReturnPage />} />
 
-            {/* Member dashboard */}
+            {/* Member dashboard · mounted at BOTH /dashboard and
+                /es/dashboard from one definition (see dashboardChildRoutes
+                above the component). D3-3: it was English-only at /dashboard
+                and there was no URL that could make it Spanish. */}
             <Route
               path="/dashboard"
               element={
@@ -312,20 +350,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<DashboardPage />} />
-              <Route path="products" element={<DashboardProductsPage />} />
-              <Route path="downloads" element={<DashboardDownloadsPage />} />
-              <Route path="orders" element={<DashboardOrdersPage />} />
-              <Route path="orders/:orderId" element={<DashboardOrderDetailPage />} />
-              <Route path="notifications" element={<DashboardNotificationsPage />} />
-              <Route path="consultations" element={<DashboardConsultationsPage />} />
-              <Route path="addresses" element={<DashboardAddressesPage />} />
-              <Route path="2fa" element={<Dashboard2FAPage />} />
-              <Route path="support" element={<DashboardSupportPage />} />
-              <Route path="service-orders" element={<DashboardServiceOrdersPage />} />
-              <Route path="projects" element={<DashboardProjectsPage />} />
-              <Route path="projects/:id" element={<DashboardProjectDetailPage />} />
-              <Route path="profile" element={<DashboardProfilePage />} />
+              {dashboardChildRoutes}
             </Route>
 
             {/* Admin */}
@@ -399,9 +424,12 @@ export default function App() {
                 Mirrors every public English route so users at, e.g.,
                 /es/about see the AboutPage component with i18n.language
                 set to "es" by the LanguageWrapper layout route below.
-                Admin and dashboard routes are intentionally NOT mirrored
-                — operator surfaces remain English-only per the locked
-                I18N03 Step 4 decision.
+                Admin routes are intentionally NOT mirrored — those
+                surfaces are English-only by convention. The member
+                dashboard IS mirrored (D3-3); it is a customer surface with
+                a complete Spanish translation, and the earlier reading of
+                the I18N03 Step 4 decision as covering it is what left that
+                translation unreachable.
                 ──────────────────────────────────────────────────────── */}
             <Route path="/es" element={<LanguageWrapper />}>
               {/* Public */}
@@ -465,6 +493,24 @@ export default function App() {
               <Route path="auth/google/return"    element={<GoogleReturnPage />} />
               <Route path="auth/microsoft/return" element={<MicrosoftReturnPage />} />
               <Route path="auth/facebook/return"  element={<FacebookReturnPage />} />
+
+              {/* Member dashboard · D3-3.
+                  ADMIN is still not mirrored and should not be: admin.json is
+                  86 bytes and no admin page calls useTranslation, so those
+                  screens are English by convention. The MEMBER dashboard is
+                  not an operator surface — it has 1,078 translated Spanish
+                  keys — and lumping the two together under "operator UIs stay
+                  English" is what kept every one of them off the screen. */}
+              <Route
+                path="dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                {dashboardChildRoutes}
+              </Route>
 
               {/* Admin and Dashboard intentionally NOT mirrored — operator UIs stay English. */}
             </Route>

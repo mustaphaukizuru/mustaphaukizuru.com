@@ -1,6 +1,6 @@
 import { formatDate } from "../lib/format"
 import { useMemo } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { m } from "framer-motion"
 import {

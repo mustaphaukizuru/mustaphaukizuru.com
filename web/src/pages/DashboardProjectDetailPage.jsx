@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react"
-import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
+import { useParams, useSearchParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useLocalizedNavigate from "../hooks/useLocalizedNavigate"
 import { formatDate, formatDay } from "../lib/format"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
@@ -566,7 +568,7 @@ function ReviewCard({ project, highlighted, onSubmitted, t }) {
 
 function NdaGate({ project, onAccepted }) {
   const { t } = useTranslation("legal")
-  const navigate = useNavigate()
+  const navigate = useLocalizedNavigate()
   const [agreed, setAgreed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")

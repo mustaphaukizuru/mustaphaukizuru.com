@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { m } from "framer-motion"
 import { Briefcase, Calendar, FileText, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react"

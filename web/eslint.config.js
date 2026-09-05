@@ -95,13 +95,14 @@ export default defineConfig([
       'src/context/**/*.{js,jsx}',
     ],
     ignores: [
-      // The operator trees are NOT mirrored under /es, so a prefixed
-      // operator link points at a route that does not exist.
+      // /admin is NOT mirrored under /es, so a prefixed admin link points at
+      // a route that does not exist. The member dashboard WAS in this list
+      // and is not any more (D3-3): it is mirrored now, and the exemption is
+      // what let ~19 raw <Link to="/dashboard/..."> call sites accumulate,
+      // each of which drops a Spanish member back into English.
       'src/pages/Admin*.jsx',
-      'src/pages/Dashboard*.jsx',
       'src/components/admin/**',
       'src/layout/AdminLayout.jsx',
-      'src/layout/DashboardLayout.jsx',
       // These own the primitives, or cross languages on purpose.
       'src/components/LocalizedLink.jsx',
       'src/components/LanguageWrapper.jsx',
