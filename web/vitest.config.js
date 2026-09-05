@@ -23,6 +23,12 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    // D0-2 · pinned, deliberately. The date-only formatting bug is INVISIBLE
+    // in UTC: `new Date("2026-10-01")` renders as "Oct 1" there and as
+    // "Sep 30" in the home market, so a suite running in UTC would have
+    // passed either way — which is how it shipped. This is the timezone the
+    // clients are in.
+    env: { TZ: "America/Mexico_City" },
     globals: true,
     setupFiles: ["./src/test/setup.js"],
     // Unit lane only. e2e/ is Playwright's; node_modules and the build

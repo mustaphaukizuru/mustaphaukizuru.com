@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
-import { formatDate } from "../lib/format"
+import { formatDate, formatDay } from "../lib/format"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
 import {
@@ -41,7 +41,13 @@ const ALLOWED_EXT = new Set([
 const IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp"])
 const EXPIRED = Symbol("expired")
 
+// D0-2 · fmtDay for a calendar day somebody PICKED (dueDate,
+// startDate, estimatedAt), fmtDate for an instant the server stamped.
+// The date-only fields are stored as midnight UTC, so rendering them in
+// the browser's timezone showed the previous day to every reader west of
+// Greenwich — "Due Sep 30" for 1 October, across the whole home market.
 const fmtDate = (d) => d ? formatDate(d) : "—"
+const fmtDay = (d) => d ? formatDay(d) : "—"
 const fmtDateTime = (d) => d ? new Date(d).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""
 const extOf = (name) => {
   const i = String(name || "").lastIndexOf(".")
@@ -244,8 +250,8 @@ export default function DashboardProjectDetailPage() {
               <p className="mt-2 max-w-2xl text-meta text-charcoal-80/75">{project.description}</p>
             )}
             <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/65">
-              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDate(project.startDate) })}</span>
-              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDate(project.dueDate) })}</span>
+              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDay(project.startDate) })}</span>
+              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDay(project.dueDate) })}</span>
               {project.assignedAdmin && (
                 <span><UserIcon className="mr-1 inline h-3 w-3" />{t("projects.detail.lead", { name: project.assignedAdmin.fullName })}</span>
               )}
@@ -723,7 +729,7 @@ function MilestoneCard({ milestone: ms, index, comments, readOnly, label, onAppr
           </div>
           {ms.description && <p className="mt-1 text-micro text-charcoal-80/65">{ms.description}</p>}
           <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
-            {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDate(ms.dueDate) })}</span>}
+            {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDay(ms.dueDate) })}</span>}
             {ms.approvedAt && <span>{t("projects.detail.milestoneApproved", { date: fmtDate(ms.approvedAt) })}</span>}
             {ms.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(ms.completedAt) })}</span>}
           </div>

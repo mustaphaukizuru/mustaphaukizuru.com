@@ -44,6 +44,16 @@ function formatDate(iso, withTime = false) {
   })
 }
 
+// D0-2 · `dueDate` is a calendar day somebody picked, stored at midnight
+// UTC. formatDate above renders in local time, which showed the previous
+// day — an invoice due the 1st read as due the last of the previous month.
+function formatDay(iso) {
+  if (!iso) return "-"
+  return new Date(iso).toLocaleDateString("en-US", {
+    year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
+  })
+}
+
 const INPUT = "w-full rounded-lg border border-charcoal-80/15 bg-white px-3 py-2 text-[13px] outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-violet/15"
 
 export default function AdminInvoicesPage() {
@@ -262,7 +272,7 @@ export default function AdminInvoicesPage() {
                     {Number(inv.lateFeeAmount) > 0 ? <div className="text-[10.5px] text-amber-700">+ {formatCurrency(inv.lateFeeAmount, inv.order?.currency || "MXN")} late fee</div> : null}
                   </td>
                   <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{formatDate(inv.issuedAt)}</td>
-                  <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{inv.paidAt ? `Paid ${formatDate(inv.paidAt)}` : formatDate(inv.dueDate)}</td>
+                  <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{inv.paidAt ? `Paid ${formatDate(inv.paidAt)}` : formatDay(inv.dueDate)}</td>
                   <td className="px-4 py-3"><StatusPill status={inv.status} /></td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex items-center gap-1">

@@ -7,7 +7,9 @@ import { MetricCard, AlertBanner, SkeletonCard } from "../components/ui/index"
 import DataTable from "../components/admin/DataTable"
 import StatusPill from "../components/admin/StatusPill"
 
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "-"
+// D0-2 · dueDate is a picked calendar day stored at midnight UTC, so it is
+// formatted in UTC. Rendering it locally showed the previous day.
+const fmtDay = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }) : "-"
 
 export default function AdminClientProjectsPage() {
   const { showSuccess, showError } = useToast()
@@ -87,7 +89,7 @@ export default function AdminClientProjectsPage() {
     {
       key: "dueDate", label: "Due", sortable: true, width: "0.8fr",
       getValue: (row) => row.dueDate || "",
-      render: (row) => <span className="font-mono text-micro text-charcoal-80/65">{fmtDate(row.dueDate)}</span>,
+      render: (row) => <span className="font-mono text-micro text-charcoal-80/65">{fmtDay(row.dueDate)}</span>,
     },
     {
       key: "actions", label: "", width: "1fr", align: "right",

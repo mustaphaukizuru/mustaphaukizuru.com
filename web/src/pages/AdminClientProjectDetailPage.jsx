@@ -624,7 +624,7 @@ export default function AdminClientProjectDetailPage() {
                       ) : null}
                     </label>
                     <div className="mt-1.5 font-mono text-[11px] text-charcoal-80/65">
-                      {m.dueDate && <>Due {new Date(m.dueDate).toLocaleDateString()} · </>}
+                      {m.dueDate && <>Due {new Date(m.dueDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })} · </>}
                       {m.approvedAt && <>Approved by client {fmtWhen(m.approvedAt)} · </>}
                       {m.changesRequestedAt && <>Changes requested {fmtWhen(m.changesRequestedAt)} · </>}
                       {m.completedAt && <>Completed {new Date(m.completedAt).toLocaleDateString()}</>}

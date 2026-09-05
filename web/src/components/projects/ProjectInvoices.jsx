@@ -48,6 +48,15 @@ export default function ProjectInvoices({
     () => new Intl.DateTimeFormat(locale, { year: "numeric", month: "short", day: "numeric" }),
     [locale],
   )
+  // D0-2 · a SECOND formatter, pinned to UTC, for the fields that are a
+  // calendar day rather than an instant. `dueDate` / `dueAt` are stored as
+  // midnight UTC (an <input type="date"> value), so the local-time formatter
+  // rendered the previous day for every reader west of Greenwich — the whole
+  // home market saw "Due Sep 30" for the 1st of October.
+  const fmtDay = useMemo(
+    () => new Intl.DateTimeFormat(locale, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }),
+    [locale],
+  )
   const money = useMemo(() => (amount, currency) => new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currency || "MXN",
@@ -86,7 +95,7 @@ export default function ProjectInvoices({
             ? t("invoices.outstandingDue", {
               count: billing.unpaidCount,
               amount: money(billing.unpaidTotal, currency),
-              date: fmtDate.format(new Date(billing.nextDueAt)),
+              date: fmtDay.format(new Date(billing.nextDueAt)),
             })
             : t("invoices.outstanding", {
               count: billing.unpaidCount,
@@ -125,7 +134,7 @@ export default function ProjectInvoices({
                   {invoice.issuedAt ? fmtDate.format(new Date(invoice.issuedAt)) : "—"}
                 </td>
                 <td className="py-3 pe-3 text-meta text-charcoal-80/70">
-                  {invoice.dueDate ? fmtDate.format(new Date(invoice.dueDate)) : "—"}
+                  {invoice.dueDate ? fmtDay.format(new Date(invoice.dueDate)) : "—"}
                 </td>
                 <td className="py-3 pe-3 text-end text-body tabular-nums text-charcoal-80">
                   {money(invoice.totalAmount, invoice.currency)}

@@ -24,7 +24,13 @@ import useProjectPanels from "../hooks/useProjectPanels"
 /* ── constants ─────────────────────────────────────────────────────────── */
 const CARD = "rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]"
 const EMPTY = "rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/65"
+// D0-2 · fmtDay for a calendar day somebody PICKED (dueDate,
+// startDate, estimatedAt), fmtDate for an instant the server stamped.
+// The date-only fields are stored as midnight UTC, so rendering them in
+// the browser's timezone showed the previous day to every reader west of
+// Greenwich — "Due Sep 30" for 1 October, across the whole home market.
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—"
+const fmtDay = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }) : "—"
 
 const MILESTONE_ICON = { pending: Hourglass, in_progress: Clock, awaiting_client: Eye, approved: ThumbsUp, completed: CheckCircle2 }
 const MILESTONE_TONE = {
@@ -221,8 +227,8 @@ function PortalView({ project, t }) {
             </div>
             {project.description && <p className="mt-2 max-w-2xl text-meta text-charcoal-80/75">{project.description}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/65">
-              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDate(project.startDate) })}</span>
-              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDate(project.dueDate) })}</span>
+              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDay(project.startDate) })}</span>
+              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDay(project.dueDate) })}</span>
               {project.assignedAdmin && (
                 <span><UserIcon className="mr-1 inline h-3 w-3" />{t("projects.detail.lead", { name: project.assignedAdmin.fullName })}</span>
               )}
@@ -259,7 +265,7 @@ function PortalView({ project, t }) {
                   </div>
                   {ms.description && <p className="mt-1 text-meta text-charcoal-80/75">{ms.description}</p>}
                   <div className="mt-2 flex flex-wrap gap-3 font-mono text-[11px] text-charcoal-80/65">
-                    {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDate(ms.dueDate) })}</span>}
+                    {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDay(ms.dueDate) })}</span>}
                     {ms.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(ms.completedAt) })}</span>}
                   </div>
                 </div>

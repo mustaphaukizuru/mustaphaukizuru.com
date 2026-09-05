@@ -237,7 +237,7 @@ export default function ProjectRequestsAdmin({ projectId, milestones = [] }) {
                   {r.instructions && <p className="mt-0.5 text-[11px] text-charcoal-80/65">{r.instructions}</p>}
                   <p className="mt-1 font-mono text-[11px] text-charcoal-80/65">
                     {r.acceptExt || "any permitted type"}
-                    {r.dueAt ? ` · due ${new Date(r.dueAt).toLocaleDateString()}` : ""}
+                    {r.dueAt ? ` · due ${new Date(r.dueAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })}` : ""}
                     {r.submittedAt ? ` · sent ${new Date(r.submittedAt).toLocaleDateString()}` : ""}
                   </p>
                   {r.reviewNote && <p className="mt-1 text-[11px] text-amber-700">{r.reviewNote}</p>}

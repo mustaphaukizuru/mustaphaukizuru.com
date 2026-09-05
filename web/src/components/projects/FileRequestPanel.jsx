@@ -60,8 +60,13 @@ export default function FileRequestPanel({
   const inputRefs = useRef({})
 
   const locale = i18n.language?.startsWith("es") ? "es-MX" : "en-US"
-  const fmtDate = useMemo(
-    () => new Intl.DateTimeFormat(locale, { year: "numeric", month: "short", day: "numeric" }),
+  // D0-2 · a SECOND formatter, pinned to UTC, for the fields that are a
+  // calendar day rather than an instant. `dueDate` / `dueAt` are stored as
+  // midnight UTC (an <input type="date"> value), so the local-time formatter
+  // rendered the previous day for every reader west of Greenwich — the whole
+  // home market saw "Due Sep 30" for the 1st of October.
+  const fmtDay = useMemo(
+    () => new Intl.DateTimeFormat(locale, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }),
     [locale],
   )
 
@@ -198,7 +203,7 @@ export default function FileRequestPanel({
                     <p className="mt-1 flex flex-wrap gap-x-3 text-meta text-charcoal-80/65">
                       {request.dueAt ? (
                         <span className={overdue ? "text-amber-700" : undefined}>
-                          {t("fileRequests.due", { date: fmtDate.format(new Date(request.dueAt)) })}
+                          {t("fileRequests.due", { date: fmtDay.format(new Date(request.dueAt)) })}
                         </span>
                       ) : null}
                       {request.acceptExt ? (
