@@ -98,6 +98,18 @@ export const staticSeoEsByRoute = {
     keywords: ["desarrollo de MVP México", "app móvil multiplataforma", "diseño de APIs", "automatización CI/CD"],
   },
 
+  "/self-audit": {
+    title: "Autodiagnóstico Digital Gratuito · Califica tu Tecnología",
+    description:
+      "Una autoevaluación de 10 minutos sobre estrategia, automatización, infraestructura y software. Obtén un puntaje y los cinco huecos que conviene cerrar primero.",
+    keywords: [
+      "autodiagnóstico tecnológico",
+      "evaluación TI México",
+      "diagnóstico digital escuelas",
+      "madurez tecnológica PyME",
+    ],
+  },
+
   "/how-we-work": {
     title: "Cómo Trabajamos · Seis Pasos del Primer Mensaje a la Entrega",
     description:

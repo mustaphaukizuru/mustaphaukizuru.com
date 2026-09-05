@@ -118,7 +118,8 @@
     "emailRequired": "Please enter your email address.",
     "subscribeSuccess": "Almost there — check your inbox to confirm your subscription.",
     "subscribeError": "We couldn't complete your subscription. Please try again.",
-    "navHowWeWork": "How we work"
+    "navHowWeWork": "How we work",
+    "navSelfAudit": "Self-audit"
   },
   "language": {
     "english": "English",

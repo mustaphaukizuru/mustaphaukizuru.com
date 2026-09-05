@@ -20,6 +20,51 @@ export const NAMESPACES = [
   "blog", "audit", "schools",
 ]
 
+/**
+ * Namespaces that belong to ONE route and are loaded when that route mounts.
+ *
+ * `audit` is 6.6 KB per language and is read by exactly one page. Shipping it
+ * in the per-language bundle put it on the critical path of every page on the
+ * site — the homepage included — which is what pushed first paint past the
+ * budget e2e/first-paint-payload.spec.js enforces when T2-3 moved the
+ * self-audit's copy out of hardcoded strings and into JSON.
+ *
+ * It stays in NAMESPACES above so `npm run test:i18n` keeps checking its
+ * en/es parity; only the bundling changes.
+ */
+export const LAZY_NAMESPACES = ["audit"]
+
+/** What the per-language bundle actually carries. */
+export const EAGER_NAMESPACES = NAMESPACES.filter((ns) => !LAZY_NAMESPACES.includes(ns))
+
+/* Static map, for the same reason as `loaders` below: Rollup has to see every
+ * target to emit a chunk per (namespace, language). */
+const nsLoaders = {
+  "audit:en": () => import("./locales/en/audit.json"),
+  "audit:es": () => import("./locales/es/audit.json"),
+}
+
+const nsCache = new Map()
+
+/**
+ * Fetch one route-scoped namespace. Memoised, and a failure is evicted so a
+ * later retry can succeed — same contract as loadLanguageBundle.
+ *
+ * @returns {Promise<object>} the namespace's translations
+ */
+export function loadNamespace(ns, lng) {
+  const lang = normalizeLanguage(lng)
+  const key = `${ns}:${lang}`
+  const loader = nsLoaders[key]
+  if (!loader) return Promise.reject(new Error(`i18n: no lazy loader for ${key}`))
+  if (!nsCache.has(key)) {
+    nsCache.set(key, loader()
+      .then((mod) => mod.default)
+      .catch((err) => { nsCache.delete(key); throw err }))
+  }
+  return nsCache.get(key)
+}
+
 export const SUPPORTED_LANGUAGES = ["en", "es"]
 // Spanish-first (Mexico is the home market): a visitor with no usable
 // signal — no /es prefix, nothing stored, a non-en/es browser — gets Spanish.

@@ -1,698 +1,637 @@
 /**
- * auditData.js — canonical source of truth for the self-audit wizard.
- * 82 capability items · 6 sections · 3 audience types.
+ * auditData.js — the self-audit instrument (rebuilt, T2-3).
  *
- * Item tuple shape (index positions):
- *   [0] id          "A.1"
- *   [1] svcId       "UKZ-CS-001"
- *   [2] title       "Technology Assessment & Audit"
- *   [3] stmt        capability statement (user rates this 0–4)
- *   [4] tier        "Tier 2 · 2–4 weeks"
- *   [5] audiences   ["EDU","SMB","IND"]
- *   [6] risk        what happens if this gap is NOT closed
- *   [7] investRange "$800 – $2,400 USD"
+ * WHAT WAS WRONG
+ *
+ * The old instrument had 82 statements in six sections keyed to the SKU
+ * taxonomy that preceded the closed set of four categories. 38 of those 82
+ * pointed at offerings that no longer exist — a visitor could score badly on
+ * "Brand & Digital Presence" and be pointed at a service the site does not
+ * sell. Every statement was English-only, so a Spanish visitor answered an
+ * English questionnaire. And SOLUTIONS/matchBundle recommended bespoke
+ * programmes with USD ranges that appear nowhere else on the site; two of
+ * them were composed entirely of retired ids and could not be delivered.
+ *
+ * WHAT IT IS NOW
+ *
+ * 32 statements across the four catalogue categories. Every statement names
+ * the offering that closes the gap, by slug, and that slug must resolve
+ * through getOfferingBySlug() — the test in auditData.test.js is what
+ * enforces it. So the result screen is a real funnel entry: the same slug
+ * feeds /services/:category#offering and /book?service=<slug>.
+ *
+ * Item shape — objects, not tuples. The old eight-position tuple meant
+ * `it[5]` was the audience list and `it[6]` was the risk, which is
+ * unreadable at every call site and is part of why the retired ids survived
+ * so long inside it.
+ *
+ *   id            "ITS.1"
+ *   offeringSlug  the offering that closes this gap
+ *   statement     what the visitor rates 0–4
+ *   statementEs   the same, authored in Spanish (tú register, ADR 0004)
+ *   risk          what happens if the gap is not closed
+ *   riskEs
+ *   audiences     who is asked — a SUBSET of the offering's own audiences,
+ *                 because a priority recommends that offering, and
+ *                 recommending a service to an audience it is not sold to is
+ *                 the drift this rebuild exists to remove
+ *   weight        1–3, how much a gap here costs. Breaks ties after score.
+ *
+ * Section titles are NOT written here: they come from CATEGORIES, so the
+ * audit cannot name a category differently from the rest of the site.
  */
+import {
+  CATEGORIES,
+  getCategoryByCode,
+  getOfferingBySlug,
+} from "./servicesCatalogue"
 
-export const AUDIT_SECTIONS = [
-  {
-    letter: "A", code: "CS",
-    title: "Strategy & Leadership",
-    subtitle: "IT Consulting and Strategy",
-    intro: "Senior advisory work. Score how mature your strategy, leadership, and technology decision-making are.",
-    audiences: ["EDU", "SMB"],
-    benchmark: { EDU: 38, SMB: 42 },
-    items: [
-      ["A.1","UKZ-CS-001","Technology Assessment & Audit",
-       "We have completed a comprehensive current-state assessment of our infrastructure, applications, and processes within the last 18 months, with documented gaps and a remediation plan.",
-       "Tier 2 · 2–4 weeks",["EDU","SMB"],
-       "Without a baseline assessment, investments go to the wrong places and critical gaps remain invisible until they become crises.",
-       "$800 – $2,400 USD"],
-      ["A.2","UKZ-CS-002","Annual Technology Roadmap",
-       "We have a documented 12-month technology roadmap aligned with business or institutional objectives, with quarterly milestones and budget.",
-       "Tier 2 · 4–6 weeks",["EDU","SMB"],
-       "Teams spend on reactive fixes rather than strategic improvements. Staff turnover increases when technology direction is unclear.",
-       "$1,200 – $3,600 USD"],
-      ["A.3","UKZ-CS-003","Software Architecture Review",
-       "Our core software systems have been independently reviewed for scalability, maintainability, and modernization within the last 12 months.",
-       "Tier 2 · 2–3 weeks",["SMB"],
-       "Technical debt accumulates silently until a system fails under load or becomes impossible to update without breaking other parts.",
-       "$800 – $2,000 USD"],
-      ["A.4","UKZ-CS-004","Vendor Selection & Procurement",
-       "When selecting major technology vendors, we use a structured process: requirements, comparison matrix, demos, references, and contract review.",
-       "Tier 2 · 3–6 weeks",["EDU","SMB"],
-       "Poor vendor selection locks organisations into overpriced or unsuitable contracts for 3–5 years with no clear exit.",
-       "$1,500 – $4,500 USD"],
-      ["A.5","UKZ-CS-005","Technical Due Diligence",
-       "If we needed an investor-grade technical due diligence report on our codebase, architecture, and team, we could produce one within 30 days.",
-       "Tier 3 · 2–4 weeks",["SMB"],
-       "Without investor-ready documentation, funding rounds stall and acquisition conversations collapse at the technical review stage.",
-       "$2,000 – $6,000 USD"],
-      ["A.6","UKZ-CS-006","Cybersecurity Posture Review",
-       "Our cybersecurity posture has been independently audited within the last 12 months, with prioritized remediation completed or actively scheduled.",
-       "Tier 2 · 2–3 weeks",["EDU","SMB"],
-       "Unreviewed security postures are the leading cause of data breaches. The average breach costs SMBs $200K+ and can be existential.",
-       "$1,200 – $3,600 USD"],
-      ["A.7","UKZ-CS-007","AI Strategy & Adoption Roadmap",
-       "We have a documented AI strategy: prioritized use cases, tooling decisions (Claude / ChatGPT / Gemini), an acceptable-use policy, and a 12-month adoption roadmap.",
-       "Tier 1 · 3–4 weeks",["EDU","SMB"],
-       "Without an AI strategy, staff adopt tools inconsistently, creating security gaps, duplicated spend, and unmanaged risks.",
-       "$600 – $1,800 USD"],
-      ["A.8","UKZ-CS-008","Engineering & IT Hiring Support",
-       "Our engineering and IT hiring process produces consistently qualified candidates within target timeframes, with structured screens and rubrics.",
-       "Tier 3 · 4–8 weeks",["SMB"],
-       "Bad hires in technical roles cost 3–5× their salary in productivity loss, re-hiring costs, and codebase damage.",
-       "$2,500 – $8,000 USD"],
-      ["A.9","UKZ-CS-009","Project Recovery",
-       "All current technology initiatives are on schedule, on budget, and showing measurable progress toward their stated objectives.",
-       "Tier 3 · 4–8 weeks",["SMB"],
-       "Stalled projects burn budget with no output. Every month of delay costs both direct spend and market opportunity.",
-       "$3,000 – $10,000 USD"],
-      ["A.10","UKZ-CS-010","Fractional CTO Retainer",
-       "We have a senior technical leader (full-time, fractional, or advisor) reviewing architecture, hiring, and roadmap on a weekly cadence.",
-       "Tier 1 · Monthly retainer",["SMB"],
-       "Technical decisions made without senior oversight become expensive rework within 12–18 months.",
-       "$1,200 – $3,500 USD/month"],
-      ["A.11","UKZ-CS-011","Virtual IT Director Retainer",
-       "We have a dedicated technology director or fractional IT leader meeting with leadership weekly with reporting to the board.",
-       "Tier 1 · Monthly retainer",["EDU"],
-       "Schools without IT leadership lose direction, waste budget on disconnected tools, and fall behind on compliance and security.",
-       "$800 – $2,500 USD/month"],
-      ["A.12","UKZ-CS-012","Executive Technology Briefing",
-       "Leadership receives a structured quarterly technology briefing covering posture, risks, opportunities, and recommended actions.",
-       "Tier 2 · Per quarter",["EDU","SMB"],
-       "Leaders who aren't informed make decisions that undermine the technology their teams depend on.",
-       "$400 – $1,200 USD/quarter"],
-    ],
-  },
-  {
-    letter: "B", code: "BD",
-    title: "Brand & Digital Presence",
-    subtitle: "Brand and Digital Presence",
-    intro: "Visual identity, the surfaces that carry it, and the systems that distribute it. Score how coherent, professional, and discoverable your brand is online.",
-    audiences: ["EDU", "SMB", "IND"],
-    benchmark: { EDU: 44, SMB: 51, IND: 39 },
-    items: [
-      ["B.1","UKZ-BD-001","Brand Identity System",
-       "We have a complete visual identity system: logos in vector format, color palette, typography, brand guidelines, voice and messaging guide, and an asset library.",
-       "Tier 1 · 4–6 weeks",["EDU","SMB","IND"],
-       "Inconsistent branding erodes trust. Clients and parents form their first impression in under 50ms — an unprofessional brand loses them before a word is read.",
-       "$1,500 – $4,500 USD"],
-      ["B.2","UKZ-BD-002","Brand Refresh & Audit",
-       "Our brand has been audited within the last 24 months and updated to remain modern, competitive, and consistent across surfaces.",
-       "Tier 2 · 3–5 weeks",["EDU","SMB"],
-       "Stale brands signal stagnation. Competitors who refresh every 2–3 years consistently outperform in lead conversion.",
-       "$1,200 – $3,600 USD"],
-      ["B.3","UKZ-BD-003","Brand Naming & Tagline",
-       "Our brand name and tagline have been validated for trademark and domain availability and translate well across our markets.",
-       "Tier 3 · 2–4 weeks",["SMB"],
-       "Unvalidated brand names create legal exposure and limit expansion into new markets or languages.",
-       "$800 – $2,400 USD"],
-      ["B.4","UKZ-BD-004","Print Collateral Suite",
-       "We have a complete, brand-aligned print collateral suite: letterhead, business cards, brochures, certificates, and event materials.",
-       "Tier 2 · 2–3 weeks",["EDU","SMB","IND"],
-       "Inconsistent physical materials create a credibility gap between what clients experience online and in person.",
-       "$500 – $1,600 USD"],
-      ["B.5","UKZ-BD-005","Presentation & Document Templates",
-       "All staff use branded presentation and document templates for every internal and external deliverable.",
-       "Tier 2 · 1–2 weeks",["EDU","SMB","IND"],
-       "Unbranded staff documents undermine the professional image you build at the leadership level.",
-       "$300 – $900 USD"],
-      ["B.6","UKZ-BD-006","Digital Asset Pack",
-       "We have branded digital assets for every channel: web banners, email headers, social covers, story templates, and an iconography pack.",
-       "Tier 2 · 1–2 weeks",["EDU","SMB","IND"],
-       "Without a digital asset pack, social media presence is inconsistent and campaigns look amateur regardless of the message.",
-       "$400 – $1,200 USD"],
-      ["B.7","UKZ-BD-007","Personal Website",
-       "I have a custom personal portfolio website on my own domain that establishes my professional presence.",
-       "Tier 1 · 2–4 weeks",["IND"],
-       "Without a personal website, you don't exist professionally. 78% of decision-makers search for consultants online before responding.",
-       "$600 – $2,000 USD"],
-      ["B.8","UKZ-BD-008","Business Website",
-       "Our business or institutional website is production-grade: lead generation, credibility, and ongoing content publishing on a maintained CMS.",
-       "Tier 1 · 4–8 weeks",["EDU","SMB"],
-       "A website that doesn't convert is a liability. The average SMB loses 4–7 leads per week to competitors with better web presence.",
-       "$2,000 – $8,000 USD"],
-      ["B.9","UKZ-BD-009","Landing Page Build",
-       "When we run a campaign or product launch, we deploy a dedicated, conversion-optimized landing page within two weeks.",
-       "Tier 2 · 1–2 weeks",["SMB","IND"],
-       "Sending paid traffic to a homepage wastes 60–80% of ad spend. Dedicated landing pages convert 3–5× better.",
-       "$400 – $1,200 USD"],
-      ["B.10","UKZ-BD-010","Website Performance & SEO",
-       "Our website loads in under 2.5 seconds, passes Core Web Vitals, has structured data, and is verified in Search Console with a working sitemap.",
-       "Tier 2 · 2–3 weeks",["EDU","SMB","IND"],
-       "A 1-second delay in page load reduces conversions by 7%. Poor SEO means competitors rank for the clients searching for your services.",
-       "$600 – $1,800 USD"],
-      ["B.11","UKZ-BD-011","Social Media Presence",
-       "Our social profiles (LinkedIn, X, Instagram, Facebook, Google Business) are optimized, consistently branded, and discoverable.",
-       "Tier 2 · 1–2 weeks",["SMB","IND"],
-       "Inconsistent or absent social profiles lose trust before prospects visit your website.",
-       "$400 – $1,200 USD"],
-      ["B.12","UKZ-BD-012","Content System",
-       "We have a complete content system: newsletter, blog, email marketing platform, lead magnet, content calendar, and editorial guidelines.",
-       "Tier 2 · 2–3 weeks",["SMB","IND"],
-       "Without a content system, you compete only on price. Content-led organisations close deals 47% faster.",
-       "$800 – $2,400 USD"],
-      ["B.13","UKZ-BD-013","Analytics & Tracking",
-       "We have privacy-compliant analytics: GA4, Search Console, Tag Manager, conversion tracking, cookie consent, and a quarterly review process.",
-       "Tier 2 · 1 week",["EDU","SMB","IND"],
-       "You cannot improve what you cannot measure. Without analytics, every marketing decision is a guess.",
-       "$300 – $900 USD"],
-      ["B.14","UKZ-BD-014","Bilingual Localization",
-       "Our digital content is professionally available in English and Spanish (or our key market languages) with consistent voice and SEO across both.",
-       "Tier 3 · Variable",["EDU","SMB","IND"],
-       "In markets like Mexico, content in only one language cuts your addressable audience by 40–60%.",
-       "$1,200 – $4,000 USD"],
-    ],
-  },
-  {
-    letter: "C", code: "IC",
-    title: "Infrastructure & Cloud",
-    subtitle: "IT Infrastructure and Cloud",
-    intro: "The systems that everything else runs on — networks, servers, devices, identity, cloud, security, backup, and observability.",
-    audiences: ["EDU", "SMB"],
-    benchmark: { EDU: 35, SMB: 40 },
-    items: [
-      ["C.1","UKZ-IC-001","Network Design & Deployment",
-       "Our network is documented (TCP/IP, DNS, DHCP, VPN, Wi-Fi), supports current users with growth headroom, and includes runbooks.",
-       "Tier 1 · 4–8 weeks",["EDU","SMB"],
-       "An undocumented network becomes a single point of failure. When the one person who knows it leaves, the organisation loses weeks of productivity.",
-       "$1,500 – $5,000 USD"],
-      ["C.2","UKZ-IC-002","Server Infrastructure",
-       "Our servers are properly configured, hardened, monitored, backed up, and documented with runbooks accessible to multiple admins.",
-       "Tier 2 · 2–4 weeks",["EDU","SMB"],
-       "Unmonitored servers fail without warning. Average downtime cost for SMBs: $5,600 per hour.",
-       "$800 – $2,400 USD"],
-      ["C.3","UKZ-IC-003","Device Fleet & Imaging",
-       "Our devices are standardized, imaged consistently, security-hardened, and tracked in an asset inventory.",
-       "Tier 2 · 2–4 weeks",["EDU","SMB"],
-       "Unmanaged devices are the #1 entry point for ransomware. A single infected device can encrypt your entire network.",
-       "$600 – $2,000 USD"],
-      ["C.4","UKZ-IC-004","Google Workspace Admin",
-       "Our Google Workspace tenant has user provisioning, group structure, sharing and security policies, and admin documentation in place.",
-       "Tier 1 · 3–4 weeks",["EDU","SMB"],
-       "Misconfigured Workspace tenants leak documents externally, share sensitive data with wrong users, and create compliance violations.",
-       "$600 – $2,000 USD"],
-      ["C.5","UKZ-IC-005","Microsoft 365 Admin",
-       "Our Microsoft 365 tenant has user provisioning, license management, SharePoint and Teams structure, and a security baseline.",
-       "Tier 2 · 3–4 weeks",["EDU","SMB"],
-       "Poorly managed M365 tenants waste 30–40% of license spend and expose organisations to internal data leaks.",
-       "$600 – $2,000 USD"],
-      ["C.6","UKZ-IC-006","Identity & Access Management",
-       "We use centralized identity and access management with SSO, MFA, role-based access control, conditional access, and audit logging.",
-       "Tier 2 · 3–6 weeks",["EDU","SMB"],
-       "80% of data breaches involve compromised credentials. Without MFA and IAM, a single phishing email can expose everything.",
-       "$1,000 – $3,500 USD"],
-      ["C.7","UKZ-IC-007","Helpdesk & Ticketing",
-       "We have a production helpdesk system with ticket workflows, SLA definitions, knowledge base, and reporting dashboards.",
-       "Tier 2 · 2–3 weeks",["EDU","SMB"],
-       "Without a helpdesk system, IT issues fall through the cracks, staff productivity suffers, and recurring problems never get fixed.",
-       "$600 – $1,800 USD"],
-      ["C.8","UKZ-IC-008","Cloud Migration Assessment",
-       "We have completed a cloud readiness assessment with target architecture and cost projection — or we are operating fully cloud-native.",
-       "Tier 2 · 2–3 weeks",["SMB"],
-       "Migrating without a plan leads to cloud overspend (average 35% above on-prem cost) and architecture decisions that can't be undone easily.",
-       "$800 – $2,400 USD"],
-      ["C.9","UKZ-IC-009","GCP Cloud Migration",
-       "Our Google Cloud workloads are properly architected, cost-optimized, security-hardened, and have runbook documentation.",
-       "Tier 1 · 6–12 weeks",["SMB"],
-       "Poorly architected cloud workloads cost 2–3× more than equivalent on-prem while delivering lower reliability.",
-       "$3,000 – $12,000 USD"],
-      ["C.10","UKZ-IC-010","AWS Cloud Migration",
-       "Our AWS workloads are properly architected, cost-optimized, security-hardened, and have runbook documentation.",
-       "Tier 2 · 6–12 weeks",["SMB"],
-       "AWS without guardrails generates surprise billing, security exposures, and vendor lock-in that takes years to unwind.",
-       "$3,000 – $12,000 USD"],
-      ["C.11","UKZ-IC-011","Containerization & CI/CD",
-       "We containerize our applications and deploy via automated CI/CD pipelines with tests, rollback procedures, and documentation.",
-       "Tier 2 · 3–5 weeks",["SMB"],
-       "Manual deployments cause 60% of production incidents. Without CI/CD, every release is a gamble.",
-       "$1,500 – $5,000 USD"],
-      ["C.12","UKZ-IC-012","Workflow Automation",
-       "We have automated key workflows that previously consumed manual staff hours, with error handling, alerting, and documentation.",
-       "Tier 2 · 2–6 weeks",["EDU","SMB"],
-       "Manual workflows cost 6–10 hours per employee per week. At scale, this is 25–40% of a full-time salary wasted on repetition.",
-       "$800 – $3,500 USD"],
-      ["C.13","UKZ-IC-013","Cloud Cost Optimization",
-       "Our cloud spend is reviewed quarterly with right-sizing, reserved instances, and architectural optimization applied.",
-       "Tier 3 · 2–4 weeks",["SMB"],
-       "Unoptimized cloud environments overspend by 30–40% on average. This is money that could fund new capabilities.",
-       "$600 – $2,000 USD"],
-      ["C.14","UKZ-IC-014","OWASP Security Audit",
-       "Our applications and infrastructure have been audited against OWASP standards within the last 12 months with remediation completed.",
-       "Tier 2 · 3–4 weeks",["SMB"],
-       "OWASP Top 10 vulnerabilities account for 90% of web application attacks. Unaudited apps are open targets.",
-       "$800 – $2,400 USD"],
-      ["C.15","UKZ-IC-015","Backup & Disaster Recovery",
-       "We have automated backups, defined RTO and RPO, off-site replication, tested recovery procedures, and a continuity plan.",
-       "Tier 2 · 2–4 weeks",["EDU","SMB"],
-       "93% of organisations without a tested disaster recovery plan that experience a major incident go out of business within 12 months.",
-       "$800 – $2,400 USD"],
-      ["C.16","UKZ-IC-016","Observability & Monitoring",
-       "Our production systems have logging, metrics, distributed tracing, dashboards, alert rules, and an on-call rotation.",
-       "Tier 3 · 2–3 weeks",["SMB"],
-       "You find out about production incidents from customers, not your own systems. Every hour of undetected downtime multiplies the damage.",
-       "$600 – $2,000 USD"],
-    ],
-  },
-  {
-    letter: "D", code: "WD",
-    title: "Web, Application & AI",
-    subtitle: "Web, Application and AI Development",
-    intro: "The full engineering tier — applications, APIs, integrations, AI, data, performance, and modernization.",
-    audiences: ["EDU", "SMB"],
-    benchmark: { EDU: 29, SMB: 38 },
-    items: [
-      ["D.1","UKZ-WD-001","Custom Web Application",
-       "Our core web applications are built on a modern, supported stack with tests, accessibility (WCAG 2.1 AA), monitoring, and documentation.",
-       "Tier 1 · 6–16 weeks",["SMB"],
-       "Legacy applications accumulate security debt and become impossible to extend. Eventually the cost of a full rebuild exceeds the cost of modernization.",
-       "$5,000 – $20,000 USD"],
-      ["D.2","UKZ-WD-002","SaaS MVP Build",
-       "If we needed to ship a working SaaS MVP within eight weeks, we have the engineering capacity and architecture pattern to do it cleanly.",
-       "Tier 1 · 4–8 weeks",["SMB"],
-       "Without a clean MVP architecture, speed-to-market advantages evaporate in technical debt within 6 months of launch.",
-       "$4,000 – $15,000 USD"],
-      ["D.3","UKZ-WD-003","E-commerce Platform",
-       "Our e-commerce platform supports our specific business workflow with cart, checkout, payments, inventory, and admin dashboard.",
-       "Tier 2 · 6–12 weeks",["SMB"],
-       "Generic e-commerce platforms impose 2–3% transaction fees and can't adapt to your specific workflow — costing revenue and agility.",
-       "$3,000 – $12,000 USD"],
-      ["D.4","UKZ-WD-004","Custom CMS",
-       "Our content management system fits our publishing workflow with content modeling, approval workflow, and editor training.",
-       "Tier 2 · 4–8 weeks",["EDU","SMB"],
-       "A CMS that doesn't fit your workflow either gets abandoned or used incorrectly, producing inconsistent content quality.",
-       "$2,000 – $8,000 USD"],
-      ["D.5","UKZ-WD-005","Internal Tools & Dashboards",
-       "Our internal tools and admin dashboards eliminate manual workflows; staff are not maintaining critical processes in spreadsheets.",
-       "Tier 2 · 3–8 weeks",["EDU","SMB"],
-       "Spreadsheet-based operations create version conflicts, calculation errors, and invisible data loss that grow with the organisation.",
-       "$1,500 – $6,000 USD"],
-      ["D.6","UKZ-WD-006","REST / GraphQL APIs",
-       "Our APIs have authentication, documentation, versioning strategy, rate limiting, and integration tests.",
-       "Tier 2 · 3–8 weeks",["SMB"],
-       "Undocumented, unversioned APIs break every partner integration when you update them. Breaking API contracts costs 3–5× the time to fix.",
-       "$1,500 – $6,000 USD"],
-      ["D.7","UKZ-WD-007","Authentication & Payments",
-       "Our authentication (OAuth/JWT/SSO + MFA) and payment integration are production-grade with webhook handling.",
-       "Tier 2 · 2–4 weeks",["SMB"],
-       "Authentication vulnerabilities are the #1 cause of account takeover. Broken payment webhooks silently fail to capture revenue.",
-       "$800 – $2,400 USD"],
-      ["D.8","UKZ-WD-008","Third-Party Integrations",
-       "Our third-party integrations have error handling, retry logic, monitoring, and documentation.",
-       "Tier 3 · 1–3 weeks each",["SMB"],
-       "Fragile integrations fail silently. A broken Zapier step or webhook can halt business processes for days before anyone notices.",
-       "$400 – $1,500 USD each"],
-      ["D.9","UKZ-WD-009","Claude / LLM API Integration",
-       "We have integrated AI / LLM capabilities into our applications or workflows with cost monitoring, rate limiting, fallback, and logging.",
-       "Tier 1 · 2–6 weeks",["EDU","SMB"],
-       "LLM integrations without cost monitoring and rate limiting generate surprise invoices of $500–$5,000/month when usage spikes.",
-       "$1,200 – $4,500 USD"],
-      ["D.10","UKZ-WD-010","AI Chatbot / Virtual Assistant",
-       "Our customer-facing chatbot or virtual assistant handles common queries with human handoff, analytics, and quality monitoring.",
-       "Tier 2 · 4–8 weeks",["SMB"],
-       "Without AI assistance, support teams spend 70% of their time answering the same 20 questions — time that could go to complex cases.",
-       "$2,000 – $8,000 USD"],
-      ["D.11","UKZ-WD-011","Knowledge Base AI / RAG",
-       "We have a private knowledge base AI (RAG system) with semantic search, grounded answers, and citation tracking.",
-       "Tier 1 · 4–10 weeks",["EDU","SMB"],
-       "Staff spend 2–4 hours per week searching for internal documents. A RAG system reclaims that time instantly.",
-       "$2,500 – $10,000 USD"],
-      ["D.12","UKZ-WD-012","AI Document Processing",
-       "We have automated document processing using LLMs (extraction, classification, summarization) with human-review queue and quality dashboard.",
-       "Tier 2 · 3–6 weeks",["EDU","SMB"],
-       "Manual document processing at scale costs 15–25 staff-hours per week. Automation pays back in under 60 days.",
-       "$1,500 – $6,000 USD"],
-      ["D.13","UKZ-WD-013","AI Agents & Workflows",
-       "We use multi-step AI agents for complex tasks with safety guardrails, monitoring, and human-in-the-loop checkpoints.",
-       "Tier 3 · 4–10 weeks",["SMB"],
-       "AI agents without guardrails produce confident wrong answers and take autonomous actions with real consequences. A safety architecture is non-negotiable.",
-       "$3,000 – $12,000 USD"],
-      ["D.14","UKZ-WD-014","AI Content Auditing",
-       "We have an AI-content detection and academic integrity system with submission workflow, teacher review, and reporting integrated to the LMS.",
-       "Tier 3 · 3–6 weeks",["EDU"],
-       "Without AI content detection, academic integrity policies become unenforceable. This erodes educational credibility and accreditation standing.",
-       "$2,000 – $8,000 USD"],
-      ["D.15","UKZ-WD-015","BI Dashboard",
-       "We have a business intelligence dashboard with KPI tracking, automated refresh, scheduled reports, and alert thresholds.",
-       "Tier 2 · 3–6 weeks",["EDU","SMB"],
-       "Leaders making decisions from week-old spreadsheets consistently miss early warning signals that a live dashboard would catch instantly.",
-       "$1,500 – $6,000 USD"],
-      ["D.16","UKZ-WD-016","Data Pipeline & Warehouse",
-       "We have a production data pipeline and warehouse with ETL, dimensional modeling, and data quality monitoring.",
-       "Tier 3 · 4–8 weeks",["SMB"],
-       "Without a data warehouse, analytics is limited to single systems. Cross-functional insights — the most valuable kind — remain invisible.",
-       "$3,000 – $12,000 USD"],
-      ["D.17","UKZ-WD-017","Performance Optimization",
-       "Our applications meet performance benchmarks with documented before-and-after measurements when changes are made.",
-       "Tier 2 · 2–4 weeks",["SMB"],
-       "A 1-second delay in app response time reduces user satisfaction by 16% and conversion by 7%. Slow apps lose customers silently.",
-       "$600 – $2,400 USD"],
-      ["D.18","UKZ-WD-018","Legacy System Modernization",
-       "We have no critical systems running on aging stacks (PHP / ASP / outdated WordPress) without an active modernization plan.",
-       "Tier 2 · 8–24 weeks",["SMB"],
-       "Legacy systems accumulate 5–10× the maintenance cost of modern equivalents and become impossible to hire for.",
-       "$5,000 – $25,000 USD"],
-    ],
-  },
-  {
-    letter: "E", code: "ET",
-    title: "EdTech & Training",
-    subtitle: "EdTech Implementation and Training",
-    intro: "How effectively your school uses the technology it has invested in — from LMS to faculty AI fluency to student data privacy.",
-    audiences: ["EDU"],
-    benchmark: { EDU: 33 },
-    items: [
-      ["E.1","UKZ-ET-001","LMS Selection & Strategy",
-       "Our LMS was selected through a structured evaluation matching our pedagogical needs.",
-       "Tier 2 · 2–3 weeks",["EDU"],
-       "Schools that select an LMS based on price alone typically replace it within 3 years at 3–5× the original cost.",
-       "$800 – $2,400 USD"],
-      ["E.2","UKZ-ET-002","LMS Deployment & Migration",
-       "Our LMS is fully deployed with content migrated from prior platforms, integrated with SIS and Workspace, and faculty trained.",
-       "Tier 1 · 6–12 weeks",["EDU"],
-       "Partial LMS deployments create two parallel systems — neither used consistently — destroying teacher adoption and student experience.",
-       "$3,000 – $12,000 USD"],
-      ["E.3","UKZ-ET-003","Workspace for Education",
-       "Our Google Workspace for Education domain is configured: classrooms, OU structure, sharing and security policies, and faculty training delivered.",
-       "Tier 1 · 4–6 weeks",["EDU"],
-       "Misconfigured Workspace for Education exposeses student data and enables external content sharing in violation of child protection laws.",
-       "$1,200 – $4,000 USD"],
-      ["E.4","UKZ-ET-004","SIS Integration",
-       "Our Student Information System is integrated with LMS, parent portal, and reporting systems for unified student data flow.",
-       "Tier 2 · 4–8 weeks",["EDU"],
-       "Disjointed SIS and LMS creates duplicate data entry for every teacher every semester — hours of administrative waste.",
-       "$2,000 – $8,000 USD"],
-      ["E.5","UKZ-ET-005","Parent Portal",
-       "We have a production parent portal with grades, attendance, and bilingual EN-ES communications, with parents trained on its use.",
-       "Tier 2 · 3–6 weeks",["EDU"],
-       "Schools without a parent portal receive 40–60% more phone calls and emails requesting information that should be self-serve.",
-       "$1,500 – $6,000 USD"],
-      ["E.6","UKZ-ET-006","Faculty Professional Development",
-       "Our faculty completed a structured EdTech professional development program within the last 12 months with measurable improvement.",
-       "Tier 1 · 6–12 weeks",["EDU"],
-       "Technology investment without faculty training has near-zero ROI. Tools sit unused while teachers revert to paper-based methods.",
-       "$2,000 – $8,000 USD"],
-      ["E.7","UKZ-ET-007","Google Certified Educator Cohort",
-       "A meaningful percentage of our faculty hold Google Certified Educator Level 1 or Level 2 credentials.",
-       "Tier 2 · 8–10 weeks",["EDU"],
-       "Uncertified faculty use Workspace at 20–30% of its capability, wasting $3–6 per seat per month in tool value.",
-       "$1,500 – $5,000 USD"],
-      ["E.8","UKZ-ET-008","AI for Educators Training",
-       "Our faculty have been trained to use AI tools responsibly in lesson planning, content creation, and assessment.",
-       "Tier 1 · 6–8 weeks",["EDU"],
-       "Faculty using AI without training produce inconsistent content quality and inadvertently violate student privacy through improper data input.",
-       "$1,500 – $5,000 USD"],
-      ["E.9","UKZ-ET-009","Bilingual Digital Content",
-       "We produce high-quality bilingual EN-ES digital learning content (slides, video, interactives) in-house on a consistent schedule.",
-       "Tier 2 · Variable",["EDU"],
-       "Schools that depend on translated third-party content lose curriculum control and often receive material misaligned with their educational goals.",
-       "$1,200 – $5,000 USD"],
-      ["E.10","UKZ-ET-010","Smart Classroom & STEM Lab",
-       "Our classrooms and STEM / robotics lab are technology-integrated: devices, network, software, and instructional design ready for use.",
-       "Tier 2 · 4–8 weeks",["EDU"],
-       "STEM equipment without instructional design sits dormant. Schools pay for hardware but deliver no educational outcome.",
-       "$2,000 – $8,000 USD"],
-      ["E.11","UKZ-ET-011","Digital Citizenship & AUP",
-       "We have a current Acceptable Use Policy, BYOD policy, and digital citizenship curriculum rolled out to students, parents, and faculty.",
-       "Tier 2 · 2–4 weeks",["EDU"],
-       "Schools without an AUP have no legal basis to enforce technology rules and face liability when student incidents occur online.",
-       "$600 – $2,000 USD"],
-      ["E.12","UKZ-ET-012","Student Data Privacy",
-       "Our student data privacy posture is aligned with applicable regulations (LFPDPPP / FERPA / GDPR) with policies, training, and annual review.",
-       "Tier 3 · 4–6 weeks",["EDU"],
-       "A single student data breach triggers regulatory penalties, parent loss of trust, and media exposure that takes years to recover from.",
-       "$1,500 – $5,000 USD"],
-    ],
-  },
-  {
-    letter: "F", code: "MS",
-    title: "Managed Services",
-    subtitle: "Managed Services and Support",
-    intro: "The recurring layer that keeps everything running — IT operations, cloud, applications, hosting, helpdesk, security, and compliance.",
-    audiences: ["EDU", "SMB", "IND"],
-    benchmark: { EDU: 31, SMB: 36, IND: 22 },
-    items: [
-      ["F.1","UKZ-MS-001","Managed IT Operations",
-       "We have SLA-backed IT operations: incident response, proactive monitoring, patching, user lifecycle, vendor coordination, and quarterly business reviews.",
-       "Tier 1 · Monthly retainer",["EDU","SMB"],
-       "Reactive IT costs 3× more than proactive IT. Every unplanned outage interrupts operations and erodes staff productivity.",
-       "$800 – $2,500 USD/month"],
-      ["F.2","UKZ-MS-002","Managed Cloud Operations",
-       "Our cloud infrastructure has 24/7 monitoring, incident response, cost optimization, security posture management, and a monthly performance report.",
-       "Tier 2 · Monthly retainer",["SMB"],
-       "Unmonitored cloud environments drift from their secure baseline within weeks. A single misconfiguration can expose all customer data.",
-       "$600 – $2,000 USD/month"],
-      ["F.3","UKZ-MS-003","Managed Application Maintenance",
-       "Our production applications receive monthly maintenance, dependency updates, security patches, and bug fixes within SLA.",
-       "Tier 2 · Monthly retainer",["SMB"],
-       "Applications without regular maintenance accumulate CVEs. The average time-to-exploit for a known vulnerability is now under 15 days.",
-       "$400 – $1,500 USD/month"],
-      ["F.4","UKZ-MS-004","Managed Website Hosting",
-       "Our website hosting includes daily backups, security monitoring, CMS and plugin updates, SSL renewal, and uptime guarantees.",
-       "Tier 2 · Monthly retainer",["EDU","SMB","IND"],
-       "Unmanaged hosting goes down at the worst moment — during a campaign, event, or admissions period — with no one to call.",
-       "$80 – $300 USD/month"],
-      ["F.5","UKZ-MS-005","Managed Workspace Admin",
-       "Our Workspace administration covers user lifecycle, license management, policy enforcement, and end-user support.",
-       "Tier 2 · Monthly retainer",["EDU","SMB"],
-       "Workspace without active administration accumulates orphaned accounts, overpaid licenses, and security policy drift.",
-       "$200 – $800 USD/month"],
-      ["F.6","UKZ-MS-006","Managed LMS Admin",
-       "Our LMS administration covers user provisioning each term, course setup, faculty and student support, and term-end reporting.",
-       "Tier 1 · Monthly retainer",["EDU"],
-       "Unmanaged LMS administration puts this burden on teachers — taking 3–5 hours per week away from instruction.",
-       "$400 – $1,200 USD/month"],
-      ["F.7","UKZ-MS-007","Helpdesk-as-a-Service",
-       "We have a tiered helpdesk function with SLA-backed response and bilingual EN-ES support.",
-       "Tier 2 · Monthly retainer",["EDU","SMB"],
-       "Without a formal helpdesk, IT support falls on whoever is available — usually someone with no formal training and no documentation.",
-       "$300 – $1,200 USD/month"],
-      ["F.8","UKZ-MS-008","Cybersecurity Monitoring",
-       "We have continuous security monitoring with SIEM, threat alerts, incident response, and quarterly security review.",
-       "Tier 3 · Monthly retainer",["SMB"],
-       "The average dwell time of attackers in SMB networks before detection is 197 days. Continuous monitoring collapses this to hours.",
-       "$500 – $2,000 USD/month"],
-      ["F.9","UKZ-MS-009","Compliance Monitoring",
-       "Our compliance posture is continuously monitored with quarterly attestation reports for relevant frameworks.",
-       "Tier 3 · Monthly retainer",["EDU","SMB"],
-       "Compliance drift goes undetected until an audit, at which point remediation costs 5–10× what ongoing monitoring would have cost.",
-       "$400 – $1,500 USD/month"],
-      ["F.10","UKZ-MS-010","Quarterly Health Check",
-       "We receive a structured quarterly review of infrastructure, security, performance, and cost with prioritized recommendations.",
-       "Tier 2 · Per quarter",["EDU","SMB"],
-       "Without a regular health check, small problems compound. Issues that cost $500 to fix in Q1 cost $5,000 by Q3.",
-       "$400 – $1,200 USD/quarter"],
-    ],
-  },
-]
+/* ── Statements, by category code ────────────────────────────────────────
+ * Roughly one and a half per offering: the offerings whose absence costs
+ * most carry two, covering different failure modes, so a visitor who is
+ * fine on one can still surface the other.
+ */
+const ITEMS = {
+  ITS: [
+    {
+      id: "ITS.1",
+      offeringSlug: "software-stack-audit",
+      statement: "We know what every software subscription costs us and who uses it, and we have reviewed that list in the last twelve months.",
+      statementEs: "Sabemos cuánto nos cuesta cada suscripción de software y quién la usa, y revisamos esa lista en los últimos doce meses.",
+      risk: "Duplicate and unused licences accumulate quietly. Most teams find they are paying for two tools that do the same job, and for people who left.",
+      riskEs: "Las licencias duplicadas y sin usar se acumulan en silencio. Casi siempre aparecen dos herramientas que hacen lo mismo, y pagos por gente que ya no está.",
+      audiences: ["SMB", "EDU"],
+      weight: 2,
+    },
+    {
+      id: "ITS.2",
+      offeringSlug: "digital-transformation-roadmap",
+      statement: "We have a written twelve-month technology plan with priorities and a budget, not just a list of things that are broken.",
+      statementEs: "Tenemos un plan tecnológico escrito a doce meses, con prioridades y presupuesto, no sólo una lista de cosas descompuestas.",
+      risk: "Without a sequence, spending goes to whatever broke most recently. The important work never starts because there is always something on fire.",
+      riskEs: "Sin una secuencia, el gasto se va a lo último que se descompuso. El trabajo importante nunca arranca porque siempre hay un incendio.",
+      audiences: ["SMB", "EDU"],
+      weight: 3,
+    },
+    {
+      id: "ITS.3",
+      offeringSlug: "digital-transformation-roadmap",
+      statement: "Our core processes run on systems rather than on spreadsheets and message threads that one person understands.",
+      statementEs: "Nuestros procesos principales corren en sistemas, no en hojas de cálculo y cadenas de mensajes que sólo una persona entiende.",
+      risk: "The knowledge lives in someone's head. When that person is unavailable the process stops — and it cannot be improved, because nobody can see it.",
+      riskEs: "El conocimiento vive en la cabeza de alguien. Cuando esa persona no está, el proceso se detiene, y no se puede mejorar porque nadie lo ve.",
+      audiences: ["SMB", "EDU"],
+      weight: 2,
+    },
+    {
+      id: "ITS.4",
+      offeringSlug: "fractional-cto",
+      statement: "Someone senior owns our technology decisions — architecture, vendors, hiring — rather than each one being made ad hoc by whoever is closest.",
+      statementEs: "Alguien con experiencia es responsable de las decisiones tecnológicas —arquitectura, proveedores, contrataciones— en lugar de que cada decisión la tome quien esté más cerca.",
+      risk: "Decisions made in isolation do not add up to a system. Six months later the pieces do not fit, and the rework costs more than the original build.",
+      riskEs: "Las decisiones aisladas no suman un sistema. Seis meses después las piezas no embonan y rehacerlo cuesta más que haberlo construido bien.",
+      audiences: ["SMB"],
+      weight: 3,
+    },
+    {
+      id: "ITS.5",
+      offeringSlug: "vendor-evaluation-rfp",
+      statement: "When we buy significant software we compare options against written requirements, rather than choosing the first vendor who demoed well.",
+      statementEs: "Cuando compramos software importante comparamos opciones contra requisitos escritos, en lugar de elegir al primer proveedor que hizo una buena demo.",
+      risk: "You find out what the tool cannot do after the annual contract is signed, and by then switching costs more than staying.",
+      riskEs: "Descubres lo que la herramienta no puede hacer después de firmar el contrato anual, y para entonces cambiarte cuesta más que quedarte.",
+      audiences: ["SMB", "EDU"],
+      weight: 2,
+    },
+    {
+      id: "ITS.6",
+      offeringSlug: "compliance-risk-assessment",
+      statement: "We know what personal data we hold, where it lives, and who can reach it.",
+      statementEs: "Sabemos qué datos personales tenemos, dónde viven y quién puede acceder a ellos.",
+      risk: "You cannot protect or delete what you cannot find. Under the LFPDPPP the obligation exists whether or not the inventory does.",
+      riskEs: "No puedes proteger ni borrar lo que no encuentras. Bajo la LFPDPPP la obligación existe exista o no el inventario.",
+      audiences: ["SMB", "EDU"],
+      weight: 3,
+    },
+    {
+      id: "ITS.7",
+      offeringSlug: "compliance-risk-assessment",
+      statement: "Our privacy notice matches what our systems actually do, and someone reviews it when the systems change.",
+      statementEs: "Nuestro aviso de privacidad corresponde con lo que nuestros sistemas realmente hacen, y alguien lo revisa cuando los sistemas cambian.",
+      risk: "A notice written once and never revisited describes a system that no longer exists — which is worse than none, because it is a documented mismatch.",
+      riskEs: "Un aviso escrito una vez y nunca revisado describe un sistema que ya no existe, lo cual es peor que no tenerlo: es una discrepancia documentada.",
+      audiences: ["SMB", "EDU"],
+      weight: 2,
+    },
+    {
+      id: "ITS.8",
+      offeringSlug: "software-stack-audit",
+      statement: "Our tools talk to each other. The same customer or student record does not have to be typed into three systems.",
+      statementEs: "Nuestras herramientas se comunican entre sí. El mismo registro de cliente o de alumno no se captura en tres sistemas distintos.",
+      risk: "Re-keying is where the errors come from, and the copies drift apart until nobody knows which system is right.",
+      riskEs: "La recaptura es de donde salen los errores, y las copias se separan hasta que nadie sabe cuál sistema tiene la razón.",
+      audiences: ["SMB", "EDU"],
+      weight: 2,
+    },
+  ],
 
-export const SOLUTIONS = [
-  {
-    name: "School Tech Transformation Program",
-    aud: ["EDU"],
-    tagline: "End-to-end school technology modernization in 90 days + 6-month leadership engagement.",
-    desc: "Strategy, infrastructure, Workspace, LMS, and faculty enablement — delivered as a single coordinated program.",
-    composed: ["UKZ-CS-001","UKZ-IC-001","UKZ-IC-004","UKZ-ET-002","UKZ-ET-003","UKZ-ET-006","UKZ-CS-011"],
-    investRange: "$8,000 – $24,000 USD",
-    timeline: "90 days + ongoing",
-  },
-  {
-    name: "Bilingual STEM Program Launch",
-    aud: ["EDU"],
-    tagline: "Full CS and STEM curriculum design plus faculty enablement in EN + ES.",
-    desc: "Curriculum design, faculty training, AI literacy, and STEM lab setup delivered in parallel English and Spanish.",
-    composed: ["UKZ-ET-006","UKZ-ET-008","UKZ-ET-009","UKZ-ET-010"],
-    investRange: "$6,000 – $18,000 USD",
-    timeline: "8–12 weeks",
-  },
-  {
-    name: "School AI Adoption Program",
-    aud: ["EDU"],
-    tagline: "Responsible AI across faculty, students, and curriculum within one term.",
-    desc: "AI strategy, faculty training, acceptable-use policies, and content auditing — rolled out as a term-long program.",
-    composed: ["UKZ-CS-007","UKZ-ET-008","UKZ-ET-011","UKZ-WD-014"],
-    investRange: "$4,000 – $12,000 USD",
-    timeline: "6–10 weeks",
-  },
-  {
-    name: "Fractional CTO Engagement",
-    aud: ["SMB"],
-    tagline: "Monthly technical leadership for SMEs that need a CTO without the full-time cost.",
-    desc: "Architecture reviews, hiring support, roadmap ownership, and board reporting on a monthly retainer.",
-    composed: ["UKZ-CS-010","UKZ-CS-002","UKZ-CS-008"],
-    investRange: "$2,400 – $6,000 USD/month",
-    timeline: "Ongoing",
-  },
-  {
-    name: "MVP-to-Launch Package",
-    aud: ["SMB"],
-    tagline: "Working SaaS MVP in 8 weeks at fixed scope and fixed price.",
-    desc: "Architecture, build, authentication, payments, and managed maintenance — ready for first paying customers.",
-    composed: ["UKZ-WD-002","UKZ-WD-007","UKZ-IC-009","UKZ-MS-003"],
-    investRange: "$8,000 – $20,000 USD",
-    timeline: "6–8 weeks",
-  },
-  {
-    name: "Business IT Foundation",
-    aud: ["SMB"],
-    tagline: "Network, cloud, Workspace, and security baseline for new or growing offices.",
-    desc: "Network design, cloud setup, identity management, and disaster recovery — delivered as a single foundation project.",
-    composed: ["UKZ-IC-001","UKZ-IC-004","UKZ-IC-006","UKZ-IC-014","UKZ-IC-015"],
-    investRange: "$4,000 – $12,000 USD",
-    timeline: "4–8 weeks",
-  },
-  {
-    name: "AI-Powered Knowledge Base",
-    aud: ["EDU","SMB"],
-    tagline: "Custom RAG system on your private knowledge base with semantic search.",
-    desc: "AI strategy, LLM integration, private knowledge base, and managed maintenance — staff find answers instantly.",
-    composed: ["UKZ-CS-007","UKZ-WD-009","UKZ-WD-011","UKZ-MS-003"],
-    investRange: "$5,000 – $15,000 USD",
-    timeline: "4–10 weeks",
-  },
-  {
-    name: "Personal Brand & Web Foundation",
-    aud: ["IND"],
-    tagline: "Complete personal brand + production portfolio website on your own domain.",
-    desc: "Brand identity, website, social presence, and analytics — everything you need to compete as an independent professional.",
-    composed: ["UKZ-BD-001","UKZ-BD-007","UKZ-BD-011","UKZ-BD-013"],
-    investRange: "$2,000 – $6,000 USD",
-    timeline: "3–5 weeks",
-  },
-]
+  AIA: [
+    {
+      id: "AIA.1",
+      offeringSlug: "custom-persona-bots",
+      statement: "Routine customer or parent questions get answered without a person retyping the same reply.",
+      statementEs: "Las preguntas rutinarias de clientes o de padres de familia se responden sin que una persona vuelva a escribir la misma respuesta.",
+      risk: "Answering the same twenty questions consumes the hours that would have gone to the work only a person can do.",
+      riskEs: "Responder las mismas veinte preguntas consume las horas que se irían al trabajo que sólo una persona puede hacer.",
+      audiences: ["SMB", "IND"],
+      weight: 2,
+    },
+    {
+      id: "AIA.2",
+      offeringSlug: "custom-persona-bots",
+      statement: "New enquiries are qualified and routed automatically, and none of them sits unread over a weekend.",
+      statementEs: "Los prospectos nuevos se califican y se turnan automáticamente, y ninguno se queda sin leer todo un fin de semana.",
+      risk: "Response speed decides most enquiries. A lead answered on Monday morning has usually already talked to someone else.",
+      riskEs: "La velocidad de respuesta decide la mayoría de los prospectos. Uno que contestas el lunes por la mañana casi siempre ya habló con alguien más.",
+      audiences: ["SMB", "IND"],
+      weight: 3,
+    },
+    {
+      id: "AIA.3",
+      offeringSlug: "cross-platform-api-pipelines",
+      statement: "Data moves between our systems automatically — nobody exports a spreadsheet and imports it somewhere else on a schedule.",
+      statementEs: "Los datos se mueven entre nuestros sistemas automáticamente: nadie exporta una hoja de cálculo para importarla en otro lado cada semana.",
+      risk: "Manual transfer is unreliable and invisible. It fails quietly, and you find out from a customer.",
+      riskEs: "La transferencia manual es poco confiable e invisible. Falla en silencio y te enteras por un cliente.",
+      audiences: ["SMB", "IND"],
+      weight: 2,
+    },
+    {
+      id: "AIA.4",
+      offeringSlug: "cross-platform-api-pipelines",
+      statement: "When an automated process fails, someone is told. It does not just stop.",
+      statementEs: "Cuando un proceso automático falla, alguien se entera. No simplemente se detiene.",
+      risk: "Silent failure is the expensive kind: the automation stops paying off weeks before anybody notices it stopped running.",
+      riskEs: "La falla silenciosa es la cara: la automatización deja de servir semanas antes de que alguien note que dejó de correr.",
+      audiences: ["SMB"],
+      weight: 2,
+    },
+    {
+      id: "AIA.5",
+      offeringSlug: "rag-knowledge-base",
+      statement: "Our team can find an answer in our own documents in under a minute, without asking a colleague.",
+      statementEs: "Nuestro equipo encuentra una respuesta en nuestros propios documentos en menos de un minuto, sin preguntarle a un colega.",
+      risk: "Every unanswerable question becomes an interruption for the one person who knows, and the answer still never gets written down.",
+      riskEs: "Cada pregunta sin respuesta se convierte en una interrupción para la única persona que sabe, y la respuesta sigue sin escribirse.",
+      audiences: ["SMB", "EDU"],
+      weight: 2,
+    },
+    {
+      id: "AIA.6",
+      offeringSlug: "rag-knowledge-base",
+      statement: "If we use AI tools with our own information, we know which vendor processes that data and have said so in writing.",
+      statementEs: "Si usamos herramientas de IA con nuestra información, sabemos qué proveedor procesa esos datos y lo hemos dicho por escrito.",
+      risk: "Staff paste confidential material into whatever tool is open. Without a stated policy the organisation has no idea where its data went.",
+      riskEs: "El personal pega material confidencial en la herramienta que tenga abierta. Sin una política escrita, la organización no sabe a dónde fueron sus datos.",
+      audiences: ["SMB", "EDU"],
+      weight: 3,
+    },
+    {
+      id: "AIA.7",
+      offeringSlug: "data-extraction-workflows",
+      statement: "Information arriving as PDFs, forms or invoices becomes usable data without someone typing it in.",
+      statementEs: "La información que llega en PDFs, formatos o facturas se convierte en datos utilizables sin que alguien la capture a mano.",
+      risk: "Manual data entry is slow, expensive and error-prone, and it scales only by hiring.",
+      riskEs: "La captura manual es lenta, cara y propensa a errores, y sólo escala contratando más gente.",
+      audiences: ["SMB"],
+      weight: 2,
+    },
+  ],
 
-export const TIERS = [
-  {
-    min: 0, max: 30, name: "Foundation", color: "var(--color-rose)",
-    headline: "Significant gaps across core dimensions.",
-    desc: "You're starting from near-zero on key dimensions. The highest-ROI move is a structured foundational build — not optimization. Strong upside from your first investment.",
-    action: "Start with a Technology Assessment to map exactly what to fix first.",
-    urgency: "Every month without a roadmap costs an estimated 15–25% in operational efficiency.",
-  },
-  {
-    min: 31, max: 60, name: "Stabilizing", color: "var(--color-amber)",
-    headline: "Pieces exist but are inconsistent or unmonitored.",
-    desc: "The basics are in place but discipline is missing. The next engagement consolidates what's there and adds monitoring and governance. Quick wins are realistic within 90 days.",
-    action: "Prioritize the top 2–3 gaps identified in your shortlist to move into the Optimizing tier.",
-    urgency: "Inconsistent systems create 2–3× the support burden of well-managed ones.",
-  },
-  {
-    min: 61, max: 85, name: "Optimizing", color: "var(--color-azure)",
-    headline: "The system works — now sharpen it.",
-    desc: "Your systems are solid. The next engagement reduces cost, improves performance, or extends capabilities to new use cases. You're ready for advanced retainer-based partnerships.",
-    action: "Focus on the AI and analytics gaps in your shortlist to differentiate from competitors.",
-    urgency: "Organisations at your tier that invest in AI see 30–50% productivity gains within 12 months.",
-  },
-  {
-    min: 86, max: 100, name: "Mature", color: "var(--color-mint)",
-    headline: "Best-in-class. Operate from strength.",
-    desc: "You're ahead of 90% of your peer organisations. The next engagement is strategic — advisory, retainer, or scaling to new lines of business.",
-    action: "Consider a retainer engagement to maintain your advantage as technology shifts.",
-    urgency: "Mature organisations that don't maintain their edge typically regress to Optimizing within 18 months.",
-  },
-]
+  CAM: [
+    {
+      id: "CAM.1",
+      offeringSlug: "on-premise-to-cloud-migration",
+      statement: "Our critical systems do not depend on a server sitting in our own building.",
+      statementEs: "Nuestros sistemas críticos no dependen de un servidor que está en nuestro propio edificio.",
+      risk: "An on-site server is one power cut, one flood or one theft away from taking the organisation offline, and usually nobody has tested the alternative.",
+      riskEs: "Un servidor en sitio está a un apagón, una inundación o un robo de dejar a la organización sin operar, y casi nunca se ha probado la alternativa.",
+      audiences: ["SMB", "EDU"],
+      weight: 3,
+    },
+    {
+      id: "CAM.2",
+      offeringSlug: "on-premise-to-cloud-migration",
+      statement: "Our team can work from anywhere without a VPN into an office machine.",
+      statementEs: "Nuestro equipo puede trabajar desde cualquier lugar sin conectarse por VPN a una máquina de la oficina.",
+      risk: "Work stops when the office does. Remote days, sick days and holidays all become blocked days.",
+      riskEs: "El trabajo se detiene cuando la oficina se detiene. Los días remotos, las incapacidades y los puentes se vuelven días bloqueados.",
+      audiences: ["SMB", "EDU"],
+      weight: 2,
+    },
+    {
+      id: "CAM.3",
+      offeringSlug: "disaster-recovery-planning",
+      statement: "We have restored from a backup on purpose, recently, and it worked.",
+      statementEs: "Hemos restaurado un respaldo a propósito, hace poco, y funcionó.",
+      risk: "An untested backup is a belief, not a safeguard. The first real restore is not the moment to discover the job has been failing for months.",
+      riskEs: "Un respaldo sin probar es una creencia, no una protección. La primera restauración real no es el momento de descubrir que el proceso llevaba meses fallando.",
+      audiences: ["SMB", "EDU"],
+      weight: 3,
+    },
+    {
+      id: "CAM.4",
+      offeringSlug: "disaster-recovery-planning",
+      statement: "We know how long we could be down before it becomes serious, and our recovery plan is built to that number.",
+      statementEs: "Sabemos cuánto tiempo podríamos estar caídos antes de que sea grave, y nuestro plan de recuperación está hecho para ese número.",
+      risk: "Without an agreed target, recovery takes as long as it takes, and everyone discovers together that four hours was the limit.",
+      riskEs: "Sin un objetivo acordado, la recuperación tarda lo que tarde, y todos descubren juntos que el límite eran cuatro horas.",
+      audiences: ["SMB", "EDU"],
+      weight: 2,
+    },
+    {
+      id: "CAM.5",
+      offeringSlug: "zero-trust-security-hardening",
+      statement: "Everyone signs in with their own account and multi-factor authentication. There are no shared logins.",
+      statementEs: "Cada persona entra con su propia cuenta y autenticación multifactor. No hay accesos compartidos.",
+      risk: "A shared password cannot be revoked for one person, and a breach cannot be traced to anyone. Both problems arrive at once.",
+      riskEs: "Una contraseña compartida no se le puede revocar a una sola persona, y una brecha no se le puede rastrear a nadie. Los dos problemas llegan juntos.",
+      audiences: ["SMB", "EDU"],
+      weight: 3,
+    },
+    {
+      id: "CAM.6",
+      offeringSlug: "zero-trust-security-hardening",
+      statement: "When someone leaves, their access is removed the same day, from every system.",
+      statementEs: "Cuando alguien se va, sus accesos se eliminan el mismo día, en todos los sistemas.",
+      risk: "Forgotten accounts are the ones that get used. Most organisations cannot list every system a departing person could still reach.",
+      riskEs: "Las cuentas olvidadas son las que se usan. Casi ninguna organización puede enumerar todos los sistemas a los que alguien que ya se fue todavía llega.",
+      audiences: ["SMB", "EDU"],
+      weight: 3,
+    },
+    {
+      id: "CAM.7",
+      offeringSlug: "cloud-bill-optimization",
+      statement: "We know what our cloud and hosting bill is made of, line by line.",
+      statementEs: "Sabemos de qué se compone nuestra factura de nube y hosting, línea por línea.",
+      risk: "Cloud spend grows by accident — oversized instances, forgotten environments, storage nobody reads. It is rarely the thing anyone reviews.",
+      riskEs: "El gasto en nube crece por accidente: instancias más grandes de lo necesario, ambientes olvidados, almacenamiento que nadie lee. Casi nunca es lo que alguien revisa.",
+      audiences: ["SMB"],
+      weight: 2,
+    },
+    {
+      id: "CAM.8",
+      offeringSlug: "docker-containerization",
+      statement: "Our applications run the same way on a developer's machine as they do in production.",
+      statementEs: "Nuestras aplicaciones corren igual en la máquina de quien desarrolla que en producción.",
+      risk: "“It works on my machine” is a deployment risk, not a joke: the differences surface during the release, in front of users.",
+      riskEs: "“En mi máquina funciona” es un riesgo de despliegue, no un chiste: las diferencias aparecen durante la publicación, frente a los usuarios.",
+      audiences: ["SMB"],
+      weight: 2,
+    },
+  ],
 
+  DPE: [
+    {
+      id: "DPE.1",
+      offeringSlug: "mvp-web-app-development",
+      statement: "The software we depend on does what we need, rather than being a tool we have bent into an awkward shape.",
+      statementEs: "El software del que dependemos hace lo que necesitamos, en lugar de ser una herramienta que hemos doblado a la fuerza.",
+      risk: "Working around a tool costs a little every day and never appears as a line item. It is usually the largest hidden cost in the operation.",
+      riskEs: "Darle la vuelta a una herramienta cuesta un poco cada día y nunca aparece como una partida. Suele ser el mayor costo oculto de la operación.",
+      audiences: ["SMB", "IND"],
+      weight: 3,
+    },
+    {
+      id: "DPE.2",
+      offeringSlug: "mvp-web-app-development",
+      statement: "When we have an idea for a product or an internal tool, we can get a working version in front of real users within weeks.",
+      statementEs: "Cuando tenemos una idea de producto o de herramienta interna, podemos poner una versión funcional frente a usuarios reales en semanas.",
+      risk: "Ideas that take a year to test are not tested. The market answers the question long before the build finishes.",
+      riskEs: "Las ideas que tardan un año en probarse no se prueban. El mercado responde la pregunta mucho antes de que termine el desarrollo.",
+      audiences: ["SMB", "IND"],
+      weight: 2,
+    },
+    {
+      id: "DPE.3",
+      offeringSlug: "ui-ux-wireframing",
+      statement: "Before anything is built, we agree on what the screens do — with something we can click, not a description.",
+      statementEs: "Antes de construir cualquier cosa, acordamos qué hacen las pantallas, con algo que se puede clicar y no con una descripción.",
+      risk: "Disagreements that surface in code cost many times what they cost in a wireframe, and they always surface.",
+      riskEs: "Los desacuerdos que aparecen ya en el código cuestan muchas veces lo que costaban en un wireframe, y siempre aparecen.",
+      audiences: ["SMB", "IND"],
+      weight: 2,
+    },
+    {
+      id: "DPE.4",
+      offeringSlug: "secure-api-design",
+      statement: "Our systems talk to each other over documented interfaces with real authentication, not shared database access or scraped pages.",
+      statementEs: "Nuestros sistemas se comunican por interfaces documentadas con autenticación real, no por acceso compartido a la base de datos ni raspando páginas.",
+      risk: "An undocumented integration breaks whenever either side changes, and nobody can tell in advance what will break.",
+      riskEs: "Una integración sin documentar se rompe cada vez que alguno de los dos lados cambia, y nadie puede saber de antemano qué se va a romper.",
+      audiences: ["SMB"],
+      weight: 2,
+    },
+    {
+      id: "DPE.5",
+      offeringSlug: "ci-cd-pipeline-automation",
+      statement: "Releasing a change is routine — automated tests run, and deploying does not require one specific person to be available.",
+      statementEs: "Publicar un cambio es rutina: las pruebas automáticas corren y desplegar no requiere que una persona específica esté disponible.",
+      risk: "When releasing is frightening, changes get batched, and a big batch is exactly what makes the next release more frightening.",
+      riskEs: "Cuando publicar da miedo, los cambios se acumulan, y un lote grande es justo lo que hace que la siguiente publicación dé más miedo.",
+      audiences: ["SMB"],
+      weight: 2,
+    },
+    {
+      id: "DPE.6",
+      offeringSlug: "ci-cd-pipeline-automation",
+      statement: "We would know our site or application was down before a customer told us.",
+      statementEs: "Nos enteraríamos de que nuestro sitio o aplicación está caído antes de que un cliente nos lo dijera.",
+      risk: "Learning about an outage from a customer costs the outage plus the trust. The second one is the part that does not come back.",
+      riskEs: "Enterarte de una caída por un cliente cuesta la caída más la confianza. La segunda es la parte que no regresa.",
+      audiences: ["SMB"],
+      weight: 3,
+    },
+    {
+      id: "DPE.7",
+      offeringSlug: "managed-maintenance",
+      statement: "Our software gets security updates and small improvements on a regular schedule, not only when something breaks.",
+      statementEs: "Nuestro software recibe actualizaciones de seguridad y mejoras pequeñas de forma regular, no sólo cuando algo se rompe.",
+      risk: "Unmaintained software does not stay still — it accumulates known vulnerabilities, and the eventual catch-up is a project rather than a task.",
+      riskEs: "El software sin mantenimiento no se queda quieto: acumula vulnerabilidades conocidas, y ponerse al día acaba siendo un proyecto y no una tarea.",
+      audiences: ["SMB", "IND"],
+      weight: 3,
+    },
+    {
+      id: "DPE.8",
+      offeringSlug: "managed-maintenance",
+      statement: "If the person who built our system disappeared tomorrow, someone else could pick it up from the documentation.",
+      statementEs: "Si la persona que construyó nuestro sistema desapareciera mañana, alguien más podría continuar con la documentación.",
+      risk: "A system only one person understands is an outage waiting for a holiday. The handover cost gets paid either way — the only choice is when.",
+      riskEs: "Un sistema que sólo una persona entiende es una caída esperando unas vacaciones. El costo de la transferencia se paga de todos modos; lo único que eliges es cuándo.",
+      audiences: ["SMB", "IND"],
+      weight: 3,
+    },
+    {
+      id: "DPE.9",
+      offeringSlug: "cross-platform-mobile-apps",
+      statement: "Where our users need a mobile app, they have one — not a website squeezed onto a phone screen.",
+      statementEs: "Donde nuestros usuarios necesitan una app móvil, la tienen: no un sitio web apretado en la pantalla de un teléfono.",
+      risk: "A phone-shaped website loses the things people came to the phone for — notifications, offline use, the camera.",
+      riskEs: "Un sitio web con forma de teléfono pierde justo aquello por lo que la gente usa el teléfono: notificaciones, uso sin conexión, la cámara.",
+      audiences: ["SMB"],
+      weight: 1,
+    },
+  ],
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────
+ * One per catalogue category, in the catalogue's own order. Titles come
+ * from CATEGORIES so the audit cannot name a category differently from the
+ * rest of the site; only the audit-specific framing is written here.
+ *
+ * `benchmark` is the typical score for that audience, used to draw the
+ * "you versus typical" bar. These are the only numbers here that are not
+ * derived from something else, and they are kept deliberately modest.
+ */
+const SECTION_META = {
+  ITS: {
+    letter: "A",
+    intro: "How decisions get made, and whether anyone can see the whole picture.",
+    introEs: "Cómo se toman las decisiones y si alguien alcanza a ver el panorama completo.",
+    benchmark: { EDU: 42, SMB: 45, IND: 40 },
+  },
+  AIA: {
+    letter: "B",
+    intro: "The repetitive work a system could be doing instead of a person.",
+    introEs: "El trabajo repetitivo que un sistema podría estar haciendo en lugar de una persona.",
+    benchmark: { EDU: 30, SMB: 34, IND: 32 },
+  },
+  CAM: {
+    letter: "C",
+    intro: "What happens when something fails, and who can reach what.",
+    introEs: "Qué pasa cuando algo falla y quién puede acceder a qué.",
+    benchmark: { EDU: 36, SMB: 40, IND: 38 },
+  },
+  DPE: {
+    letter: "D",
+    intro: "The software you depend on, and whether it can keep changing.",
+    introEs: "El software del que dependes y si puede seguir cambiando.",
+    benchmark: { EDU: 33, SMB: 38, IND: 36 },
+  },
+}
+
+export const AUDIT_SECTIONS = CATEGORIES.map((category) => {
+  const meta = SECTION_META[category.code]
+  const items = ITEMS[category.code] || []
+  return {
+    letter: meta.letter,
+    code: category.code,
+    slug: category.slug,
+    // From the catalogue, not written twice.
+    title: category.name,
+    titleEs: category.nameEs,
+    subtitle: category.tagline,
+    subtitleEs: category.taglineEs,
+    intro: meta.intro,
+    introEs: meta.introEs,
+    benchmark: meta.benchmark,
+    audiences: [...new Set(items.flatMap((it) => it.audiences))],
+    items,
+  }
+})
+
+/* ── Pre-qualification options ───────────────────────────────────────────
+ * Bilingual, because a Spanish visitor answering English multiple choice was
+ * half the reason this rebuild exists.
+ */
 export const PREQUAL_CHALLENGES = [
-  "Budget constraints",
-  "Lack of internal skills",
-  "Too many disconnected tools",
-  "No clear technology strategy",
-  "Security and compliance concerns",
-  "Faculty / staff adoption",
-  "Outdated infrastructure",
-  "AI adoption and governance",
+  { id: "budget", label: "Budget constraints", labelEs: "Presupuesto limitado" },
+  { id: "legacy", label: "Ageing systems we cannot easily change", labelEs: "Sistemas viejos que no podemos cambiar fácilmente" },
+  { id: "capacity", label: "No one has time to lead it", labelEs: "Nadie tiene tiempo de liderarlo" },
+  { id: "skills", label: "We lack the in-house skills", labelEs: "Nos faltan las habilidades internas" },
+  { id: "security", label: "Security or privacy concerns", labelEs: "Preocupaciones de seguridad o privacidad" },
+  { id: "buyin", label: "Getting the decision made", labelEs: "Lograr que se tome la decisión" },
+  { id: "integration", label: "Systems that do not talk to each other", labelEs: "Sistemas que no se comunican entre sí" },
+  { id: "growth", label: "Growing faster than our systems", labelEs: "Crecemos más rápido que nuestros sistemas" },
 ]
 
 export const PREQUAL_TIMELINES = [
-  "Immediately — this is urgent",
-  "1–3 months",
-  "3–6 months",
-  "6–12 months",
-  "Exploring for now",
+  { id: "now", label: "Immediately — this is urgent", labelEs: "De inmediato: es urgente" },
+  { id: "quarter", label: "This quarter", labelEs: "Este trimestre" },
+  { id: "half", label: "In the next six months", labelEs: "En los próximos seis meses" },
+  { id: "year", label: "Six to twelve months", labelEs: "De seis a doce meses" },
+  { id: "exploring", label: "Exploring for now", labelEs: "Por ahora estoy explorando" },
 ]
 
-/** Returns sections visible to a given audience */
+/* ── Score bands ─────────────────────────────────────────────────────── */
+export const TIERS = [
+  {
+    min: 0, max: 30,
+    name: "Foundation", nameEs: "Cimientos",
+    color: "var(--color-rose)",
+    headline: "Significant gaps across the basics.",
+    headlineEs: "Huecos importantes en lo básico.",
+    desc: "Start with the two or three that would hurt most if they failed this month, not with the longest list.",
+    descEs: "Empieza por los dos o tres que más dolerían si fallaran este mes, no por la lista más larga.",
+  },
+  {
+    min: 31, max: 55,
+    name: "Developing", nameEs: "En desarrollo",
+    color: "var(--color-amber)",
+    headline: "The essentials are in place; the reliability is not.",
+    headlineEs: "Lo esencial está; la confiabilidad no.",
+    desc: "Most of what is missing is the part that only matters on a bad day — backups, access, monitoring.",
+    descEs: "Casi todo lo que falta es lo que sólo importa un mal día: respaldos, accesos, monitoreo.",
+  },
+  {
+    min: 56, max: 80,
+    name: "Established", nameEs: "Consolidado",
+    color: "var(--color-azure)",
+    headline: "Solid ground, with specific gaps worth closing.",
+    headlineEs: "Base sólida, con huecos concretos que vale la pena cerrar.",
+    desc: "You are past firefighting. The next gains come from automation and from removing single points of failure.",
+    descEs: "Ya saliste de apagar incendios. Las siguientes ganancias vienen de automatizar y de quitar puntos únicos de falla.",
+  },
+  {
+    min: 81, max: 100,
+    name: "Advanced", nameEs: "Avanzado",
+    color: "var(--color-mint)",
+    headline: "Ahead of most organisations your size.",
+    headlineEs: "Por delante de la mayoría de organizaciones de tu tamaño.",
+    desc: "What remains are refinements. A second opinion is worth more here than a project.",
+    descEs: "Lo que queda son refinamientos. Aquí vale más una segunda opinión que un proyecto.",
+  },
+]
+
+/* ── Lookups ─────────────────────────────────────────────────────────── */
+
+/** Sections with at least one item for this audience. */
 export function sectionsForAudience(audience) {
-  return AUDIT_SECTIONS.filter((s) => s.audiences.includes(audience))
+  return AUDIT_SECTIONS.filter((s) => itemsForAudience(s, audience).length > 0)
 }
 
-/** Returns items visible to a given audience within a section */
+/** Items within a section that this audience is asked about. */
 export function itemsForAudience(section, audience) {
-  return section.items.filter((it) => it[5].includes(audience))
+  return section.items.filter((it) => it.audiences.includes(audience))
 }
 
-/** Returns the tier object for a given 0–100 score */
+/** The offering that closes the gap a statement describes. */
+export function offeringForItem(item) {
+  return item ? getOfferingBySlug(item.offeringSlug) : null
+}
+
+/** The band for a 0–100 score. */
 export function tierForScore(pct) {
   return TIERS.find((t) => pct >= t.min && pct <= t.max) || TIERS[0]
 }
 
-/** Returns the benchmark for a given section + audience */
+/** The benchmark for a section and audience. */
 export function benchmarkFor(section, audience) {
   return section.benchmark?.[audience] ?? null
 }
 
-/** Compute per-section scores */
+/**
+ * How long the audit is for each audience. Derived, because the page used to
+ * advertise "82 items · All 6 sections" from three hardcoded strings that
+ * were wrong the moment the instrument changed — and they were wrong.
+ */
+export function auditLength(audience) {
+  const sections = sectionsForAudience(audience)
+  return {
+    items: sections.reduce((n, s) => n + itemsForAudience(s, audience).length, 0),
+    sections: sections.length,
+  }
+}
+
+/* ── Scoring ─────────────────────────────────────────────────────────── */
+
 export function computeSectionScores(scores, audience) {
   const out = {}
   sectionsForAudience(audience).forEach((sec) => {
     const items = itemsForAudience(sec, audience)
     const max = items.length * 4
     let raw = 0
-    items.forEach((it) => { if (scores[it[0]] !== undefined) raw += scores[it[0]] })
+    items.forEach((it) => { if (scores[it.id] !== undefined) raw += scores[it.id] })
     out[sec.letter] = {
-      raw, max,
+      raw,
+      max,
       pct: max ? Math.round((raw / max) * 100) : 0,
       name: sec.title,
-      answered: items.filter((it) => scores[it[0]] !== undefined).length,
+      code: sec.code,
+      answered: items.filter((it) => scores[it.id] !== undefined).length,
       total: items.length,
     }
   })
   return out
 }
 
-/** Compute overall 0–100 score */
 export function computeOverall(scores, audience) {
-  const sections = sectionsForAudience(audience)
-  let raw = 0, max = 0
-  sections.forEach((sec) => {
+  let raw = 0
+  let max = 0
+  sectionsForAudience(audience).forEach((sec) => {
     itemsForAudience(sec, audience).forEach((it) => {
       max += 4
-      if (scores[it[0]] !== undefined) raw += scores[it[0]]
+      if (scores[it.id] !== undefined) raw += scores[it.id]
     })
   })
   return { pct: max ? Math.round((raw / max) * 100) : 0, raw, max }
 }
 
-/** Compute top N priorities (items scored 0–2, sorted by score then tier) */
+/**
+ * The lowest-scoring gaps, worst first, with the offering that closes each
+ * one attached. Ties break on weight — a 1 on something that takes the
+ * organisation offline outranks a 1 on a nice-to-have.
+ *
+ * Every entry carries a live offering: a priority whose slug does not
+ * resolve is dropped rather than rendered without a next step, which is what
+ * 38 of the old 82 statements did.
+ */
 export function computeTopPriorities(scores, audience, n = 5) {
   const candidates = []
   sectionsForAudience(audience).forEach((sec) => {
     itemsForAudience(sec, audience).forEach((it) => {
-      const score = scores[it[0]]
-      if (score !== undefined && score <= 2) {
-        candidates.push({ id: it[0], svc: it[1], title: it[2], stmt: it[3], tier: it[4], score, risk: it[6], investRange: it[7] })
-      }
+      const score = scores[it.id]
+      if (score === undefined || score > 2) return
+      const offering = offeringForItem(it)
+      if (!offering) return
+      candidates.push({
+        id: it.id,
+        offeringSlug: it.offeringSlug,
+        offering,
+        section: sec,
+        statement: it.statement,
+        statementEs: it.statementEs,
+        risk: it.risk,
+        riskEs: it.riskEs,
+        weight: it.weight ?? 2,
+        score,
+      })
     })
   })
-  candidates.sort((a, b) => {
-    if (a.score !== b.score) return a.score - b.score
-    const ta = parseInt(a.tier.match(/Tier (\d)/)?.[1] || "3")
-    const tb = parseInt(b.tier.match(/Tier (\d)/)?.[1] || "3")
-    return ta - tb
-  })
+  candidates.sort((a, b) => (a.score - b.score) || (b.weight - a.weight))
   return candidates.slice(0, n)
 }
 
-/** Find best matching solution bundle */
-export function matchBundle(topPriorities, audience) {
-  if (!topPriorities.length) return null
-  const topSvcs = topPriorities.map((p) => p.svc)
-  let best = null, bestScore = 0
-  SOLUTIONS.forEach((sol) => {
-    if (!sol.aud.includes(audience)) return
-    const overlap = sol.composed.filter((s) => topSvcs.includes(s)).length
-    if (overlap > bestScore) { bestScore = overlap; best = sol }
+/**
+ * The category to recommend: whichever appears most often among the top
+ * priorities, ties broken by the catalogue's own order.
+ *
+ * This replaces SOLUTIONS/matchBundle, which recommended bespoke programmes
+ * ("School Tech Transformation Program", "$8,000 – $24,000 USD") that are not
+ * on the site, not in the catalogue, and composed of retired ids — two of
+ * them could no longer be delivered at all.
+ */
+export function recommendCategory(topPriorities = []) {
+  const counts = new Map()
+  topPriorities.forEach((p) => {
+    const code = p.offering?.category?.code
+    if (code) counts.set(code, (counts.get(code) || 0) + 1)
   })
-  if (!best) best = SOLUTIONS.find((s) => s.aud.includes(audience)) || null
-  return best
+  let best = null
+  CATEGORIES.forEach((c) => {
+    const n = counts.get(c.code) || 0
+    if (n > 0 && (!best || n > best.n)) best = { n, category: getCategoryByCode(c.code) || c }
+  })
+  return best ? best.category : null
 }

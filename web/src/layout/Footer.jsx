@@ -39,6 +39,7 @@ const QUICK_LINKS = [
   { nameKey: "footer.navAbout", path: "/about" },
   { nameKey: "footer.navServices", path: "/services" },
   { nameKey: "footer.navHowWeWork", path: "/how-we-work" },
+  { nameKey: "footer.navSelfAudit", path: "/self-audit" },
   { nameKey: "footer.navSchools", path: "/schools" },
   { nameKey: "footer.navStore", path: "/store" },
   { nameKey: "footer.navBlog", path: "/blog" },

@@ -10,46 +10,58 @@ import {
 import Seo from "../components/seo/Seo"
 import { trackEvent } from "../lib/analytics"
 import AuditModal from "../components/audit/AuditModal"
+import { ensureNamespace } from "../i18n"
+import { AUDIT_SECTIONS, TIERS, auditLength } from "../data/auditData"
 
-const PAGE_TITLE = "Free Digital & Technology Self-Audit · 15 min"
-const PAGE_DESC  = "A 15-minute capability assessment across six dimensions of your digital presence and technology operations. Score yourself, see your maturity tier, and walk away with a prioritized shortlist drawn from an 82-service catalog."
-
-const TRUST_STATS = [
-  { value: "82", label: "Capability items" },
-  { value: "6",  label: "Dimensions assessed" },
-  { value: "~15", label: "Minutes to complete" },
-  { value: "4",  label: "Maturity tiers" },
-]
+/* Everything a visitor reads here used to be module-scope constants — which
+ * meant none of it could be translated, and the counts inside it ("82
+ * capability items", "6 dimensions", "70 items · 5 sections") went stale the
+ * moment the instrument changed. They had: the audit holds 32 statements
+ * across four areas, and the per-audience figures were wrong in all three
+ * rows. Copy comes from audit.json now, counts come from auditLength(), and
+ * neither can drift again (T2-3). */
 
 const WHAT_YOU_GET = [
-  {
-    step: "01", eyebrow: "DIAGNOSE",
-    title: "Score your current state",
-    body: "Rate 82 capability statements across six areas of your organisation — from leadership and digital presence to infrastructure, applications, training and support. Sections adapt to your audience type.",
-    icon: ClipboardCheck,
-  },
-  {
-    step: "02", eyebrow: "MEASURE",
-    title: "See where you really stand",
-    body: "Get a normalized maturity score per category, a benchmark comparison against similar organisations, and a clear tier — Foundation, Stabilizing, Optimizing, or Mature.",
-    icon: TrendingUp,
-  },
-  {
-    step: "03", eyebrow: "ACT",
-    title: "Walk away with a roadmap",
-    body: "Your top 5 priorities with risk statements, each mapped to one of the four service lines, and the line to start with.",
-    icon: ArrowRight,
-  },
+  { step: "01", key: "diagnose", icon: ClipboardCheck },
+  { step: "02", key: "measure",  icon: TrendingUp },
+  { step: "03", key: "act",      icon: ArrowRight },
 ]
 
 const AUDIENCE_PREVIEWS = [
-  { icon: GraduationCap, label: "Schools", items: "82 items · All 6 sections", color: "bg-violet/8 text-violet" },
-  { icon: Building2,    label: "Businesses", items: "70 items · 5 sections", color: "bg-azure/8 text-azure" },
-  { icon: User,         label: "Individuals", items: "12 items · Focused scan", color: "bg-mint/8 text-mint" },
+  { code: "EDU", icon: GraduationCap, labelKey: "page.audienceSchools",     color: "bg-violet/8 text-violet" },
+  { code: "SMB", icon: Building2,     labelKey: "page.audienceBusinesses",  color: "bg-azure/8 text-azure" },
+  { code: "IND", icon: User,          labelKey: "page.audienceIndividuals", color: "bg-mint/8 text-mint" },
 ]
 
+const RESULT_POINTS = ["page.resultScore", "page.resultPriorities", "page.resultCategory", "page.resultPdf"]
+
 export default function SelfAuditPage() {
-  const { t } = useTranslation("audit")
+  const { t, i18n } = useTranslation("audit")
+
+  /* The audit namespace is route-scoped (LAZY_NAMESPACES in i18n/resources.js):
+     6.6 KB per language for one page, which does not belong on every page's
+     critical path. It is fetched here, and the page holds its first paint
+     until it lands — this project does not use Suspense for translations, so
+     rendering early would paint key strings like "page.heroTitle". */
+  const [i18nReady, setI18nReady] = useState(() => i18n.hasResourceBundle(i18n.language, "audit"))
+  useEffect(() => {
+    let cancelled = false
+    ensureNamespace("audit", i18n.language)
+      .then(() => { if (!cancelled) setI18nReady(true) })
+      // A failed namespace fetch must not leave a blank page: render anyway.
+      // Keys are ugly; nothing at all is worse.
+      .catch(() => { if (!cancelled) setI18nReady(true) })
+    return () => { cancelled = true }
+  }, [i18n.language])
+
+  // Counted, not written down. See the note above AUDIENCE_PREVIEWS.
+  const totalItems = AUDIT_SECTIONS.reduce((n, s) => n + s.items.length, 0)
+  const trustStats = [
+    { value: String(totalItems), label: t("page.statItems") },
+    { value: String(AUDIT_SECTIONS.length), label: t("page.statSections") },
+    { value: t("page.statMinutesValue"), label: t("page.statMinutes") },
+    { value: String(TIERS.length), label: t("page.statTiers") },
+  ]
   const reduce = useReducedMotion()
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -69,11 +81,16 @@ export default function SelfAuditPage() {
     transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
   }
 
+  // Held until the namespace lands. The route is already lazy and behind a
+  // Suspense fallback, so this is the same kind of wait the visitor is
+  // already in, one frame longer.
+  if (!i18nReady) return null
+
   return (
     <>
       <Seo
-        title={PAGE_TITLE}
-        description={PAGE_DESC}
+        title={t("page.seoTitle")}
+        description={t("page.seoDescription")}
         canonical="/self-audit"
         keywords={["free digital audit","technology self-audit","IT maturity assessment","school IT audit","SMB technology assessment","digital transformation roadmap"]}
       />
@@ -93,28 +110,25 @@ export default function SelfAuditPage() {
             {/* Eyebrow */}
             <span className="inline-flex items-center gap-2 rounded-full bg-violet-pale px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-violet">
               <Sparkles className="h-3 w-3" aria-hidden="true" />
-              Free · 15 minutes · No sign-up needed
+              {t("page.heroEyebrow")}
             </span>
 
             {/* Headline */}
             <h1 className="mt-5 text-[clamp(30px,4.8vw,52px)] font-extrabold leading-[1.08] tracking-tight text-charcoal text-balance">
-              Find the technology gaps{" "}
-              <span className="bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] bg-clip-text text-transparent">
-                holding your organisation back.
-              </span>
+              {t("page.heroTitle")}
             </h1>
 
             <p className="mt-5 max-w-2xl text-[15px] leading-7 text-charcoal/65 sm:text-[16.5px]">
-              Score yourself across six dimensions of digital and technology maturity. Walk away with a maturity tier, a prioritised shortlist of services, and a benchmark against similar organisations.
+              {t("page.heroBody")}
             </p>
 
             {/* Feature pills */}
             <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2.5 text-[13px] text-charcoal/65">
               {[
-                { icon: Clock,       text: "~15 minutes" },
-                { icon: Layers,      text: "6 dimensions · 82 services" },
-                { icon: ShieldCheck, text: "No data stored without your consent" },
-                { icon: Lock,        text: "Results visible instantly — email optional" },
+                { icon: Clock,       text: `${t("page.statMinutesValue")} ${t("page.statMinutes").toLowerCase()}` },
+                { icon: Layers,      text: t("page.audienceLength", { items: totalItems, sections: AUDIT_SECTIONS.length }) },
+                { icon: ShieldCheck, text: t("page.privacyNoStorage") },
+                { icon: Lock,        text: t("page.privacyInstant") },
               ].map(({ icon: Icon, text }) => (
                 <li key={text} className="inline-flex items-center gap-1.5">
                   <Icon className="h-3.5 w-3.5 text-violet" aria-hidden="true" />
@@ -149,7 +163,7 @@ export default function SelfAuditPage() {
             transition={{ ...(fade.transition || {}), delay: 0.15 }}
             className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6"
           >
-            {TRUST_STATS.map(({ value, label }) => (
+            {trustStats.map(({ value, label }) => (
               <div key={label} className="rounded-xl bg-white/70 border border-charcoal/6 px-4 py-4 text-center backdrop-blur-sm">
                 <div className="font-mono text-[28px] font-bold text-violet leading-none">{value}</div>
                 <div className="mt-1 text-[12px] text-charcoal/65">{label}</div>
@@ -163,17 +177,23 @@ export default function SelfAuditPage() {
       <section className="border-y border-charcoal/6 bg-white py-10">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-            {AUDIENCE_PREVIEWS.map(({ icon: Icon, label, items, color }) => (
-              <div key={label} className="flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${color}`}>
-                  <Icon className="h-5 w-5" aria-hidden="true" />
+            {AUDIENCE_PREVIEWS.map(({ code, icon: Icon, labelKey, color }) => {
+              // Counted from the instrument. These three rows previously read
+              // "82 items · All 6 sections", "70 items · 5 sections" and
+              // "12 items · Focused scan" — all three wrong.
+              const { items, sections } = auditLength(code)
+              return (
+                <div key={code} className="flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${color}`}>
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-semibold text-charcoal">{t(labelKey)}</div>
+                    <div className="font-mono text-[11px] text-charcoal/65">{t("page.audienceLength", { items, sections })}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[14px] font-semibold text-charcoal">{label}</div>
-                  <div className="font-mono text-[11px] text-charcoal/65">{items}</div>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -189,7 +209,7 @@ export default function SelfAuditPage() {
           </m.div>
 
           <div className="grid gap-6 sm:grid-cols-3">
-            {WHAT_YOU_GET.map(({ step, eyebrow, title, body, icon: Icon }, i) => (
+            {WHAT_YOU_GET.map(({ step, key, icon: Icon }, i) => (
               <m.div
                 key={step}
                 {...fade}
@@ -199,9 +219,9 @@ export default function SelfAuditPage() {
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-pale text-violet">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet mb-2">{eyebrow}</p>
-                <h3 className="text-[17px] font-bold text-charcoal mb-2">{title}</h3>
-                <p className="text-[13.5px] leading-relaxed text-charcoal/65">{body}</p>
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-violet mb-2">{t(`page.${key}Eyebrow`)}</p>
+                <h3 className="text-[17px] font-bold text-charcoal mb-2">{t(`page.${key}Title`)}</h3>
+                <p className="text-[13.5px] leading-relaxed text-charcoal/65">{t(`page.${key}Body`)}</p>
               </m.div>
             ))}
           </div>
@@ -221,15 +241,10 @@ export default function SelfAuditPage() {
                 Every score maps to a specific service, a realistic investment range, and what happens if the gap goes unfixed. No vague recommendations — just a prioritised list you can act on immediately.
               </p>
               <ul className="space-y-3">
-                {[
-                  "Maturity score per category, benchmarked against your peer organisations",
-                  "Top 5 priorities with investment ranges and business risk if ignored",
-                  "Recommended Solution bundle tailored to your tier and audience",
-                  "Optional PDF report emailed to you — yours to share or print",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-[14px] text-charcoal/70">
+                {RESULT_POINTS.map((key) => (
+                  <li key={key} className="flex items-start gap-2.5 text-[14px] text-charcoal/70">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-mint" aria-hidden="true" />
-                    {item}
+                    {t(key)}
                   </li>
                 ))}
               </ul>

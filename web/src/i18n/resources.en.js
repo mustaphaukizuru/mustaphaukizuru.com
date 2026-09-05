@@ -5,6 +5,10 @@
 // a standalone chunk. Never import it statically from application code —
 // doing so would drag ~150 KB of English JSON back into the entry bundle.
 //
+// `audit` is deliberately absent: it is route-scoped and loaded by
+// ensureNamespace() when /self-audit mounts (LAZY_NAMESPACES in
+// resources.js). Adding it back puts 6.6 KB on every page's critical path.
+//
 // Add a new namespace here AND in resources.es.js AND in NAMESPACES
 // (resources.js) when you create the corresponding JSON file.
 
@@ -24,7 +28,6 @@ import portfolio from "./locales/en/portfolio.json"
 import legal from "./locales/en/legal.json"
 import errors from "./locales/en/errors.json"
 import blog from "./locales/en/blog.json"
-import audit from "./locales/en/audit.json"
 import schools from "./locales/en/schools.json"
 
 export default {
@@ -44,6 +47,5 @@ export default {
   legal,
   errors,
   blog,
-  audit,
   schools,
 }

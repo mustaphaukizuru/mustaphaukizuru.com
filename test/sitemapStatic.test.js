@@ -125,9 +125,31 @@ describe("the static OG card map", () => {
   })
 
   test("a Spanish page with no Spanish entry falls back to English, not to nothing", () => {
-    // /self-audit is English-only in pageSeoEs.js. Emitting an empty card
-    // would be worse than the English one.
-    expect(cards["/es/self-audit"].title).toBe(cards["/self-audit"].title)
+    // Asserted as a property rather than against a named route: this used to
+    // name /self-audit, which then GAINED a Spanish entry in T2-3 and broke a
+    // test that was checking the fallback, not that route.
+    const enOnly = Object.keys(cards)
+      .filter((r) => !r.startsWith("/es"))
+      .filter((r) => {
+        const es = r === "/" ? "/es" : `/es${r}`
+        return cards[es] && cards[es].title === cards[r].title
+      })
+    // Whichever routes those are, none of them may emit an empty card:
+    // English is worse than Spanish here, but far better than nothing.
+    for (const route of enOnly) {
+      const es = route === "/" ? "/es" : `/es${route}`
+      expect(cards[es].title).toBeTruthy()
+      expect(cards[es].description).toBeTruthy()
+    }
+    // And the routes that DO have Spanish must actually differ, or the
+    // merge is not happening at all.
+    const translated = Object.keys(cards)
+      .filter((r) => r.startsWith("/es"))
+      .filter((r) => {
+        const en = r === "/es" ? "/" : r.slice(3)
+        return cards[en] && cards[r].title !== cards[en].title
+      })
+    expect(translated.length).toBeGreaterThan(5)
   })
 
   test("operator and auth surfaces get no share card", () => {

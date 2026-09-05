@@ -7,6 +7,9 @@ import {
   loadLanguageBundle,
   normalizeLanguage,
   NAMESPACES,
+  EAGER_NAMESPACES,
+  LAZY_NAMESPACES,
+  loadNamespace,
   SUPPORTED_LANGUAGES,
   FALLBACK_LANGUAGE,
 } from "./resources"
@@ -67,7 +70,10 @@ function hasBundle(lng) {
   // so the changeLanguage wrapper below passes straight through.
   if (!i18n.store) return true
   const key = normalizeLanguage(lng)
-  return NAMESPACES.every((ns) => i18n.hasResourceBundle(key, ns))
+  // Only the eager set. A route-scoped namespace arrives later, via
+  // ensureNamespace(), and its absence must not make a language look
+  // unloaded — that would refetch the whole bundle on every switch.
+  return EAGER_NAMESPACES.every((ns) => i18n.hasResourceBundle(key, ns))
 }
 
 /** Fetch + register a language's namespaces. No-op when already present. */
@@ -75,7 +81,7 @@ async function ensureBundle(lng) {
   const key = normalizeLanguage(lng)
   if (hasBundle(key)) return
   const bundle = await loadLanguageBundle(key)
-  for (const ns of NAMESPACES) {
+  for (const ns of EAGER_NAMESPACES) {
     if (bundle[ns] && !i18n.hasResourceBundle(key, ns)) {
       // deep = false, overwrite = false — never mutate an existing bundle.
       i18n.addResourceBundle(key, ns, bundle[ns], false, false)
@@ -136,7 +142,7 @@ const i18nReady = loadLanguageBundle(initialLanguage)
         fallbackLng: I18N_ENABLED ? FALLBACK_LANGUAGE : "en",
         supportedLngs: SUPPORTED_LANGUAGES,
         defaultNS: "common",
-        ns: NAMESPACES,
+        ns: EAGER_NAMESPACES,
         interpolation: { escapeValue: false }, // React already escapes
         detection,
         react: { useSuspense: false },
@@ -206,3 +212,22 @@ i18n.changeLanguage = function changeLanguageWithBundle(lng, callback) {
 
 export { i18nReady, ensureBundle, loadLanguageBundle }
 export default i18n
+
+/**
+ * Load a route-scoped namespace (see LAZY_NAMESPACES) for the active
+ * language and register it with i18next. Resolves immediately when it is
+ * already present, so calling it on every mount is free.
+ *
+ * The page that needs it must wait for this before rendering, or i18next
+ * renders the key strings — this project deliberately does not use Suspense
+ * for translations (see the note at the top of this file).
+ */
+export async function ensureNamespace(ns, lng = i18n.language) {
+  if (!LAZY_NAMESPACES.includes(ns)) return
+  const key = normalizeLanguage(lng)
+  if (i18n.hasResourceBundle(key, ns)) return
+  const bundle = await loadNamespace(ns, key)
+  if (!i18n.hasResourceBundle(key, ns)) {
+    i18n.addResourceBundle(key, ns, bundle, false, false)
+  }
+}
