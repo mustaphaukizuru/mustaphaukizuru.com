@@ -1,7 +1,8 @@
 // ════════════════════════════════════════════════════════════════════════════
 // Spinner · ui primitive · v1.0
 // ────────────────────────────────────────────────────────────────────────────
-// Lightweight loading indicator. For full-page loads, prefer LoadingScreen.
+// Lightweight loading indicator. A full-page cold load is covered by the
+// inline boot splash in web/index.html, which needs no JavaScript at all.
 // For "this content is loading", prefer <Skeleton>. Use this for short
 // asynchronous moments where a skeleton would be visual noise.
 //

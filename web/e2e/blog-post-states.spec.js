@@ -34,7 +34,6 @@ const BASE = "http://localhost:4173"
 
 async function ready(page) {
   await page.addInitScript(() => {
-    window.localStorage.setItem("ukz-splash-skip", "1")
     window.localStorage.setItem("mu_cookie_consent_v1", JSON.stringify({
       version: 1, necessary: true, analytics: true, marketing: false, at: Date.now(),
     }))

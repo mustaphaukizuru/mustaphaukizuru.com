@@ -149,7 +149,73 @@
          ──────────────────────────────────────────────────────────── -->
   </head>
   <body>
-    <div id="root"></div>
+    <!-- ============================================================
+         BOOT SPLASH · inline, so the browser has something to paint
+         before any JavaScript exists.
+         ============================================================
+         Measured under Lighthouse-mobile throttling (4x CPU, slow 4G),
+         FCP was 4.10-4.22s on EVERY page — flat across /, /about,
+         /services, /store and /contact, which is the signature of a
+         bundle-gated paint rather than page content. The body was
+         `<div id="root"></div>` and nothing else, and main.jsx waits on
+         `i18nReady` (a dynamic locale import) before it even calls
+         render() — so ~338 KB of gzipped JS had to arrive, parse and
+         execute before the first pixel.
+         On two of those pages the largest-contentful-paint ELEMENT was
+         the React splash's own tagline, which tells the same story.
+
+         This markup lives INSIDE #root on purpose: React's
+         createRoot().render() replaces the container's children, so the
+         splash is removed at exactly the moment the app paints — no
+         cleanup code, no timer, no flash of two splashes.
+
+         Everything here is inline and self-contained: no external CSS,
+         no web font, no image request. It cannot add a round-trip to
+         the path it exists to shorten. -->
+    <div id="root">
+      <div id="boot" role="status" aria-label="Loading mustaphaukizuru.com">
+        <div class="boot-card">
+          <svg class="boot-mark" viewBox="0 0 52 52" aria-hidden="true">
+            <rect width="52" height="52" rx="14" fill="#5D3FD3" />
+            <rect x="36" y="6" width="9" height="9" rx="2" fill="#E9C46A" />
+            <text x="26" y="34" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+                  font-weight="800" font-size="22" fill="#F8FAFC" letter-spacing="-0.02em">MU</text>
+          </svg>
+          <p class="boot-name">Mustapha Ukizuru</p>
+          <p class="boot-tag">Technology Consulting</p>
+          <div class="boot-bar"><i></i></div>
+        </div>
+      </div>
+    </div>
+    <style>
+      #boot {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        background: #4A2EAB;
+        background-image:
+          radial-gradient(ellipse 70% 60% at 20% 20%, rgba(93,63,211,.75), transparent 60%),
+          radial-gradient(ellipse 60% 60% at 85% 80%, rgba(139,111,232,.35), transparent 60%);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .boot-card { text-align: center; padding: 24px; }
+      .boot-mark { width: 56px; height: 56px; display: block; margin: 0 auto 18px; }
+      .boot-name { margin: 0; color: #F8FAFC; font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+      .boot-tag  { margin: 6px 0 0; color: rgba(248,250,252,.72); font-size: 12px; font-weight: 600;
+                   text-transform: uppercase; letter-spacing: .18em; }
+      .boot-bar  { width: 168px; height: 3px; margin: 22px auto 0; border-radius: 999px;
+                   background: rgba(248,250,252,.14); overflow: hidden; }
+      .boot-bar > i { display: block; width: 40%; height: 100%; border-radius: 999px;
+                      background: linear-gradient(90deg, #E9C46A, #F8FAFC, #7DD3FC);
+                      animation: boot-slide 1.15s ease-in-out infinite; }
+      @keyframes boot-slide { 0% { transform: translateX(-110%) } 100% { transform: translateX(360%) } }
+      /* A visitor who asked for less motion gets a static bar, not a
+         crawling one. The splash still communicates "loading" through the
+         label and the copy. */
+      @media (prefers-reduced-motion: reduce) {
+        .boot-bar > i { animation: none; width: 100%; opacity: .5 }
+      }
+    </style>
     <!--
       The Google Identity Services SDK is now lazy-loaded by GoogleLoginButton
       on mount (LoginPage / SignupPage only) instead of being downloaded on

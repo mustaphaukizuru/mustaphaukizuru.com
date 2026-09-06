@@ -237,13 +237,6 @@
     "featuresHint": "· Algunas funciones pueden no estar disponibles",
     "dismissAria": "Cerrar aviso sin conexión"
   },
-  "loading": {
-    "brandAlt": "Mustapha Ukizuru",
-    "skipAria": "Saltar la pantalla de carga",
-    "skipLabel": "Saltar",
-    "progressAria": "Progreso de carga",
-    "splashAria": "Cargando mustaphaukizuru.com"
-  },
   "errorBoundary": {
     "homeAria": "Mustapha Ukizuru, inicio",
     "brandAlt": "Mustapha Ukizuru",

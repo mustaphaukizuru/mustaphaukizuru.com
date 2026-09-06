@@ -204,7 +204,11 @@ export default function AuthBrandPanel({ title, subtitle, bullets = [] }) {
           <div className="relative h-[52px] w-[52px] shrink-0 overflow-hidden rounded-xl ring-2 ring-white/15 shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
             <img
               src={profilePhoto}
-              alt={t("loading.brandAlt")}
+              /* Was `loading.brandAlt`, a key that belonged to the React
+                 splash and happened to hold the right string. The splash is
+                 gone; this is a portrait, and `auth.brand.name` is the key
+                 this panel already uses for the same name below. */
+              alt={t("auth.brand.name")}
               className="h-full w-full object-cover"
             />
           </div>

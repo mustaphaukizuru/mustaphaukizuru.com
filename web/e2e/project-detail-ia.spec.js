@@ -66,7 +66,6 @@ async function open(page, project, { width = 375, height = 812 } = {}) {
   await page.context().addCookies([{ name: "mu_csrf", value: "e2e", url: BASE }])
   await page.addInitScript((u) => {
     window.localStorage.setItem("auth-user", JSON.stringify(u))
-    window.localStorage.setItem("ukz-splash-skip", "1")
     window.localStorage.setItem("mu_cookie_consent_v1", JSON.stringify({
       version: 1, necessary: true, analytics: true, marketing: false, at: Date.now(),
     }))

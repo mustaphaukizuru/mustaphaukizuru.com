@@ -237,13 +237,6 @@
     "featuresHint": "· Some features may not work",
     "dismissAria": "Dismiss offline banner"
   },
-  "loading": {
-    "brandAlt": "Mustapha Ukizuru",
-    "skipAria": "Skip the loading splash",
-    "skipLabel": "Skip splash",
-    "progressAria": "Loading progress",
-    "splashAria": "Loading mustaphaukizuru.com"
-  },
   "errorBoundary": {
     "homeAria": "Mustapha Ukizuru, home",
     "brandAlt": "Mustapha Ukizuru",

@@ -1,7 +1,7 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import LoadingScreen from "./components/LoadingScreen";
+import afterFirstPaint from "./lib/afterFirstPaint";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import SeoRouteManager from "./components/SeoRouteManager";
@@ -75,13 +75,23 @@ function PageLoader() {
   );
 }
 
-// Warm the chunk cache for the two heaviest primary-nav pages immediately.
-// Both have a double-chunk waterfall (page chunk → catalogue chunk). Firing
-// these at module-eval time means the downloads run during the ~1.6 s
-// LoadingScreen animation, so chunks are in the module cache before the
-// user can click anything — even on a cold visit with no prior hover.
-void import("./pages/ServicesPage")
-void import("./data/servicesCatalogue")
+// Warm the chunk cache for the two heaviest primary-nav pages. Both have a
+// double-chunk waterfall (page chunk → catalogue chunk), so a cold click
+// pays two round-trips.
+//
+// These used to fire at module-eval time, and the comment explaining why
+// said it out loud: the downloads ran "during the ~1.6 s splash animation".
+// That window no longer exists — the splash is inline HTML now and the app
+// paints as soon as it can — so an eager import here would be two extra
+// downloads competing with the render they used to hide behind.
+//
+// afterFirstPaint waits for the load event, then for idle within it. The
+// prefetch still lands long before anyone can click a nav item, and the
+// first-paint budget test stops counting it.
+afterFirstPaint(() => {
+  void import("./pages/ServicesPage")
+  void import("./data/servicesCatalogue")
+})
 
 // Public pages
 const Home = lazy(() => import("./pages/Home"));
@@ -232,15 +242,33 @@ const dashboardChildRoutes = (
   </>
 )
 
+/* The React splash is gone, and so is the `appReady` gate that hid the app
+ * behind it. Both were solving a problem the inline boot splash in
+ * index.html solves properly.
+ *
+ * WHAT THEY COST. Measured under Lighthouse-mobile throttling: FCP was
+ * 4.10-4.22s on every page, because nothing could paint until ~338 KB of
+ * gzipped JS had arrived, parsed and run — main.jsx does not even call
+ * render() until the locale chunk resolves. The React splash then held the
+ * app at `opacity: 0` for another ~1.6 s on top of that, on every full page
+ * load, INCLUDING signed-in dashboard routes. On /services and /contact the
+ * largest-contentful-paint element was the splash's own rotating tagline,
+ * which is the clearest possible statement that the splash was the content.
+ *
+ * WHAT REPLACED THEM. `index.html` now carries a static, self-contained
+ * brand splash inside `#root`. The browser paints it as soon as the HTML
+ * lands, and React's `createRoot().render()` replaces the container's
+ * children — so it disappears at exactly the moment the app appears, with
+ * no timer, no cleanup and no window where two splashes overlap.
+ *
+ * The brand moment survives: same violet ground, same mark, same wordmark
+ * and tagline. It now starts at ~0.4 s instead of ~4.2 s, and it ends when
+ * the app is genuinely ready instead of when a 1.6 s interval says so. */
 export default function App() {
-  const [appReady, setAppReady] = useState(false);
-
   return (
     <ErrorBoundary>
       <CookieConsentProvider>
-      {!appReady && <LoadingScreen onFinish={() => setAppReady(true)} />}
-
-      <div style={{ opacity: appReady ? 1 : 0, pointerEvents: appReady ? "auto" : "none", transition: "opacity 0.3s ease" }}>
+      <div>
         <Toaster />
         <CookieBanner />
         <FloatingContactButton />

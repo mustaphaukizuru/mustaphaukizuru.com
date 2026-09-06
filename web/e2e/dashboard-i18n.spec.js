@@ -50,7 +50,6 @@ async function signedIn(page) {
     // app at z-9999 with `pointer-events: none` for ~1.6 s, so anything
     // measured inside that window is measuring the splash: elementFromPoint
     // returns it, and its own controls show up in a11y scans of the page.
-    window.localStorage.setItem("ukz-splash-skip", "1")
   }, USER)
   await page.route("**/api/**", (route) => {
     const url = route.request().url()
