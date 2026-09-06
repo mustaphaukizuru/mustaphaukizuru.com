@@ -73,6 +73,14 @@
   --color-terracotta:      #E9C46A;
   --color-terracotta-deep: #D4A847;
   --color-terracotta-800:  #856212;  /* v1.2 — warm accent as body text on light grounds (5.60:1 on white) */
+  /* U1 · the hover tint for a terracotta CTA. Two buttons had it as a raw
+     hex and the allow-list entry for both said "no lighter-terracotta token
+     exists yet" — so this is that token, and the entries go.
+     They were also two DIFFERENT peaches (#f5bf9e and #ffd9be) on buttons
+     with the same role. Unifying on the lighter one is not just tidier:
+     violet-on-#f5bf9e measured 4.12:1, under AA, and violet on this clears
+     it at 5.11:1. */
+  --color-terracotta-100:  #FFD9BE;
 
   /* ── Tier 4 · Neutrals ──────────────────────────────────────────────── */
   --color-steel:           #64748B;

@@ -99,7 +99,7 @@ export function Btn({
     ghost:
       "text-violet hover:bg-violet-pale",
     peach:
-      "bg-terracotta text-violet hover:bg-[#f5bf9e] hover:-translate-y-0.5",
+      "bg-terracotta text-violet hover:bg-terracotta-100 hover:-translate-y-0.5",
   }
 
   const base = `inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 ${sizes[size] || sizes.md} ${variants[variant] || variants.primary} ${className}`
