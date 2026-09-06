@@ -144,7 +144,7 @@ export default function UpcomingMeetingBanner() {
               )}
             </div>
             <div className="min-w-0">
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">
+              <p className="font-mono text-meta font-semibold uppercase tracking-[0.18em] text-white/80">
                 {label}
               </p>
               <p className="mt-1 truncate text-[15px] font-bold text-white sm:text-[16px]">

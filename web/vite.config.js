@@ -294,6 +294,14 @@ export default defineConfig({
           // and the other one arrives on first language switch. Naming them
           // explicitly keeps the split deterministic (and greppable in the
           // build output) instead of relying on Rollup's default grouping.
+          //
+          // Route-scoped namespaces are excluded (LAZY_NAMESPACES in
+          // resources.js). manualChunks overrides Rollup even for dynamic
+          // imports, so without this exclusion audit.json lands in the locale
+          // chunk anyway and the point of loading it lazily — keeping 6.6 KB
+          // per language off every page — is lost. It was: removing the static
+          // import alone changed the built payload by nothing at all.
+          if (/[\\/]src[\\/]i18n[\\/]locales[\\/](en|es)[\\/](audit|dashboard)\.json$/.test(id)) return undefined
           if (/[\\/]src[\\/]i18n[\\/](locales[\\/]en[\\/]|resources\.en\.js)/.test(id)) return "locale-en"
           if (/[\\/]src[\\/]i18n[\\/](locales[\\/]es[\\/]|resources\.es\.js)/.test(id)) return "locale-es"
           if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return "react-vendor"
@@ -302,10 +310,6 @@ export default defineConfig({
           // MotionProvider) async-loads the domMax feature bundle, and pinning the
           // whole package into one chunk would drag it back into the critical path.
           if (id.includes("node_modules/framer-motion"))              return undefined
-          // gsap + ScrollTrigger: own chunk, only reached via dynamic import()
-          // from components/motion/scroll/useScrollNarrative (Home process,
-          // case studies) — admin/dashboard bundles never pull it.
-          if (id.includes("node_modules/gsap"))                       return "gsap"
           if (id.includes("node_modules/lucide-react"))               return "lucide"
           // react-icons is deliberately NOT pinned to a shared chunk. It is
           // used by exactly five files, all brand/tech logos on About and the
@@ -328,6 +332,15 @@ export default defineConfig({
           // Rollup even for dynamic imports, so without this it lands back in
           // "vendor" and ships to everyone regardless.
           if (id.includes("node_modules/lenis"))                      return undefined
+          // web-vitals is reached ONLY through the dynamic import in
+          // lib/vitals.js, which is itself started after first paint. The
+          // node_modules catch-all below was pinning it into "vendor" — a
+          // critical-path chunk — so the telemetry that watches the
+          // first-paint budget was being loaded by every visitor before the
+          // page rendered. Third time this exact trap has been documented
+          // in this file; manualChunks overrides Rollup even for dynamic
+          // imports.
+          if (id.includes("node_modules/web-vitals"))                 return undefined
           if (id.includes("node_modules/pdfjs-dist"))                 return "pdfjs"
           if (id.includes("node_modules/i18next") ||
               id.includes("node_modules/react-i18next"))              return "i18n"

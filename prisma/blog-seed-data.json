@@ -380,6 +380,70 @@
             "The vendor list is your strategy in disguise. If half your stack is on month-to-month consumer plans, you don't have a strategy."
           ]
         }
+      ],
+      "titleEs": "Cómo diseñar la estrategia de TI de un colegio en 90 días",
+      "excerptEs": "Qué cambió cuando el Colegio de Excelencia Raindrop pasó de un área de TI reactiva a una estrategia documentada con resultados medibles.",
+      "metaTitleEs": "Estrategia de TI para un colegio en México, en 90 días",
+      "metaDescriptionEs": "El marco de 90 días que llevó a un colegio mexicano de soportar incidencias a tener una estrategia escrita, con tres resultados medibles y lo que realmente cambió.",
+      "bodyEs": [
+        {
+          "type": "p",
+          "text": "El área de TI de casi cualquier colegio es reactiva. Se muere un proyector, una maestra necesita restablecer su contraseña, el wifi se cae en exámenes, y el día entero fue la lista de pendientes. Construir una estrategia de verdad significa salirte de la fila el tiempo suficiente para dibujar la fila, y eso es más difícil de lo que suena cuando eres la única persona de TI en el campus."
+        },
+        {
+          "type": "p",
+          "text": "Este es el marco de 90 días que usé para llevar al Colegio de Excelencia Raindrop del soporte improvisado a una estrategia documentada con resultados medibles."
+        },
+        {
+          "type": "h2",
+          "text": "Días 0 a 30 · Documenta la realidad"
+        },
+        {
+          "type": "p",
+          "text": "Antes de cambiar nada, documenta lo que ya existe: cada equipo, licencia, contrato con proveedor, segmento de red y costo recurrente. Un renglón por activo y una columna para *quién depende de él*. Esa columna de dependencias es el documento que convierte a TI de un centro de costo en un catálogo de servicios."
+        },
+        {
+          "type": "h2",
+          "text": "Días 31 a 60 · Elige tres resultados"
+        },
+        {
+          "type": "p",
+          "text": "Una estrategia sin resultados es una lista de deseos. Me obligué a elegir exactamente tres, todos medibles:"
+        },
+        {
+          "type": "ordered",
+          "items": [
+            "**Bajar 40 % el volumen de tickets** con un portal de autoservicio y documentación más clara.",
+            "**Reducir 30 % el costo de impresión** con impresión a doble cara por defecto y cuotas por usuario.",
+            "**Llevar al 100 % del personal a inicio de sesión único (SSO)** durante el ciclo, retirando los accesos compartidos."
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Días 61 a 90 · Entrega algo cada semana"
+        },
+        {
+          "type": "p",
+          "text": "La tentación es un plan de transformación a doce meses. Lo que de verdad mueve la aguja es entregar una mejora por semana, y contarlo. Un correo de los viernes al personal —\"esta semana hicimos…\"— cambió la percepción de TI más que cualquier documento de hoja de ruta."
+        },
+        {
+          "type": "callout",
+          "variant": "success",
+          "title": "Qué cambió",
+          "text": "En el primer trimestre el volumen de tickets bajó 38 %, el costo de impresión cayó 26 % y 92 % del personal quedó en SSO. No son las metas exactas, pero sí lo suficientemente cerca para arrancar el siguiente ciclo con confianza."
+        },
+        {
+          "type": "h2",
+          "text": "Qué le diría a otras personas a cargo de TI en un colegio"
+        },
+        {
+          "type": "list",
+          "items": [
+            "La estrategia es un documento de una página que la dirección pueda leer con un café. Si es más largo, es un plan, no una estrategia.",
+            "Elige resultados que sobrevivan al cambio de ciclo escolar. \"Mejorar el wifi\" no sobrevive. \"Velocidad de 50 Mbps o más en el percentil 95 de cada salón\" sí.",
+            "Tu lista de proveedores es tu estrategia disfrazada. Si la mitad de tus herramientas están en planes de consumidor mes a mes, no tienes una estrategia."
+          ]
+        }
       ]
     },
     {
@@ -531,6 +595,66 @@
           "title": "Red flag shortlist",
           "text": "If the platform requires a separate \"training package\", charges per teacher account, hides the data export behind support tickets, or markets harder than it iterates, keep walking."
         }
+      ],
+      "titleEs": "Tecnología educativa que sí ayuda a los docentes (no sólo a la dirección)",
+      "excerptEs": "Un marco práctico para evaluar plataformas educativas desde quienes las usan cada clase, no desde quienes las compran.",
+      "metaTitleEs": "Cómo evaluar plataformas educativas pensando en los docentes",
+      "metaDescriptionEs": "Cinco preguntas para evaluar cualquier plataforma educativa antes de comprarla: tiempo de arranque, integración con lo que ya se usa, funcionamiento sin conexión, propiedad de los datos y qué queda cuando se va el vendedor.",
+      "bodyEs": [
+        {
+          "type": "p",
+          "text": "Detrás de casi toda compra de software escolar hay un desastre silencioso: quien elige la herramienta no es quien la usa. La dirección evalúa tableros, los docentes heredan flujos de trabajo, y tres meses después todo el mundo está en silencio, incómodo."
+        },
+        {
+          "type": "p",
+          "text": "Este es el marco de cinco preguntas que aplico antes de recomendarle cualquier plataforma nueva a un colegio."
+        },
+        {
+          "type": "h2",
+          "text": "1. ¿Una maestra puede crear un grupo en menos de cinco minutos?"
+        },
+        {
+          "type": "p",
+          "text": "El tiempo hasta la primera clase es la métrica más predictiva que conozco. Si la puesta en marcha necesita una sesión de capacitación, esa plataforma va a perder contra la que no la necesita. Pruébala en la laptop real de una maestra, en la sala de maestros real, con su café real."
+        },
+        {
+          "type": "h2",
+          "text": "2. ¿Funciona con lo que los docentes ya usan?"
+        },
+        {
+          "type": "p",
+          "text": "Google Classroom, Microsoft Teams, grupos de WhatsApp, copias en papel. La plataforma que pelea contra las herramientas existentes siempre pierde. La que se integra con dos de las cuatro, gana."
+        },
+        {
+          "type": "h2",
+          "text": "3. ¿El modo sin conexión es real?"
+        },
+        {
+          "type": "p",
+          "text": "En México, en Ruanda y en buena parte de LATAM y África, el internet se cae a las 10 de la mañana y vuelve a las 11. Funcionar sin conexión no es una característica, es un requisito de supervivencia. Observa cómo se comporta la plataforma cuando apagas el wifi a media clase."
+        },
+        {
+          "type": "h2",
+          "text": "4. ¿De quién son los datos?"
+        },
+        {
+          "type": "p",
+          "text": "Lee la cláusula de exportación de datos. Si no puedes sacar el registro de calificaciones en CSV en tres clics, ese registro no es tuyo."
+        },
+        {
+          "type": "h2",
+          "text": "5. ¿Qué pasa cuando se va la persona que te vendió?"
+        },
+        {
+          "type": "p",
+          "text": "Los equipos comerciales de tecnología educativa rotan más rápido que las direcciones escolares. Lo que estás comprando es la documentación y la comunidad, no a quien te la vendió."
+        },
+        {
+          "type": "callout",
+          "variant": "info",
+          "title": "Señales de alerta",
+          "text": "Si la plataforma exige un \"paquete de capacitación\" aparte, cobra por cuenta de docente, esconde la exportación de datos detrás de tickets de soporte, o invierte más en venderse que en mejorar, sigue tu camino."
+        }
       ]
     },
     {
@@ -680,6 +804,58 @@
           "type": "callout",
           "variant": "info",
           "text": "Default to **MercadoPago** for Mexican / LATAM buyers, fees, UX, and dispute resolution all favour it. Keep **PayPal** as the international fallback so a buyer in the US, Canada, or Europe doesn't bounce. Most platforms eventually run both, with the checkout selecting based on detected geo."
+        }
+      ],
+      "titleEs": "MercadoPago vs PayPal en LATAM: la comparación que me hubiera gustado tener",
+      "excerptEs": "Comisiones, experiencia de compra, disputas, depósitos y los dolores de integración que sólo aprendes después de lanzar. Notas honestas desde producción.",
+      "metaTitleEs": "MercadoPago vs PayPal en LATAM: comisiones, UX e integración",
+      "metaDescriptionEs": "Comparación real tras seis meses en producción con ambas pasarelas en México: comisiones con IVA, experiencia de compra local, webhooks, reembolsos y cuándo conviene cada una.",
+      "bodyEs": [
+        {
+          "type": "p",
+          "text": "Si vendes productos digitales a una audiencia de LATAM, MercadoPago y PayPal son las dos vías que vale la pena integrar. No son intercambiables. Después de seis meses corriendo ambas en producción, esta es la comparación que me hubiera gustado que alguien me diera el primer día."
+        },
+        {
+          "type": "h2",
+          "text": "Comisiones, en números claros"
+        },
+        {
+          "type": "p",
+          "text": "Las dos publican tablas de comisiones. La realidad es más desordenada. **MercadoPago** en México cobra alrededor de 3.49 % + IVA con tarjeta, 3.99 % + IVA a meses, y 0.99 % en efectivo por métodos como OXXO. **PayPal** cobra 5.4 % más una cuota fija en pagos con tarjeta transfronterizos, más un diferencial de conversión de divisa cercano al 4 % si tu cuenta está en pesos y quien compra paga en dólares."
+        },
+        {
+          "type": "p",
+          "text": "Para un producto digital de $50 USD, con MercadoPago recibes alrededor de $48.25 y con PayPal alrededor de $45.80. En cien pedidos son $245 de margen."
+        },
+        {
+          "type": "h2",
+          "text": "La experiencia de compra en el mercado mexicano"
+        },
+        {
+          "type": "p",
+          "text": "El checkout de MercadoPago es el estándar local. Quien compra reconoce la marca, confía en ella y elige entre métodos locales —OXXO, SPEI, débito, meses sin intereses— sin dudarlo. PayPal todavía se percibe como algo para compras internacionales: útil para el extranjero y para pagos transfronterizos, mucho menos para una compra local por impulso."
+        },
+        {
+          "type": "h2",
+          "text": "Dolores de integración"
+        },
+        {
+          "type": "list",
+          "items": [
+            "**Los webhooks de MercadoPago** reintentan de forma agresiva. Haz tus manejadores idempotentes sobre el id del pedido, no sobre el id del webhook.",
+            "**IPN vs Webhooks en PayPal**: son dos sistemas distintos y los dos siguen vivos. Usa webhooks. Verifica la firma con el endpoint de verificación de PayPal, no con un secreto compartido.",
+            "**Reembolsos**: MercadoPago necesita el id del pago original, no el del pedido. PayPal necesita el id de la captura, no el del pedido. Guarda los tres.",
+            "**Paridad del sandbox**: el sandbox de MercadoPago no simula del todo un pago que falla y luego se acredita. Prueba tu lógica de reintentos con microtransacciones reales en producción, usando un SKU de prueba."
+          ]
+        },
+        {
+          "type": "h2",
+          "text": "Cuándo usar cada una"
+        },
+        {
+          "type": "callout",
+          "variant": "info",
+          "text": "Usa **MercadoPago** por defecto para quien compra en México y LATAM: comisiones, experiencia de compra y resolución de disputas juegan a su favor. Deja **PayPal** como alternativa internacional para que alguien en Estados Unidos, Canadá o Europa no abandone la compra. Casi toda plataforma acaba con las dos, y el checkout elige según la ubicación detectada."
         }
       ]
     },

@@ -92,6 +92,9 @@
     "prevProject": "Previous project",
     "nextProject": "Next project",
     "showImage": "Show image {{n}}",
-    "viewOf": "{{title}}, view {{n}}"
+    "viewOf": "{{title}}, view {{n}}",
+    "ctaTitle": "Want something like this?",
+    "ctaBody": "The call is thirty minutes and free. Bring the problem; we work out whether this is the same shape.",
+    "ctaButton": "Book a call about this"
   }
 }

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { ArrowRight, Linkedin, BookOpen } from "lucide-react"
 import { useTranslation } from "react-i18next"
 

@@ -188,5 +188,19 @@
     "heading": "Organizaciones para las que he",
     "headingAccent": "trabajado",
     "body": "Colegios, comercio y empresas de servicios en México, Ruanda y Turquía: desde estrategia e infraestructura de TI hasta los sitios y plataformas que sus equipos usan a diario."
+  },
+  "engineering": {
+    "eyebrow": "Medido, no prometido",
+    "heading": "Cómo está construido este sitio, de verdad",
+    "body": "Cada número de aquí lo escribe una herramienta — la suite de pruebas, el reporte de cobertura, Lighthouse — y se regenera con la compilación. Nada está escrito a mano, que es la única razón por la que vale la pena leerlo.",
+    "tests": "pruebas",
+    "suitesHint": "en {{count}} suites",
+    "coverage": "cobertura de líneas",
+    "performance": "rendimiento",
+    "accessibility": "accesibilidad",
+    "bestPractices": "buenas prácticas",
+    "seo": "SEO",
+    "worstHint": "el peor puntaje entre {{count}} páginas auditadas, no el promedio",
+    "measured": "Medido el {{date}}"
   }
 }

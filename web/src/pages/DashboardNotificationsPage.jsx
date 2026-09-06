@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import {
   Bell,
   CheckCheck,
@@ -103,7 +103,7 @@ function NotificationRow({ notification, onRead, t }) {
                 {notification.title || t("notificationsPage.row.markRead")}
               </h3>
               {!notification.isRead && (
-                <span className="inline-flex items-center rounded-full bg-violet px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                <span className="inline-flex items-center rounded-full bg-violet px-2 py-0.5 text-micro font-bold uppercase tracking-wider text-white">
                   {t("notificationsPage.row.newBadge")}
                 </span>
               )}
@@ -113,7 +113,7 @@ function NotificationRow({ notification, onRead, t }) {
                 {notification.message}
               </p>
             )}
-            <p className="mt-1 font-mono text-[11px] tabular-nums text-charcoal-80/65">
+            <p className="mt-1 font-mono text-meta tabular-nums text-charcoal-80/65">
               {formatTimestamp(notification.createdAt, localeTag)}
             </p>
           </div>
@@ -188,9 +188,9 @@ export default function DashboardNotificationsPage() {
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           {t("notificationsPage.eyebrow")}
         </span>
-        <h1 className="mt-3 text-section font-bold text-violet">
+        <h2 className="mt-3 text-section font-bold text-violet">
           {t("notificationsPage.title")}
-        </h1>
+        </h2>
         <p className="mt-2 max-w-2xl text-meta leading-6 text-charcoal-80/65">
           {t("notificationsPage.subtitle")}
         </p>
@@ -241,7 +241,7 @@ export default function DashboardNotificationsPage() {
                     }`}
                   >
                     {t(f.labelKey)}
-                    <span className={`rounded-full px-1.5 py-0.5 font-mono text-[10px] tabular-nums ${
+                    <span className={`rounded-full px-1.5 py-0.5 font-mono text-micro tabular-nums ${
                       active ? "bg-white/15 text-white" : "bg-charcoal-80/8 text-charcoal-80/65"
                     }`}>
                       {f.count}

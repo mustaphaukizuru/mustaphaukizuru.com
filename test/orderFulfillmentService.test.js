@@ -26,6 +26,7 @@ jest.mock("../src/services/invoiceService", () => ({ ensureInvoice: jest.fn() })
 jest.mock("../src/services/notificationService", () => ({ notifyProjectCreated: jest.fn() }))
 
 const prisma = require("../src/lib/prisma")
+const { isValidTrackingCode } = require("../src/utils/trackingCode")
 const { ensureInvoice } = require("../src/services/invoiceService")
 const { notifyProjectCreated } = require("../src/services/notificationService")
 const {
@@ -146,8 +147,15 @@ describe("fulfillOrder", () => {
 
     expect(r.projectsCreated).toBe(1)
     expect(prisma.clientProject.create).toHaveBeenCalledWith({
-      data: { serviceOrderId: "so1", userId: "u1", projectName: "Audit", projectStatus: "planning", description: null },
+      data: expect.objectContaining({
+        serviceOrderId: "so1", userId: "u1", projectName: "Audit", projectStatus: "planning", description: null,
+      }),
     })
+    // T5-1 · the project is born with a tracking code. Asserted by shape
+    // rather than value — it is random by design, and pinning it would make
+    // this test fail once in every few thousand runs for the wrong reason.
+    const { data } = prisma.clientProject.create.mock.calls[0][0]
+    expect(isValidTrackingCode(data.trackingCode)).toBe(true)
   })
 })
 

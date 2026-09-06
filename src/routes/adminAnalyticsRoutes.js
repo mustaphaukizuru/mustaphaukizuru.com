@@ -13,5 +13,7 @@ const router = Router()
 router.use(protect, adminOnly)
 router.get("/dashboard", ctrl.adminDashboard)
 router.get("/events",    ctrl.adminEvents)
+// T3-6 · field vitals beside the lab numbers.
+router.get("/vitals",    ctrl.adminVitals)
 router.get("/revenue",   ctrl.adminRevenue)   // Tier 4 · ?months=12
 module.exports = router

@@ -169,6 +169,6 @@ const server = http.createServer((req, res) => {
 })
 
 server.listen(PORT, () => {
-  // eslint-disable-next-line no-console
+   
   console.log(`Server running on port ${PORT} (lighthouse fixture mode — no database, no deps)`)
 })

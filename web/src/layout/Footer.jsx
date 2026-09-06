@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import {
   Mail,
   ArrowRight,
@@ -38,7 +38,14 @@ const QUICK_LINKS = [
   { nameKey: "footer.navHome", path: "/" },
   { nameKey: "footer.navAbout", path: "/about" },
   { nameKey: "footer.navServices", path: "/services" },
+  { nameKey: "footer.navHowWeWork", path: "/how-we-work" },
+  { nameKey: "footer.navSelfAudit", path: "/self-audit" },
   { nameKey: "footer.navSchools", path: "/schools" },
+  // T5-5 · clients arrive here from an invoice with a code in hand and
+  // nothing else; the footer is on every page they might land on first.
+  { nameKey: "footer.navTrack", path: "/track" },
+  // T1-9 · in the footer because the footer is on the error page too.
+  { nameKey: "footer.navStatus", path: "/status" },
   { nameKey: "footer.navStore", path: "/store" },
   { nameKey: "footer.navBlog", path: "/blog" },
   { nameKey: "footer.navContact", path: "/contact" },

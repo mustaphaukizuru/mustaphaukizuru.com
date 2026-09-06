@@ -8,6 +8,11 @@
  */
 jest.mock("../src/lib/prisma", () => ({
   clientProject:    { findFirst: jest.fn(), findUnique: jest.fn() },
+  // T5-17 · loadOwnedProject falls back to a membership lookup when the
+  // owner query misses, so the model has to be here. A real Prisma model
+  // absent from the mock is a misconfiguration, not something to optional-
+  // chain away.
+  projectMember:    { findFirst: jest.fn(), update: jest.fn() },
   projectMilestone: { findFirst: jest.fn() },
   projectFile:      { create: jest.fn() },
   supportTicket:    { create: jest.fn(), findFirst: jest.fn(), findMany: jest.fn(), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },

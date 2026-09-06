@@ -135,14 +135,19 @@ export default function TermsPage() {
           ))}
         </article>
 
-        {/* Contact CTA */}
+        {/* Contact CTA
+            The address was `text-white/60`, which composites over the violet
+            band to 3.45:1 at 13px — an AA failure Lighthouse scores as 0 for
+            the whole color-contrast audit, and the only contrast violation on
+            this page. /85 clears it while staying visibly secondary to the
+            line above. The same pattern on PrivacyPage is changed with it. */}
         <div className="mt-8 flex items-center gap-4 rounded-xl bg-violet p-6 text-white">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
             <Mail className="h-6 w-6" />
           </div>
           <div>
             <div className="font-semibold">{t("terms.questions")}</div>
-            <a href="mailto:hello@mustaphaukizuru.com" className="mt-1 text-meta text-white/60 hover:text-white hover:underline">
+            <a href="mailto:hello@mustaphaukizuru.com" className="mt-1 text-meta text-white/85 hover:text-white hover:underline">
               hello@mustaphaukizuru.com
             </a>
           </div>

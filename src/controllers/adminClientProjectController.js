@@ -4,13 +4,22 @@ const logger = require("../utils/logger")
 const prisma = require("../lib/prisma")
 const { sendProjectFile, resolveSafePath } = require("./clientProjectController")
 const { createComment, resolveComment, onMilestoneAwaitingClient } = require("../services/projectPortalService")
+const secretHandoff = require("../services/secretHandoffService")
+const projectMembers = require("../services/projectMemberService")
+const handoverPack = require("../services/handoverPackService")
+const projectTime = require("../services/projectTimeService")
+const { FILE_REQUEST_PRESETS } = require("../data/fileRequestPresets")
 const { mintPortalLink } = require("../services/portalAccessService")
 const { createCaseStudyDraft } = require("../services/projectCaseStudyService")
+const fileRequests = require("../services/projectFileRequestService")
+const projectEvents = require("../services/projectEventService")
+const adminQueue = require("../services/adminQueueService")
+const { notifyFileRequested, notifyFileReviewed, notifyProjectPhase } = require("../services/notificationService")
+const projectEmails = require("../services/projectEmailService")
 const {
   listAdminProjects, getAdminProject, createAdminProject, updateAdminProject, deleteAdminProject,
   createMilestone, updateMilestone, deleteMilestone,
   attachFile, deleteFile,
-  VALID_PROJECT_STATUSES, VALID_MILESTONE_STATUSES,
 } = require("../services/clientProjectService")
 const { addAdminMessage } = require("../services/supportService")
 const changeRequestService = require("../services/changeRequestService")
@@ -47,17 +56,39 @@ const createProject = asyncHandler(async (req, res) => {
   }
 })
 
+/**
+ * T5-6 · which phase changes are worth an email.
+ *
+ * Not `planning` — that is where a project starts, and project.tracking-code
+ * already covered it. Not `cancelled` — that deserves a conversation, and an
+ * automated "your project is now cancelled" is the wrong way to hear it. The
+ * in-app notification still fires for both.
+ */
+const EMAILED_PHASES = new Set(["in_progress", "review", "completed"])
+
 const updateProject = asyncHandler(async (req, res) => {
   try {
-    // Tier 4 · review collector: fire once, on the transition into completed.
-    const movingToCompleted = req.body?.projectStatus === "completed"
-    const before = movingToCompleted
+    // Read the status before the write so both side-effects below describe a
+    // TRANSITION: re-saving an already-complete project should not send the
+    // client a second "it is done" email.
+    const statusChanging = typeof req.body?.projectStatus === "string"
+    const before = statusChanging
       ? await prisma.clientProject.findUnique({ where: { id: String(req.params.id) }, select: { projectStatus: true } })
       : null
     const updated = await updateAdminProject(req.params.id, req.body)
-    if (movingToCompleted && before && before.projectStatus !== "completed") {
+    const moved = Boolean(before && before.projectStatus !== updated.projectStatus)
+
+    if (moved && updated.projectStatus === "completed") {
       sendReviewRequest({ req, project: updated })
         .catch((err) => logger.error("[project] review-request email failed:", err.message))
+    }
+    if (moved) {
+      notifyProjectPhase(updated.userId, { project: updated, status: updated.projectStatus })
+        .catch((err) => logger.warn(`[project] phase notify failed: ${err.message}`))
+      if (EMAILED_PHASES.has(updated.projectStatus)) {
+        projectEmails.sendStatusUpdate({ project: updated, status: updated.projectStatus, locale: resolveUserLocale({ req }) })
+          .catch((err) => logger.warn(`[project] status-update email failed: ${err.message}`))
+      }
     }
     res.status(200).json({ success: true, data: updated })
   } catch (e) {
@@ -331,6 +362,190 @@ async function fetchUserEmail(userId) {
   return u?.email || null
 }
 
+/* ── Document requests (T5-3) ─────────────────────────────────────────────
+ * Asking a client for a file, as a row rather than an email thread. The
+ * client is notified in-app immediately; the email is T5-6 and lands once
+ * its templates are seeded.
+ */
+
+/** GET /admin/client-projects/:id/file-requests */
+const listFileRequests = asyncHandler(async (req, res) => {
+  const rows = await fileRequests.listForProject(req.params.id)
+  res.json({ success: true, data: rows.map((r) => fileRequests.serialize(r)) })
+})
+
+/** POST /admin/client-projects/:id/file-requests */
+const addFileRequest = asyncHandler(async (req, res) => {
+  const { request, project } = await fileRequests.createRequest(req.params.id, req.body, {
+    requestedById: req.user?.id || null,
+  })
+
+  // Best-effort, both of them: the request exists whether or not the client
+  // can be told right now, and a failed notification must not lose it.
+  notifyFileRequested(project.userId, { project, request })
+    .catch((e) => logger.warn(`[fileRequest] notify failed: ${e.message}`))
+  projectEmails.sendFileRequested({ project, request, locale: resolveUserLocale({ req }) })
+    .catch((e) => logger.warn(`[fileRequest] email failed: ${e.message}`))
+
+  res.status(201).json({ success: true, data: fileRequests.serialize(request) })
+})
+
+/** PATCH /admin/client-projects/:id/file-requests/:reqId */
+const reviewFileRequest = asyncHandler(async (req, res) => {
+  const updated = await fileRequests.reviewRequest(req.params.reqId, {
+    action: req.body?.action,
+    reviewNote: req.body?.reviewNote,
+  })
+
+  const project = await prisma.clientProject.findUnique({
+    where: { id: updated.projectId },
+    // trackingCode and projectName because the email needs both; the
+    // notification only needed the id.
+    select: { id: true, userId: true, projectName: true, trackingCode: true },
+  })
+  if (project) {
+    notifyFileReviewed(project.userId, { project, request: updated })
+      .catch((e) => logger.warn(`[fileRequest] notify failed: ${e.message}`))
+    // Cancelled sends nothing. "We no longer need that thing we asked you
+    // for" is worth a notification badge and not worth an email.
+    projectEmails.sendFileReviewed({ project, request: updated, locale: resolveUserLocale({ req }) })
+      .catch((e) => logger.warn(`[fileRequest] email failed: ${e.message}`))
+  }
+
+  res.json({ success: true, data: fileRequests.serialize(updated) })
+})
+
+/**
+ * GET /admin/client-projects/:id/events  (T5-5)
+ *
+ * The full timeline at admin visibility — the same rows the client sees plus
+ * the ones written narrower than "client". Admin routers are all behind
+ * protect + admin, so there is no per-row gate here beyond the audience.
+ */
+const listEvents = asyncHandler(async (req, res) => {
+  const rows = await projectEvents.listForProject(req.params.id, { audience: "admin", limit: 200 })
+  res.json({ success: true, data: rows.map((r) => projectEvents.serializeEvent(r)) })
+})
+
+/**
+ * GET /admin/client-projects/queue  (T5-16)
+ *
+ * Everything waiting, across every project, split by who is blocking. Behind
+ * protect + adminOnly like the rest of this router.
+ *
+ * Declared BEFORE /:id in the routes file, or "queue" is read as a project
+ * id and this never runs.
+ */
+const getQueue = asyncHandler(async (_req, res) => {
+  const data = await adminQueue.getQueue()
+  res.json({ success: true, data })
+})
+
+/* ── T5-13 · presets and the secure credential handoff ─────────────────── */
+
+/** GET /admin/client-projects/file-request-presets — the static list. */
+const listFileRequestPresets = asyncHandler(async (_req, res) => {
+  res.json({ success: true, data: FILE_REQUEST_PRESETS })
+})
+
+/** GET /admin/client-projects/:id/secrets */
+const listSecrets = asyncHandler(async (req, res) => {
+  res.json({
+    success: true,
+    data: await secretHandoff.listForProject(req.params.id, "admin"),
+    // The form is hidden rather than shown and then refused when the key is
+    // missing: an operator clicking "share a secret" and getting a 503 is
+    // how a credential ends up in a support ticket instead.
+    meta: { configured: secretHandoff.isConfigured() },
+  })
+})
+
+/** POST /admin/client-projects/:id/secrets — hand something over. */
+const createSecret = asyncHandler(async (req, res) => {
+  const { secret } = await secretHandoff.createSecret(req.params.id, {
+    ...req.body,
+    // Not a parameter. An admin creating a secret is handing one over.
+    direction: "to_client",
+  }, { createdById: req.user?.id || null })
+  res.status(201).json({ success: true, data: secret })
+})
+
+/** POST /admin/client-projects/:id/secrets/:secretId/reveal */
+const revealSecret = asyncHandler(async (req, res) => {
+  const out = await secretHandoff.revealSecret(req.params.secretId, req.params.id, "admin")
+  res.setHeader("Cache-Control", "no-store")
+  res.json({ success: true, data: out })
+})
+
+/* ── T5-17 · the other people on the client's side ─────────────────────── */
+
+/** GET /admin/client-projects/:id/members */
+const listMembers = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await projectMembers.listForProject(req.params.id) })
+})
+
+/**
+ * POST /admin/client-projects/:id/members
+ *
+ * A second POST to the same address is an EDIT, not an error: "add the
+ * director again as an approver" is the natural way to change a role.
+ */
+const addMember = asyncHandler(async (req, res) => {
+  const { member } = await projectMembers.addMember(req.params.id, req.body)
+  res.status(201).json({ success: true, data: member })
+})
+
+/** DELETE /admin/client-projects/:id/members/:memberId */
+const removeMember = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await projectMembers.removeMember(req.params.id, req.params.memberId) })
+})
+
+/**
+ * POST /admin/client-projects/:id/handover-pack  (T5-19)
+ *
+ * Rebuild it on demand. The pack is generated automatically the moment a
+ * project moves to handover, and that generation is fire-and-forget — so
+ * there has to be a way to run it again when it failed, or when a
+ * deliverable was added afterwards.
+ *
+ * Each run is a NEW ProjectFile row rather than an overwrite: a client who
+ * already downloaded one should not find that the copy they were given has
+ * silently changed underneath its own checksums.
+ */
+const rebuildHandoverPack = asyncHandler(async (req, res) => {
+  const row = await handoverPack.buildHandoverPack(req.params.id, { createdById: req.user?.id || null })
+  if (!row) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Project not found" } })
+  res.status(201).json({ success: true, data: { id: row.id, fileName: row.fileName, fileSize: row.fileSize } })
+})
+
+/* ── T5-18 · hours against a retainer ──────────────────────────────────── */
+
+/** GET /admin/client-projects/:id/time?months=6 */
+const listProjectTime = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await projectTime.ledgerFor(req.params.id, { months: req.query?.months }) })
+})
+
+/** POST /admin/client-projects/:id/time */
+const logProjectTime = asyncHandler(async (req, res) => {
+  const { entry } = await projectTime.logTime(req.params.id, req.body, { createdById: req.user?.id || null })
+  res.status(201).json({ success: true, data: entry })
+})
+
+/** DELETE /admin/client-projects/:id/time/:entryId */
+const deleteProjectTime = asyncHandler(async (req, res) => {
+  res.json({ success: true, data: await projectTime.removeEntry(req.params.id, req.params.entryId) })
+})
+
+/** GET /admin/client-projects/:id/time/:month/statement.pdf */
+const projectTimeStatement = asyncHandler(async (req, res) => {
+  const out = await projectTime.buildMonthlyStatement(req.params.id, req.params.month, { locale: resolveUserLocale({ req }) })
+  if (!out) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "No statement for that month" } })
+  res.setHeader("Content-Type", "application/pdf")
+  res.setHeader("Content-Disposition", `attachment; filename="hours-${req.params.month}.pdf"`)
+  res.setHeader("Cache-Control", "private, no-store")
+  res.send(out.buffer)
+})
+
 module.exports = {
   listProjects, getProject, createProject, updateProject, removeProject,
   addMilestone, patchMilestone, removeMilestone,
@@ -338,4 +553,10 @@ module.exports = {
   addAdminComment, toggleResolveComment, replyProjectTicket,
   createPortalLink, createCaseStudy, sendReviewRequest,
   quoteChangeRequest, completeChangeRequest,
+  listFileRequests, addFileRequest, reviewFileRequest, listEvents,
+  listFileRequestPresets, listSecrets, createSecret, revealSecret,
+  listMembers, addMember, removeMember,
+  rebuildHandoverPack,
+  listProjectTime, logProjectTime, deleteProjectTime, projectTimeStatement,
+  getQueue,
 }

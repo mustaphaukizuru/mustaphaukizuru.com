@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { ArrowLeft, Package, Loader2, AlertCircle, FileDown, CalendarClock, CreditCard } from "lucide-react"
 import { fetchMyOrderById } from "../services/orderService"
 import { createMercadoPagoPreference } from "../services/mercadoPagoService"
@@ -117,7 +118,7 @@ export default function DashboardOrderDetailPage() {
             <p className="text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
               {t("orderDetail.title", "Order")}
             </p>
-            <h1 className="mt-1 font-mono text-section font-bold text-violet">{orderRef}</h1>
+            <h2 className="mt-1 font-mono text-section font-bold text-violet">{orderRef}</h2>
             {createdAt && (
               <p className="mt-1 text-meta text-charcoal-80/65">{createdAt}</p>
             )}
@@ -231,7 +232,7 @@ function InvoicePayCard({ order, invoice }) {
         <div className="min-w-0">
           <h2 className="text-card font-bold text-violet">{t("orders.invoice.title", { number: invoice.invoiceNumber })}</h2>
           <p className="mt-1 text-meta text-charcoal-80/75">{t("orders.invoice.body")}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-[11px]">
+          <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-meta">
             {dueDate && (
               <span className={`inline-flex items-center gap-1 ${overdue ? "font-semibold text-rose-700" : "text-charcoal-80/65"}`}>
                 <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />

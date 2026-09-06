@@ -57,9 +57,16 @@ This is NOT a simple portfolio. It is a full-featured SaaS platform:
 ═══════════════════════════════════════
 ⚠️  THIS IS THE EXACT STACK — never assume or suggest alternatives.
 
-Backend:    Node.js 22.x + Express.js
-Frontend:   React 18 + Vite + Tailwind CSS + Framer Motion + Lucide React
-ORM:        Prisma (MySQL provider)
+⚠️  AMENDED 4 Sep 2026 (T2-7). The list below is read from package.json, not
+    from memory. What it used to say and no longer does: React 18 (it is 19),
+    "Vite" and "Tailwind CSS" without versions (7 and 4 — Tailwind 4 is a
+    different configuration model, @theme in CSS rather than a JS config), and
+    `axios`, which is not a dependency of web/ at all. Every API call goes
+    through web/src/lib/api.js on the platform fetch.
+
+Backend:    Node.js >= 18 (22.x in CI and on the host) + Express 4
+Frontend:   React 19 + Vite 7 + Tailwind v4 + Framer Motion 12 + Lucide React
+ORM:        Prisma 6 (MySQL provider)
 Database:   MySQL on Hostinger
 Auth:       JWT (jsonwebtoken + bcryptjs) + Google OAuth
 Payments:   MercadoPago (primary · LATAM) + PayPal (international)
@@ -69,8 +76,8 @@ Build:      Vite → builds React to /public → served by Express as static
 Security:   Helmet.js + CORS + JWT middleware + rate limiting + compression
 
 Frontend libraries (confirmed in package.json / source):
-  react-router-dom · framer-motion · lucide-react · tailwindcss ·
-  @tailwindcss/vite · axios · @vitejs/plugin-react
+  react-router-dom 7 · framer-motion 12 · lucide-react · tailwindcss 4 ·
+  @tailwindcss/vite · @vitejs/plugin-react · react-i18next
 
 Brand fonts (load self-hosted .woff2 in production · Google Fonts CDN in dev):
   Sora           — display + body (300 · 400 · 500 · 600 · 700 · 800)
@@ -80,6 +87,14 @@ Brand fonts (load self-hosted .woff2 in production · Google Fonts CDN in dev):
 ⛔ All icons use Lucide React — never add other icon libraries
 ⛔ All API calls go through the centralized web/src/lib/api.js utility
 ⛔ No ad-hoc hex colors — every color must come from the v3.0 token system (§ 09)
+
+The service catalogue is a closed set of four categories. It lives in
+web/src/data/servicesCatalogue.js (the source of truth) and is published as
+readable references in docs/catalogue/, generated and checked in CI. Do not
+re-derive it from this document.
+
+Choices that were settled after this document was written are recorded one
+per file in docs/decisions/ — read that folder before reopening one.
 
 ═══════════════════════════════════════
 § 04 · DATABASE — CRITICAL RULES

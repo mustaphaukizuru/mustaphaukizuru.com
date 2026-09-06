@@ -1,4 +1,4 @@
-import { DEFAULT_OG_IMAGE, absoluteUrl } from "./siteSeo"
+import { DEFAULT_OG_IMAGE, absoluteUrl } from "./siteSeo.js"
 
 /**
  * staticSeoEsByRoute · I18N07
@@ -47,7 +47,7 @@ export const staticSeoEsByRoute = {
   "/about": {
     title: "Acerca de Mustapha Ukizuru · Desarrollador Full-Stack",
     description:
-      "Conoce a Mustapha Ukizuru — desarrollador full-stack, IT manager y docente de CS. Seis años de experiencia entre Ruanda, Turquía, Etiopía y México.",
+      "Conoce a Mustapha Ukizuru — desarrollador full-stack, IT manager y docente de CS. Más de ocho años de experiencia entre Ruanda, Turquía, Etiopía y México.",
     keywords: [
       "Mustapha Ukizuru",
       "desarrollador full-stack México",
@@ -87,7 +87,7 @@ export const staticSeoEsByRoute = {
   "/services/cloud-architecture-migration": {
     title: "Arquitectura en la Nube y Migración · AWS · Azure · GCP · Docker · Zero Trust",
     description:
-      "Migración on-premise a la nube, optimización de facturas hasta 40 %, recuperación ante desastres, contenedorización con Docker y seguridad zero-trust.",
+      "Migración on-premise a la nube, optimización de facturas en la nube, recuperación ante desastres, contenedorización con Docker y seguridad zero-trust.",
     keywords: ["migración a la nube", "AWS Azure GCP", "optimización de costos en la nube", "contenedorización Docker"],
   },
 
@@ -96,6 +96,44 @@ export const staticSeoEsByRoute = {
     description:
       "Wireframing interactivo UI/UX, aplicaciones web MVP, apps móviles multiplataforma, diseño seguro de APIs, automatización CI/CD y mantenimiento gestionado.",
     keywords: ["desarrollo de MVP México", "app móvil multiplataforma", "diseño de APIs", "automatización CI/CD"],
+  },
+
+  "/status": {
+    title: "Estado del Servicio · Mustapha Ukizuru",
+    description:
+      "Estado en vivo de la API, la base de datos y los procesos programados de mustaphaukizuru.com.",
+    keywords: ["estado del servicio", "disponibilidad"],
+  },
+
+  "/track": {
+    title: "Rastrea tu Proyecto · Mustapha Ukizuru",
+    description:
+      "Ingresa el código de seguimiento de tu factura para ver en qué etapa va tu proyecto, sus hitos y qué documentos esperamos de ti.",
+    keywords: ["seguimiento de proyecto", "estado del proyecto"],
+  },
+
+  "/self-audit": {
+    title: "Autodiagnóstico Digital Gratuito · Califica tu Tecnología",
+    description:
+      "Una autoevaluación de 10 minutos sobre estrategia, automatización, infraestructura y software. Obtén un puntaje y los cinco huecos que conviene cerrar primero.",
+    keywords: [
+      "autodiagnóstico tecnológico",
+      "evaluación TI México",
+      "diagnóstico digital escuelas",
+      "madurez tecnológica PyME",
+    ],
+  },
+
+  "/how-we-work": {
+    title: "Cómo Trabajamos · Seis Pasos del Primer Mensaje a la Entrega",
+    description:
+      "El proceso completo: qué enviar en cada etapa, tiempos de respuesta y propuesta, entrega remota y presencial, y las reglas de acceso y privacidad de datos.",
+    keywords: [
+      "proceso de trabajo consultoría",
+      "cómo trabajamos consultoría TI",
+      "propuesta consultoría México",
+      "acuerdo de confidencialidad TI",
+    ],
   },
 
   "/store": {

@@ -19,7 +19,7 @@
 //    express/prisma so the OpenTelemetry auto-instrumentation can hook them.
 const Sentry = require("./lib/sentry")
 if (Sentry) {
-  // eslint-disable-next-line no-console
+   
   console.log(`🛰️  Sentry initialized · env=${process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development"}`)
 }
 
@@ -30,11 +30,11 @@ const logger   = require("./utils/logger")
 
 // 4. Listen
 const server = app.listen(port, () => {
-  // eslint-disable-next-line no-console
+   
   console.log(`🚀 Server running on port ${port}`)
-  // eslint-disable-next-line no-console
+   
   console.log(`📦 NODE_ENV: ${process.env.NODE_ENV || "development"}`)
-  // eslint-disable-next-line no-console
+   
   console.log(`📂 Logs: storage/logs/app-YYYY-MM-DD.log`)
   // M14 · start the scheduler after the HTTP server is up so a bad cron
   // registration cannot prevent the API from accepting traffic.
@@ -44,10 +44,10 @@ const server = app.listen(port, () => {
     logger.error("[boot] scheduler failed to start", err)
   }
   if (process.env.SENTRY_DSN) {
-    // eslint-disable-next-line no-console
+     
     console.log(`🛰️  Error tracking: Sentry`)
   } else {
-    // eslint-disable-next-line no-console
+     
     console.log(`🛰️  Error tracking: disabled (set SENTRY_DSN to enable)`)
   }
 })
@@ -71,12 +71,12 @@ process.on("uncaughtException", (err) => {
 //     for up to 10s before forcing exit. Without this, in-flight downloads
 //     would be cut mid-stream during deploys.
 function shutdown(signal, code = 0) {
-  // eslint-disable-next-line no-console
+   
   console.log(`\n[shutdown] ${signal} received — draining connections...`)
   let exited = false
   const force = setTimeout(() => {
     if (!exited) {
-      // eslint-disable-next-line no-console
+       
       console.error("[shutdown] Forced exit after 10s")
       process.exit(code || 1)
     }
@@ -89,7 +89,7 @@ function shutdown(signal, code = 0) {
       logger.error("[shutdown] server.close failed", err)
       process.exit(code || 1)
     }
-    // eslint-disable-next-line no-console
+     
     console.log("[shutdown] Clean exit")
     process.exit(code)
   })

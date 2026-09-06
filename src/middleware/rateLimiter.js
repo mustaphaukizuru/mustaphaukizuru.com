@@ -146,13 +146,14 @@ function makeLimiter({ windowMs, max, keyGenerator, message, name }) {
     standardHeaders: true,
     legacyHeaders: false,
     skip: (req) => IS_DEV && isLocalhost(req),
-    handler: (req, res) => {
-      const msg = typeof message === "string" ? message : message?.message || "Too many requests."
+    handler: (req, res, _next, options) => {
       logger.warn(`[rate-limit:${name || "anon"}] ${req.ip} hit limit on ${req.method} ${req.originalUrl}`)
-      res.status(429).json({
-        success: false,
-        error:   { code: "RATE_LIMITED", message: msg },
-      })
+      // Through rateLimitedResponse, which is the shape this module's own
+      // header documents. It was written, documented and never wired: every
+      // one of the 23 limiters answered with a narrower body that omitted
+      // the top-level legacy fields AND `details.retryAfter`, so a client
+      // could not tell the user how long to wait. `no-unused-vars` found it.
+      return rateLimitedResponse(req, res, { ...options, statusCode: 429, message })
     },
   })
 }
@@ -251,6 +252,45 @@ const newsletterRateLimiter = makeLimiter({
   max:          5,
   keyGenerator: ipKey,
   message:      "Too many subscribe requests. Please wait before trying again.",
+})
+
+/**
+ * Password reset submission — 10 per hour per IP (T3-5).
+ *
+ * forgot-password was limited and reset-password/:token was not, which is the
+ * wrong way round for guessing: the token in that URL is the credential, and
+ * an unlimited endpoint lets an attacker grind it. Per IP rather than per
+ * token, because the thing being brute-forced IS the token — keying on it
+ * would give the attacker a fresh budget for every guess.
+ *
+ * Ten, not three: a real user who mistypes their new password twice and then
+ * hits a validation rule should not be locked out of a link that expires.
+ */
+const passwordResetRateLimiter = makeLimiter({
+  name:         "password-reset",
+  windowMs:     ONE_HOUR,
+  max:          10,
+  keyGenerator: ipKey,
+  message:      "Too many reset attempts. Please request a new link in an hour.",
+})
+
+/**
+ * Public project tracking — 30 per 15 minutes per IP (T5-2).
+ *
+ * The tracking code carries about 2^39 of entropy, which is a lookup key and
+ * not a secret. THIS LIMIT is what makes enumeration impractical, not the
+ * length: 30 guesses per window against 2^39 possibilities is not a search,
+ * it is a hobby. Generous enough that a client refreshing their own page,
+ * or a team all opening the same link, never sees a 429.
+ *
+ * See docs/decisions/0006-tracking-code-public-surface.md.
+ */
+const trackRateLimiter = makeLimiter({
+  name:         "track",
+  windowMs:     FIFTEEN_MIN,
+  max:          30,
+  keyGenerator: ipKey,
+  message:      "Too many lookups. Please wait a few minutes before trying again.",
 })
 
 /**
@@ -422,6 +462,10 @@ const publicWriteRateLimiter = makeLimiter({
 })
 
 module.exports = {
+  // The 429 body builder. Exported so a test can assert the SHAPE this
+  // module's header documents — it was unwired for long enough that
+  // nothing noticed the contract was not being met.
+  rateLimitedResponse,
   // Global
   globalApiLimiter,
   publicWriteRateLimiter,
@@ -436,6 +480,8 @@ module.exports = {
   contactRateLimiter,
   newsletterRateLimiter,
   diagnosticRateLimiter,
+  trackRateLimiter,
+  passwordResetRateLimiter,
   // Resource-scoped
   paymentRateLimiter,
   uploadRateLimiter,

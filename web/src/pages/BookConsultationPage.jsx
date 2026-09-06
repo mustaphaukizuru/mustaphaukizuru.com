@@ -11,7 +11,8 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react"
-import { useParams, useSearchParams, Link } from "react-router-dom"
+import { useParams, useSearchParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { m } from "framer-motion"
 import {
@@ -20,7 +21,7 @@ import {
 import Seo from "../components/seo/Seo"
 import BookingCalendar from "../components/booking/BookingCalendar"
 import { apiGet } from "../lib/api"
-import { getCategoryBySlug, getOfferingBySlug } from "../data/servicesCatalogue"
+import { AUDIENCE_PRICING_PLANS, getCategoryBySlug, getOfferingBySlug } from "../data/servicesCatalogue"
 import { pick, useCatalogueLang } from "../components/services/localize"
 import avatarTerracottaWebp from "../assets/avatar/avatar-terracotta.webp"
 import avatarTerracottaPng from "../assets/avatar/avatar-terracotta.png"
@@ -112,6 +113,22 @@ export default function BookConsultationPage() {
   const [searchParams] = useSearchParams()
   const requestedSlug = searchParams.get("service") || pathSlug || null
 
+  // `?plan=<audience>.<tier>` arrives from the quote-only tiers in
+  // PackagesStrip (T2-4). Those tiers no longer link into
+  // /checkout/service, so the visitor lands here having been looking at a
+  // specific plan — say so, or the page reads as an unrelated general
+  // enquiry and they have to explain it themselves. Unknown or malformed
+  // values are ignored rather than echoed: the value is rendered.
+  const requestedPlan = useMemo(() => {
+    const raw = searchParams.get("plan")
+    if (!raw) return null
+    const [code, tierKey] = String(raw).split(".")
+    const plan = AUDIENCE_PRICING_PLANS[code]
+    const tier = plan?.tiers?.[tierKey]
+    if (!plan || !tier) return null
+    return { code, tierKey, planName: plan.name, tierName: tier.name }
+  }, [searchParams])
+
   // Resolve against the catalogue: offering (→ its category) or category.
   const offering = useMemo(() => getOfferingBySlug(requestedSlug), [requestedSlug])
   const category = useMemo(
@@ -183,6 +200,17 @@ export default function BookConsultationPage() {
                 {t("book.browseAll")}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
+            </m.div>
+          )}
+          {requestedPlan && (
+            <m.div variants={fadeUp} className="mt-4 rounded-xl border border-violet/20 bg-violet-pale/60 px-4 py-3">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-violet">
+                {ts("booking.plan.label")}
+              </div>
+              <div className="mt-0.5 text-[14px] font-bold text-violet">
+                {requestedPlan.planName} · {requestedPlan.tierName}
+              </div>
+              <p className="mt-1 text-[12px] text-charcoal/75">{ts("booking.plan.note")}</p>
             </m.div>
           )}
           {requestedSlug && !category && !loading && !service && (

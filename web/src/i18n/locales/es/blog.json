@@ -25,7 +25,11 @@
     },
     "ctaTitle": "¿Estás trabajando en algo parecido?",
     "ctaBody": "Agenda una llamada de estrategia gratuita de 30 minutos: sin discurso de venta, solo respuestas.",
-    "allArticles": "Todos los artículos →"
+    "allArticles": "Todos los artículos →",
+    "notFound": {
+      "title": "Ese artículo no está aquí",
+      "body": "El enlace puede ser antiguo, o el artículo pudo haberse retirado. El índice tiene todo lo publicado."
+    }
   },
   "list": {
     "page": "Blog",

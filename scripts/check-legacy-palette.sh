@@ -5,6 +5,13 @@
 
 set -euo pipefail
 
+# Anchor every relative path to the repo root, not to the caller's cwd.
+# web/package.json runs this as `bash ../scripts/check-legacy-palette.sh`
+# with cwd=web, where the argument pair `src web/src` resolved to web/src
+# and a nonexistent web/web/src: the API tree was never scanned and the
+# arbitrary-hex counter below always saw zero matches.
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 LEGACY_PATTERN='(#420060|#634F40|#634f40|420060|634f40|ede4ef|EDE4EF)'
 ANNOTATION_RE='\b(was|legacy|historical|mapping|previously|formerly|pre-v3)\b'
 
@@ -30,9 +37,17 @@ if [ -n "$HITS" ]; then
   exit 1
 fi
 
-ARB_COUNT=$(grep -rEn '\b(bg|text|border|ring|fill|stroke|shadow|via|from|to)-\[#[0-9a-fA-F]{3,8}\]' web/src \
+# `grep ... | wc -l || echo 0` was wrong twice over: with pipefail a no-match
+# grep fails the pipeline AFTER wc has printed 0, so `|| echo 0` appended a
+# second line and ARB_COUNT became the two-line string 0 then 0. The -gt
+# test then died with
+# "integer expression expected", and because a failing `if` condition does not
+# trip set -e the warning was skipped rather than reported. Swallow the
+# no-match inside the pipeline so wc is the only thing that speaks.
+ARB_COUNT=$({ grep -rEn '\b(bg|text|border|ring|fill|stroke|shadow|via|from|to)-\[#[0-9a-fA-F]{3,8}\]' web/src \
   --include='*.jsx' --include='*.tsx' --include='*.js' --include='*.ts' \
-  --exclude-dir=node_modules --exclude-dir=dist 2>/dev/null | wc -l || echo 0)
+  --exclude-dir=node_modules --exclude-dir=dist 2>/dev/null || true; } | wc -l)
+ARB_COUNT="${ARB_COUNT//[[:space:]]/}"
 
 if [ "$ARB_COUNT" -gt 0 ]; then
   echo "::warning::$ARB_COUNT arbitrary Tailwind hex utilities still in use."

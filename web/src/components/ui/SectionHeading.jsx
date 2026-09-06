@@ -1,5 +1,5 @@
 import { m } from "framer-motion"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { ArrowRight } from "lucide-react"
 
 /**

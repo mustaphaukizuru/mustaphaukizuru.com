@@ -137,3 +137,65 @@ pre code {
     color: black !important;
   }
 }
+
+/* 11. TOUCH TARGETS — 44px MINIMUM ON TOUCH INPUT (D2-1, D2-2)
+ *
+ * A probe over eleven dashboard routes at 375px found 47 distinct
+ * interactive targets under 44px, and six of them under WCAG 2.5.8's 24px
+ * floor: "View all" and "Open library" at 14px tall, "Back to projects" and
+ * a statement download at 18px. Those are links a thumb has to hit on a
+ * moving bus.
+ *
+ * WHY A MEDIA QUERY RATHER THAN 47 EDITS
+ *
+ * Most of those are the shared <Button> at its 36px default and the icon
+ * buttons in the mobile header. Raising the component's own height would
+ * change density on every desktop screen in the app — a much larger and
+ * much less wanted change than the one being asked for. `pointer: coarse`
+ * matches a finger and not a mouse, so this buys the touch target exactly
+ * where it is needed and changes nothing on a laptop.
+ *
+ * min-height, not height: a control that is already taller keeps its size,
+ * and a control with its own padding grows from the inside rather than
+ * having its text re-centred.
+ *
+ * `data-dense` is an opt-out for a control that genuinely must stay tight
+ * — a row of table actions where 44px each would break the row. Nothing
+ * uses it yet: every target measured on the dashboard was better off
+ * larger. It is here so the next dense control has a way out that is not
+ * "delete the rule".
+ */
+@media (pointer: coarse) {
+  a[href]:not([data-dense]),
+  button:not([data-dense]),
+  [role="button"]:not([data-dense]),
+  [role="radio"]:not([data-dense]),
+  input:not([data-dense]),
+  select:not([data-dense]),
+  summary:not([data-dense]),
+  textarea:not([data-dense]) {
+    min-height: 44px;
+  }
+
+  /* Width too, but for BUTTONS only. An icon-only button is square and its
+     44px height leaves it 40px wide — measured on the two "Refresh"
+     controls — which is still a miss. Links are excluded: a narrow inline
+     link stretched to 44px would pull a sentence apart, and the rule below
+     already handles those. min-width only ever grows something narrower,
+     so a text button is untouched. */
+  button:not([data-dense]),
+  [role="button"]:not([data-dense]) {
+    min-width: 44px;
+  }
+
+  /* An inline link in a paragraph must not become a 44px block — that would
+     tear a sentence apart. It gets the hit area through padding instead,
+     which `-my` cancels so the line box does not move. */
+  p a[href],
+  li a[href],
+  dd a[href] {
+    min-height: 0;
+    padding-block: 0.375rem;
+    margin-block: -0.375rem;
+  }
+}

@@ -19,3 +19,8 @@ export { creativeWorkSchema }   from "./creativeWorkSchema"
 export { siteNavigationSchema } from "./siteNavigationSchema"
 export { reviewSchema }         from "./reviewSchema"
 export { localBusinessSchema }  from "./localBusinessSchema"
+export { articleSchema }        from "./articleSchema"
+// howToSchema is deliberately NOT re-exported here. It imports the full
+// engagement process, and this barrel is imported eagerly by pages that
+// have nothing to do with it — re-exporting would put that copy back on
+// the homepage critical path. Import it directly from ./howToSchema.

@@ -7,18 +7,83 @@
  *          POST /logout             clear the cookie
  * Cookie:  GET  /me/project         read-only project (portalAuth)
  *          GET  /me/files/:fileId/download
+ *          POST /me/invoices/:id/pay   start a Mercado Pago payment
  *
  * `/me` is declared before `/:token` so it can never be read as a token.
  */
 const express = require("express")
 const c = require("../controllers/portalController")
 const { portalAuth } = require("../middleware/portalAuth")
-const { portalPinRateLimiter, portalVerifyRateLimiter } = require("../middleware/rateLimiter")
+const { portalPinRateLimiter, portalVerifyRateLimiter, uploadRateLimiter, paymentRateLimiter } = require("../middleware/rateLimiter")
+const uploadProjectFile = require("../middleware/uploadProjectFile")
+
+/**
+ * multer's disk destination is shared with the admin and member upload
+ * routes, and it reads `req.params.id`. This route is keyed by a request id
+ * instead, so without this the bytes land under "_orphan" and
+ * resolveSafePath never finds them again.
+ */
+function projectIdForUpload(req, _res, next) {
+  req.params.id = req.portal?.projectId
+  next()
+}
 
 const router = express.Router()
 
 router.get ("/me/project",                 portalAuth, c.getProject)
 router.get ("/me/files/:fileId/download",  portalAuth, c.downloadFile)
+// T5-4 · invoices beside the work, not on a bare order page.
+// T5-5 · the timeline and the outstanding-document list, the two panels
+// the portal page shares with the dashboard.
+router.get ("/me/events",                  portalAuth, c.listEvents)
+router.get ("/me/file-requests",           portalAuth, c.listFileRequests)
+router.get ("/me/invoices",                portalAuth, c.listInvoices)
+router.get ("/me/invoices/:invoiceId/pdf", portalAuth, c.downloadInvoice)
+// T5-9 · the portal's second write, and the narrowest one: it can only
+// start a payment for an invoice on THIS portal's project, for an amount the
+// server decides. Same paymentRateLimiter as every other gateway call —
+// a preference is an outbound API request to Mercado Pago, and this door
+// opens with a six-digit PIN.
+router.post("/me/invoices/:invoiceId/pay", portalAuth, paymentRateLimiter, c.payInvoice)
+// T5-13 · the credential handoff. This is where it matters most: a client
+// with no account, on a forwarded link, asked for the hosting password.
+// Without it they reply to the email with the password in the body.
+router.get ("/me/secrets",                        portalAuth, c.listSecrets)
+router.post("/me/secrets",                        portalAuth, c.createSecret)
+router.post("/me/secrets/:secretId/reveal",       portalAuth, c.revealSecret)
+// T5-18 · the same ledger a signed-in client sees. Read-only on this
+// surface: logging time is an operator action and always was.
+router.get ("/me/time",                           portalAuth, c.listTime)
+router.get ("/me/time/:month/statement.pdf",      portalAuth, c.timeStatement)
+// T5-3 · the portal's first write. Order matters:
+//   portalAuth        → verifies mu_portal, populates req.portal
+//   projectIdForUpload → multer's destination reads req.params.id, which this
+//                        route does not have. Without it every portal upload
+//                        lands in the shared "_orphan" directory instead of
+//                        the project's own.
+//   uploadRateLimiter → same limiter as every other upload path
+//   many              → multer, up to 10 files
+// CSRF is applied globally by middleware/csrf.js, which now triggers on
+// mu_portal as well as mu_session.
+router.post(
+  "/me/file-requests/:reqId/files",
+  portalAuth,
+  projectIdForUpload,
+  uploadRateLimiter,
+  uploadProjectFile.many,
+  c.uploadRequestFiles,
+)
+
+// T5-8 · the second door. ABOVE /:token, like /me — a tracking code is not
+// 64 hex characters, so it would fall through to the token handler and be
+// refused as an invalid link rather than reaching this one.
+//
+// The same two limiters as the token routes, and that is not a formality:
+// this door takes a SHAREABLE code, so without them anyone holding one could
+// mail the project owner at will.
+router.post("/by-code/:code/pin",          portalPinRateLimiter,    c.sendPinByCode)
+router.post("/by-code/:code/verify",       portalVerifyRateLimiter, c.verifyByCode)
+
 router.post("/logout",                     c.logout)
 
 router.get ("/:token",                     c.probe)

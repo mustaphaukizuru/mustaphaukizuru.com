@@ -9,7 +9,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useTranslation } from "react-i18next"
-import { m, useReducedMotion } from "framer-motion"
+// AnimatePresence was used by the per-item tooltip and never imported, so the
+// audit section step threw a ReferenceError on its first render and the error
+// boundary swallowed the whole modal. The tool has never shown a single
+// question to a visitor. Found while walking the Spanish flow for T2-3.
+import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 import { Modal } from "../ui/Modal"
 import {
   X, ChevronLeft, ChevronRight, GraduationCap, Building2, User,
@@ -21,40 +25,20 @@ import {
   AUDIT_SECTIONS, TIERS, PREQUAL_CHALLENGES, PREQUAL_TIMELINES,
   sectionsForAudience, itemsForAudience, tierForScore,
   computeSectionScores, computeOverall, computeTopPriorities,
+  offeringForItem, recommendCategory, auditLength,
 } from "../../data/auditData"
 import { trackEvent } from "../../lib/analytics"
 import { apiPost } from "../../lib/api"
-import { Link } from "react-router-dom"
-import { CATEGORIES, getOfferingBySlug, legacyIdMap, bookHref } from "../../data/servicesCatalogue"
-import { pick, useCatalogueLang } from "../services/localize"
+import { LocalizedLink as Link } from "../LocalizedLink"
+import { bookHref } from "../../data/servicesCatalogue"
+import { offeringPriceLabel, pick, useCatalogueLang } from "../services/localize"
 
-/* ─── Closed-set mapping (Instructions v4.0 § 06) ──────────────────────
-   The audit instrument still carries the retired SKU ids (UKZ-CS-001 …)
-   in its item tuples. Nothing rendered to a visitor may show one of
-   those ids or imply a service line outside the four categories, so every
-   svc id is resolved through legacyIdMap → catalogue offering → category.
-   Unmapped ids (capabilities the closed set no longer sells) resolve to
-   null and render no service tag at all.                                */
-function resolveOffering(svcId) {
-  const id = legacyIdMap[svcId]
-  return id ? getOfferingBySlug(id) : null
-}
-
-/** The category that appears most often among the top priorities, ties
- *  broken by canonical order (strategy → automation → infra → build). */
-function recommendCategory(topPriorities = []) {
-  const counts = new Map()
-  topPriorities.forEach((p) => {
-    const off = resolveOffering(p.svc)
-    if (off) counts.set(off.category.slug, (counts.get(off.category.slug) || 0) + 1)
-  })
-  let best = null
-  CATEGORIES.forEach((c) => {
-    const n = counts.get(c.slug) || 0
-    if (n > 0 && (!best || n > best.n)) best = { n, category: c }
-  })
-  return best ? best.category : null
-}
+/* ─── The instrument resolves its own offerings now (T2-3) ───────────
+   This file used to carry a resolveOffering() that mapped a retired SKU id
+   through legacyIdMap, plus its own copy of recommendCategory. Both existed
+   because auditData still spoke the old taxonomy. It speaks slugs from the
+   closed set now, so offeringForItem() and recommendCategory() come from
+   there and there is one implementation instead of two.               */
 
 /* ─── localStorage key ─────────────────────────────────────────────── */
 const LS_KEY = "mu_audit_v2"
@@ -64,15 +48,21 @@ function loadState()  { try { return JSON.parse(localStorage.getItem(LS_KEY) || 
 function clearState() { try { localStorage.removeItem(LS_KEY) } catch { /* ok */ } }
 
 /* ─── Tier colors ───────────────────────────────────────────────────── */
+/* Keyed by band name. The bands were renamed with the rebuilt instrument
+ * (Foundation / Developing / Established / Advanced), and three of these four
+ * keys were the old names — so every band above the lowest fell through to
+ * the Foundation red, telling an "Advanced" visitor their score was alarming. */
 const TIER_COLOR = {
-  Foundation:  { bg: "bg-rose/10",   text: "text-rose",  ring: "ring-rose/30",   hex: "var(--color-rose)" },
-  Stabilizing: { bg: "bg-amber/10",  text: "text-amber-700", ring: "ring-amber/30",  hex: "var(--color-amber)" },
-  Optimizing:  { bg: "bg-azure/10",  text: "text-azure-deep", ring: "ring-azure/30",  hex: "var(--color-azure)" },
-  Mature:      { bg: "bg-mint/10",   text: "text-mint-700",  ring: "ring-mint/30",   hex: "var(--color-mint)" },
+  Foundation:  { bg: "bg-rose/10",   text: "text-rose",       ring: "ring-rose/30",  hex: "var(--color-rose)" },
+  Developing:  { bg: "bg-amber/10",  text: "text-amber-700",  ring: "ring-amber/30", hex: "var(--color-amber)" },
+  Established: { bg: "bg-azure/10",  text: "text-azure-deep", ring: "ring-azure/30", hex: "var(--color-azure)" },
+  Advanced:    { bg: "bg-mint/10",   text: "text-mint-700",   ring: "ring-mint/30",  hex: "var(--color-mint)" },
 }
 
 /* ─── Score button colors ───────────────────────────────────────────── */
-const SCORE_LABELS = ["None","Aware","Partial","In place","Optimized"]
+// The 0–4 scale. Keys rather than strings: module-scope copy cannot be
+// translated, which is how the Spanish audit ended up with an English scale.
+const SCORE_LABEL_KEYS = ["scoreNone", "scoreAware", "scorePartial", "scoreInPlace", "scoreOptimized"]
 const SCORE_COLORS = [
   "border-rose/40 hover:border-rose hover:bg-rose/5 data-[sel=true]:bg-rose data-[sel=true]:border-rose data-[sel=true]:text-white",
   "border-amber/40 hover:border-amber hover:bg-amber/5 data-[sel=true]:bg-amber data-[sel=true]:border-amber data-[sel=true]:text-charcoal",
@@ -181,7 +171,7 @@ export default function AuditModal({ open, onClose }) {
   /* Progress */
   const totalItems    = sections.reduce((s, sec) => s + itemsForAudience(sec, audience || "SMB").length, 0)
   const answered      = Object.keys(scores).filter((k) =>
-    sections.some((sec) => itemsForAudience(sec, audience).some((it) => it[0] === k))
+    sections.some((sec) => itemsForAudience(sec, audience).some((it) => it.id === k))
   ).length
   const progressPct   = totalItems ? Math.round((answered / totalItems) * 100) : 0
 
@@ -316,18 +306,18 @@ export default function AuditModal({ open, onClose }) {
 
               {/* Step label */}
               <div className="font-mono text-[11px] text-charcoal/65 uppercase tracking-[0.1em] hidden sm:block">
-                {step === "audience" && "Step 1 of 3 · Audience"}
-                {step === "prequal"  && "Step 2 of 3 · Quick context"}
-                {step === "audit"    && `Section ${sectionIdx + 1} of ${sections.length} · ${currentSec?.letter}`}
-                {step === "results"  && "Your results"}
-                {step === "email"    && "Get your PDF report"}
+                {step === "audience" && t("modal.stepAudience")}
+                {step === "prequal"  && t("modal.stepContext")}
+                {step === "audit"    && t("modal.stepSection", { current: sectionIdx + 1, total: sections.length, letter: currentSec?.letter })}
+                {step === "results"  && t("modal.stepResults")}
+                {step === "email"    && t("modal.stepEmail")}
               </div>
 
               {/* Close */}
               <button
                 onClick={handleClose}
                 className="cursor-pointer shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-charcoal/65 hover:bg-charcoal/8 hover:text-charcoal transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40"
-                aria-label="Close audit"
+                aria-label={t("modal.closeAudit")}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -445,39 +435,41 @@ export default function AuditModal({ open, onClose }) {
 ════════════════════════════════════════════════════════════════════════ */
 function AudienceStep({ onSelect }) {
   const { t } = useTranslation("audit")
+  // Titles, descriptions and scope are translated, and the scope is COUNTED
+  // from the instrument. These cards used to read "All 6 sections · 82
+  // items", "5 sections · 70 items" and "Focused scan · 12 items" in English
+  // on both language versions — three hardcoded figures, all three wrong
+  // after the rebuild, on the screen where the visitor decides to continue.
   const CARDS = [
     {
       aud: "EDU", icon: GraduationCap,
-      title: "School / Educational Institution",
-      scope: "All 6 sections · 82 items",
-      body: "Strategy, brand, infrastructure, web & AI, EdTech, and managed services. Section E (EdTech) is built specifically for you.",
+      title: t("modal.audEduTitle"),
+      body: t("modal.audEduBody"),
       color: "hover:border-violet/50 hover:shadow-[0_16px_40px_-12px_rgb(var(--color-violet-rgb)/0.22)]",
       iconBg: "bg-violet-pale text-violet",
     },
     {
       aud: "SMB", icon: Building2,
-      title: "Business / SME / Startup",
-      scope: "5 sections · 70 items",
-      body: "Strategy through managed services, end to end. Section E (EdTech) is skipped as it doesn't apply.",
+      title: t("modal.audSmbTitle"),
+      body: t("modal.audSmbBody"),
       color: "hover:border-azure/50 hover:shadow-[0_16px_40px_-12px_rgb(var(--color-azure-rgb)/0.22)]",
       iconBg: "bg-azure/10 text-azure",
     },
     {
       aud: "IND", icon: User,
-      title: "Individual / Professional",
-      scope: "Focused scan · 12 items",
-      body: "Personal brand, web presence, and managed hosting. A targeted scan in under 5 minutes.",
+      title: t("modal.audIndTitle"),
+      body: t("modal.audIndBody"),
       color: "hover:border-mint/50 hover:shadow-[0_16px_40px_-12px_rgb(var(--color-mint-rgb)/0.20)]",
       iconBg: "bg-mint/10 text-mint",
     },
-  ]
+  ].map((card) => ({ ...card, scope: t("modal.audScope", auditLength(card.aud)) }))
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
       <div className="text-center mb-10">
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-violet mb-3">STEP 1 OF 3</p>
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-violet mb-3">{t("modal.stepOf")}</p>
         <h2 className="text-[clamp(22px,3.5vw,34px)] font-extrabold tracking-tight text-charcoal mb-3">{t("modal.audienceQuestion")}</h2>
-        <p className="text-[15px] text-charcoal/65">Different audiences see different sections. We'll tailor your shortlist accordingly.</p>
+        <p className="text-[15px] text-charcoal/65">{t("modal.audienceSub")}</p>
       </div>
       <div className="space-y-4">
         {CARDS.map(({ aud, icon: Icon, title, scope, body, color, iconBg }) => (
@@ -511,6 +503,7 @@ function AudienceStep({ onSelect }) {
 ════════════════════════════════════════════════════════════════════════ */
 function PrequalStep({ prequal, onChange, onBack, onNext }) {
   const { t } = useTranslation("audit")
+  const lang = useCatalogueLang()
   return (
     <div className="mx-auto max-w-xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="mb-8 sm:mb-10">
@@ -528,15 +521,15 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {PREQUAL_CHALLENGES.map((c) => (
               <button
-                key={c}
-                onClick={() => onChange("challenge", c)}
+                key={c.id}
+                onClick={() => onChange("challenge", c.id)}
                 className={`cursor-pointer rounded-xl border px-3 py-2.5 text-[13px] text-left transition ${
-                  prequal.challenge === c
+                  prequal.challenge === c.id
                     ? "border-violet bg-violet-pale text-violet font-semibold"
                     : "border-charcoal/12 text-charcoal/65 hover:border-violet/40 hover:bg-violet/4"
                 }`}
               >
-                {c}
+                {pick(c, "label", lang)}
               </button>
             ))}
           </div>
@@ -547,20 +540,20 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
             {t("modal.timelineQuestion")}
           </label>
           <div className="space-y-2">
-            {PREQUAL_TIMELINES.map((t) => (
+            {PREQUAL_TIMELINES.map((opt) => (
               <button
-                key={t}
-                onClick={() => onChange("timeline", t)}
+                key={opt.id}
+                onClick={() => onChange("timeline", opt.id)}
                 className={`cursor-pointer w-full rounded-xl border px-4 py-3 text-[13.5px] text-left transition flex items-center gap-3 ${
-                  prequal.timeline === t
+                  prequal.timeline === opt.id
                     ? "border-violet bg-violet-pale text-violet font-semibold"
                     : "border-charcoal/12 text-charcoal/65 hover:border-violet/40"
                 }`}
               >
-                <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${prequal.timeline === t ? "border-violet" : "border-charcoal/25"}`}>
-                  {prequal.timeline === t && <div className="h-2 w-2 rounded-full bg-violet" />}
+                <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${prequal.timeline === opt.id ? "border-violet" : "border-charcoal/25"}`}>
+                  {prequal.timeline === opt.id && <div className="h-2 w-2 rounded-full bg-violet" />}
                 </div>
-                {t}
+                {pick(opt, "label", lang)}
               </button>
             ))}
           </div>
@@ -570,13 +563,13 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
       {/* Nav — stacks on mobile (Next first, Back below), side-by-side on sm+ */}
       <div className="mt-8 flex flex-col-reverse gap-2 sm:mt-10 sm:flex-row sm:items-center sm:justify-between">
         <button onClick={onBack} className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl border border-charcoal/15 px-4 py-2.5 text-[13px] text-charcoal/65 hover:bg-charcoal/5 transition sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:justify-start">
-          <ChevronLeft className="h-4 w-4" /> Back
+          <ChevronLeft className="h-4 w-4" /> {t("modal.back")}
         </button>
         <button
           onClick={onNext}
           className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,var(--color-violet),var(--color-azure))] px-6 py-3.5 text-[14px] font-semibold text-white shadow-[0_4px_16px_rgb(var(--color-violet-rgb)/0.3)] hover:shadow-[0_6px_20px_rgb(var(--color-violet-rgb)/0.4)] transition focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-violet/40 sm:w-auto sm:py-3"
         >
-          {prequal.challenge || prequal.timeline ? "Start the audit" : "Skip & start the audit"}
+          {prequal.challenge || prequal.timeline ? t("modal.startAudit") : t("modal.skipAndStart")}
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
@@ -589,6 +582,8 @@ function PrequalStep({ prequal, onChange, onBack, onNext }) {
 ════════════════════════════════════════════════════════════════════════ */
 function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, sectionScores, overall, tooltip, setTooltip, onScore, onPrev, onNext }) {
   const { t } = useTranslation("audit")
+  // offeringPriceLabel reads funnel.pricing.* from the services namespace.
+  const { t: ts } = useTranslation("services")
   const lang = useCatalogueLang()
   const isLast = sectionIdx === totalSections - 1
 
@@ -626,22 +621,22 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
             {section.letter}
           </div>
           <div className="min-w-0">
-            <h2 className="text-[18px] sm:text-[22px] font-bold text-charcoal leading-tight">{section.title}</h2>
-            <p className="text-[12px] sm:text-[13px] text-charcoal/65 mt-0.5">{section.subtitle}</p>
+            <h2 className="text-[18px] sm:text-[22px] font-bold text-charcoal leading-tight">{pick(section, "title", lang)}</h2>
+            <p className="text-[12px] sm:text-[13px] text-charcoal/65 mt-0.5">{pick(section, "subtitle", lang)}</p>
             <span className="mt-1.5 inline-block rounded-full bg-violet-pale px-2.5 py-0.5 font-mono text-[10px] font-bold text-violet uppercase tracking-[0.08em]">
               {items.length} items · Section {sectionIdx + 1} of {totalSections}
             </span>
           </div>
         </div>
 
-        <p className="text-[13.5px] sm:text-[14px] text-charcoal/65 leading-relaxed mb-5 sm:mb-6">{section.intro}</p>
+        <p className="text-[13.5px] sm:text-[14px] text-charcoal/65 leading-relaxed mb-5 sm:mb-6">{pick(section, "intro", lang)}</p>
 
         {/* Score key — hidden on xs (cramped), shown from sm */}
         <div className="hidden sm:flex mb-6 items-center gap-px rounded-xl overflow-hidden border border-charcoal/10">
-          {SCORE_LABELS.map((label, n) => (
-            <div key={n} className="flex-1 bg-white text-center py-2.5 px-1 border-r border-charcoal/8 last:border-0">
+          {SCORE_LABEL_KEYS.map((key, n) => (
+            <div key={key} className="flex-1 bg-white text-center py-2.5 px-1 border-r border-charcoal/8 last:border-0">
               <div className="font-mono text-[13px] font-bold text-violet">{n}</div>
-              <div className="text-[10px] text-charcoal/65 mt-0.5">{label}</div>
+              <div className="text-[10px] text-charcoal/65 mt-0.5">{t(`modal.${key}`)}</div>
             </div>
           ))}
         </div>
@@ -649,17 +644,24 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
         <div className="sm:hidden mb-4 flex items-center gap-2 text-[11px] text-charcoal/65">
           <span className="font-mono font-bold text-rose">0</span><span>None</span>
           <span className="mx-1 text-charcoal/20">·</span>
-          <span className="font-mono font-bold text-amber-700">1–2</span><span>Aware/Partial</span>
+          <span className="font-mono font-bold text-amber-700">1–2</span><span>{t("modal.scaleLow")}</span>
           <span className="mx-1 text-charcoal/20">·</span>
-          <span className="font-mono font-bold text-mint-700">3–4</span><span>In place/Optimized</span>
+          <span className="font-mono font-bold text-mint-700">3–4</span><span>{t("modal.scaleHigh")}</span>
         </div>
 
         {/* Items */}
         <div className="divide-y divide-charcoal/6">
           {items.map((it) => {
-            const [id, svc, title, stmt, tier, , risk, investRange] = it
-            const sel     = scores[id]
-            const showTip = tooltip?.itemId === id
+            const { id } = it
+            // The offering both names the gap and is the next step. It is on
+            // the item now, so there is no id mapping between them.
+            const offering = offeringForItem(it)
+            const title    = offering ? pick(offering, "name", lang) : ""
+            const stmt     = pick(it, "statement", lang)
+            const risk     = pick(it, "risk", lang)
+            const duration = offering ? pick(offering, "duration", lang) : ""
+            const sel      = scores[id]
+            const showTip  = tooltip?.itemId === id
 
             return (
               <div key={id} className="py-5 sm:py-6">
@@ -683,7 +685,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                           onClick={() => onScore(id, n)}
                           data-sel={sel === n}
                           className={`cursor-pointer flex-1 sm:flex-none h-10 sm:h-10 sm:w-10 min-w-0 rounded-lg border font-mono text-[13px] font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet/40 ${SCORE_COLORS[n]}`}
-                          aria-label={`Score ${n} — ${SCORE_LABELS[n]}`}
+                          aria-label={`${n} — ${t(`modal.${SCORE_LABEL_KEYS[n]}`)}`}
                           aria-pressed={sel === n}
                         >
                           {n}
@@ -694,18 +696,18 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                     <button
                       onClick={() => setTooltip(showTip ? null : { itemId: id })}
                       className="cursor-pointer shrink-0 h-10 w-10 flex items-center justify-center rounded-lg border border-charcoal/10 text-charcoal/30 hover:border-violet/30 hover:text-violet transition"
-                      aria-label="Why does this matter?"
+                      aria-label={t("modal.whyMatters")}
                     >
                       <Info className="h-4 w-4" />
                     </button>
                   </div>
 
                   {/* Service tag — shown when score is low */}
-                  {sel !== undefined && sel <= 2 && resolveOffering(svc) && (
+                  {sel !== undefined && sel <= 2 && offering && (
                     <span className="inline-flex items-center gap-1 text-[12px] text-azure-deep font-medium">
                       <ArrowRight className="h-3 w-3 shrink-0" />
-                      <span className="font-bold text-violet">{pick(resolveOffering(svc), "name", lang)}</span>
-                      <span className="text-charcoal/40 hidden sm:inline">· {tier}</span>
+                      <span className="font-bold text-violet">{title}</span>
+                      <span className="text-charcoal/40 hidden sm:inline">· {duration}</span>
                     </span>
                   )}
                 </div>
@@ -724,8 +726,13 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
                         </div>
                         <div>
                           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-violet mb-1.5">{t("modal.typicalInvestment")}</p>
-                          <p className="font-mono text-[14px] font-bold text-charcoal">{investRange}</p>
-                          <p className="text-[12px] text-charcoal/65 mt-0.5">{tier}</p>
+                          {/* From the catalogue. The old instrument printed its
+                              own USD range per statement, which agreed with no
+                              other surface on the site. */}
+                          <p className="font-mono text-[14px] font-bold text-charcoal">
+                            {offering ? offeringPriceLabel(offering, ts) : "—"}
+                          </p>
+                          <p className="text-[12px] text-charcoal/65 mt-0.5">{duration}</p>
                         </div>
                       </div>
                     </m.div>
@@ -773,7 +780,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
         </div>
         <div className="mt-5 pt-5 border-t border-charcoal/10">
           <div className="flex justify-between items-center">
-            <span className="text-[13px] font-semibold text-charcoal">Overall</span>
+            <span className="text-[13px] font-semibold text-charcoal">{t("modal.overall")}</span>
             <span className="font-mono text-[16px] font-bold text-violet">{overall.pct} / 100</span>
           </div>
         </div>
@@ -787,6 +794,7 @@ function AuditSectionStep({ section, items, scores, sectionIdx, totalSections, s
 ════════════════════════════════════════════════════════════════════════ */
 function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, recommended, audience, whatsappUrl, onGetPdf, onRestart }) {
   const { t } = useTranslation("audit")
+  const { t: ts } = useTranslation("services")
   const lang = useCatalogueLang()
   const audienceLabel = { EDU: "schools in Latin America", SMB: "businesses in your sector", IND: "individual professionals" }[audience] || "similar organisations"
   const avgBenchmarks = { EDU: 36, SMB: 41, IND: 32 }
@@ -861,17 +869,15 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, recommen
       {/* Top priorities */}
       {topPriorities.length > 0 && (
         <div className="bg-white rounded-2xl border border-charcoal/8 p-6 mb-6">
-          <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-5">YOUR TOP {topPriorities.length} PRIORITIES</h3>
+          <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-charcoal/40 mb-5">{t("modal.topPriorities", { count: topPriorities.length })}</h3>
           <div className="space-y-5">
             {topPriorities.map((p, i) => (
               <div key={p.id} className="grid grid-cols-[40px_1fr] gap-4 items-start pb-5 border-b border-charcoal/6 last:border-0 last:pb-0">
                 <div className="font-mono text-[22px] font-bold text-violet leading-none pt-0.5">{String(i + 1).padStart(2, "0")}</div>
                 <div>
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
-                    {resolveOffering(p.svc) && (
-                      <span className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-violet">{resolveOffering(p.svc).category.code}</span>
-                    )}
-                    <span className="text-[15px] font-bold text-charcoal">{p.title}</span>
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-violet">{p.offering.category.code}</span>
+                    <span className="text-[15px] font-bold text-charcoal">{pick(p.offering, "name", lang)}</span>
                   </div>
                   {/* Score vs ideal */}
                   <div className="flex items-center gap-2 mb-2">
@@ -883,11 +889,20 @@ function ResultsStep({ overall, tier, tc, sectionScores, topPriorities, recommen
                     <span className="text-[11px] text-charcoal/65">{t("modal.youScored")} <strong className="text-rose">{p.score}/4</strong> {t("modal.scoreTarget")}</span>
                   </div>
                   {/* Risk */}
-                  <p className="text-[13px] text-charcoal/65 leading-relaxed mb-2">{p.risk}</p>
-                  {/* Meta */}
-                  <div className="flex flex-wrap gap-3 text-[11px] font-mono">
-                    <span className="rounded-full bg-violet-pale px-2.5 py-1 text-violet font-bold">{p.tier}</span>
-                    <span className="rounded-full bg-charcoal/5 px-2.5 py-1 text-charcoal/65">{p.investRange}</span>
+                  <p className="text-[13px] text-charcoal/65 leading-relaxed mb-2">{pick(p, "risk", lang)}</p>
+                  {/* Meta — duration and price from the catalogue, and a
+                      booking link, which makes this a funnel entry rather
+                      than a dead end. */}
+                  <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono">
+                    <span className="rounded-full bg-violet-pale px-2.5 py-1 text-violet font-bold">{pick(p.offering, "duration", lang)}</span>
+                    <span className="rounded-full bg-charcoal/5 px-2.5 py-1 text-charcoal/65">{offeringPriceLabel(p.offering, ts)}</span>
+                    <Link
+                      to={bookHref(p.offering.slug)}
+                      className="inline-flex items-center gap-1 font-semibold text-violet underline-offset-2 hover:underline"
+                    >
+                      {t("modal.discussThis")}
+                      <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                    </Link>
                   </div>
                 </div>
               </div>

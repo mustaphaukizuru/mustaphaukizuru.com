@@ -91,15 +91,52 @@ exports.trackPageView = async (req, { path, referrer, country }) => {
       },
     })
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error("[analytics] trackPageView failed:", err?.message || err)
     return null
   }
 }
 
+/**
+ * T3-6 · the shape a `vital` event must have to be stored.
+ *
+ * Validated rather than trusted: this is a public, unauthenticated endpoint,
+ * and the rollup reads meta.value as a number straight out of the JSON
+ * column. A string, a negative, or an unknown metric name there would
+ * surface later as a nonsense p75 on the admin page with no way to tell
+ * where it came from.
+ */
+const VITAL_METRICS = ["LCP", "CLS", "INP"]
+const VITAL_RATINGS = ["good", "needs-improvement", "poor"]
+/** LCP and INP in ms; anything past an hour is a broken clock, not a slow page. */
+const VITAL_MAX = 3_600_000
+
+function normalizeVital(meta) {
+  if (!meta || typeof meta !== "object") return null
+  const metric = String(meta.metric || "")
+  if (!VITAL_METRICS.includes(metric)) return null
+  // typeof, not Number(): Number(null) is 0, Number("") is 0 and Number([])
+  // is 0, so a missing value would have been stored as a PERFECT score and
+  // dragged every p75 down with it. The client sends a JSON number or
+  // nothing.
+  if (typeof meta.value !== "number") return null
+  const value = meta.value
+  if (!Number.isFinite(value) || value < 0 || value > VITAL_MAX) return null
+  const rating = VITAL_RATINGS.includes(meta.rating) ? meta.rating : null
+  return { metric, value, rating }
+}
+
 exports.trackEvent = async (req, payload = {}) => {
   const { name } = payload
   if (!name || typeof name !== "string") return null
+
+  // A `vital` with an unusable body is dropped rather than stored as a row
+  // the rollup has to defend against every night.
+  let meta = payload.meta && typeof payload.meta === "object" ? payload.meta : null
+  if (name === "vital") {
+    meta = normalizeVital(meta)
+    if (!meta) return null
+  }
   try {
     return await prisma.analyticsEvent.create({
       data: {
@@ -109,16 +146,19 @@ exports.trackEvent = async (req, payload = {}) => {
         serviceId:    payload.serviceId || null,
         orderId:      payload.orderId   || null,
         amount:       payload.amount != null ? Number(payload.amount) : null,
-        meta:         payload.meta && typeof payload.meta === "object" ? payload.meta : null,
+        meta,
         sessionHash:  buildSessionHash(req),
       },
     })
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error("[analytics] trackEvent failed:", err?.message || err)
     return null
   }
 }
+
+exports.normalizeVital = normalizeVital
+exports.VITAL_METRICS = VITAL_METRICS
 
 // ---- Admin read paths ----------------------------------------
 
@@ -190,6 +230,54 @@ exports.getDeviceBreakdown = async ({ daysBack = 30 } = {}) => {
     _count: { _all: true },
   })
   return rows.map((r) => ({ device: r.device || "unknown", views: r._count._all }))
+}
+
+/**
+ * T3-6 · field vitals, p75 per route per metric over a window.
+ *
+ * Reads the rolled-up DailyVital rows, then takes the p75 of the daily p75s
+ * per route. That is an approximation and it is the honest one available:
+ * the raw measurements are not kept per-day beyond the AnalyticsEvent table,
+ * and a p75 of p75s is what every RUM tool shows for a multi-day window. The
+ * sample count is carried through so the page can say how much to trust it.
+ */
+exports.getFieldVitals = async ({ daysBack = 30, limit = 20 } = {}) => {
+  const since = new Date(Date.now() - daysBack * 86_400_000)
+  since.setUTCHours(0, 0, 0, 0)
+
+  const rows = await prisma.dailyVital.findMany({
+    where:   { date: { gte: since } },
+    orderBy: { date: "desc" },
+  })
+  if (!rows.length) return []
+
+  const byRoute = new Map()
+  for (const row of rows) {
+    if (!byRoute.has(row.path)) byRoute.set(row.path, { path: row.path, samples: 0, metrics: {} })
+    const entry = byRoute.get(row.path)
+    entry.samples += row.samples
+    if (!entry.metrics[row.metric]) entry.metrics[row.metric] = []
+    entry.metrics[row.metric].push(Number(row.p75))
+  }
+
+  const pick = (values) => {
+    if (!values?.length) return null
+    const sorted = [...values].sort((a, b) => a - b)
+    return sorted[Math.max(0, Math.ceil(0.75 * sorted.length) - 1)]
+  }
+
+  return [...byRoute.values()]
+    .map((entry) => ({
+      path: entry.path,
+      samples: entry.samples,
+      lcp: pick(entry.metrics.LCP),
+      cls: pick(entry.metrics.CLS),
+      inp: pick(entry.metrics.INP),
+    }))
+    // Busiest routes first: a p75 on the page nobody visits is not the one
+    // to act on.
+    .sort((a, b) => b.samples - a.samples)
+    .slice(0, limit)
 }
 
 exports.getRecentEvents = async ({ daysBack = 7, limit = 100 } = {}) =>

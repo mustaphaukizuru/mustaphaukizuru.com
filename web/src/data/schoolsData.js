@@ -2,7 +2,7 @@
    schoolsData.js · /schools audience page · September 2026
    ────────────────────────────────────────────────────────────────────────
    /schools is an AUDIENCE page, not a service category. It composes from
-   the closed set of four in servicesCatalogue.js (Instructions v4.0 § 06)
+   the closed set of four in servicesCatalogue.js (Blueprint v4.0 § 06)
    and never introduces an offering of its own. Everything here is a
    pointer into data that already exists elsewhere in the repo:
 

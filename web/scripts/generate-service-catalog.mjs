@@ -1,14 +1,33 @@
 /* ════════════════════════════════════════════════════════════════════════
-   generate-service-catalog.mjs · Rebuilds the downloadable service catalog
+   generate-service-catalog.mjs · Everything generated from the catalogue
    ────────────────────────────────────────────────────────────────────────
-   Single source of truth: src/data/servicesCatalogue.js (4 categories, 21
-   offerings). Emits public/documents/Mustapha-Ukizuru-Service-Catalog-v2.0
-   as .md (plain-text/governance copy) and .html (branded, printed to PDF
-   by scripts/print-service-catalog.mjs in the build pipeline).
+   Single source of truth: src/data/servicesCatalogue.js. Counts are read
+   from CATALOG_STATS, never written down — the header used to say
+   "21 offerings" against a catalogue of 20, which is the whole failure mode
+   this script exists to prevent.
+
+   Emits:
+     public/documents/Mustapha-Ukizuru-Service-Catalog-v2.0.md   governance copy
+     public/documents/Mustapha-Ukizuru-Service-Catalog-v2.0.html branded, printed
+                                                                 to PDF by
+                                                                 print-service-catalog.mjs
+     ../docs/catalogue/services-and-categories.md      full offering reference
+     ../docs/catalogue/services-and-categories.es.md   the same, in Spanish
+     ../docs/catalogue/packages-and-pricing-plans.md   the nine monthly packages
+
+   The three references under docs/catalogue/ were hand-written snapshots
+   whose own headers said "regenerate after any edit; do not hand-edit prices
+   here" — and nothing regenerated them. They are outputs now, and
+   `npm run catalog:check` fails when the committed copy differs from a fresh
+   run (T2-10).
+
+   DETERMINISM IS LOAD-BEARING. Output must be a pure function of the source,
+   or that check fails the day after every commit. Nothing here reads the
+   clock: the date comes from CATALOG_LAST_UPDATED, which is bumped
+   deliberately.
 
    Run: node scripts/generate-service-catalog.mjs
-   Regenerate whenever servicesCatalogue.js changes — never hand-edit the
-   output files, they will be overwritten.
+   Never hand-edit the output files; they will be overwritten.
    ════════════════════════════════════════════════════════════════════════ */
 import fs from "node:fs/promises"
 import path from "node:path"
@@ -17,13 +36,30 @@ import {
   HOW_IT_WORKS, CREDENTIALS, DIFFERENTIATION_PILLARS,
   AUDIENCE_PRICING_PLANS, AUDIENCE_PRICING_ORDER,
   SERVICES_FAQ_ITEMS, FAQ_CONTACT_ACTIONS, CATALOG_STATS, SERVICES, getServiceById,
+  PRICING_BASIS, CATALOG_LAST_UPDATED,
+  PRICING_FIXED, PRICING_RETAINER,
+  QUOTE_ONLY_MXN_PER_MONTH, isQuoteOnlyTier,
+  PACKAGE_OFFERING_OVERLAPS, packagesIncluding, getOfferingBySlug,
 } from "../src/data/servicesCatalogue.js"
+// Its own module: it is off the site's critical path on purpose, and the
+// catalogue is one of only two things that read it.
+import {
+  HOW_IT_WORKS_DETAILED, SUBMIT_BY_STAGE, DELIVERY_MODALITY, ACCESS_PRIVACY,
+} from "../src/data/engagementProcess.js"
 
 const VERSION = "2.0"
-const EFFECTIVE_DATE = new Date().toLocaleDateString("en-US", { day: "2-digit", month: "long", year: "numeric" })
+// From the catalogue, not from the clock — see the determinism note above.
+// Parsed as UTC so the rendered date cannot shift by a day with the timezone
+// of whichever machine runs the check.
+const EFFECTIVE_DATE = new Date(`${CATALOG_LAST_UPDATED}T00:00:00Z`)
+  .toLocaleDateString("en-US", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" })
 const outDir = path.resolve(process.cwd(), "public", "documents")
 const mdFile = path.join(outDir, `Mustapha-Ukizuru-Service-Catalog-v${VERSION}.md`)
 const htmlFile = path.join(outDir, `Mustapha-Ukizuru-Service-Catalog-v${VERSION}.html`)
+
+// docs/ is the documented location for project documents (CLAUDE.md, "Where
+// things live"); web/docs/ was a second one nobody linked to.
+const refDir = path.resolve(process.cwd(), "..", "docs", "catalogue")
 
 const money = (n) => `$${Number(n).toLocaleString("en-US")} USD`
 const mxn = (n) => `MX$${Number(n).toLocaleString("en-US")}`
@@ -226,7 +262,26 @@ function buildMarkdown() {
   h(``)
   h(`### 23. Engagement Process`)
   h(``)
-  for (const step of HOW_IT_WORKS) h(`${step.step}. **${step.title}** — ${step.body}`)
+  for (const step of HOW_IT_WORKS_DETAILED) {
+    h(`${step.step}. **${step.title}** — ${step.summary}`)
+    h(`   - How: ${step.how}`)
+    h(`   - When: ${step.when}`)
+    h(`   - What to include: ${step.include}`)
+  }
+  h(``)
+  h(`#### What to submit, by stage`)
+  h(``)
+  h(`| Stage | What is needed |`)
+  h(`|---|---|`)
+  for (const row of SUBMIT_BY_STAGE) h(`| ${row.stage} | ${row.needs} |`)
+  h(``)
+  h(`#### Delivery modality`)
+  h(``)
+  for (const mode of DELIVERY_MODALITY) h(`- **${mode.title}** — ${mode.body}`)
+  h(``)
+  h(`#### Access and data privacy`)
+  h(``)
+  for (const rule of ACCESS_PRIVACY) h(`- **${rule.title}** — ${rule.body}`)
   h(``)
   h(`### 24. Credentials`)
   h(``)
@@ -449,6 +504,7 @@ th{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spaci
       <div>
         <h2 class="section">Engagement process</h2>
         <ol class="steps">${steps}</ol>
+        <p class="pricing-note" style="margin-top:10px">The full six-step process — what to submit at each stage, remote and on-site delivery, and the access and data-privacy rules — is at mustaphaukizuru.com/how-we-work and in the markdown edition of this catalogue.</p>
       </div>
       <div>
         <h2 class="section">Credentials</h2>
@@ -468,6 +524,250 @@ th{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spaci
 </html>`
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Generated references (T2-10)
+   ───────────────────────────────────────────────────────────────────────
+   docs/catalogue/services-and-categories.md and its Spanish twin, plus
+   packages-and-pricing-plans.md. These were hand-written snapshots whose
+   own front matter said "regenerate after any edit; do not hand-edit
+   prices here" — and nothing regenerated them, so they drifted the moment
+   a price changed. Proposals and sales conversations read these files, not
+   the source, which is exactly why they must not be able to disagree.
+
+   Bilingual by construction: the catalogue carries nameEs, descriptionEs,
+   durationEs, deliverablesEs, priceIncludesEs and priceScalesWithEs beside
+   every English field, so the Spanish reference is the same walk with a
+   different accessor rather than a translation that can rot.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const REF_STRINGS = {
+  en: {
+    title: "Services & Categories Reference",
+    heading: "Service Catalogue — Reference",
+    subtitle: (c, o) => `**${c} categories · ${o} offerings · every price shown in USD and MXN**`,
+    tableHead: "| # | Category | Offerings | Primary audience |",
+    promise: "Promise",
+    outcome: "Outcome",
+    audience: "Primary audience",
+    flagship: "flagship",
+    includes: "Includes at this price",
+    scales: "Price increases with",
+    deliverables: "Deliverables",
+    paired: "Often paired with",
+    from: "From",
+    perMonth: "/month",
+    generated: "Generated from web/src/data/servicesCatalogue.js by web/scripts/generate-service-catalog.mjs. Do not hand-edit — `npm run catalog:check` fails when this file differs from a fresh run.",
+    purpose: (c, o) => `Full current-state reference of the live service catalogue — ${c} categories, ${o} offerings, pricing, deliverables and cross-references — generated from web/src/data/servicesCatalogue.js (source of truth). For briefs, proposals and sales conversations, and as a companion to engagement-process-content.md.`,
+    status: "generated — run `cd web && npm run catalog:generate` after any catalogue edit; never hand-edit this file",
+  },
+  es: {
+    title: "Referencia de Servicios y Categorías",
+    heading: "Catálogo de Servicios — Referencia",
+    subtitle: (c, o) => `**${c} categorías · ${o} servicios · cada precio en USD y MXN**`,
+    tableHead: "| # | Categoría | Servicios | Audiencia principal |",
+    promise: "Promesa",
+    outcome: "Resultado",
+    audience: "Audiencia principal",
+    flagship: "destacado",
+    includes: "Incluye a este precio",
+    scales: "El precio aumenta con",
+    deliverables: "Entregables",
+    paired: "Suele combinarse con",
+    from: "Desde",
+    perMonth: "/mes",
+    generated: "Generado desde web/src/data/servicesCatalogue.js por web/scripts/generate-service-catalog.mjs. No editar a mano — `npm run catalog:check` falla cuando este archivo difiere de una ejecución nueva.",
+    purpose: (c, o) => `Referencia completa del catálogo de servicios vigente — ${c} categorías, ${o} servicios, precios, entregables y referencias cruzadas — generada desde web/src/data/servicesCatalogue.js (fuente de verdad). Para briefs, propuestas y conversaciones comerciales.`,
+    status: "generado — ejecuta `cd web && npm run catalog:generate` tras cualquier cambio del catálogo; nunca editar este archivo a mano",
+  },
+}
+
+// The Spanish field for a key, falling back to English. A missing translation
+// prints the English rather than an empty bullet: a blank deliverable in a
+// document a client reads is worse than one in the wrong language.
+const pickLang = (obj, key, lang) => {
+  if (lang !== "es") return obj[key]
+  const es = obj[`${key}Es`]
+  if (Array.isArray(es)) return es.length ? es : obj[key]
+  return es || obj[key]
+}
+
+const refPrice = (o, s) => {
+  if (o.pricingModel === PRICING_FIXED && o.priceMxn) return `${money(o.priceUsd)} · ${mxn(o.priceMxn)}`
+  if (o.priceFromMxn) {
+    const suffix = o.pricingModel === PRICING_RETAINER ? s.perMonth : ""
+    return `${s.from} ${money(o.priceFromUsd)}${suffix} · ${mxn(o.priceFromMxn)}${suffix}`
+  }
+  return o.pricingModel
+}
+
+const audienceNames = (codes, lang = "en") =>
+  (codes || []).map((c) => {
+    const a = AUDIENCE_LABELS[c]
+    if (!a) return c
+    return lang === "es" ? (a.labelEs || a.label) : a.label
+  }).join(" · ")
+
+function buildServicesReference(lang = "en") {
+  const s = REF_STRINGS[lang]
+  const L = []
+  const h = (line = "") => L.push(line)
+
+  h("---")
+  h(`title: ${s.title}`)
+  h(`purpose: ${s.purpose(CATALOG_STATS.categoryCount, CATALOG_STATS.totalServices)}`)
+  h(`status: ${s.status}`)
+  h(`pricing_basis: ${lang === "es" ? PRICING_BASIS.noteEs : PRICING_BASIS.note}`)
+  h(`last_updated: ${CATALOG_LAST_UPDATED}`)
+  h("---")
+  h()
+  h(`# ${s.heading}`)
+  h()
+  h(s.subtitle(CATALOG_STATS.categoryCount, CATALOG_STATS.totalServices))
+  h()
+  h(s.tableHead)
+  h("|---|---|---|---|")
+  CATEGORIES.forEach((c, i) => {
+    // Audience is the union across the category's offerings, in the
+    // catalogue's own SMB → EDU → IND order, so it cannot contradict the
+    // per-offering lines below it.
+    const codes = ["SMB", "EDU", "IND"].filter((code) =>
+      c.offerings.some((o) => (o.audience || []).includes(code)))
+    h(`| ${i + 1} | ${pickLang(c, "name", lang)} | ${c.offerings.length} | ${audienceNames(codes, lang)} |`)
+  })
+
+  CATEGORIES.forEach((c, i) => {
+    const codes = ["SMB", "EDU", "IND"].filter((code) =>
+      c.offerings.some((o) => (o.audience || []).includes(code)))
+    h()
+    h("---")
+    h()
+    h(`## ${i + 1} · ${pickLang(c, "name", lang)}`)
+    h(`*${lang === "es" ? c.name : c.nameEs}*`)
+    h()
+    h(`**${s.promise}:** ${pickLang(c, "tagline", lang)}`)
+    h(`**${s.outcome}:** ${pickLang(c, "outcome", lang)}`)
+    h(`**${s.audience}:** ${audienceNames(codes, lang)}`)
+
+    for (const o of c.offerings) {
+      h()
+      h(`### ${pickLang(o, "name", lang)}${o.tier === 1 ? ` — ${s.flagship}` : ""}`)
+      h(`\`${o.id}\` · ${refPrice(o, s)} · ${pickLang(o, "duration", lang)} · ${o.engagement}`)
+      h(pickLang(o, "description", lang))
+      const inc = pickLang(o, "priceIncludes", lang)
+      if (inc) h(`**${s.includes}:** ${inc}`)
+      const scales = pickLang(o, "priceScalesWith", lang)
+      if (Array.isArray(scales) && scales.length) h(`**${s.scales}:** ${scales.join(" · ")}.`)
+      const deliv = pickLang(o, "deliverables", lang)
+      if (Array.isArray(deliv) && deliv.length) h(`**${s.deliverables}:** ${deliv.join(" · ")}.`)
+      const related = (o.relatedOfferings || [])
+        .map((id) => { const r = getServiceById(id); return r ? pickLang(r, "name", lang) : null })
+        .filter(Boolean)
+      if (related.length) h(`**${s.paired}:** ${related.join(", ")}.`)
+    }
+  })
+
+  h()
+  h("---")
+  h()
+  h(`_${s.generated}_`)
+  h()
+  return L.join("\n")
+}
+
+function buildPackagesReference() {
+  const L = []
+  const h = (line = "") => L.push(line)
+  const tierKeys = ["basic", "medium", "advanced"]
+  const totalPackages = AUDIENCE_PRICING_ORDER.reduce(
+    (n, code) => n + Object.keys(AUDIENCE_PRICING_PLANS[code].tiers || {}).length, 0)
+
+  h("---")
+  h("title: Packages & Pricing Plans Reference")
+  h(`purpose: Full current-state reference of the ${AUDIENCE_PRICING_ORDER.length} checkout subscription tracks that back /checkout/service?audience=<code>&tier=<key> — generated from web/src/data/servicesCatalogue.js (AUDIENCE_PRICING_PLANS, source of truth). Companion to services-and-categories.md, which covers the ${CATALOG_STATS.totalServices} individually-booked offerings; these are a separate, monthly, audience-segmented pricing model.`)
+  h("status: generated — run `cd web && npm run catalog:generate` after any edit to AUDIENCE_PRICING_PLANS; never hand-edit this file")
+  h(`pricing_basis: ${PRICING_BASIS.note}`)
+  h(`last_updated: ${CATALOG_LAST_UPDATED}`)
+  h("---")
+  h()
+  h("# Packages & Pricing Plans — Reference")
+  h()
+  h(`**${AUDIENCE_PRICING_ORDER.length} audience tracks × ${tierKeys.length} tiers = ${totalPackages} monthly packages.** Ongoing monthly subscriptions, distinct from the ${CATALOG_STATS.totalServices} project-based offerings in \`services-and-categories.md\`: a package is a subscription, an offering is a scoped, delivered project.`)
+  h()
+  h("**These prices are the static catalogue's.** The live site reads prices from `GET /services/plans` (the database, edited in /admin/services) and takes only names, descriptions and the feature matrix from the static file. When the two disagree, the site shows the database and this document shows the code.")
+  h()
+  // The column headers are the tiers' own display names, taken from the first
+  // track. TIER_LABELS is a different thing entirely — it labels an OFFERING
+  // as Flagship or Standard — and using it here printed the raw keys.
+  const firstPlan = AUDIENCE_PRICING_PLANS[AUDIENCE_PRICING_ORDER[0]]
+  const tierHeadings = tierKeys.map((k) => firstPlan.tiers?.[k]?.name || k)
+  h("| Track | Audience | " + tierHeadings.join(" | ") + " |")
+  h("|---|---|" + tierKeys.map(() => "---|").join(""))
+  for (const code of AUDIENCE_PRICING_ORDER) {
+    const plan = AUDIENCE_PRICING_PLANS[code]
+    const cells = tierKeys.map((k) => {
+      const t = plan.tiers?.[k]
+      return t ? `${money(t.priceUsd)}${t.period ? `/${t.period}` : ""} · ${mxn(t.priceMxn)}` : "—"
+    })
+    h(`| ${plan.name} | ${plan.short} | ${cells.join(" | ")} |`)
+  }
+  h()
+  h("Tiers at or above " + mxn(QUOTE_ONLY_MXN_PER_MONTH) + "/month, and the Business and Schools top tiers whatever their price, are **quote-only**: they link to the booking page rather than the checkout, and scope is agreed on a call before anything is charged (T2-4).")
+
+  for (const code of AUDIENCE_PRICING_ORDER) {
+    const plan = AUDIENCE_PRICING_PLANS[code]
+    h()
+    h("---")
+    h()
+    h(`## ${plan.name}`)
+    h(`*${plan.short}*`)
+    h()
+    for (const k of tierKeys) {
+      const t = plan.tiers?.[k]
+      if (!t) continue
+      const gated = isQuoteOnlyTier(code, k, t.priceMxn)
+      h(`### ${t.name} — ${money(t.priceUsd)}${t.period ? `/${t.period}` : ""} · ${mxn(t.priceMxn)}`)
+      const flags = []
+      if (t.popular) flags.push("most popular")
+      if (t.saveLabel) flags.push(t.saveLabel)
+      flags.push(gated ? "quote-only — book a call" : `self-serve — /checkout/service?audience=${code}&tier=${k}`)
+      h(`_${flags.join(" · ")}_`)
+      h()
+      // The feature matrix is positional: includes[i] answers features[i].
+      // Printing the two together is the only way to read it, and the only
+      // way a reordering shows up as a diff here.
+      const features = plan.features || []
+      const includes = t.includes || []
+      for (let i = 0; i < features.length; i += 1) {
+        h(`- ${includes[i] ? "✓" : "✗"} ${features[i]}`)
+      }
+      h()
+    }
+  }
+
+  h("---")
+  h()
+  h("## Sold both ways — open pricing decision")
+  h()
+  h("These capabilities are sold twice: bundled into a monthly package, and as a scoped project in `services-and-categories.md`. A client comparing the two pages reaches different numbers for what looks like the same thing, so both pages now name the relationship (T2-11) — but **whether the prices should differ is not decided**.")
+  h()
+  h("The choice is between (a) the package is the audience default and the standalone price is the single-piece price, deliberately higher per unit, and (b) the two are parallel and these features get repriced. It becomes ADR 0007, and the Schools row also waits on T4-2's school-director interviews.")
+  h()
+  h("| Capability | Bundled from | Sold standalone as | Standalone price |")
+  h("|---|---|---|---|")
+  for (const overlap of PACKAGE_OFFERING_OVERLAPS) {
+    const offering = getOfferingBySlug(overlap.offeringSlug)
+    const [inc] = packagesIncluding(overlap.offeringSlug)
+    if (!offering || !inc) continue
+    h(`| ${overlap.feature} | ${inc.planName} ${inc.tierName} | ${offering.name} | ${refPrice(offering, REF_STRINGS.en)} |`)
+  }
+  h()
+  h("---")
+  h()
+  h("_Generated from web/src/data/servicesCatalogue.js by web/scripts/generate-service-catalog.mjs. Do not hand-edit — `npm run catalog:check` fails when this file differs from a fresh run._")
+  h()
+  return L.join("\n")
+}
+
 async function main() {
   await fs.mkdir(outDir, { recursive: true })
   const md = buildMarkdown()
@@ -477,6 +777,18 @@ async function main() {
   const html = buildHtml()
   await fs.writeFile(htmlFile, html, "utf8")
   console.log(`Wrote ${htmlFile} (${html.length} bytes)`)
+
+  await fs.mkdir(refDir, { recursive: true })
+  const references = [
+    ["services-and-categories.md", buildServicesReference("en")],
+    ["services-and-categories.es.md", buildServicesReference("es")],
+    ["packages-and-pricing-plans.md", buildPackagesReference()],
+  ]
+  for (const [name, body] of references) {
+    const file = path.join(refDir, name)
+    await fs.writeFile(file, body, "utf8")
+    console.log(`Wrote ${file} (${body.length} bytes)`)
+  }
 }
 
 main().catch((err) => { console.error(err); process.exit(1) })

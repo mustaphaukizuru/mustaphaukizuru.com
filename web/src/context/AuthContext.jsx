@@ -161,6 +161,12 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     try {
       await signOutRequest()
+    } catch {
+      // Swallowed deliberately. The request layer already absorbs a network
+      // failure, so reaching here means something unexpected — a storage
+      // quota, the cache API throwing. The local cleanup below is what the
+      // user asked for either way, and letting this reject shows up as an
+      // unhandled rejection at every `onClick={logout}` call site.
     } finally {
       clearStoredAuth()
       setUser(null)

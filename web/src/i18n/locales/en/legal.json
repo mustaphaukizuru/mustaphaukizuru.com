@@ -86,7 +86,7 @@
         {
           "slug": "finalidades-primarias",
           "title": "C. Primary purposes",
-          "content": "We process your data to: create and manage your account; process orders, payments, invoices and refunds; deliver digital products and services you purchased; schedule and hold consultations; manage client projects; answer support requests; issue tax receipts when required; keep the platform secure and prevent fraud; and comply with legal obligations. These purposes are necessary for the relationship between you and us."
+          "content": "We process your data to: create and manage your account; process orders, payments, invoices and refunds; deliver digital products and services you purchased; schedule and hold consultations; manage client projects; answer support requests; issue tax receipts when required; keep the platform secure and prevent fraud; and comply with legal obligations. These purposes are necessary for the relationship between you and us. When we ask you for a document during a project (a CV, a tax ID, a signed contract), we use it only for that purpose, keep it while the project is open and for the retention period after it closes, and then delete it from our servers. We never use it for anything else, and never share it with anyone beyond the recipients listed in section E."
         },
         {
           "slug": "finalidades-secundarias",
@@ -101,7 +101,7 @@
         {
           "slug": "derechos-arco",
           "title": "F. ARCO rights, revocation of consent and limitation of use",
-          "content": "You have the right to Access your personal data, Rectify it when inaccurate, request its Cancellation, and Oppose its processing (ARCO rights), as well as to revoke the consent you have given us and to limit the use or disclosure of your data. From your member dashboard (Profile → Privacy & data) you can download a copy of everything we hold about you and delete your account on your own. For any other request, email hello@mustaphaukizuru.com with: your full name, a copy of an official ID or the account email we can verify, a clear description of the right you wish to exercise and the data concerned, and any documents supporting the request."
+          "content": "You have the right to Access your personal data, Rectify it when inaccurate, request its Cancellation, and Oppose its processing (ARCO rights), as well as to revoke the consent you have given us and to limit the use or disclosure of your data. From your member dashboard (Profile → Privacy & data) you can download a copy of everything we hold about you and delete your account on your own. For any other request, email hello@mustaphaukizuru.com with: your full name, a copy of an official ID or the account email we can verify, a clear description of the right you wish to exercise and the data concerned, and any documents supporting the request. If the data you want is a project's, the handover pack on that project already contains it: every recorded step, every deliverable with a checksum, and every invoice, in one archive you keep after the files are removed from our servers."
         },
         {
           "slug": "plazo-de-respuesta",

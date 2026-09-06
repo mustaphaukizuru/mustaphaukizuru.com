@@ -42,7 +42,9 @@
       "files_one": "{{count}} archivo",
       "files_other": "{{count}} archivos",
       "milestones": "Hitos",
-      "open": "Abrir proyecto"
+      "open": "Abrir proyecto",
+      "expired": "Archivado",
+      "expiredBody": "El periodo de acceso a este proyecto terminó. Escribe a soporte si aún necesitas sus archivos."
     },
     "detail": {
       "back": "Volver a proyectos",
@@ -132,7 +134,9 @@
         "roleTeam": "Equipo",
         "roleClient": "Cliente",
         "resolved": "Resuelto",
-        "readOnly": "Este proyecto es de solo lectura; los mensajes nuevos están deshabilitados."
+        "readOnly": "Este proyecto es de solo lectura; los mensajes nuevos están deshabilitados.",
+        "replyToggle": "Responder",
+        "commentToggle": "Comentar este hito"
       },
       "access": {
         "suspendedTitle": "Proyecto en pausa — hay una factura vencida",
@@ -152,7 +156,8 @@
         "changesRequested": "Tu solicitud de cambios fue enviada al equipo.",
         "uploaded": "Archivos subidos.",
         "failed": "Algo salió mal. Inténtalo de nuevo."
-      }
+      },
+      "sectionNavAria": "Ir a una sección"
     },
     "review": {
       "title": "¿Cómo fue este proyecto?",
@@ -166,7 +171,10 @@
       "thanks": "Gracias — recibimos tu reseña.",
       "failed": "No pudimos guardar tu reseña. Inténtalo de nuevo.",
       "doneTitle": "Gracias por tu reseña",
-      "doneBody": "Calificaste este proyecto con {{rating}}/5."
+      "doneBody": "Calificaste este proyecto con {{rating}}/5.",
+      "pulseQuestion": "¿Cómo te fue trabajando con nosotros?",
+      "pulseValue": "{{n}} de 5",
+      "pulseScale": "1 = mal · 5 = muy bien"
     },
     "changeRequests": {
       "title": "Solicitar trabajo adicional",
@@ -270,7 +278,97 @@
         "created": "Ticket abierto. Te responderemos pronto.",
         "replied": "Respuesta enviada."
       }
-    }
+    },
+    "messages": {
+      "title": "Mensajes",
+      "subtitle": "Haz una pregunta, reporta un problema o pide trabajo extra — todo en un mismo lugar.",
+      "new": "Nuevo mensaje",
+      "readOnly": "Este proyecto está cerrado, así que ya no se puede publicar nada aquí.",
+      "openThread": "Abrir la conversación",
+      "empty": "Todavía no hay nada",
+      "emptyBody": "Las preguntas, los problemas y las solicitudes de trabajo extra aparecen todos en esta lista.",
+      "openThreadLabel": "Abrir el ticket {{subject}}",
+      "compose": {
+        "type": "¿De qué se trata?",
+        "question": "Una pregunta",
+        "problem": "Un problema",
+        "extra": "Trabajo extra",
+        "questionHint": "Va directo a la conversación del proyecto. Respondemos aquí.",
+        "problemHint": "Abre un ticket con número que puedes seguir, y puedes adjuntar archivos.",
+        "extraHint": "Trabajo fuera de lo acordado. Primero lo cotizamos — nada empieza hasta que lo aceptes.",
+        "questionPlaceholder": "Pregúntanos lo que sea sobre el proyecto…",
+        "problemPlaceholder": "Qué pasó, qué esperabas y dónde lo viste.",
+        "extraPlaceholder": "Describe el trabajo extra que necesitas y por qué."
+      },
+      "kind": {
+        "question": "Pregunta",
+        "problem": "Problema",
+        "extra": "Trabajo extra"
+      },
+      "sent": {
+        "question": "Enviado — te respondemos aquí."
+      }
+    },
+    "secrets": {
+      "title": "Credenciales",
+      "subtitle": "Las contraseñas y las llaves viajan por aquí, no como archivos ni por correo. Cada una se lee una sola vez y después se destruye.",
+      "send": "Enviar una credencial",
+      "reveal": "Ver una vez",
+      "readOnly": "Este proyecto está cerrado, así que ya no se puede enviar nada.",
+      "empty": "Nada pendiente",
+      "emptyBody": "Si te pedimos una contraseña o una llave de acceso, mándala por aquí en lugar de por correo — se cifra, se lee una vez y desaparece.",
+      "onceWarning": "Puedes verla exactamente una vez. Ten dónde pegarla antes de hacer clic.",
+      "onlyTime": "Esta es la única vez que se mostrará. Nuestra copia ya se destruyó.",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "expiresOn": "caduca el {{date}}",
+      "sentOn": "enviada el {{date}}",
+      "revealError": "No se pudo leer esa credencial. Puede que ya se haya abierto o que haya caducado.",
+      "sendError": "No pudimos guardarla. Inténtalo de nuevo.",
+      "state": {
+        "pending": "Pendiente",
+        "viewed": "Leída",
+        "expired": "Caducada"
+      },
+      "form": {
+        "label": "Qué es",
+        "labelPlaceholder": "Contraseña de cPanel · admin de WordPress · acceso al registrador",
+        "value": "La credencial",
+        "valuePlaceholder": "Pégala tal cual.",
+        "hint": "Se cifra antes de guardarse, la leemos una sola vez y nunca se escribe en un archivo. No pongas el valor en la etiqueta.",
+        "submit": "Enviar de forma segura"
+      }
+    },
+    "hours": {
+      "title": "Horas",
+      "plan": "{{plan}} — {{hours}} h incluidas cada mes.",
+      "noPlan": "Este plan no tiene horas incluidas al mes, así que estas son las horas tal como se registraron.",
+      "usedOf": "{{used}} h usadas de {{included}} h · quedan {{remaining}} h",
+      "usedOver": "{{used}} h usadas de {{included}} h · {{over}} h por encima del plan",
+      "usedOnly": "{{used}} h registradas",
+      "plusFree": "{{hours}} h sin cargo",
+      "noCharge": "sin cargo",
+      "hoursValue": "{{hours}} h",
+      "barLabel": "{{used}} de {{included}} horas usadas",
+      "defaultNote": "Trabajo del proyecto",
+      "emptyMonth": "No se registraron horas este mes.",
+      "statementNamed": "Estado de cuenta de {{month}}",
+      "empty": "Sin horas registradas",
+      "emptyBody": "Cuando registremos horas en este proyecto aparecerán aquí, mes por mes."
+    },
+    "panelError": {
+      "title": "No se pudo cargar parte de esta página",
+      "body": "{{names}} no cargó, así que lo de abajo puede estar incompleto. No se perdió nada — vuelve a intentarlo.",
+      "retry": "Reintentar",
+      "names": {
+        "events": "Actividad",
+        "requests": "Documentos que necesitamos",
+        "invoices": "Facturas",
+        "secrets": "Credenciales",
+        "hours": "Horas"
+      }
+    },
+    "progressLabel": "Avance del proyecto: {{percent}}%"
   },
   "serviceOrders": {
     "errors": {
@@ -968,7 +1066,8 @@
         "phone": "Teléfono",
         "country": "País",
         "bio": "Bio breve"
-      }
+      },
+      "progressLabel": "Perfil {{percent}}% completo"
     },
     "kpi": {
       "orders": "Pedidos",
@@ -1088,7 +1187,9 @@
   "notifDropdown": {
     "markAllRead": "Marcar todas como leídas",
     "allCaughtUp": "Todo al día",
-    "noNotifs": "Aún sin notificaciones"
+    "noNotifs": "Aún sin notificaciones",
+    "unread_one": "{{count}} sin leer",
+    "unread_other": "{{count}} sin leer"
   },
   "notificationsPage": {
     "eyebrow": "Actividad",
@@ -1134,7 +1235,6 @@
     "memberAreaSubtitle": "Tu central de productos digitales",
     "memberDashboard": "Panel de miembro",
     "openMenu": "Abrir menú",
-    "searchDashboard": "Buscar en el panel",
     "openSupport": "Abrir soporte",
     "quickNav": "Navegación rápida",
     "profileTabsAria": "Secciones de la cuenta",
@@ -1153,7 +1253,9 @@
       "support": "Ayuda y tickets",
       "profile": "Datos, direcciones, seguridad"
     },
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "breadcrumbRoot": "Panel",
+    "language": "Idioma"
   },
   "portal": {
     "eyebrow": "Portal del cliente",
@@ -1238,5 +1340,124 @@
     "agree": "Aceptar y continuar",
     "accepting": "Registrando…",
     "failed": "No pudimos registrar tu aceptación. Inténtalo de nuevo."
+  },
+  "track": {
+    "seoTitle": "Rastrea tu proyecto",
+    "seoDescription": "Ingresa tu código de seguimiento para ver en qué etapa va tu proyecto.",
+    "title": "Rastrea tu proyecto",
+    "intro": "Ingresa el código de seguimiento que viene en tu factura o en tu correo de bienvenida para ver cómo va todo. No necesitas iniciar sesión.",
+    "placeholder": "MU-XXXX-XXXX",
+    "inputLabel": "Código de seguimiento",
+    "submit": "Rastrear",
+    "hint": "El código se ve así: MU-7K4C-9XQF. Está en tu factura y en cada correo que te enviamos sobre el proyecto.",
+    "loading": "Buscando ese código…",
+    "error": "Algo falló de nuestro lado. Inténtalo de nuevo en un momento.",
+    "missingTitle": "Ningún proyecto coincide con ese código",
+    "missingBody": "Revisa el código contra tu factura: son ocho caracteres después de MU. Si está bien, puede que el proyecto haya cerrado hace tiempo; escríbenos y te ayudamos.",
+    "anotherCode": "Rastrear otro código",
+    "reference": "Referencia",
+    "copy": "Copiar código",
+    "copied": "Copiado",
+    "startedOn": "Inició el {{date}}",
+    "notStarted": "Aún no inicia",
+    "dueOn": "entrega el {{date}}",
+    "progress": "Avance",
+    "cancelled": "Este proyecto fue cancelado. Si no esperabas eso, escríbenos.",
+    "phase": {
+      "planning": "Planeación",
+      "in_progress": "En curso",
+      "review": "Revisión",
+      "completed": "Completado"
+    },
+    "waitingOnYou_one": "Falta 1 documento de tu parte",
+    "waitingOnYou_other": "Faltan {{count}} documentos de tu parte",
+    "waitingBody": "Inicia sesión o abre el portal de cliente para subirlos. No podemos avanzar hasta recibirlos.",
+    "milestones": "Hitos",
+    "activity": "Actividad",
+    "doorPortal": "Portal de cliente",
+    "doorPortalBody": "No necesitas cuenta. Enviamos un PIN de un solo uso al correo del proyecto.",
+    "doorDashboard": "Tu panel",
+    "doorDashboardBody": "Inicia sesión para subir documentos, comentar y aprobar hitos.",
+    "moreTitle": "Sin código a la mano",
+    "moreBody": "Todo está en tu panel si tienes cuenta con nosotros, y con gusto lo buscamos por ti.",
+    "openDashboard": "Abrir mi panel",
+    "askUs": "Escríbenos",
+    "health": {
+      "on_track": "En tiempo",
+      "at_risk": "Va después de la fecha acordada",
+      "late": "Pasó su fecha",
+      "lateCount_one": "1 hito pasó su fecha",
+      "lateCount_other": "{{count}} hitos pasaron su fecha",
+      "expected": "Lo siguiente se espera el {{date}}"
+    },
+    "timezone": "Horarios en {{zone}}",
+    "rescheduled": "Fecha movida",
+    "door": {
+      "sendPin": "Envíenme un PIN",
+      "sent": "Enviamos un PIN de 6 dígitos al correo de este proyecto.",
+      "sentTo": "Enviamos un PIN de 6 dígitos a {{email}}.",
+      "pinLabel": "PIN de 6 dígitos",
+      "open": "Entrar",
+      "failed": "No pudimos enviar el PIN. Inténtalo de nuevo en un momento.",
+      "pinFailed": "Ese PIN es incorrecto o ya venció. Pide uno nuevo.",
+      "emailLabel": "Tu correo (opcional)",
+      "emailPlaceholder": "tu@tuescuela.mx",
+      "emailHint": "Déjalo en blanco y el PIN va a la dirección del proyecto. Escribe la tuya sólo si te agregaron a él — cualquier otra vuelve a la dirección del proyecto."
+    }
+  },
+  "timeline": {
+    "emptyTitle": "Todavía no hay nada",
+    "emptyBody": "Las actualizaciones aparecen aquí conforme avanza el trabajo, normalmente uno o dos días después del arranque.",
+    "more_one": "1 actualización anterior no mostrada",
+    "more_other": "{{count}} actualizaciones anteriores no mostradas"
+  },
+  "fileRequests": {
+    "title": "Documentos que necesitamos",
+    "emptyTitle": "Nada por enviar",
+    "emptyBody": "Por ahora no estamos esperando ningún documento de tu parte.",
+    "openCount_one": "Falta 1 documento por enviar.",
+    "openCount_other": "Faltan {{count}} documentos por enviar.",
+    "upload": "Subir",
+    "uploaded": "Gracias, ya lo tenemos.",
+    "uploadFailed": "La subida no se completó. Inténtalo de nuevo.",
+    "due": "Para el {{date}}",
+    "accepts": "Acepta {{list}}",
+    "tooMany": "Envía máximo {{max}} archivos a la vez.",
+    "tooBig": "{{name}} supera el límite de {{max}} MB.",
+    "wrongType": "{{name}} no es de los tipos aceptados ({{accept}}).",
+    "status": {
+      "requested": "Solicitado",
+      "submitted": "En revisión",
+      "rejected": "Requiere cambios",
+      "accepted": "Aceptado",
+      "cancelled": "Cancelado"
+    }
+  },
+  "invoices": {
+    "title": "Facturas",
+    "caption": "Facturas de este proyecto",
+    "emptyTitle": "Aún no hay facturas",
+    "emptyBody": "Hasta ahora no se ha facturado nada de este proyecto.",
+    "number": "Factura",
+    "issued": "Emitida",
+    "dueDate": "Vence",
+    "total": "Total",
+    "statusLabel": "Estado",
+    "download": "Descargar",
+    "downloadNamed": "PDF {{number}}",
+    "outstanding_one": "1 factura pendiente, {{amount}}.",
+    "outstanding_other": "{{count}} facturas pendientes, {{amount}} en total.",
+    "outstandingDue_one": "1 factura pendiente, {{amount}}, vence el {{date}}.",
+    "outstandingDue_other": "{{count}} facturas pendientes, {{amount}} en total, la próxima vence el {{date}}.",
+    "status": {
+      "draft": "Borrador",
+      "issued": "Emitida",
+      "overdue": "Vencida",
+      "paid": "Pagada",
+      "void": "Anulada"
+    },
+    "payLabel": "Pagar",
+    "payNamed": "Pagar {{number}}",
+    "payError": "No pudimos iniciar el pago. Inténtalo de nuevo."
   }
 }

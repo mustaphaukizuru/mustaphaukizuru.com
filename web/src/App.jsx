@@ -1,7 +1,7 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import LoadingScreen from "./components/LoadingScreen";
+import afterFirstPaint from "./lib/afterFirstPaint";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import SeoRouteManager from "./components/SeoRouteManager";
@@ -75,13 +75,23 @@ function PageLoader() {
   );
 }
 
-// Warm the chunk cache for the two heaviest primary-nav pages immediately.
-// Both have a double-chunk waterfall (page chunk → catalogue chunk). Firing
-// these at module-eval time means the downloads run during the ~1.6 s
-// LoadingScreen animation, so chunks are in the module cache before the
-// user can click anything — even on a cold visit with no prior hover.
-void import("./pages/ServicesPage")
-void import("./data/servicesCatalogue")
+// Warm the chunk cache for the two heaviest primary-nav pages. Both have a
+// double-chunk waterfall (page chunk → catalogue chunk), so a cold click
+// pays two round-trips.
+//
+// These used to fire at module-eval time, and the comment explaining why
+// said it out loud: the downloads ran "during the ~1.6 s splash animation".
+// That window no longer exists — the splash is inline HTML now and the app
+// paints as soon as it can — so an eager import here would be two extra
+// downloads competing with the render they used to hide behind.
+//
+// afterFirstPaint waits for the load event, then for idle within it. The
+// prefetch still lands long before anyone can click a nav item, and the
+// first-paint budget test stops counting it.
+afterFirstPaint(() => {
+  void import("./pages/ServicesPage")
+  void import("./data/servicesCatalogue")
+})
 
 // Public pages
 const Home = lazy(() => import("./pages/Home"));
@@ -90,6 +100,9 @@ const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
 const SelfAuditPage = lazy(() => import("./pages/SelfAuditPage"));
 const SchoolsPage = lazy(() => import("./pages/SchoolsPage")); // audience page, not a service category
+const HowWeWorkPage = lazy(() => import("./pages/HowWeWorkPage")); // the full engagement process (T2-9)
+const TrackPage = lazy(() => import("./pages/TrackPage")); // public project tracking (T5-5)
+const StatusPage = lazy(() => import("./pages/StatusPage")); // live service status (T1-9)
 
 const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
 const AdminPortfolioPage = lazy(() => import("./pages/AdminPortfolioPage"));
@@ -177,6 +190,7 @@ const AdminConsultationsPage = lazy(() => import("./pages/AdminConsultationsPage
 const AdminServiceOrdersPage = lazy(() => import("./pages/AdminServiceOrdersPage"));
 const AdminServiceOrderDetailPage = lazy(() => import("./pages/AdminServiceOrderDetailPage"));
 const AdminClientProjectsPage = lazy(() => import("./pages/AdminClientProjectsPage")); // #8
+const AdminQueuePage = lazy(() => import("./pages/AdminQueuePage")); // T5-16, one queue across projects
 const AdminClientProjectDetailPage = lazy(() => import("./pages/AdminClientProjectDetailPage")); // #8
 
 // Phase B · Placeholders (backend pending — see each page for the API plan)
@@ -193,15 +207,68 @@ const AdminBlogFormPage = lazy(() => import("./pages/AdminBlogFormPage"));
 const AdminCampaignsPage = lazy(() => import("./pages/AdminCampaignsPage"));
 const AdminCampaignFormPage = lazy(() => import("./pages/AdminCampaignFormPage"));
 
-export default function App() {
-  const [appReady, setAppReady] = useState(false);
+/* ──────────────────────────────────────────────────────────────────────────
+ *  D3-3 · the member dashboard's child routes, defined ONCE and mounted at
+ *  both /dashboard and /es/dashboard.
+ *
+ *  The dashboard was not mirrored under /es. Language on this site is read
+ *  off the URL prefix — LanguageWrapper calls changeLanguage() from
+ *  detectLanguageFromPath() on every navigation — so /dashboard resolved to
+ *  "en" unconditionally and there was no URL a member could visit to see it
+ *  in Spanish. es/dashboard.json holds 1,078 translated keys; only the
+ *  handful under `portal` were reachable, through /es/portal/:token, which
+ *  IS mirrored. Everything else had never rendered.
+ *
+ *  A fragment rather than a duplicated block: React Router's
+ *  createRoutesFromChildren recurses through React.Fragment, so both mounts
+ *  get the same fourteen routes and neither can drift from the other.
+ *  ──────────────────────────────────────────────────────────────── */
+const dashboardChildRoutes = (
+  <>
+    <Route index element={<DashboardPage />} />
+    <Route path="products" element={<DashboardProductsPage />} />
+    <Route path="downloads" element={<DashboardDownloadsPage />} />
+    <Route path="orders" element={<DashboardOrdersPage />} />
+    <Route path="orders/:orderId" element={<DashboardOrderDetailPage />} />
+    <Route path="notifications" element={<DashboardNotificationsPage />} />
+    <Route path="consultations" element={<DashboardConsultationsPage />} />
+    <Route path="addresses" element={<DashboardAddressesPage />} />
+    <Route path="2fa" element={<Dashboard2FAPage />} />
+    <Route path="support" element={<DashboardSupportPage />} />
+    <Route path="service-orders" element={<DashboardServiceOrdersPage />} />
+    <Route path="projects" element={<DashboardProjectsPage />} />
+    <Route path="projects/:id" element={<DashboardProjectDetailPage />} />
+    <Route path="profile" element={<DashboardProfilePage />} />
+  </>
+)
 
+/* The React splash is gone, and so is the `appReady` gate that hid the app
+ * behind it. Both were solving a problem the inline boot splash in
+ * index.html solves properly.
+ *
+ * WHAT THEY COST. Measured under Lighthouse-mobile throttling: FCP was
+ * 4.10-4.22s on every page, because nothing could paint until ~338 KB of
+ * gzipped JS had arrived, parsed and run — main.jsx does not even call
+ * render() until the locale chunk resolves. The React splash then held the
+ * app at `opacity: 0` for another ~1.6 s on top of that, on every full page
+ * load, INCLUDING signed-in dashboard routes. On /services and /contact the
+ * largest-contentful-paint element was the splash's own rotating tagline,
+ * which is the clearest possible statement that the splash was the content.
+ *
+ * WHAT REPLACED THEM. `index.html` now carries a static, self-contained
+ * brand splash inside `#root`. The browser paints it as soon as the HTML
+ * lands, and React's `createRoot().render()` replaces the container's
+ * children — so it disappears at exactly the moment the app appears, with
+ * no timer, no cleanup and no window where two splashes overlap.
+ *
+ * The brand moment survives: same violet ground, same mark, same wordmark
+ * and tagline. It now starts at ~0.4 s instead of ~4.2 s, and it ends when
+ * the app is genuinely ready instead of when a 1.6 s interval says so. */
+export default function App() {
   return (
     <ErrorBoundary>
       <CookieConsentProvider>
-      {!appReady && <LoadingScreen onFinish={() => setAppReady(true)} />}
-
-      <div style={{ opacity: appReady ? 1 : 0, pointerEvents: appReady ? "auto" : "none", transition: "opacity 0.3s ease" }}>
+      <div>
         <Toaster />
         <CookieBanner />
         <FloatingContactButton />
@@ -221,6 +288,16 @@ export default function App() {
             <Route path="/about" element={<PublicShell><AboutPage /></PublicShell>} />
             <Route path="/services" element={<PublicShell><ServicesPage /></PublicShell>} />
             <Route path="/services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
+            {/* The full six-step engagement process, for prospects who arrive from a proposal link. */}
+            <Route path="/how-we-work" element={<PublicShell><HowWeWorkPage /></PublicShell>} />
+            {/* "Where is my project?", without a login. /track is the form;
+                /track/:code is the result, and both are noindex — a crawled
+                code would put a client's progress in a search result. */}
+            {/* Live service status. Served from public/ by Passenger without
+                Node, so it answers during exactly the outage it reports. */}
+            <Route path="/status" element={<PublicShell><StatusPage /></PublicShell>} />
+            <Route path="/track" element={<PublicShell><TrackPage /></PublicShell>} />
+            <Route path="/track/:code" element={<PublicShell><TrackPage /></PublicShell>} />
             <Route path="/schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
             {/* Public lead magnet — the Services hero links here for visitors. */}
             <Route path="/self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
@@ -289,7 +366,10 @@ export default function App() {
             <Route path="/auth/microsoft/return" element={<MicrosoftReturnPage />} />
             <Route path="/auth/facebook/return"  element={<FacebookReturnPage />} />
 
-            {/* Member dashboard */}
+            {/* Member dashboard · mounted at BOTH /dashboard and
+                /es/dashboard from one definition (see dashboardChildRoutes
+                above the component). D3-3: it was English-only at /dashboard
+                and there was no URL that could make it Spanish. */}
             <Route
               path="/dashboard"
               element={
@@ -298,20 +378,7 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<DashboardPage />} />
-              <Route path="products" element={<DashboardProductsPage />} />
-              <Route path="downloads" element={<DashboardDownloadsPage />} />
-              <Route path="orders" element={<DashboardOrdersPage />} />
-              <Route path="orders/:orderId" element={<DashboardOrderDetailPage />} />
-              <Route path="notifications" element={<DashboardNotificationsPage />} />
-              <Route path="consultations" element={<DashboardConsultationsPage />} />
-              <Route path="addresses" element={<DashboardAddressesPage />} />
-              <Route path="2fa" element={<Dashboard2FAPage />} />
-              <Route path="support" element={<DashboardSupportPage />} />
-              <Route path="service-orders" element={<DashboardServiceOrdersPage />} />
-              <Route path="projects" element={<DashboardProjectsPage />} />
-              <Route path="projects/:id" element={<DashboardProjectDetailPage />} />
-              <Route path="profile" element={<DashboardProfilePage />} />
+              {dashboardChildRoutes}
             </Route>
 
             {/* Admin */}
@@ -358,6 +425,7 @@ export default function App() {
               <Route path="consultations" element={<AdminConsultationsPage />} />
               <Route path="service-orders" element={<AdminServiceOrdersPage />} />
               <Route path="service-orders/:id" element={<AdminServiceOrderDetailPage />} />
+              <Route path="queue" element={<AdminQueuePage />} />
               <Route path="client-projects" element={<AdminClientProjectsPage />} />
               <Route path="client-projects/new" element={<AdminClientProjectDetailPage />} />
               <Route path="client-projects/:id" element={<AdminClientProjectDetailPage />} />
@@ -384,9 +452,12 @@ export default function App() {
                 Mirrors every public English route so users at, e.g.,
                 /es/about see the AboutPage component with i18n.language
                 set to "es" by the LanguageWrapper layout route below.
-                Admin and dashboard routes are intentionally NOT mirrored
-                — operator surfaces remain English-only per the locked
-                I18N03 Step 4 decision.
+                Admin routes are intentionally NOT mirrored — those
+                surfaces are English-only by convention. The member
+                dashboard IS mirrored (D3-3); it is a customer surface with
+                a complete Spanish translation, and the earlier reading of
+                the I18N03 Step 4 decision as covering it is what left that
+                translation unreachable.
                 ──────────────────────────────────────────────────────── */}
             <Route path="/es" element={<LanguageWrapper />}>
               {/* Public */}
@@ -395,6 +466,10 @@ export default function App() {
               <Route path="services" element={<PublicShell><ServicesPage /></PublicShell>} />
               <Route path="services/:slug" element={<PublicShell><ServiceDetailPage /></PublicShell>} />
               <Route path="schools" element={<PublicShell><SchoolsPage /></PublicShell>} />
+              <Route path="how-we-work" element={<PublicShell><HowWeWorkPage /></PublicShell>} />
+              <Route path="track" element={<PublicShell><TrackPage /></PublicShell>} />
+              <Route path="status" element={<PublicShell><StatusPage /></PublicShell>} />
+              <Route path="track/:code" element={<PublicShell><TrackPage /></PublicShell>} />
               <Route path="contact" element={<PublicShell><ContactPage /></PublicShell>} />
               <Route path="self-audit" element={<PublicShell><SelfAuditPage /></PublicShell>} />
               <Route path="portfolio" element={<PublicShell><PortfolioPage /></PublicShell>} />
@@ -446,6 +521,24 @@ export default function App() {
               <Route path="auth/google/return"    element={<GoogleReturnPage />} />
               <Route path="auth/microsoft/return" element={<MicrosoftReturnPage />} />
               <Route path="auth/facebook/return"  element={<FacebookReturnPage />} />
+
+              {/* Member dashboard · D3-3.
+                  ADMIN is still not mirrored and should not be: admin.json is
+                  86 bytes and no admin page calls useTranslation, so those
+                  screens are English by convention. The MEMBER dashboard is
+                  not an operator surface — it has 1,078 translated Spanish
+                  keys — and lumping the two together under "operator UIs stay
+                  English" is what kept every one of them off the screen. */}
+              <Route
+                path="dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                {dashboardChildRoutes}
+              </Route>
 
               {/* Admin and Dashboard intentionally NOT mirrored — operator UIs stay English. */}
             </Route>

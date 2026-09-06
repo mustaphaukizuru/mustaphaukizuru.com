@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react"
-import { Link, useNavigate, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { LocalizedLink as Link } from "./LocalizedLink"
+import useNavigate from "../hooks/useLocalizedNavigate"
 import {
   LayoutDashboard, User, LogOut, Shield,
   ChevronDown, ShoppingBag, Bell,

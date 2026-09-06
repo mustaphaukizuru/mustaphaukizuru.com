@@ -96,6 +96,17 @@ export function setMarketingConsent(allowed) {
   // symmetrically alongside setAnalyticsConsent and we keep one wiring path.
 }
 
+/**
+ * Has the visitor opted into the analytics category?
+ *
+ * Exported for callers that are first-party and therefore have no gtag to
+ * check — lib/vitals.js posts to our own endpoint, so `canTrack()` below
+ * (which also requires gtag to have loaded) would be the wrong question.
+ */
+export function hasAnalyticsConsent() {
+  return consentSnapshot.analytics === true
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function canTrack() {
   return consentSnapshot.analytics

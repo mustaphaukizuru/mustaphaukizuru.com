@@ -128,7 +128,13 @@ export default function LanguageSwitcher({ variant = "default", tone = "light", 
 
   if (variant === "text") {
     const activeClass = isDark ? "text-terracotta" : "text-violet";
-    const inactiveClass = isDark ? "text-white/65 hover:text-white" : "text-charcoal/55 hover:text-violet";
+    // D4-2 · was `text-charcoal/55`, which composites to #818286 on white:
+    // 3.83:1 at 12px, so axe flags it wherever this variant sits on a light
+    // ground — the footer, the mobile menu, and now the dashboard header.
+    // /70 measures 6.34:1 and is still visibly the unselected half next to
+    // the violet active state. The dark tone is left alone: white/65 on
+    // charcoal-deep is 8.35:1, and the only dark call site is the footer.
+    const inactiveClass = isDark ? "text-white/65 hover:text-white" : "text-charcoal/70 hover:text-violet";
     const dotClass = isDark ? "text-white/35" : "text-charcoal/30";
     return (
       <div role="group" aria-label={t("language.ariaSelector")} className={"inline-flex items-center gap-1.5 text-[12px] " + className}>

@@ -20,7 +20,9 @@ import { m, AnimatePresence, useReducedMotion } from "framer-motion"
  *   - Admin / dashboard routes (incl. `/es/...` prefixed) are keyed on a
  *     constant so navigating inside those shells never animates.
  *   - Scroll: nothing here touches scroll — ScrollToTopOnNavigate (or Lenis)
- *     keeps its own behaviour; the container is `willChange` only.
+ *     keeps its own behaviour. The container carries NO `will-change`:
+ *     a persistent one makes this a containing block for every
+ *     `position: fixed` descendant in the app. See the note below.
  *   - Shared elements: cards use `layoutId="product-cover-<slug>"` /
  *     `"project-cover-<slug>"` and the detail pages carry the same id, so the
  *     cover flies into the hero while the page cross-fades.
@@ -63,7 +65,27 @@ export default function PageTransition({ children }) {
           initial="initial"
           animate="animate"
           exit="exit"
-          style={{ willChange: "opacity, transform" }}
+          /* NO `willChange` here, and that is a fix rather than an omission.
+           *
+           * This wrapper contains every route in the app, and a persistent
+           * `will-change: transform` makes it a CONTAINING BLOCK for
+           * `position: fixed` descendants. So nothing fixed inside a page
+           * was ever fixed to the VIEWPORT — it was fixed to the document.
+           * Measured on the dashboard at 375x812:
+           *
+           *   the mobile bottom tab bar   top: 1901px, off-screen at every
+           *                               scroll position. The primary
+           *                               navigation on a phone was invisible.
+           *   the mobile nav drawer       2003px tall, with the theme control
+           *                               at y=1873 and SIGN OUT at y=1943,
+           *                               both unreachable.
+           *   the cookie banner           floating mid-page over the cards
+           *                               instead of pinned to the bottom.
+           *
+           * Framer Motion sets and clears `will-change` around its own
+           * animations; hardcoding it in `style` keeps it forever and buys
+           * a GPU hint for a 240ms cross-fade at the cost of every fixed
+           * overlay in the product. */
         >
           {children}
         </m.div>

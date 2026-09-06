@@ -5,6 +5,11 @@
 // a standalone chunk. Never import it statically from application code —
 // doing so would drag ~150 KB of Spanish JSON back into the entry bundle.
 //
+// `audit` and `dashboard` are deliberately absent: both are route-scoped
+// and loaded by ensureNamespace() when their route mounts
+// (LAZY_NAMESPACES in resources.js). Adding either back puts it on every
+// page's critical path — 6.6 KB for audit, 50 KB for dashboard.
+//
 // Add a new namespace here AND in resources.en.js AND in NAMESPACES
 // (resources.js) when you create the corresponding JSON file.
 
@@ -17,14 +22,12 @@ import product from "./locales/es/product.json"
 import cart from "./locales/es/cart.json"
 import checkout from "./locales/es/checkout.json"
 import auth from "./locales/es/auth.json"
-import dashboard from "./locales/es/dashboard.json"
 import admin from "./locales/es/admin.json"
 import contact from "./locales/es/contact.json"
 import portfolio from "./locales/es/portfolio.json"
 import legal from "./locales/es/legal.json"
 import errors from "./locales/es/errors.json"
 import blog from "./locales/es/blog.json"
-import audit from "./locales/es/audit.json"
 import schools from "./locales/es/schools.json"
 
 export default {
@@ -37,13 +40,11 @@ export default {
   cart,
   checkout,
   auth,
-  dashboard,
   admin,
   contact,
   portfolio,
   legal,
   errors,
   blog,
-  audit,
   schools,
 }

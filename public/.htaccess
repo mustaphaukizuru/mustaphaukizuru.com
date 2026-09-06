@@ -44,6 +44,37 @@ ErrorDocument 504 /503.html
   RewriteCond %{DOCUMENT_ROOT}/maintenance.flag -f
   RewriteCond %{REQUEST_URI} !^/(404|500|503)\.html$
   RewriteRule ^ - [R=503,L]
+
+  # ── Canonical URL (T2-6) ────────────────────────────────────────────────
+  # One URL per page, or the same content competes with itself in the index
+  # and every share link splits its signals across variants. These sit AFTER
+  # the maintenance rule on purpose: during a deploy window a request should
+  # get the 503 immediately, not a redirect to a host that is also 503.
+  #
+  # Ordered https → apex → trailing slash so a request needing all three is
+  # normalised in three hops at most, each one permanent and cacheable.
+
+  # 1 · https. The host already does this at the edge; stating it here means
+  # the rule survives a proxy or CDN change that stops doing it silently.
+  # X-Forwarded-Proto is checked too: behind a terminating proxy %{HTTPS} is
+  # "off" for an already-secure request, and redirecting that is a loop.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # 2 · apex, not www. Chosen because every canonical, hreflang and OG URL
+  # the app emits is apex (web/src/seo/siteSeo.js SITE_URL), so www would
+  # contradict the page's own canonical tag.
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+  # 3 · no trailing slash, except the root. `!-d` keeps real directories
+  # working: Apache serves a directory only when the URL ends in a slash, so
+  # stripping it unconditionally would break /assets/ and anything else that
+  # exists on disk. QSA preserves campaign parameters through the redirect —
+  # dropping utm_* on a canonicalisation is how attribution goes missing.
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.+)/$ /$1 [R=301,L,QSA]
 </IfModule>
 
 # Standard caching headers — the error pages rarely change, but we don't

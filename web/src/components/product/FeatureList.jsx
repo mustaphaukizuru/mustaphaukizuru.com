@@ -158,7 +158,10 @@ export function DescriptionWithFade({
   fullDescription,
   shortDescription,
   collapsedHeight = 240,
-  fadeColor = "248, 250, 252", // --mist #F8FAFC
+  /* The scroll-fade gradient is built in JS, so it needs channels rather
+     than a colour. Reading them from the token means the fade follows
+     --color-mist instead of a copy of it that can drift. */
+  fadeColor = "var(--color-mist-rgb)",
 }) {
   const { t } = useTranslation("product")
   const [expanded, setExpanded] = useState(false)
@@ -190,7 +193,7 @@ export function DescriptionWithFade({
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
             style={{
-              background: `linear-gradient(to bottom, rgba(${fadeColor}, 0) 0%, rgba(${fadeColor}, 0.85) 60%, rgba(${fadeColor}, 1) 100%)`,
+              background: `linear-gradient(to bottom, rgb(${fadeColor} / 0) 0%, rgb(${fadeColor} / 0.85) 60%, rgb(${fadeColor} / 1) 100%)`,
             }}
           />
         )}

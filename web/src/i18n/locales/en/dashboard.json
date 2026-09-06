@@ -42,7 +42,9 @@
       "files_one": "{{count}} file",
       "files_other": "{{count}} files",
       "milestones": "Milestones",
-      "open": "Open project"
+      "open": "Open project",
+      "expired": "Archived",
+      "expiredBody": "This project's access window has ended. Contact support if you still need its files."
     },
     "detail": {
       "back": "Back to projects",
@@ -132,7 +134,9 @@
         "roleTeam": "Team",
         "roleClient": "Client",
         "resolved": "Resolved",
-        "readOnly": "This project is read-only; new messages are disabled."
+        "readOnly": "This project is read-only; new messages are disabled.",
+        "replyToggle": "Reply",
+        "commentToggle": "Comment on this milestone"
       },
       "access": {
         "suspendedTitle": "Project paused — an invoice is overdue",
@@ -152,7 +156,8 @@
         "changesRequested": "Your change request was sent to the team.",
         "uploaded": "Files uploaded.",
         "failed": "Something went wrong. Please try again."
-      }
+      },
+      "sectionNavAria": "Jump to a section"
     },
     "review": {
       "title": "How did this project go?",
@@ -166,7 +171,10 @@
       "thanks": "Thank you — your review has been received.",
       "failed": "We could not save your review. Please try again.",
       "doneTitle": "Thanks for your review",
-      "doneBody": "You rated this project {{rating}}/5."
+      "doneBody": "You rated this project {{rating}}/5.",
+      "pulseQuestion": "How did working with us go?",
+      "pulseValue": "{{n}} out of 5",
+      "pulseScale": "1 = badly · 5 = very well"
     },
     "changeRequests": {
       "title": "Request extra work",
@@ -270,7 +278,97 @@
         "created": "Ticket opened. We'll get back to you soon.",
         "replied": "Reply sent."
       }
-    }
+    },
+    "messages": {
+      "title": "Messages",
+      "subtitle": "Ask a question, report a problem or request extra work — all in one place.",
+      "new": "New message",
+      "readOnly": "This project is closed, so nothing new can be posted here.",
+      "openThread": "Open the thread",
+      "empty": "Nothing here yet",
+      "emptyBody": "Questions, problems and requests for extra work all appear in this one list.",
+      "openThreadLabel": "Open ticket {{subject}}",
+      "compose": {
+        "type": "What is this about?",
+        "question": "A question",
+        "problem": "A problem",
+        "extra": "Extra work",
+        "questionHint": "Goes straight to the project thread. We answer here.",
+        "problemHint": "Opens a numbered ticket you can follow, and you can attach files.",
+        "extraHint": "Work outside what we agreed. We quote it first — nothing starts until you accept.",
+        "questionPlaceholder": "Ask us anything about the project…",
+        "problemPlaceholder": "What happened, what you expected, and where you saw it.",
+        "extraPlaceholder": "Describe the extra work you need and why."
+      },
+      "kind": {
+        "question": "Question",
+        "problem": "Problem",
+        "extra": "Extra work"
+      },
+      "sent": {
+        "question": "Sent — we will answer here."
+      }
+    },
+    "secrets": {
+      "title": "Credentials",
+      "subtitle": "Passwords and keys travel here, not as files or in email. Each one can be read once and is then destroyed.",
+      "send": "Send a credential",
+      "reveal": "Reveal once",
+      "readOnly": "This project is closed, so nothing new can be sent.",
+      "empty": "Nothing waiting",
+      "emptyBody": "If we ask you for a password or an access key, send it here rather than by email — it is encrypted, read once, and then gone.",
+      "onceWarning": "You can read this exactly once. Have somewhere to paste it before you click.",
+      "onlyTime": "This is the only time it will be shown. Our copy has already been destroyed.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "expiresOn": "expires {{date}}",
+      "sentOn": "sent {{date}}",
+      "revealError": "That credential could not be read. It may already have been opened or expired.",
+      "sendError": "We could not store that. Please try again.",
+      "state": {
+        "pending": "Waiting",
+        "viewed": "Read",
+        "expired": "Expired"
+      },
+      "form": {
+        "label": "What it is",
+        "labelPlaceholder": "cPanel password · WordPress admin · registrar login",
+        "value": "The credential",
+        "valuePlaceholder": "Paste it exactly as it is.",
+        "hint": "Encrypted before it is stored, readable once by us, and never written to a file. Do not put the value in the label.",
+        "submit": "Send securely"
+      }
+    },
+    "hours": {
+      "title": "Hours",
+      "plan": "{{plan}} — {{hours}} h included each month.",
+      "noPlan": "This plan has no monthly hour allowance, so these are the hours as they were logged.",
+      "usedOf": "{{used}} h used of {{included}} h · {{remaining}} h left",
+      "usedOver": "{{used}} h used of {{included}} h · {{over}} h over the plan",
+      "usedOnly": "{{used}} h logged",
+      "plusFree": "{{hours}} h at no charge",
+      "noCharge": "no charge",
+      "hoursValue": "{{hours}} h",
+      "barLabel": "{{used}} of {{included}} hours used",
+      "defaultNote": "Project work",
+      "emptyMonth": "No hours were logged this month.",
+      "statementNamed": "Statement for {{month}}",
+      "empty": "No hours logged",
+      "emptyBody": "When we log time on this project it appears here, month by month."
+    },
+    "panelError": {
+      "title": "Some of this page could not be loaded",
+      "body": "{{names}} did not load, so what you see below may be incomplete. Nothing is lost — try again.",
+      "retry": "Try again",
+      "names": {
+        "events": "Activity",
+        "requests": "Documents we need",
+        "invoices": "Invoices",
+        "secrets": "Credentials",
+        "hours": "Hours"
+      }
+    },
+    "progressLabel": "Project progress: {{percent}}%"
   },
   "serviceOrders": {
     "errors": {
@@ -968,7 +1066,8 @@
         "phone": "Phone",
         "country": "Country",
         "bio": "Short bio"
-      }
+      },
+      "progressLabel": "Profile {{percent}}% complete"
     },
     "kpi": {
       "orders": "Orders",
@@ -1088,7 +1187,9 @@
   "notifDropdown": {
     "markAllRead": "Mark all read",
     "allCaughtUp": "All caught up",
-    "noNotifs": "No notifications yet"
+    "noNotifs": "No notifications yet",
+    "unread_one": "{{count}} unread",
+    "unread_other": "{{count}} unread"
   },
   "notificationsPage": {
     "eyebrow": "Activity",
@@ -1134,7 +1235,6 @@
     "memberAreaSubtitle": "Your digital product hub",
     "memberDashboard": "Member Dashboard",
     "openMenu": "Open menu",
-    "searchDashboard": "Search dashboard",
     "openSupport": "Open support",
     "quickNav": "Quick navigation",
     "profileTabsAria": "Account sections",
@@ -1153,7 +1253,9 @@
       "support": "Help and tickets",
       "profile": "Details, addresses, security"
     },
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "breadcrumbRoot": "Dashboard",
+    "language": "Language"
   },
   "portal": {
     "eyebrow": "Client portal",
@@ -1238,5 +1340,124 @@
     "agree": "Accept and continue",
     "accepting": "Recording…",
     "failed": "We couldn't record your acceptance. Please try again."
+  },
+  "track": {
+    "seoTitle": "Track your project",
+    "seoDescription": "Enter your tracking code to see where your project stands.",
+    "title": "Track your project",
+    "intro": "Enter the tracking code from your invoice or your welcome email to see where things stand. No sign-in needed.",
+    "placeholder": "MU-XXXX-XXXX",
+    "inputLabel": "Tracking code",
+    "submit": "Track",
+    "hint": "The code looks like MU-7K4C-9XQF. It is on your invoice and in every project email we send.",
+    "loading": "Looking up that code…",
+    "error": "Something went wrong on our side. Try again in a moment.",
+    "missingTitle": "No project matches that code",
+    "missingBody": "Check the code against your invoice — it is eight characters after the MU. If it is right, the project may have closed some time ago; email us and we will help.",
+    "anotherCode": "Track a different code",
+    "reference": "Reference",
+    "copy": "Copy code",
+    "copied": "Copied",
+    "startedOn": "Started {{date}}",
+    "notStarted": "Not started yet",
+    "dueOn": "due {{date}}",
+    "progress": "Progress",
+    "cancelled": "This project was cancelled. If that is unexpected, please get in touch.",
+    "phase": {
+      "planning": "Planning",
+      "in_progress": "In progress",
+      "review": "Review",
+      "completed": "Complete"
+    },
+    "waitingOnYou_one": "1 document is waiting on you",
+    "waitingOnYou_other": "{{count}} documents are waiting on you",
+    "waitingBody": "Sign in or open the client portal to upload them. We cannot move on until they land.",
+    "milestones": "Milestones",
+    "activity": "Activity",
+    "doorPortal": "Client portal",
+    "doorPortalBody": "No account needed. We email a one-time PIN to the address on the project.",
+    "doorDashboard": "Your dashboard",
+    "doorDashboardBody": "Sign in to upload documents, comment and approve milestones.",
+    "moreTitle": "No code to hand?",
+    "moreBody": "Everything is in your dashboard if you have an account with us, and we are always happy to look it up for you.",
+    "openDashboard": "Open my dashboard",
+    "askUs": "Ask us",
+    "health": {
+      "on_track": "On schedule",
+      "at_risk": "Running behind the agreed date",
+      "late": "Past its date",
+      "lateCount_one": "1 milestone is past its date",
+      "lateCount_other": "{{count}} milestones are past their dates",
+      "expected": "Next expected {{date}}"
+    },
+    "timezone": "Times shown in {{zone}}",
+    "rescheduled": "Date moved",
+    "door": {
+      "sendPin": "Email me a PIN",
+      "sent": "We sent a 6-digit PIN to the address on this project.",
+      "sentTo": "We sent a 6-digit PIN to {{email}}.",
+      "pinLabel": "6-digit PIN",
+      "open": "Open",
+      "failed": "We could not send the PIN. Try again in a moment.",
+      "pinFailed": "That PIN is wrong or has expired. Ask for a new one.",
+      "emailLabel": "Your email (optional)",
+      "emailPlaceholder": "you@yourschool.mx",
+      "emailHint": "Leave it blank and the PIN goes to the address on the project. Enter yours only if you were added to it — any other address falls back to the project's own."
+    }
+  },
+  "timeline": {
+    "emptyTitle": "Nothing here yet",
+    "emptyBody": "Updates appear here as work progresses — usually within a day or two of kick-off.",
+    "more_one": "1 earlier update not shown",
+    "more_other": "{{count}} earlier updates not shown"
+  },
+  "fileRequests": {
+    "title": "Documents we need",
+    "emptyTitle": "Nothing to send",
+    "emptyBody": "We are not waiting on any documents from you right now.",
+    "openCount_one": "1 document is still outstanding.",
+    "openCount_other": "{{count}} documents are still outstanding.",
+    "upload": "Upload",
+    "uploaded": "Thank you — we have it.",
+    "uploadFailed": "That upload did not go through. Please try again.",
+    "due": "Due {{date}}",
+    "accepts": "Accepts {{list}}",
+    "tooMany": "Please send at most {{max}} files at a time.",
+    "tooBig": "{{name}} is over the {{max}} MB limit.",
+    "wrongType": "{{name}} is not one of the accepted types ({{accept}}).",
+    "status": {
+      "requested": "Requested",
+      "submitted": "In review",
+      "rejected": "Needs changes",
+      "accepted": "Accepted",
+      "cancelled": "Cancelled"
+    }
+  },
+  "invoices": {
+    "title": "Invoices",
+    "caption": "Invoices for this project",
+    "emptyTitle": "No invoices yet",
+    "emptyBody": "Nothing has been billed on this project so far.",
+    "number": "Invoice",
+    "issued": "Issued",
+    "dueDate": "Due",
+    "total": "Total",
+    "statusLabel": "Status",
+    "download": "Download",
+    "downloadNamed": "PDF {{number}}",
+    "outstanding_one": "1 invoice outstanding, {{amount}}.",
+    "outstanding_other": "{{count}} invoices outstanding, {{amount}} in total.",
+    "outstandingDue_one": "1 invoice outstanding, {{amount}}, due {{date}}.",
+    "outstandingDue_other": "{{count}} invoices outstanding, {{amount}} in total, next due {{date}}.",
+    "status": {
+      "draft": "Draft",
+      "issued": "Issued",
+      "overdue": "Overdue",
+      "paid": "Paid",
+      "void": "Void"
+    },
+    "payLabel": "Pay",
+    "payNamed": "Pay {{number}}",
+    "payError": "We could not start the payment. Please try again."
   }
 }

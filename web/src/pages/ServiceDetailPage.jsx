@@ -2,19 +2,23 @@
  * ServiceDetailPage — route /services/:slug  (one of the 4 categories)
  *
  * Outcome-first intro → offerings → how it works → FAQ → single CTA.
- * Content comes from the static catalogue (docs/SERVICE_CATALOGUE_2026-08.md);
+ * Content comes from the static catalogue (data/servicesCatalogue.js);
  * the API `Service` row (same slug) is fetched only for SEO overrides.
  * Legacy slugs / SKU ids are redirected to their canonical category.
  * ──────────────────────────────────────────────────────────────────────────── */
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useParams, Link, useNavigate } from "react-router-dom"
+import { useParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useNavigate from "../hooks/useLocalizedNavigate"
 import { AlertCircle, ArrowLeft, ChevronRight, Clock, ShieldCheck, Sparkles } from "lucide-react"
 import Seo from "../components/seo/Seo"
 import { serviceSchema, breadcrumbSchema, faqSchema } from "../seo/schemas"
 import { getCategoryBySlug, CATEGORY_FAQS, CATEGORIES } from "../data/servicesCatalogue"
 import { fetchServiceBySlug } from "../services/serviceService"
 import { Container, EyebrowChip, SectionHeader } from "../components/services/Primitives"
+import MediaSlot from "../components/ui/MediaSlot"
+import { accentFor } from "../components/ui/accent"
 import OfferingList from "../components/services/OfferingList"
 import HowItWorks from "../components/services/HowItWorks"
 import ServiceDemo from "../components/services/demos/ServiceDemo"
@@ -116,6 +120,22 @@ export default function ServiceDetailPage() {
                 </span>
               </div>
             </div>
+            <div className="space-y-5">
+            {/* Category hero. Same file the CategoryCard uses, so one asset
+                serves the grid and the detail page, and the 24 offerings
+                under this category inherit it. `loading="eager"` because at
+                lg this sits above the fold and is the LCP candidate. */}
+            <MediaSlot
+              src={`/images/services/${category.slug}.jpg`}
+              alt={name}
+              seed={category.slug}
+              accent={accentFor(category.accent)}
+              aspectRatio="16 / 10"
+              widths={[400, 800, 1200]}
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              loading="eager"
+              fetchPriority="high"
+            />
             <div className="rounded-2xl border border-violet/15 bg-gradient-to-br from-violet-ghost to-white p-6">
               <div className="flex items-center gap-3">
                 <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl text-white ${category.tile}`}>
@@ -131,6 +151,7 @@ export default function ServiceDetailPage() {
                 <li className="flex gap-2"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-violet" aria-hidden="true" />{t("funnel.detail.point2")}</li>
                 <li className="flex gap-2"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-violet" aria-hidden="true" />{t("funnel.detail.point3")}</li>
               </ul>
+            </div>
             </div>
           </div>
         </Container>
@@ -177,7 +198,7 @@ export default function ServiceDetailPage() {
           <h2 className="mx-auto mt-3 max-w-2xl text-section font-bold">{t("funnel.detail.finalTitle", { name })}</h2>
           <p className="mx-auto mt-3 max-w-xl text-body text-white/80">{t("funnel.final.body")}</p>
           <div className="mt-8"><BookCallButton slug={category.slug} tone="white" size="lg" /></div>
-          <div className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[13px] text-white/70">
+          <div className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[13px] text-white/85">
             <span>{t("funnel.detail.otherCategories")}</span>
             {others.map((c) => (
               <Link key={c.slug} to={`/services/${c.slug}`} className="underline-offset-4 hover:text-white hover:underline">

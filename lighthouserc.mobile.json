@@ -6,6 +6,7 @@
         "http://localhost:5097/",
         "http://localhost:5097/about",
         "http://localhost:5097/services",
+        "http://localhost:5097/schools",
         "http://localhost:5097/store",
         "http://localhost:5097/contact",
         "http://localhost:5097/privacy",

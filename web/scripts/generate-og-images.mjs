@@ -39,6 +39,45 @@ const STATIC = [
   { file: "og-privacy.png", eyebrow: "Legal", title: "Privacy Policy.", subtitle: SITE.domain },
   { file: "og-refund.png", eyebrow: "Legal", title: "Refund Policy — 30-day guarantee.", subtitle: SITE.domain },
   { file: "og-cookies.png", eyebrow: "Legal", title: "Cookie Policy.", subtitle: SITE.domain },
+
+  /* One card per service category, written to og/services/<slug>.png.
+   *
+   * That path is not a new convention — `fallbackOgImage(kind, slug)` in
+   * src/middleware/ogInjector.js has always looked for
+   * `/og/<kind>/<slug>.png` and fallen back to the generic card when the
+   * file was absent. No such file existed, so it always fell back.
+   *
+   * Which is why the first version of this named them
+   * `og-service-<slug>.png` and pointed pageSeo.js at them, and it changed
+   * nothing for crawlers. Measured with a Facebook user-agent:
+   * /services/ai-automation returned og-default.png, while /about correctly
+   * returned og-profile.png. The difference is that /services/:slug matches
+   * ROUTE_RE and takes the DATABASE path — where no Service row has an
+   * image column populated — so it never consults the static map that
+   * pageSeo feeds. Naming the files what the injector already looks for is
+   * the fix; there is no new branch.
+   *
+   * All four pages had their own title and description and all four shared
+   * one image, so a WhatsApp or LinkedIn share — often the first thing a
+   * prospect sees of a service — was the generic one.
+   *
+   * The eyebrow carries the category and the title carries its outcome
+   * sentence rather than its name: a share card is read cold, with no page
+   * around it, so "Cut wasted software spend…" earns the click and "IT
+   * Strategy Consulting" does not. The outcome text is the same string the
+   * category card and the detail hero use. */
+  { file: "services/it-strategy-consulting.png", eyebrow: "IT Strategy Consulting",
+    title: "Cut wasted software spend and get a sequenced technology roadmap.",
+    subtitle: "Independent senior advice on what to keep, what to cut, and what to build next.", accent: true },
+  { file: "services/ai-automation.png", eyebrow: "AI & Workflow Automation",
+    title: "Answer customers faster and turn documents into clean data.",
+    subtitle: "Custom assistants, API pipelines and extraction workflows — without adding headcount.", accent: true },
+  { file: "services/cloud-architecture-migration.png", eyebrow: "Cloud Architecture & Migration",
+    title: "Move it to the cloud without breaking it.",
+    subtitle: "Migration planning, cost control and infrastructure that survives its first bad day.", accent: true },
+  { file: "services/digital-product-engineering.png", eyebrow: "Digital Product Engineering",
+    title: "Built, shipped, and handed over — not left half-finished.",
+    subtitle: "Web platforms and internal tools, delivered with documentation and a real handover.", accent: true },
 ]
 
 /* ─── social banner set ──────────────────────────────────────────────── */

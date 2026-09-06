@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useRef, useState } from "react"
-import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
-import { formatDate } from "../lib/format"
+import { useParams, useSearchParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useLocalizedNavigate from "../hooks/useLocalizedNavigate"
+import { formatDate, formatDay } from "../lib/format"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
 import {
@@ -9,7 +11,6 @@ import {
 import {
   fetchMyProject, uploadMyProjectFiles, postMyProjectComment,
   approveMyMilestone, requestMyMilestoneChanges, acceptMyProjectAgreement, postProjectReview,
-  fetchMyChangeRequests, createMyChangeRequest, acceptMyChangeRequest, declineMyChangeRequest,
 } from "../services/clientProjectService"
 import useApiQuery from "../hooks/useApiQuery"
 import { SkeletonCard, Button, Modal, Textarea, Select, Input, InlineBanner } from "../components/ui/index"
@@ -17,7 +18,17 @@ import StatusPill from "../components/admin/StatusPill"
 import { API_BASE_URL } from "../lib/api"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
 import { useToast } from "../context/ToastContext"
-import ProjectSupportPanel from "../components/projects/ProjectSupportPanel"
+import MessagesPanel from "../components/projects/MessagesPanel"
+// T5-5 · the three panels shared with the PIN portal and (for the
+// timeline) the anonymous /track page. useProjectPanels owns the only
+// difference between the two surfaces: which endpoint answers.
+import ProjectTimeline from "../components/projects/ProjectTimeline"
+import FileRequestPanel from "../components/projects/FileRequestPanel"
+import ProjectInvoices from "../components/projects/ProjectInvoices"
+import SecretsPanel from "../components/projects/SecretsPanel"
+import HoursLedger from "../components/projects/HoursLedger"
+import PanelLoadError from "../components/projects/PanelLoadError"
+import useProjectPanels from "../hooks/useProjectPanels"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
 const MAX_FILES = 10
@@ -32,7 +43,13 @@ const ALLOWED_EXT = new Set([
 const IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp"])
 const EXPIRED = Symbol("expired")
 
+// D0-2 · fmtDay for a calendar day somebody PICKED (dueDate,
+// startDate, estimatedAt), fmtDate for an instant the server stamped.
+// The date-only fields are stored as midnight UTC, so rendering them in
+// the browser's timezone showed the previous day to every reader west of
+// Greenwich — "Due Sep 30" for 1 October, across the whole home market.
 const fmtDate = (d) => d ? formatDate(d) : "—"
+const fmtDay = (d) => d ? formatDay(d) : "—"
 const fmtDateTime = (d) => d ? new Date(d).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""
 const extOf = (name) => {
   const i = String(name || "").lastIndexOf(".")
@@ -90,6 +107,12 @@ export default function DashboardProjectDetailPage() {
     { enabled: Boolean(id), select: (data) => data || null }
   )
 
+  // T5-5 · above the early returns, because hooks are. The three panel
+  // fetches are independent of the project payload and each falls back to
+  // empty on its own, so an expired or NDA-gated project simply renders
+  // empty panels rather than failing the page.
+  const panels = useProjectPanels("member", id)
+
   const milestoneLabel = useCallback((status) => {
     const key = `projects.detail.status.${status}`
     const label = t(key)
@@ -104,7 +127,7 @@ export default function DashboardProjectDetailPage() {
         <BackLink t={t} />
         <div className={`${CARD} text-center`}>
           <Lock className="mx-auto h-8 w-8 text-charcoal-80" aria-hidden="true" />
-          <h1 className="mt-3 text-card font-bold text-violet">{t("projects.detail.expired.title")}</h1>
+          <h2 className="mt-3 text-card font-bold text-violet">{t("projects.detail.expired.title")}</h2>
           <p className="mt-1 text-meta text-charcoal-80/65">{t("projects.detail.expired.body")}</p>
         </div>
       </section>
@@ -125,6 +148,9 @@ export default function DashboardProjectDetailPage() {
 
   const access = project.access || { readOnly: false, isClosed: false, expiresAt: null, state: "active" }
   const readOnly = Boolean(access.readOnly)
+  // Hoisted out of the JSX so the jump bar and the section cannot disagree
+  // about whether there is an hours block to point at.
+  const showHours = Boolean(panels.hours?.allowance || panels.hours?.months?.some((m) => m.entries.length > 0))
   const suspended = access.state === "suspended"
   const handover = access.state === "handover"
   const milestones = project.milestones || []
@@ -222,32 +248,58 @@ export default function DashboardProjectDetailPage() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <Briefcase className="h-5 w-5 text-violet" aria-hidden="true" />
-              <h1 className="text-card font-bold text-violet">{project.projectName}</h1>
+              <h2 className="text-card font-bold text-violet">{project.projectName}</h2>
               <StatusPill status={project.projectStatus} />
             </div>
             {project.description && (
               <p className="mt-2 max-w-2xl text-meta text-charcoal-80/75">{project.description}</p>
             )}
-            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/65">
-              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDate(project.startDate) })}</span>
-              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDate(project.dueDate) })}</span>
+            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-meta text-charcoal-80/65">
+              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDay(project.startDate) })}</span>
+              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDay(project.dueDate) })}</span>
               {project.assignedAdmin && (
                 <span><UserIcon className="mr-1 inline h-3 w-3" />{t("projects.detail.lead", { name: project.assignedAdmin.fullName })}</span>
               )}
             </div>
           </div>
           <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
+            <div className="font-mono text-micro uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
             <div className="font-mono text-display font-bold tabular-nums text-violet">{pct}%</div>
           </div>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-violet-pale" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+        <div
+          className="mt-4 h-2 overflow-hidden rounded-full bg-violet-pale"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t("projects.progressLabel", { percent: pct })}
+        >
           <div className="h-full rounded-full bg-violet transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
       </div>
 
+      {/* D6-2 · in-page navigation. Built from the sections that ACTUALLY
+          render — preview, handover and hours are conditional, and a chip
+          pointing at an anchor that does not exist is worse than no chip. */}
+      <SectionNav
+        label={t("projects.detail.sectionNavAria")}
+        items={[
+          { id: "timeline", label: t("projects.detail.timeline") },
+          ...(project.previewUrl ? [{ id: "preview", label: t("projects.detail.preview.title") }] : []),
+          ...(handover ? [{ id: "handover", label: t("projects.detail.handover.title") }] : []),
+          { id: "file-requests", label: t("fileRequests.title") },
+          { id: "deliverables", label: t("projects.detail.deliverables") },
+          { id: "messages", label: t("projects.messages.title") },
+          { id: "invoices", label: t("invoices.title") },
+          ...(showHours ? [{ id: "hours", label: t("projects.hours.title") }] : []),
+          { id: "secrets", label: t("projects.secrets.title") },
+          { id: "activity", label: t("track.activity") },
+        ]}
+      />
+
       {/* Milestones */}
-      <SectionBlock title={t("projects.detail.timeline")} subtitle={t("projects.detail.milestones", { count: milestones.length })}>
+      <SectionBlock id="timeline" title={t("projects.detail.timeline")} subtitle={t("projects.detail.milestones", { count: milestones.length })}>
         {milestones.length === 0 ? (
           <div className={EMPTY}>{t("projects.detail.noMilestones")}</div>
         ) : milestones.map((ms, idx) => (
@@ -268,7 +320,7 @@ export default function DashboardProjectDetailPage() {
 
       {/* Preview */}
       {project.previewUrl && (
-        <SectionBlock title={t("projects.detail.preview.title")} subtitle={t("projects.detail.preview.subtitle")}>
+        <SectionBlock id="preview" title={t("projects.detail.preview.title")} subtitle={t("projects.detail.preview.subtitle")}>
           <div className={CARD}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
@@ -277,7 +329,7 @@ export default function DashboardProjectDetailPage() {
                 </div>
                 <a
                   href={project.previewUrl} target="_blank" rel="noopener noreferrer"
-                  className="min-w-0 truncate font-mono text-[12px] text-violet hover:underline"
+                  className="min-w-0 truncate py-1.5 -my-1.5 font-mono text-[12px] text-violet hover:underline"
                 >
                   {project.previewUrl}
                 </a>
@@ -303,7 +355,7 @@ export default function DashboardProjectDetailPage() {
 
       {/* Tier 4 · handover: final deliverables, served only with a zero balance */}
       {handover && (
-        <SectionBlock title={t("projects.detail.handover.title")} subtitle={t("projects.detail.handover.subtitle")}>
+        <SectionBlock id="handover" title={t("projects.detail.handover.title")} subtitle={t("projects.detail.handover.subtitle")}>
           <FileGallery
             projectId={project.id}
             files={deliverables}
@@ -314,8 +366,22 @@ export default function DashboardProjectDetailPage() {
         </SectionBlock>
       )}
 
+      {/* T5-5 · what the studio is waiting on. Above Files deliberately: it is
+          the only block on this page that asks the client to DO something,
+          and burying it under three galleries is how a project stalls for a
+          fortnight over one missing PDF. */}
+      <SectionBlock id="file-requests" title={t("fileRequests.title")}>
+        <FileRequestPanel
+          requests={panels.requests}
+          loading={panels.loading}
+          readOnly={readOnly}
+          onUpload={panels.upload}
+          onChanged={panels.reload}
+        />
+      </SectionBlock>
+
       {/* Files */}
-      <SectionBlock title={t("projects.detail.deliverables")} subtitle={t("projects.detail.files", { count: files.length })}>
+      <SectionBlock id="deliverables" title={t("projects.detail.deliverables")} subtitle={t("projects.detail.files", { count: files.length })}>
         {!readOnly && (
           <Dropzone
             projectId={project.id}
@@ -341,29 +407,65 @@ export default function DashboardProjectDetailPage() {
         />
       </SectionBlock>
 
-      {/* Tier 4 · extra work (change requests) */}
-      <SectionBlock title={t("projects.changeRequests.title")} subtitle={t("projects.changeRequests.subtitle")}>
-        <ChangeRequestsPanel projectId={project.id} readOnly={readOnly} currency={project.serviceOrder?.order?.currency} t={t} />
+      {/* T5-20 · one Messages panel over three models.
+          The client used to face three boxes for one intention — a thread,
+          a support form and a change-request form — and had to classify
+          their own message before they could send it. The models are
+          unchanged; only the presentation merges. */}
+      <SectionBlock id="messages" title={t("projects.messages.title")}>
+        <MessagesPanel
+          projectId={project.id}
+          readOnly={readOnly}
+          milestones={project.milestones || []}
+          currency={project.serviceOrder?.order?.currency}
+          comments={threadComments}
+          onComment={handleComment}
+        />
       </SectionBlock>
 
-      {/* Project thread */}
-      <SectionBlock title={t("projects.detail.thread.title")} subtitle={t("projects.detail.thread.subtitle")}>
+      {/* T5-5 · the bills for this piece of work, rather than on a bare order
+          page the client cannot connect to the project. */}
+      <SectionBlock id="invoices" title={t("invoices.title")}>
+        <ProjectInvoices
+          invoices={panels.invoices}
+          billing={panels.billing}
+          onPay={panels.pay}
+          loading={panels.loading}
+        />
+      </SectionBlock>
+
+      {/* D0-4 · a panel that failed must not look like a panel that is
+          empty. Renders nothing on the normal path. */}
+      <PanelLoadError failed={panels.failed} onRetry={panels.reload} className="mb-4" />
+
+      {/* T5-18 · hours against the plan's monthly allowance. Rendered only
+          when there is something to say: a project that is not a retainer and
+          has no logged time gets no empty panel. */}
+      {showHours ? (
+        <SectionBlock id="hours" title={t("projects.hours.title")}>
+          <div className={CARD}>
+            <HoursLedger ledger={panels.hours} projectId={project.id} loading={panels.loading} />
+          </div>
+        </SectionBlock>
+      ) : null}
+
+      {/* T5-13 · credentials never travel as files. Read once, then the
+          server destroys its copy. */}
+      <SectionBlock id="secrets" title={t("projects.secrets.title")}>
         <div className={CARD}>
-          <CommentList comments={threadComments} empty={t("projects.detail.thread.empty")} t={t} />
-          <ReplyBox
-            className="mt-4"
+          <SecretsPanel
+            secrets={panels.secrets}
+            onReveal={panels.revealSecret}
+            onSend={panels.sendSecret}
+            onChanged={panels.reload}
             readOnly={readOnly}
-            placeholder={t("projects.detail.thread.placeholder")}
-            onSubmit={(body) => handleComment({ body })}
-            t={t}
           />
         </div>
       </SectionBlock>
 
-      {/* Support tickets scoped to this project — status next to the
-          project's, attachments via the same private file pipeline. */}
-      <SectionBlock title={t("projects.support.title")} subtitle={t("projects.support.subtitle")}>
-        <ProjectSupportPanel projectId={project.id} readOnly={readOnly} milestones={project.milestones || []} />
+      {/* T5-5 · the same timeline component the portal and /track render. */}
+      <SectionBlock id="activity" title={t("track.activity")}>
+        <ProjectTimeline events={panels.events} loading={panels.loading} />
       </SectionBlock>
     </section>
   )
@@ -374,6 +476,11 @@ export default function DashboardProjectDetailPage() {
 function ReviewCard({ project, highlighted, onSubmitted, t }) {
   const existing = (project.reviews || [])[0] || null
   const [rating, setRating] = useState(0)
+  // T5-21 · the pulse. Asked ABOVE the stars and answered first, because a
+  // client who abandons the form after one tap has still told us the thing
+  // worth knowing — and "how did this go" is a different question from "how
+  // good is this service", which is what the public stars are for.
+  const [pulse, setPulse] = useState(0)
   const [hover, setHover] = useState(0)
   const [text, setText] = useState("")
   const [busy, setBusy] = useState(false)
@@ -397,7 +504,7 @@ function ReviewCard({ project, highlighted, onSubmitted, t }) {
     if (!rating || busy) return
     setBusy(true); setError("")
     try {
-      const saved = await postProjectReview(service.slug, { projectId: project.id, rating, reviewText: text.trim() || undefined })
+      const saved = await postProjectReview(service.slug, { projectId: project.id, rating, reviewText: text.trim() || undefined, pulse: pulse || undefined })
       onSubmitted?.(saved?.id ? { id: saved.id, rating: saved.rating, status: saved.status, createdAt: saved.createdAt } : { id: "local", rating })
     } catch (e2) {
       setError(e2?.message || t("projects.review.failed"))
@@ -415,7 +522,34 @@ function ReviewCard({ project, highlighted, onSubmitted, t }) {
           <h2 className="text-card font-bold text-violet">{t("projects.review.title")}</h2>
           <p className="mt-0.5 text-meta text-charcoal-80/65">{t("projects.review.subtitle", { service: service.title })}</p>
 
-          <div className="mt-3 flex items-center gap-1" role="radiogroup" aria-label={t("projects.review.ratingLabel")}>
+          {/* One question, first. Numbers rather than stars so it reads as a
+              different question from the rating below it, and never
+              published — this is for us, the stars are for the next client. */}
+          <fieldset className="mt-3">
+            <legend className="text-meta font-medium text-charcoal-80">{t("projects.review.pulseQuestion")}</legend>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={t("projects.review.pulseQuestion")}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  role="radio"
+                  aria-checked={pulse === n}
+                  aria-label={t("projects.review.pulseValue", { n })}
+                  onClick={() => setPulse(n)}
+                  className={`h-9 w-9 rounded-lg border text-meta font-semibold transition-colors ${
+                    pulse === n
+                      ? "border-violet bg-violet text-white"
+                      : "border-charcoal-80/15 bg-white text-charcoal-80 hover:border-violet"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+              <span className="ms-2 text-micro text-charcoal-80/65">{t("projects.review.pulseScale")}</span>
+            </div>
+          </fieldset>
+
+          <div className="mt-4 flex items-center gap-1" role="radiogroup" aria-label={t("projects.review.ratingLabel")}>
             {[1, 2, 3, 4, 5].map((n) => (
               <button
                 key={n}
@@ -463,7 +597,7 @@ function ReviewCard({ project, highlighted, onSubmitted, t }) {
 
 function NdaGate({ project, onAccepted }) {
   const { t } = useTranslation("legal")
-  const navigate = useNavigate()
+  const navigate = useLocalizedNavigate()
   const [agreed, setAgreed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
@@ -545,13 +679,15 @@ function PurgedTile({ file: f, t }) {
   const { icon: Icon, label, chip } = getFileTypeStyles(f.fileName || f.fileType)
   return (
     <li className="flex h-full flex-col overflow-hidden rounded-xl border border-dashed border-charcoal-80/15 bg-charcoal-80/5 opacity-80">
-      <div className="relative flex aspect-[4/3] items-center justify-center">
+      {/* D6-3 · a purged file has no thumbnail by definition — the file is
+          gone. It was still reserving a 4:3 box for one. */}
+      <div className="relative flex h-20 items-center justify-center">
         <Icon className="h-10 w-10 text-charcoal-80" aria-hidden="true" />
-        <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
+        <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-micro font-bold ${chip}`}>{label}</span>
       </div>
       <div className="px-3 py-2">
         <p className="truncate text-meta font-semibold text-charcoal-80/65">{f.fileName}</p>
-        <p className="font-mono text-[11px] text-charcoal-80/65">{t("projects.detail.gallery.purged", { date: fmtDate(f.purgedAt) })}</p>
+        <p className="font-mono text-meta text-charcoal-80/65">{t("projects.detail.gallery.purged", { date: fmtDate(f.purgedAt) })}</p>
       </div>
     </li>
   )
@@ -561,19 +697,84 @@ function PurgedTile({ file: f, t }) {
 
 function BackLink({ t }) {
   return (
-    <Link to="/dashboard/projects" className="inline-flex items-center gap-1 text-meta text-violet hover:underline">
+    <Link to="/dashboard/projects" className="inline-flex items-center gap-1 py-2 -my-2 text-meta text-violet hover:underline">
       <ArrowLeft className="h-4 w-4" /> {t("projects.detail.back")}
     </Link>
   )
 }
 
-function SectionBlock({ title, subtitle, children }) {
+/* D6-1 · a real <section> with an id, because the page needs anchors.
+ *
+ * `scroll-mt-20` is not decoration: the dashboard header is sticky, so an
+ * anchor jump lands the heading UNDER it without a scroll margin. 20 is the
+ * mobile header (~62px) plus room; the desktop wrapper is taller but its
+ * heading still clears. */
+function SectionBlock({ id, title, subtitle, children }) {
   return (
-    <div>
+    <section id={id} className="scroll-mt-20">
       <h2 className="text-card font-bold text-violet">{title}</h2>
       {subtitle && <p className="mt-0.5 text-meta text-charcoal-80/65">{subtitle}</p>}
       <div className="mt-4 space-y-3">{children}</div>
-    </div>
+    </section>
+  )
+}
+
+/* D6-2 · the jump bar.
+ *
+ * Measured with six milestones and six files: 7,268px on a 375px phone —
+ * NINE screens — and 5,297px on a 1440 desktop. Ten sections, and the only
+ * way to reach the invoices was to scroll past all of them.
+ *
+ * Deliberately NOT sticky. A second sticky strip under the header would cost
+ * ~40px of an 812px viewport permanently and has to be stacked against a
+ * header that is already `sticky top-0 z-30` on mobile and z-20 on desktop —
+ * the same class of interaction that put the bottom tab bar off-screen in
+ * D2-3. This solves the case that actually happens (arriving and wanting one
+ * section) at zero layout cost and with no z-index to get wrong. If "jump
+ * back from the bottom" turns out to matter, a scroll-to-top affordance is
+ * the cheaper answer than making this stick.
+ *
+ * Plain anchors, and that is a conclusion rather than the easy option.
+ *
+ * SmoothScrollProvider mounts Lenis against document.documentElement on
+ * every page, which is exactly the setup where a native hash jump usually
+ * fights the library. A version of this routed the click through the Lenis
+ * instance with an explicit -80 offset — and measuring the two side by side,
+ * reloading between every case, showed the workaround was for a problem that
+ * is not there: native lands the heading 176px from the top of the viewport
+ * on every target, and the Lenis path landed it at 256, because the explicit
+ * offset double-counts the CSS scroll margin the browser had already
+ * applied. Lenis only intercepts wheel and touch, which is what its own docs
+ * say and what SmoothScrollProvider's header says too.
+ *
+ * (The reading that sent me down that path was 353px on "Invoices", taken
+ * before the empty-state work shortened the page. That section then began
+ * past the maximum scroll position, so it could not reach the top of the
+ * screen at all. Clamping, not interference.)
+ */
+function SectionNav({ items, label }) {
+  if (items.length < 3) return null
+  return (
+    <nav aria-label={label} className="group relative -mx-1">
+      <ul className="flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-1">
+        {items.map((s) => (
+          <li key={s.id} className="snap-start">
+            <a
+              href={`#${s.id}`}
+              className="inline-flex items-center whitespace-nowrap rounded-full border border-charcoal-80/10 bg-white px-3 py-2 text-micro font-semibold text-charcoal-80/75 transition hover:border-violet/30 hover:bg-violet-pale hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+            >
+              {s.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+      {/* Same right-edge fade as ProfileTabs: the row scrolls on a phone and
+          nothing else says so. */}
+      <div
+        className="pointer-events-none absolute inset-y-0 end-0 w-8 bg-gradient-to-l from-mist to-transparent sm:hidden"
+        aria-hidden="true"
+      />
+    </nav>
   )
 }
 
@@ -588,6 +789,10 @@ function MilestoneCard({ milestone: ms, index, comments, readOnly, label, onAppr
   const Icon = MILESTONE_ICON[ms.status] || Hourglass
   const tone = MILESTONE_TONE[ms.status] || MILESTONE_TONE.pending
   const awaiting = ms.status === "awaiting_client" && !readOnly
+  // D6-4 · open on the milestone that is waiting for the client, closed on
+  // the rest. `useState(awaiting)` and not an effect: `awaiting` only changes
+  // when the project payload changes, which remounts this card anyway.
+  const [replyOpen, setReplyOpen] = useState(awaiting)
 
   const closeAll = () => { setApproveOpen(false); setChangesOpen(false); setNote(""); setFormError("") }
 
@@ -625,8 +830,8 @@ function MilestoneCard({ milestone: ms, index, comments, readOnly, label, onAppr
             <StatusPill status={ms.status} label={label} />
           </div>
           {ms.description && <p className="mt-1 text-micro text-charcoal-80/65">{ms.description}</p>}
-          <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
-            {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDate(ms.dueDate) })}</span>}
+          <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-meta text-charcoal-80/65">
+            {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDay(ms.dueDate) })}</span>}
             {ms.approvedAt && <span>{t("projects.detail.milestoneApproved", { date: fmtDate(ms.approvedAt) })}</span>}
             {ms.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(ms.completedAt) })}</span>}
           </div>
@@ -692,17 +897,50 @@ function MilestoneCard({ milestone: ms, index, comments, readOnly, label, onAppr
             />
           </Modal>
 
+          {/* D6-4 · the reply box is now asked for, not always there.
+            *
+            * Every milestone rendered its own textarea, so a six-milestone
+            * project put SIX of them on one page — about 135px each, and the
+            * single largest reason the timeline measured 1,901px on a phone.
+            *
+            * This is the same argument T5-20 already made one section below,
+            * where three message boxes became one: a client facing several
+            * empty boxes has to decide which one their message belongs in
+            * before they can write it. Existing comments still show
+            * unconditionally — those are content. The box that produces new
+            * ones is one tap away.
+            *
+            * It stays OPEN on `awaiting_client`, because that is the
+            * milestone where the client is the one being asked to say
+            * something, and hiding the reply there would be hiding the point
+            * of the screen. */}
           {(comments.length > 0 || !readOnly) && (
             <div className="mt-4 border-t border-charcoal-80/10 pt-3">
               <CommentList comments={comments} compact t={t} />
-              <ReplyBox
-                className={comments.length ? "mt-3" : ""}
-                compact
-                readOnly={readOnly}
-                placeholder={t("projects.detail.thread.milestonePlaceholder")}
-                onSubmit={(body) => onComment({ body, milestoneId: ms.id })}
-                t={t}
-              />
+              {!readOnly && (replyOpen ? (
+                <ReplyBox
+                  className={comments.length ? "mt-3" : ""}
+                  compact
+                  readOnly={readOnly}
+                  placeholder={t("projects.detail.thread.milestonePlaceholder")}
+                  onSubmit={async (body) => {
+                    await onComment({ body, milestoneId: ms.id })
+                    if (!awaiting) setReplyOpen(false)
+                  }}
+                  t={t}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setReplyOpen(true)}
+                  className={`inline-flex items-center gap-1.5 py-2 -my-2 text-micro font-semibold text-violet hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 ${comments.length ? "mt-3" : ""}`}
+                >
+                  <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+                  {comments.length
+                    ? t("projects.detail.thread.replyToggle")
+                    : t("projects.detail.thread.commentToggle")}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -727,16 +965,16 @@ function CommentList({ comments, empty, compact = false, t }) {
         const isTeam = c.authorRole === "admin"
         return (
           <li key={c.id} className={`rounded-lg px-3 py-2 ${isTeam ? "bg-violet-pale/40" : "bg-charcoal-80/5"}`}>
-            <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-charcoal-80/65">
+            <div className="flex flex-wrap items-center gap-2 font-mono text-meta text-charcoal-80/65">
               <span className="font-semibold text-charcoal-80">
                 {c.author?.fullName || (isTeam ? t("projects.detail.thread.team") : t("projects.detail.thread.you"))}
               </span>
-              <span className={`rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${isTeam ? "bg-violet-pale text-violet" : "bg-azure/10 text-azure-deep"}`}>
+              <span className={`rounded-full px-1.5 py-px text-micro font-bold uppercase tracking-wider ${isTeam ? "bg-violet-pale text-violet" : "bg-azure/10 text-azure-deep"}`}>
                 {isTeam ? t("projects.detail.thread.roleTeam") : t("projects.detail.thread.roleClient")}
               </span>
               <span>{fmtDateTime(c.createdAt)}</span>
               {c.resolvedAt && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-mint-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-1.5 py-px text-micro font-bold uppercase tracking-wider text-mint-700">
                   <Check className="h-2.5 w-2.5" aria-hidden="true" /> {t("projects.detail.thread.resolved")}
                 </span>
               )}
@@ -794,7 +1032,7 @@ function ReplyBox({ onSubmit, readOnly, placeholder, compact = false, className 
 function FileGallery({ projectId, files, title, empty, locked = false, t }) {
   return (
     <div>
-      <h3 className="mb-2 font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{title} · {files.length}</h3>
+      <h3 className="mb-2 font-mono text-micro uppercase tracking-wider text-charcoal-80/65">{title} · {files.length}</h3>
       {files.length === 0 ? (
         <div className={EMPTY}>{empty}</div>
       ) : (
@@ -826,15 +1064,22 @@ function FileTile({ projectId, file: f, locked = false, t }) {
         {...wrapperProps}
         className={`group flex h-full flex-col overflow-hidden rounded-xl border bg-white transition ${locked ? "cursor-not-allowed border-rose/20 opacity-70" : "border-charcoal-80/10 hover:border-violet/30 hover:shadow-[var(--shadow-e3)]"}`}
       >
-        <div className="relative flex aspect-[4/3] items-center justify-center bg-charcoal-80/5">
+        {/* D6-3 · the 4:3 box is for a PICTURE, and most deliverables are not
+            one. A PDF got a 257px-tall panel on a 375px phone to hold a 40px
+            icon, so six of them measured 2,577px — a third of the whole
+            page. Non-image tiles get a 5rem strip instead: same badges, same
+            layout, 1,800px back on a phone and 1,000px on a desktop.
+            Images keep the aspect ratio, because for them the box IS the
+            content. */}
+        <div className={`relative flex items-center justify-center bg-charcoal-80/5 ${isImage && !locked ? "aspect-[4/3]" : "h-20"}`}>
           {isImage && !locked ? (
             <img src={href} alt={f.fileName} loading="lazy" decoding="async" onError={() => setImgFailed(true)} className="h-full w-full object-cover" />
           ) : (
             <Icon className={`h-10 w-10 ${iconColor}`} aria-hidden="true" />
           )}
-          <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
+          <span className={`absolute left-2 top-2 rounded-md px-1.5 py-0.5 text-micro font-bold ${chip}`}>{label}</span>
           {f.isDeliverable && (
-            <span className={`absolute right-2 top-2 rounded-full px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${locked ? "bg-rose-50 text-rose-600" : "bg-mint/15 text-mint-700"}`}>
+            <span className={`absolute right-2 top-2 rounded-full px-1.5 py-px text-micro font-bold uppercase tracking-wider ${locked ? "bg-rose-50 text-rose-600" : "bg-mint/15 text-mint-700"}`}>
               {locked ? t("projects.detail.access.locked") : t("projects.detail.gallery.deliverable")}
             </span>
           )}
@@ -842,7 +1087,7 @@ function FileTile({ projectId, file: f, locked = false, t }) {
         <div className="flex flex-1 items-start justify-between gap-2 px-3 py-2.5">
           <div className="min-w-0">
             <div className="truncate text-meta font-semibold text-charcoal-80" title={f.fileName}>{f.fileName}</div>
-            <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
+            <div className="mt-0.5 font-mono text-meta text-charcoal-80/65">
               {[formatFileSize(f.fileSize), isTeam ? t("projects.detail.gallery.byTeam") : t("projects.detail.gallery.byYou"), fmtDate(f.createdAt)].filter(Boolean).join(" · ")}
             </div>
           </div>
@@ -923,7 +1168,7 @@ function Dropzone({ projectId, milestones, onUploaded, t }) {
           {busy ? t("projects.detail.upload.uploading") : t("projects.detail.upload.title")}
         </div>
         <div className="text-micro text-charcoal-80/65">{t("projects.detail.upload.hint", { max: MAX_FILES, size: formatFileSize(MAX_BYTES) })}</div>
-        <div className="font-mono text-[10px] text-charcoal-80/65">{[...ALLOWED_EXT].map((x) => x.slice(1)).join(" · ")}</div>
+        <div className="max-w-full text-center text-micro text-charcoal-80/65">{[...ALLOWED_EXT].map((x) => x.slice(1)).join(" · ")}</div>
         <input
           ref={inputRef} type="file" multiple className="hidden" disabled={busy}
           accept={[...ALLOWED_EXT].join(",")}
@@ -953,160 +1198,3 @@ function Dropzone({ projectId, milestones, onUploaded, t }) {
   )
 }
 
-/* ── Tier 4 · change requests ──────────────────────────────────────────── */
-
-const CR_TONE = {
-  requested: "bg-amber/10 text-amber-700",
-  quoted:    "bg-violet-pale text-violet",
-  accepted:  "bg-azure/10 text-azure-deep",
-  declined:  "bg-charcoal-80/5 text-charcoal-80",
-  done:      "bg-mint/15 text-mint-700",
-}
-const fmtMoney = (v, currency) => {
-  try { return new Intl.NumberFormat(undefined, { style: "currency", currency: currency || "MXN", maximumFractionDigits: 2 }).format(Number(v || 0)) }
-  catch { return `${Number(v || 0).toFixed(2)} ${currency || "MXN"}` }
-}
-
-function ChangeRequestsPanel({ projectId, readOnly, t }) {
-  const navigate = useNavigate()
-  const { showSuccess, showError } = useToast()
-  const [formOpen, setFormOpen] = useState(false)
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [formError, setFormError] = useState({})
-  const [busyId, setBusyId] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
-
-  const { data: requests = [], loading, refetch, setData } = useApiQuery(
-    `projects:${projectId}:change-requests`,
-    () => fetchMyChangeRequests(projectId),
-    { enabled: Boolean(projectId), select: (d) => (Array.isArray(d) ? d : []) },
-  )
-
-  const reset = () => { setTitle(""); setDescription(""); setFormError({}); setFormOpen(false) }
-
-  const submit = async (e) => {
-    e.preventDefault()
-    const errs = {}
-    if (!title.trim()) errs.title = t("projects.changeRequests.form.titleRequired")
-    if (!description.trim()) errs.description = t("projects.changeRequests.form.descriptionRequired")
-    setFormError(errs)
-    if (Object.keys(errs).length) return
-    setSubmitting(true)
-    try {
-      const created = await createMyChangeRequest(projectId, { title: title.trim(), description: description.trim() })
-      if (created?.id) setData((prev) => [created, ...(prev || [])])
-      else refetch()
-      showSuccess(t("projects.changeRequests.toast.created"))
-      reset()
-    } catch (ex) {
-      showError(ex?.message || t("projects.changeRequests.toast.failed"))
-    } finally { setSubmitting(false) }
-  }
-
-  const accept = async (cr) => {
-    setBusyId(cr.id)
-    try {
-      const r = await acceptMyChangeRequest(projectId, cr.id)
-      showSuccess(t("projects.changeRequests.toast.accepted"))
-      if (r?.orderId) navigate(`/dashboard/orders/${r.orderId}`)
-      else refetch()
-    } catch (ex) {
-      showError(ex?.message || t("projects.changeRequests.toast.failed"))
-      setBusyId(null)
-    }
-  }
-  const decline = async (cr) => {
-    setBusyId(cr.id)
-    try {
-      const saved = await declineMyChangeRequest(projectId, cr.id)
-      setData((prev) => (prev || []).map((x) => x.id === cr.id ? { ...x, ...(saved?.id ? saved : { status: "declined" }) } : x))
-      showSuccess(t("projects.changeRequests.toast.declined"))
-    } catch (ex) {
-      showError(ex?.message || t("projects.changeRequests.toast.failed"))
-    } finally { setBusyId(null) }
-  }
-
-  return (
-    <div className={`${CARD} space-y-4`}>
-      {readOnly ? (
-        <p className="flex items-center gap-1.5 text-micro text-charcoal-80/65">
-          <Lock className="h-3 w-3" aria-hidden="true" /> {t("projects.changeRequests.readOnly")}
-        </p>
-      ) : !formOpen ? (
-        <Button size="sm" variant="secondary" icon={Plus} onClick={() => setFormOpen(true)}>
-          {t("projects.changeRequests.new")}
-        </Button>
-      ) : (
-        <form onSubmit={submit} className="space-y-3 rounded-lg border border-violet/15 bg-violet-pale/30 p-4">
-          <Input
-            label={t("projects.changeRequests.form.title")} value={title} maxLength={160} required
-            placeholder={t("projects.changeRequests.form.titlePlaceholder")} error={formError.title}
-            onChange={(e) => { setTitle(e.target.value); setFormError((f) => ({ ...f, title: "" })) }}
-          />
-          <Textarea
-            rows={4} value={description} maxLength={5000} required
-            label={t("projects.changeRequests.form.description")}
-            placeholder={t("projects.changeRequests.form.descriptionPlaceholder")} error={formError.description}
-            onChange={(e) => { setDescription(e.target.value); setFormError((f) => ({ ...f, description: "" })) }}
-          />
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" size="sm" icon={Send} loading={submitting}>{t("projects.changeRequests.form.submit")}</Button>
-            <Button type="button" size="sm" variant="ghost" icon={X} onClick={reset} disabled={submitting}>{t("projects.changeRequests.form.cancel")}</Button>
-          </div>
-        </form>
-      )}
-
-      {loading ? (
-        <SkeletonCard height="h-20" />
-      ) : requests.length === 0 ? (
-        <div className={EMPTY}>{t("projects.changeRequests.empty")}</div>
-      ) : (
-        <ul className="space-y-3">
-          {requests.map((cr) => {
-            const tone = CR_TONE[cr.status] || CR_TONE.requested
-            const busy = busyId === cr.id
-            return (
-              <li key={cr.id} className={`rounded-lg border p-4 ${cr.status === "quoted" && !readOnly ? "border-violet/40" : "border-charcoal-80/10"}`}>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Receipt className="h-4 w-4 text-violet" aria-hidden="true" />
-                  <h3 className="text-meta font-semibold text-charcoal-80">{cr.title}</h3>
-                  <span className={`rounded-full px-2 py-px text-[10px] font-bold uppercase tracking-wider ${tone}`}>
-                    {t(`projects.changeRequests.status.${cr.status}`, { defaultValue: cr.status })}
-                  </span>
-                </div>
-                <p className="mt-1 whitespace-pre-wrap text-micro text-charcoal-80/75">{cr.description}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
-                  <span>{t("projects.changeRequests.requestedOn", { date: fmtDate(cr.createdAt) })}</span>
-                  {cr.quotedAt && <span>{t("projects.changeRequests.quotedOn", { date: fmtDate(cr.quotedAt) })}</span>}
-                  {cr.quoteAmount != null && (
-                    <span className="font-semibold text-violet">{t("projects.changeRequests.quote", { amount: fmtMoney(cr.quoteAmount, cr.quoteCurrency) })}</span>
-                  )}
-                </div>
-                {cr.quoteNote && (
-                  <div className="mt-3 rounded-lg bg-violet-pale/40 px-3 py-2 text-micro text-charcoal-80">
-                    <span className="font-semibold">{t("projects.changeRequests.quoteNote")}</span>
-                    <p className="mt-0.5 whitespace-pre-wrap">{cr.quoteNote}</p>
-                  </div>
-                )}
-                {cr.status === "quoted" && !readOnly && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Button size="sm" icon={CreditCard} loading={busy} onClick={() => accept(cr)}>{t("projects.changeRequests.accept")}</Button>
-                    <Button size="sm" variant="secondary" icon={X} disabled={busy} onClick={() => decline(cr)}>{t("projects.changeRequests.decline")}</Button>
-                  </div>
-                )}
-                {cr.orderId && (
-                  <div className="mt-3">
-                    <Link to={`/dashboard/orders/${cr.orderId}`} className="inline-flex items-center gap-1 text-micro font-semibold text-violet hover:underline">
-                      <ExternalLink className="h-3 w-3" aria-hidden="true" /> {t("projects.changeRequests.viewOrder")}
-                    </Link>
-                  </div>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      )}
-    </div>
-  )
-}

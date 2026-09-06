@@ -73,6 +73,14 @@
   --color-terracotta:      #E9C46A;
   --color-terracotta-deep: #D4A847;
   --color-terracotta-800:  #856212;  /* v1.2 — warm accent as body text on light grounds (5.60:1 on white) */
+  /* U1 · the hover tint for a terracotta CTA. Two buttons had it as a raw
+     hex and the allow-list entry for both said "no lighter-terracotta token
+     exists yet" — so this is that token, and the entries go.
+     They were also two DIFFERENT peaches (#f5bf9e and #ffd9be) on buttons
+     with the same role. Unifying on the lighter one is not just tidier:
+     violet-on-#f5bf9e measured 4.12:1, under AA, and violet on this clears
+     it at 5.11:1. */
+  --color-terracotta-100:  #FFD9BE;
 
   /* ── Tier 4 · Neutrals ──────────────────────────────────────────────── */
   --color-steel:           #64748B;
@@ -105,7 +113,7 @@
   --color-mint-700:        #065F46;
   --color-mint-800:        #3B8F47;
 
-  /* ── Service-category accents · Instructions v4.0 § 04.1 / § 06 ──────
+  /* ── Service-category accents · Blueprint v4.0 § 04.1 / § 06 ──────
      One token per category, canonical order. Each aliases an existing
      brand value (never a new hue) and reads as text at ≥ 4.5:1 on white:
        strategy   = violet          6.4:1
@@ -292,27 +300,40 @@ h5, h6 { line-height: 1.40; }
    makes the *last few lines* sit better (avoids single-word last lines). */
 p { text-wrap: pretty; }
 
-a { text-decoration: none; color: inherit; }
-/* Defensive contrast guard — when an <a>/Link is explicitly given a Tailwind
-   text-color utility, do NOT let `color: inherit` above bleed through. This
-   prevents the historical "dark text on violet button" bug where Tailwind's
-   `text-white` was beaten by the unlayered `a { color: inherit; }` rule. */
-a.text-white         { color: var(--color-text-on-dark) !important; }
-a.text-mist          { color: var(--color-mist)  !important; }
-a.text-violet        { color: var(--color-violet) !important; }
-a.text-charcoal,
-a.text-charcoal-80   { color: var(--color-charcoal) !important; }
+a { text-decoration: none; }
 
-/* Opacity-modifier variants (Tailwind v4 syntax: text-white/85, text-white/70,
-   text-white/90, etc.). The `a { color: inherit }` reset above swallows these
-   when Tailwind's color-mix() utility hasn't generated a class because the base
-   color isn't registered in @theme. The attribute selector below is a safety
-   net — any anchor that *intends* white text gets it, regardless of opacity
-   suffix. Opacity remains best-effort (we keep solid white here so links stay
-   readable on dark surfaces); use a class outside <a> if you need partial
-   white. Brand v3 § 04 — Tier 1 Cloud Mist on dark surfaces. */
-a[class*="text-white/"] { color: var(--color-text-on-dark) !important; }
-a[class*="text-mist/"]  { color: var(--color-mist) !important; }
+/* `color: inherit` for anchors sits in @layer base, and the placement is the
+   whole point.
+   ─────────────────────────────────────────────────────────────────────────
+   Unlayered CSS beats every layered rule in Tailwind v4, whatever the
+   specificity. So while this declaration sat beside `text-decoration`
+   above, it silently defeated EVERY text-colour utility on an anchor: the
+   utility lives in @layer utilities and lost the cascade before specificity
+   was ever considered.
+   The patches below were added one at a time as that bug surfaced — first
+   `text-white`, then mist, violet, charcoal, then the opacity variants.
+   Each fixed one named utility and left the trap for the next. It caught
+   the design system's own Button: the primary variant sets
+   `text-[var(--color-text-on-violet)]`, which no patch matches, so as a
+   <button> it rendered white text and as a Link it rendered near-black ink
+   on violet — 2.54:1, invisible until an anchor-shaped primary button
+   appeared in the header of every page.
+   Inside the layer a utility wins, and an anchor with no colour utility
+   still inherits exactly as it did before. */
+@layer base {
+  a { color: inherit; }
+}
+
+/* T3-2 · the seven `!important` anchor patches that used to sit here are
+   gone. Their own comment already recorded that the layered reset above had
+   made them redundant; two of them were worse than redundant. The attribute
+   selectors `a[class*="text-white/"]` and `a[class*="text-mist/"]` forced
+   SOLID white on any anchor written as `text-white/60`, so a footer link
+   asking for 60% got 100% and the muted/prominent distinction the designer
+   drew simply did not exist on links. Removing them restores the opacity the
+   author asked for, and web/e2e/dark-mode.spec.js now checks that an anchor
+   keeps its own colour utility — which is the bug this whole block grew
+   around. */
 
 button, input, textarea, select { font: inherit; }
 img, video { max-width: 100%; display: block; }

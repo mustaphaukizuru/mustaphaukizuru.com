@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useNavigate from "../hooks/useLocalizedNavigate"
 import { useTranslation } from "react-i18next"
 import { Helmet } from "react-helmet-async"
 import { m } from "framer-motion"

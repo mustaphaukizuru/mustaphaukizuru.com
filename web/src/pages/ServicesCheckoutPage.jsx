@@ -1,13 +1,16 @@
 import { formatPriceWhole } from "../lib/format"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useSearchParams, useNavigate, Link } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useNavigate from "../hooks/useLocalizedNavigate"
 import { m } from "framer-motion"
 import {
   ArrowLeft, ShieldCheck, Zap, CheckCircle2, AlertCircle, Loader2,
   CreditCard, Briefcase,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { AUDIENCE_PRICING_PLANS } from "../data/servicesCatalogue"
+import { AUDIENCE_PRICING_PLANS, offeringForFeature } from "../data/servicesCatalogue"
+import { pick, useCatalogueLang } from "../components/services/localize"
 import { useAuth } from "../context/AuthContext"
 import { orderServiceTier } from "../services/serviceCheckoutService"
 import { fetchServicePlans, indexServicePlans } from "../services/serviceService"
@@ -50,6 +53,7 @@ function formatMoney(amount, currency = "MXN") {
 
 export default function ServicesCheckoutPage() {
   const { t } = useTranslation("services")
+  const lang = useCatalogueLang()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
@@ -382,12 +386,37 @@ export default function ServicesCheckoutPage() {
                     {t("checkout.plan.includedTitle")}
                   </div>
                   <ul className="mt-3 space-y-1.5">
-                    {plan.includedFeatures.map((f, i) => (
+                    {plan.includedFeatures.map((f, i) => {
+                      // T2-11 · the other end of the package/offering
+                      // relation. Where a bundled feature is also sold as a
+                      // scoped project, name it and link to it, so the price
+                      // difference is something the reader can look up rather
+                      // than something they discover on another page.
+                      const offering = offeringForFeature(audience, f)
+                      return (
                       <li key={i} className="flex items-start gap-2 text-meta text-charcoal-80/85">
                         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-violet" />
-                        {f}
+                        <span>
+                          {f}
+                          {offering && (
+                            <>
+                              {" "}
+                              <Link
+                                // getOfferingBySlug returns the category OBJECT, not a
+                                // categorySlug — that field is on the flat SERVICES
+                                // list, a different shape. Reading the wrong one
+                                // produced /services/undefined#slug.
+                                to={`/services/${offering.category.slug}#${offering.slug}`}
+                                className="text-micro font-semibold text-violet underline-offset-2 hover:underline"
+                              >
+                                {t("checkout.plan.alsoStandalone", { name: pick(offering, "name", lang) })}
+                              </Link>
+                            </>
+                          )}
+                        </span>
                       </li>
-                    ))}
+                      )
+                    })}
                   </ul>
                 </div>
               )}

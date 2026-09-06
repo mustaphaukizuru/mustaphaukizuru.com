@@ -2,7 +2,7 @@
  * `BookCallButton` is the inline button; `StickyBookBar` is the page-level
  * bar that appears once the reader scrolls past the hero. */
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { Calendar, ArrowRight } from "lucide-react"
 import { bookHref } from "../../data/servicesCatalogue"

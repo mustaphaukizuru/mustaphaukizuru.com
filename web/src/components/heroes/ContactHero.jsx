@@ -36,7 +36,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { m, useReducedMotion } from "framer-motion"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import {
   Sparkles, Clock, MapPin, MessageCircle, ArrowRight, Calendar,
   Check, ChevronLeft, ChevronRight, Globe, Phone, Rocket,
@@ -226,8 +226,13 @@ function BookingCalendar({ reduce }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.7, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className="relative mx-auto hidden w-full max-w-[520px] lg:block"
-      role="img"
-      aria-label={t("hero.calendarAria")}
+      /* NOT `role="img"`, and that was the last WCAG violation on the public
+         pages. `role="img"` promises a single graphic, but this block
+         contains a working "Pick a slot" link to /book — axe reports it as
+         `nested-interactive`, and it is right: a screen reader that treats
+         the whole card as one image hides a real call to action inside it.
+         So the role goes, the link stays reachable and named, and the
+         decorative calendar chrome below is hidden instead. */
     >
       {/* Float wrapper, inherits the V3 idle-orb cadence */}
       <m.div
@@ -352,27 +357,36 @@ function BookingCalendar({ reduce }) {
             </span>
           </div>
 
-          {/* Calendar body */}
-          <div className="px-5 pt-2.5 pb-3">
+          {/* Calendar body · decorative.
+              A month grid of invented dates announced cell by cell is noise,
+              and it is not what the reader is here for. Hidden from the
+              accessibility tree; the CTA in the footer below stays exposed,
+              which is the one thing in this card that does something. */}
+          <div className="px-5 pt-2.5 pb-3" aria-hidden="true">
             {/* Month nav header */}
             <div className="mb-1.5 flex items-center justify-between">
-              <button
-                type="button"
-                aria-label={t("hero.prevMonthAria")}
+              {/* Spans, not buttons. This whole block is `role="img"` — a
+                  drawing of a calendar — and these chevrons have no onClick:
+                  they never did anything. As <button> they broke axe's
+                  `nested-interactive` (interactive content inside a role
+                  that promises a single image) and put two dead tab stops in
+                  a keyboard user's path. The hover styling stays, because
+                  the illustration is still meant to look alive. */}
+              <span
+                aria-hidden="true"
                 className="flex h-6 w-6 items-center justify-center rounded-full !text-violet/45 transition hover:bg-violet-pale hover:!text-violet"
               >
                 <ChevronLeft className="h-4 w-4" />
-              </button>
+              </span>
               <div className="text-[12.5px] font-bold tracking-wide !text-violet">
                 May 2026
               </div>
-              <button
-                type="button"
-                aria-label={t("hero.nextMonthAria")}
+              <span
+                aria-hidden="true"
                 className="flex h-6 w-6 items-center justify-center rounded-full !text-violet/45 transition hover:bg-violet-pale hover:!text-violet"
               >
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </span>
             </div>
 
             {/* Day-of-week labels */}

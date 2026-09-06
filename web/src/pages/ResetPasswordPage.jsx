@@ -18,7 +18,9 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useMemo, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useNavigate from "../hooks/useLocalizedNavigate"
 import { useTranslation } from "react-i18next"
 import { m, useReducedMotion } from "framer-motion"
 import {

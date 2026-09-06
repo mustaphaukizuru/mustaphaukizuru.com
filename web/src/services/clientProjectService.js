@@ -1,4 +1,4 @@
-import { authFetch } from "../lib/api"
+import { authFetch, API_BASE_URL } from "../lib/api"
 
 // ─────────────────────────────────────────────────────────────
 // Client Project Service · member + admin
@@ -92,6 +92,60 @@ export async function createAdminPortalLink(id) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/portal-link`, { method: "POST", body: JSON.stringify({}) })
   return stripData(r)
 }
+/* ── T5-16 · the admin queue, across every project ──────────────────── */
+
+/**
+ * Everything waiting on the operator, and everything waiting on clients.
+ *
+ * Returns the empty shape rather than throwing: this feeds a badge rendered
+ * on every admin page, and a queue that cannot be built must not take the
+ * admin shell down with it.
+ */
+export async function fetchAdminQueue() {
+  try {
+    const r = await authFetch("/api/v1/admin/client-projects/queue")
+    const data = r?.data !== undefined ? r.data : r
+    return {
+      waitingOnMe: data?.waitingOnMe || [],
+      waitingOnClient: data?.waitingOnClient || [],
+      counts: data?.counts || { me: 0, client: 0 },
+    }
+  } catch {
+    return { waitingOnMe: [], waitingOnClient: [], counts: { me: 0, client: 0 } }
+  }
+}
+
+/* ── T5-5 · admin document requests and the full timeline ───────────── */
+
+const adminProject = (id) => `/api/v1/admin/client-projects/${encodeURIComponent(id)}`
+
+export async function fetchAdminFileRequests(id) {
+  const r = await authFetch(`${adminProject(id)}/file-requests`)
+  return Array.isArray(r) ? r : Array.isArray(r?.data) ? r.data : []
+}
+
+export async function createAdminFileRequest(id, body) {
+  const r = await authFetch(`${adminProject(id)}/file-requests`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+/**
+ * Accept, reject or cancel one request.
+ *
+ * Reject reopens rather than closes — the client has to be able to try
+ * again, and the request row is the only place that remembers what was asked
+ * for. The service enforces that; this is only the call.
+ */
+export async function reviewAdminFileRequest(id, reqId, body) {
+  const r = await authFetch(`${adminProject(id)}/file-requests/${encodeURIComponent(reqId)}`, { method: "PATCH", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+export async function fetchAdminProjectEvents(id) {
+  const r = await authFetch(`${adminProject(id)}/events`)
+  return Array.isArray(r) ? r : Array.isArray(r?.data) ? r.data : []
+}
+
 /** Tier 4 · create a draft Portfolio case study from the project. Returns { id, slug, editUrl }. */
 export async function createAdminCaseStudyDraft(id) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(id)}/case-study-draft`, { method: "POST", body: JSON.stringify({}) })
@@ -243,4 +297,115 @@ export async function quoteChangeRequest(projectId, crId, { amount, note, curren
 export async function completeChangeRequest(projectId, crId) {
   const r = await authFetch(`/api/v1/admin/client-projects/${encodeURIComponent(projectId)}/change-requests/${encodeURIComponent(crId)}/done`, { method: "POST", body: "{}" })
   return stripData(r)
+}
+
+/* ── T5-13 · presets and the secure credential handoff ───────────────── */
+
+/**
+ * The static preset list. Fetched rather than duplicated in the SPA: the
+ * server already owns it (src/data/fileRequestPresets.js) and the Spanish
+ * instructions are the point — a second copy is the one that goes stale.
+ */
+export async function fetchFileRequestPresets() {
+  const r = await authFetch("/api/v1/admin/client-projects/file-request-presets")
+  return Array.isArray(r) ? r : Array.isArray(r?.data) ? r.data : []
+}
+
+/** Admin · metadata for every credential on this project. */
+export async function fetchAdminSecrets(id) {
+  const r = await authFetch(`${adminProject(id)}/secrets`)
+  return {
+    secrets: Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : [],
+    // False when the server has no SECRET_HANDOFF_KEY, so the form is hidden
+    // rather than shown and then refused.
+    configured: r?.meta?.configured !== false,
+  }
+}
+
+/** Admin · hand a credential over. Direction is decided by the server. */
+export async function createAdminSecret(id, body) {
+  const r = await authFetch(`${adminProject(id)}/secrets`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+/**
+ * Admin · read one, once.
+ *
+ * POST, not GET: this call destroys what it returns, and a GET would be
+ * spent by a link scanner or a restored tab before anyone read it.
+ */
+export async function revealAdminSecret(id, secretId) {
+  const r = await authFetch(`${adminProject(id)}/secrets/${encodeURIComponent(secretId)}/reveal`, { method: "POST", body: "{}" })
+  return stripData(r)
+}
+
+/** Member · the same three, ownership-scoped. */
+export async function fetchMySecrets(projectId) {
+  const r = await authFetch(`${memberBase(projectId)}/secrets`)
+  return Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : []
+}
+export async function createMySecret(projectId, body) {
+  const r = await authFetch(`${memberBase(projectId)}/secrets`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+export async function revealMySecret(projectId, secretId) {
+  const r = await authFetch(`${memberBase(projectId)}/secrets/${encodeURIComponent(secretId)}/reveal`, { method: "POST", body: "{}" })
+  return stripData(r)
+}
+
+/* ── T5-17 · the other people on the client's side ───────────────────── */
+
+export async function fetchProjectMembers(id) {
+  const r = await authFetch(`${adminProject(id)}/members`)
+  return Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : []
+}
+
+/** Adding the same address twice is an edit, not an error. */
+export async function addProjectMember(id, body) {
+  const r = await authFetch(`${adminProject(id)}/members`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+export async function removeProjectMember(id, memberId) {
+  const r = await authFetch(`${adminProject(id)}/members/${encodeURIComponent(memberId)}`, { method: "DELETE" })
+  return stripData(r)
+}
+
+/**
+ * T5-19 · rebuild the handover pack.
+ *
+ * It is generated automatically the moment a project moves to handover, and
+ * that generation is fire-and-forget — so there has to be a way to run it
+ * again when it failed, or when a deliverable was added afterwards.
+ */
+export async function rebuildHandoverPack(id) {
+  const r = await authFetch(`${adminProject(id)}/handover-pack`, { method: "POST", body: "{}" })
+  return stripData(r)
+}
+
+/* ── T5-18 · hours against a retainer, admin side ────────────────────── */
+
+export async function fetchAdminProjectTime(id) {
+  const r = await authFetch(`${adminProject(id)}/time`)
+  return stripData(r)
+}
+
+/** Minutes, never decimal hours — the form converts and the server stores. */
+export async function logAdminProjectTime(id, body) {
+  const r = await authFetch(`${adminProject(id)}/time`, { method: "POST", body: JSON.stringify(body) })
+  return stripData(r)
+}
+
+export async function deleteAdminProjectTime(id, entryId) {
+  const r = await authFetch(`${adminProject(id)}/time/${encodeURIComponent(entryId)}`, { method: "DELETE" })
+  return stripData(r)
+}
+
+/**
+ * A plain link, not a fetch: the PDF is streamed through a cookie-session
+ * route, so an anchor works and a blob round trip would only add a step.
+ */
+export function adminTimeStatementUrl(id, month) {
+  const root = (API_BASE_URL || "").replace(/\/$/, "")
+  return `${root}${adminProject(id)}/time/${encodeURIComponent(month)}/statement.pdf`
 }

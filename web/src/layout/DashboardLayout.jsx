@@ -1,5 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from "react"
-import { NavLink, Outlet, useLocation, useNavigate, Link } from "react-router-dom"
+import { useState, useEffect, useRef } from "react"
+import { Outlet, useLocation } from "react-router-dom"
+import { LocalizedLink as Link, LocalizedNavLink as NavLink } from "../components/LocalizedLink"
+import useLocalizedNavigate from "../hooks/useLocalizedNavigate"
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -10,7 +12,6 @@ import {
   ChevronRight,
   ShieldCheck,
   HelpCircle,
-  Search,
   X,
   Menu,
   Globe,
@@ -19,10 +20,19 @@ import useBodyScrollLock from "../hooks/useBodyScrollLock"
 import useFocusTrap from "../hooks/useFocusTrap"
 import useSwipeToDismiss from "../hooks/useSwipeToDismiss"
 import { useAuth } from "../context/AuthContext"
+import useLazyNamespace from "../hooks/useLazyNamespace"
 import { API_BASE_URL } from "../lib/api"
 import NotificationDropdown from "../components/dashboard/NotificationDropdown"
 import UpcomingMeetingBanner from "../components/dashboard/UpcomingMeetingBanner"
 import ThemeSwitcher from "../components/ui/ThemeSwitcher"
+import LanguageSwitcher from "../components/LanguageSwitcher"
+// pathWithLanguage(p, "en") IS the strip, and it is a nine-line module.
+// seo/pageSeoEs exports a strip helper that does the same thing, but
+// importing it would pull the whole Spanish SEO table into the dashboard
+// chunk to run one regex.
+import { pathWithLanguage } from "../i18n/utils/pathWithLanguage"
+import { Helmet } from "react-helmet-async"
+import { siteConfig } from "../seo/siteSeo"
 
 import { useTranslation } from "react-i18next"
 /* ──────────────────────────────────────────────────────────────────────────
@@ -36,7 +46,6 @@ import { useTranslation } from "react-i18next"
  *    - Mobile menu uses the same active-state treatment for consistency.
  *    - Bottom mobile tab bar active state matches with violet pale + filled
  *      icon container.
- *    - Search input gets Deep Azure focus ring per a11y guidelines.
  *    - All icon-only buttons get aria-labels (mobile menu close, support,
  *      mobile menu toggle, etc.).
  *    - Skip-to-main-content link added for keyboard users.
@@ -137,19 +146,42 @@ const bottomTabs = [
   { labelKey: "nav.profile", to: "/dashboard/profile", icon: User, match: PROFILE_ROUTES },
 ]
 
-const pageMeta = {
-  "/dashboard": { title: "Overview", subtitle: "Monitor your account, orders, downloads, and recent activity." },
-  "/dashboard/products": { title: "My Products", subtitle: "Access your paid digital products and available downloads." },
-  "/dashboard/downloads": { title: "Downloads", subtitle: "Track your file download history and access logs." },
-  "/dashboard/orders": { title: "Order History", subtitle: "Review your purchases, payment state, and order records." },
-  "/dashboard/consultations": { title: "Consultations", subtitle: "Manage upcoming bookings, reschedule, or cancel calls." },
-  "/dashboard/service-orders": { title: "Service Orders", subtitle: "Track your consulting services, consultations, and project milestones." },
-  "/dashboard/addresses": { title: "Addresses", subtitle: "Manage saved billing and invoicing addresses." },
-  "/dashboard/2fa": { title: "Security · Two-Factor Auth", subtitle: "Add an extra layer of protection to your account." },
-  "/dashboard/notifications": { title: "Notifications", subtitle: "Everything that happened on your account, in one place." },
-  "/dashboard/projects": { title: "Projects", subtitle: "Milestones, files, and timeline for every engagement." },
-  "/dashboard/support": { title: "Support", subtitle: "Open tickets, get help, and track your support requests." },
-  "/dashboard/profile": { title: "Profile", subtitle: "Manage your account information and personal details." },
+/* ──────────────────────────────────────────────────────────────────────────
+ *  PAGE TITLES · D3-1 · one key per route, from the navigation
+ *
+ *  This was twelve hardcoded English title/subtitle pairs, so a member
+ *  reading the dashboard in Spanish got Spanish navigation, Spanish section
+ *  labels and Spanish page content under an ENGLISH page heading, on every
+ *  one of the twelve routes. (The `/es` tree does not mirror /dashboard —
+ *  language here comes from the persisted i18n choice, not the URL — so
+ *  there was no prefix to notice this by.)
+ *
+ *  The titles resolve through `nav.*`, which is the SAME key the sidebar
+ *  entry uses, rather than twelve new strings. That is deliberate on two
+ *  counts: both locales already have them, and it closes a small
+ *  inconsistency the duplicate copy had drifted into — you clicked "Orders"
+ *  and landed on a page headed "Order History", clicked "Two-step
+ *  verification" and landed on "Security · Two-Factor Auth". One name per
+ *  destination.
+ *
+ *  The `subtitle` half is GONE rather than translated. Tier 1 removed it
+ *  from the header (every page renders its own description), so all twelve
+ *  were dead strings; translating them would have been twelve Spanish
+ *  strings nothing renders.
+ *  ──────────────────────────────────────────────────────────────── */
+const pageTitleKeys = {
+  "/dashboard": "nav.overview",
+  "/dashboard/products": "nav.products",
+  "/dashboard/downloads": "nav.downloads",
+  "/dashboard/orders": "nav.orders",
+  "/dashboard/consultations": "nav.consultations",
+  "/dashboard/service-orders": "nav.serviceOrders",
+  "/dashboard/addresses": "nav.addresses",
+  "/dashboard/2fa": "nav.twoFactor",
+  "/dashboard/notifications": "nav.notifications",
+  "/dashboard/projects": "nav.projects",
+  "/dashboard/support": "nav.support",
+  "/dashboard/profile": "nav.profile",
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -167,7 +199,10 @@ function SidebarItem({ item }) {
       end={item.end}
       className={({ isActive: navActive }) =>
         [
-          "group relative flex items-start gap-3 rounded-xl py-3 transition-all duration-200",
+          // snap-start pairs with snap-proximity on the scroller: a scroll
+          // settles on a row boundary rather than leaving one bisected,
+          // which is what made a scrollable rail read as a rendering fault.
+          "group relative flex snap-start items-start gap-3 rounded-xl py-2.5 transition-all duration-200",
           // F10.B · 4px Deep Azure left border on active. The pl-3 accounts
           // for the 4px left border so the icon remains in the same x-axis
           // position regardless of state.
@@ -201,7 +236,21 @@ function SidebarItem({ item }) {
                 aria-hidden="true"
               />
             </div>
-            <div className={["mt-0.5 truncate text-micro", isActive ? "text-violet/70" : "text-charcoal-80/65"].join(" ")}>
+            {/* D4-2 · the description is neutral on every row now.
+              *
+              * The active row used `text-violet/70`, which composites over
+              * the violet-pale active background to 3.19:1 — axe flags it on
+              * all twelve routes. Raising the opacity would
+              * take violet/90 to reach 4.70:1, which is the wrong lever
+              * (and Brand v3 says use the darker sibling, not more alpha).
+              *
+              * The label above already carries the active violet, in
+              * semibold. Making the description neutral gives the row one
+              * accent instead of two at different strengths, and
+              * charcoal-80/65 measures 4.96:1 on violet-pale, 5.32:1 on
+              * white and 5.12:1 on violet-ghost — every background this row
+              * has. */}
+            <div className="mt-0.5 truncate text-micro text-charcoal-80/65">
               {t(item.descKey)}
             </div>
           </div>
@@ -270,7 +319,20 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
         aria-modal={open ? "true" : "false"}
         aria-label={td("layout.navAria")}
       >
-        <div className="flex h-full flex-col">
+        {/* D2-6 · min-h-0 on both, and it is not cosmetic.
+         *
+         * A flex child in a column will not shrink below its content height
+         * unless told it may. So `flex-1 overflow-y-auto` on the nav never
+         * actually scrolled: the nav kept its full height, this container
+         * grew to fit it, and the panel measured 1898px tall inside an 812px
+         * viewport — with the theme control at y=1780 and SIGN OUT at y=1838,
+         * both permanently off-screen and unreachable, because a fixed panel
+         * does not scroll with the page.
+         *
+         * The desktop rail has always had `min-h-0` on its aside, which is
+         * why the same structure works there. Measured, not guessed: the
+         * panel is 812px now and the footer is visible. */}
+        <div className="flex h-full min-h-0 flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-charcoal-80/10 px-5 py-4">
             <div className="flex items-center gap-3">
@@ -301,9 +363,9 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
           </Link>
 
           {/* Nav */}
-          <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
             {navigation.map((group) => (
-              <div key={group.sectionKey} className="mb-6">
+              <div key={group.sectionKey} className="mb-4 last:mb-0">
                 <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
                   {td(group.sectionKey)}
                 </div>
@@ -316,10 +378,18 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
             ))}
           </div>
 
-          {/* Theme switcher (mobile drawer) — same scoping rules as the
-              desktop sidebar control above. */}
-          <div className="border-t border-charcoal-80/10 px-4 pt-4">
+          {/* Theme and language (mobile drawer) — the theme control keeps the
+              same scoping rules as the desktop sidebar one above. Language
+              sits beside it rather than in the mobile header, which is
+              already at four controls across 375px. */}
+          <div className="space-y-2.5 border-t border-charcoal-80/10 px-4 pt-4">
             <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
+            <div className="flex items-center justify-between">
+              <span className="text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
+                {td("layout.language")}
+              </span>
+              <LanguageSwitcher variant="text" />
+            </div>
           </div>
 
           {/* Logout */}
@@ -342,15 +412,32 @@ function MobileMenu({ open, onClose, user, initials, onLogout }) {
 export default function DashboardLayout() {
   const { t } = useTranslation("dashboard")
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const navigate = useLocalizedNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const currentMeta = useMemo(() => {
-    if (pageMeta[location.pathname]) return pageMeta[location.pathname]
-    const parent = Object.keys(pageMeta).find((p) => p !== "/dashboard" && location.pathname.startsWith(`${p}/`))
-    return pageMeta[parent] || { title: "Dashboard", subtitle: "Manage your account and digital products." }
-  }, [location.pathname])
+  /* The two detail routes (`orders/:id`, `projects/:id`) resolve to their
+     parent's title through the prefix match; `/dashboard` is excluded from
+     that search or it would match everything.
+
+     Deliberately not memoised. The `i18nReady` guard below sits after every
+     hook — it has to, or the hook order would change between renders — so a
+     memo here still RUNS on the renders where the `dashboard` bundle has not
+     arrived yet. react-i18next hands back a referentially stable `t`, so
+     deps of `[location.pathname, t]` never invalidate once the bundle lands
+     and the cached value stays the raw key: the heading and the tab title
+     both rendered the literal string "nav.orders" until this was unwrapped.
+     Twelve object lookups and one t() per render is not worth a cache that
+     can be wrong. */
+  /* The /es prefix comes off before the lookup: the map is written in
+     unprefixed form and the tree is mounted at both /dashboard and
+     /es/dashboard (D3-3), so keying on the raw pathname made every Spanish
+     route miss and fall through to "Panel de miembro". */
+  const routePath = pathWithLanguage(location.pathname, "en")
+  const titleKey = pageTitleKeys[routePath]
+    || pageTitleKeys[Object.keys(pageTitleKeys)
+      .find((p) => p !== "/dashboard" && routePath.startsWith(`${p}/`))]
+  const pageTitle = t(titleKey || "layout.memberDashboard")
 
   const initials = user?.fullName
     ?.split(" ")
@@ -370,6 +457,16 @@ export default function DashboardLayout() {
     setMobileMenuOpen(false)
   }, [location.pathname])
 
+  // T5-5 · `dashboard` is route-scoped now (LAZY_NAMESPACES in
+  // i18n/resources.js): 50 KB per language that no public page reads. It is
+  // fetched here and this tree waits for it, because the project does not use
+  // Suspense for translations and rendering early paints raw keys.
+  //
+  // The guard sits AFTER every hook, not at the top: an early return above
+  // them would change the hook order between renders.
+  const i18nReady = useLazyNamespace("dashboard")
+  if (!i18nReady) return null
+
   return (
     // `data-dashboard-shell` is the scoping anchor for dashboard-only
     // dark mode (see styles/tokens.css). The public website never has
@@ -378,6 +475,27 @@ export default function DashboardLayout() {
     // dark mode (via ThemeSwitcher in the sidebar) flips only the
     // dashboard subtree per Brand v3.1 §00 "Default Mode: Light".
     <section data-dashboard-shell className="min-h-screen bg-mist pb-[calc(5rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+      {/* D3-1 · a browser tab you can tell apart.
+       *
+       * SeoRouteManager runs globally and titles every route, but
+       * `/dashboard` appears in pageSeo.js only under `noindexPrefixes` —
+       * there is no staticSeoByRoute entry for any of the twelve routes. So
+       * all twelve fell through to siteConfig.defaultTitle, and a member
+       * with orders, projects and support open in three tabs saw the same
+       * 84-character marketing title on all three.
+       *
+       * Helmet resolves to the deepest instance, so this wins over
+       * SeoRouteManager without touching it — and it belongs here rather
+       * than in pageSeo.js because the title has to be translated, and this
+       * is the only tree that has the `dashboard` namespace loaded. Putting
+       * it in the global manager would pull 56 KB of dashboard strings into
+       * every public page load to title a page the public never sees.
+       *
+       * Title first, brand second: the tab strip truncates from the right. */}
+      <Helmet>
+        <title>{`${pageTitle} · ${siteConfig.siteName}`}</title>
+      </Helmet>
+
       {/* Skip-to-content for keyboard users */}
       <a
         href="#dashboard-main"
@@ -387,7 +505,14 @@ export default function DashboardLayout() {
       </a>
 
       <div className="mx-auto max-w-[1700px] px-3 py-3 sm:px-5 lg:px-6 lg:py-4">
-        <div className="grid gap-4 lg:min-h-[calc(100dvh-2rem)] lg:grid-cols-[300px_1fr]">
+        {/* D1-4 · a narrower rail between lg and xl.
+             *
+             * The sidebar appears at lg (1024px) and took 300px of it, which
+             * left the content column 650px — measured — and that is also
+             * where DashboardPage used to split its cards in two, so each
+             * card got ~310px and titles wrapped onto two lines. The rail
+             * gets its full 300px back at xl, where there is room for it. */}
+        <div className="grid gap-4 lg:min-h-[calc(100dvh-2rem)] lg:grid-cols-[264px_1fr] xl:grid-cols-[300px_1fr]">
 
           {/* ── Desktop Sidebar ── */}
           <div className="hidden lg:sticky lg:top-4 lg:block lg:h-[calc(100dvh-2rem)]">
@@ -417,10 +542,18 @@ export default function DashboardLayout() {
                 {t("layout.backToWebsite")}
               </Link>
 
-              {/* Nav */}
-              <div className="mt-4 flex-1 overflow-y-auto pr-1">
+              {/* Nav
+               *
+               * The fade at the bottom is the affordance: when the rail is
+               * short enough for this to scroll, a row cut by the scroller's
+               * edge reads as a rendering fault rather than as "there is
+               * more below". mask-image would be tidier but is not in the
+               * gradient token set.
+               */}
+              <div className="relative mt-4 min-h-0 flex-1">
+                <div className="h-full snap-y snap-proximity overflow-y-auto pr-1">
                 {navigation.map((group) => (
-                  <div key={group.sectionKey} className="mb-6">
+                  <div key={group.sectionKey} className="mb-4 last:mb-0">
                     <div className="mb-2 px-2 text-micro font-semibold uppercase tracking-[0.14em] text-charcoal-80/65">
                       {t(group.sectionKey)}
                     </div>
@@ -431,48 +564,75 @@ export default function DashboardLayout() {
                     </div>
                   </div>
                 ))}
+                </div>
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-6 rounded-b-xl bg-gradient-to-t from-white to-transparent"
+                  aria-hidden="true"
+                />
               </div>
 
-              {/* User card */}
-              <div className="mt-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 p-4">
-                <div className="flex items-center gap-3">
-                  <UserAvatar src={user?.avatarUrl} initials={initials} size={11} />
+              {/* Footer · one card (D1-3)
+               *
+               * This was three stacked blocks — user card, theme switcher,
+               * logout — at 190px with their margins, pinned below a nav that
+               * needs 642px. On a 600px-tall window the nav got 201px of that
+               * and hid 441px of itself; at 800px it hid 241px and sliced the
+               * "Projects" row in half, 40px of it below the scroller's edge.
+               * Measured at five viewport heights.
+               *
+               * Folded into one ~110px card: logout moves onto the avatar row
+               * as a 44px icon button, the theme control sits under it.
+               * Nothing is lost — Light / Dark / System are all still here —
+               * and the nav now fits WITHOUT SCROLLING at 1920x950, the window
+               * the report came from.
+               */}
+              <div className="mt-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 p-3">
+                <div className="flex items-center gap-2.5">
+                  <UserAvatar src={user?.avatarUrl} initials={initials} size={9} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-meta font-semibold text-violet">{user?.fullName || "Member"}</div>
                     <div className="truncate text-micro text-charcoal-80/70">{user?.email || ""}</div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    aria-label={t("layout.logout")}
+                    title={t("layout.logout")}
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose/20 bg-white text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30 focus-visible:ring-offset-2"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
+                  </button>
                 </div>
+                {/* Scoped to the dashboard subtree via data-dashboard-shell on
+                    this section's root, so toggling here does NOT alter the
+                    public website's canonical light brand. */}
+                <ThemeSwitcher variant="segmented" size="sm" className="mt-2.5 w-full justify-between" />
               </div>
-
-              {/* Theme switcher — 3-way Light / Dark / System control.
-                  Scoped to the dashboard subtree via data-dashboard-shell
-                  on this section's root, so toggling here does NOT alter
-                  the public website's canonical light brand. */}
-              <div className="mt-3">
-                <ThemeSwitcher variant="segmented" size="sm" className="w-full justify-between" />
-              </div>
-
-              {/* Logout */}
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-rose/20 bg-white px-4 py-3 text-meta font-semibold text-rose-700 transition hover:bg-rose/10 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-rose/30/40 focus-visible:ring-offset-2"
-              >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-                Logout
-              </button>
             </aside>
           </div>
 
           {/* ── Main area ── */}
           <div className="min-w-0">
 
-            {/* ── Mobile Header ── */}
+            {/* ── Mobile Header ── (and 768-1023, deliberately)
+             *
+             * D2-5 · the band between 768 and 1023 gets the phone treatment:
+             * this header, the drawer and the bottom tab bar. That was
+             * questioned and kept.
+             *
+             * The rail needs 264px and the content column needs ~650px
+             * before two cards stop wrapping their titles, so the two-column
+             * shell does not pay for itself under ~940px. A 768-1023 tablet
+             * given the desktop shell would get a 480px content column,
+             * which is worse than a single wide column with thumb-reachable
+             * navigation at the bottom of the screen — and a tablet is held,
+             * so the bottom bar is the right affordance there anyway.
+             */}
             <header className="sticky top-0 z-30 -mx-3 mb-3 flex items-center justify-between border-b border-charcoal-80/10 bg-white px-4 py-3 shadow-[var(--shadow-e2)] lg:hidden">
               <div className="flex items-center gap-3">
                 <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[var(--shadow-lift-1)]" />
                 <div>
-                  <div className="text-body font-bold text-violet">{currentMeta.title}</div>
+                  <div className="text-body font-bold text-violet">{pageTitle}</div>
                   <div className="text-micro text-charcoal-80/65">{t("layout.memberDashboard")}</div>
                 </div>
               </div>
@@ -481,7 +641,7 @@ export default function DashboardLayout() {
                   to="/"
                   aria-label={t("layout.backWebsiteAria")}
                   title={t("layout.backWebsiteAria")}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
                 >
                   <Globe className="h-[18px] w-[18px]" aria-hidden="true" />
                 </Link>
@@ -490,62 +650,106 @@ export default function DashboardLayout() {
                   type="button"
                   onClick={() => setMobileMenuOpen(true)}
                   aria-label={t("layout.openMenu")}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-violet transition hover:bg-violet-ghost focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
                 >
                   <Menu className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
             </header>
 
-            {/* ── Desktop Header ── */}
-            <header className="sticky top-4 z-20 hidden rounded-xl border border-charcoal-80/10 bg-white px-5 py-4 shadow-[var(--shadow-e6)] lg:block">
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                <div className="min-w-0">
+            {/* ── Desktop Header ── (D1-1, D1-2, D4-1)
+             *
+             * THE WRAPPER IS THE FIX FOR THE BLEED. The header used to be
+             * `sticky top-4`, which parks it 16px below the viewport edge and
+             * leaves a 16px window that scrolling cards slide through in full
+             * view — measured with elementFromPoint(x, 12) returning page
+             * content, and visible in the screenshot that started this. The
+             * WRAPPER is what sticks now, at top-0, and it carries the page's
+             * own 16px gap as its own padding on a `bg-mist` ground. So the
+             * gap is painted, the card still sits 16px down, and nothing shows
+             * through. `-mt-4` cancels the grid container's padding, so the
+             * resting layout is unchanged.
+             *
+             * ONE ROW, FROM lg UP. It was `flex-col ... xl:flex-row`, so
+             * between 1024 and 1280 the title block and the toolbar stacked:
+             * 184px of sticky header on a 600px-tall laptop — 31% of the
+             * screen, measured. Now a single row that holds at every width.
+             *
+             * WHAT WENT, AND WHY
+             *   · the subtitle — every page renders its own heading and
+             *     description; this was a second, more generic copy, and it
+             *     cost 40px of every screen permanently.
+             *   · the <h1> — the PAGE owns the h1. Two per document is what
+             *     the a11y probe found at all four viewports; a breadcrumb is
+             *     not the document's heading.
+             *   · the search box — no state, no handler, no form. It did
+             *     nothing, and being the widest thing here it is what forced
+             *     the wrap. Orders and Downloads already have their own
+             *     WORKING search inputs over the data they hold; a global one
+             *     needs a backend endpoint that does not exist, which is a
+             *     feature rather than a layout fix.
+             */}
+            <div className="sticky top-0 z-20 hidden -mt-4 bg-mist pt-4 lg:block">
+              <header className="flex items-center gap-4 rounded-xl border border-charcoal-80/10 bg-white px-5 py-3 shadow-[var(--shadow-e6)]">
+                <div className="min-w-0 flex-1">
                   <div className="text-micro font-medium uppercase tracking-[0.12em] text-charcoal-80/65">
-                    Dashboard / {currentMeta.title}
+                    {t("layout.breadcrumbRoot")}
                   </div>
-                  <div className="mt-2">
-                    <h1 className="truncate text-section font-bold tracking-tight text-violet">
-                      {currentMeta.title}
-                    </h1>
-                    <p className="mt-0.5 text-micro text-charcoal-80/70">{currentMeta.subtitle}</p>
-                  </div>
+                  {/* D4-1 · the h1 lives HERE, and only here.
+                   *
+                   * The probe found two per page — this one and the page's —
+                   * on all four viewports. Removing this one was tried first
+                   * and was worse: NINE of the fourteen dashboard pages have
+                   * no heading of their own (Consultations, Downloads,
+                   * Products and Profile have no visible title at all), so
+                   * the documents ended up with none.
+                   *
+                   * The layout already knows the page title from pageTitleKeys and
+                   * renders it on every route, so it is the one place that can
+                   * guarantee exactly one. The three pages that had their own
+                   * h1 are now h2 under it, which is also the hierarchy the
+                   * heading-order probe wanted. */}
+                  <h1 className="truncate text-card font-bold tracking-tight text-violet">
+                    {pageTitle}
+                  </h1>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <label htmlFor="dashboard-search" className="sr-only">{t("layout.searchDashboard")}</label>
-                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-mist px-4 py-3 transition focus-within:border-violet/40 focus-within:ring-[3px] focus-within:ring-azure/20">
-                    <Search className="h-4 w-4 text-charcoal-80/65" aria-hidden="true" />
-                    <input
-                      id="dashboard-search"
-                      type="text"
-                      placeholder="Search orders, products..."
-                      className="w-[180px] bg-transparent text-meta text-violet outline-none placeholder:text-charcoal-80/65"
-                    />
-                  </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {/* D3-3 · the dashboard had no language control at all.
+                      It did not need one while /dashboard was English-only;
+                      now that /es/dashboard exists, this is the only screen a
+                      signed-in member lives on, and switching should not mean
+                      going back out to a marketing page to find the toggle.
+                      The `text` variant is ~44px wide and costs the header no
+                      height, which D1-2 spent real effort reclaiming. */}
+                  <LanguageSwitcher variant="text" className="me-1" />
                   <button
                     type="button"
                     onClick={() => navigate("/dashboard/support")}
                     aria-label={t("layout.openSupport")}
-                    title="Support"
+                    title={t("layout.openSupport")}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-charcoal-80/10 bg-white text-violet transition hover:bg-violet-pale/60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-2"
                   >
                     <HelpCircle className="h-[18px] w-[18px]" aria-hidden="true" />
                   </button>
                   <NotificationDropdown />
-                  <div className="flex items-center gap-3 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3.5 py-2">
+                  {/* The name appears from xl and the email from 2xl: between
+                      1024 and 1279 the content column is only 650px wide, and
+                      an email address is the least useful thing in a header
+                      belonging to the person already signed in. */}
+                  <div className="flex items-center gap-2.5 rounded-xl border border-charcoal-80/10 bg-violet-pale/40 px-3 py-2">
                     <UserAvatar src={user?.avatarUrl} initials={initials} size={9} className="shadow-[var(--shadow-lift-1)]" />
-                    <div className="min-w-0">
-                      <div className="truncate text-meta font-semibold leading-none text-violet">
+                    <div className="hidden min-w-0 xl:block">
+                      <div className="truncate text-meta font-semibold leading-tight text-violet">
                         {user?.fullName?.split(" ")[0] || "Member"}
                       </div>
-                      <div className="mt-0.5 truncate text-micro leading-none text-charcoal-80/65">
+                      <div className="mt-0.5 hidden truncate text-micro leading-tight text-charcoal-80/65 2xl:block">
                         {user?.email || ""}
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </header>
+              </header>
+            </div>
 
             {/* Page content */}
             <main id="dashboard-main" className="mt-3 min-w-0 lg:mt-4">

@@ -70,7 +70,8 @@
     "plan": {
       "mostPopular": "Más popular",
       "includedTitle": "Qué incluye",
-      "msi": "Hasta {{months}} MSI con Mercado Pago"
+      "msi": "Hasta {{months}} MSI con Mercado Pago",
+      "alsoStandalone": "(también se vende por separado: {{name}})"
     },
     "form": {
       "title": "Tus datos",
@@ -130,7 +131,7 @@
     "pricingLabel": "Modelo de precio",
     "pricing": {
       "fixed": "Precio fijo",
-      "retainer": "Retainer mensual",
+      "retainer": "Iguala mensual",
       "quote": "Con cotización",
       "from": "Desde",
       "perMonth": "/mes"
@@ -148,14 +149,20 @@
     "packages": {
       "eyebrow": "Paquetes de precio fijo",
       "title": "¿Prefieres un paquete con precio?",
-      "subtitle": "Planes por audiencia con precio mensual fijo. Compra directo o agenda una llamada si prefieres hablar primero.",
-      "popular": "Popular"
+      "subtitle": "Planes por audiencia con precio mensual fijo. Paga directamente o agenda una llamada primero: los niveles superiores siempre se definen en una llamada.",
+      "popular": "Popular",
+      "quoteOnly": "Agenda una llamada"
     },
     "faq": {
       "eyebrow": "Preguntas frecuentes",
       "title": "Preguntas antes de la llamada",
       "subtitle": "Respuestas breves a lo que la mayoría de los clientes pregunta primero.",
       "items": [
+        {
+          "id": "after-request",
+          "question": "¿Qué pasa después de que envío una solicitud?",
+          "answer": "Recibes respuesta en 1 día hábil, luego una llamada de diagnóstico de 30 minutos para confirmar alcance y restricciones, y una propuesta escrita dentro de los 3 días hábiles siguientes a esa llamada. El proceso completo de seis pasos, con lo que se envía en cada etapa, está en la página Cómo trabajamos."
+        },
         {
           "id": "start",
           "question": "¿Por dónde empiezo si no sé qué servicio necesito?",
@@ -164,7 +171,7 @@
         {
           "id": "pricing",
           "question": "¿Cómo se estructura el precio?",
-          "answer": "Cada oferta muestra un precio indicativo en dólares estadounidenses y en pesos mexicanos, con base en una tarifa mínima de $30 USD/hora. Las auditorías y el sprint de wireframing son de precio fijo; los desarrollos, migraciones y retainers a medida muestran un precio de partida, confirmado en la propuesta escrita una vez definido el alcance."
+          "answer": "Cada oferta muestra un precio indicativo en dólares estadounidenses y en pesos mexicanos, con base en una tarifa mínima de $30 USD/hora. Las auditorías y el sprint de wireframing son de precio fijo; los desarrollos, migraciones e igualas mensuales muestran un precio de partida, confirmado en la propuesta escrita una vez definido el alcance."
         },
         {
           "id": "nda",
@@ -212,6 +219,11 @@
       "invalid": "Introduce una dirección de email válida.",
       "error": "Algo salió mal. Inténtalo de nuevo.",
       "privacy": "Doble confirmación: confirmas por email antes de recibir nada más."
+    },
+    "includedIn": {
+      "prefix": "También incluido en",
+      "plan": "{{plan}} {{tier}}",
+      "suffix": " y superiores."
     }
   },
   "booking": {
@@ -220,6 +232,10 @@
     "context": {
       "label": "Vas a hablar sobre",
       "change": "Cambiar"
+    },
+    "plan": {
+      "label": "Preguntas por",
+      "note": "Este nivel se define primero en una llamada: acordamos qué incluye antes de cobrar nada."
     }
   },
   "demo": {
@@ -291,5 +307,47 @@
         "later": "Explorando"
       }
     }
+  },
+  "process": {
+    "seo": {
+      "title": "Cómo trabajamos",
+      "description": "Seis pasos desde el primer mensaje hasta la entrega: qué enviar en cada etapa, entrega remota y presencial, y las reglas de acceso y privacidad de datos."
+    },
+    "hero": {
+      "eyebrow": "Cómo trabajamos",
+      "title": "Seis pasos desde el primer mensaje hasta la entrega",
+      "subtitle": "El mismo proceso ya sea una auditoría de dos días o un proyecto de varios meses. Esto es lo que pasa, lo que envías y lo que recibes, antes de que te comprometas a nada."
+    },
+    "step": {
+      "how": "Cómo",
+      "when": "Cuándo",
+      "include": "Qué incluir"
+    },
+    "submit": {
+      "eyebrow": "Lo que envías",
+      "title": "Qué enviar, por etapa",
+      "subtitle": "Nada de esto aparece como sorpresa después. La versión campo por campo es la lista de onboarding, que se comparte al momento de la propuesta.",
+      "stageHeading": "Etapa",
+      "needsHeading": "Qué se necesita"
+    },
+    "modality": {
+      "eyebrow": "Dónde ocurre el trabajo",
+      "title": "Remoto por defecto, presencial cuando hace falta estar ahí",
+      "subtitle": "El trabajo presencial se cotiza aparte en la propuesta. Nunca se da por hecho.",
+      "seeOfferings": "Ver los servicios donde aplica"
+    },
+    "access": {
+      "eyebrow": "Accesos y datos",
+      "title": "La confianza se gana antes de dar accesos",
+      "subtitle": "Estas reglas aplican a todos los proyectos, sin importar su tamaño.",
+      "privacyLink": "Lee el aviso de privacidad",
+      "aiLink": "Ver los servicios de IA y automatización"
+    },
+    "cta": {
+      "title": "Empieza por el paso uno",
+      "body": "Cuéntame qué quieres resolver. La primera llamada dura treinta minutos, es gratis y termina con un siguiente paso claro en cualquier caso.",
+      "button": "Agenda la llamada de diagnóstico"
+    },
+    "servicesLink": "Ver el proceso completo de seis pasos"
   }
 }

@@ -31,11 +31,36 @@
     "title": "Cada etapa del ciclo toca un sistema",
     "subtitle": "Así se ve un año escolar en México desde TI. Cada punto es un momento donde la tecnología ayuda o estorba.",
     "steps": [
-      { "when": "Agosto", "title": "Reinscripción e inscripción", "system": "Expedientes, pagos y formularios", "offering": "Flujos de extracción de datos" },
-      { "when": "Septiembre", "title": "Arranque y plataformas", "system": "Cuentas, aulas virtuales, comunicación a familias", "offering": "Auditoría de la pila de software" },
-      { "when": "Diciembre · Marzo", "title": "Evaluaciones y boletas", "system": "Calificaciones, reportes, entrega a familias", "offering": "Aplicación web a medida" },
-      { "when": "Abril · Mayo", "title": "Admisiones del siguiente ciclo", "system": "Prospectos, WhatsApp, seguimiento", "offering": "Calificadores de leads por WhatsApp" },
-      { "when": "Julio", "title": "Cierre y respaldo", "system": "Archivo del ciclo, respaldos, accesos", "offering": "Plan de recuperación ante desastres" }
+      {
+        "when": "Agosto",
+        "title": "Reinscripción e inscripción",
+        "system": "Expedientes, pagos y formularios",
+        "offering": "Flujos de extracción de datos"
+      },
+      {
+        "when": "Septiembre",
+        "title": "Arranque y plataformas",
+        "system": "Cuentas, aulas virtuales, comunicación a familias",
+        "offering": "Auditoría de la pila de software"
+      },
+      {
+        "when": "Diciembre · Marzo",
+        "title": "Evaluaciones y boletas",
+        "system": "Calificaciones, reportes, entrega a familias",
+        "offering": "Aplicación web a medida"
+      },
+      {
+        "when": "Abril · Mayo",
+        "title": "Admisiones del siguiente ciclo",
+        "system": "Prospectos, WhatsApp, seguimiento",
+        "offering": "Calificadores de leads por WhatsApp"
+      },
+      {
+        "when": "Julio",
+        "title": "Cierre y respaldo",
+        "system": "Archivo del ciclo, respaldos, accesos",
+        "offering": "Plan de recuperación ante desastres"
+      }
     ]
   },
   "outcomes": {
@@ -63,24 +88,46 @@
     "subtitle": "Dos herramientas de la tienda pensadas para directivos y coordinadores. Compra inmediata, sin llamada previa.",
     "viewProduct": "Ver en la tienda",
     "items": {
-      "school-it-audit-checklist": { "title": "Lista de verificación de TI escolar", "blurb": "Revisa infraestructura, dispositivos, conectividad, accesos y seguridad en una sola lista." },
-      "stem-program-planning-pack": { "title": "Paquete de planeación de programa STEM", "blurb": "Recursos ordenados para diseñar actividades de programación y robótica con guía de implementación." }
+      "school-it-audit-checklist": {
+        "title": "Lista de verificación de TI escolar",
+        "blurb": "Revisa infraestructura, dispositivos, conectividad, accesos y seguridad en una sola lista."
+      },
+      "stem-program-planning-pack": {
+        "title": "Paquete de planeación de programa STEM",
+        "blurb": "Recursos ordenados para diseñar actividades de programación y robótica con guía de implementación."
+      }
     }
   },
   "faq": {
     "eyebrow": "Preguntas frecuentes",
     "title": "Lo que preguntan los directivos",
     "items": [
-      { "id": "when", "question": "¿En qué momento del ciclo conviene empezar?", "answer": "Las auditorías y planes de respaldo funcionan mejor entre mayo y julio, antes del cierre. Las plataformas nuevas se implementan idealmente para arrancar en agosto. Una llamada de 30 minutos define el calendario sin compromiso." },
-      { "id": "data", "question": "¿Cómo manejan los datos de alumnos y familias?", "answer": "Con la LFPDPPP como base: inventario de datos, aviso de privacidad, accesos mínimos y respaldos cifrados. Los expedientes nunca salen de sistemas controlados por el colegio." },
-      { "id": "staff", "question": "¿El personal del colegio podrá administrarlo solo?", "answer": "Sí. Cada entrega incluye capacitación al personal y documentación; la meta es que el colegio publique y opere sin depender de un desarrollador externo." },
-      { "id": "size", "question": "¿Trabaja con colegios pequeños?", "answer": "Sí. Muchos resultados empiezan con una auditoría de software o una lista de verificación de la tienda, sin proyectos grandes de por medio." }
+      {
+        "id": "when",
+        "question": "¿En qué momento del ciclo conviene empezar?",
+        "answer": "Las auditorías y planes de respaldo funcionan mejor entre mayo y julio, antes del cierre. Las plataformas nuevas se implementan idealmente para arrancar en agosto. Una llamada de 30 minutos define el calendario sin compromiso."
+      },
+      {
+        "id": "data",
+        "question": "¿Cómo manejan los datos de alumnos y familias?",
+        "answer": "Con la LFPDPPP como base: inventario de datos, aviso de privacidad, accesos mínimos y respaldos cifrados. Los expedientes nunca salen de sistemas controlados por el colegio."
+      },
+      {
+        "id": "staff",
+        "question": "¿El personal del colegio podrá administrarlo solo?",
+        "answer": "Sí. Cada entrega incluye capacitación al personal y documentación; la meta es que el colegio publique y opere sin depender de un desarrollador externo."
+      },
+      {
+        "id": "size",
+        "question": "¿Trabajas con colegios pequeños?",
+        "answer": "Sí. Muchos resultados empiezan con una auditoría de software o una lista de verificación de la tienda, sin proyectos grandes de por medio."
+      }
     ]
   },
   "audit": {
     "eyebrow": "Autodiagnóstico gratuito",
     "title": "Califica la tecnología de tu colegio en 5 minutos",
-    "body": "Un cuestionario con lente escolar: sitio, seguridad, nube y flujos digitales. Recibes un puntaje y las tres mejoras con mayor impacto.",
+    "body": "Quince afirmaciones en tres áreas, con lente escolar: estrategia y cumplimiento, la información que tu personal necesita encontrar, y qué pasa cuando algo falla. Recibes un puntaje y los cinco huecos que conviene cerrar primero.",
     "cta": "Iniciar el autodiagnóstico"
   },
   "final": {

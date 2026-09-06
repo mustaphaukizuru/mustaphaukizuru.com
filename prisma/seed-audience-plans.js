@@ -59,7 +59,7 @@ const PLANS = {
       "Conversion-optimized landing pages and A/B testing",
       "Quarterly brand-strategy and positioning review",
       "Monthly performance, growth, and traffic report",
-      "Priority email support with 24-hour response SLA",
+      "Priority email support, next-business-day response",
       "Dedicated 1:1 monthly strategy session",
     ],
     tiers: {
@@ -88,7 +88,7 @@ const PLANS = {
       "Real-time analytics and business-intelligence dashboards",
       "Quarterly business review and strategic roadmap session",
       "Dedicated account manager and customer-success contact",
-      "24/7 incident response with 4-hour critical SLA",
+      "4-hour target on production-down incidents, business hours",
       "On-demand strategic advisory and architecture hours",
     ],
     tiers: {
@@ -117,7 +117,7 @@ const PLANS = {
       "Bilingual leadership development and admin training",
       "Quarterly board-level strategic review",
       "Six-month post-deployment administrative support",
-      "Emergency response with same-day on-site SLA",
+      "Remote-first incident response; on-site by arrangement",
       "Innovation lab and maker-space program design",
     ],
     tiers: {

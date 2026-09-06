@@ -33,6 +33,10 @@ try {
 const { aggregateDailyMetrics } = require("./aggregateDailyMetrics")
 const { runReminderPass } = require("./bookingReminderJob")
 const { cancelStaleOrders } = require("./cancelStaleOrders")
+const { runFileRequestReminderPass } = require("./fileRequestReminderJob")
+const { runWeeklyDigestPass } = require("./weeklyDigestJob")
+const { runMonthlyStatementPass } = require("./monthlyStatementJob")
+const { runReviewFollowUpPass } = require("./reviewFollowUpJob")
 const { runCampaignSenderPass } = require("./campaignSenderJob")
 const { runEmailRetryPass } = require("./emailRetryJob")
 const { runBackupPass } = require("./backupDatabaseJob")
@@ -47,6 +51,7 @@ const { runRetentionPass } = require("./retentionJob")
 const running = new Set()
 const { isAlive, recycle } = require("../lib/prisma")
 const { recordHeartbeat } = require("./heartbeat")
+const { withCronLock } = require("./cronLock")
 
 // DB pre-flight shared by every job: a cron firing on a dead engine used to
 // be the classic trigger for the Prisma "timer has gone away" panic. Probe,
@@ -68,12 +73,22 @@ async function guarded(name, fn) {
   running.add(name)
   try {
     if (await dbReady(name)) {
-      await fn()
-      // Dead-man switch: only a pass that ran to completion counts. A
-      // skipped tick (DB down) or a throw leaves the last heartbeat where
-      // it was, which is exactly what /health/jobs should then report.
-      try { recordHeartbeat(name) }
-      catch (e) { logger.warn(`[scheduler] ${name}: heartbeat not written — ${e.message}`) }
+      // T3-5 · the `running` Set above is one process wide, and Passenger
+      // runs more than one — each with its own scheduler, each convinced
+      // nothing is running. withCronLock takes a MySQL advisory lock so only
+      // one of them executes the pass. For most jobs the old behaviour was
+      // waste; for emailRetryJob it was a client getting the same email
+      // twice.
+      const ran = await withCronLock(name, fn)
+      // The heartbeat records a pass that COMPLETED. A tick skipped because
+      // another process holds the lock has not completed anything here — but
+      // the process that did hold it writes the heartbeat, so /health/jobs
+      // still sees the job as alive. Writing one on a skipped tick would
+      // report a job as healthy on a box where it never runs.
+      if (ran) {
+        try { recordHeartbeat(name) }
+        catch (e) { logger.warn(`[scheduler] ${name}: heartbeat not written — ${e.message}`) }
+      }
     }
   }
   catch (err) { logger.error(`[scheduler] ${name} failed`, err) }
@@ -120,11 +135,53 @@ function startScheduler() {
     logger.error("[scheduler] failed to register cancelStaleOrders", err)
   }
 
+  // ── Document-request reminders · daily 09:00 Mexico City ────────────
+  // Chases outstanding client documents whose due date is close or past.
+  // Local time on purpose: this one lands in a person's morning, not at an
+  // arbitrary UTC hour that is 3am for the client being nudged.
+  try {
+    cron.schedule(
+      "0 9 * * *",
+      () => guarded("fileRequestReminders", () => runFileRequestReminderPass()),
+      { timezone: "America/Mexico_City" },
+    )
+    logger.info("[scheduler] registered file-request reminders · 09:00 America/Mexico_City")
+  } catch (err) {
+    logger.error("[scheduler] failed to register fileRequestReminderJob", err)
+  }
+
   // ── Campaign sender · every minute ──────────────────────────────────
   // Drains queued EmailCampaignRecipient rows (50 per campaign per tick)
   // for campaigns in status "sending". The overlap guard keeps two passes
   // from racing on the same rows.
   try {
+    // T5-15 · Monday 08:00 Mexico City. Not Sunday night and not Friday: the
+    // digest is a thing to act on, and it should land at the start of a
+    // working week rather than at the end of one.
+    cron.schedule(
+      "0 8 * * 1",
+      () => guarded("weeklyDigest", runWeeklyDigestPass),
+      { timezone: "America/Mexico_City" },
+    )
+
+    // T5-18 · the retainer month, closed. The 1st at 09:00 Mexico City —
+    // the same schedule family as the digest, an hour later so the two
+    // never contend for the mailer on the one morning they coincide.
+    cron.schedule(
+      "0 9 1 * *",
+      () => guarded("monthlyStatement", runMonthlyStatementPass),
+      { timezone: "America/Mexico_City" },
+    )
+
+    // T5-21 · one review nudge a week after completion, for the clients who
+    // simply forgot. 09:30 Mexico City: a request to write something lands
+    // better mid-morning than first thing.
+    cron.schedule(
+      "30 9 * * *",
+      () => guarded("reviewFollowUp", runReviewFollowUpPass),
+      { timezone: "America/Mexico_City" },
+    )
+
     cron.schedule("* * * * *", () => guarded("campaignSender", runCampaignSenderPass))
     logger.info("[scheduler] registered campaign sender · every minute")
   } catch (err) {

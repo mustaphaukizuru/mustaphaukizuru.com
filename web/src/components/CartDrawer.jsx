@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "./LocalizedLink"
 import {
   X, ShoppingCart, Trash2, Plus, Minus,
   ArrowRight, Package, ShoppingBag,

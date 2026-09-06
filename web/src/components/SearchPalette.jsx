@@ -1,6 +1,6 @@
 import { formatPrice as formatPriceCanonical } from "../lib/format"
 import { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import useNavigate from "../hooks/useLocalizedNavigate"
 import {
   Search,
   Package,

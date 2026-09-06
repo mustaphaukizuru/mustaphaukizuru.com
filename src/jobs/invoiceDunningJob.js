@@ -23,6 +23,7 @@
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { sendTemplateEmail } = require("../services/emailService")
+const { recordInvoicePaid, recordInvoiceOverdue } = require("../services/projectInvoiceService")
 const { notify } = require("../services/notificationService")
 const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const { lateFeeRate, round2, toNumber } = require("../services/adminInvoiceService")
@@ -45,7 +46,9 @@ function fmtDate(d) {
 async function reconcilePaid(now) {
   const rows = await prisma.invoice.findMany({
     where:  { status: { in: ["issued", "overdue"] }, order: { status: "paid" } },
-    select: { id: true, order: { select: { paidAt: true } } },
+    // invoiceNumber / serviceOrderId / orderId are here for the timeline
+    // event below — it has to resolve the project the bill belongs to.
+    select: { id: true, invoiceNumber: true, serviceOrderId: true, orderId: true, order: { select: { paidAt: true } } },
     take:   BATCH,
   })
   let n = 0
@@ -55,6 +58,12 @@ async function reconcilePaid(now) {
       data:  { status: "paid", paidAt: inv.order?.paidAt || now },
     })
     n += r.count
+    // T5-9 · the reconcile pass is the other way an invoice becomes paid:
+    // a webhook was missed and the order is paid while the bill still says
+    // issued. The client should read the same timeline line either way.
+    // updateMany's count is the guard — only a real transition, never a
+    // second pass over a row this loop already flipped.
+    if (r.count === 1) await recordInvoicePaid(inv).catch(() => null)
   }
   return n
 }
@@ -94,6 +103,11 @@ async function markOverdue(now, { dryRun } = {}) {
       })
       if (r.count !== 1) continue
       overdue += 1
+      // T5-9 · the catalogue has carried invoice.overdue since T5-2 and
+      // nothing ever wrote it. Client visibility, never public: a shared
+      // tracking code must not tell a client's own staff that they are
+      // behind on payment.
+      await recordInvoiceOverdue(inv).catch(() => null)
     } catch (e) {
       logger.error(`[dunning] failed to mark ${inv.invoiceNumber} overdue: ${e.message}`)
       continue

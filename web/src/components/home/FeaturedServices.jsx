@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { ArrowRight } from "lucide-react"
 import { serviceCategories } from "../../data/homeData"
 import { Container, SectionHeading, SectionLink } from "./primitives"
 
 /**
- * FeaturedServices · the 4 catalogue categories (docs/SERVICE_CATALOGUE_2026-08.md)
+ * FeaturedServices · the 4 catalogue categories (data/servicesCatalogue.js;
+ * readable reference in docs/catalogue/services-and-categories.md)
  * Static data — no API round-trip, so the section always renders and never
  * shifts layout. Each card links to a slug that exists in servicesCatalogue.js
  * (or /services when the category has no slug yet).

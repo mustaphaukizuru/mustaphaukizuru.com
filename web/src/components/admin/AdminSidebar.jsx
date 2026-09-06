@@ -101,6 +101,9 @@ const navigation = [
     items: [
       { label: "Services", to: "/admin/services", icon: Briefcase, description: "Consulting & delivery" },
       { label: "Service Orders", to: "/admin/service-orders", icon: ClipboardCheck, description: "Paid service deliveries" },
+      // T5-16 · above Client Projects on purpose: the queue is where a
+      // day starts, and the project list is where it goes next.
+      { label: "Queue", to: "/admin/queue", icon: Inbox, description: "Everything waiting, across projects", countKey: "queue" },
       { label: "Client Projects", to: "/admin/client-projects", icon: Briefcase, description: "Milestones, files, timeline" },
       { label: "Invoices", to: "/admin/invoices", icon: Receipt, description: "Manual invoices & dunning" },
       { label: "Availability", to: "/admin/availability", icon: Calendar, description: "Booking calendar rules" },
@@ -163,7 +166,7 @@ const STORAGE_KEY = "admin_sidebar_collapsed_groups_v1"
 /* ──────────────────────────────────────────────────────────────────────────
  *  SidebarItem · F10.G · 4px Royal Violet left border + Violet Ghost bg
  *  ──────────────────────────────────────────────────────────────────── */
-function SidebarItem({ item }) {
+function SidebarItem({ item, count = 0 }) {
   const Icon = item.icon
   return (
     <NavLink
@@ -183,6 +186,14 @@ function SidebarItem({ item }) {
       {({ isActive }) => (
         <>
           <Icon className={`h-[16px] w-[16px] shrink-0 ${isActive ? "text-violet" : "text-charcoal-80/65 group-hover:text-violet"}`} aria-hidden="true" />
+          {/* T5-16 · the count, only when there IS one. A "0" badge is a
+              badge you learn to ignore, and then you miss the day it says
+              three. */}
+          {count > 0 ? (
+            <span className="order-last shrink-0 rounded-full bg-violet px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-white">
+              {count > 99 ? "99+" : count}
+            </span>
+          ) : null}
           <span className={`min-w-0 flex-1 truncate text-meta ${isActive ? "font-semibold" : "font-medium"}`}>
             {item.label}
           </span>
@@ -196,7 +207,7 @@ function SidebarItem({ item }) {
  *  CollapsibleGroup · F10.G · group with collapse/expand chevron
  *  + optional count badge
  *  ──────────────────────────────────────────────────────────────────── */
-function CollapsibleGroup({ group, collapsed, onToggle, count }) {
+function CollapsibleGroup({ group, collapsed, onToggle, count, counts = {} }) {
   if (!group.collapsible) {
     return (
       <div className="mb-4">
@@ -209,7 +220,9 @@ function CollapsibleGroup({ group, collapsed, onToggle, count }) {
           )}
         </div>
         <div className="space-y-0.5">
-          {group.items.map((item) => <SidebarItem key={item.to} item={item} />)}
+          {group.items.map((item) => (
+            <SidebarItem key={item.to} item={item} count={item.countKey ? counts[item.countKey] : 0} />
+          ))}
         </div>
       </div>
     )
@@ -244,7 +257,9 @@ function CollapsibleGroup({ group, collapsed, onToggle, count }) {
         }`}
       >
         <div className="space-y-0.5">
-          {group.items.map((item) => <SidebarItem key={item.to} item={item} />)}
+          {group.items.map((item) => (
+            <SidebarItem key={item.to} item={item} count={item.countKey ? counts[item.countKey] : 0} />
+          ))}
         </div>
       </div>
     </div>
@@ -281,23 +296,30 @@ export default function AdminSidebar() {
   }
 
   // F10.G · pull badge counts from dashboard endpoint, fail silently
-  const [counts, setCounts] = useState({ openOrders: 0, openTickets: 0 })
+  const [counts, setCounts] = useState({ openOrders: 0, openTickets: 0, queue: 0 })
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      try {
-        const res = await authFetch("/api/v1/admin/dashboard")
-        const stats = res?.data?.stats || res?.stats || {}
-        if (!cancelled) {
-          setCounts({
-            openOrders: Number(stats.pendingOrders || 0),
-            openTickets: Number(stats.openTickets || 0),
-          })
-        }
-      } catch {
-        // silent — badges stay at 0 if endpoint shape differs
-      }
+      // Settled, not raced: the queue is a separate endpoint added in T5-16,
+      // and it must not be able to blank the order and ticket badges when it
+      // fails. Each falls back to zero on its own.
+      const [dashboard, queue] = await Promise.all([
+        authFetch("/api/v1/admin/dashboard").catch(() => null),
+        // T5-16 · what is waiting on the OPERATOR. Deliberately not the
+        // client-side count: a badge that includes what you are waiting FOR
+        // never reaches zero, and a badge that never reaches zero stops
+        // being read.
+        authFetch("/api/v1/admin/client-projects/queue").catch(() => null),
+      ])
+      if (cancelled) return
+      const stats = dashboard?.data?.stats || dashboard?.stats || {}
+      const queueData = queue?.data || queue || {}
+      setCounts({
+        openOrders: Number(stats.pendingOrders || 0),
+        openTickets: Number(stats.openTickets || 0),
+        queue: Number(queueData?.counts?.me || 0),
+      })
     })()
     return () => { cancelled = true }
   }, [])
@@ -344,6 +366,7 @@ export default function AdminSidebar() {
             collapsed={collapsedGroups.has(group.section)}
             onToggle={() => toggleGroup(group.section)}
             count={group.countKey ? counts[group.countKey] : 0}
+            counts={counts}
           />
         ))}
       </nav>

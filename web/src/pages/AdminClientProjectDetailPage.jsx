@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import {
-  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2, AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare, Link2, Copy, BookOpen,
+  ArrowLeft, Save, Plus, Trash2, Upload, Download, Loader2, AlertCircle, Hourglass, Clock, CheckCircle2, Eye, ThumbsUp, Send, Check, RotateCcw, MessageSquare, Link2, Copy, BookOpen, Receipt, PackageCheck,
 } from "lucide-react"
 import {
   fetchAdminProject, updateAdminProject, createAdminProject, createAdminPortalLink, createAdminCaseStudyDraft,
@@ -9,7 +9,19 @@ import {
   uploadProjectFile, deleteProjectFile,
   postAdminProjectComment, toggleAdminCommentResolved,
   quoteChangeRequest, completeChangeRequest,
+  fetchAdminProjectEvents,
+  rebuildHandoverPack,
 } from "../services/clientProjectService"
+// T5-5 · the operator half of the document requests, and the same
+// timeline component the client and /track see — at admin visibility.
+import ProjectRequestsAdmin from "../components/admin/ProjectRequestsAdmin"
+// T5-13 · credentials never travel as files, in either direction.
+import ProjectSecretsAdmin from "../components/admin/ProjectSecretsAdmin"
+// T5-17 · a school has a director who approves and an IT person who uploads.
+import ProjectMembersAdmin from "../components/admin/ProjectMembersAdmin"
+// T5-18 · hours against a retainer's monthly allowance.
+import ProjectTimeAdmin from "../components/admin/ProjectTimeAdmin"
+import ProjectTimeline from "../components/projects/ProjectTimeline"
 import { useToast } from "../context/ToastContext"
 import { SkeletonCard, Checkbox } from "../components/ui/index"
 import StatusPill from "../components/admin/StatusPill"
@@ -39,6 +51,42 @@ const fileUrl = (projectId, file) =>
 
 const MILESTONE_ICON = { pending: Hourglass, in_progress: Clock, awaiting_client: Eye, approved: ThumbsUp, completed: CheckCircle2 }
 const SELECT_CLASS = "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-charcoal focus:border-violet focus:outline-none focus:ring-[3px] focus:ring-azure/30"
+
+/* ── T5-19 · rebuild the handover pack ───────────────────────────────── */
+function HandoverPackButton({ projectId }) {
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState("")
+  const { showSuccess, showError } = useToast()
+
+  const run = async () => {
+    setBusy(true)
+    setResult("")
+    try {
+      const out = await rebuildHandoverPack(projectId)
+      setResult(out?.fileName || "")
+      showSuccess("Handover pack built — it is in the client's deliverables.")
+    } catch (e) {
+      showError(e?.message || "Could not build the pack")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="shrink-0 text-end">
+      <button
+        type="button"
+        onClick={run}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 rounded-xl border border-violet/30 px-3 py-2 text-meta font-semibold text-violet hover:bg-violet-pale disabled:opacity-60"
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackageCheck className="h-4 w-4" />}
+        Build it now
+      </button>
+      {result ? <p className="mt-1 font-mono text-[11px] text-charcoal-80/65">{result}</p> : null}
+    </div>
+  )
+}
 
 export default function AdminClientProjectDetailPage() {
   const { id } = useParams()
@@ -78,6 +126,57 @@ export default function AdminClientProjectDetailPage() {
   async function copyPortalLink() {
     try { await navigator.clipboard.writeText(portalLink.url); showSuccess("Link copied") }
     catch { showError("Copy failed — select the link and copy it manually") }
+  }
+
+  // T5-5 · same shape as copyPortalLink. Clipboard access can be refused
+  // (an insecure origin, a locked-down browser) and the code is on screen
+  // anyway, so a failure is reported rather than thrown.
+  async function copyTrackingCode() {
+    if (!project?.trackingCode) return
+    try { await navigator.clipboard.writeText(project.trackingCode); showSuccess("Tracking code copied") }
+    catch { showError("Could not copy — select the code and copy it by hand") }
+  }
+
+  // T5-5 · the admin-visibility timeline. Its own fetch rather than a field
+  // on the project payload: it is 200 rows of history, and the project read
+  // is on the critical path of every save.
+  const [adminEvents, setAdminEvents] = useState([])
+  const [eventsLoading, setEventsLoading] = useState(true)
+  useEffect(() => {
+    if (isNew || !id) { setEventsLoading(false); return }
+    let alive = true
+    ;(async () => {
+      try {
+        const rows = await fetchAdminProjectEvents(id)
+        if (alive) setAdminEvents(rows)
+      } catch {
+        // A missing timeline is not worth failing the page over; the panel
+        // renders its own empty state.
+      } finally {
+        if (alive) setEventsLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [id, isNew])
+
+  /**
+   * T5-12 · set or clear a milestone's expected date.
+   *
+   * On blur rather than on change: a date input fires on every keystroke in
+   * some browsers, and each one would be a write — and, past the two-day
+   * threshold, an event the client sees. One write when the operator is done.
+   */
+  async function handleMilestoneEstimate(m, value) {
+    const next = value || null
+    const current = m.estimatedAt ? new Date(m.estimatedAt).toISOString().slice(0, 10) : null
+    if (next === current) return
+    try {
+      await updateMilestone(id, m.id, { estimatedAt: next })
+      showSuccess(next ? "Expected date updated" : "Expected date cleared")
+      load()
+    } catch (err) {
+      showError(err.message || "Could not update the expected date")
+    }
   }
 
   // Tier 4 · case-study draft
@@ -354,6 +453,131 @@ export default function AdminClientProjectDetailPage() {
         </div>
       )}
 
+      {/* T5-5 · the tracking code. Read off an invoice by a client who then
+          types it into /track, so the operator needs it copyable rather than
+          only visible. It is assigned at creation and never changes. */}
+      {!isNew && project?.trackingCode && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-card font-bold text-violet">Tracking code</h2>
+              <p className="mt-0.5 text-meta text-charcoal-80/65">
+                The client can check progress at /track with this, without signing in. It shows phase,
+                milestones and how many documents are outstanding — never amounts, names or file names.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <code className="rounded-lg bg-charcoal-80/5 px-3 py-2 font-mono text-[13px] tracking-[0.12em] text-charcoal">{project.trackingCode}</code>
+              <button
+                type="button" onClick={copyTrackingCode}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-violet px-3 py-2 text-sm font-semibold text-white transition hover:bg-violet-deep"
+              >
+                <Copy className="h-4 w-4" /> Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* T5-5 · documents we are waiting on from this client. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-card font-bold text-violet">Documents from the client</h2>
+              <p className="mt-0.5 text-meta text-charcoal-80/65">
+                The client sees these in their dashboard and in the portal, and is emailed when one is raised or reviewed.
+              </p>
+            </div>
+            {/* The invoice form wants a service-order cuid, which is otherwise
+                copied by hand from another page. */}
+            {project.serviceOrderId && (
+              <Link
+                to={`/admin/invoices?serviceOrderId=${encodeURIComponent(project.serviceOrderId)}`}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-violet/30 px-3 py-2 text-sm font-semibold text-violet transition hover:bg-violet-pale"
+              >
+                <Receipt className="h-4 w-4" /> Issue an invoice
+              </Link>
+            )}
+          </div>
+          <div className="mt-4">
+            <ProjectRequestsAdmin projectId={id} milestones={project.milestones || []} />
+          </div>
+        </div>
+      )}
+
+      {/* T5-18 · hours against the plan's monthly allowance. Shown for every
+          project: a project that turns out to have hours logged on it is one
+          the client can now see, and hiding the form until somebody proves
+          the project is a retainer is a chicken-and-egg. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">Hours</h2>
+          <p className="mt-0.5 max-w-prose text-meta text-charcoal-80/65">
+            The client sees this month by month against the plan&apos;s allowance, and can download a
+            statement per month. Non-billable time is shown to them and does not count against the
+            allowance.
+          </p>
+          <div className="mt-4">
+            <ProjectTimeAdmin projectId={id} milestones={project.milestones || []} />
+          </div>
+        </div>
+      )}
+
+      {/* T5-19 · the handover pack. Built automatically the moment the
+          project moves to handover; this is the rerun for when it failed, or
+          when a deliverable arrived afterwards. Each run is a NEW file
+          rather than an overwrite — a client who already downloaded one
+          should not find their copy changed under its own checksums. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-card font-bold text-violet">Handover pack</h2>
+              <p className="mt-0.5 max-w-prose text-meta text-charcoal-80/65">
+                One ZIP with the full history as a PDF, every deliverable with a SHA-256, every
+                invoice, a runbook and a manifest. Attached as a deliverable, so the unpaid-invoice
+                gate applies to it. Credentials are never in it — those go through the read-once
+                handoff above.
+              </p>
+            </div>
+            <HandoverPackButton projectId={id} />
+          </div>
+        </div>
+      )}
+
+      {/* T5-17 · who else may reach this project. Above the credential
+          handoff because "who is on this" is the question you answer first. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">People on this project</h2>
+          <p className="mt-0.5 max-w-prose text-meta text-charcoal-80/65">
+            The account holder always has full access. Add the people who actually do the work — an
+            approver signs off milestones and quotes, a viewer reads, uploads and comments. No
+            account needed: they get in with the tracking code and a PIN sent to their own inbox.
+          </p>
+          <div className="mt-4">
+            <ProjectMembersAdmin projectId={id} />
+          </div>
+        </div>
+      )}
+
+      {/* T5-13 · the secure credential handoff, immediately below the
+          document requests — because that is where an operator is standing
+          when they are about to ask for a password by the wrong route. */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">Credentials</h2>
+          <p className="mt-0.5 max-w-prose text-meta text-charcoal-80/65">
+            Read once, then destroyed. Both directions: hand over admin access at handover, and
+            collect a hosting password without it living in an inbox or on disk.
+          </p>
+          <div className="mt-4">
+            <ProjectSecretsAdmin projectId={id} />
+          </div>
+        </div>
+      )}
+
       {/* Milestones */}
       {!isNew && project && (
         <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
@@ -379,8 +603,28 @@ export default function AdminClientProjectDetailPage() {
                       <StatusPill status={m.status} />
                     </div>
                     {m.description && <p className="mt-1 text-micro text-charcoal-80/65">{m.description}</p>}
+                    {/* T5-12 · the estimate, editable inline.
+                        Separate from "Due" beside it on purpose: due is what
+                        was AGREED and what a slip is measured against;
+                        this is what we now believe. Moving it by more than
+                        two days writes a public milestone.rescheduled event,
+                        so the client learns from the tracker rather than on
+                        the day. */}
+                    <label className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-charcoal-80/65">
+                      <span className="font-semibold">Now expected</span>
+                      <input
+                        type="date"
+                        defaultValue={m.estimatedAt ? new Date(m.estimatedAt).toISOString().slice(0, 10) : ""}
+                        onBlur={(e) => handleMilestoneEstimate(m, e.target.value)}
+                        className="rounded-md border border-charcoal-80/15 bg-white px-2 py-1 text-[11px] text-charcoal-80 focus:border-violet focus:outline-none"
+                        aria-label={`Expected date for ${m.title}`}
+                      />
+                      {m.dueDate && m.estimatedAt && new Date(m.estimatedAt) > new Date(m.dueDate) ? (
+                        <span className="font-semibold text-amber-700">past the agreed date</span>
+                      ) : null}
+                    </label>
                     <div className="mt-1.5 font-mono text-[11px] text-charcoal-80/65">
-                      {m.dueDate && <>Due {new Date(m.dueDate).toLocaleDateString()} · </>}
+                      {m.dueDate && <>Due {new Date(m.dueDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" })} · </>}
                       {m.approvedAt && <>Approved by client {fmtWhen(m.approvedAt)} · </>}
                       {m.changesRequestedAt && <>Changes requested {fmtWhen(m.changesRequestedAt)} · </>}
                       {m.completedAt && <>Completed {new Date(m.completedAt).toLocaleDateString()}</>}
@@ -511,6 +755,26 @@ export default function AdminClientProjectDetailPage() {
                     <div className="mt-0.5 font-mono text-[11px] text-charcoal-80/65">
                       {[formatFileSize(f.fileSize), f.uploadedBy?.fullName, milestone ? `↳ ${milestone.title}` : null, new Date(f.createdAt).toLocaleDateString()].filter(Boolean).join(" · ")}
                     </div>
+                    {/* T5-14 · the read receipt. Admin-only by design — a
+                        client shown "you opened this on Tuesday" is being
+                        watched; an operator who knows whether the deliverable
+                        was ever looked at is the difference between chasing
+                        and waiting.
+                        "Not opened yet" is stated rather than left blank: an
+                        absent line reads as "no data", and the whole value
+                        here is being able to tell those two apart. */}
+                    {f.uploadedByRole !== "client" ? (
+                      <div className="mt-0.5 font-mono text-[11px]">
+                        {f.firstViewedAt ? (
+                          <span className="text-mint-700">
+                            Seen {new Date(f.firstViewedAt).toLocaleDateString()}
+                            {f.viewCount > 1 ? ` · ${f.viewCount} opens` : ""}
+                          </span>
+                        ) : (
+                          <span className="text-charcoal-80/65">Not opened yet</span>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -576,6 +840,18 @@ export default function AdminClientProjectDetailPage() {
             />
             <ReplyBox className="mt-3" placeholder="Write a message to the client…" onSubmit={(body) => handleComment({ body })} />
           </div>
+        </div>
+      )}
+
+      {/* T5-5 · the full timeline, admin visibility: everything the client
+          sees plus the rows written narrower than "client". */}
+      {!isNew && project && (
+        <div className="rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]">
+          <h2 className="text-card font-bold text-violet">Timeline</h2>
+          <p className="mt-0.5 mb-4 text-meta text-charcoal-80/65">
+            Every recorded event on this project. The client sees a subset; /track sees less again.
+          </p>
+          <ProjectTimeline events={adminEvents} loading={eventsLoading} />
         </div>
       )}
     </section>

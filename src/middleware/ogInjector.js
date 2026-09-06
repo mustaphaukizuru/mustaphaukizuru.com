@@ -163,6 +163,47 @@ function readIndexHtml(indexPath) {
   return cache.html
 }
 
+/* ─── static page cards ────────────────────────────────────────────────── */
+
+// Built by web/scripts/generate-og-static.mjs from the same src/seo/pageSeo.js
+// the SPA renders, and mirrored into the served public/ during build:seo.
+// Static pages have no database row to look up, so the whole map is held in
+// memory: no query, nothing to time out, no cache to invalidate per URL.
+const DEFAULT_OG_STATIC = path.resolve(__dirname, "..", "..", "public", "og-static.json")
+const staticCache = { file: null, mtimeMs: 0, map: null }
+
+/**
+ * The static card map, re-read when the file changes on disk and treated as
+ * empty when it is missing or malformed. A build that skipped the generator
+ * must degrade to the generic card, never to a 500 on the home page.
+ */
+function readStaticCards(jsonPath = DEFAULT_OG_STATIC) {
+  try {
+    const stat = fs.statSync(jsonPath)
+    if (staticCache.file !== jsonPath || stat.mtimeMs !== staticCache.mtimeMs) {
+      const parsed = JSON.parse(fs.readFileSync(jsonPath, "utf8"))
+      staticCache.file = jsonPath
+      staticCache.mtimeMs = stat.mtimeMs
+      staticCache.map = parsed && typeof parsed === "object" ? parsed : {}
+    }
+    return staticCache.map || {}
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Normalise a request path to a map key: strip the trailing slash, but keep
+ * "/" itself. "/es/" and "/es" are the same page and only one of them is a
+ * key, so a share of the slashed form must not fall through to the generic
+ * card.
+ */
+function staticKey(reqPath) {
+  const p = String(reqPath || "/")
+  if (p === "/") return "/"
+  return p.replace(/\/+$/, "") || "/"
+}
+
 /* ─── entity lookup ────────────────────────────────────────────────────── */
 
 function firstOf(...vals) {
@@ -201,6 +242,15 @@ async function lookup(kind, slug, locale) {
       return {
         title: firstOf(s.metaTitle, s.title, s.name),
         description: firstOf(s.metaDescription, s.shortDescription, s.description),
+        /* No image column on a Service row is populated, so this used to
+           resolve to null and the caller fell all the way back to the
+           generic og-default.png. Measured with a Facebook user-agent
+           against /services/ai-automation: og-default.png, while /about
+           correctly got og-profile.png — the difference being that /about is
+           not a ROUTE_RE detail page and therefore reads the static map.
+           Returning null here lets the caller consult that same map, which
+           now carries a dedicated card per category and covers /es for free
+           because pageSeo is the one source for both. */
         image: firstOf(s.heroImage, s.coverImage, s.image, s.thumbnail),
         type: "website",
       }
@@ -232,7 +282,7 @@ function withTimeout(promise, ms) {
 /* ─── middleware factory ───────────────────────────────────────────────── */
 
 /**
- * @param {{ indexPath: string, siteUrl?: string, timeoutMs?: number, lookupFn?: Function, ogDir?: string }} opts
+ * @param {{ indexPath: string, siteUrl?: string, timeoutMs?: number, lookupFn?: Function, ogDir?: string, staticCardsPath?: string }} opts
  */
 function createOgInjector(opts) {
   const { indexPath } = opts
@@ -241,8 +291,37 @@ function createOgInjector(opts) {
 
   return async function ogInjector(req, res, next) {
     if (req.method !== "GET" && req.method !== "HEAD") return next()
+    const siteUrlFor = () => String(opts.siteUrl || process.env.PUBLIC_SITE_URL || process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/+$/, "")
+
     const m = ROUTE_RE.exec(req.path)
-    if (!m) return next()
+    if (!m) {
+      // Not a database-backed detail page. It may still be a static page with
+      // its own metadata — the home page, /about, /schools, /self-audit, /book,
+      // the legal pages, and every /es mirror of them. Before this, all of
+      // those fell through to next() and crawlers got the one generic card
+      // baked into index.html, in English, whatever the page or language.
+      const cards = readStaticCards(opts.staticCardsPath)
+      const card = cards[staticKey(req.path)]
+      if (!card) return next()
+      let shell
+      try {
+        shell = readIndexHtml(indexPath)
+      } catch {
+        return next()
+      }
+      const siteUrl = siteUrlFor()
+      const html = injectMeta(shell, {
+        title: withBrand(card.title),
+        description: truncate(card.description || "", 200) || SITE_NAME,
+        image: absoluteUrl(siteUrl, card.image || DEFAULT_OG_IMAGE),
+        url: `${siteUrl}${encodeURI(req.path)}`,
+        type: card.type || "website",
+        locale: /^\/es(\/|$)/.test(req.path) ? "es_MX" : "en_US",
+      })
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+      res.setHeader("Content-Type", "text/html; charset=utf-8")
+      return res.status(200).send(html)
+    }
     const [, kind, rawSlug] = m
     const locale = req.path.startsWith("/es/") ? "es" : "en"
     let slug
@@ -286,7 +365,7 @@ function createOgInjector(opts) {
     }
 
     if (entity) {
-      const siteUrl = String(opts.siteUrl || process.env.PUBLIC_SITE_URL || process.env.FRONTEND_URL || process.env.CLIENT_URL || "").replace(/\/+$/, "")
+      const siteUrl = siteUrlFor()
       html = injectMeta(html, {
         title: withBrand(entity.title),
         description: truncate(entity.description || "", 200) || SITE_NAME,
@@ -302,4 +381,4 @@ function createOgInjector(opts) {
   }
 }
 
-module.exports = { createOgInjector, injectMeta, escapeAttr, upsertMeta, absoluteUrl, truncate, lookup, fallbackOgImage }
+module.exports = { createOgInjector, injectMeta, escapeAttr, upsertMeta, absoluteUrl, truncate, lookup, fallbackOgImage, readStaticCards, staticKey }

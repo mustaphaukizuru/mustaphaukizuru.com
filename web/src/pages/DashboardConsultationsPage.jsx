@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { m, AnimatePresence } from "framer-motion"
 import {
@@ -52,7 +52,7 @@ function StatusBadge({ status }) {
   const { t } = useTranslation("dashboard")
   const cls = STATUS_CLS[status] || "bg-slate-100 text-steel-700"
   const label = t(`consultations.status.${status}`, { defaultValue: status })
-  return <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${cls}`}>{label}</span>
+  return <span className={`rounded-full px-2.5 py-0.5 text-micro font-semibold uppercase tracking-[0.08em] ${cls}`}>{label}</span>
 }
 
 const ACTIVE = ["pending", "confirmed", "scheduled"]
@@ -93,7 +93,7 @@ function CancelModal({ open, consultation, onClose, onConfirmed }) {
           >
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-rose-700">{t("consultations.cancelModal.eyebrow")}</div>
+                <div className="text-micro font-semibold uppercase tracking-[0.14em] text-rose-700">{t("consultations.cancelModal.eyebrow")}</div>
                 <h3 className="mt-1 text-[18px] font-bold text-violet">{t("consultations.cancelModal.title")}</h3>
               </div>
               <button onClick={onClose} aria-label={t("consultations.cancelModal.close")} className="text-charcoal/65 hover:text-violet">
@@ -233,9 +233,9 @@ function RescheduleDrawer({ open, consultation, onClose, onRescheduled }) {
           >
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-charcoal/10 bg-white px-5 py-4">
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet">{t("consultations.rescheduleDrawer.eyebrow")}</div>
+                <div className="text-micro font-semibold uppercase tracking-[0.14em] text-violet">{t("consultations.rescheduleDrawer.eyebrow")}</div>
                 <h3 className="mt-1 text-[16px] font-bold text-violet">{t("consultations.rescheduleDrawer.title")}</h3>
-                <p className="mt-0.5 text-[11px] text-charcoal/65">
+                <p className="mt-0.5 text-meta text-charcoal/65">
                   {t("consultations.rescheduleDrawer.currently", { when: formatDateTime(consultation.scheduledAt, tz) })}
                 </p>
               </div>
@@ -363,12 +363,12 @@ function ConsultationRow({ c, onCancel, onReschedule }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={c.status} />
-            <span className="text-[11px] text-charcoal/65">{serviceTitle}</span>
+            <span className="text-meta text-charcoal/65">{serviceTitle}</span>
           </div>
           <div className="mt-2 text-[15px] font-bold text-violet">
             {formatDateTime(c.scheduledAt, tz)}
           </div>
-          <div className="mt-0.5 text-[11.5px] text-charcoal/65">
+          <div className="mt-0.5 text-meta text-charcoal/65">
             {t("consultations.row.minutesWith", { minutes, name: hostName })}
           </div>
           {c.clientNotes && (

@@ -10,7 +10,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "./LocalizedLink"
 import { m } from "framer-motion"
 import { Star, Quote, ShieldCheck, Sparkles } from "lucide-react"
 import { fetchFeaturedReviews } from "../services/reviewService"

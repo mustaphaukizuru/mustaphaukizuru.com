@@ -4,6 +4,12 @@
 import { initSentry } from "./lib/sentry";
 initSentry();
 
+// T3-6 · real-user Web Vitals. Registers three listeners and sends nothing
+// until the page is hidden, so it costs nothing on the critical path — and
+// nothing at all without analytics consent.
+import { initVitals } from "./lib/vitals";
+initVitals();
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";

@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const asyncHandler = require("../utils/asyncHandler");
 const generateToken = require("../utils/generateToken");
-const jwt = require("jsonwebtoken");
+const { verifyJwt } = require("../utils/jwt");
 const { setSessionCookie, clearSessionCookie } = require("../utils/sessionCookie");
 const { extractSessionToken } = require("../middleware/authMiddleware");
 const prisma = require("../lib/prisma");
@@ -662,7 +662,7 @@ const logout = asyncHandler(async (req, res) => {
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = verifyJwt(token);
       // Only a real session token identifies a session to revoke; a
       // purpose-scoped token (2FA-pending) never created one.
       if (decoded && decoded.userId && decoded.purpose === undefined) {

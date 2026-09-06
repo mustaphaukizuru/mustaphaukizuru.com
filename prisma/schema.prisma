@@ -277,6 +277,19 @@ model User {
   /// reset, 2FA enable) or when the user manually signs out everywhere.
   /// NULL means "no revocations yet" — all valid JWTs pass.
   tokensValidFrom        DateTime?
+
+  /// T3-5 · account lockout.
+  ///
+  /// The login limiter is per IP, which is the wrong axis for the attack it
+  /// most needs to stop: a password-spraying botnet has thousands of IPs and
+  /// one address per attempt, so every request looks like a first attempt.
+  /// These count per ACCOUNT, which is where the damage would be.
+  ///
+  /// Reset to zero on any successful sign-in — a person who mistypes twice
+  /// and then gets it right has not done anything suspicious.
+  failedLoginAttempts    Int              @default(0)
+  /// Set when the threshold is crossed; cleared implicitly by expiring.
+  lockedUntil            DateTime?
   resetPasswordToken     String?
   resetPasswordExpires   DateTime?
   createdAt              DateTime         @default(now())
@@ -304,6 +317,10 @@ model User {
   assignedConsultations  Consultation[]   @relation("AssignedConsultations")
   clientProjects         ClientProject[]  @relation("UserClientProjects")
   assignedProjects       ClientProject[]  @relation("AssignedClientProjects")
+  loggedTimeEntries     ProjectTimeEntry[] @relation("LoggedTimeEntries")
+  projectMemberships    ProjectMember[]  @relation("ProjectMemberships")
+  createdSecretHandoffs SecretHandoff[]  @relation("CreatedSecretHandoffs")
+  requestedFileRequests  ProjectFileRequest[] @relation("RequestedFileRequests")
   projectFiles           ProjectFile[]
   projectComments        ProjectComment[] @relation("UserProjectComments")
   projectAgreements      ProjectAgreement[]
@@ -631,6 +648,15 @@ model Review {
   projectId          String?
   userId             String
   rating             Int
+  /// T5-21 · the one-question pulse above the review form: "how did this
+  /// go", 1 to 5.
+  ///
+  /// Separate from `rating`, which is the PUBLIC star rating on a service.
+  /// This one is never published — it is asked before the review, answers a
+  /// different question ("how was working with us" rather than "how good is
+  /// this service"), and a client who abandons the form after answering it
+  /// has still told us the thing worth knowing.
+  pulse              Int?
   reviewText         String?      @db.Text
   isVerifiedPurchase Boolean      @default(false)
   status             ReviewStatus @default(pending)
@@ -849,6 +875,16 @@ model ServicePackage {
   /// saveLabel: small chip e.g. "Save 20%" / "All-inclusive"
   tierKey   String? @db.VarChar(32)
   period    String? @db.VarChar(32)
+  /// T5-18 · the monthly allowance for a retainer ("iguala mensual"), in
+  /// whole hours. Null for everything that is not a retainer, which is most
+  /// packages — a ledger with no allowance still shows the hours, it just
+  /// has nothing to show them against.
+  ///
+  /// It lives HERE because ServicePackage is already the row the database
+  /// treats as the price source of truth, and an allowance is part of what
+  /// was bought. If T2-11 lands on the two-retainer-offerings option, this
+  /// column moves with the price it belongs to.
+  includedHoursPerMonth Int?
   popular   Boolean @default(false)
   saveLabel String? @db.VarChar(64)
 
@@ -1098,6 +1134,12 @@ model Invoice {
   lateFeeRate       Decimal  @default(0) @db.Decimal(5, 4)
   lateFeeAmount     Decimal  @default(0) @db.Decimal(12, 2)
   overdueNotifiedAt DateTime?
+
+  /// T5-14 · read receipt, stamped the first time the CLIENT opens the PDF.
+  /// Admin-visible only: "did they even see the bill" is the question that
+  /// decides whether the next message is a reminder or a phone call.
+  firstViewedAt     DateTime?
+  viewCount         Int      @default(0)
 
   /// Money snapshot at issue time — an invoice must not change when the
   /// order row later does (refund, edit). Mirrors Order at ensureInvoice().
@@ -1427,6 +1469,27 @@ model ClientProject {
   purgedAt        DateTime?
   /// Tier 4 kill switch / handover gate: active | suspended | handover (invoiceDunningJob + admin PATCH).
   accessState     String        @default("active") @db.VarChar(16)
+  /// Tier 5 · the short code a client can type, read over the phone, or find
+  /// on an invoice: "MU-XXXX-XXXX", Crockford base32 without 0/O/1/I so it
+  /// survives being handwritten. ~40 bits, which is why /track is rate
+  /// limited (see ADR 0006). The cuid stays the primary key; this is the
+  /// human-facing handle, and it is nullable so existing rows are valid
+  /// until the backfill runs.
+  trackingCode    String?       @unique @db.VarChar(16)
+
+  /// T5-21 · when the seven-day review follow-up went out.
+  ///
+  /// The stamp is what makes it ONCE. A client who did not want to review
+  /// the work after the first ask did not want to after the second either,
+  /// and a third would be the message that makes them stop reading us.
+  reviewRequestedAt DateTime?
+
+  /// T5-15 · this project's Monday digest is off.
+  ///
+  /// Per PROJECT, not per person: a client with three projects may want the
+  /// digest for the live one and not for the two winding down, and a single
+  /// global switch would make them choose all or nothing.
+  digestOptOut    Boolean       @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1439,11 +1502,223 @@ model ClientProject {
   comments      ProjectComment[]
   tickets       SupportTicket[]
   agreements    ProjectAgreement[]
+  timeEntries    ProjectTimeEntry[]
+  members        ProjectMember[]
+  secretHandoffs SecretHandoff[]
   reviews       Review[]
   changeRequests ChangeRequest[]
+  events         ProjectEvent[]
+  fileRequests   ProjectFileRequest[]
 
   @@index([userId])
   @@index([assignedAdminId])
+}
+
+/// Tier 5 · the client-facing story of a project.
+///
+/// Append-only and typed. The four activityLog.create calls in
+/// projectPortalService stay where they are — that is the ADMIN audit trail,
+/// written for us. This is what the client is shown, which is a different
+/// edit of the same events: fewer of them, in their language, with no
+/// internal notes.
+///
+/// `visibility` is the whole design. "public" is what an anonymous tracking
+/// code may see and is deliberately thin; "client" adds file names and
+/// comments for someone who has signed in or holds a portal link; "admin"
+/// is everything. A row is written once at the highest visibility it may
+/// ever have — narrowing later is a filter, widening later is a leak.
+model ProjectEvent {
+  id             String   @id @default(cuid())
+  projectId      String
+  /// Closed list — see PROJECT_EVENT_TYPES in src/services/projectEventService.js.
+  type           String   @db.VarChar(32)
+  title          String
+  titleEs        String?
+  detail         String?  @db.Text
+  detailEs       String?  @db.Text
+  /// "admin" | "client" | "system" — who caused it, not who may see it.
+  actorRole      String   @db.VarChar(16)
+  /// "public" | "client" | "admin"
+  visibility     String   @default("client") @db.VarChar(16)
+  milestoneId    String?
+  fileId         String?
+  fileRequestId  String?
+  invoiceId      String?
+  createdAt      DateTime @default(now())
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([projectId, visibility])
+}
+
+/// Tier 5 · "send me the thing", as a row rather than an email thread.
+///
+/// A request is answered by exactly one file (fulfilledFileId), which is why
+/// that side is unique; the other side of the relation lets several uploads
+/// hang off one request while the client tries again after a rejection.
+model ProjectFileRequest {
+  id              String    @id @default(cuid())
+  projectId       String
+  milestoneId     String?
+  title           String
+  titleEs         String?
+  instructions    String?   @db.Text
+  instructionsEs  String?   @db.Text
+  /// Comma-separated extension allowlist, e.g. ".pdf,.docx". Enforced on
+  /// upload; advisory in the UI.
+  acceptExt       String?   @db.VarChar(128)
+  dueAt           DateTime?
+  /// requested | submitted | accepted | rejected | cancelled
+  status          String    @default("requested") @db.VarChar(16)
+  requestedById   String?
+  fulfilledFileId String?   @unique
+  reviewNote      String?   @db.Text
+  remindedAt      DateTime?
+  submittedAt     DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  project       ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone     ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  requestedBy   User?             @relation("RequestedFileRequests", fields: [requestedById], references: [id], onDelete: SetNull)
+  fulfilledFile ProjectFile?      @relation("RequestFulfilment", fields: [fulfilledFileId], references: [id], onDelete: SetNull)
+  uploads       ProjectFile[]     @relation("RequestUploads")
+
+  @@index([projectId, status])
+  @@index([dueAt])
+}
+
+/// T5-13 · a credential in transit, and nothing else.
+///
+/// Credentials were arriving as files: a hosting password in a .txt, the
+/// registrar login in a screenshot, WiFi keys in the body of a support
+/// ticket. Every one of those lands in `storage/projects/` and stays there
+/// for the retention window, readable by anything that can read the disk and
+/// included in any handover ZIP built later.
+///
+/// This row holds AES-256-GCM ciphertext under SECRET_HANDOFF_KEY and can be
+/// read exactly ONCE — the reveal stamps `viewedAt` and the ciphertext is
+/// wiped in the same write. Both directions: the client hands over a hosting
+/// password, and at handover we hand back the admin credentials.
+///
+/// What is NOT encrypted is `label`, deliberately: both parties need to see
+/// "cPanel password" in a list to know what is waiting, and the timeline
+/// events carry the label only.
+model SecretHandoff {
+  id          String    @id @default(cuid())
+  projectId   String
+  /// "to_client" (we are handing something over) or "to_admin" (the client
+  /// is sending us something). It decides who may reveal it, and it is the
+  /// whole access model: the other party wrote it and must not read it back.
+  direction   String    @db.VarChar(16)
+  /// What it is, in the clear. Never the value.
+  label       String    @db.VarChar(160)
+  /// AES-256-GCM. Null once revealed — the wipe is the point.
+  ciphertext  String?   @db.Text
+  iv          String?   @db.VarChar(32)
+  tag         String?   @db.VarChar(32)
+  /// Default seven days. An unclaimed credential is a liability, not an
+  /// inbox.
+  expiresAt   DateTime
+  /// Set the moment it is read. Non-null means gone.
+  viewedAt    DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User?         @relation("CreatedSecretHandoffs", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([projectId, direction])
+  @@index([expiresAt])
+}
+
+/// T5-17 · the other people on the client's side.
+///
+/// Schools were the driver and they are the ordinary case, not the exotic
+/// one: a director who approves the work and signs off the money, and an IT
+/// person who uploads the files and answers the technical questions. Before
+/// this the project belonged to exactly one User row, so the second person
+/// either shared a password or forwarded every email — and every approval
+/// came from an account that was not the person approving.
+///
+/// `ClientProject.userId` STAYS the owner. This is an addition, not a
+/// replacement: the owner is who the project was sold to, who is billed, and
+/// the fallback for every notification. A member is somebody else who may
+/// also reach it.
+///
+/// A member need not have an account. `email` is the identity that always
+/// exists; `userId` is filled in when they sign in with that address, and
+/// until then they reach the project through the tracking code and a PIN
+/// sent to their own inbox (T5-8).
+/// T5-18 · time logged against a retainer project.
+///
+/// Retainer clients ("iguala mensual") were buying a number of hours a month
+/// and had no way to see how many were left. The answer lived in the
+/// operator's head, which means the client either over-asks and is
+/// surprised by an invoice, or under-asks and quietly wastes what they paid
+/// for. Both are worse than a number on a page.
+///
+/// Entries are the raw record, in MINUTES: an hour-and-a-half logged as 1.5
+/// is a rounding argument waiting to happen, and minutes make the month
+/// total exact.
+model ProjectTimeEntry {
+  id          String    @id @default(cuid())
+  projectId   String
+  /// The day the work happened, not the day it was typed in. Backdating is
+  /// normal and the ledger has to be right about the month.
+  date        DateTime
+  minutes     Int
+  note        String?   @db.Text
+  noteEs      String?   @db.Text
+  milestoneId String?
+  /// Non-billable time is still shown — a client seeing "we spent two hours
+  /// on this and did not charge you" is the point of showing it at all —
+  /// but it does not count against the allowance.
+  billable    Boolean   @default(true)
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project   ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  createdBy User?             @relation("LoggedTimeEntries", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([projectId, date])
+  @@index([milestoneId])
+}
+
+model ProjectMember {
+  id         String    @id @default(cuid())
+  projectId  String
+  /// Filled in when this person has an account. Null is normal.
+  userId     String?
+  /// The identity that always exists. Lower-cased on write so a lookup is a
+  /// lookup and not a guess.
+  email      String    @db.VarChar(190)
+  name       String?   @db.VarChar(160)
+  /// "owner" | "approver" | "viewer".
+  ///
+  /// Only owner and approver may approve a milestone, accept a change
+  /// request or start a payment — the three actions that commit the client
+  /// to something. A viewer may still upload, comment and open a ticket:
+  /// the IT person in the driving example is exactly that, and a role that
+  /// could not type would be useless to them.
+  role       String    @default("viewer") @db.VarChar(16)
+  invitedAt  DateTime  @default(now())
+  /// Set the first time they actually reach the project.
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  project ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?         @relation("ProjectMemberships", fields: [userId], references: [id], onDelete: SetNull)
+
+  /// One row per address per project. A second invitation is an edit.
+  @@unique([projectId, email])
+  @@index([userId])
+  @@index([projectId, role])
 }
 
 model ProjectMilestone {
@@ -1453,6 +1728,14 @@ model ProjectMilestone {
   description String?         @db.Text
   status      MilestoneStatus @default(pending)
   dueDate     DateTime?
+  /// T5-12 · when we now think this will actually land.
+  ///
+  /// Distinct from dueDate, and the distinction is the whole feature.
+  /// dueDate is the COMMITMENT — what was agreed, and what a slip is measured
+  /// against. estimatedAt is the current honest belief. A client who can see
+  /// both knows whether a date has moved; a client who can only see one
+  /// discovers it on the day.
+  estimatedAt DateTime?
   completedAt DateTime?
   /// One-click client approval (Tier 2). approvedById is the client user.
   approvedAt         DateTime?
@@ -1465,7 +1748,9 @@ model ProjectMilestone {
   project  ClientProject    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   comments ProjectComment[]
   files    ProjectFile[]
+  fileRequests ProjectFileRequest[]
 
+  timeEntries ProjectTimeEntry[]
   @@index([projectId])
 }
 
@@ -1486,8 +1771,22 @@ model ProjectFile {
   /// Tier 4 handover gate: deliverables are served only when the project
   /// has no outstanding balance. Default false = plain shared file.
   isDeliverable    Boolean  @default(false)
+  /// T5-14 · read receipt. Stamped the first time the CLIENT streams it —
+  /// never when an admin opens their own file, which would make every
+  /// receipt a lie about the person it names.
+  ///
+  /// Admin-visible only. A client being shown "you opened this on Tuesday"
+  /// is surveillance; an operator knowing whether the deliverable they sent
+  /// was ever looked at is the difference between chasing and waiting.
+  firstViewedAt DateTime?
+  viewCount     Int      @default(0)
+
   /// Tier 4 · retention. Bytes unlinked by projectPurgeJob; row kept as audit.
   purgedAt     DateTime?
+  /// Tier 5 · the document request this upload answers, if any. A file can
+  /// exist without one (an ordinary shared file); a request points back
+  /// through fulfilledFileId.
+  fileRequestId    String?
   createdAt    DateTime @default(now())
 
   project        ClientProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -1495,6 +1794,8 @@ model ProjectFile {
   milestone      ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
   supportMessage SupportMessage?   @relation(fields: [supportMessageId], references: [id], onDelete: SetNull)
   comments       ProjectComment[]
+  fileRequest    ProjectFileRequest? @relation("RequestUploads", fields: [fileRequestId], references: [id], onDelete: SetNull)
+  fulfils        ProjectFileRequest? @relation("RequestFulfilment")
 
   @@index([projectId])
   @@index([uploadedById])
@@ -2070,6 +2371,66 @@ model DailyMetric {
 
   @@unique([date])
   @@index([date])
+}
+
+/// T3-5 · addresses that must never be mailed again.
+///
+/// Separate from NewsletterSubscriber.status because the two answer different
+/// questions. A subscriber row says "this person asked for the newsletter and
+/// then stopped"; a suppression says "do not send to this address AT ALL,
+/// whatever list it appears on". A hard bounce, a spam complaint and a
+/// one-click unsubscribe all produce the second, and none of them should
+/// depend on a row existing in a list the address may never have been on.
+///
+/// Filtered by countAudience and forEachAudiencePage, so a suppressed address
+/// is not merely skipped at send time — it is not counted in the preview
+/// either, and the operator sees the audience they will actually reach.
+model SuppressionList {
+  id        String   @id @default(cuid())
+  /// Lower-cased. The unique index is the enforcement.
+  email     String   @unique @db.VarChar(255)
+  /// "unsubscribe" | "bounce" | "complaint" | "manual"
+  reason    String   @db.VarChar(32)
+  /// Free text: the bounce message, the campaign it came from.
+  detail    String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  @@index([reason])
+}
+
+/// T3-6 · real-user Web Vitals, rolled up.
+///
+/// Lighthouse is a lab estimate on one simulated machine. This is what
+/// visitors actually experienced, at p75 — the percentile Core Web Vitals is
+/// defined on, and the reason a mean is useless here: the whole point is the
+/// slow quarter of visits, and an average hides them behind the fast ones.
+///
+/// One row per (day, route, metric). Route rather than URL: /store/:slug is
+/// one performance story, and a row per product would be noise nobody can
+/// act on. The raw AnalyticsEvent rows stay for as long as they stay; this
+/// is what the admin page reads.
+model DailyVital {
+  id      String   @id @default(cuid())
+  date    DateTime @db.Date
+  /// The ROUTE PATTERN, not the URL. "/store/:slug", never "/store/red-hat".
+  path    String   @db.VarChar(255)
+  /// "LCP" | "CLS" | "INP" — the three Core Web Vitals.
+  metric  String   @db.VarChar(16)
+  /// Milliseconds for LCP and INP; a unitless ratio for CLS. Decimal because
+  /// CLS lives in the third decimal place and an Int would round every
+  /// meaningful value to 0.
+  p75     Decimal  @db.Decimal(10, 4)
+  /// How many measurements the p75 was taken over. A p75 of three samples is
+  /// not a number to act on, and the admin table says so rather than
+  /// pretending otherwise.
+  samples Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, path, metric])
+  @@index([date])
+  @@index([metric, date])
 }
 
 /// =============================================================

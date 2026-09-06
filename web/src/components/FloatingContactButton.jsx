@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { LocalizedLink as Link } from "./LocalizedLink"
 import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 import { MessageCircle, X, Mail, Calendar, ArrowRight, ArrowUp } from "lucide-react"
 import { useTranslation } from "react-i18next"

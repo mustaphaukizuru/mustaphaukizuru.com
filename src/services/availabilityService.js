@@ -18,7 +18,7 @@
 
 const prisma = require("../lib/prisma")
 const { zonedTimeToUtc, utcToZonedTime, format: tzFormat } = require("date-fns-tz")
-const { addDays, addMinutes, isBefore, isAfter, isEqual, startOfDay, endOfDay } = require("date-fns")
+const { addDays, addMinutes, isBefore, isAfter, startOfDay, endOfDay } = require("date-fns")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants & helpers
@@ -77,9 +77,6 @@ function localDayOfWeek(utcDate, timezone) {
  * Returns slots as array of { startUtc: Date, endUtc: Date }.
  */
 function expandRuleForDate(rule, dateLocalStr) {
-  const { h: sh, m: sm } = parseHHmm(rule.startTime)
-  const { h: eh, m: em } = parseHHmm(rule.endTime)
-
   const windowStartUtc = localDateTimeToUtc(dateLocalStr, rule.startTime, rule.timezone)
   const windowEndUtc   = localDateTimeToUtc(dateLocalStr, rule.endTime,   rule.timezone)
 
@@ -467,11 +464,11 @@ async function getAvailableDaysInMonth({ serviceId, year, month, displayTimezone
   const result = []
   for (let i = 0; i < checks.length; i += 7) {
     const batch = checks.slice(i, i + 7)
-    /* eslint-disable no-await-in-loop */
+     
     const slotCounts = await Promise.all(
       batch.map((dl) => getAvailableSlots({ serviceId, dateLocal: dl, displayTimezone }).then((s) => s.length)),
     )
-    /* eslint-enable no-await-in-loop */
+     
     batch.forEach((dl, idx) => {
       if (slotCounts[idx] > 0) result.push(dl)
     })

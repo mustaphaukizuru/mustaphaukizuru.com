@@ -2,7 +2,7 @@ const prisma = require("../lib/prisma")
 const AppError = require("../utils/AppError")
 const { mintLicenseKey } = require("../utils/licenseKey")
 const { countConsumedByFile, computeDownloadsRemaining } = require("./downloadService")
-const { validateCoupon, calculateDiscount } = require("./couponService")
+const { validateCoupon } = require("./couponService")
 const { computeOrderTax } = require("../lib/tax")
 const { normalizeFiscal } = require("../lib/fiscal")
 

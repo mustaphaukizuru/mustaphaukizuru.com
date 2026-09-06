@@ -14,6 +14,11 @@ jest.mock("../src/lib/prisma", () => {
   return {
     serviceOrder: { findUnique: jest.fn() },
     order:        { findUnique: jest.fn() },
+    // T5-4 · a manual invoice now looks up the project behind its
+    // ServiceOrder, so the email and the timeline can name the work rather
+    // than a bare order number.
+    clientProject: { findFirst: jest.fn().mockResolvedValue(null) },
+    projectEvent:  { create: jest.fn().mockResolvedValue({ id: "ev1" }) },
     invoice:      { findFirst: jest.fn(), findUnique: jest.fn(), findMany: jest.fn(), count: jest.fn(), create: jest.fn(), update: jest.fn() },
     $transaction: jest.fn(async (cb) => cb(tx)),
     __tx: tx,

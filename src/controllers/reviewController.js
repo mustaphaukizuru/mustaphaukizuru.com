@@ -142,7 +142,8 @@ const addServiceReview = asyncHandler(async (req, res) => {
     if (!project) return res.status(400).json({ success: false, message: "That project does not belong to you or to this service" })
     projectId = project.id
   }
-  const review = await createReview({ serviceId: service.id, userId, rating, reviewText, projectId })
+  // T5-21 · the pulse rides with the review it sits above.
+  const review = await createReview({ serviceId: service.id, userId, rating, reviewText, projectId, pulse: req.body?.pulse })
 
   notifyReviewPosted(userId, service.title).catch(() => {})
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { m } from "framer-motion"
 import { ArrowRight, Sparkles, Search, Grid3x3, AlertCircle, Tag } from "lucide-react"
 import Seo from "../components/seo/Seo"
@@ -323,7 +324,7 @@ export default function PortfolioPage() {
           <div className="relative isolate overflow-hidden rounded-2xl border border-charcoal-80/10 bg-violet px-6 py-10 text-center sm:px-10 sm:py-14">
             <Meteors number={10} />
             <h2 className="relative text-section font-bold text-white sm:text-section">{t("cta.title")}</h2>
-            <p className="relative mx-auto mt-2 max-w-xl text-meta leading-6 text-white/70">
+            <p className="relative mx-auto mt-2 max-w-xl text-meta leading-6 text-white/85">
               {t("cta.subtitle")}
             </p>
             <MagneticButton className="relative mt-6">

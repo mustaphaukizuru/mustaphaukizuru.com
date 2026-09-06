@@ -118,11 +118,34 @@ function serializeService(service) {
  * Public reads
  * ──────────────────────────────────────────────────────────────────────────── */
 
+/**
+ * T2-4 · what counts as a public service.
+ *
+ * The Service table holds three different kinds of row:
+ *
+ *   1. the four catalogue categories — the closed set, the real /services/:slug
+ *      pages (it-strategy-consulting, ai-automation, cloud-architecture-migration,
+ *      digital-product-engineering);
+ *   2. three audience-plan carriers, slug "<audience>-plan" with audienceCode
+ *      set. These exist ONLY to hang the plan-matrix packages off; there is no
+ *      page behind them;
+ *   3. four retired rows from the pre-catalogue taxonomy, soft-deleted by
+ *      scripts/retire-legacy-services.js.
+ *
+ * Only (1) is public, but every read below filtered on status and deletedAt
+ * alone — so the listing served eleven rows against a closed set of four, and
+ * /services/business-plan rendered as a service page with a plan carrier's
+ * data behind it. audienceCode is the discriminator for (2); it is not a
+ * "hide" flag, so listAudiencePlans below deliberately selects the opposite
+ * and keeps working untouched.
+ */
+const PUBLIC_SERVICE_WHERE = { status: "published", deletedAt: null, audienceCode: null }
+
 async function listServicesUncached({ isFeatured, page = 1, limit = 24, locale = "en" } = {}) {
   const safePage  = Math.max(1, Number(page) || 1)
   const safeLimit = Math.min(48, Math.max(1, Number(limit) || 24))
 
-  const where = { status: "published", deletedAt: null }
+  const where = { ...PUBLIC_SERVICE_WHERE }
   if (isFeatured === true || isFeatured === "true") where.isFeatured = true
 
   const [items, total] = await Promise.all([
@@ -159,7 +182,7 @@ async function listServicesUncached({ isFeatured, page = 1, limit = 24, locale =
 
 async function getServiceBySlug(slug, locale = "en") {
   const service = await prisma.service.findFirst({
-    where: { slug, status: "published", deletedAt: null },
+    where: { slug, ...PUBLIC_SERVICE_WHERE },
     include: {
       features: { orderBy: { sortOrder: "asc" } },
       packages: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
@@ -172,7 +195,7 @@ async function getServiceBySlug(slug, locale = "en") {
 
 async function getFeaturedServicesUncached() {
   const items = await prisma.service.findMany({
-    where:   { status: "published", isFeatured: true, deletedAt: null },
+    where:   { ...PUBLIC_SERVICE_WHERE, isFeatured: true },
     orderBy: [{ updatedAt: "desc" }],
     take:    6,
     include: {
@@ -190,7 +213,7 @@ async function getFeaturedServicesUncached() {
  */
 async function getRelatedServices(currentServiceId, limit = 3) {
   const items = await prisma.service.findMany({
-    where:   { status: "published", deletedAt: null, id: { not: currentServiceId } },
+    where:   { ...PUBLIC_SERVICE_WHERE, id: { not: currentServiceId } },
     orderBy: [{ isFeatured: "desc" }, { updatedAt: "desc" }],
     take:    limit,
     include: {
@@ -275,6 +298,7 @@ const getFeaturedServices = (...args) => cache.wrap("services", args, PUBLIC_REA
 const listAudiencePlans = () => cache.wrap("services", ["audience-plans"], PUBLIC_READ_TTL_MS, () => listAudiencePlansUncached())
 
 module.exports = {
+  PUBLIC_SERVICE_WHERE,
   listServices,
   getServiceBySlug,
   getFeaturedServices,

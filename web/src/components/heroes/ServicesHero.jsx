@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════════
-   ServicesHero.jsx · /services index hero · Instructions v4.0 § 07 step 1
+   ServicesHero.jsx · /services index hero · Blueprint v4.0 § 07 step 1
    ────────────────────────────────────────────────────────────────────────
    Left  — eyebrow · kinetic headline · subhead naming the four lines · two
            CTAs (book / self-audit) · two DERIVED stats (lines, services)
@@ -13,14 +13,14 @@
 
    Replaced (2026-09-03): a hot-linked stock portrait (§ 5.2i banned), a
    hard-coded "94 % on-time" figure and "82+ engagements" aria text with
-   no recorded source (§ 6.1 CLAIMS, Description R6), three English-only
+   no recorded source (§ 6.1 CLAIMS, Blueprint R6), three English-only
    feature ticks, and a stale six-family node diagram from the retired
    82-service taxonomy (§ 06 closed set).
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useRef } from "react"
 import { m, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { ArrowRight, Calendar, ClipboardCheck, UserCheck, Receipt, MessagesSquare } from "lucide-react"
 import KineticHeadline from "../motion/KineticHeadline"

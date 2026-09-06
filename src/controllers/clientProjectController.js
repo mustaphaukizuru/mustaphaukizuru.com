@@ -1,16 +1,23 @@
 const path = require("path")
 const fs   = require("fs")
 const asyncHandler = require("../utils/asyncHandler")
+const readReceipts = require("../services/readReceiptService")
+const projectInvoices = require("../services/projectInvoiceService")
+const fileRequests = require("../services/projectFileRequestService")
+const secretHandoff = require("../services/secretHandoffService")
+const projectTime = require("../services/projectTimeService")
+const projectEvents = require("../services/projectEventService")
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const fsp = require("fs/promises")
 const { listMyProjects, getMyProject } = require("../services/clientProjectService")
 const {
-  assertReadable, previewCanFrame, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
+  assertReadable, attachClientFiles, createComment, approveMilestone, requestMilestoneChanges,
   ndaStatus, applyNdaGate, acceptAgreement,
-  presentForMember, assertDeliverableAccess,
+  presentForMember, assertDeliverableAccess, loadOwnedProject, lifecycle,
 } = require("../services/projectPortalService")
 const { STORAGE_PATHS } = require("../config/storagePaths")
+const { resolveUserLocale } = require("../utils/resolveUserLocale")
 const supportService = require("../services/supportService")
 const changeRequestService = require("../services/changeRequestService")
 
@@ -44,10 +51,28 @@ function resolveSafePath(filePath) {
 
 /* ────────────────────────────────────────────────────────────────────── */
 
+/**
+ * GET /member/projects
+ *
+ * D5-1 · every row now carries the same `access` object the detail route
+ * sends, and the reason is a dead end the client could walk into:
+ * listMyProjects returns EVERY project the account owns, expired ones
+ * included, while `getMine` runs assertReadable and answers 410
+ * PROJECT_EXPIRED. So an expired project appeared as an ordinary card and
+ * clicking it produced an error.
+ *
+ * Hiding those rows was the other option and is worse. "This project is no
+ * longer available. Contact support if you need its files." is the whole
+ * point of the grace window — a client whose project silently disappeared
+ * from the list has no way to know it ever existed, and support gets the
+ * call anyway, without the project id. The card stays and says so; the SPA
+ * stops linking it.
+ */
 const listMine = asyncHandler(async (req, res) => {
   const userId = req.user?.id
   if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
-  const data = await listMyProjects(userId)
+  const rows = await listMyProjects(userId)
+  const data = rows.map((p) => presentForMember(p, lifecycle(p)))
   res.status(200).json({ success: true, data })
 })
 
@@ -111,7 +136,14 @@ const uploadFiles = asyncHandler(async (req, res) => {
   if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
   const files = req.files || (req.file ? [req.file] : [])
   try {
-    const rows = await attachClientFiles({ userId, projectId: req.params.id, files, milestoneId: req.body?.milestoneId || null })
+    const rows = await attachClientFiles({
+      userId,
+      projectId: req.params.id,
+      files,
+      milestoneId: req.body?.milestoneId || null,
+      // T5-3 · optional: this upload answers a document request.
+      fileRequestId: req.body?.fileRequestId || null,
+    })
     res.status(201).json({ success: true, data: rows })
   } catch (e) {
     // Never leave orphaned bytes when the DB refused the rows.
@@ -325,6 +357,13 @@ function sendProjectFile({ file, req, res, userId, action }) {
     return res.status(404).json({ success: false, error: { code: "FILE_MISSING", message: "File is no longer available. Please contact support." } })
   }
 
+  // T5-14 · the read receipt. Fire-and-forget, beside the access log and
+  // for the same reason: a note in the margin must never stop a client
+  // downloading a file they are entitled to. Only a CLIENT action stamps —
+  // an admin opening their own upload would make the receipt a lie about
+  // the person it names, and a lie in the direction that stops us chasing.
+  readReceipts.recordFileView(file, action).catch(() => null)
+
   // Best-effort access log — fire-and-forget so a logging failure never
   // blocks the download itself.
   prisma.activityLog
@@ -356,9 +395,171 @@ function sendProjectFile({ file, req, res, userId, action }) {
   stream.pipe(res)
 }
 
+/**
+ * GET /member/projects/:id/events  (T5-5)
+ *
+ * The timeline behind the project page. "client" is the ceiling: a signed-in
+ * owner sees file names, comments and requests, never the admin-only rows.
+ */
+const listEvents = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const locale = resolveUserLocale({ req, user: req.user })
+    const rows = await projectEvents.listForProject(req.params.id, { audience: "client" })
+    res.json({ success: true, data: rows.map((r) => projectEvents.serializeEvent(r, locale)) })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/**
+ * GET /member/projects/:id/file-requests  (T5-5)
+ *
+ * What the studio is waiting on. The admin list already existed; this is the
+ * same rows read by the person who has to satisfy them.
+ */
+const listFileRequests = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const locale = resolveUserLocale({ req, user: req.user })
+    const rows = await fileRequests.listForProject(req.params.id)
+    res.json({ success: true, data: rows.map((r) => fileRequests.serialize(r, locale)) })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/**
+ * GET /member/projects/:id/invoices  (T5-4)
+ *
+ * The invoices already existed; they were just findable only from a bare
+ * order page. loadOwnedProject is what proves this member may see them.
+ */
+const listInvoices = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    // Ownership first, then the read. Skipping this would let any signed-in
+    // member list any project's billing by id.
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const data = await projectInvoices.listForProject(req.params.id)
+    res.json({ success: true, data })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/* ── T5-13 · the secure credential handoff ────────────────────────────────
+ *
+ * Three handlers, and the direction is NOT a parameter on any of them. A
+ * member creating a secret is always sending one TO us; the direction
+ * decides who may reveal it, so letting the caller pick would let a client
+ * mint a secret only they can read, which is a note to self dressed as a
+ * handoff.
+ */
+
+/** GET /member/projects/:id/secrets — metadata only, never a value. */
+const listSecrets = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    res.json({ success: true, data: await secretHandoff.listForProject(req.params.id, "client") })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/** POST /member/projects/:id/secrets — the client sends us a credential. */
+const createSecret = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const { secret } = await secretHandoff.createSecret(req.params.id, {
+      ...req.body,
+      direction: "to_admin",
+    }, { createdById: userId })
+    res.status(201).json({ success: true, data: secret })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/**
+ * POST /member/projects/:id/secrets/:secretId/reveal
+ *
+ * POST, not GET, and that is a deliberate departure from the plan. This call
+ * DESTROYS the thing it returns, and a GET that destroys state is consumed
+ * by a link scanner, a prefetch, a chat client's preview or the browser
+ * restoring a tab — every one of which burns the client's one read before
+ * they have seen it.
+ */
+const revealSecret = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const out = await secretHandoff.revealSecret(req.params.secretId, req.params.id, "client")
+    // Never cached, anywhere. This body is a credential.
+    res.setHeader("Cache-Control", "no-store")
+    res.json({ success: true, data: out })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/* ── T5-18 · the hours ledger, client side ─────────────────────────────── */
+
+/** GET /member/projects/:id/time */
+const listTime = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const locale = resolveUserLocale({ req, user: req.user })
+    res.json({ success: true, data: await projectTime.ledgerFor(req.params.id, { locale }) })
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
+/**
+ * GET /member/projects/:id/time/:month/statement.pdf
+ *
+ * Generated on request rather than stored. A statement is a rendering of
+ * rows that already exist, and keeping a copy on disk would mean two answers
+ * to "how many hours did we use in September" the first time an entry was
+ * corrected.
+ */
+const timeStatement = asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) return res.status(401).json({ success: false, error: { code: "AUTH_MISSING", message: "Authentication required" } })
+  try {
+    await loadOwnedProject({ userId, projectId: req.params.id })
+    const out = await projectTime.buildMonthlyStatement(req.params.id, req.params.month, {
+      locale: resolveUserLocale({ req, user: req.user }),
+    })
+    if (!out) return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "No statement for that month" } })
+    res.setHeader("Content-Type", "application/pdf")
+    res.setHeader("Content-Disposition", `attachment; filename="hours-${req.params.month}.pdf"`)
+    res.setHeader("Cache-Control", "private, no-store")
+    res.send(out.buffer)
+  } catch (e) {
+    return portalError(res, e)
+  }
+})
+
 module.exports = {
   listMine, getMine, streamFile, sendProjectFile, resolveSafePath, PROJECT_FILES_ROOT,
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
+  listInvoices, listEvents, listFileRequests,
+  listSecrets, createSecret, revealSecret,
+  listTime, timeStatement,
   listTickets, getTicket, createTicket, replyTicket,
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
 }

@@ -8,7 +8,9 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { LocalizedLink as Link } from "../../components/LocalizedLink"
+import useNavigate from "../../hooks/useLocalizedNavigate"
 import { ChevronDown, LogOut, Shield } from "lucide-react"
 import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 

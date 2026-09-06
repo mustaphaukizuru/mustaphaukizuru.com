@@ -17,6 +17,7 @@ const serviceRoutes = require("./serviceRoutes")
 const reviewRoutes = require("./reviewRoutes")
 const portfolioRoutes = require("./portfolioRoutes")
 const newsletterRoutes = require("./newsletterRoutes")              // B07
+const trackRoutes = require("./trackRoutes")                        // T5-2 · public project tracking
 const bioRoutes = require("./bioRoutes")                            // M12
 const adminBioRoutes = require("./adminBioRoutes")                  // M12
 const analyticsRoutes = require("./analyticsRoutes")                // M14
@@ -101,7 +102,12 @@ const router = express.Router()
 // out-of-band before we drop the unversioned aliases.
 // ═════════════════════════════════════════════════════════════════════════════
 
-const SUNSET_DATE = "2026-07-01"
+// RFC 8594 requires Sunset to be an HTTP-date, not an ISO calendar date — a
+// client parsing it per spec got an Invalid Date from "2026-07-01" and could
+// not act on the deprecation it was being told about (T3-5). The ISO form is
+// kept as the source of truth because it is the readable one.
+const SUNSET_ISO = "2026-07-01"
+const SUNSET_DATE = new Date(`${SUNSET_ISO}T00:00:00Z`).toUTCString()
 
 /**
  * Deprecation middleware (RFC 8594 + RFC 5988).
@@ -147,6 +153,10 @@ v1.use("/services",        serviceRoutes)
 v1.use("/reviews",         reviewRoutes)
 v1.use("/portfolio",   portfolioRoutes)
 v1.use("/newsletter",  newsletterRoutes)
+// T5-2 · public and unauthenticated by design. v1 only: the legacy /api/*
+// surface is deprecated and a new anonymous endpoint has no business
+// being added to it.
+v1.use("/track",       trackRoutes)
 v1.use("/client-logos", clientLogoRoutes)
 v1.use("/bio",         bioRoutes)                                    // M12
 v1.use("/analytics",   analyticsRoutes)                              // M14

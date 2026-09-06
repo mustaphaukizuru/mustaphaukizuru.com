@@ -4,7 +4,7 @@ import {
   RotateCcw, Calendar, Mail, CheckCircle2, XCircle, Clock,
   ShieldCheck, Globe2, FileSearch,
 } from "lucide-react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  RefundPage · M15 — Option A policy, made explicit.

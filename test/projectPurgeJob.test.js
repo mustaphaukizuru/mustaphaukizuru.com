@@ -8,6 +8,14 @@ jest.mock("fs/promises", () => ({ unlink: jest.fn() }))
 jest.mock("../src/lib/prisma", () => ({
   clientProject: { findMany: jest.fn(), update: jest.fn() },
   projectFile:   { findMany: jest.fn(), update: jest.fn() },
+  // T5-7 · the sweep now closes any document request still open on a purged
+  // project. Added to the mock rather than optional-chained in the job: a
+  // real Prisma model that is absent is a misconfiguration, and hiding it
+  // behind ?. turns a loud failure into a silent no-op.
+  projectFileRequest: { updateMany: jest.fn() },
+  // T5-13 · same argument: the sweep wipes every remaining credential
+  // ciphertext on a purged project, so the model has to be here.
+  secretHandoff: { updateMany: jest.fn() },
 }))
 jest.mock("../src/utils/logger", () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() }))
 jest.mock("../src/controllers/clientProjectController", () => ({
@@ -28,6 +36,43 @@ beforeEach(() => {
   fsp.unlink.mockResolvedValue()
   prisma.clientProject.update.mockResolvedValue({})
   prisma.projectFile.update.mockResolvedValue({})
+  prisma.projectFileRequest.updateMany.mockResolvedValue({ count: 0 })
+  prisma.secretHandoff.updateMany.mockResolvedValue({ count: 0 })
+})
+
+test("a purged project has every remaining credential ciphertext wiped (T5-13)", async () => {
+  // A secret is already unreadable once it expires, but "the check keeps
+  // refusing" is a weaker guarantee than "the bytes are gone".
+  prisma.clientProject.findMany.mockResolvedValue([{ id: "p1", projectName: "P", closedAt: new Date(0) }])
+  prisma.projectFile.findMany.mockResolvedValue([])
+  prisma.secretHandoff.updateMany.mockResolvedValue({ count: 3 })
+
+  const out = await runProjectPurgePass({ now: NOW })
+
+  expect(prisma.secretHandoff.updateMany.mock.calls[0][0]).toEqual({
+    where: { projectId: "p1", ciphertext: { not: null } },
+    data:  { ciphertext: null, iv: null, tag: null },
+  })
+  expect(out.results[0].secretsWiped).toBe(3)
+})
+
+test("a purged project stops chasing the client for paperwork (T5-7)", async () => {
+  // The bytes are gone and the project is closed; a request still reading
+  // "requested" would keep the reminder job nagging for a file that has
+  // nowhere left to land, and would let an admin reject it back open.
+  prisma.clientProject.findMany.mockResolvedValue([{ id: "p1", projectName: "P", closedAt: new Date(0) }])
+  prisma.projectFile.findMany.mockResolvedValue([])
+  prisma.projectFileRequest.updateMany.mockResolvedValue({ count: 2 })
+
+  const out = await runProjectPurgePass({ now: NOW })
+
+  const call = prisma.projectFileRequest.updateMany.mock.calls[0][0]
+  expect(call.where).toEqual({ projectId: "p1", status: { in: ["requested", "rejected", "submitted"] } })
+  expect(call.data).toEqual({ status: "cancelled", closedAt: NOW })
+  // An ACCEPTED request keeps its status: overwriting it would erase the
+  // record that the document ever arrived.
+  expect(call.where.status.in).not.toContain("accepted")
+  expect(out.results[0].requestsClosed).toBe(2)
 })
 
 test("purgeDays defaults to 60 and honours PROJECT_PURGE_DAYS", () => {
@@ -96,6 +141,9 @@ test("dryRun lists candidates without touching disk or DB", async () => {
   expect(fsp.unlink).not.toHaveBeenCalled()
   expect(prisma.projectFile.update).not.toHaveBeenCalled()
   expect(prisma.clientProject.update).not.toHaveBeenCalled()
+  // Including the T5-7 request close: a dry run that quietly cancelled a
+  // client's outstanding paperwork would be a nasty surprise.
+  expect(prisma.projectFileRequest.updateMany).not.toHaveBeenCalled()
   expect(out.results[0]).toMatchObject({ projectId: "p1", files: 1, purged: 0 })
 })
 

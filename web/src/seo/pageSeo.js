@@ -1,4 +1,7 @@
-import { DEFAULT_OG_IMAGE, absoluteUrl, siteConfig, trimText } from "./siteSeo"
+import { DEFAULT_OG_IMAGE, absoluteUrl, siteConfig, trimText } from "./siteSeo.js"
+// Explicit extension: web/scripts/generate-og-static.mjs imports this module
+// from Node, which does not resolve extensionless paths the way Vite does.
+import { CATEGORIES } from "../data/servicesCatalogue.js"
 
 /* ─────────────────────────────────────────────────────────────────────────
    STATIC ROUTE SEO — used by SeoRouteManager + each page's <Seo /> render.
@@ -25,7 +28,7 @@ export const staticSeoByRoute = {
   "/about": {
     title: "About Mustapha Ukizuru · Full-Stack Developer & IT Manager",
     description:
-      "Meet Mustapha Ukizuru — Full-Stack Developer, IT Manager, CS Educator. 6+ years across Rwanda, Turkey, Ethiopia, and Mexico. Available for new projects.",
+      "Meet Mustapha Ukizuru — Full-Stack Developer, IT Manager, CS Educator. 8+ years across Rwanda, Turkey, Ethiopia, and Mexico. Available for new projects.",
     type: "profile",
     image: absoluteUrl("/og/og-profile.png"),
     schemaType: "ProfilePage",
@@ -70,12 +73,19 @@ export const staticSeoByRoute = {
     ],
   },
 
+  /* Each category has its OWN share card at /og/services/<slug>.png. That
+     path is deliberate: it is what `fallbackOgImage()` in
+     src/middleware/ogInjector.js already looks for, so the crawler and this
+     map resolve to the same file without a second convention. All four used
+     to point at og-services.png — and the crawler got og-default.png
+     regardless, because /services/:slug takes the database path and no
+     Service row carries an image. */
   "/services/it-strategy-consulting": {
     title: "IT Strategy Consulting · Software Audit · Fractional CTO · Compliance",
     description:
       "Software-stack audits, fractional CTO leadership, vendor evaluation and RFPs, digital-transformation roadmaps, and LFPDPPP compliance and risk assessment.",
     type: "website",
-    image: absoluteUrl("/og/og-services.png"),
+    image: absoluteUrl("/og/services/it-strategy-consulting.png"),
     schemaType: "Service",
     keywords: ["IT strategy consulting", "fractional CTO Mexico", "software audit", "LFPDPPP compliance"],
   },
@@ -85,7 +95,7 @@ export const staticSeoByRoute = {
     description:
       "Custom LLM persona bots, WhatsApp lead qualifiers synced to your CRM, cross-platform API pipelines, private RAG knowledge bases, and document data-extraction workflows.",
     type: "website",
-    image: absoluteUrl("/og/og-services.png"),
+    image: absoluteUrl("/og/services/ai-automation.png"),
     schemaType: "Service",
     keywords: ["AI automation consulting", "WhatsApp chatbot CRM", "RAG knowledge base", "Make Zapier integration"],
   },
@@ -93,9 +103,9 @@ export const staticSeoByRoute = {
   "/services/cloud-architecture-migration": {
     title: "Cloud Architecture & Migration · AWS · Azure · GCP · Docker · Zero Trust",
     description:
-      "On-premise to cloud migration, cloud-bill optimisation up to 40%, disaster-recovery planning, Docker containerisation, and zero-trust security hardening.",
+      "On-premise to cloud migration, cloud-bill optimisation, disaster-recovery planning, Docker containerisation, and zero-trust security hardening.",
     type: "website",
-    image: absoluteUrl("/og/og-services.png"),
+    image: absoluteUrl("/og/services/cloud-architecture-migration.png"),
     schemaType: "Service",
     keywords: ["cloud migration consultant", "AWS Azure GCP migration", "cloud cost optimisation", "Docker containerization"],
   },
@@ -105,7 +115,7 @@ export const staticSeoByRoute = {
     description:
       "Interactive UI/UX wireframing, MVP web applications, cross-platform mobile apps, secure API design, CI/CD automation, and managed maintenance retainers.",
     type: "website",
-    image: absoluteUrl("/og/og-services.png"),
+    image: absoluteUrl("/og/services/digital-product-engineering.png"),
     schemaType: "Service",
     keywords: ["MVP development Mexico", "cross-platform mobile app", "API design", "CI/CD automation"],
   },
@@ -142,6 +152,22 @@ export const staticSeoByRoute = {
     ],
   },
 
+  "/how-we-work": {
+    title: "How We Work · Six Steps From First Message to Handover",
+    description:
+      "The full engagement process: what to send at each stage, response and proposal timelines, remote and on-site delivery, and the access and data-privacy rules.",
+    type: "website",
+    image: DEFAULT_OG_IMAGE,
+    schemaType: "WebPage",
+    keywords: [
+      "engagement process",
+      "how we work consulting",
+      "IT consulting process Mexico",
+      "consulting proposal timeline",
+      "NDA and access policy",
+    ],
+  },
+
   "/self-audit": {
     title: "Free Digital Self-Audit · Score Your School or Business Tech",
     description:
@@ -150,6 +176,26 @@ export const staticSeoByRoute = {
     image: DEFAULT_OG_IMAGE,
     schemaType: "WebPage",
     keywords: ["digital audit", "IT self-assessment", "school technology audit", "website audit Mexico"],
+  },
+
+  "/status": {
+    title: "Service Status · Mustapha Ukizuru",
+    description:
+      "Live status of the API, the database and the scheduled jobs behind mustaphaukizuru.com.",
+    type: "website",
+    image: DEFAULT_OG_IMAGE,
+    schemaType: "WebPage",
+    keywords: ["service status", "uptime"],
+  },
+
+  "/track": {
+    title: "Track Your Project · Mustapha Ukizuru",
+    description:
+      "Enter the tracking code from your invoice to see where your project stands — phase, milestones and what we are waiting on from you.",
+    type: "website",
+    image: DEFAULT_OG_IMAGE,
+    schemaType: "WebPage",
+    keywords: ["project tracking", "project status"],
   },
 
   "/contact": {
@@ -254,6 +300,12 @@ export const pageSeo = {
 ───────────────────────────────────────────── */
 export const noindexPrefixes = [
   "/portal",
+  // T5-5 · /track/:code puts a live tracking code in a URL. Indexed, that is
+  // a client's progress in a search result and a code anyone can replay.
+  "/track",
+  // T1-9 · a status page in a search result is how people arrive at it
+  // believing it is the site. follow, though — the links out are real.
+  "/status",
   "/unsubscribed",
   "/login",
   "/signup",
@@ -267,8 +319,16 @@ export const noindexPrefixes = [
 ]
 
 export function shouldNoindex(pathname = "/") {
+  /* The /es prefix comes off first, and that is a fix rather than
+     housekeeping for the newly-mirrored dashboard (D3-3).
+     `noindexPrefixes` is written in unprefixed form, but /es mirrors
+     /login, /signup, /forgot-password, /reset-password, /checkout and
+     /cart — so every one of those Spanish URLs was falling through this
+     check and being served `index,follow`. The Spanish sign-in page was
+     indexable; the English one was not. */
+  const clean = String(pathname).replace(/^\/es(?=\/|$)/, "") || "/"
   return noindexPrefixes.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    (prefix) => clean === prefix || clean.startsWith(`${prefix}/`),
   )
 }
 
@@ -338,14 +398,11 @@ export function buildServiceCollectionSeo(pathname = "/services") {
       name: siteConfig.siteName,
       url: absoluteUrl(pathname),
       areaServed: ["MX", "US", "RW", "TR", "Worldwide"],
-      serviceType: [
-        "Technology Consulting",
-        "School IT Infrastructure & Digital Transformation",
-        "Educational Technology Consulting",
-        "Website & Digital Systems",
-        "STEM/Coding/Robotics Programs",
-        "Professional Training & Workshops",
-      ],
+      // Derived from the closed set, not hand-listed. The six strings that
+      // used to sit here were the retired pre-catalogue taxonomy — structured
+      // data telling Google about service lines the site no longer sells,
+      // while the four it does sell went unnamed.
+      serviceType: CATEGORIES.map((c) => c.name),
       provider: {
         "@type": "Person",
         name: siteConfig.person.name,

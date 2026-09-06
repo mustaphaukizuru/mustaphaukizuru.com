@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════════
    SchoolSystemDiagram.jsx · /schools hero visual (media slot M-16 fallback)
    ────────────────────────────────────────────────────────────────────────
-   Inline SVG, tokens only (Instructions v4.0 § 5.2c/d, § 5.3). Shows the
+   Inline SVG, tokens only (Blueprint v4.0 § 5.2c/d, § 5.3). Shows the
    mechanism the page sells: four school roles connected through ONE
    platform that is itself backed up. The connector paths draw on when the
    diagram enters the viewport (Framer Motion pathLength); with

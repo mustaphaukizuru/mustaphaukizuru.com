@@ -91,6 +91,7 @@ Hostinger MySQL cannot create the shadow DB `migrate dev` needs. There is no mig
 - i18n: `web/src/i18n/locales/{en,es}/*.json`, namespaces in `web/src/i18n/resources.js`.
 - SEO: `web/src/seo/pageSeo*.js`, server-side OG injection in `src/middleware/ogInjector.js`.
 - Env templates: `.env.example` (API), `web/.env.example` (Vite, `VITE_*` only).
+- Service catalogue: `web/src/data/servicesCatalogue.js` is the source of truth (4 categories, 20 offerings, 9 monthly packages, the pricing basis and `CATALOG_LAST_UPDATED`). `docs/catalogue/` is **generated** from it by `cd web && npm run catalog:generate` — never hand-edit those files; CI runs `npm run catalog:check`, which re-runs the generator and fails when the committed copy differs. Counts come from `CATALOG_STATS`, never written down. `docs/SERVICE_CATALOGUE*.md` are retired pointers.
 - Decisions: `docs/decisions/` — one ADR per choice a contributor would otherwise reopen; write it in the PR that decides.
 
 ## Testing conventions

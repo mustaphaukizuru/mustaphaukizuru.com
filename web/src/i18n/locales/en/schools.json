@@ -31,11 +31,36 @@
     "title": "Every stage of the year touches a system",
     "subtitle": "This is what a Mexican school year looks like from IT. Each point is a moment where technology either helps or gets in the way.",
     "steps": [
-      { "when": "August", "title": "Re-enrolment and enrolment", "system": "Records, payments and forms", "offering": "Data-extraction workflows" },
-      { "when": "September", "title": "Kick-off and platforms", "system": "Accounts, virtual classrooms, family communication", "offering": "Software stack audit" },
-      { "when": "December · March", "title": "Assessments and report cards", "system": "Grades, reports, delivery to families", "offering": "Custom web application" },
-      { "when": "April · May", "title": "Admissions for next year", "system": "Prospects, WhatsApp, follow-up", "offering": "WhatsApp lead qualifiers" },
-      { "when": "July", "title": "Close-out and backup", "system": "Year archive, backups, access review", "offering": "Disaster recovery plan" }
+      {
+        "when": "August",
+        "title": "Re-enrolment and enrolment",
+        "system": "Records, payments and forms",
+        "offering": "Data-extraction workflows"
+      },
+      {
+        "when": "September",
+        "title": "Kick-off and platforms",
+        "system": "Accounts, virtual classrooms, family communication",
+        "offering": "Software stack audit"
+      },
+      {
+        "when": "December · March",
+        "title": "Assessments and report cards",
+        "system": "Grades, reports, delivery to families",
+        "offering": "Custom web application"
+      },
+      {
+        "when": "April · May",
+        "title": "Admissions for next year",
+        "system": "Prospects, WhatsApp, follow-up",
+        "offering": "WhatsApp lead qualifiers"
+      },
+      {
+        "when": "July",
+        "title": "Close-out and backup",
+        "system": "Year archive, backups, access review",
+        "offering": "Disaster recovery plan"
+      }
     ]
   },
   "outcomes": {
@@ -63,24 +88,46 @@
     "subtitle": "Two tools from the store built for principals and coordinators. Immediate purchase, no call required.",
     "viewProduct": "View in store",
     "items": {
-      "school-it-audit-checklist": { "title": "School IT Audit Checklist", "blurb": "Review infrastructure, devices, connectivity, access and security in a single list." },
-      "stem-program-planning-pack": { "title": "STEM Program Planning Pack", "blurb": "Organised resources for designing coding and robotics activities with implementation guidance." }
+      "school-it-audit-checklist": {
+        "title": "School IT Audit Checklist",
+        "blurb": "Review infrastructure, devices, connectivity, access and security in a single list."
+      },
+      "stem-program-planning-pack": {
+        "title": "STEM Program Planning Pack",
+        "blurb": "Organised resources for designing coding and robotics activities with implementation guidance."
+      }
     }
   },
   "faq": {
     "eyebrow": "Frequently asked",
     "title": "What school leaders ask",
     "items": [
-      { "id": "when", "question": "When in the year should we start?", "answer": "Audits and backup plans work best between May and July, before close-out. New platforms are ideally implemented to launch in August. A 30-minute call sets the calendar with no commitment." },
-      { "id": "data", "question": "How do you handle student and family data?", "answer": "With the LFPDPPP as the baseline: data inventory, privacy notice, minimal access and encrypted backups. Records never leave systems the school controls." },
-      { "id": "staff", "question": "Will school staff be able to run it alone?", "answer": "Yes. Every delivery includes staff training and documentation; the goal is a school that publishes and operates without depending on an outside developer." },
-      { "id": "size", "question": "Do you work with small schools?", "answer": "Yes. Many outcomes start with a software audit or a checklist from the store, with no large project involved." }
+      {
+        "id": "when",
+        "question": "When in the year should we start?",
+        "answer": "Audits and backup plans work best between May and July, before close-out. New platforms are ideally implemented to launch in August. A 30-minute call sets the calendar with no commitment."
+      },
+      {
+        "id": "data",
+        "question": "How do you handle student and family data?",
+        "answer": "With the LFPDPPP as the baseline: data inventory, privacy notice, minimal access and encrypted backups. Records never leave systems the school controls."
+      },
+      {
+        "id": "staff",
+        "question": "Will school staff be able to run it alone?",
+        "answer": "Yes. Every delivery includes staff training and documentation; the goal is a school that publishes and operates without depending on an outside developer."
+      },
+      {
+        "id": "size",
+        "question": "Do you work with small schools?",
+        "answer": "Yes. Many outcomes start with a software audit or a checklist from the store, with no large project involved."
+      }
     ]
   },
   "audit": {
     "eyebrow": "Free self-audit",
     "title": "Score your school's technology in 5 minutes",
-    "body": "A questionnaire with a school lens: website, security, cloud and digital workflows. You get a score and the three fixes with the biggest payoff.",
+    "body": "Fifteen statements across three areas, with a school lens: strategy and compliance, the knowledge your staff need to find, and what happens when something fails. You get a score and the five gaps worth closing first.",
     "cta": "Start the self-audit"
   },
   "final": {

@@ -4,10 +4,13 @@
  * T1 · prices and tier availability come from GET /services/plans (the DB,
  * edited in /admin/services). Names, descriptions and the feature matrix stay
  * in the static catalogue. */
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { ArrowRight } from "lucide-react"
-import { AUDIENCE_PRICING_PLANS, AUDIENCE_PRICING_ORDER } from "../../data/servicesCatalogue"
+import {
+  AUDIENCE_PRICING_PLANS, AUDIENCE_PRICING_ORDER,
+  isQuoteOnlyTier, planEnquiryHref,
+} from "../../data/servicesCatalogue"
 import { fetchServicePlans, indexServicePlans } from "../../services/serviceService"
 import useApiQuery from "../../hooks/useApiQuery"
 import { SectionHeader } from "./Primitives"
@@ -66,10 +69,16 @@ export default function PackagesStrip() {
                 </div>
               </div>
               <ul className="mt-5 space-y-2">
-                {tiers.map(([tierKey, tier]) => (
+                {tiers.map(([tierKey, tier]) => {
+                  // Above the threshold the entry is a conversation, not a
+                  // card form. See isQuoteOnlyTier in servicesCatalogue.js.
+                  const quoteOnly = isQuoteOnlyTier(code, tierKey, tier.price)
+                  return (
                   <li key={tierKey}>
                     <Link
-                      to={`/checkout/service?audience=${code}&tier=${tierKey}`}
+                      to={quoteOnly
+                        ? planEnquiryHref(code, tierKey)
+                        : `/checkout/service?audience=${code}&tier=${tierKey}`}
                       className="flex items-center justify-between gap-3 rounded-xl border border-charcoal-80/10 px-3 py-2.5 text-meta transition hover:border-violet/40 hover:bg-mist/60"
                     >
                       <span className="font-semibold text-charcoal-80">
@@ -83,11 +92,22 @@ export default function PackagesStrip() {
                       <span className="inline-flex items-center gap-1 whitespace-nowrap text-violet">
                         {fmt(tier.price, tier.currency)}
                         <span className="text-micro text-charcoal-80/65">/{tier.period}</span>
+                        {/* The label carries the difference, not just the
+                            icon: "Book a call" instead of a price arrow is
+                            what tells a visitor this tier is scoped first,
+                            and it is visible text, so it satisfies
+                            link-text rather than needing an aria-label. */}
+                        {quoteOnly && (
+                          <span className="text-micro font-semibold text-violet">
+                            · {t("funnel.packages.quoteOnly")}
+                          </span>
+                        )}
                         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                       </span>
                     </Link>
                   </li>
-                ))}
+                  )
+                })}
               </ul>
             </div>
           )

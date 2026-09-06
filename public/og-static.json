@@ -1,0 +1,230 @@
+{
+  "/": {
+    "title": "Technology Consulting · Digital Products · STEM Solutions",
+    "description": "Technology consulting, digital products, and STEM solutions for businesses and schools across Mexico and LATAM. Full-stack delivery, publication-ready.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "website"
+  },
+  "/about": {
+    "title": "About Mustapha Ukizuru · Full-Stack Developer & IT Manager",
+    "description": "Meet Mustapha Ukizuru — Full-Stack Developer, IT Manager, CS Educator. 8+ years across Rwanda, Turkey, Ethiopia, and Mexico. Available for new projects.",
+    "image": "https://mustaphaukizuru.com/og/og-profile.png",
+    "type": "profile"
+  },
+  "/services": {
+    "title": "Technology Services · IT Strategy · AI & Automation · Cloud · Product Engineering",
+    "description": "Four service lines, 20 services: IT strategy consulting, AI & workflow automation, cloud architecture & migration, and end-to-end digital product engineering for SMBs.",
+    "image": "https://mustaphaukizuru.com/og/og-services.png",
+    "type": "website"
+  },
+  "/schools": {
+    "title": "School IT & STEM Solutions · Technology for Schools in Mexico",
+    "description": "IT strategy, admissions automation, backups and school platforms for K-12 schools in Mexico — from an IT manager who runs a school's technology every day.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "website"
+  },
+  "/services/it-strategy-consulting": {
+    "title": "IT Strategy Consulting · Software Audit · Fractional CTO · Compliance",
+    "description": "Software-stack audits, fractional CTO leadership, vendor evaluation and RFPs, digital-transformation roadmaps, and LFPDPPP compliance and risk assessment.",
+    "image": "https://mustaphaukizuru.com/og/services/it-strategy-consulting.png",
+    "type": "website"
+  },
+  "/services/ai-automation": {
+    "title": "AI Integration & Workflow Automation · Bots · RAG · WhatsApp Lead Qualifiers",
+    "description": "Custom LLM persona bots, WhatsApp lead qualifiers synced to your CRM, cross-platform API pipelines, private RAG knowledge bases, and document data-extraction workflows.",
+    "image": "https://mustaphaukizuru.com/og/services/ai-automation.png",
+    "type": "website"
+  },
+  "/services/cloud-architecture-migration": {
+    "title": "Cloud Architecture & Migration · AWS · Azure · GCP · Docker · Zero Trust",
+    "description": "On-premise to cloud migration, cloud-bill optimisation, disaster-recovery planning, Docker containerisation, and zero-trust security hardening.",
+    "image": "https://mustaphaukizuru.com/og/services/cloud-architecture-migration.png",
+    "type": "website"
+  },
+  "/services/digital-product-engineering": {
+    "title": "Digital Product Engineering · UI/UX · MVP Web Apps · Mobile · APIs · CI/CD",
+    "description": "Interactive UI/UX wireframing, MVP web applications, cross-platform mobile apps, secure API design, CI/CD automation, and managed maintenance retainers.",
+    "image": "https://mustaphaukizuru.com/og/services/digital-product-engineering.png",
+    "type": "website"
+  },
+  "/store": {
+    "title": "Digital Products Store · Templates · Toolkits · STEM Resources",
+    "description": "Shop digital products: School AI Automation Kit, IT templates, coding resources, STEM materials. Instant download · PayPal · MercadoPago.",
+    "image": "https://mustaphaukizuru.com/og/og-store.png",
+    "type": "website"
+  },
+  "/portfolio": {
+    "title": "Portfolio · Selected Projects by Mustapha Ukizuru",
+    "description": "Selected work: school IT transformations, custom websites, educational platforms, and digital product launches. Mexico, Rwanda, international.",
+    "image": "https://mustaphaukizuru.com/og/og-portfolio.png",
+    "type": "website"
+  },
+  "/how-we-work": {
+    "title": "How We Work · Six Steps From First Message to Handover",
+    "description": "The full engagement process: what to send at each stage, response and proposal timelines, remote and on-site delivery, and the access and data-privacy rules.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "website"
+  },
+  "/self-audit": {
+    "title": "Free Digital Self-Audit · Score Your School or Business Tech",
+    "description": "A 5-minute self-assessment of your website, security, cloud and digital workflows — get a score and the three fixes with the biggest payoff.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "website"
+  },
+  "/contact": {
+    "title": "Contact Mustapha Ukizuru · Technology Consulting Inquiries",
+    "description": "Get in touch for technology consulting, custom development, EdTech implementations, school IT services. Based in Mexico · responds within 24 hours.",
+    "image": "https://mustaphaukizuru.com/og/og-contact.png",
+    "type": "website"
+  },
+  "/blog": {
+    "title": "Blog · Notes on IT, Full-Stack, EdTech & STEM",
+    "description": "Field notes on IT strategy, full-stack engineering, EdTech, STEM education, and the occasional career story, written from Mexico by way of Rwanda.",
+    "image": "https://mustaphaukizuru.com/og/og-blog.png",
+    "type": "website"
+  },
+  "/book": {
+    "title": "Book a Discovery Call · Free 30-Minute Consultation",
+    "description": "Schedule a free 30-minute discovery call to discuss IT consulting, full-stack development, school technology, or STEM education projects.",
+    "image": "https://mustaphaukizuru.com/og/og-book.png",
+    "type": "website"
+  },
+  "/terms": {
+    "title": "Terms of Service · mustaphaukizuru.com",
+    "description": "Terms governing use of mustaphaukizuru.com — digital products, consulting services, and site access. Last updated 2026.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "article"
+  },
+  "/privacy": {
+    "title": "Privacy Policy · mustaphaukizuru.com",
+    "description": "How mustaphaukizuru.com collects, uses, and protects your personal data. GDPR and Mexican privacy law compliant.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "article"
+  },
+  "/refund": {
+    "title": "Refund Policy · 30-Day Guarantee on Digital Products",
+    "description": "30-day refund policy for digital products and consulting services. Conditions, request process, and support contact.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "article"
+  },
+  "/cookies": {
+    "title": "Cookie Policy · How We Use Cookies",
+    "description": "Plain-language explanation of how mustaphaukizuru.com uses cookies, what categories exist, and how to manage your preferences at any time.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "article"
+  },
+  "/es": {
+    "title": "Consultoría Tecnológica · Productos Digitales · STEM",
+    "description": "Consultoría tecnológica, productos digitales y soluciones STEM para empresas y escuelas en México y LATAM. Entrega full-stack, lista para producción.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "website"
+  },
+  "/es/about": {
+    "title": "Acerca de Mustapha Ukizuru · Desarrollador Full-Stack",
+    "description": "Conoce a Mustapha Ukizuru — desarrollador full-stack, IT manager y docente de CS. Más de ocho años de experiencia entre Ruanda, Turquía, Etiopía y México.",
+    "image": "https://mustaphaukizuru.com/og/og-profile.png",
+    "type": "profile"
+  },
+  "/es/services": {
+    "title": "Servicios Tecnológicos · Consultoría de TI · IA y Automatización · Nube · Producto Digital",
+    "description": "Cuatro líneas de servicio, 20 servicios: consultoría estratégica de TI, integración con IA y automatización, arquitectura en la nube y migración, e ingeniería de producto digital para PyMEs.",
+    "image": "https://mustaphaukizuru.com/og/og-services.png",
+    "type": "website"
+  },
+  "/es/schools": {
+    "title": "Tecnología para Escuelas · TI Escolar y Soluciones STEM",
+    "description": "Estrategia de TI, admisiones automatizadas, respaldos y plataformas escolares para colegios K-12 en México, de un IT manager que opera la tecnología de un colegio a diario.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "website"
+  },
+  "/es/services/it-strategy-consulting": {
+    "title": "Consultoría Estratégica de TI · Auditoría de software · CTO fraccional · Cumplimiento",
+    "description": "Auditoría de la pila de software, CTO fraccional, evaluación de proveedores y RFP, hoja de ruta de transformación digital y cumplimiento LFPDPPP.",
+    "image": "https://mustaphaukizuru.com/og/services/it-strategy-consulting.png",
+    "type": "website"
+  },
+  "/es/services/ai-automation": {
+    "title": "Integración con IA y Automatización · Bots · RAG · Calificadores de WhatsApp",
+    "description": "Bots de persona con LLM, calificadores de leads por WhatsApp sincronizados al CRM, pipelines API multiplataforma, bases de conocimiento RAG y extracción de datos.",
+    "image": "https://mustaphaukizuru.com/og/services/ai-automation.png",
+    "type": "website"
+  },
+  "/es/services/cloud-architecture-migration": {
+    "title": "Arquitectura en la Nube y Migración · AWS · Azure · GCP · Docker · Zero Trust",
+    "description": "Migración on-premise a la nube, optimización de facturas en la nube, recuperación ante desastres, contenedorización con Docker y seguridad zero-trust.",
+    "image": "https://mustaphaukizuru.com/og/services/cloud-architecture-migration.png",
+    "type": "website"
+  },
+  "/es/services/digital-product-engineering": {
+    "title": "Ingeniería de Producto Digital · UI/UX · MVP web · Móvil · APIs · CI/CD",
+    "description": "Wireframing interactivo UI/UX, aplicaciones web MVP, apps móviles multiplataforma, diseño seguro de APIs, automatización CI/CD y mantenimiento gestionado.",
+    "image": "https://mustaphaukizuru.com/og/services/digital-product-engineering.png",
+    "type": "website"
+  },
+  "/es/store": {
+    "title": "Tienda Digital · Plantillas · Kits · Recursos STEM",
+    "description": "Compra productos digitales: School AI Automation Kit, plantillas IT, recursos para programación y STEM. Descarga inmediata · PayPal y MercadoPago.",
+    "image": "https://mustaphaukizuru.com/og/og-store.png",
+    "type": "website"
+  },
+  "/es/portfolio": {
+    "title": "Portafolio · Proyectos de Mustapha Ukizuru",
+    "description": "Trabajo seleccionado: transformaciones IT escolares, sitios web a la medida, plataformas educativas y lanzamientos de productos digitales.",
+    "image": "https://mustaphaukizuru.com/og/og-portfolio.png",
+    "type": "website"
+  },
+  "/es/how-we-work": {
+    "title": "Cómo Trabajamos · Seis Pasos del Primer Mensaje a la Entrega",
+    "description": "El proceso completo: qué enviar en cada etapa, tiempos de respuesta y propuesta, entrega remota y presencial, y las reglas de acceso y privacidad de datos.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "website"
+  },
+  "/es/self-audit": {
+    "title": "Autodiagnóstico Digital Gratuito · Califica tu Tecnología",
+    "description": "Una autoevaluación de 10 minutos sobre estrategia, automatización, infraestructura y software. Obtén un puntaje y los cinco huecos que conviene cerrar primero.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "website"
+  },
+  "/es/contact": {
+    "title": "Contacto Mustapha Ukizuru · Consultoría Tecnológica",
+    "description": "Contáctame para consultoría tecnológica, desarrollo a la medida, implementaciones EdTech y servicios IT escolares. Respondo en menos de 24 horas.",
+    "image": "https://mustaphaukizuru.com/og/og-contact.png",
+    "type": "website"
+  },
+  "/es/blog": {
+    "title": "Blog · IT, Full-Stack, EdTech y STEM",
+    "description": "Notas de campo sobre estrategia IT, ingeniería full-stack, EdTech, educación STEM y la ocasional historia de carrera, escritas desde México vía Ruanda.",
+    "image": "https://mustaphaukizuru.com/og/og-blog.png",
+    "type": "website"
+  },
+  "/es/book": {
+    "title": "Agenda una Llamada · 30 Minutos Gratis",
+    "description": "Agenda una llamada de descubrimiento gratis de 30 minutos para discutir consultoría IT, desarrollo full-stack, tecnología escolar o proyectos STEM.",
+    "image": "https://mustaphaukizuru.com/og/og-book.png",
+    "type": "website"
+  },
+  "/es/terms": {
+    "title": "Términos del Servicio · mustaphaukizuru.com",
+    "description": "Términos que rigen el uso de mustaphaukizuru.com — productos digitales, servicios de consultoría y acceso al sitio. Última actualización 2026.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "article"
+  },
+  "/es/privacy": {
+    "title": "Política de Privacidad · mustaphaukizuru.com",
+    "description": "Cómo mustaphaukizuru.com recopila, utiliza y protege tus datos personales. Cumple con GDPR y la legislación mexicana de privacidad.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "article"
+  },
+  "/es/refund": {
+    "title": "Política de Reembolso · Garantía de 30 Días",
+    "description": "Política de reembolso de 30 días para productos digitales y servicios de consultoría. Condiciones, proceso de solicitud y soporte.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "article"
+  },
+  "/es/cookies": {
+    "title": "Política de Cookies · Cómo las Usamos",
+    "description": "Explicación clara de cómo mustaphaukizuru.com utiliza cookies, qué categorías existen y cómo gestionar tus preferencias en cualquier momento.",
+    "image": "https://mustaphaukizuru.com/og/og-default.png",
+    "type": "article"
+  }
+}

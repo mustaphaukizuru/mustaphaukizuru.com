@@ -53,7 +53,7 @@ function notFound(req, res) {
       res.setHeader("Cache-Control", "no-store")
       return res.send(html)
     } catch (err) {
-      // eslint-disable-next-line no-console
+       
       console.error("[notFound] 404.html unreadable, falling back to JSON:", err.message)
     }
   }

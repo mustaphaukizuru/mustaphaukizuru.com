@@ -4,6 +4,9 @@ const {
   uploadFiles, addComment, approve, requestChanges, acceptProjectAgreement,
   listTickets, getTicket, createTicket, replyTicket,
   listChangeRequests, createChangeRequest, acceptChangeRequest, declineChangeRequest,
+  listInvoices, listEvents, listFileRequests,
+  listSecrets, createSecret, revealSecret,
+  listTime, timeStatement,
 } = require("../controllers/clientProjectController")
 const { protect } = require("../middleware/authMiddleware")
 const { uploadRateLimiter, ticketRateLimiter } = require("../middleware/rateLimiter")
@@ -18,6 +21,26 @@ router.get("/:id",                       getMine)
 // Authenticated, ownership-scoped file download. Replaces the previous
 // direct-static path which exposed every project file to anyone with a URL.
 router.get("/:id/files/:fileId/download", streamFile)
+// T5-4 · the project's invoices. Ownership is checked in the handler via
+// loadOwnedProject, the same gate every other member read uses.
+router.get("/:id/invoices",               listInvoices)
+// T5-5 · the two panels the project page is built from. Both check
+// ownership in the handler, like every other member read here.
+router.get("/:id/events",                 listEvents)
+router.get("/:id/file-requests",          listFileRequests)
+
+// T5-13 · the secure credential handoff. Reveal is a POST because it
+// DESTROYS what it returns — a GET would be burned by a link scanner, a
+// prefetch or a restored tab before the client ever saw the value.
+router.get ("/:id/secrets",                       listSecrets)
+router.post("/:id/secrets",                       createSecret)
+router.post("/:id/secrets/:secretId/reveal",      revealSecret)
+
+// T5-18 · hours against the plan's monthly allowance. The statement is
+// rendered on request, not stored: a stored copy would be a second answer to
+// "how many hours in September" the first time an entry was corrected.
+router.get ("/:id/time",                          listTime)
+router.get ("/:id/time/:month/statement.pdf",     timeStatement)
 
 // ── Tier 2 · client collaboration (ownership + lifecycle checked in service) ──
 router.post("/:id/files",                                  uploadRateLimiter, uploadProjectFile.many, uploadFiles)

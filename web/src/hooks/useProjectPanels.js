@@ -1,0 +1,140 @@
+import { useCallback, useEffect, useState } from "react"
+
+import {
+  fetchPortalEvents, fetchPortalFileRequests, fetchPortalInvoices, uploadPortalRequestFiles,
+  payPortalInvoice,
+  fetchProjectEvents, fetchProjectFileRequests, fetchProjectInvoices, uploadAgainstRequest,
+  fetchPortalSecrets, createPortalSecret, revealPortalSecret,
+  fetchProjectSecrets, createProjectSecret, revealProjectSecret,
+  fetchPortalHours, fetchProjectHours,
+} from "../services/trackingService"
+
+/**
+ * useProjectPanels · the data behind the three shared project panels (T5-5).
+ *
+ * ProjectTimeline, FileRequestPanel and ProjectInvoices are each rendered on
+ * two surfaces — the signed-in project page and the PIN portal — and the ONLY
+ * difference between them is which endpoint answers. A portal holder has no
+ * session, so the member gate has nothing to read and the portal has its own.
+ *
+ * That difference lives here and nowhere else. Without this hook the same
+ * three fetches, the same reload-after-upload and the same failure handling
+ * would exist twice, and the second copy is the one that quietly stops
+ * matching.
+ *
+ * @param {"member"|"portal"} source
+ * @param {string} [projectId]  required for "member", ignored for "portal"
+ */
+export default function useProjectPanels(source, projectId) {
+  const portal = source === "portal"
+  const ready = portal || Boolean(projectId)
+
+  const [state, setState] = useState({
+    events: [],
+    requests: [],
+    invoices: [],
+    secrets: [],
+    hours: null,
+    billing: null,
+    loading: true,
+    error: null,
+    // D0-4 · which panels could not be loaded, by name.
+    //
+    // Every fetch below used to `.catch(() => [])`, so a panel that failed
+    // was indistinguishable from a panel with nothing in it. Four member
+    // endpoints answered 500 for several commits and the only symptom was
+    // an empty timeline — the client had no way to know, and neither did we.
+    //
+    // Settling per panel is still right: one failure must not blank the
+    // other five. What changes is that the failure is now VISIBLE.
+    failed: [],
+  })
+
+  const load = useCallback(async () => {
+    if (!ready) return
+    try {
+      // In parallel and settled rather than raced: one panel failing (an
+      // expired portal cookie mid-session, say) should not blank the other
+      // two. Each falls back to empty and the page still renders.
+      const failed = []
+      /** Settle one panel, remember its name if it broke. */
+      const panel = (name, promise, fallback) => promise.catch((e) => {
+        failed.push(name)
+        // The console line is not decoration: this is the only place a 500
+        // on one of these six endpoints becomes visible during development.
+        if (typeof console !== "undefined") console.error(`[projectPanels] ${name} failed:`, e?.message || e)
+        return fallback
+      })
+
+      const [events, requests, invoices, secrets, hours] = await Promise.all([
+        panel("events", portal ? fetchPortalEvents() : fetchProjectEvents(projectId), []),
+        panel("requests", portal ? fetchPortalFileRequests() : fetchProjectFileRequests(projectId), []),
+        panel("invoices", portal ? fetchPortalInvoices() : fetchProjectInvoices(projectId), { invoices: [], billing: null }),
+        // T5-13 · metadata only; a value only ever comes back from reveal.
+        panel("secrets", portal ? fetchPortalSecrets() : fetchProjectSecrets(projectId), []),
+        // T5-18 · null on failure, not an empty ledger: "no hours" and "we
+        // could not load them" must not look the same to a client counting
+        // what they paid for.
+        panel("hours", portal ? fetchPortalHours() : fetchProjectHours(projectId), null),
+      ])
+      setState({
+        events,
+        requests,
+        invoices: invoices.invoices,
+        secrets,
+        hours,
+        billing: invoices.billing,
+        loading: false,
+        error: null,
+        failed,
+      })
+    } catch (e) {
+      setState((prev) => ({ ...prev, loading: false, error: e?.message || "load failed" }))
+    }
+  }, [portal, projectId, ready])
+
+  useEffect(() => {
+    let alive = true
+    // The call is made inside the effect rather than the state being set from
+    // its body, so nothing cascades a render before the data lands.
+    ;(async () => {
+      await load()
+      if (!alive) return
+    })()
+    return () => { alive = false }
+  }, [load])
+
+  /** Upload against one request, then reload so the row's status is honest. */
+  const upload = useCallback(
+    (requestId, files) => (portal
+      ? uploadPortalRequestFiles(requestId, files)
+      : uploadAgainstRequest(projectId, requestId, files)),
+    [portal, projectId],
+  )
+
+  /**
+   * T5-9 · start a payment for one invoice.
+   *
+   * Only the portal needs a call here: a member is sent to the order page,
+   * which already has the pay card, the due date and the late fee, so there
+   * is no second implementation of "charge this person". The server says
+   * which of the two applies in `invoice.pay.mode`, for the same reason it
+   * says which download URL to use.
+   */
+  const pay = useCallback(
+    (invoiceId) => (portal ? payPortalInvoice(invoiceId) : Promise.resolve(null)),
+    [portal],
+  )
+
+  /** T5-13 · send us a credential, and read one, once. */
+  const sendSecret = useCallback(
+    (body) => (portal ? createPortalSecret(body) : createProjectSecret(projectId, body)),
+    [portal, projectId],
+  )
+  const revealSecret = useCallback(
+    (secretId) => (portal ? revealPortalSecret(secretId) : revealProjectSecret(projectId, secretId)),
+    [portal, projectId],
+  )
+
+  return { ...state, reload: load, upload, pay, sendSecret, revealSecret }
+}

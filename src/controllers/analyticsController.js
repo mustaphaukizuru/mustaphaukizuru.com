@@ -45,6 +45,13 @@ exports.adminEvents = asyncHandler(async (req, res) => {
   res.json({ success: true, data: events })
 })
 
+/** T3-6 · GET /admin/analytics/vitals?days=30 */
+exports.adminVitals = asyncHandler(async (req, res) => {
+  const daysBack = Math.min(90, Math.max(1, Number(req.query.days) || 30))
+  const rows = await analyticsService.getFieldVitals({ daysBack })
+  res.json({ success: true, data: rows })
+})
+
 // Tier 4 · revenue reporting — see services/adminRevenueService.js
 const adminRevenueService = require("../services/adminRevenueService")
 

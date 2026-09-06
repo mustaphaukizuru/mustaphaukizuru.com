@@ -1,4 +1,8 @@
 const prisma = require("../lib/prisma")
+const logger = require("../utils/logger")
+const { withUniqueTrackingCode } = require("../utils/trackingCode")
+const projectEvents = require("./projectEventService")
+const { isMeaningfulReschedule } = require("./projectHealthService")
 const { validatePreviewUrl, assertAccessStateChange } = require("./projectPortalService")
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -87,7 +91,10 @@ async function createAdminProject(data) {
   const status = VALID_PROJECT_STATUSES.includes(data.projectStatus)
     ? data.projectStatus : "planning"
 
-  return prisma.clientProject.create({
+  // T5-1 · every project gets its tracking code at birth. withUniqueTrackingCode
+  // redraws on the P2002 that a collision would raise, so the one time ~2^39
+  // works against us it is a retry rather than a failed project creation.
+  return withUniqueTrackingCode((trackingCode) => prisma.clientProject.create({
     data: {
       serviceOrderId:  String(data.serviceOrderId),
       userId:          String(data.userId),
@@ -97,8 +104,19 @@ async function createAdminProject(data) {
       startDate:       data.startDate ? new Date(data.startDate) : null,
       dueDate:         data.dueDate   ? new Date(data.dueDate)   : null,
       description:     data.description?.trim() || null,
+      trackingCode,
     },
     include: PROJECT_INCLUDE,
+  })).then(async (project) => {
+    // The timeline starts here. Never awaited for its side effect on the
+    // response: record() swallows and logs its own failures, so a project is
+    // never lost because its first event could not be written.
+    await projectEvents.record({
+      projectId: project.id,
+      type: "project.created",
+      actorRole: "admin",
+    })
+    return project
   })
 }
 
@@ -139,11 +157,44 @@ async function updateAdminProject(id, data) {
     }
   }
 
-  return prisma.clientProject.update({
+  // Read the status before the write so the event describes a TRANSITION
+  // rather than a state: re-saving a project that is already on hold should
+  // not tell the client it was just paused.
+  const before = "projectStatus" in data
+    ? await prisma.clientProject.findUnique({ where: { id: String(id) }, select: { projectStatus: true } })
+    : null
+
+  const updated = await prisma.clientProject.update({
     where: { id: String(id) },
     data:  patch,
     include: PROJECT_INCLUDE,
   })
+
+  if (before && before.projectStatus !== updated.projectStatus) {
+    const TYPE_FOR_STATUS = {
+      in_progress: before.projectStatus === "on_hold" ? "project.resumed" : "project.started",
+      on_hold:     "project.on_hold",
+      completed:   "project.completed",
+    }
+    const type = TYPE_FOR_STATUS[updated.projectStatus]
+    if (type) {
+      await projectEvents.record({ projectId: updated.id, type, actorRole: "admin" })
+    }
+  }
+
+  // The handover gate is its own moment in the story, separate from status.
+  if ("accessState" in data && patch.accessState === "handover") {
+    await projectEvents.record({ projectId: updated.id, type: "project.handover", actorRole: "admin" })
+    // T5-19 · and the pack, which is the point of the moment. Fire and
+    // forget: building a ZIP takes seconds and the admin's save must not
+    // wait on it, and a failed pack must never undo a handover that has
+    // already been recorded and emailed. It is rebuildable on demand.
+    require("./handoverPackService")
+      .buildHandoverPack(updated.id)
+      .catch((e) => logger.error(`[handover] pack failed for ${updated.id}: ${e.message}`))
+  }
+
+  return updated
 }
 
 async function deleteAdminProject(id) {
@@ -203,6 +254,8 @@ async function updateMilestone(milestoneId, data) {
   if ("title"       in data) patch.title       = String(data.title).trim()
   if ("description" in data) patch.description = data.description?.trim() || null
   if ("dueDate"     in data) patch.dueDate     = data.dueDate ? new Date(data.dueDate) : null
+  // T5-12 · the current honest belief, separate from the commitment above.
+  if ("estimatedAt" in data) patch.estimatedAt = data.estimatedAt ? new Date(data.estimatedAt) : null
   if ("sortOrder"   in data) patch.sortOrder   = Number(data.sortOrder)
 
   let isNewlyComplete = false
@@ -235,6 +288,43 @@ async function updateMilestone(milestoneId, data) {
     data:  patch,
   })
 
+  // T5-12 · a date that moved. Recorded BEFORE the status event so the
+  // timeline reads in the order things happened when both change at once.
+  //
+  // Only a MOVE, not the first estimate and not a cleared one: setting a date
+  // for the first time is news the milestone itself already carries, and
+  // clearing one says "we no longer know", which is a different message and
+  // deserves a conversation rather than an automatic notice.
+  if ("estimatedAt" in data && isMeaningfulReschedule(existing.estimatedAt, patch.estimatedAt)) {
+    const fmt = (d) => new Date(d).toISOString().slice(0, 10)
+    await projectEvents.record({
+      projectId: existing.projectId,
+      type: "milestone.rescheduled",
+      actorRole: "admin",
+      detail:   `${updated.title}: ${fmt(existing.estimatedAt)} → ${fmt(patch.estimatedAt)}`,
+      detailEs: `${updated.title}: ${fmt(existing.estimatedAt)} → ${fmt(patch.estimatedAt)}`,
+      refs: { milestoneId: updated.id },
+    })
+  }
+
+  if ("status" in data && data.status !== existing.status) {
+    const TYPE_FOR_STATUS = {
+      in_progress:     "milestone.started",
+      awaiting_client: "milestone.delivered",
+    }
+    const type = TYPE_FOR_STATUS[data.status]
+    if (type) {
+      await projectEvents.record({
+        projectId: existing.projectId,
+        type,
+        actorRole: "admin",
+        detail: updated.title,
+        detailEs: updated.title,
+        refs: { milestoneId: updated.id },
+      })
+    }
+  }
+
   return { milestone: updated, project: existing.project, isNewlyComplete, isNewlyAwaitingClient }
 }
 
@@ -261,6 +351,20 @@ async function attachFile(projectId, { fileName, filePath, fileType, fileSize, u
       fileSize:       Number.isFinite(Number(fileSize)) ? Number(fileSize) : null,
       isDeliverable:  Boolean(isDeliverable),
     },
+  }).then(async (file) => {
+    // Only deliverables. An ordinary shared file is working material and
+    // announcing each one turns the timeline into a upload log.
+    if (file.isDeliverable) {
+      await projectEvents.record({
+        projectId: file.projectId,
+        type: "file.delivered",
+        actorRole: "admin",
+        detail: file.fileName,
+        detailEs: file.fileName,
+        refs: { fileId: file.id, milestoneId: file.milestoneId || null },
+      })
+    }
+    return file
   })
 }
 

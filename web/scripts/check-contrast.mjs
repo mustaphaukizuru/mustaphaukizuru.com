@@ -30,9 +30,45 @@ const WEB = join(fileURLToPath(new URL(".", import.meta.url)), "..")
 const SRC = join(WEB, "src")
 
 /* ── Token table ───────────────────────────────────────────────────────── */
+
+/**
+ * Drop every `[data-theme="dark"] …{ … }` block before reading tokens.
+ *
+ * This gate is about a LIGHT ground — that is what its name and every one of
+ * its messages says. The dark blocks redefine the same variable names with
+ * the opposite palette, and reading one as if it were the light value gives
+ * nonsense: T3-2 redefined --color-charcoal to Cloud Mist for the dashboard
+ * and this script promptly reported "text-charcoal on white = 1.05:1" on
+ * forty untouched admin files.
+ *
+ * First-definition-wins hid it until then, purely by file order: the light
+ * --color-charcoal-80 happens to sit earlier in tokens.css, while the light
+ * --color-charcoal lives in index.css, which is read second.
+ */
+function stripDarkBlocks(css) {
+  let out = ""
+  let i = 0
+  for (;;) {
+    const start = css.indexOf('[data-theme="dark"]', i)
+    if (start === -1) { out += css.slice(i); break }
+    out += css.slice(i, start)
+    const open = css.indexOf("{", start)
+    if (open === -1) break
+    let depth = 1
+    let j = open + 1
+    while (j < css.length && depth > 0) {
+      if (css[j] === "{") depth += 1
+      else if (css[j] === "}") depth -= 1
+      j += 1
+    }
+    i = j
+  }
+  return out
+}
+
 const TOKENS = {}
 for (const file of ["styles/tokens.css", "index.css"]) {
-  const css = readFileSync(join(SRC, file), "utf8")
+  const css = stripDarkBlocks(readFileSync(join(SRC, file), "utf8"))
   for (const m of css.matchAll(/--color-([a-z0-9-]+)\s*:\s*(#[0-9a-fA-F]{3,8})\s*;/g)) {
     if (!(m[1] in TOKENS)) TOKENS[m[1]] = m[2]
   }

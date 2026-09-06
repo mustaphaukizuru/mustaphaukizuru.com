@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useNavigate } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
+import useLocalizedNavigate from "../hooks/useLocalizedNavigate"
 import {
   Mail, ShieldCheck, User, CalendarDays, Edit3, Save, X,
   Phone, Building, Lock, Camera, Trash2, AlertCircle, Eye, EyeOff,
@@ -36,7 +37,7 @@ export default function DashboardProfilePage() {
   const { t, i18n } = useTranslation("dashboard")
   const { user, updateUser, logout } = useAuth()
   const { showSuccess, showError } = useToast()
-  const navigate = useNavigate()
+  const navigate = useLocalizedNavigate()
 
   // ARCO · Privacy & data (LFPDPPP). Export = right of Access, delete =
   // right of Cancellation. Both hit the member profile router.
@@ -260,11 +261,28 @@ export default function DashboardProfilePage() {
                   <div className="flex h-full items-center justify-center text-section font-bold text-white">{initials}</div>
                 )}
               </div>
-              {/* Upload overlay */}
+              {/* Upload overlay · D4-2
+                *
+                * axe flagged this as `button-name` (critical): an icon-only
+                * button with no discernible text. Adding an aria-label would
+                * have silenced it and left the worse problem in place —
+                * `opacity-0` until `group-hover`, so a keyboard user tabs to
+                * a control that is completely invisible, with no focus state
+                * to reveal it (the reveal is hover-only).
+                *
+                * It is a MOUSE affordance for an action that already has a
+                * visible, labelled control eight lines below ("Upload
+                * Photo"), firing the identical `avatarRef.current?.click()`.
+                * So it comes out of the tab order and out of the a11y tree
+                * rather than being named twice: the pointer keeps the
+                * shortcut, the keyboard and the screen reader use the real
+                * button. */}
               <button
                 type="button"
                 onClick={() => avatarRef.current?.click()}
                 disabled={uploadingAvatar}
+                tabIndex={-1}
+                aria-hidden="true"
                 className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/40 opacity-0 transition group-hover:opacity-100"
               >
                 <Camera className="h-6 w-6 text-white" />
@@ -290,7 +308,17 @@ export default function DashboardProfilePage() {
             <div>
               <div className="text-subsection font-bold text-violet">{user?.fullName || t("profile.fallback.memberName")}</div>
               <div className="mt-1 text-meta text-charcoal-80/65">{user?.email || "—"}</div>
-              <span className="mt-3 inline-flex rounded-full bg-mint-100 px-4 py-1.5 text-micro font-semibold capitalize text-mint-800">
+              {/* D4-2 · text-mint-800 measured 3.54:1 on mint-100 and text-mint-600
+                  3.19:1 on white — the two status pills on this page were the
+                  last contrast failures in the member tree.
+
+                  mint-700 is the only step on the ramp that passes: 6.75:1 here
+                  and 7.68:1 on white. Worth knowing WHY 800 was reached for —
+                  the ramp is mis-ordered: mint-800 is a mid green while
+                  mint-700 is nearly black, so the higher number is the
+                  LIGHTER colour, the opposite of every other ramp in
+                  index.css. */}
+              <span className="mt-3 inline-flex rounded-full bg-mint-100 px-4 py-1.5 text-micro font-semibold capitalize text-mint-700">
                 {user?.role || t("profile.fallback.role")}
               </span>
             </div>
@@ -302,7 +330,7 @@ export default function DashboardProfilePage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-charcoal-80/65">{t("profile.card.status")}</span>
-                <span className="font-semibold text-mint-600">{t("profile.card.active")}</span>
+                <span className="font-semibold text-mint-700">{t("profile.card.active")}</span>
               </div>
             </div>
           </div>
@@ -506,7 +534,7 @@ export default function DashboardProfilePage() {
             </div>
 
             <Link to="/privacy#aviso-de-privacidad"
-              className="mt-4 inline-flex items-center gap-1.5 text-micro font-semibold text-violet underline-offset-2 hover:underline"
+              className="mt-4 inline-flex items-center gap-1.5 py-1.5 text-micro font-semibold text-violet underline-offset-2 hover:underline"
             >
               {t("profile.privacy.learnMore")} <ExternalLink className="h-3.5 w-3.5" />
             </Link>

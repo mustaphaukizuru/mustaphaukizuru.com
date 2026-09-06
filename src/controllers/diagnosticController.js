@@ -63,7 +63,7 @@ function getTier(pct) { return TIERS.find(t => pct >= t.min && pct <= t.max) || 
 ════════════════════════════════════════════════════════════════════════ */
 function generatePdf(data) {
   return new Promise((resolve, reject) => {
-    const { name, organization, audience, overallScore, tier, sectionScores, topPriorities, matchedBundle } = data
+    const { name, organization, audience, overallScore, sectionScores, topPriorities, matchedBundle } = data
     const chunks = []
     const doc = new PDFDocument({ size: "A4", margin: 50, bufferPages: true })
 

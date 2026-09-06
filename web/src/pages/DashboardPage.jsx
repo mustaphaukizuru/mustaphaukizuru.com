@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { m } from "framer-motion"
 import {
   Sparkles, ArrowRight, ArrowUpRight, ShoppingBag, Download, Calendar,
@@ -63,7 +63,7 @@ function Block({ title, icon: Icon, to, linkLabel, query, empty, children, class
         </h3>
         <Link
           to={to}
-          className="inline-flex items-center gap-1 text-micro font-semibold text-violet transition hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
+          className="inline-flex items-center gap-1 py-1.5 -my-1.5 text-micro font-semibold text-violet transition hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30 focus-visible:ring-offset-1"
         >
           {linkLabel}
           <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
@@ -171,7 +171,7 @@ export default function DashboardPage() {
       {adminPreview && (
         <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-violet/20 bg-violet-pale/60 px-4 py-3 text-sm">
           <div className="flex items-center gap-2 text-violet">
-            <span className="inline-flex h-6 items-center rounded-full bg-violet px-2 text-[11px] font-semibold uppercase tracking-wider text-white">{t("overview.adminPreview.pill")}</span>
+            <span className="inline-flex h-6 items-center rounded-full bg-violet px-2 text-meta font-semibold uppercase tracking-wider text-white">{t("overview.adminPreview.pill")}</span>
             <span className="text-charcoal-80">{t("overview.adminPreview.body")}</span>
           </div>
           <a href="/admin" className="font-semibold text-violet hover:text-violet-deep">{t("overview.adminPreview.back")}</a>
@@ -188,7 +188,7 @@ export default function DashboardPage() {
         >
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-violet">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-violet-pale px-2.5 py-1 font-mono text-micro font-bold uppercase tracking-[0.16em] text-violet">
                 <Sparkles className="h-2.5 w-2.5" aria-hidden="true" />
                 {t("overview.welcome.eyebrow")}
               </div>
@@ -224,7 +224,19 @@ export default function DashboardPage() {
                   <span className="font-semibold text-violet">{missingPreview}</span>
                   {profileStats.missing.length > 3 ? t("overview.profileWidget.andMore") : ""}{t("overview.profileWidget.tail")}
                 </p>
-                <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-violet-pale" role="progressbar" aria-valuenow={profileStats.percent} aria-valuemin={0} aria-valuemax={100}>
+                <div
+                  className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-violet-pale"
+                  role="progressbar"
+                  aria-valuenow={profileStats.percent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  /* D4-2 · axe: "ARIA progressbar nodes must have an
+                     accessible name". A bare role="progressbar" with the
+                     three value attributes announces a number with nothing
+                     to say what it measures. All four progress bars in the
+                     member tree were missing it. */
+                  aria-label={t("overview.profileWidget.progressLabel", { percent: profileStats.percent })}
+                >
                   <div className="h-full rounded-full bg-violet transition-all duration-500" style={{ width: `${profileStats.percent}%` }} />
                 </div>
               </div>
@@ -240,6 +252,17 @@ export default function DashboardPage() {
         )}
 
         {/* ── Summary blocks ─────────────────────────────────────────── */}
+        {/* D1-4 · two columns from lg, unchanged.
+         *
+         * The cramping at 1024-1279 was fixed in the SHELL, by giving the
+         * sidebar 264px instead of 300px below xl — the content column goes
+         * 650px → 686px and the card titles stop wrapping. Moving this split
+         * to xl was tried and reverted: at 1024 the grid stayed at two
+         * columns regardless, which the compiled CSS says it should not
+         * (`.xl\:grid-cols-2` sits in `@media(min-width:80rem)`, and
+         * matchMedia agrees that does not match at 1024). Rather than ship a
+         * class whose name disagrees with what the browser does, the original
+         * breakpoint stays and the win comes from the rail. */}
         <div className="grid gap-4 lg:grid-cols-2">
           {/* Orders · last 3 */}
           <Block
@@ -267,7 +290,7 @@ export default function DashboardPage() {
                       <span className="font-mono text-meta font-semibold tabular-nums text-violet">#{order.orderNumber || String(order.id).slice(0, 8)}</span>
                       <StatusBadge status={order.status} />
                     </div>
-                    <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/65">
+                    <div className="mt-0.5 font-mono text-meta tabular-nums text-charcoal-80/65">
                       {new Date(order.createdAt).toLocaleDateString(localeTag, { year: "numeric", month: "short", day: "numeric" })}
                     </div>
                   </div>
@@ -324,7 +347,7 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={nextConsultation.status} />
-                    <span className="text-[11px] text-charcoal-80/65">{nextConsultation.service?.title || t("overview.blocks.consultation.fallbackService")}</span>
+                    <span className="text-meta text-charcoal-80/65">{nextConsultation.service?.title || t("overview.blocks.consultation.fallbackService")}</span>
                   </div>
                   <div className="mt-2 text-[15px] font-bold text-violet">{formatDateTime(nextConsultation.scheduledAt, nextConsultation.timezone || tz)}</div>
                   {nextConsultation.assignedAdmin?.fullName && (
@@ -372,7 +395,7 @@ export default function DashboardPage() {
                   <div className="text-micro text-charcoal-80/65">{t("overview.blocks.projects.active", { count: activeProjects.length })}</div>
                 </div>
                 <div className="rounded-lg border border-charcoal-80/8 bg-mist px-3 py-2">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal-80/65">{t("overview.blocks.projects.latestMilestone")}</div>
+                  <div className="text-micro font-bold uppercase tracking-[0.14em] text-charcoal-80/65">{t("overview.blocks.projects.latestMilestone")}</div>
                   <div className="mt-0.5 truncate text-meta font-semibold text-violet">
                     {latestMilestone.milestone?.title || t("overview.blocks.projects.noMilestone")}
                   </div>
@@ -406,7 +429,7 @@ export default function DashboardPage() {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-meta font-medium text-violet">{tx.subject || t("overview.activity.ticketFallback")}</div>
-                    <div className="mt-0.5 font-mono text-[11px] tabular-nums text-charcoal-80/65">
+                    <div className="mt-0.5 font-mono text-meta tabular-nums text-charcoal-80/65">
                       {new Date(tx.updatedAt || tx.createdAt).toLocaleDateString(localeTag, { month: "short", day: "numeric" })}
                     </div>
                   </div>

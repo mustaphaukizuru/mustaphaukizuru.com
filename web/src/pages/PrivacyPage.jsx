@@ -1,7 +1,8 @@
 import { useEffect } from "react"
 import { m } from "framer-motion"
 import { Trans, useTranslation } from "react-i18next"
-import { Link, useLocation } from "react-router-dom"
+import { useLocation } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { Shield, Calendar, Mail, Link as LinkIcon, FileText } from "lucide-react"
 
 const CONTACT_EMAIL = "hello@mustaphaukizuru.com"
@@ -164,7 +165,7 @@ export default function PrivacyPage() {
           </div>
           <div>
             <div className="font-semibold">{t("privacy.questions")}</div>
-            <a href={`mailto:${CONTACT_EMAIL}`} className="mt-1 text-meta text-white/60 hover:text-white hover:underline">{CONTACT_EMAIL}</a>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="mt-1 text-meta text-white/85 hover:text-white hover:underline">{CONTACT_EMAIL}</a>
           </div>
         </div>
       </div>

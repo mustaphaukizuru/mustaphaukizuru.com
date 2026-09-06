@@ -21,6 +21,7 @@ const {
   loginRateLimiter,
   signupRateLimiter,
   forgotPasswordRateLimiter,
+  passwordResetRateLimiter,
 } = require("../middleware/rateLimiter");
 
 const twoFactorRoutes = require("./twoFactorRoutes");      // B09
@@ -48,7 +49,9 @@ router.get ("/microsoft/callback",                                microsoftOAuth
 router.get ("/facebook/start",                                    startFacebookOAuth);     // Facebook OAuth start
 router.get ("/facebook/callback",                                 facebookOAuthCallback);  // Facebook OAuth callback
 router.post("/forgot-password",       forgotPasswordRateLimiter, forgotPassword);
-router.post("/reset-password/:token", resetPassword);
+// T3-5 · the token in this URL is the credential; an unlimited endpoint
+// lets it be ground down.
+router.post("/reset-password/:token", passwordResetRateLimiter, resetPassword);
 router.get ("/me",                    protect, me);
 
 // B09 · two-factor auth subroutes (status, setup, verify, disable,

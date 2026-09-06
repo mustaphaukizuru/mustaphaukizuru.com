@@ -26,7 +26,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { m, useReducedMotion } from "framer-motion"
 import {
   Sparkles, ArrowRight, Zap, ShieldCheck, RotateCcw, Headphones, Star,
@@ -432,7 +432,7 @@ export default function StoreHero({ total = 0, featuredProducts = [] }) {
             <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 to="/store#products"
-                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet-deep shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.30)] transition hover:-translate-y-0.5 hover:bg-[#ffd9be] focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl bg-terracotta px-7 py-4 text-[14px] font-bold !text-violet-deep shadow-[0_14px_36px_rgb(var(--color-terracotta-rgb)/0.30)] transition hover:-translate-y-0.5 hover:bg-terracotta-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/60 focus-visible:ring-offset-2 focus-visible:ring-offset-violet"
               >
                 {t("hero.shopNow")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />

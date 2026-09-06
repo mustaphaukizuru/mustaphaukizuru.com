@@ -1,8 +1,40 @@
 /* Offerings of one category, rendered as a list of compact rows. */
 import { useTranslation } from "react-i18next"
 import { Clock, Tag, CheckCircle2, ChevronDown } from "lucide-react"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { pick, offeringPriceLabel, useCatalogueLang } from "./localize"
-import { getServiceById } from "../../data/servicesCatalogue"
+import { getServiceById, packagesIncluding, planEnquiryHref, isQuoteOnlyTier, AUDIENCE_PRICING_PLANS } from "../../data/servicesCatalogue"
+
+/** "Included in Business Basic and above" — or nothing, for the offerings
+ *  that are sold one way only, which is most of them. */
+function PackageInclusion({ offeringSlug }) {
+  const { t } = useTranslation("services")
+  const inclusions = packagesIncluding(offeringSlug)
+  if (!inclusions.length) return null
+
+  return (
+    <p className="mt-3 text-micro leading-5 text-charcoal-80/75">
+      {inclusions.map((inc, i) => {
+        const tiers = AUDIENCE_PRICING_PLANS[inc.audience]?.tiers || {}
+        const price = tiers[inc.tierKey]?.priceMxn
+        // A quote-only tier has no checkout to link to; it goes to the call.
+        const href = isQuoteOnlyTier(inc.audience, inc.tierKey, price)
+          ? planEnquiryHref(inc.audience, inc.tierKey)
+          : `/checkout/service?audience=${inc.audience}&tier=${inc.tierKey}`
+        return (
+          <span key={`${inc.audience}.${inc.tierKey}`}>
+            {i > 0 && " "}
+            {t("funnel.includedIn.prefix")}{" "}
+            <Link to={href} className="font-semibold text-violet underline-offset-2 hover:underline">
+              {t("funnel.includedIn.plan", { plan: inc.planName, tier: inc.tierName })}
+            </Link>
+            {t("funnel.includedIn.suffix")}
+          </span>
+        )
+      })}
+    </p>
+  )
+}
 
 export default function OfferingList({ offerings = [], compact = false }) {
   const { t } = useTranslation("services")
@@ -36,6 +68,12 @@ export default function OfferingList({ offerings = [], compact = false }) {
                 ))}
               </ul>
             )}
+            {/* T2-11 · five capabilities are sold both as a standalone
+                offering and inside a monthly package, at different prices. A
+                reader comparing the two pages reached two numbers with
+                nothing acknowledging the other. This is the offering end of
+                the relation; the checkout's feature list is the other. */}
+            <PackageInclusion offeringSlug={o.slug} />
             {(o.priceIncludes || o.priceFromMxn || (Array.isArray(o.relatedOfferings) && o.relatedOfferings.length > 0)) && (
               <details className="group mt-3">
                 <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-micro font-semibold text-violet hover:text-violet-deep">

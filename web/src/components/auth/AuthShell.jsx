@@ -15,7 +15,7 @@
    matching the polished feel Mustapha asked for.
    ════════════════════════════════════════════════════════════════════════ */
 
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { m, useReducedMotion } from "framer-motion"
 import { ArrowLeft } from "lucide-react"
 import MarketingPanel from "./MarketingPanel"

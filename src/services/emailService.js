@@ -52,8 +52,35 @@ function backoffFor(attempts) {
 
 let _transport = null
 
+/**
+ * Is there somewhere to send mail?
+ *
+ * Credentials are the normal answer, and they stay required for any remote
+ * host: an unauthenticated send to a real SMTP server is either rejected or,
+ * worse, accepted as an open relay.
+ *
+ * The exception is a LOCAL catcher. The documented development setup is
+ * Mailpit on 127.0.0.1:1025 (docs/LOCAL_DEV_DB.md), which has no accounts and
+ * wants no auth — so requiring SMTP_USER/SMTP_PASS meant every local send was
+ * skipped with "SMTP not configured", silently. Newsletter double opt-in,
+ * order receipts and booking confirmations all appeared to work and no
+ * message ever arrived, which is exactly the class of bug a local mail
+ * catcher exists to reveal.
+ *
+ * Narrow on purpose: loopback only, and the host must be set explicitly.
+ * SMTP_HOST unset still means "not configured", because getTransport() would
+ * otherwise fall back to smtp.hostinger.com and try to send for real.
+ */
+const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]", "0.0.0.0"])
+
+function isLoopbackSmtpHost() {
+  const host = String(process.env.SMTP_HOST || "").trim().toLowerCase()
+  return host !== "" && LOOPBACK_HOSTS.has(host)
+}
+
 function smtpConfigured() {
-  return Boolean(process.env.SMTP_USER && process.env.SMTP_PASS)
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) return true
+  return isLoopbackSmtpHost()
 }
 
 /** The ONE pooled nodemailer transport. Null when SMTP is not configured. */
@@ -61,11 +88,15 @@ function getTransport() {
   if (_transport) return _transport
   if (!smtpConfigured()) return null
   const nodemailer = require("nodemailer")
+  const loopback = isLoopbackSmtpHost() && !(process.env.SMTP_USER && process.env.SMTP_PASS)
   _transport = nodemailer.createTransport({
     host:   process.env.SMTP_HOST || "smtp.hostinger.com",
     port:   Number(process.env.SMTP_PORT || 465),
-    secure: process.env.SMTP_SECURE !== "false",
-    auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    // A local catcher speaks plain SMTP on 1025 and offers no TLS and no
+    // auth. Passing an empty auth object makes nodemailer attempt AUTH and
+    // fail the connection, so it is omitted entirely.
+    secure: loopback ? false : process.env.SMTP_SECURE !== "false",
+    ...(loopback ? {} : { auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } }),
     pool:   true,
     maxConnections: 3,
     rateLimit:      10,
@@ -380,6 +411,8 @@ async function retryEmailLog(log) {
 }
 
 module.exports = {
+  smtpConfigured,
+  isLoopbackSmtpHost,
   sendTemplateEmail,
   sendRawEmail,
   retryEmailLog,

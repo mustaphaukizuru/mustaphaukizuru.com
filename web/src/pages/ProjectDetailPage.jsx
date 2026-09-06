@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { AnimatePresence, m, useReducedMotion } from "framer-motion"
 import {
   ArrowLeft, ArrowRight, ExternalLink, Github, Calendar, Briefcase,
@@ -17,6 +18,7 @@ import ApproachSteps from "../components/portfolio/ApproachSteps"
 import ServiceCta from "../components/portfolio/ServiceCta"
 import ProjectPager from "../components/portfolio/ProjectPager"
 import { getCaseStudy, responsiveSrcSet } from "../components/portfolio/caseStudy"
+import { BookCallButton } from "../components/services/BookCallCta"
 import { STAGE_FRAME_CLASS } from "../components/ui/ContainerScroll"
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -411,6 +413,29 @@ export default function ProjectDetailPage() {
                 </dl>
               </InfoCard>
             </aside>
+          </div>
+        </Container>
+      </section>
+
+      {/* BOOK A CALL — every case study used to end on prev/next and a
+          related grid, so the most convinced reader on the site was handed
+          navigation instead of a next step. The call is about the same
+          service line the project was delivered under: the case study's
+          serviceSlug is one of the four categories, validated in
+          portfolioService, and bookHref falls back to a general call when a
+          project has none. */}
+      <section className="border-t border-charcoal-80/10 bg-mist py-14">
+        <Container>
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-section font-bold text-violet">{t("detail.ctaTitle")}</h2>
+            <p className="mt-3 text-body leading-7 text-charcoal-80/80">{t("detail.ctaBody")}</p>
+            <div className="mt-6 flex justify-center">
+              <BookCallButton
+                slug={project.caseStudy?.serviceSlug || null}
+                size="lg"
+                label={t("detail.ctaButton")}
+              />
+            </div>
           </div>
         </Container>
       </section>

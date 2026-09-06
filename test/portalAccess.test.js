@@ -15,7 +15,11 @@ process.env.JWT_SECRET = "test-secret"
 
 jest.mock("../src/lib/prisma", () => ({
   clientProject:    { findUnique: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
-  authOtp:          { create: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
+  // T5-17 · verify now looks at EVERY live PIN on the project, not just the
+  // newest, so two people asking a minute apart cannot invalidate each other.
+  authOtp:          { create: jest.fn(), findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn() },
+  // T5-17 · the role the PIN's inbox carries is what the token records.
+  projectMember:    { findFirst: jest.fn() },
   projectAgreement: { findFirst: jest.fn() },
   activityLog:      { create: jest.fn().mockResolvedValue({}) },
 }))
@@ -109,10 +113,10 @@ describe("requestPin", () => {
 describe("verifyPin", () => {
   beforeEach(() => prisma.clientProject.findUnique.mockResolvedValue(project()))
 
-  test("latest unused OTP → marked used, portal-scoped JWT for 2 h", async () => {
-    prisma.authOtp.findFirst.mockResolvedValue({ id: "otp1", otpCode: "123456" })
+  test("a live unused OTP → marked used, portal-scoped JWT for 2 h", async () => {
+    prisma.authOtp.findMany.mockResolvedValue([{ id: "otp1", otpCode: "123456", email: "client@x.test" }])
     const out = await svc.verifyPin(TOKEN, "123 456")
-    const where = prisma.authOtp.findFirst.mock.calls[0][0].where
+    const where = prisma.authOtp.findMany.mock.calls[0][0].where
     expect(where).toMatchObject({ userId: "u1", purpose: "portal", usedAt: null })
     expect(prisma.authOtp.update).toHaveBeenCalledWith({ where: { id: "otp1" }, data: { usedAt: expect.any(Date) } })
     const decoded = jwt.verify(out.token, "test-secret")
@@ -121,10 +125,10 @@ describe("verifyPin", () => {
     expect(out).toMatchObject({ projectId: "p1", projectName: "Site rebuild" })
   })
   test("wrong / missing PIN → 401, bad shape → 400, nothing marked used", async () => {
-    prisma.authOtp.findFirst.mockResolvedValue({ id: "otp1", otpCode: "123456" })
+    prisma.authOtp.findMany.mockResolvedValue([{ id: "otp1", otpCode: "123456", email: "client@x.test" }])
     await expect(svc.verifyPin(TOKEN, "654321")).rejects.toMatchObject({ code: "PORTAL_PIN_INVALID", statusCode: 401 })
     await expect(svc.verifyPin(TOKEN, "12ab")).rejects.toMatchObject({ code: "VALIDATION_ERROR", statusCode: 400 })
-    prisma.authOtp.findFirst.mockResolvedValue(null)
+    prisma.authOtp.findMany.mockResolvedValue([])
     await expect(svc.verifyPin(TOKEN, "123456")).rejects.toMatchObject({ code: "PORTAL_PIN_INVALID" })
     expect(prisma.authOtp.update).not.toHaveBeenCalled()
   })
@@ -143,7 +147,9 @@ describe("portal cookie + portalAuth", () => {
     const req = { cookies: { [PORTAL_COOKIE]: token } }
     portalAuth(req, mockRes(), next)
     expect(next).toHaveBeenCalledTimes(1)
-    expect(req.portal).toEqual({ projectId: "p1", userId: "u1" })
+    // T5-17 · a token minted before roles existed was, by construction, the
+    // owner's — the by-code door did not take an address yet.
+    expect(req.portal).toEqual({ projectId: "p1", userId: "u1", role: "owner" })
 
     const res2 = mockRes()
     portalAuth({ cookies: {}, headers: { authorization: `Bearer ${token}` } }, res2, next)

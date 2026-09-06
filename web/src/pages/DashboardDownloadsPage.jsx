@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import {
   Download, Package, Clock3, FileArchive, RefreshCw, AlertCircle, CheckCircle2,
   Search, X, Calendar, FileText, Loader2, ShoppingBag, Sparkles, ExternalLink, KeyRound, Copy, Check,
@@ -43,7 +43,7 @@ function LicenseBadge({ tier, licenseKey }) {
   return (
     <div className="mt-1 flex flex-wrap items-center gap-1.5">
       {tierLabel && (
-        <span className="inline-flex items-center gap-1 rounded-md bg-violet-pale px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide text-violet">
+        <span className="inline-flex items-center gap-1 rounded-md bg-violet-pale px-1.5 py-0.5 font-mono text-micro font-bold uppercase tracking-wide text-violet">
           <KeyRound className="h-3 w-3" aria-hidden="true" />
           {t("downloads.file.licenseTier", { tier: tierLabel })}
         </span>
@@ -54,7 +54,7 @@ function LicenseBadge({ tier, licenseKey }) {
           onClick={copy}
           aria-label={`${t("downloads.file.licenseKey")}: ${licenseKey}. ${t("downloads.file.copyKey")}`}
           title={t("downloads.file.copyKey")}
-          className="inline-flex items-center gap-1 rounded-md border border-charcoal-80/12 bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-charcoal transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+          className="inline-flex items-center gap-1 rounded-md border border-charcoal-80/12 bg-white px-1.5 py-0.5 font-mono text-micro font-semibold tabular-nums text-charcoal transition hover:border-violet/40 hover:text-violet focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
         >
           {licenseKey}
           {copied ? <Check className="h-3 w-3 text-mint-600" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
@@ -97,10 +97,10 @@ function FileRow({ file, product, state, onDownload }) {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="truncate text-meta font-semibold text-violet" title={file.fileName}>{file.fileName || styles.label}</span>
-            <span className="shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase" style={{ background: styles.background, color: styles.color, borderColor: styles.borderColor }}>
+            <span className="shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-micro font-bold uppercase" style={{ background: styles.background, color: styles.color, borderColor: styles.borderColor }}>
               {styles.label}
             </span>
-            {file.isPrimary && <span className="shrink-0 rounded-md bg-violet-pale px-1.5 py-0.5 text-[10px] font-bold uppercase text-violet">{t("downloads.file.primary")}</span>}
+            {file.isPrimary && <span className="shrink-0 rounded-md bg-violet-pale px-1.5 py-0.5 text-micro font-bold uppercase text-violet">{t("downloads.file.primary")}</span>}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-2 font-mono text-micro tabular-nums text-charcoal-80/65">
             {sizeDisplay && <span>{sizeDisplay}</span>}
@@ -205,7 +205,7 @@ function OrderCard({ order, fileState, onDownload, onReceipt, receiptBusy }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <h4 className="text-meta font-bold text-violet">{product.title}</h4>
                     {product.latestVersion && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-mint/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-mint-600 ring-1 ring-mint/25">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-mint/15 px-1.5 py-0.5 font-mono text-micro font-bold text-mint-600 ring-1 ring-mint/25">
                         <Sparkles className="h-3 w-3" aria-hidden="true" />
                         {t("downloads.file.latestVersion")} v{String(product.latestVersion).replace(/^v/i, "")}
                       </span>

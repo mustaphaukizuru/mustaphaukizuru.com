@@ -8,13 +8,29 @@ import {
 } from "lucide-react"
 import { probePortal, requestPortalPin, verifyPortalPin, fetchPortalProject, portalFileDownloadUrl } from "../services/portalService"
 import { Button, Input } from "../components/ui/index"
+import useLazyNamespace from "../hooks/useLazyNamespace"
 import StatusPill from "../components/admin/StatusPill"
 import { getFileTypeStyles, formatFileSize } from "../lib/fileTypeIcons"
+// T5-5 · the same three panels the signed-in project page renders. The
+// only difference is which endpoint answers, and that lives in the hook.
+import ProjectTimeline from "../components/projects/ProjectTimeline"
+import FileRequestPanel from "../components/projects/FileRequestPanel"
+import ProjectInvoices from "../components/projects/ProjectInvoices"
+import SecretsPanel from "../components/projects/SecretsPanel"
+import HoursLedger from "../components/projects/HoursLedger"
+import PanelLoadError from "../components/projects/PanelLoadError"
+import useProjectPanels from "../hooks/useProjectPanels"
 
 /* ── constants ─────────────────────────────────────────────────────────── */
 const CARD = "rounded-xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e3)]"
 const EMPTY = "rounded-xl border border-dashed border-charcoal-80/15 bg-violet-pale/20 px-4 py-6 text-center text-meta text-charcoal-80/65"
+// D0-2 · fmtDay for a calendar day somebody PICKED (dueDate,
+// startDate, estimatedAt), fmtDate for an instant the server stamped.
+// The date-only fields are stored as midnight UTC, so rendering them in
+// the browser's timezone showed the previous day to every reader west of
+// Greenwich — "Due Sep 30" for 1 October, across the whole home market.
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—"
+const fmtDay = (d) => d ? new Date(d).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }) : "—"
 
 const MILESTONE_ICON = { pending: Hourglass, in_progress: Clock, awaiting_client: Eye, approved: ThumbsUp, completed: CheckCircle2 }
 const MILESTONE_TONE = {
@@ -88,6 +104,16 @@ export default function PortalPage() {
     finally { setBusy(false) }
   }
 
+  // T5-5 · `dashboard` is route-scoped now (LAZY_NAMESPACES in
+  // i18n/resources.js): 50 KB per language that no public page reads. It is
+  // fetched here and this tree waits for it, because the project does not use
+  // Suspense for translations and rendering early paints raw keys.
+  //
+  // The guard sits AFTER every hook, not at the top: an early return above
+  // them would change the hook order between renders.
+  const i18nReady = useLazyNamespace("dashboard")
+  if (!i18nReady) return null
+
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
@@ -111,7 +137,7 @@ export default function PortalPage() {
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-pale text-violet">
                 <ShieldCheck className="h-6 w-6" aria-hidden="true" />
               </div>
-              <p className="mt-4 font-mono text-[11px] uppercase tracking-wider text-charcoal-80/65">{t("portal.eyebrow")}</p>
+              <p className="mt-4 font-mono text-meta uppercase tracking-wider text-charcoal-80/65">{t("portal.eyebrow")}</p>
               <h1 className="mt-1 text-card font-bold text-violet">{probe?.projectName || t("portal.title")}</h1>
               <p className="mt-2 text-meta text-charcoal-80/70">{t("portal.intro")}</p>
             </div>
@@ -168,6 +194,12 @@ export default function PortalPage() {
 /* ── read-only view ────────────────────────────────────────────────────── */
 
 function PortalView({ project, t }) {
+  // The portal is read-only for everything EXCEPT satisfying a document
+  // request: that is the one write T5-3 opened, because a client who has
+  // no account still has to be able to send the thing that unblocks the
+  // work. Everything else here stays a read.
+  const panels = useProjectPanels("portal")
+
   const milestones = project.milestones || []
   const files = project.files || []
   const done = milestones.filter((ms) => ms.status === "completed" || ms.status === "approved").length
@@ -194,20 +226,27 @@ function PortalView({ project, t }) {
               <StatusPill status={project.projectStatus} />
             </div>
             {project.description && <p className="mt-2 max-w-2xl text-meta text-charcoal-80/75">{project.description}</p>}
-            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-[11px] text-charcoal-80/65">
-              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDate(project.startDate) })}</span>
-              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDate(project.dueDate) })}</span>
+            <div className="mt-3 flex flex-wrap items-center gap-4 font-mono text-meta text-charcoal-80/65">
+              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.started", { date: fmtDay(project.startDate) })}</span>
+              <span><Calendar className="mr-1 inline h-3 w-3" />{t("projects.detail.due", { date: fmtDay(project.dueDate) })}</span>
               {project.assignedAdmin && (
                 <span><UserIcon className="mr-1 inline h-3 w-3" />{t("projects.detail.lead", { name: project.assignedAdmin.fullName })}</span>
               )}
             </div>
           </div>
           <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
+            <div className="font-mono text-micro uppercase tracking-wider text-charcoal-80/65">{t("projects.detail.progress")}</div>
             <div className="font-mono text-display font-bold tabular-nums text-violet">{pct}%</div>
           </div>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-violet-pale" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+        <div
+          className="mt-4 h-2 overflow-hidden rounded-full bg-violet-pale"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t("projects.progressLabel", { percent: pct })}
+        >
           <div className="h-full rounded-full bg-violet transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
       </div>
@@ -225,15 +264,15 @@ function PortalView({ project, t }) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[11px] text-charcoal-80/65">{String(idx + 1).padStart(2, "0")}</span>
+                    <span className="font-mono text-meta text-charcoal-80/65">{String(idx + 1).padStart(2, "0")}</span>
                     <h3 className="font-semibold text-violet">{ms.title}</h3>
-                    <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider ${MILESTONE_TONE[ms.status] || MILESTONE_TONE.pending}`}>
+                    <span className={`rounded-full px-2 py-0.5 font-mono text-micro uppercase tracking-wider ${MILESTONE_TONE[ms.status] || MILESTONE_TONE.pending}`}>
                       {label === key ? ms.status : label}
                     </span>
                   </div>
                   {ms.description && <p className="mt-1 text-meta text-charcoal-80/75">{ms.description}</p>}
-                  <div className="mt-2 flex flex-wrap gap-3 font-mono text-[11px] text-charcoal-80/65">
-                    {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDate(ms.dueDate) })}</span>}
+                  <div className="mt-2 flex flex-wrap gap-3 font-mono text-meta text-charcoal-80/65">
+                    {ms.dueDate && <span>{t("projects.detail.milestoneDue", { date: fmtDay(ms.dueDate) })}</span>}
                     {ms.completedAt && <span>{t("projects.detail.milestoneCompleted", { date: fmtDate(ms.completedAt) })}</span>}
                   </div>
                 </div>
@@ -258,6 +297,17 @@ function PortalView({ project, t }) {
         </Section>
       )}
 
+      {/* T5-5 · above the file gallery for the same reason as on the
+          dashboard: it is the only block that asks the client to act. */}
+      <Section title={t("fileRequests.title")}>
+        <FileRequestPanel
+          requests={panels.requests}
+          loading={panels.loading}
+          onUpload={panels.upload}
+          onChanged={panels.reload}
+        />
+      </Section>
+
       <Section title={t("projects.detail.deliverables")} subtitle={t("projects.detail.files", { count: files.length })}>
         {files.length === 0 ? <div className={EMPTY}>{t("portal.noFiles")}</div> : (
           <ul className="grid gap-2 sm:grid-cols-2">
@@ -271,13 +321,13 @@ function PortalView({ project, t }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-meta font-semibold text-violet">{f.fileName}</p>
-                    <p className="font-mono text-[11px] text-charcoal-80/65">
-                      <span className={`mr-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${chip}`}>{label}</span>
+                    <p className="font-mono text-meta text-charcoal-80/65">
+                      <span className={`mr-1 rounded-md px-1.5 py-0.5 text-micro font-bold ${chip}`}>{label}</span>
                       {formatFileSize(f.fileSize)} · {fmtDate(f.createdAt)}
                     </p>
                   </div>
                   {purged ? (
-                    <span className="font-mono text-[10px] uppercase text-charcoal-80/65">{t("portal.purged")}</span>
+                    <span className="font-mono text-micro uppercase text-charcoal-80/65">{t("portal.purged")}</span>
                   ) : (
                     <a href={portalFileDownloadUrl(f.id)} className="rounded-lg p-2 text-violet hover:bg-violet-pale" aria-label={t("portal.download", { name: f.fileName })}>
                       <Download className="h-4 w-4" aria-hidden="true" />
@@ -288,6 +338,45 @@ function PortalView({ project, t }) {
             })}
           </ul>
         )}
+      </Section>
+
+      {/* T5-5 · invoices, through the portal's own authorisation gate — the
+          order-scoped PDF route checks a session and a portal holder has
+          none. */}
+      <Section title={t("invoices.title")}>
+        <ProjectInvoices
+          invoices={panels.invoices}
+          billing={panels.billing}
+          onPay={panels.pay}
+          loading={panels.loading}
+        />
+      </Section>
+
+      {/* D0-4 · a panel that failed must not look like a panel that is
+          empty. Renders nothing on the normal path. */}
+      <PanelLoadError failed={panels.failed} onRetry={panels.reload} className="mb-4" />
+
+      {(panels.hours?.allowance || panels.hours?.months?.some((m) => m.entries.length > 0)) ? (
+        <Section title={t("projects.hours.title")}>
+          <HoursLedger ledger={panels.hours} portal loading={panels.loading} />
+        </Section>
+      ) : null}
+
+      {/* T5-13 · this is the surface the credential handoff exists for: a
+          client with no account, on a forwarded link, who has been asked for
+          the hosting password. Without a box to put it in they reply to the
+          email with it in the body. */}
+      <Section title={t("projects.secrets.title")}>
+        <SecretsPanel
+          secrets={panels.secrets}
+          onReveal={panels.revealSecret}
+          onSend={panels.sendSecret}
+          onChanged={panels.reload}
+        />
+      </Section>
+
+      <Section title={t("track.activity")}>
+        <ProjectTimeline events={panels.events} loading={panels.loading} />
       </Section>
     </div>
   )

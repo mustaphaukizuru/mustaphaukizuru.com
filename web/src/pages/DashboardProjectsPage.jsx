@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { m } from "framer-motion"
-import { Briefcase, Calendar, FileText, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react"
+import { AlertCircle, Archive, ArrowRight, Briefcase, Calendar, CheckCircle2, FileText } from "lucide-react"
 import { fetchMyProjects } from "../services/clientProjectService"
 import useApiQuery from "../hooks/useApiQuery"
 import { MetricCard, SkeletonCard } from "../components/ui/index"
@@ -82,21 +82,40 @@ export default function DashboardProjectsPage() {
           {projects.map((p, idx) => {
             const pct = progressPct(p.milestones)
             const fileCount = p._count?.files ?? 0
+            /* D5-1 · an expired project is a dead link.
+             *
+             * GET /member/projects returns every project the account owns,
+             * expired ones included, but the detail route answers 410
+             * PROJECT_EXPIRED — so this card was an ordinary "Open project"
+             * button onto an error page. The row now carries the same
+             * `access` object the detail response sends, and an expired one
+             * loses the link and says why instead. */
+            const expired = Boolean(p.access?.isExpired)
             return (
               <m.article
                 key={p.id}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: idx * 0.04, ease: "easeOut" }}
-                className="flex flex-col gap-4 rounded-xl border border-charcoal-80/10 bg-white p-5 shadow-[var(--shadow-e3)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-e6)]"
+                className={`flex flex-col gap-4 rounded-xl border p-5 shadow-[var(--shadow-e3)] transition ${
+                  expired
+                    ? "border-charcoal-80/10 bg-mist"
+                    : "border-charcoal-80/10 bg-white hover:-translate-y-0.5 hover:shadow-[var(--shadow-e6)]"
+                }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate text-meta font-bold text-violet">{p.projectName}</h3>
-                      <StatusPill status={p.projectStatus} />
+                      <h3 className={`truncate text-meta font-bold ${expired ? "text-charcoal-80/75" : "text-violet"}`}>{p.projectName}</h3>
+                      {expired ? (
+                        <span className="shrink-0 rounded-full bg-charcoal-80/8 px-2 py-0.5 text-micro font-semibold uppercase text-charcoal-80/75">
+                          {t("projects.card.expired")}
+                        </span>
+                      ) : (
+                        <StatusPill status={p.projectStatus} />
+                      )}
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-3 font-mono text-[11px] text-charcoal-80/65">
+                    <div className="mt-1 flex flex-wrap items-center gap-3 font-mono text-meta text-charcoal-80/65">
                       <span><Calendar className="inline h-3 w-3 mr-1" />{t("projects.card.due", { date: fmtDate(p.dueDate) })}</span>
                       <span><FileText className="inline h-3 w-3 mr-1" />{t("projects.card.files", { count: fileCount })}</span>
                     </div>
@@ -104,23 +123,37 @@ export default function DashboardProjectsPage() {
                 </div>
 
                 <div>
-                  <div className="mb-1 flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-charcoal-80/65">
+                  <div className="mb-1 flex items-center justify-between font-mono text-micro uppercase tracking-wider text-charcoal-80/65">
                     <span>{t("projects.card.milestones")}</span>
                     <span className="tabular-nums">
                       {p.milestones.filter((m) => m.status === "completed").length} / {p.milestones.length}
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-violet-pale" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                  <div
+                    className="h-2 overflow-hidden rounded-full bg-violet-pale"
+                    role="progressbar"
+                    aria-valuenow={pct}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={t("projects.progressLabel", { percent: pct })}
+                  >
                     <div className="h-full rounded-full bg-violet transition-all duration-500" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
 
-                <Link
-                  to={`/dashboard/projects/${p.id}`}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-violet/20 bg-violet-pale px-3 py-2 text-micro font-semibold text-violet transition hover:bg-violet hover:text-white"
-                >
-                  {t("projects.card.open")} <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
+                {expired ? (
+                  <p className="flex items-start gap-2 rounded-lg border border-charcoal-80/10 bg-white px-3 py-2 text-micro text-charcoal-80/75">
+                    <Archive className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>{t("projects.card.expiredBody")}</span>
+                  </p>
+                ) : (
+                  <Link
+                    to={`/dashboard/projects/${p.id}`}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-violet/20 bg-violet-pale px-3 py-2 text-micro font-semibold text-violet transition hover:bg-violet hover:text-white"
+                  >
+                    {t("projects.card.open")} <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                )}
               </m.article>
             )
           })}

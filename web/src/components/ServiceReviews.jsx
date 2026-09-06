@@ -21,6 +21,11 @@ import {
 import { getStoredUser } from "../lib/api"
 
 import { useTranslation } from "react-i18next"
+// D3-2 · this file carried a local English relative-time helper that
+// returned "just now" / "3d ago" literally. The component renders on
+// /es as well as /, so every review on the Spanish product and service
+// pages showed an English timestamp under Spanish copy.
+import { formatRelativeTime } from "../i18n/utils/formatters"
 /* ─── atoms (identical to ProductReviews) ─────────────────────────────── */
 
 function StarRating({ rating, size = 16, interactive = false, onChange }) {
@@ -65,19 +70,6 @@ function RatingBar({ label, count, total }) {
   )
 }
 
-function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return "just now"
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}d ago`
-  const months = Math.floor(days / 30)
-  if (months < 12) return `${months}mo ago`
-  return `${Math.floor(months / 12)}y ago`
-}
 
 function getInitials(name = "") {
   return name
@@ -137,7 +129,8 @@ function HelpfulButton({ review, isLoggedIn, isOwner }) {
    ════════════════════════════════════════════════════════════════════════ */
 
 export default function ServiceReviews({ slug, serviceTitle }) {
-  const { t } = useTranslation("services")
+  const { t, i18n } = useTranslation("services")
+  const lang = i18n.language?.startsWith("es") ? "es" : "en"
   const [reviews, setReviews] = useState([])
   const [stats, setStats] = useState({ averageRating: 0, totalReviews: 0, distribution: {} })
   const [loading, setLoading] = useState(true)
@@ -343,7 +336,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
                       <div className="flex items-center gap-2">
                         <StarRating rating={review.rating} size={13} />
                         <span className="text-micro text-charcoal-80/40">
-                          {timeAgo(review.createdAt)}
+                          {formatRelativeTime(review.createdAt, lang)}
                           {review.editedAt && " · edited"}
                         </span>
                       </div>
@@ -382,7 +375,7 @@ export default function ServiceReviews({ slug, serviceTitle }) {
                       {t("reviews.replyFrom")} {review.adminReplyBy?.fullName || "Mustapha"}
                       {review.adminReplyAt && (
                         <span className="font-normal text-charcoal-80/65 normal-case tracking-normal">
-                          · {timeAgo(review.adminReplyAt)}
+                          · {formatRelativeTime(review.adminReplyAt, lang)}
                         </span>
                       )}
                     </div>

@@ -60,10 +60,67 @@ export default defineConfig([
     files: ['vite.config.js', 'playwright.config.js'],
     languageOptions: { globals: globals.node },
   },
+  // Vitest specs and the build scripts also run under Node, so `process`,
+  // `console` and friends are real there. Some specs read the source tree to
+  // assert a rule holds everywhere (src/i18n/i18nEnabled.test.js checks that
+  // nobody reads VITE_I18N_ENABLED directly again), which needs cwd.
+  {
+    files: ['src/**/*.test.{js,jsx}', 'scripts/**/*.{js,mjs}'],
+    languageOptions: { globals: { ...globals.node } },
+  },
   {
     files: ['src/lib/api.js'],
     rules: {
       'no-restricted-syntax': 'off',
+    },
+  },
+
+  // T2-1 · the public tree must not import the raw router primitives.
+  //
+  // The site routes language by URL prefix and LanguageWrapper sets i18n's
+  // language from that prefix on every navigation, so an unprefixed
+  // `to="/services"` clicked from /es does not merely navigate — it switches
+  // the whole interface back to English. About 150 links shipped that way,
+  // which is why the Spanish translation reached almost nobody. The codemod
+  // fixed the existing ones; this rule stops the next one.
+  {
+    // src/hooks and src/context are in the list too: a hook that calls the
+    // raw useNavigate re-opens the hole from anywhere that calls the hook,
+    // which is harder to spot than a Link in a page.
+    files: [
+      'src/pages/**/*.{js,jsx}',
+      'src/components/**/*.{js,jsx}',
+      'src/layout/**/*.{js,jsx}',
+      'src/hooks/**/*.{js,jsx}',
+      'src/context/**/*.{js,jsx}',
+    ],
+    ignores: [
+      // /admin is NOT mirrored under /es, so a prefixed admin link points at
+      // a route that does not exist. The member dashboard WAS in this list
+      // and is not any more (D3-3): it is mirrored now, and the exemption is
+      // what let ~19 raw <Link to="/dashboard/..."> call sites accumulate,
+      // each of which drops a Spanish member back into English.
+      'src/pages/Admin*.jsx',
+      'src/components/admin/**',
+      'src/layout/AdminLayout.jsx',
+      // These own the primitives, or cross languages on purpose.
+      'src/components/LocalizedLink.jsx',
+      'src/components/LanguageWrapper.jsx',
+      'src/components/LanguageSwitcher.jsx',
+      '**/*.test.{js,jsx}',
+    ],
+    rules: {
+      'no-restricted-imports': ['error', {
+        paths: [{
+          name: 'react-router-dom',
+          importNames: ['Link', 'NavLink', 'useNavigate'],
+          message:
+            'Use LocalizedLink / LocalizedNavLink from src/components/LocalizedLink, or ' +
+            'useLocalizedNavigate from src/hooks/useLocalizedNavigate. A raw Link drops a ' +
+            'Spanish reader back into English, because the language is read off the URL prefix. ' +
+            'Everything else from react-router-dom (useLocation, Outlet, useParams…) is fine.',
+        }],
+      }],
     },
   },
 ])

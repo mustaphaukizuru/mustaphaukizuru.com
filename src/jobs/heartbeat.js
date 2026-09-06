@@ -33,6 +33,18 @@ const JOB_INTERVALS = Object.freeze({
   invoiceDunning:        DAY,
   fulfillmentReconcile:  15 * MIN,
   retention:             DAY,
+  // T5-3's reminder job was never registered here, so /health/jobs has been
+  // reporting the scheduler healthy while this one could have stopped
+  // silently — which is precisely the failure the dead-man switch exists to
+  // catch. Added with the digest rather than left for later.
+  fileRequestReminders:  DAY,
+  // T5-15 · Monday only, so the allowance is a fortnight before it reads as
+  // stale. A weekly job checked against a daily allowance would alert every
+  // Tuesday.
+  weeklyDigest:          7 * DAY,
+  // T5-18 · monthly, so the dead-man window is a generous month and a bit.
+  monthlyStatement:      35 * DAY,
+  reviewFollowUp:        DAY,
 })
 
 /** A job is stale after twice its interval, never sooner than ten minutes. */

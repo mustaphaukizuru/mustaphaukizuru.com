@@ -14,6 +14,8 @@
  */
 
 const prisma = require("../lib/prisma")
+const projectEvents = require("./projectEventService")
+const { notifyInvoiceIssued } = require("./notificationService")
 const logger = require("../utils/logger")
 const generateInvoiceNumber = require("../utils/generateInvoiceNumber")
 const { sendTemplateEmail } = require("./emailService")
@@ -195,6 +197,37 @@ async function createManualInvoice({ serviceOrderId, amount, dueDate, descriptio
   })
 
   const orderUrl = `${frontendBase()}/dashboard/orders/${result.order.id}`
+
+  // T5-4 · the project this invoice is for, if there is one. A manual invoice
+  // is raised against a ServiceOrder, and a ServiceOrder is what a
+  // ClientProject hangs off — so the project is one lookup away, and without
+  // it the client lands on a bare order page with no idea which piece of work
+  // they are being billed for.
+  const project = await prisma.clientProject.findFirst({
+    where: { serviceOrderId: so.id },
+    select: { id: true, trackingCode: true, projectName: true },
+  }).catch(() => null)
+
+  if (project) {
+    await projectEvents.record({
+      projectId: project.id,
+      type: "invoice.issued",
+      actorRole: "admin",
+      detail: `${invoiceNumber} · ${fmtMoney(tax.totalAmount, currency)} · due ${fmtDate(due)}`,
+      detailEs: `${invoiceNumber} · ${fmtMoney(tax.totalAmount, currency)} · vence ${fmtDate(due)}`,
+      refs: { invoiceId: result.invoice.id },
+    })
+    // T5-6 · a bell badge beside the invoice email, landing on the project
+    // rather than a bare order number. Best-effort: the invoice is already
+    // written and its own email is about to go out regardless.
+    notifyInvoiceIssued(so.user.id, {
+      project,
+      invoiceNumber,
+      amountLabel: fmtMoney(tax.totalAmount, currency),
+      dueLabel: fmtDate(due),
+    }).catch(() => null)
+  }
+
   const variables = {
     customerName:  String(so.user.fullName || "there").split(" ")[0],
     invoiceNumber,
@@ -203,6 +236,10 @@ async function createManualInvoice({ serviceOrderId, amount, dueDate, descriptio
     dueDate:       fmtDate(due),
     description:   title,
     orderUrl,
+    // Empty strings rather than undefined: the templates are seeded rows and
+    // an unresolved {{placeholder}} renders literally in the email body.
+    trackingCode:  project?.trackingCode || "",
+    projectUrl:    project ? `${frontendBase()}/dashboard/projects/${project.id}` : "",
   }
   sendTemplateEmail({
     to:          so.user.email,

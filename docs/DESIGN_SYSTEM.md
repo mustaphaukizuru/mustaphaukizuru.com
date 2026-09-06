@@ -43,6 +43,38 @@
 
 Semantic aliases (`--color-text-*`, `--color-surface-*`, `--color-border-*`, `--color-feedback-*`, `--color-action-*`, `--color-grad-*`) are derived from the above and are what dashboard dark mode re-points. **Prefer a semantic token over a raw brand token** whenever the surface can flip.
 
+### Dark mode reaches the dashboard and stops there
+
+Decided in [ADR 0002](decisions/0002-public-dark-mode-scope.md) (T3-2), which
+also records what would reopen it. In short: the public site is light, always,
+and does not honour `prefers-color-scheme`; the dashboard and admin subtrees
+support dark, opt-in, via `ThemeSwitcher`. Read the record before adding a
+`dark:` variant to anything.
+
+Two rules follow from it, and they are the whole of what a component author
+needs to know:
+
+1. **Inside the dashboard, keep using the brand utilities.** `text-charcoal-80/65`,
+   `border-charcoal-80/10`, `bg-mist` and their opacity variants all flip
+   automatically, because `[data-theme="dark"] [data-dashboard-shell]`
+   redefines the variables those utilities resolve. There is no list of
+   supported classes to keep up to date and nothing to add when you use a
+   band nobody used before.
+
+2. **On a public page, build from semantic surface tokens** rather than
+   `bg-white` — `bg-[var(--color-surface-card)]`, `text-[var(--color-text-primary)]`.
+   Not because the public site flips today (it does not), but because that is
+   what makes the eventual retrofit a token change on 866 sites instead of a
+   rewrite.
+
+`!important` is not part of any of this. If a colour is not applying, the
+cause is the cascade layer, not the specificity: Tailwind v4 puts utilities in
+`@layer utilities`, and an unlayered rule beats every one of them regardless
+of how specific it is. That is what put `a { color: inherit }` on top of every
+text-colour utility on an anchor, and the fix was to layer the reset — not to
+add a patch per class. Seven such patches and sixty-six dashboard overrides
+were removed in T3-2 once the cause was addressed.
+
 ### Alpha variants
 
 Never write `rgba(93, 63, 211, 0.06)` — that re-states the palette and drifts. Compose from the channel tokens:

@@ -18,6 +18,9 @@
 const prisma = require("../lib/prisma")
 const logger = require("../utils/logger")
 const { notifyAdminsProjectActivity, notifyProjectComment, notifyMilestoneAwaitingClient } = require("./notificationService")
+const projectEvents = require("./projectEventService")
+const fileRequests = require("./projectFileRequestService")
+const projectEmails = require("./projectEmailService")
 
 const CLOSED_STATUSES = new Set(["completed", "cancelled"])
 const ACCESS_STATES = ["active", "suspended", "handover"]
@@ -64,19 +67,104 @@ function assertWritable(project) {
   return lc
 }
 
+/* ── T5-17 · roles on the client's side ───────────────────────────────────
+ *
+ * `ClientProject.userId` is still the owner. A ProjectMember is somebody else
+ * on the same project, and the role says what they may commit the client to:
+ *
+ *   owner     the account the project was sold to. Everything.
+ *   approver  a second person who may also approve, accept and pay — the
+ *             director in the school case.
+ *   viewer    reads, uploads, comments, opens tickets. What they may NOT do
+ *             is commit the client to anything: approve a milestone, accept
+ *             a quote or start a payment.
+ *
+ * "Viewer" is therefore not a read-only role and is deliberately not named
+ * one. The IT person in the driving example is a viewer and their whole job
+ * is to send us files; a role that could not type would be useless to them.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+const MEMBER_ROLES = ["owner", "approver", "viewer"]
+/** The roles that may commit the client to something. */
+const APPROVING_ROLES = ["owner", "approver"]
+
+const OWNED_PROJECT_SELECT = {
+  id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true, assignedAdminId: true,
+  requiresNda: true, ndaVersion: true, accessState: true,
+  // T5-6 · every project email refuses to send without the code rather
+  // than mailing a literal {{trackingCode}}, so the gate that loads the
+  // project has to fetch it.
+  trackingCode: true,
+}
+
+/**
+ * Load a project this user may reach — as its owner, or as a member.
+ *
+ * Returns the project with `memberRole` attached. Every caller that used to
+ * get a project back still does; the ones that gate a privileged action call
+ * assertCanApprove with it.
+ *
+ * TWO QUERIES, NOT A CLEVER `OR`. The membership lookup runs only when the
+ * owner query misses, so the ordinary case — the owner opening their own
+ * project — costs exactly what it did before, and the fallback path is the
+ * one that pays.
+ */
 async function loadOwnedProject({ userId, projectId, skipNda = false }) {
-  const project = await prisma.clientProject.findFirst({
-    where:  { id: String(projectId), userId: String(userId) },
-    select: {
-      id: true, userId: true, projectName: true, projectStatus: true, closedAt: true, updatedAt: true, assignedAdminId: true,
-      requiresNda: true, ndaVersion: true, accessState: true,
-    },
+  const uid = String(userId)
+  const pid = String(projectId)
+
+  let project = await prisma.clientProject.findFirst({
+    where:  { id: pid, userId: uid },
+    select: OWNED_PROJECT_SELECT,
   })
+  let memberRole = project ? "owner" : null
+
+  if (!project) {
+    const membership = await prisma.projectMember.findFirst({
+      where:  { projectId: pid, userId: uid },
+      select: { id: true, role: true, acceptedAt: true },
+    })
+    if (membership) {
+      project = await prisma.clientProject.findUnique({ where: { id: pid }, select: OWNED_PROJECT_SELECT })
+      // A role the database holds but this build does not know is treated as
+      // the least privileged one. New roles must not become "everything" on
+      // a server running last week's code.
+      memberRole = MEMBER_ROLES.includes(membership.role) ? membership.role : "viewer"
+      if (project && !membership.acceptedAt) {
+        // First arrival. Best-effort: a failed stamp must not block the read.
+        prisma.projectMember
+          .update({ where: { id: membership.id }, data: { acceptedAt: new Date() } })
+          .catch(() => null)
+      }
+    }
+  }
+
   if (!project) throw err("Project not found", "NOT_FOUND", 404)
   // Tier 4 · every client write (upload, comment, approval, ticket) goes
   // through here, so the NDA gate is enforced once, centrally.
-  if (!skipNda) await assertNdaAccepted(project, userId)
-  return project
+  //
+  // It applies to members too, and per member: an NDA accepted by the owner
+  // says nothing about the IT person now reading the files.
+  if (!skipNda) await assertNdaAccepted(project, uid)
+  return { ...project, memberRole }
+}
+
+/**
+ * Refuse the three actions that commit the client to something.
+ *
+ * Separate from loadOwnedProject on purpose: the gate has to be visible at
+ * each call site, because "which actions are privileged" is a product
+ * decision and burying it in the loader makes it invisible the next time
+ * somebody adds one.
+ */
+function assertCanApprove(project, action = "do that") {
+  const role = project?.memberRole || "owner"
+  if (APPROVING_ROLES.includes(role)) return role
+  throw err(
+    `You can see this project but cannot ${action}. Ask whoever owns it, or the approver on it, to do this.`,
+    "MEMBER_ROLE_FORBIDDEN",
+    403,
+  )
 }
 
 /* ── NDA click-wrap (Tier 4) ───────────────────────────────────────────── */
@@ -226,11 +314,21 @@ function presentForMember(project, lc) {
     access: {
       readOnly:  lc.readOnly,
       isClosed:  lc.isClosed,
+      // D5-1 · always sent, even though the DETAIL route can never reach
+      // here with it true — assertReadable throws 410 first. The list route
+      // presents rows through this same function and CAN, so the shape has
+      // to carry it: one `access` object means the SPA reads a card and a
+      // detail response the same way.
+      isExpired: lc.isExpired,
       expiresAt: lc.expiresAt,
       state,
       suspended,
       handover:  state === "handover",
     },
+    // T5-4 · billing, when the caller has resolved it. Left undefined rather
+    // than defaulted to zero: "no invoices" and "not looked up" are different
+    // claims, and a UI showing "0 due" for the second one is wrong.
+    ...(project.billing ? { billing: project.billing } : {}),
   }
 }
 
@@ -270,7 +368,7 @@ function previewCanFrame(previewUrl) {
 
 /* ── Client uploads ────────────────────────────────────────────────────── */
 
-async function attachClientFiles({ userId, projectId, files = [], milestoneId = null }) {
+async function attachClientFiles({ userId, projectId, files = [], milestoneId = null, fileRequestId = null }) {
   const project = await loadOwnedProject({ userId, projectId })
   assertWritable(project)
   if (!files.length) throw err("No files uploaded", "VALIDATION_ERROR", 400)
@@ -280,12 +378,27 @@ async function attachClientFiles({ userId, projectId, files = [], milestoneId = 
     if (!ms) throw err("Milestone not found on this project", "NOT_FOUND", 404)
   }
 
+  // T5-3 · uploading against a document request. The id arrives from the
+  // browser, so this checks it belongs to THIS project before anything is
+  // written — otherwise a client could answer someone else's request by
+  // guessing an id. It also enforces the request's own extension allowlist,
+  // on top of the global one multer has already applied.
+  let fileRequest = null
+  if (fileRequestId) {
+    fileRequest = await fileRequests.assertUploadable(
+      fileRequestId,
+      project.id,
+      files.map((f) => f.originalname || f.fileName || ""),
+    )
+  }
+
   const rows = await prisma.$transaction(files.map((f) => prisma.projectFile.create({
     data: {
       projectId:      project.id,
       uploadedById:   String(userId),
       uploadedByRole: "client",
       milestoneId:    milestoneId ? String(milestoneId) : null,
+      fileRequestId:  fileRequest ? fileRequest.id : null,
       fileName:       String(f.originalname || f.fileName || "file").trim().slice(0, 255),
       filePath:       `/files/projects/${project.id}/${f.filename}`,
       fileType:       f.mimetype || null,
@@ -307,6 +420,32 @@ async function attachClientFiles({ userId, projectId, files = [], milestoneId = 
     project, kind: "upload",
     summary: `${rows.length} file(s) uploaded: ${rows.slice(0, 3).map((r) => r.fileName).join(", ")}${rows.length > 3 ? "…" : ""}`,
   }).catch((e) => logger.warn("[portal] admin notify failed", e.message))
+
+  if (fileRequest) {
+    // Answers the request, and records file.received with the request's
+    // title rather than the file name.
+    await fileRequests.markSubmitted(fileRequest, rows[0])
+    // T5-6 · and tell the operator, because a document sitting unreviewed is
+    // the same stall as one never sent. The only project email that names a
+    // file, which is why it goes nowhere near the client.
+    projectEmails.sendFileReceived({ project, request: fileRequest, file: rows[0], client: { id: userId } })
+      .catch((e) => logger.warn(`[portal] file-received email failed: ${e.message}`))
+  }
+
+  // One event per upload, at "client" visibility: a file NAME can carry the
+  // client's own client, a case number, a salary band. Never public.
+  // Skipped when this upload answered a request — markSubmitted already
+  // recorded that, and two events for one action reads as two uploads.
+  for (const row of (fileRequest ? [] : rows)) {
+    await projectEvents.record({
+      projectId: project.id,
+      type: "file.received",
+      actorRole: "client",
+      detail: row.fileName,
+      detailEs: row.fileName,
+      refs: { fileId: row.id, milestoneId: row.milestoneId || null },
+    })
+  }
 
   return rows
 }
@@ -366,6 +505,15 @@ async function createComment({ projectId, authorId, authorRole, body, milestoneI
     notifyProjectComment(project.userId, { project, comment })
       .catch((e) => logger.warn("[portal] client notify failed", e.message))
   }
+  // The comment BODY is not carried into the event. The timeline says a
+  // conversation happened; the conversation itself lives in the thread,
+  // where the access rules for it already are.
+  await projectEvents.record({
+    projectId: project.id,
+    type: "comment.added",
+    actorRole: authorRole === "client" ? "client" : "admin",
+    refs: { milestoneId: comment.milestoneId || null, fileId: comment.fileId || null },
+  })
   return comment
 }
 
@@ -391,6 +539,9 @@ async function loadOwnedMilestone({ userId, projectId, milestoneId }) {
 
 async function approveMilestone({ userId, projectId, milestoneId, note = null }) {
   const { project, ms } = await loadOwnedMilestone({ userId, projectId, milestoneId })
+  // T5-17 · a viewer may upload and comment on this milestone all day. What
+  // they may not do is sign it off on the client's behalf.
+  assertCanApprove(project, "approve work on it")
   if (ms.status !== "awaiting_client") {
     throw err(`Milestone is "${ms.status}" — only milestones awaiting your review can be approved`, "INVALID_STATE", 409)
   }
@@ -412,6 +563,17 @@ async function approveMilestone({ userId, projectId, milestoneId, note = null })
   }).catch(() => null)
   notifyAdminsProjectActivity({ project, kind: "approval", summary: `"${ms.title}" approved${note ? ` — ${String(note).slice(0, 100)}` : ""}` })
     .catch((e) => logger.warn("[portal] admin notify failed", e.message))
+  // The client-facing event, beside the admin activityLog row above. The
+  // note is deliberately NOT carried into the detail: the client wrote it
+  // for us, and this event is public-adjacent.
+  await projectEvents.record({
+    projectId: project.id,
+    type: "milestone.approved",
+    actorRole: "client",
+    detail: ms.title,
+    detailEs: ms.title,
+    refs: { milestoneId: ms.id },
+  })
   return updated
 }
 
@@ -419,6 +581,9 @@ async function requestMilestoneChanges({ userId, projectId, milestoneId, note })
   const text = String(note || "").trim()
   if (!text) throw err("Tell us what should change (note is required)", "VALIDATION_ERROR", 400)
   const { project, ms } = await loadOwnedMilestone({ userId, projectId, milestoneId })
+  // Requesting changes UNDOES an approval, so it is the same authority as
+  // giving one. A viewer who disagrees says so in a comment.
+  assertCanApprove(project, "send work back for changes")
   if (!["awaiting_client", "approved"].includes(ms.status)) {
     throw err(`Milestone is "${ms.status}" — changes can be requested only on delivered work`, "INVALID_STATE", 409)
   }
@@ -442,6 +607,14 @@ async function requestMilestoneChanges({ userId, projectId, milestoneId, note })
       description: `Client requested changes on "${ms.title}" (${project.projectName})`,
     },
   }).catch(() => null)
+  await projectEvents.record({
+    projectId: project.id,
+    type: "milestone.changes_requested",
+    actorRole: "client",
+    detail: ms.title,
+    detailEs: ms.title,
+    refs: { milestoneId: ms.id },
+  })
   notifyAdminsProjectActivity({ project, kind: "changes", summary: `Changes requested on "${ms.title}": ${text.slice(0, 120)}` })
     .catch((e) => logger.warn("[portal] admin notify failed", e.message))
   return updated
@@ -454,6 +627,7 @@ async function onMilestoneAwaitingClient({ project, milestone }) {
 
 module.exports = {
   lifecycle, assertReadable, assertWritable, loadOwnedProject,
+  MEMBER_ROLES, APPROVING_ROLES, assertCanApprove,
   ndaStatus, assertNdaAccepted, applyNdaGate, acceptAgreement, ndaVersionOf, NDA_DEFAULT_VERSION,
   ACCESS_STATES, UNPAID_INVOICE_STATUSES, suspendGraceDays,
   loadBillingLinks, unpaidInvoiceWhere, countUnpaidInvoices, assertAccessStateChange,

@@ -1,11 +1,16 @@
 import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
 import LanguageDetector from "i18next-browser-languagedetector"
+import { isI18nEnabled } from "./i18nEnabled"
+import afterFirstPaint from "../lib/afterFirstPaint"
 
 import {
   loadLanguageBundle,
   normalizeLanguage,
   NAMESPACES,
+  EAGER_NAMESPACES,
+  LAZY_NAMESPACES,
+  loadNamespace,
   SUPPORTED_LANGUAGES,
   FALLBACK_LANGUAGE,
 } from "./resources"
@@ -46,7 +51,7 @@ import {
  * so `t()` calls work, but the language detector defaults to the fallback).
  */
 
-const I18N_ENABLED = import.meta.env.VITE_I18N_ENABLED !== "false"
+const I18N_ENABLED = isI18nEnabled(import.meta.env.VITE_I18N_ENABLED)
 
 const LOCAL_STORAGE_KEY = "preferred-language"
 
@@ -66,7 +71,10 @@ function hasBundle(lng) {
   // so the changeLanguage wrapper below passes straight through.
   if (!i18n.store) return true
   const key = normalizeLanguage(lng)
-  return NAMESPACES.every((ns) => i18n.hasResourceBundle(key, ns))
+  // Only the eager set. A route-scoped namespace arrives later, via
+  // ensureNamespace(), and its absence must not make a language look
+  // unloaded — that would refetch the whole bundle on every switch.
+  return EAGER_NAMESPACES.every((ns) => i18n.hasResourceBundle(key, ns))
 }
 
 /** Fetch + register a language's namespaces. No-op when already present. */
@@ -74,7 +82,7 @@ async function ensureBundle(lng) {
   const key = normalizeLanguage(lng)
   if (hasBundle(key)) return
   const bundle = await loadLanguageBundle(key)
-  for (const ns of NAMESPACES) {
+  for (const ns of EAGER_NAMESPACES) {
     if (bundle[ns] && !i18n.hasResourceBundle(key, ns)) {
       // deep = false, overwrite = false — never mutate an existing bundle.
       i18n.addResourceBundle(key, ns, bundle[ns], false, false)
@@ -98,26 +106,11 @@ const initialLanguage = I18N_ENABLED
  * render.
  */
 /**
- * Run `fn` well after first paint, never during it.
- *
- * requestIdleCallback ALONE is not enough, and the trace explains why: while
- * the app is waiting on network the main thread is idle, so rIC fires almost
- * immediately — measured at ~500ms, still 800ms before the nav rendered. An
- * idle main thread is not the same as a finished page.
- *
- * So the load event gates it first, and idle only schedules within that. The
- * setTimeout covers Safari <16.4, which has no requestIdleCallback.
+ * Run `fn` well after first paint, never during it. The reasoning that shaped
+ * the schedule lives in lib/afterFirstPaint.js, which T3-6 extracted so the
+ * vitals collector could use the same ordering rather than a second copy.
  */
-function warmAfterFirstPaint(fn) {
-  if (typeof window === "undefined") return
-  const schedule = () => {
-    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(fn, { timeout: 10000 })
-    else window.setTimeout(fn, 1000)
-  }
-  const afterLoad = () => window.setTimeout(schedule, 1500)
-  if (document.readyState === "complete") afterLoad()
-  else window.addEventListener("load", afterLoad, { once: true })
-}
+const warmAfterFirstPaint = afterFirstPaint
 
 const i18nReady = loadLanguageBundle(initialLanguage)
   .then((bundle) =>
@@ -135,7 +128,7 @@ const i18nReady = loadLanguageBundle(initialLanguage)
         fallbackLng: I18N_ENABLED ? FALLBACK_LANGUAGE : "en",
         supportedLngs: SUPPORTED_LANGUAGES,
         defaultNS: "common",
-        ns: NAMESPACES,
+        ns: EAGER_NAMESPACES,
         interpolation: { escapeValue: false }, // React already escapes
         detection,
         react: { useSuspense: false },
@@ -205,3 +198,22 @@ i18n.changeLanguage = function changeLanguageWithBundle(lng, callback) {
 
 export { i18nReady, ensureBundle, loadLanguageBundle }
 export default i18n
+
+/**
+ * Load a route-scoped namespace (see LAZY_NAMESPACES) for the active
+ * language and register it with i18next. Resolves immediately when it is
+ * already present, so calling it on every mount is free.
+ *
+ * The page that needs it must wait for this before rendering, or i18next
+ * renders the key strings — this project deliberately does not use Suspense
+ * for translations (see the note at the top of this file).
+ */
+export async function ensureNamespace(ns, lng = i18n.language) {
+  if (!LAZY_NAMESPACES.includes(ns)) return
+  const key = normalizeLanguage(lng)
+  if (i18n.hasResourceBundle(key, ns)) return
+  const bundle = await loadNamespace(ns, key)
+  if (!i18n.hasResourceBundle(key, ns)) {
+    i18n.addResourceBundle(key, ns, bundle, false, false)
+  }
+}

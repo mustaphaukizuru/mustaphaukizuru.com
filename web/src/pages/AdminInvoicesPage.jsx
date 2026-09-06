@@ -7,7 +7,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import {
   FileText, RefreshCw, Search, X, ExternalLink, AlertCircle, Plus, Ban, Loader2,
 } from "lucide-react"
@@ -44,10 +44,24 @@ function formatDate(iso, withTime = false) {
   })
 }
 
+// D0-2 · `dueDate` is a calendar day somebody picked, stored at midnight
+// UTC. formatDate above renders in local time, which showed the previous
+// day — an invoice due the 1st read as due the last of the previous month.
+function formatDay(iso) {
+  if (!iso) return "-"
+  return new Date(iso).toLocaleDateString("en-US", {
+    year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
+  })
+}
+
 const INPUT = "w-full rounded-lg border border-charcoal-80/15 bg-white px-3 py-2 text-[13px] outline-none focus:border-violet/40 focus:ring-[3px] focus:ring-violet/15"
 
 export default function AdminInvoicesPage() {
   const toast = useToast()
+  // T5-5 · the project page links here with the service-order id already in
+  // hand, so the operator does not copy a cuid between two admin screens.
+  const [searchParams] = useSearchParams()
+  const prefillServiceOrderId = searchParams.get("serviceOrderId") || ""
   const [invoices, setInvoices] = useState([])
   const [meta, setMeta] = useState({ total: 0, page: 1, pages: 1 })
   const [loading, setLoading] = useState(true)
@@ -55,8 +69,9 @@ export default function AdminInvoicesPage() {
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState("")
   const [page, setPage] = useState(1)
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ serviceOrderId: "", amount: "", dueDate: "", description: "" })
+  // Opened already when a project sent us here — the whole point of the link.
+  const [showForm, setShowForm] = useState(Boolean(prefillServiceOrderId))
+  const [form, setForm] = useState({ serviceOrderId: prefillServiceOrderId, amount: "", dueDate: "", description: "" })
   const [saving, setSaving] = useState(false)
   const [voiding, setVoiding] = useState("")
 
@@ -257,7 +272,7 @@ export default function AdminInvoicesPage() {
                     {Number(inv.lateFeeAmount) > 0 ? <div className="text-[10.5px] text-amber-700">+ {formatCurrency(inv.lateFeeAmount, inv.order?.currency || "MXN")} late fee</div> : null}
                   </td>
                   <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{formatDate(inv.issuedAt)}</td>
-                  <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{inv.paidAt ? `Paid ${formatDate(inv.paidAt)}` : formatDate(inv.dueDate)}</td>
+                  <td className="hidden px-4 py-3 text-charcoal-80/65 md:table-cell">{inv.paidAt ? `Paid ${formatDate(inv.paidAt)}` : formatDay(inv.dueDate)}</td>
                   <td className="px-4 py-3"><StatusPill status={inv.status} /></td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex items-center gap-1">

@@ -97,7 +97,7 @@ async function refreshProductAggregate(productId) {
  *   4. Persists with the resulting status + flaggedReason.
  *   5. Recalculates the product aggregate when status === "approved".
  */
-async function createReview({ productId, serviceId, userId, rating, reviewText, projectId = null }) {
+async function createReview({ productId, serviceId, userId, rating, reviewText, projectId = null, pulse = null }) {
   if (!productId && !serviceId) throw new AppError("productId or serviceId is required", { statusCode: 400, code: "VALIDATION_ERROR" })
   if (productId && serviceId)   throw new AppError("Cannot review a product and service in one row", { statusCode: 400, code: "VALIDATION_ERROR" })
   if (!Number.isInteger(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) throw new AppError("Rating must be between 1 and 5", { statusCode: 400, code: "VALIDATION_ERROR" })
@@ -149,6 +149,12 @@ async function createReview({ productId, serviceId, userId, rating, reviewText, 
       orderItemId: orderItem?.id || null,
       projectId: projectId ? String(projectId) : null,
       rating: Number(rating),
+      // T5-21 · the pulse. Validated to 1-5 or dropped: it is optional, and
+      // a junk value silently stored would poison the only number here that
+      // is never moderated before anyone reads it.
+      pulse: Number.isInteger(Number(pulse)) && Number(pulse) >= 1 && Number(pulse) <= 5
+        ? Number(pulse)
+        : null,
       reviewText: reviewText ? String(reviewText).trim().slice(0, 5000) : null,
       isVerifiedPurchase,
       status,

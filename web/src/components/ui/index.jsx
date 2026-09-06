@@ -96,6 +96,18 @@ export { ThemeSwitcher, useTheme } from "./ThemeSwitcher"
 export { AIPromptInput } from "./AIPromptInput"
 export { Kbd } from "./Kbd"
 
+// MediaSlot and the colour helpers are DELIBERATELY not re-exported here.
+//
+// Importing them through this barrel put MediaSlot.js, accent.js and
+// Image.js on the HOMEPAGE's critical path — three extra requests and
+// ~5 KB for components the homepage never renders, which pushed the
+// first-paint budget from 1450 to 1468 KB. Rollup cannot tree-shake what a
+// barrel re-exports once anything in the file is reached.
+//
+// Import them from their own modules at the call site:
+//   import MediaSlot from "../ui/MediaSlot"
+//   import { accentFor } from "../ui/accent"
+
 // ── Legacy bridge (preserved — DO NOT use in new code) ────────────────────
 export {
   MetricCard,

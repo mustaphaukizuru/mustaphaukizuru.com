@@ -17,6 +17,26 @@ const PUBLIC_ROUTES = [
   "/about",
   "/services",
   "/services/:slug",
+  // The engagement process (T2-9). In the router, the footer and the
+  // sitemap — so it has to be answerable on a reload and a shared link.
+  "/how-we-work",
+  // Audience page, not a fifth service category. It was in App.jsx, in the
+  // navbar, in the footer and in sitemap.xml, and missing from this list —
+  // so the server answered 404 for a URL Google is told to index. Clicking
+  // through worked, because React Router never asks the server; typing the
+  // address, reloading the page, or following a shared link did not. Found
+  // by adding /schools to the Lighthouse URL list.
+  "/schools",
+  // T1-9 · the status page. It has to be answerable when the app is
+  // struggling, which is the whole point of it — but the Express fallback
+  // only runs when Node is alive; when it is not, Passenger serves
+  // public/index.html statically and the SPA routes itself.
+  "/status",
+  // T5-5 · both forms. The result page is the one a client reloads and
+  // shares, so it has to be answerable by the server, not only reachable
+  // through the router.
+  "/track",
+  "/track/:code",
   "/self-audit",
   "/contact",
   "/portfolio",

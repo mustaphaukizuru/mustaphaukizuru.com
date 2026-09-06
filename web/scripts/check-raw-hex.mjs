@@ -73,24 +73,18 @@ const ALLOW = {
     values: "*",
     why: "decorative aurora blur blobs (blurred past recognition at 3xl)",
   },
-  "src/components/public/layout.jsx": {
-    values: ["#f5bf9e"], why: "terracotta button hover — lighter peach; no lighter-terracotta token exists yet",
-  },
-  "src/components/heroes/StoreHero.jsx": {
-    values: ["#ffd9be"], why: "terracotta button hover — lighter peach; no lighter-terracotta token exists yet",
-  },
   "src/pages/CheckoutSuccessPage.jsx": { values: ["#B9A6F2"], why: "decorative confetti swatch" },
   "src/pages/AdminEmailTemplatesPage.jsx": { values: ["#888"], why: "placeholder inside an email-preview srcDoc string", fonts: true },
 
-  /* ── PENDING · owned by concurrent auth/downloads work at the time step 22
-   * landed, so they were left untouched to avoid a merge collision. Each one
-   * is a mechanical `rgba(<brand triple>, a)` → `rgb(var(--color-*-rgb)/a)`
-   * swap. Delete these entries (and make the swap) in the follow-up pass. */
-  "src/components/product/FeatureList.jsx":   { values: ["#F8FAFC"], rgba: true, why: "PENDING — concurrent work" },
-  "src/components/product/FileList.jsx":      { values: [], rgba: true, why: "PENDING — concurrent work" },
-  "src/pages/DashboardDownloadsPage.jsx":     { values: [], rgba: true, why: "PENDING — concurrent work" },
-  "src/pages/LoginPage.jsx":                  { values: [], rgba: true, why: "PENDING — concurrent work" },
-  "src/pages/SignupPage.jsx":                 { values: [], rgba: true, why: "PENDING — concurrent work" },
+  /* The PENDING block that lived here is gone — that was the follow-up pass
+   * it asked for. Login and Signup had `rgba(26,27,35,0.18)` in a shadow,
+   * which is charcoal at 18% — and `--shadow-n3` is that exact value, so
+   * both now read `shadow-[var(--shadow-n3)]` and the arbitrary shadow goes
+   * away rather than being rewritten in token syntax.
+   * FeatureList built a scroll-fade gradient in JS from the literal channel
+   * triple "248, 250, 252" and now reads `var(--color-mist-rgb)`, so the
+   * fade follows the token instead of a copy of it. FileList and
+   * DashboardDownloadsPage had nothing left to swap. */
 
   // The JS mirror of the palette — checked separately for drift below.
   "src/styles/tokens.js": { values: "*", why: "JS mirror of tokens.css (drift-checked)" },

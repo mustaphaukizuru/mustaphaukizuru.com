@@ -1,5 +1,4 @@
 const fs = require("fs")
-const path = require("path")
 const asyncHandler = require("../utils/asyncHandler")
 const prisma = require("../lib/prisma")
 const { ensureInvoice, invoicePathFor } = require("../services/invoiceService")

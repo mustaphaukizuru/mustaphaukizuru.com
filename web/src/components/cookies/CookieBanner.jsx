@@ -18,7 +18,7 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
 import { m, AnimatePresence } from "framer-motion"
 import { Cookie, ShieldCheck, Settings, Check, X } from "lucide-react"
 import { useCookieConsent, COOKIE_CATEGORIES } from "../../context/CookieConsentContext"

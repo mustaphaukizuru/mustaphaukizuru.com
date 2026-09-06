@@ -155,6 +155,11 @@ export function formatCount(n, lang) {
  * @returns {string}
  */
 export function formatDate(d, lang, options) {
+  // `new Date(null)` is epoch 0 — a VALID date — so a null reaching here
+  // rendered "Jan 1, 1970" rather than nothing. Most callers guard with
+  // `d ? fmt(d) : "—"`, which is why it was never seen; the ones that do not
+  // would have shown a client a 1970 due date.
+  if (d === null || d === undefined || d === "") return "";
   const date = d instanceof Date ? d : new Date(d);
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString(resolveFormatLocale(lang), {
@@ -166,12 +171,71 @@ export function formatDate(d, lang, options) {
 }
 
 /**
+ * Format a DATE-ONLY value as "May 8, 2026" / "8 may 2026", in UTC.
+ *
+ * WHY THIS IS SEPARATE FROM formatDate (D0-2)
+ *
+ * A field a person picked in an `<input type="date">` arrives as the string
+ * "2026-06-01", and `new Date("2026-06-01")` is MIDNIGHT UTC. Render that
+ * with the browser's local timezone and every user west of Greenwich sees
+ * the previous day: in Mexico City, UTC-6, a project due 1 October reads
+ * "Sep 30" and a milestone due the 1st reads as the last of the month.
+ *
+ * That is the entire home market, and it was wrong on every due date,
+ * start date and invoice due date on the dashboard.
+ *
+ * So the rule is about the VALUE, not the display:
+ *
+ *   formatDay   a calendar day somebody chose — dueDate, startDate, dueAt,
+ *               estimatedAt, a time entry's date, an invoice's dueDate.
+ *               Rendered in UTC, because that is the timezone it was
+ *               stored in and it does not denote an instant.
+ *
+ *   formatDate  a real instant the server stamped — createdAt, paidAt,
+ *               completedAt, issuedAt, viewedAt. Rendered LOCAL, because
+ *               "when did this happen" is a question about the reader's
+ *               own clock.
+ *
+ * Getting this backwards is invisible in London and wrong everywhere else,
+ * which is why it survived: the formatter is correct for half the fields it
+ * was used on.
+ *
+ * @param {Date|string|number} d
+ * @param {string} [lang] i18n language; defaults to the active one.
+ * @param {Intl.DateTimeFormatOptions} [options] override the default parts.
+ * @returns {string}
+ */
+export function formatDay(d, lang, options) {
+  // `new Date(null)` is epoch 0 — a VALID date — so a null reaching here
+  // rendered "Jan 1, 1970" rather than nothing. Most callers guard with
+  // `d ? fmt(d) : "—"`, which is why it was never seen; the ones that do not
+  // would have shown a client a 1970 due date.
+  if (d === null || d === undefined || d === "") return "";
+  const date = d instanceof Date ? d : new Date(d);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString(resolveFormatLocale(lang), {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    ...(options || {}),
+    // Last, so a caller cannot accidentally override the one thing that
+    // makes this function different from formatDate.
+    timeZone: "UTC",
+  });
+}
+
+/**
  * Format a date+time as "May 8, 2026 · 12:01 PM" (en) / "8 may 2026 · 12:01 p.m." (es).
  * @param {Date|string|number} d
  * @param {string} [lang] i18n language; defaults to the active one.
  * @returns {string}
  */
 export function formatDateTime(d, lang) {
+  // `new Date(null)` is epoch 0 — a VALID date — so a null reaching here
+  // rendered "Jan 1, 1970" rather than nothing. Most callers guard with
+  // `d ? fmt(d) : "—"`, which is why it was never seen; the ones that do not
+  // would have shown a client a 1970 due date.
+  if (d === null || d === undefined || d === "") return "";
   const date = d instanceof Date ? d : new Date(d);
   if (Number.isNaN(date.getTime())) return "";
   const locale = resolveFormatLocale(lang);

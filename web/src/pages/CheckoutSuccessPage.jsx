@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Link, useParams, useSearchParams } from "react-router-dom"
+import { useParams, useSearchParams } from "react-router-dom"
+import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { m } from "framer-motion"
 import {
   Download, LayoutDashboard, ArrowRight, Mail, ShoppingBag, Package, Shield,

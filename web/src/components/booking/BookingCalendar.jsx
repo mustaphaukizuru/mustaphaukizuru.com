@@ -10,7 +10,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { LocalizedLink as Link } from "../LocalizedLink"
+import useNavigate from "../../hooks/useLocalizedNavigate"
 import { m, AnimatePresence } from "framer-motion"
 import {
   Calendar, ChevronLeft, ChevronRight, ChevronDown, Clock, Globe2,

@@ -188,5 +188,19 @@
     "heading": "Organisations I have",
     "headingAccent": "delivered for",
     "body": "Schools, retail and service businesses across Mexico, Rwanda and Turkey — from IT strategy and infrastructure to the websites and platforms their teams use every day."
+  },
+  "engineering": {
+    "eyebrow": "Measured, not claimed",
+    "heading": "How this site is actually built",
+    "body": "Every number here is written by a tool — the test suite, the coverage report, Lighthouse — and regenerated with the build. None of it is typed by hand, which is the only reason it is worth reading.",
+    "tests": "tests",
+    "suitesHint": "across {{count}} suites",
+    "coverage": "line coverage",
+    "performance": "performance",
+    "accessibility": "accessibility",
+    "bestPractices": "best practices",
+    "seo": "SEO",
+    "worstHint": "the worst score across {{count}} audited pages, not the average",
+    "measured": "Measured {{date}}"
   }
 }
