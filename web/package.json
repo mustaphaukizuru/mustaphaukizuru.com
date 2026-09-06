@@ -30,7 +30,8 @@
     "covers:build": "node ./scripts/generate-product-covers.mjs",
     "lint:type": "node ./scripts/check-typography.mjs",
     "lint:legacy": "bash ../scripts/check-legacy-palette.sh",
-    "lint:contrast:live": "node ./scripts/check-contrast-live.mjs"
+    "lint:contrast:live": "node ./scripts/check-contrast-live.mjs",
+    "service-covers:build": "node ./scripts/generate-service-covers.mjs"
   },
   "dependencies": {
     "@sentry/react": "^10.20.0",

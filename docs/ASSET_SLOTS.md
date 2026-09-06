@@ -17,11 +17,21 @@ no layout shift either way.
 
 ---
 
-## 1 · Service categories — the highest-value four
+## 1 · Service categories — **generated, in place**
+
+**Status: done.** All four exist as 1600×900 JPGs with full AVIF + WebP
+variant sets (`-400/-800/-1200/-1600`), built by
+`cd web && npm run service-covers:build`. Verified loading on `/services`:
+each card fetches the 800px AVIF for its 422px slot.
+
+They are *generated brand art*, not photography — same pipeline as the nine
+product covers (`scripts/og/*`, the real Brand v3 tokens, Sora, the same
+rasteriser). Drop a photograph at the same path and it wins; the generator is
+not wired into the build, so nothing overwrites a real asset. Re-run it only
+if you want the generated versions back.
 
 Four files cover the whole catalogue. The 24 offerings inherit their
-category's cover, which is why this is four assets to source rather than
-twenty-four.
+category's cover, which is why this is four assets rather than twenty-four.
 
 | Drop at | Used by |
 |---|---|
@@ -34,10 +44,15 @@ twenty-four.
 hero to 16:10, so keep the subject centred and away from the bottom edge —
 a caption gradient sits there.
 
-**Then run** `cd web && npm run images:webp` to emit the `-400/-800/-1200`
-WebP and AVIF siblings the slot's `srcset` already asks for. Without them the
-original still loads; with them mobile gets a 400px file instead of a 1600px
-one, which matters given FCP is over budget on every page.
+**If you replace one**, run `cd web && npm run images:webp` then
+`node scripts/generate-avif.js --apply` (from the repo root) to re-emit the
+siblings the slot's `srcset` asks for. Without them the original still loads;
+with them mobile gets a 400px file instead of a 1600px one, which matters
+given FCP is over budget on every page.
+
+Both `web/public/images/services/` and `public/images/services/` carry the
+files — Vite serves the first in dev and wipes the second on build, Express
+serves the second in production. The generator writes both.
 
 ---
 
@@ -108,8 +123,14 @@ than stubbed:
 
 ## Adding a new slot
 
+Import from the modules directly, **not** from the `ui` barrel — re-exporting
+MediaSlot there put it, `accent.js` and `Image.js` on the homepage's critical
+path (~14 KB for components the homepage never renders), and Rollup cannot
+tree-shake a barrel re-export.
+
 ```jsx
-import { MediaSlot, accentFor } from "../components/ui"
+import MediaSlot from "../components/ui/MediaSlot"
+import { accentFor } from "../components/ui/accent"
 
 <MediaSlot
   src={`/images/services/${category.slug}.jpg`}
