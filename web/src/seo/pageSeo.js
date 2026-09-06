@@ -73,12 +73,19 @@ export const staticSeoByRoute = {
     ],
   },
 
+  /* Each category has its OWN share card at /og/services/<slug>.png. That
+     path is deliberate: it is what `fallbackOgImage()` in
+     src/middleware/ogInjector.js already looks for, so the crawler and this
+     map resolve to the same file without a second convention. All four used
+     to point at og-services.png — and the crawler got og-default.png
+     regardless, because /services/:slug takes the database path and no
+     Service row carries an image. */
   "/services/it-strategy-consulting": {
     title: "IT Strategy Consulting · Software Audit · Fractional CTO · Compliance",
     description:
       "Software-stack audits, fractional CTO leadership, vendor evaluation and RFPs, digital-transformation roadmaps, and LFPDPPP compliance and risk assessment.",
     type: "website",
-    image: absoluteUrl("/og/og-services.png"),
+    image: absoluteUrl("/og/services/it-strategy-consulting.png"),
     schemaType: "Service",
     keywords: ["IT strategy consulting", "fractional CTO Mexico", "software audit", "LFPDPPP compliance"],
   },
@@ -88,7 +95,7 @@ export const staticSeoByRoute = {
     description:
       "Custom LLM persona bots, WhatsApp lead qualifiers synced to your CRM, cross-platform API pipelines, private RAG knowledge bases, and document data-extraction workflows.",
     type: "website",
-    image: absoluteUrl("/og/og-services.png"),
+    image: absoluteUrl("/og/services/ai-automation.png"),
     schemaType: "Service",
     keywords: ["AI automation consulting", "WhatsApp chatbot CRM", "RAG knowledge base", "Make Zapier integration"],
   },
@@ -98,7 +105,7 @@ export const staticSeoByRoute = {
     description:
       "On-premise to cloud migration, cloud-bill optimisation, disaster-recovery planning, Docker containerisation, and zero-trust security hardening.",
     type: "website",
-    image: absoluteUrl("/og/og-services.png"),
+    image: absoluteUrl("/og/services/cloud-architecture-migration.png"),
     schemaType: "Service",
     keywords: ["cloud migration consultant", "AWS Azure GCP migration", "cloud cost optimisation", "Docker containerization"],
   },
@@ -108,7 +115,7 @@ export const staticSeoByRoute = {
     description:
       "Interactive UI/UX wireframing, MVP web applications, cross-platform mobile apps, secure API design, CI/CD automation, and managed maintenance retainers.",
     type: "website",
-    image: absoluteUrl("/og/og-services.png"),
+    image: absoluteUrl("/og/services/digital-product-engineering.png"),
     schemaType: "Service",
     keywords: ["MVP development Mexico", "cross-platform mobile app", "API design", "CI/CD automation"],
   },

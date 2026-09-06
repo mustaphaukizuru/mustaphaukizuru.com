@@ -1,7 +1,7 @@
 const fs = require("fs")
 const os = require("os")
 const path = require("path")
-const { injectMeta, escapeAttr, absoluteUrl, createOgInjector, staticKey } = require("../src/middleware/ogInjector")
+const { injectMeta, escapeAttr, absoluteUrl, createOgInjector, staticKey, fallbackOgImage } = require("../src/middleware/ogInjector")
 
 // A path that cannot exist, for the "the generator never ran" case.
 const MISSING_CARDS = path.join(os.tmpdir(), "og-static-does-not-exist-8f2b1c.json")
@@ -228,5 +228,55 @@ describe("static page cards", () => {
     expect(staticKey("/es")).toBe("/es")
     expect(staticKey("/a/b/")).toBe("/a/b")
     expect(staticKey("///")).toBe("/")
+  })
+})
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Per-category share cards · the coupling that broke silently
+   ══════════════════════════════════════════════════════════════════════════
+
+   `/services/:slug` matches ROUTE_RE, so it takes the DATABASE path — and no
+   Service row has an image column populated. `fallbackOgImage()` is what
+   saves it, and it looks for exactly one path: /og/<kind>/<slug>.png.
+
+   The first attempt at these cards wrote them to `og-service-<slug>.png` and
+   pointed src/seo/pageSeo.js at them. Every unit test passed, the files
+   existed, the SPA rendered the right tag — and a crawler still got
+   og-default.png, because the static map pageSeo feeds is only consulted for
+   paths that do NOT match ROUTE_RE. Found with `curl -A facebookexternalhit`,
+   which is the only thing that looks at this the way the consumer does.
+
+   So the test is not "does a card exist" but "does a card exist WHERE THE
+   INJECTOR LOOKS", for every slug in the closed set of four. Rename the
+   files or the folder and this goes red.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+describe("service category share cards", () => {
+  const OG_DIR = path.join(__dirname, "..", "public", "og")
+  const CATEGORIES = [
+    "it-strategy-consulting",
+    "ai-automation",
+    "cloud-architecture-migration",
+    "digital-product-engineering",
+  ]
+
+  test.each(CATEGORIES)("%s resolves to its own card, not the generic one", (slug) => {
+    const resolved = fallbackOgImage("services", slug, OG_DIR)
+    expect(resolved).toBe(`/og/services/${slug}.png`)
+    expect(resolved).not.toMatch(/og-default/)
+  })
+
+  test("the four cards are distinct files, not four copies of one", () => {
+    // A generator bug that wrote the same SVG four times would pass the
+    // resolution test above and still ship four identical previews, which is
+    // the defect this whole change exists to remove.
+    const sizes = CATEGORIES.map((slug) => fs.statSync(path.join(OG_DIR, "services", `${slug}.png`)).size)
+    expect(new Set(sizes).size).toBe(CATEGORIES.length)
+  })
+
+  test("an unknown service slug still falls back to the generic card", () => {
+    // The fallback must stay a fallback. A retired slug or a typo gets the
+    // generic card rather than a 404 image reference in a share preview.
+    expect(fallbackOgImage("services", "not-a-real-category", OG_DIR)).toMatch(/og-default/)
   })
 })

@@ -100,7 +100,8 @@ programmatically. Real product mockups will beat it.
 | Profile / headshots | `public/images/profile/` — two photos, full variant sets |
 | Client logos | `public/images/brand/companies/` — 7 logos, AVIF + WebP + @2x |
 | Contact form art | `public/images/pages/Conctact_Form_Image.svg` |
-| OG share cards | `public/og/` — 14 files, and `npm run seo:og-static` generates more |
+| OG share cards | `public/og/` — 16 cards + 4 social banners, `cd web && node scripts/generate-og-images.mjs` |
+| Service category share cards | `public/og/services/<slug>.png` — one per category. **That path is load-bearing:** `fallbackOgImage()` in `src/middleware/ogInjector.js` looks for `/og/<kind>/<slug>.png` and nothing else. Rename the folder and crawlers silently get the generic card again; `test/ogInjector.test.js` guards it. |
 
 ---
 
@@ -116,8 +117,10 @@ than stubbed:
 - **Category header banners** (2400×800) for the top of each
   `/services/<slug>` page, above the current hero. The hero slot in §1
   covers the need for now.
-- **Per-service OG cards** (1200×630 × 24). `npm run seo:og-static` can
-  generate them from the catalogue once a template exists.
+- **Per-offering OG cards** (1200×630 × 24, one per offering). The four
+  CATEGORY cards are done (see below); the 24 individual offerings do not
+  have their own `/services/<offering>` routes, so there is nothing to share
+  yet — this only becomes real if offerings get their own pages.
 
 ---
 

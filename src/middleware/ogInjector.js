@@ -242,6 +242,15 @@ async function lookup(kind, slug, locale) {
       return {
         title: firstOf(s.metaTitle, s.title, s.name),
         description: firstOf(s.metaDescription, s.shortDescription, s.description),
+        /* No image column on a Service row is populated, so this used to
+           resolve to null and the caller fell all the way back to the
+           generic og-default.png. Measured with a Facebook user-agent
+           against /services/ai-automation: og-default.png, while /about
+           correctly got og-profile.png — the difference being that /about is
+           not a ROUTE_RE detail page and therefore reads the static map.
+           Returning null here lets the caller consult that same map, which
+           now carries a dedicated card per category and covers /es for free
+           because pageSeo is the one source for both. */
         image: firstOf(s.heroImage, s.coverImage, s.image, s.thumbnail),
         type: "website",
       }
