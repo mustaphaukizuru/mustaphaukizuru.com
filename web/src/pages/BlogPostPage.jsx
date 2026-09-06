@@ -6,7 +6,8 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useState } from "react"
-import { useParams, Navigate } from "react-router-dom"
+import ErrorPage from "./ErrorPage"
+import { useParams } from "react-router-dom"
 import { LocalizedLink as Link } from "../components/LocalizedLink"
 import { useTranslation } from "react-i18next"
 import { m, useReducedMotion } from "framer-motion"
@@ -212,6 +213,35 @@ function categoryByValue(slug) {
   return BLOG_CATEGORIES.find((c) => c.slug === slug) || null
 }
 
+/**
+ * Shown while the post lookup is in flight and there is no static fallback.
+ * Mirrors the article's own rhythm — eyebrow, title, meta row, cover, body —
+ * so the real content does not visibly re-flow when it lands.
+ */
+function PostSkeleton() {
+  return (
+    <div className="min-h-[60vh] bg-mist">
+      <div className="mx-auto max-w-3xl px-4 py-12 sm:py-16">
+        <div className="animate-pulse space-y-5" role="status" aria-busy="true">
+          <div className="h-3 w-32 rounded bg-violet-pale/70" />
+          <div className="h-10 w-11/12 rounded-lg bg-violet-pale" />
+          <div className="h-10 w-2/3 rounded-lg bg-violet-pale" />
+          <div className="flex gap-3 pt-2">
+            <div className="h-3 w-24 rounded bg-violet-pale/60" />
+            <div className="h-3 w-20 rounded bg-violet-pale/60" />
+          </div>
+          <div className="mt-6 aspect-[16/7] rounded-2xl bg-white shadow-[var(--shadow-e4)]" />
+          <div className="space-y-3 pt-4">
+            {[11, 10, 9, 11, 7].map((w, i) => (
+              <div key={i} className="h-3 rounded bg-violet-pale/55" style={{ width: `${w * 9}%` }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function BlogPostPage() {
   const { t, i18n } = useTranslation("blog")
   const localeTag = i18n.language === "es" ? "es-MX" : "en-US"
@@ -222,13 +252,19 @@ export default function BlogPostPage() {
   const staticPost = useMemo(() => getPostBySlug(slug), [slug])
   const staticRelated = useMemo(() => getRelatedPosts(slug, 3), [slug])
   const [apiPost, setApiPost] = useState(null)
+  // `settled` is the whole fix below: without it, "the fetch has not come
+  // back yet" and "there is no such post" are indistinguishable, and the
+  // page treated both as the second one.
+  const [settled, setSettled] = useState(false)
   useEffect(() => {
     let cancelled = false
+    setSettled(false)
     ;(async () => {
       try {
         const res = await apiRequest(`/api/v1/blog/${encodeURIComponent(slug)}?locale=${encodeURIComponent((i18n.language || "en").slice(0, 2))}`)
         if (!cancelled && res?.post) setApiPost(res.post)
       } catch { /* fall back to static */ }
+      finally { if (!cancelled) setSettled(true) }
     })()
     return () => { cancelled = true }
   }, [slug, i18n.language])
@@ -239,7 +275,26 @@ export default function BlogPostPage() {
   const url = post ? `${SITE_URL}/blog/${post.slug}` : ""
   const toc = useMemo(() => (post ? extractTOC(post.body) : []), [post])
 
-  if (!post) return <Navigate to="/blog" replace />
+  /* A missing post is a 404, not a redirect.
+   *
+   * This used to bounce to /blog, which is a soft 404: the reader following
+   * an old or mistyped link lands on the index with no idea why, and a
+   * crawler is told 200 for a page that does not exist. The app already has
+   * the right surface — ErrorPage's own docblock says it is for "any caller
+   * that wants to render a themed error inline", it ships the NotFoundArt
+   * illustration, and it sets robots=noindex itself.
+   *
+   * The `settled` guard matters as much as the 404. Posts that exist only in
+   * the database — anything published through the admin CMS after the static
+   * data file was written, e.g. wcag-quick-wins-for-marketing-pages — have
+   * no static fallback, so on the first render `post` is null while the
+   * fetch is still in flight. Rendering a terminal state there would bounce
+   * a reader off a perfectly good post on a slow connection. Skeleton until
+   * the lookup answers. */
+  if (!post) {
+    if (!settled) return <PostSkeleton />
+    return <ErrorPage type="404" title={t("post.notFound.title")} message={t("post.notFound.body")} showRetry={false} />
+  }
 
   const category = categoryByValue(post.category)
 

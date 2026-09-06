@@ -25,7 +25,11 @@
     },
     "ctaTitle": "Working on something similar?",
     "ctaBody": "Book a free 30-minute strategy call — no pitch, just answers.",
-    "allArticles": "All articles →"
+    "allArticles": "All articles →",
+    "notFound": {
+      "title": "That article is not here",
+      "body": "The link may be old, or the post may have been unpublished. The index below has everything that is live."
+    }
   },
   "list": {
     "page": "Blog",
