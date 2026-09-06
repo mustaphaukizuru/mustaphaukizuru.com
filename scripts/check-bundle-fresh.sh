@@ -27,8 +27,19 @@ set -euo pipefail
 # The exclusion is deliberately narrow: only files whose names end in
 # .test/.spec. Anything else under web/src still counts, which is the case
 # ADR 0001 exists for.
+# `web/public` is NOT in this list, and that is the second correction to it.
+# It holds static files Vite copies VERBATIM into public/ — images, fonts,
+# documents. Adding one does not change a single byte of the JS bundle, so
+# the staleness question is meaningless for them and, worse, unanswerable: a
+# rebuild produces no new commit for BUNDLE_PATHS, so the gate could never
+# go green again. Four generated service covers hit exactly that.
+#
+# The failure mode those files DO have is a half-committed mirror — written
+# to web/public but not to the root copy Express serves, which is the trap
+# generate-product-covers.mjs documents. Part 3 below checks for that
+# instead, which is the question worth asking.
 SRC_PATHS=(
-  web/src web/public web/index.html web/vite.config.js web/package-lock.json
+  web/src web/index.html web/vite.config.js web/package-lock.json
   web/scripts/generate-sitemap.mjs
   ':(exclude)web/src/**/*.test.js'   ':(exclude)web/src/**/*.test.jsx'
   ':(exclude)web/src/**/*.spec.js'   ':(exclude)web/src/**/*.spec.jsx'
@@ -95,6 +106,40 @@ if [ ${#missing[@]} -gt 0 ]; then
 fi
 
 echo "✅ bundle complete — every asset public/index.html references is committed"
+
+# =============================================================================
+# Part 3 · is the static mirror in sync?
+#
+# Two directories hold the same static files on purpose: `web/public` is what
+# Vite serves in dev and copies on build (with emptyOutDir, which wipes the
+# root first), and the repo-root `public/` is what Express serves in
+# production. Writing one and not the other means the dev server 404s, or the
+# next build deletes the file outright.
+#
+# Names and sizes, not hashes — enough to catch a file written to one side
+# only or truncated on copy, and it stays fast over ~360 files.
+# =============================================================================
+unmirrored=()
+while IFS= read -r rel; do
+  [ -z "$rel" ] && continue
+  src="web/public/$rel"
+  dst="public/$rel"
+  if [ ! -f "$dst" ]; then
+    unmirrored+=("missing:  $rel")
+  elif [ "$(wc -c < "$src")" != "$(wc -c < "$dst")" ]; then
+    unmirrored+=("differs:  $rel")
+  fi
+done < <(cd web/public 2>/dev/null && find . -type f | sed 's|^\./||' | sort)
+
+if [ ${#unmirrored[@]} -gt 0 ]; then
+  echo "❌ static mirror out of sync — ${#unmirrored[@]} file(s) in web/public/ are not in public/:"
+  for f in "${unmirrored[@]}"; do echo "     $f"; done
+  echo "   Vite serves web/public in dev; Express serves public/ in production."
+  echo "   Copy the files across and commit both, or the asset 404s in one of them."
+  exit 1
+fi
+
+echo "✅ static mirror in sync — every file in web/public/ is in public/"
 
 if [ "${FRESH_OK:-0}" != "1" ]; then
   echo "✅ bundle fresh — public/ (${BUNDLE_SHA:0:7}) is newer than or diverged from the last source change (${SRC_SHA:0:7})"
