@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
+import { GeneratedArt } from "../components/ui/MediaSlot"
+import { TOKENS } from "../styles/tokens.js"
 import { useTranslation } from "react-i18next"
 import {
   Search, X, LayoutGrid, Rows3, SlidersHorizontal, ShoppingCart, Star,
@@ -292,9 +294,18 @@ function StoreProductCard({ product }) {
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-violet/30">
-            <Package className="h-10 w-10" aria-hidden="true" />
-          </div>
+          /* A product with no cover used to be a 40px box icon on a pale
+             wash — the same "missing image" read the portfolio cards had.
+             Generative art seeded on the slug instead, so a store grid is
+             coherent whether or not every cover has been produced yet, and
+             a real cover replaces it with no code change. */
+          <GeneratedArt
+            seed={product.slug || product.id || product.title || "product"}
+            accent={TOKENS.violet}
+            label=""
+            aspectRatio="1 / 1"
+            className="h-full w-full rounded-xl"
+          />
         )}
 
         {/* F05.A · "New" badge top-left (Soft Terracotta + Charcoal text) */}

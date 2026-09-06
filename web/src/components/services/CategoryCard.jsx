@@ -6,6 +6,8 @@ import { ArrowRight } from "lucide-react"
 import { pick, useCatalogueLang } from "./localize"
 import OfferingList from "./OfferingList"
 import { BookCallButton } from "./BookCallCta"
+import MediaSlot from "../ui/MediaSlot"
+import { accentFor } from "../ui/accent"
 
 export default function CategoryCard({ category, index = 0 }) {
   const { t } = useTranslation("services")
@@ -13,7 +15,29 @@ export default function CategoryCard({ category, index = 0 }) {
   const Icon = category.Icon
 
   return (
-    <article className="group flex h-full flex-col rounded-2xl border border-charcoal-80/10 bg-white p-6 shadow-[var(--shadow-e4)] transition-all hover:-translate-y-1 hover:border-violet/30 hover:shadow-[0_16px_40px_rgb(var(--color-violet-rgb)/0.12)] sm:p-8">
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-charcoal-80/10 bg-white shadow-[var(--shadow-e4)] transition-all hover:-translate-y-1 hover:border-violet/30 hover:shadow-[0_16px_40px_rgb(var(--color-violet-rgb)/0.12)]">
+      {/* The category cover. Four categories carry the whole catalogue's
+          visual weight — the 24 offerings under them inherit it rather than
+          each needing their own photograph, which is the difference between
+          four assets to source and twenty-four.
+
+          Nothing has to exist for this to look right: MediaSlot draws
+          on-brand generative art until the file is dropped at the path
+          below. Swapping a real photograph in later is a file copy, not a
+          code change. */}
+      <MediaSlot
+        src={`/images/services/${category.slug}.jpg`}
+        alt=""
+        seed={category.slug}
+        accent={accentFor(category.accent)}
+        aspectRatio="16 / 9"
+        widths={[400, 800, 1200]}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        rounded=""
+        className="border-b border-charcoal-80/10"
+      />
+
+      <div className="flex flex-1 flex-col p-6 sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl text-white ${category.tile}`}>
           {Icon && <Icon className="h-6 w-6" aria-hidden="true" />}
@@ -33,6 +57,7 @@ export default function CategoryCard({ category, index = 0 }) {
         >
           {t("funnel.viewCategory")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
+      </div>
       </div>
     </article>
   )

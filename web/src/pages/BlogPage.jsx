@@ -53,6 +53,7 @@ import {
 
 import { useTranslation } from "react-i18next"
 import BlogCoverGradient from "../components/BlogCoverGradient"
+import { compositeOver, readableOn } from "../components/ui/accent"
 import NewsletterInline from "../components/NewsletterInline"
 import { TOKENS } from "../styles/tokens.js"
 /* ── Motion variants ──────────────────────────────────────────────────── */
@@ -834,7 +835,7 @@ function PostCard({ post }) {
           {/* Category + date row */}
           <div className="flex flex-wrap items-center gap-2">
             {cat ? <CategoryPill category={cat} /> : null}
-            <span className="hidden font-mono text-[10.5px] text-charcoal-80/40 sm:block">
+            <span className="hidden font-mono text-micro text-charcoal-80/70 sm:block">
               {formatDate(post.publishedAt, locale)}
             </span>
           </div>
@@ -861,7 +862,7 @@ function PostCard({ post }) {
                 </span>
               ))}
               {(post.tags?.length || 0) > 2 && (
-                <span className="font-mono text-[10px] text-charcoal-80/35">
+                <span className="font-mono text-micro text-charcoal-80/70">
                   +{post.tags.length - 2}
                 </span>
               )}
@@ -934,10 +935,22 @@ function CoverArt({ post, className = "" }) {
    ════════════════════════════════════════════════════════════════════════ */
 
 function CategoryPill({ category }) {
+  /* The label is a DARKENED accent, not the accent itself.
+     `color: accent` on `background: accent15` is the accent as text on an
+     8% tint of itself, which cannot pass for a light brand colour and did
+     not: terracotta measured 1.6:1, mint 2.34, azure 3.69, violet-mid 4.16
+     — 23 failing nodes on this page at desktop width. `readableOn` walks
+     the lightness down until it clears 4.5:1, so the chip stays
+     recognisably its category colour and is legible at the same time. The
+     dot keeps the pure accent, where contrast does not apply. */
+  // 0x15 = the 8% alpha the background was already written with, resolved to
+  // the flat colour the browser paints so the contrast solver measures the
+  // ground the text is actually on.
+  const tint = compositeOver(category.accent, 0x15 / 255)
   return (
     <span
-      className="inline-flex w-fit items-center gap-1.5 rounded-full bg-violet-pale/70 px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-violet"
-      style={{ backgroundColor: `${category.accent}15`, color: category.accent }}
+      className="inline-flex w-fit items-center gap-1.5 rounded-full bg-violet-pale/70 px-2.5 py-0.5 text-micro font-bold uppercase tracking-[0.16em] text-violet"
+      style={{ backgroundColor: tint, color: readableOn(category.accent, tint) }}
     >
       <span
         aria-hidden="true"

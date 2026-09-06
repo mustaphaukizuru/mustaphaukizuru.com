@@ -108,7 +108,19 @@ function Steps({ lang, t }) {
    its own container so the page body never scrolls sideways on a phone. */
 function SubmitTable({ lang, t }) {
   return (
-    <div className="mt-6 overflow-x-auto rounded-2xl border border-charcoal-80/10 bg-white">
+    /* tabIndex + role/label: axe's `scrollable-region-focusable`, and the
+       only WCAG violation left on the public pages. A container that
+       scrolls with a mouse wheel or a finger but cannot be reached by Tab
+       is content a keyboard user cannot get to at all — the table is 34rem
+       wide and a phone shows about half of it. Making the SCROLLER
+       focusable (rather than adding tab stops inside the table) is what the
+       rule asks for: one stop, then arrow keys. */
+    <div
+      className="mt-6 overflow-x-auto rounded-2xl border border-charcoal-80/10 bg-white focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-azure/30"
+      tabIndex={0}
+      role="region"
+      aria-label={t("process.submit.title")}
+    >
       <table className="w-full min-w-[34rem] border-collapse text-left">
         <caption className="sr-only">{t("process.submit.title")}</caption>
         <thead>

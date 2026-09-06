@@ -104,7 +104,22 @@ test.describe("first-paint payload", () => {
     // was only sometimes inside the measurement window, which is a
     // different thing. Net: three kilobytes tighter than it was found.
     //
-    // 1450.1 KB measured without it, stable across four runs. 1450 was
+    // RAISED 1452 → 1457 when MediaSlot landed, and the accounting matters
+    // more than the number. The first build measured 1468 KB / 47 files: the
+    // `ui/index.jsx` barrel was pulling MediaSlot.js, accent.js and Image.js
+    // onto the HOMEPAGE, which renders none of them — Rollup cannot
+    // tree-shake a barrel re-export once anything in the file is reached.
+    // Importing those three from their own modules at the call sites took it
+    // to 1454 KB / 46, recovering 14 of the 18.
+    //
+    // The remaining ~4 KB is real and is bought: `ProjectShowcase` IS on the
+    // homepage (featured work), and its no-cover fallback is now on-brand
+    // generative art instead of a grey grid icon. Only three case studies
+    // have photo sets, so that was the common path, not the edge one.
+    //
+    // 1454 KB measured, stable across three runs.
+    //
+    // 1450.1 KB was the figure before this; 1450 was
     // tried first and missed by SIXTY BYTES — three i18n strings for the
     // splash and the session spinner (D4-2) land in the locale chunk, which
     // is on the critical path. Not worth chasing; worth writing down, so the
@@ -125,7 +140,7 @@ test.describe("first-paint payload", () => {
     // Lower it as the remaining wins land. What is left, in order: 324 KB
     // CSS, 276 KB entry, 188 KB react-vendor, 150 KB vendor, and a 60 KB
     // bioService chunk that has no business on the homepage.
-    expect(totalKb, `first paint fetched ${totalKb.toFixed(0)} KB across ${assets.length} files`).toBeLessThan(1452)
+    expect(totalKb, `first paint fetched ${totalKb.toFixed(0)} KB across ${assets.length} files`).toBeLessThan(1457)
   })
 
   test("pdf.js is not on the critical path", async ({ page }) => {

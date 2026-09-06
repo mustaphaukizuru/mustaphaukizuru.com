@@ -2,9 +2,11 @@ import { useState } from "react"
 import { LocalizedLink as Link } from "../LocalizedLink"
 import { m } from "framer-motion"
 import { useTranslation } from "react-i18next"
-import { ArrowRight, Code2, ExternalLink, Grid3x3, Sparkles, TrendingUp } from "lucide-react"
+import { ArrowRight, Code2, ExternalLink, Sparkles, TrendingUp } from "lucide-react"
 import ContainerScroll from "../ui/ContainerScroll"
 import { getCaseStudy, responsiveSrcSet, hasPlaceholder, projectImages } from "./caseStudy"
+import { GeneratedArt } from "../ui/MediaSlot"
+import { TOKENS } from "../../styles/tokens.js"
 
 /**
  * ProjectShowcase · the one way a project is presented across the site
@@ -114,9 +116,20 @@ export default function ProjectShowcase({ project, priority = false, linkLabel, 
               />
             </div>
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-violet-pale text-violet/40">
-              <Grid3x3 className="h-12 w-12" aria-hidden="true" />
-            </div>
+            /* No cover on file. This used to be a 12px grid icon on a pale
+               wash, which reads as a missing image rather than a design —
+               and only three of the case studies have photo sets, so it was
+               the common case, not the edge one. On-brand generative art
+               seeded on the slug instead: stable across renders and
+               deploys, and it disappears the moment a real cover lands in
+               the project's image folder. */
+            <GeneratedArt
+              seed={project.slug || project.id || "project"}
+              accent={TOKENS.violet}
+              label=""
+              aspectRatio="16 / 10"
+              className="h-full w-full rounded-2xl"
+            />
           )}
         </Link>
       </ContainerScroll>
